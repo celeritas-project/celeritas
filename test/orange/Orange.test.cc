@@ -103,6 +103,32 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_SOFT_EQ(inf, geo.find_safety());
 }
 
+TEST_F(OneVolumeTest, obz)
+{
+    auto const& data = this->params().host_ref();
+    auto const& obz_record
+        = data.obz_records[OpaqueId<OrientedBoundingZoneRecord>{0}];
+
+    // Check half widths
+    EXPECT_VEC_SOFT_EQ(Real3({1, 1.5, 2}),
+                       data.fast_real3s[obz_record.hw_ids[0]]);
+    EXPECT_VEC_SOFT_EQ(Real3({1.1, 1.6, 2.1}),
+                       data.fast_real3s[obz_record.hw_ids[1]]);
+
+    // Check offsets
+    auto inner_offset = data.transforms[obz_record.offset_ids[0]].data_offset;
+    auto outer_offset = data.transforms[obz_record.offset_ids[1]].data_offset;
+
+    ItemRange<double> inner_range{inner_offset, inner_offset + 3};
+    ItemRange<double> outer_range{outer_offset, outer_offset + 3};
+
+    EXPECT_VEC_SOFT_EQ(Real3({2, 2.5, 3}), data.reals[inner_range]);
+    EXPECT_VEC_SOFT_EQ(Real3({3.1, 3.6, 4.1}), data.reals[outer_range]);
+
+    // Check translation id
+    EXPECT_EQ(10, obz_record.transform_id.get());
+}
+
 //---------------------------------------------------------------------------//
 class TwoVolumeTest : public OrangeTest
 {

@@ -130,6 +130,12 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
                         : 0);
         vi.zorder = ZOrder::media;
         vi.label = "infinite";
+
+        // Fake OBZ
+        BBox inner{{1, 1, 1}, {3, 4, 5}};
+        BBox outer{{2, 2, 2}, {4.2, 5.2, 6.2}};
+        vi.obz = {inner, outer, TransformId{10}};
+
         return vi;
     }()};
 

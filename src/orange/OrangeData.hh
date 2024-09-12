@@ -422,6 +422,7 @@ struct OrangeParamsData
         surface_types = other.surface_types;
         connectivity_records = other.connectivity_records;
         volume_records = other.volume_records;
+        obz_records = other.obz_records;
         daughters = other.daughters;
         universe_indexer_data = other.universe_indexer_data;
 
