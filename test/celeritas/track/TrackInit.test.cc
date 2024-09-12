@@ -39,7 +39,7 @@ struct RunResult
     std::vector<int> track_ids;
     std::vector<int> parent_ids;
     std::vector<int> init_ids;
-    std::vector<size_type> vacancies;
+    std::vector<int> vacancies;
 
     template<MemSpace M>
     static RunResult from_state(CoreState<M>&);
@@ -49,6 +49,14 @@ struct RunResult
 };
 
 //---------------------------------------------------------------------------//
+
+template<class T>
+int id_to_int(OpaqueId<T> oid)
+{
+    if (!oid)
+        return -1;
+    return static_cast<int>(oid.unchecked_get());
+}
 
 template<MemSpace M>
 RunResult RunResult::from_state(CoreState<M>& state)
@@ -62,7 +70,7 @@ RunResult RunResult::from_state(CoreState<M>& state)
     // Store the IDs of the vacant track slots
     for (auto tid : range(TrackSlotId{state.counters().num_vacancies}))
     {
-        result.vacancies.push_back(data.vacancies[tid].unchecked_get());
+        result.vacancies.push_back(id_to_int(data.vacancies[tid]));
     }
 
     // Store the track IDs of the initializers
@@ -72,7 +80,7 @@ RunResult RunResult::from_state(CoreState<M>& state)
         auto const& init = data.initializers[init_id];
         auto track = init.sim.track_id;
 
-        result.init_ids.push_back(track ? track.get() : -1);
+        result.init_ids.push_back(id_to_int(track));
     }
 
     // Copy sim state to host
@@ -82,10 +90,8 @@ RunResult RunResult::from_state(CoreState<M>& state)
     // Store the track IDs and parent IDs
     for (auto tid : range(TrackSlotId{sim.size()}))
     {
-        auto track = sim.track_ids[tid];
-        result.track_ids.push_back(track ? sim.track_ids[tid].get() : -1);
-        auto parent = sim.parent_ids[tid];
-        result.parent_ids.push_back(parent ? parent.get() : -1);
+        result.track_ids.push_back(id_to_int(sim.track_ids[tid]));
+        result.parent_ids.push_back(id_to_int(sim.parent_ids[tid]));
     }
 
     return result;
@@ -96,8 +102,8 @@ void RunResult::print_expected() const
 {
     std::vector<int> track_ids;
     std::vector<int> parent_ids;
-    std::vector<unsigned int> init_ids;
-    std::vector<size_type> vacancies;
+    std::vector<int> init_ids;
+    std::vector<int> vacancies;
 
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "static int const expected_track_ids[] = "
@@ -106,10 +112,10 @@ void RunResult::print_expected() const
             "static int const expected_parent_ids[] = "
          << repr(this->parent_ids) << ";\n"
          << "EXPECT_VEC_EQ(expected_parent_ids, result.track_ids);\n"
-            "static unsigned int const expected_init_ids[] = "
+            "static int const expected_init_ids[] = "
          << repr(this->init_ids) << ";\n"
          << "EXPECT_VEC_EQ(expected_init_ids, result.track_ids);\n"
-            "static size_type const expected_vacancies[] = "
+            "static int const expected_vacancies[] = "
          << repr(this->vacancies) << ";\n"
          << "EXPECT_VEC_EQ(expected_vacancies, result.vacancies);\n"
             "/*** END CODE ***/\n";
@@ -273,8 +279,7 @@ TYPED_TEST(TrackInitTest, run)
     // Check that all of the track slots were marked as empty
     {
         auto result = RunResult::from_state(this->state());
-        static unsigned int const expected_vacancies[]
-            = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        static int const expected_vacancies[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     }
 
@@ -322,7 +327,7 @@ TYPED_TEST(TrackInitTest, run)
     // Check the vacancies
     {
         auto result = RunResult::from_state(this->state());
-        static unsigned int const expected_vacancies[] = {2, 6};
+        static int const expected_vacancies[] = {2, 6};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     }
 
@@ -411,15 +416,14 @@ TYPED_TEST(TrackInitTest, primaries)
     }
 
     // Check the results
-    static int const expected_track_ids[] = {
-        8u, 1u, 9u, 3u, 10u, 5u, 11u, 7u, 12u, 9u, 13u, 11u, 14u, 13u, 15u, 15u};
+    static int const expected_track_ids[]
+        = {8, 1, 9, 3, 10, 5, 11, 7, 12, 9, 13, 11, 14, 13, 15, 15};
     static int const expected_parent_ids[]
         = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    static unsigned int const expected_vacancies[]
-        = {0u, 2u, 4u, 6u, 8u, 10u, 12u, 14u};
-    static unsigned int const expected_init_ids[]
-        = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u,
-           4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u};
+    static int const expected_vacancies[] = {0, 2, 4, 6, 8, 10, 12, 14};
+    static int const expected_init_ids[] = {0, 1, 2, 3, 4, 5, 6, 7,
+                                            0, 1, 2, 3, 4, 5, 6, 7,
+                                            0, 1, 2, 3, 4, 5, 6, 7};
     auto result = RunResult::from_state(this->state());
     EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
     EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
@@ -467,7 +471,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
 
         // Slots 5 and 6 are always vacant because these tracks are killed with
         // no secondaries
-        static unsigned int const expected_vacancies[] = {5u, 6u};
+        static int const expected_vacancies[] = {5u, 6u};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
 
         // init ids may not be deterministic, but can guarantee they are in the
