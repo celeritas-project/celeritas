@@ -60,6 +60,10 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
         = imported_.energy_grid_bounds(data_.ids.electron, MaterialId{0});
 
     // Check that the bounds are the same for all particles/materials
+    // TODO: This is only expected when using Coulomb scattering with the
+    // Wentzel VI model above the MSC energy limit. When the MSC energy limit
+    // is not set, the model energy grid bounds are material dependent and
+    // require material-dependent applicability
     for (auto pid : {data_.ids.electron, data_.ids.positron})
     {
         for (auto mid : range(MaterialId{materials.num_materials()}))
