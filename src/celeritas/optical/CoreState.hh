@@ -34,7 +34,7 @@ struct CoreStateCounters
 {
     // Initialization input
     size_type num_vacancies{};  //!< Number of unused track slots
-    size_type num_primaries{};  //!< Number of primaries to be converted
+    size_type num_generated{};  //!< Number of primary initializers generated
     size_type num_initializers{};  //!< Number of track initializers
 
     // Diagnostic output
@@ -115,7 +115,7 @@ class CoreState final : public CoreStateInterface
     size_type size() const final { return states_.size(); }
 
     // Whether the state is being transported with no active particles
-    inline bool warming_up() const;
+    bool warming_up() const;
 
     //// CORE DATA ////
 
@@ -152,22 +152,6 @@ class CoreState final : public CoreStateInterface
     // Counters for track initialization and activity
     CoreStateCounters counters_;
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the state is being transported with no active particles.
- *
- * The warmup stage is useful for profiling and debugging since the first
- * step iteration can do the following:
- * - Initialize asynchronous memory pools
- * - Interrogate kernel functions for properties to be output later
- * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
- */
-template<MemSpace M>
-bool CoreState<M>::warming_up() const
-{
-    return counters_.num_active == 0 && counters_.num_primaries == 0;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

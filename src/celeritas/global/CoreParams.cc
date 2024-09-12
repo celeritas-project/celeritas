@@ -143,9 +143,6 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     //// START ACTIONS ////
 
-    // NOTE: due to ordering by {start, ID}, ExtendFromPrimariesAction *must*
-    // precede InitializeTracksAction
-    reg->insert(make_shared<ExtendFromPrimariesAction>(reg->next_id()));
     reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
 
     //// PRE-STEP ACTIONS ////
@@ -242,6 +239,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     }
 
     ScopedMem record_mem("CoreParams.construct");
+
+    // Add track initializer generators (TODO: user does this externally)
+    auto primaries = ExtendFromPrimariesAction::make_and_insert(*this);
+    CELER_ASSERT(primaries);
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
