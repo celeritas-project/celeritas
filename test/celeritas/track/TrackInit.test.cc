@@ -50,8 +50,8 @@ struct RunResult
 
 //---------------------------------------------------------------------------//
 
-template<class T>
-int id_to_int(OpaqueId<T> oid)
+template<class T, class S>
+int id_to_int(OpaqueId<T, S> oid)
 {
     if (!oid)
         return -1;
@@ -78,12 +78,12 @@ RunResult RunResult::from_state(CoreState<M>& state)
          range(ItemId<TrackInitializer>{state.counters().num_initializers}))
     {
         auto const& init = data.initializers[init_id];
-        auto track = init.sim.track_id;
-
-        result.init_ids.push_back(id_to_int(track));
+        result.init_ids.push_back(id_to_int(init.sim.track_id));
     }
 
     // Copy sim state to host
+    // NOTE: if states have not been initialized on device, these IDs may also
+    // be uninitialized
     HostVal<SimStateData> sim;
     sim = state.ref().sim;
 
@@ -229,12 +229,15 @@ TYPED_TEST_SUITE(TrackInitTest, MemspaceTypes, MemspaceTypeString);
 TYPED_TEST(TrackInitTest, add_more_primaries)
 {
     this->build_states(16);
+    EXPECT_EQ(0, this->state().counters().num_initializers);
 
     auto primaries = this->make_primaries(22);
     this->extend_from_primaries(make_span(primaries));
+    EXPECT_EQ(22, this->state().counters().num_initializers);
 
     primaries = this->make_primaries(32);
     this->extend_from_primaries(make_span(primaries));
+    EXPECT_EQ(54, this->state().counters().num_initializers);
 }
 
 //! Test that we can add more primaries than the first allocation
@@ -248,9 +251,7 @@ TYPED_TEST(TrackInitTest, extend_primaries)
         this->insert_primaries(this->state(), make_span(primaries));
         auto result = RunResult::from_state(this->state());
 
-        static int const expected_track_ids[]
-            = {-1, -1, -1, -1, -1, -1, -1, -1};
-        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        EXPECT_EQ(0, this->state().counters().num_initializers);
     }
     {
         // Now initialize after adding
@@ -340,8 +341,8 @@ TYPED_TEST(TrackInitTest, run)
         auto result = RunResult::from_state(this->state());
         EXPECT_TRUE(std::all_of(std::begin(result.init_ids),
                                 std::end(result.init_ids),
-                                [](unsigned int id) { return id <= 18; }));
-        EXPECT_EQ(5, result.init_ids.size());
+                                [](int id) { return id >= 0 && id <= 18; }));
+        ASSERT_EQ(5, result.init_ids.size());
 
         // First two initializers are from primaries
         EXPECT_EQ(0, result.init_ids[0]);
@@ -356,7 +357,7 @@ TYPED_TEST(TrackInitTest, run)
         auto result = RunResult::from_state(this->state());
         EXPECT_TRUE(std::all_of(std::begin(result.track_ids),
                                 std::end(result.track_ids),
-                                [](unsigned int id) { return id <= 18; }));
+                                [](int id) { return id >= 0 && id <= 18; }));
 
         // Tracks that were not killed should have the same ID
         EXPECT_EQ(3, result.track_ids[1]);
@@ -462,8 +463,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
         }
     };
 
-    size_type const num_iter = 4;
-    for ([[maybe_unused]] size_type i : range(num_iter))
+    for (int i : range(4))
     {
         CELER_TRY_HANDLE(apply_actions(),
                          LogContextException{this->output_reg().get()});
@@ -478,20 +478,22 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
         // range 8<=x<=12 as we create 4 tracks per iteration, 2 in reused
         // slots from their parent, 2 as new inits
         EXPECT_EQ(2, result.init_ids.size());
-        EXPECT_TRUE(std::all_of(std::begin(result.init_ids),
-                                std::end(result.init_ids),
-                                [i](unsigned int id) {
-                                    return id >= 8 + i * 4 && id <= 11 + i * 4;
-                                }));
+        EXPECT_TRUE(std::all_of(
+            std::begin(result.init_ids),
+            std::end(result.init_ids),
+            [i](int id) { return id >= 8 + i * 4 && id <= 11 + i * 4; }));
 
         // Track ids may not be deterministic, so only validate size and
         // range. (Remember that we create 4 new tracks per iteration, with 2
         // slots reused
         EXPECT_EQ(num_tracks, result.track_ids.size());
-        EXPECT_TRUE(std::all_of(
-            std::begin(result.track_ids),
-            std::end(result.track_ids),
-            [&](unsigned int id) { return id < num_tracks + (i + 1) * 4; }));
+        EXPECT_TRUE(std::all_of(std::begin(result.track_ids),
+                                std::end(result.track_ids),
+                                [&](int id) {
+                                    return id >= 0
+                                           && id < static_cast<int>(num_tracks)
+                                                       + (i + 1) * 4;
+                                }));
 
         // Parent ids may not be deterministic, but all non-killed tracks are
         // guaranteed to be primaries at every iteration. At end of first
