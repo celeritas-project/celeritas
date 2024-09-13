@@ -60,9 +60,7 @@ ScopeExit(F&& func) -> ScopeExit<F>;
  */
 template<MemSpace M>
 Stepper<M>::Stepper(Input input)
-    : params_(std::move(input.params))
-    , state_(*params_, input.stream_id, input.num_track_slots)
-    , actions_{[&] {
+    : params_(std::move(input.params)), actions_{[&] {
         ActionSequence::Options opts;
         opts.action_times = input.action_times;
         return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
@@ -75,9 +73,13 @@ Stepper<M>::Stepper(Input input)
     CELER_VALIDATE(primaries_action_,
                    << "primary generator was not added to the stepping loop");
 
+    // Create state, including aux data
+    state_ = std::make_shared<CoreState<M>>(
+        *params_, input.stream_id, input.num_track_slots);
+
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
-    actions_->begin_run(*params_, state_);
+    actions_->begin_run(*params_, *state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -98,14 +100,14 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 void Stepper<M>::warm_up()
 {
-    CELER_VALIDATE(state_.counters().num_active == 0,
+    CELER_VALIDATE(state_->counters().num_active == 0,
                    << "cannot warm up when state has active tracks");
 
     ScopedProfiling profile_this{"warmup"};
-    state_.warming_up(true);
-    ScopeExit on_exit_{[this] { state_.warming_up(false); }};
-    actions_->step(*params_, state_);
-    CELER_ENSURE(state_.counters().num_active == 0);
+    state_->warming_up(true);
+    ScopeExit on_exit_{[this] { state_->warming_up(false); }};
+    actions_->step(*params_, *state_);
+    CELER_ENSURE(state_->counters().num_active == 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -119,15 +121,16 @@ template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
     ScopedProfiling profile_this{"step"};
-    state_.counters().num_generated = 0;
-    actions_->step(*params_, state_);
+    auto& counters = state_->counters();
+    counters.num_generated = 0;
+    actions_->step(*params_, *state_);
 
     // Get the number of track initializers and active tracks
     result_type result;
-    result.generated = state_.counters().num_generated;
-    result.active = state_.counters().num_active;
-    result.alive = state_.counters().num_alive;
-    result.queued = state_.counters().num_initializers;
+    result.generated = counters.num_generated;
+    result.active = counters.num_active;
+    result.alive = counters.num_alive;
+    result.queued = counters.num_initializers;
 
     return result;
 }
@@ -153,7 +156,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    primaries_action_->insert(*params_, state_, primaries);
+    primaries_action_->insert(*params_, *state_, primaries);
 
     return (*this)();
 }
@@ -169,7 +172,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 template<MemSpace M>
 void Stepper<M>::reseed(EventId event_id)
 {
-    reseed_rng(get_ref<M>(*params_->rng()), state_.ref().rng, event_id.get());
+    reseed_rng(get_ref<M>(*params_->rng()), state_->ref().rng, event_id.get());
 }
 
 //---------------------------------------------------------------------------//
