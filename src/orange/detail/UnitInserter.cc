@@ -179,11 +179,11 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , real_ids_{&orange_data_->real_ids}
     , logic_ints_{&orange_data_->logic_ints}
     , reals_{&orange_data_->reals}
-    , fast_real3s_{&orange_data_->fast_real3s}
     , surface_types_{&orange_data_->surface_types}
     , connectivity_records_{&orange_data_->connectivity_records}
     , volume_records_{&orange_data_->volume_records}
     , obz_records_{&orange_data_->obz_records}
+    , fast_real3s_{&orange_data_->fast_real3s}
     , daughters_{&orange_data_->daughters}
 {
     CELER_EXPECT(orange_data);
