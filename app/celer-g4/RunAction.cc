@@ -56,9 +56,6 @@ RunAction::RunAction(SPConstOptions options,
 //---------------------------------------------------------------------------//
 /*!
  * Initialize Celeritas.
- *
- * \todo Reusing the existing output registry is a hack needed to preserve the
- * GeantSimpleCalo output. See the \c SharedParams constructor documentation.
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
@@ -72,9 +69,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         {
             // This worker (or master thread) is responsible for initializing
             // celeritas: initialize shared data and setup GPU on all threads
-            CELER_TRY_HANDLE(
-                params_->Initialize(*options_, params_->output_reg()),
-                call_g4exception);
+            CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
             CELER_ASSERT(*params_);
         }
         else
@@ -91,9 +86,20 @@ void RunAction::BeginOfRunAction(G4Run const* run)
             CELER_ASSERT(*transport_);
         }
     }
+    else
+    {
+        CELER_ASSERT(params_);
+        if (init_shared_)
+        {
+            // Construct params for output only
+            auto const& global_setup = *GlobalSetup::Instance();
+            params_->Initialize(global_setup.setup_options().output_file);
+        }
+    }
 
     if (init_shared_)
     {
+        // Construct diagnostics
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 

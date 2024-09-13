@@ -33,8 +33,7 @@ namespace app
  *
  * The shared params will be uninitialized if Celeritas offloading is disabled.
  * In this case, a new output registry will be created for the Geant4
- * diagnostics. If Celeritas offloading is enabled, diagnostics will be added
- * to the output registry in the \c SharedParams.
+ * diagnostics.
  */
 GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
@@ -43,8 +42,9 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
-    // Get (lazily creating)
+    // Get output registry
     SPOutputRegistry output_reg = params.output_reg();
+    CELER_ASSERT(output_reg);
     size_type num_threads = params.num_streams();
 
     // Create the timer output and add to output registry
@@ -86,10 +86,6 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
             "environ",
             celeritas::environment()));
         output_reg->insert(std::make_shared<BuildOutput>());
-
-        // Save filename from global options (TODO: remove this hack)
-        const_cast<SharedParams&>(params).set_output_filename(
-            global_setup.setup_options().output_file);
     }
 
     // Save input options

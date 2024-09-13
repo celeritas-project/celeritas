@@ -74,13 +74,19 @@ class SharedParams
     // Construct Celeritas using Geant4 data on the master thread.
     explicit SharedParams(SetupOptions const& options);
 
+    // Construct for output only
+    explicit SharedParams(std::string output_filename);
+
     // Initialize shared data on the "master" thread
     inline void Initialize(SetupOptions const& options);
+
+    // Initialize shared data on the "master" thread
+    inline void Initialize(std::string output_filename);
 
     // On worker threads, set up data with thread storage duration
     static void InitializeWorker(SetupOptions const& options);
 
-    // Write (shared) diagnostic output and clear shared data on master.
+    // Write (shared) diagnostic output and clear shared data on master
     void Finalize();
 
     //!@}
@@ -112,23 +118,14 @@ class SharedParams
 
     // Number of streams, lazily obtained from run manager
     int num_streams() const;
+    // Output registry
+    inline SPOutputRegistry const& output_reg() const;
 
     // Output registry, lazily created
     SPOutputRegistry const& output_reg() const;
 
     // Geant geometry wrapper, lazily created
     SPConstGeantGeoParams const& geant_geo_params() const;
-
-    // NASTY HACK TO BE DELETED:
-    // Construct Celeritas using Geant4 data and existing output registry
-    SharedParams(SetupOptions const& options, SPOutputRegistry reg);
-
-    // Initialize shared data on the "master" thread with existing output
-    // registry
-    void Initialize(SetupOptions const& options, SPOutputRegistry reg);
-
-    // Set the output filename when celeritas is disabled
-    void set_output_filename(std::string const&);
     //!@}
 
   private:
@@ -164,6 +161,15 @@ void SharedParams::Initialize(SetupOptions const& options)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Helper for making initialization more obvious from user code.
+ */
+void SharedParams::Initialize(std::string output_filename)
+{
+    *this = SharedParams(std::move(output_filename));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access Celeritas data.
  *
  * This can only be called after \c Initialize.
@@ -193,6 +199,16 @@ auto SharedParams::offload_writer() const -> SPOffloadWriter const&
 {
     CELER_EXPECT(*this);
     return offload_writer_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output registry for writing data at end of run.
+ */
+auto SharedParams::output_reg() const -> SPOutputRegistry const&
+{
+    CELER_ENSURE(output_reg_);
+    return output_reg_;
 }
 
 //---------------------------------------------------------------------------//

@@ -195,17 +195,17 @@ bool SharedParams::KillOffloadTracks()
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up Celeritas using Geant4 data and existing output registery.
+ * Set up Celeritas using Geant4 data.
  *
- * A design oversight in the \c GeantSimpleCalo means that the action registry
- * *must* be created before \c SharedParams is initialized, and in the case
- * where Celeritas is not disabled, initialization clears the existing
- * registry. This prevents the calorimeter from writing output.
+ * This is a separate step from construction because it has to happen at the
+ * beginning of the run, not when user classes are created. It should be called
+ * from the "master" thread (for MT mode) or from the main thread (for Serial),
+ * and it must complete before any worker thread tries to access the shared
+ * data.
  */
-SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
+SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
-    output_reg_ = std::move(oreg);
 
     CELER_VALIDATE(!CeleritasDisabled(),
                    << "Celeritas shared params cannot be initialized when "
@@ -237,6 +237,7 @@ SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
 
     // Construct core data
     this->initialize_core(options);
+    CELER_ASSERT(output_reg_);
 
     if (output_filename_ != "-")
     {
@@ -274,42 +275,21 @@ SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize shared data with existing output registry.
+ * Set up Celeritas components for a Geant4-only run.
  *
- * TODO: this is a hack to be deleted in v0.5.
+ * This is for doing standalone Geant4 calculations without offloading from
+ * Celeritas, but still using components such as the simple calorimeter.
  */
-void SharedParams::Initialize(SetupOptions const& options, SPOutputRegistry reg)
+SharedParams::SharedParams(std::string output_filename)
+    : output_filename_{std::move(output_filename)}
 {
-    CELER_EXPECT(reg);
-    *this = SharedParams(options, std::move(reg));
-}
+    CELER_EXPECT(!output_filename_.empty());
 
-//---------------------------------------------------------------------------//
-/*!
- * Save a diagnostic output filename from a Geant4 app when Celeritas is off.
- *
- * This will be overwritten when calling Initialized with setup options.
- *
- * TODO: this hack should be deleted in v0.5.
- */
-void SharedParams::set_output_filename(std::string const& filename)
-{
-    output_filename_ = filename;
-}
+    CELER_LOG_LOCAL(debug) << "Constructing output registry for no-offload "
+                              "run";
+    output_reg_ = std::make_shared<OutputRegistry>();
 
-//---------------------------------------------------------------------------//
-/*!
- * Set up Celeritas using Geant4 data.
- *
- * This is a separate step from construction because it has to happen at the
- * beginning of the run, not when user classes are created. It should be called
- * from the "master" thread (for MT mode) or from the main thread (for Serial),
- * and it must complete before any worker thread tries to access the shared
- * data.
- */
-SharedParams::SharedParams(SetupOptions const& options)
-    : SharedParams(options, nullptr)
-{
+    CELER_ENSURE(output_reg_);
 }
 
 //---------------------------------------------------------------------------//
@@ -408,29 +388,6 @@ int SharedParams::num_streams() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Lazily created output registry.
- */
-auto SharedParams::output_reg() const -> SPOutputRegistry const&
-{
-    if (CELER_UNLIKELY(!output_reg_))
-    {
-        // Initial lock-free check failed; now lock and create if needed
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (!output_reg_)
-        {
-            CELER_LOG_LOCAL(debug) << "Constructing output registry";
-
-            auto output_reg = std::make_shared<OutputRegistry>();
-            const_cast<SharedParams*>(this)->output_reg_
-                = std::move(output_reg);
-            CELER_ENSURE(output_reg_);
-        }
-    }
-    return output_reg_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Lazily created Geant geometry parameters.
  */
 auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
@@ -492,7 +449,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     // Create registries
     params.action_reg = std::make_shared<ActionRegistry>();
-    params.output_reg = this->output_reg();
+    params.output_reg = std::make_shared<OutputRegistry>();
+    output_reg_ = params.output_reg;
 
     // Load geometry
     params.geometry = [&options] {
