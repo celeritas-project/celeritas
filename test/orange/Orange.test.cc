@@ -119,8 +119,8 @@ TEST_F(OneVolumeTest, obz)
     auto inner_offset = data.transforms[obz_record.offset_ids[0]].data_offset;
     auto outer_offset = data.transforms[obz_record.offset_ids[1]].data_offset;
 
-    ItemRange<double> inner_range{inner_offset, inner_offset + 3};
-    ItemRange<double> outer_range{outer_offset, outer_offset + 3};
+    ItemRange<celeritas::real_type> inner_range{inner_offset, inner_offset + 3};
+    ItemRange<celeritas::real_type> outer_range{outer_offset, outer_offset + 3};
 
     EXPECT_VEC_SOFT_EQ(Real3({2, 2.5, 3}), data.reals[inner_range]);
     EXPECT_VEC_SOFT_EQ(Real3({3.1, 3.6, 4.1}), data.reals[outer_range]);
