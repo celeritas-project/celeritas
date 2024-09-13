@@ -29,6 +29,38 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Add outputs to a queue *only from the main thread*.
+ *
+ * This is not thread-safe.
+ */
+void GeantDiagnostics::register_output(VecOutputInterface&& output)
+{
+    CELER_LOG_LOCAL(debug) << "Registering " << output.size()
+                           << " output interfaces";
+
+    auto& q = queued_output();
+    if (q.empty())
+    {
+        q = std::move(output);
+    }
+    else
+    {
+        q.insert(q.end(),
+                 std::make_move_iterator(output.begin()),
+                 std::make_move_iterator(output.end()));
+        output.clear();
+    }
+}
+
+//---------------------------------------------------------------------------//
+auto GeantDiagnostics::queued_output() -> VecOutputInterface&
+{
+    static VecOutputInterface output;
+    return output;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from shared Celeritas params on the master thread.
  *
  * The shared params will be uninitialized if Celeritas offloading is disabled.
@@ -43,7 +75,7 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
     // Get output registry
-    SPOutputRegistry output_reg = params.output_reg();
+    auto output_reg = params.output_reg();
     CELER_ASSERT(output_reg);
     size_type num_threads = params.num_streams();
 
@@ -88,6 +120,13 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         output_reg->insert(std::make_shared<BuildOutput>());
     }
 
+    // Save detectors
+    for (auto&& output : queued_output())
+    {
+        output_reg->insert(std::move(output));
+    }
+    queued_output().clear();
+
     // Save input options
     output_reg->insert(OutputInterfaceAdapter<RunInput>::from_const_ref(
         OutputInterface::Category::input, "*", global_setup.input()));
@@ -107,6 +146,12 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
  */
 void GeantDiagnostics::Finalize()
 {
+    if (CELER_UNLIKELY(!queued_output().empty()))
+    {
+        CELER_LOG(warning) << "Output interfaces were added after the run "
+                              "began: output will be missing";
+    }
+
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
     if (meh_)
