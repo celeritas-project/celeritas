@@ -65,14 +65,19 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
     particle.subtract_energy(particle.energy());
 
 #if !CELER_DEVICE_COMPILE
-    if (sim.status() == TrackStatus::errored)
     {
+        // Print a debug message if track is just being cut; error message if
+        // an error occurred
         auto const geo = track.make_geo_view();
-        auto msg = CELER_LOG_LOCAL(error);
-        msg << "Tracking error (track ID " << sim.track_id().get()
-            << ", track slot " << track.track_slot_id().get() << ") at "
-            << repr(geo.pos()) << " [" << units::NativeTraits::Length::label()
-            << "] along " << repr(geo.dir()) << ": ";
+        auto msg = self_logger()(CELER_CODE_PROVENANCE,
+                                 sim.status() == TrackStatus::errored
+                                     ? LogLevel::error
+                                     : LogLevel::debug);
+        msg << "Killing track (ID " << sim.track_id().get() << " of event "
+            << sim.event_id().get() << ", track slot "
+            << track.track_slot_id().get() << ") at " << repr(geo.pos())
+            << " [" << units::NativeTraits::Length::label() << "] along "
+            << repr(geo.dir()) << ": ";
         if (!geo.is_outside())
         {
             msg << "depositing " << deposited << " ["
