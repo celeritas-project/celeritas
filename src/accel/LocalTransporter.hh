@@ -62,11 +62,10 @@ class LocalTransporter
     LocalTransporter() = default;
 
     // Initialized with shared (across threads) params
-    LocalTransporter(SetupOptions const& options, SharedParams const& params);
+    LocalTransporter(SetupOptions const& options, SharedParams& params);
 
     // Alternative to construction + move assignment
-    inline void
-    Initialize(SetupOptions const& options, SharedParams const& params);
+    inline void Initialize(SetupOptions const& options, SharedParams& params);
 
     // Set the event ID and reseed the Celeritas RNG (remove in v1.0)
     [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
@@ -118,7 +117,7 @@ class LocalTransporter
  * exception-friendly destructor.
  */
 void LocalTransporter::Initialize(SetupOptions const& options,
-                                  SharedParams const& params)
+                                  SharedParams& params)
 {
     *this = LocalTransporter(options, params);
 }

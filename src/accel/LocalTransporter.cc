@@ -51,7 +51,7 @@ namespace celeritas
  * Construct with shared (MT) params.
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
-                                   SharedParams const& params)
+                                   SharedParams& params)
     : auto_flush_(options.auto_flush ? options.auto_flush
                                      : options.max_num_tracks)
     , max_steps_(options.max_steps)
@@ -129,6 +129,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     {
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
+
+    // Save state for reductions at the end
+    params.set_state(stream_id.get(), step_->sp_state());
 }
 
 //---------------------------------------------------------------------------//

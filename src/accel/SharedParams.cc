@@ -25,6 +25,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Ids.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -362,28 +363,35 @@ auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 
 //---------------------------------------------------------------------------//
 /*!
+ * Let LocalTransporter register the thread's state.
+ */
+void SharedParams::set_state(unsigned int stream_id, SPState&& state)
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(stream_id < states_.size());
+    CELER_EXPECT(state);
+    CELER_EXPECT(!states_[stream_id]);
+
+    states_[stream_id] = std::move(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Lazily obtained number of streams.
  */
-int SharedParams::num_streams() const
+unsigned int SharedParams::num_streams() const
 {
-    if (CELER_UNLIKELY(!num_streams_))
+    if (CELER_UNLIKELY(states_.empty()))
     {
         // Initial lock-free check failed; now lock and create if needed
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (!num_streams_)
-        {
-            // Default to setting the maximum number of streams based on Geant4
-            // run manager.
-            const_cast<SharedParams*>(this)->num_streams_
-                = celeritas::get_geant_num_threads();
-
-            CELER_LOG_LOCAL(debug)
-                << "Set number of streams to " << num_streams_;
-        }
+        // Default to setting the maximum number of streams based on Geant4
+        // run manager.
+        const_cast<SharedParams*>(this)->set_num_streams(
+            celeritas::get_geant_num_threads());
     }
 
-    CELER_ENSURE(num_streams_ > 0);
-    return num_streams_;
+    CELER_ENSURE(!states_.empty());
+    return states_.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -536,19 +544,10 @@ void SharedParams::initialize_core(SetupOptions const& options)
         CELER_VALIDATE(num_streams > 0,
                        << "nonpositive number of streams (" << num_streams
                        << ") returned by SetupOptions.get_num_streams");
-        params.max_streams = num_streams;
-        // Save number of streams... no other thread should be updating this
-        // simultaneously but we just make sure of it
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (num_streams_ != 0 && num_streams_ != num_streams)
-        {
-            // This could happen if someone queries the number of streams
-            // before initializing celeritas
-            CELER_LOG(warning)
-                << "Changing number of streams from " << num_streams_
-                << " to user-specified " << num_streams;
-        }
-        num_streams_ = num_streams;
+        params.max_streams = static_cast<size_type>(num_streams);
+        this->set_num_streams(num_streams);
+        CELER_ASSERT(this->num_streams()
+                     == static_cast<unsigned int>(num_streams));
     }
     else
     {
@@ -602,6 +601,34 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     // Save output filename (possibly empty if disabling output)
     output_filename_ = options.output_file;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save the number of streams (thread-safe).
+ *
+ * This could be obtained from the run manager *or* set by the user.
+ */
+void SharedParams::set_num_streams(unsigned int num_streams)
+{
+    CELER_EXPECT(num_streams > 0);
+
+    std::lock_guard scoped_lock{updating_mutex()};
+    if (!states_.empty() && states_.size() != num_streams)
+    {
+        // This could happen if someone queries the number of streams
+        // before initializing celeritas
+        CELER_LOG(warning) << "Changing number of streams from "
+                           << states_.size() << " to user-specified "
+                           << num_streams;
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Setting number of streams to " << num_streams;
+    }
+
+    states_.resize(num_streams);
 }
 
 //---------------------------------------------------------------------------//

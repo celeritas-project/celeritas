@@ -17,12 +17,15 @@ class G4ParticleDefinition;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 namespace detail
 {
 class HitManager;
 class OffloadWriter;
 }  // namespace detail
+
 class CoreParams;
+class CoreStateInterface;
 struct Primary;
 struct SetupOptions;
 class StepCollector;
@@ -109,6 +112,7 @@ class SharedParams
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
+    using SPState = std::shared_ptr<CoreStateInterface>;
 
     // Hit manager, to be used only by LocalTransporter
     inline detail::HitManager& hit_manager() const;
@@ -116,13 +120,14 @@ class SharedParams
     // Optional offload writer, only for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
 
-    // Number of streams, lazily obtained from run manager
-    int num_streams() const;
     // Output registry
     inline SPOutputRegistry const& output_reg() const;
 
-    // Output registry, lazily created
-    SPOutputRegistry const& output_reg() const;
+    // Let LocalTransporter register the thread's state
+    void set_state(unsigned int stream_id, SPState&&);
+
+    // Number of streams, lazily obtained from run manager
+    unsigned int num_streams() const;
 
     // Geant geometry wrapper, lazily created
     SPConstGeantGeoParams const& geant_geo_params() const;
@@ -138,15 +143,16 @@ class SharedParams
     VecG4ParticleDef particles_;
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
+    std::vector<std::shared_ptr<CoreStateInterface>> states_;
 
     // Lazily created
-    int num_streams_{0};
     SPOutputRegistry output_reg_;
     SPConstGeantGeoParams geant_geo_;
 
     //// HELPER FUNCTIONS ////
 
     void initialize_core(SetupOptions const& options);
+    void set_num_streams(unsigned int num_streams);
     void try_output() const;
 };
 
