@@ -27,7 +27,7 @@ class ParticleParams;
 /*!
  * Set up and launch the neutron elastic CHIPS model interaction.
  */
-class ChipsNeutronElasticModel final : public Model, public ConcreteAction
+class ChipsNeutronElasticModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{

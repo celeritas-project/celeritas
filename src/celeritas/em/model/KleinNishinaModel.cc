@@ -25,9 +25,10 @@ namespace celeritas
  */
 KleinNishinaModel::KleinNishinaModel(ActionId id,
                                      ParticleParams const& particles)
-    : ConcreteAction(id,
-                     "scat-klein-nishina",
-                     "interact by Compton scattering (simple Klein-Nishina)")
+    : StaticConcreteAction(id,
+                           "scat-klein-nishina",
+                           "interact by Compton scattering (simple "
+                           "Klein-Nishina)")
 {
     CELER_EXPECT(id);
     data_.ids.electron = particles.find(pdg::electron());

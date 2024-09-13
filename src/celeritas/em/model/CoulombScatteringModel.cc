@@ -37,7 +37,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                                                ParticleParams const& particles,
                                                MaterialParams const& materials,
                                                SPConstImported data)
-    : ConcreteAction(
+    : StaticConcreteAction(
           id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
     , imported_(data,
                 particles,

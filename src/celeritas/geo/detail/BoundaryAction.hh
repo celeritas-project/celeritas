@@ -18,7 +18,7 @@ namespace detail
  * Move a track across a boundary.
  */
 class BoundaryAction final : public CoreStepActionInterface,
-                             public ConcreteAction
+                             public StaticConcreteAction
 {
   public:
     // Construct with ID

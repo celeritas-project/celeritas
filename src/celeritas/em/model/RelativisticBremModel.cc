@@ -39,7 +39,8 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
                                              MaterialParams const& materials,
                                              SPConstImported data,
                                              bool enable_lpm)
-    : ConcreteAction(id, "brems-rel", "interact by relativistic bremsstrahlung")
+    : StaticConcreteAction(
+          id, "brems-rel", "interact by relativistic bremsstrahlung")
     , imported_(data,
                 particles,
                 ImportProcessClass::e_brems,

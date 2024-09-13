@@ -41,7 +41,7 @@ LivermorePEModel::LivermorePEModel(ActionId id,
                                    ParticleParams const& particles,
                                    MaterialParams const& materials,
                                    ReadData load_data)
-    : ConcreteAction(
+    : StaticConcreteAction(
           id, "photoel-livermore", "interact by Livermore photoelectric effect")
 {
     CELER_EXPECT(id);

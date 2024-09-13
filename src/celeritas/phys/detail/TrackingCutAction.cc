@@ -27,7 +27,8 @@ namespace detail
  * Construct with action ID.
  */
 TrackingCutAction::TrackingCutAction(ActionId aid)
-    : ConcreteAction(aid, "tracking-cut", "kill a track and deposit its energy")
+    : StaticConcreteAction(
+          aid, "tracking-cut", "kill a track and deposit its energy")
 {
 }
 

@@ -27,7 +27,7 @@ namespace celeritas
  */
 MollerBhabhaModel::MollerBhabhaModel(ActionId id,
                                      ParticleParams const& particles)
-    : ConcreteAction(
+    : StaticConcreteAction(
           id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
 {
     CELER_EXPECT(id);

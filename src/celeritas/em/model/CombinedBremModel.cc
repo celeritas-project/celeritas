@@ -38,10 +38,11 @@ CombinedBremModel::CombinedBremModel(ActionId id,
                                      SPConstImported data,
                                      ReadData sb_table,
                                      bool enable_lpm)
-    : ConcreteAction(id,
-                     "brems-combined",
-                     "interact by bremsstrahlung (combined SB/relativistic, "
-                     "e+/-)")
+    : StaticConcreteAction(id,
+                           "brems-combined",
+                           "interact by bremsstrahlung (combined "
+                           "SB/relativistic, "
+                           "e+/-)")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(sb_table);

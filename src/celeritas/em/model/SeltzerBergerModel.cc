@@ -44,7 +44,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                                        MaterialParams const& materials,
                                        SPConstImported data,
                                        ReadData load_sb_table)
-    : ConcreteAction(
+    : StaticConcreteAction(
           id, "brems-sb", "interact by Seltzer-Berger bremsstrahlung")
     , imported_(data,
                 particles,
