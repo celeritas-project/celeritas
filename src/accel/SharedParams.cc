@@ -25,7 +25,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/Ids.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -36,6 +35,7 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
