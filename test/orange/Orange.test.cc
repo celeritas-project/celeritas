@@ -111,10 +111,10 @@ TEST_F(OneVolumeTest, obz)
 
     // Check half widths, with a large tolerance to account for intentional
     // bounding box bumps
-    EXPECT_VEC_NEAR(FastReal3({1.0, 1.5, 2}),
+    EXPECT_VEC_NEAR(FastReal3({1.0f, 1.5f, 2.f}),
                     data.fast_real3s[obz_record.hw_ids[0]],
                     1e-3f);
-    EXPECT_VEC_NEAR(FastReal3({1.1, 1.6, 2.1}),
+    EXPECT_VEC_NEAR(FastReal3({1.1f, 1.6f, 2.1f}),
                     data.fast_real3s[obz_record.hw_ids[1]],
                     1e-3f);
 
