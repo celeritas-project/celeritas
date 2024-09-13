@@ -109,11 +109,12 @@ TEST_F(OneVolumeTest, obz)
     auto const& obz_record
         = data.obz_records[OpaqueId<OrientedBoundingZoneRecord>{0}];
 
-    // Check half widths
-    EXPECT_VEC_SOFT_EQ(Real3({1, 1.5, 2}),
-                       data.fast_real3s[obz_record.hw_ids[0]]);
-    EXPECT_VEC_SOFT_EQ(Real3({1.1, 1.6, 2.1}),
-                       data.fast_real3s[obz_record.hw_ids[1]]);
+    // Check half widths, with a large tolerance to account for intentional
+    // bounding box bumps
+    EXPECT_VEC_SOFTEQ(
+        Real3({1.0, 1.5, 2}), data.fast_real3s[obz_record.hw_ids[0]], 1E-3);
+    EXPECT_VEC_SOFTEQ(
+        Real3({1.1, 1.6, 2.1}), data.fast_real3s[obz_record.hw_ids[1]], 1E-3);
 
     // Check offsets
     auto inner_offset = data.transforms[obz_record.offset_ids[0]].data_offset;
