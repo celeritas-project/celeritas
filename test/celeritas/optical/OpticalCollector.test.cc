@@ -8,6 +8,7 @@
 #include "celeritas/optical/OpticalCollector.hh"
 
 #include <memory>
+#include <numeric>
 #include <set>
 #include <vector>
 
@@ -15,6 +16,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/LogContextException.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
@@ -22,6 +24,7 @@
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/detail/OffloadParams.hh"
+#include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
@@ -37,6 +40,46 @@ namespace test
 {
 // TODO: replace this with explicit namespace importing
 using namespace celeritas::optical;
+
+TEST(OpticalUtilsTest, find_distribution_index)
+{
+    using celeritas::detail::find_distribution_index;
+
+    size_type num_workers = 8;
+    std::vector<size_type> work = {1, 1, 5, 2, 5, 8, 1, 6, 7, 7};
+    std::vector<size_type> offsets(work.size());
+    std::partial_sum(work.begin(), work.end(), offsets.begin());
+
+    static unsigned int const expected_offsets[]
+        = {1u, 2u, 7u, 9u, 14u, 22u, 23u, 29u, 36u, 43u};
+    EXPECT_VEC_EQ(expected_offsets, offsets);
+
+    LocalWorkCalculator<size_type> calc_local_work{offsets.back(), num_workers};
+
+    std::vector<size_type> result(offsets.back());
+    for (auto i : range(num_workers))
+    {
+        size_type local_work = calc_local_work(i);
+        for (auto j : range(local_work))
+        {
+            size_type result_idx = j * num_workers + i;
+            size_type work_idx
+                = find_distribution_index(make_span(offsets), result_idx);
+            result[result_idx] = work_idx;
+        }
+    }
+    static unsigned int const expected_result[]
+        = {0u, 1u, 2u, 2u, 2u, 2u, 2u, 3u, 3u, 4u, 4u, 4u, 4u, 4u, 5u,
+           5u, 5u, 5u, 5u, 5u, 5u, 5u, 6u, 7u, 7u, 7u, 7u, 7u, 7u, 8u,
+           8u, 8u, 8u, 8u, 8u, 8u, 9u, 9u, 9u, 9u, 9u, 9u, 9u};
+    EXPECT_VEC_EQ(expected_result, result);
+
+    EXPECT_EQ(0, find_distribution_index(make_span(offsets), 0));
+    EXPECT_EQ(1, find_distribution_index(make_span(offsets), 1));
+    EXPECT_EQ(4, find_distribution_index(make_span(offsets), 13));
+    EXPECT_EQ(5, find_distribution_index(make_span(offsets), 14));
+    EXPECT_EQ(9, find_distribution_index(make_span(offsets), 42));
+}
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
