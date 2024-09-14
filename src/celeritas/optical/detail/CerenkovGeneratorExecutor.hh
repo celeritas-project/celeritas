@@ -72,8 +72,8 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
     size_type total_work = offsets.back();
 
     // Calculate the number of initializers for the thread to generate
-    size_type local_work
-        = calc_local_work(track.thread_id(), state->size(), total_work);
+    size_type local_work = LocalWorkCalculator<size_type>{
+        total_work, state->size()}(track.thread_id().get());
 
     auto rng = track.make_rng_engine();
 

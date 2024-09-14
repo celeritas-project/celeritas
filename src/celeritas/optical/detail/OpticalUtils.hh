@@ -50,21 +50,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the number of initializers to generate for the given thread.
- */
-inline CELER_FUNCTION size_type calc_local_work(ThreadId tid,
-                                                size_type num_threads,
-                                                size_type total_work)
-{
-    CELER_EXPECT(tid);
-    CELER_EXPECT(num_threads > 0);
-    CELER_EXPECT(total_work > 0);
-
-    return total_work / num_threads + (tid < total_work % num_threads ? 1 : 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Find the index of the distribution from which to generate the primary.
  *
  * This finds the index in offsets for which offsets[result - 1] <= value <
