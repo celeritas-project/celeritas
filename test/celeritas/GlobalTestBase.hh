@@ -10,8 +10,10 @@
 #include <iosfwd>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Span.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/random/RngParamsFwd.hh"
@@ -33,11 +35,15 @@ class SimParams;
 class TrackInitParams;
 class AuxParamsRegistry;
 class WentzelOKVIParams;
+class ExtendFromPrimariesAction;
 
 class CoreParams;
 template<MemSpace M>
 class CoreState;
+class CoreStateInterface;
 class OutputRegistry;
+
+struct Primary;
 
 namespace optical
 {
@@ -84,6 +90,9 @@ class GlobalTestBase : public Test
     using SPConstCerenkov = SP<optical::CerenkovParams const>;
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
     using SPConstScintillation = SP<optical::ScintillationParams const>;
+
+    using SPConstPrimariesAction = SP<ExtendFromPrimariesAction const>;
+    using SpanConstPrimary = Span<Primary const>;
     //!@}
 
   public:
@@ -132,6 +141,10 @@ class GlobalTestBase : public Test
     inline SPConstOpticalMaterial const& optical_material() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
+
+    SPConstPrimariesAction const& primaries_action();
+    void
+    insert_primaries(CoreStateInterface& state, SpanConstPrimary primaries);
 
     //// OUTPUT ////
 
@@ -183,6 +196,8 @@ class GlobalTestBase : public Test
     SPConstCerenkov cerenkov_;
     SPConstOpticalMaterial optical_material_;
     SPConstScintillation scintillation_;
+
+    SPConstPrimariesAction primaries_action_;
     bool insert_status_checker_{true};
 };
 

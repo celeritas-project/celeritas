@@ -48,6 +48,7 @@ ConcreteAction::ConcreteAction(ActionId id,
 char const* to_cstring(StepActionOrder value)
 {
     static EnumStringMapper<StepActionOrder> const to_cstring_impl{
+        "generate",
         "start",
         "user_start",
         "sort_start",

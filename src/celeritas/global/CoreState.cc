@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
-#include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -62,7 +60,7 @@ CoreState<M>::CoreState(CoreParams const& params,
             = AuxStateVec{*params.aux_reg(), M, stream_id, num_track_slots};
     }
 
-    if (is_action_sorted(params.init()->host_ref().track_order))
+    if (is_action_sorted(params.init()->track_order()))
     {
         offsets_.resize(params.action_reg()->num_actions() + 1);
     }
@@ -74,23 +72,18 @@ CoreState<M>::CoreState(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Inject primaries to be turned into TrackInitializers.
+ * Whether the state should be transported with no active particles.
  *
- * These will be converted by the ProcessPrimaries action.
+ * This can only be called when there are no active tracks. It should be
+ * immediately cleared after a step.
+ *
+ * \sa Stepper::warm_up
  */
 template<MemSpace M>
-void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
+void CoreState<M>::warming_up(bool new_state)
 {
-    // Copy primaries
-    if (primaries_.size() < host_primaries.size())
-    {
-        primaries_ = {};
-        resize(&primaries_, host_primaries.size());
-    }
-    counters_.num_primaries = host_primaries.size();
-
-    Copier<Primary, M> copy_to_temp{primaries_[this->primary_range()]};
-    copy_to_temp(MemSpace::host, host_primaries);
+    CELER_EXPECT(!new_state || counters_.num_active == 0);
+    warming_up_ = new_state;
 }
 
 //---------------------------------------------------------------------------//

@@ -94,8 +94,8 @@ class StepperOrderTest : public SimpleComptonTest
         }
     }
 
-    template<MemSpace M>
-    DummyState const& get_state(CoreState<M> const& core_state) const
+    DummyState const&
+    get_dummy_state(CoreStateInterface const& core_state) const
     {
         return get<DummyState>(core_state.aux(), dummy_params_->aux_id());
     }
@@ -254,15 +254,29 @@ TEST_F(StepperOrderTest, setup)
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
 
-TEST_F(StepperOrderTest, host)
+TEST_F(StepperOrderTest, warm_up)
+{
+    Stepper<MemSpace::host> step(this->make_stepper_input(32));
+    auto const& dumstate = this->get_dummy_state(step.state());
+
+    EXPECT_EQ(0, dumstate.action_order.size());
+    step.warm_up();
+    EXPECT_EQ(0, step.state().counters().num_active);
+    EXPECT_EQ(0, step.state().counters().num_alive);
+
+    static char const* const expected_action_order[]
+        = {"user_start", "user_pre", "user_post"};
+    EXPECT_VEC_EQ(expected_action_order, dumstate.action_order);
+}
+
+TEST_F(StepperOrderTest, step)
 {
     constexpr auto M = MemSpace::host;
     size_type num_primaries = 32;
     size_type num_tracks = 64;
 
     Stepper<M> step(this->make_stepper_input(num_tracks));
-    auto const& state
-        = this->get_state(dynamic_cast<CoreState<M> const&>(step.state()));
+    auto const& state = this->get_dummy_state(step.state());
 
     EXPECT_EQ(0, state.action_order.size());
     EXPECT_EQ(M, state.memspace);

@@ -27,6 +27,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class CoreParams;
 struct Primary;
+class ExtendFromPrimariesAction;
 
 namespace detail
 {
@@ -63,6 +64,7 @@ struct StepperInput
  */
 struct StepperResult
 {
+    size_type generated{};  //!< New primaries added
     size_type queued{};  //!< Pending track initializers at end of step
     size_type active{};  //!< Active tracks at start of step
     size_type alive{};  //!< Active and alive at end of step
@@ -85,6 +87,9 @@ class StepperInterface
     //!@}
 
   public:
+    // Warm up before stepping
+    virtual void warm_up() = 0;
+
     // Transport existing states
     virtual StepperResult operator()() = 0;
 
@@ -137,6 +142,9 @@ class Stepper final : public StepperInterface
     // Default destructor
     ~Stepper();
 
+    // Warm up before stepping
+    void warm_up() final;
+
     // Transport existing states
     StepperResult operator()() final;
 
@@ -161,6 +169,8 @@ class Stepper final : public StepperInterface
   private:
     // Params data
     std::shared_ptr<CoreParams const> params_;
+    // Primary initialization
+    std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     CoreState<M> state_;
     // Call sequence
