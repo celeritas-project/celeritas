@@ -174,14 +174,14 @@ class BeginRunActionInterface : public ActionTypeTraits<P, S>,
  * access the states.
  */
 template<class P, template<MemSpace M> class S>
-class EndRunGatherActionInterface : public ActionTypeTraits<P, S>,
-                                    public MutableActionInterface
+class EndRunActionInterface : public ActionTypeTraits<P, S>,
+                              public MutableActionInterface
 {
   public:
     //! Merge host data at the end of a run
-    virtual void end_run_gather(P const&, Span<S<MemSpace::host>* const>) = 0;
+    virtual void end_run(P const&, Span<S<MemSpace::host>* const>) = 0;
     //! Merge device data at the end of a run
-    virtual void end_run_gather(P const&, Span<S<MemSpace::device>* const>) = 0;
+    virtual void end_run(P const&, Span<S<MemSpace::device>* const>) = 0;
 };
 
 //---------------------------------------------------------------------------//
