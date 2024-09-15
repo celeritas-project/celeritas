@@ -62,6 +62,22 @@ TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(1234, new_host_vec.back());
 }
 
+TEST(ItemCopierTest, TEST_IF_CELER_DEVICE(device))
+{
+    // Initialize data on device
+    std::vector<int> host_vec{0, 1, 2, 3, 4};
+    DeviceVector<int> device_vec(host_vec.size());
+    device_vec.copy_to_device(make_span(host_vec));
+
+    // Copy elements to host
+    ItemCopier<int> copy{};
+    for (int i : range(host_vec.size()))
+    {
+        int result = copy(device_vec.data() + i);
+        EXPECT_EQ(i, result);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
