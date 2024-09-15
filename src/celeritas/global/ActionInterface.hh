@@ -28,8 +28,7 @@ using CoreBeginRunActionInterface
 using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
 
 //! Interface called at end of the core stepping loop
-using CoreEndRunGatherActionInterface
-    = EndRunGatherActionInterface<CoreParams, CoreState>;
+using CoreEndRunActionInterface = EndRunActionInterface<CoreParams, CoreState>;
 
 // TODO: Remove in v0.6
 using ActionOrder [[deprecated]] = StepActionOrder;

@@ -29,7 +29,6 @@ class CoreParams;
 struct Primary;
 class ExtendFromPrimariesAction;
 
-template<class P, template<MemSpace M> class S>
 class ActionSequence;
 
 //---------------------------------------------------------------------------//
@@ -78,7 +77,7 @@ class StepperInterface
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequenceT = ActionSequence<CoreParams, CoreState>;
+    using ActionSequenceT = ActionSequence;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
     //!@}

@@ -60,7 +60,8 @@ enum class StepActionOrder
  * gathering metadata. The \c StepActionInterface provides additional
  * interfaces for launching kernels. The \c BeginRunActionInterface allows
  * actions to modify the state (or the class instance itself) at the beginning
- * of a stepping loop.
+ * of a stepping loop, and \c EndRunActionInterface allows actions to
+ * gather and merge multiple state information at the end.
  *
  * Using multiple inheritance, you can create an action that inherits from
  * multiple of these classes.
@@ -101,6 +102,10 @@ class ActionInterface
  * Most actions can modify \em only the local "state" being passed as an
  * argument. This one allows data to be allocated or initialized at the
  * beginning of the run.
+ *
+ * \todo Maybe we should delete this to allow only stateless actions, since now
+ * we have aux data? This will reduce overhead for virtual inheritance classes
+ * too.
  */
 class MutableActionInterface : public virtual ActionInterface
 {

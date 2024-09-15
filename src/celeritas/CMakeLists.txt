@@ -38,6 +38,7 @@ list(APPEND SOURCES
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
+  global/ActionGroups.cc
   global/ActionSequence.cc
   global/CoreParams.cc
   global/CoreState.cc

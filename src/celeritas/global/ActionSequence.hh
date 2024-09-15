@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/ActionSequence.hh
+//! \file celeritas/global/ActionSequence.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,14 +13,13 @@
 
 #include "corecel/Types.hh"
 
+#include "ActionGroups.hh"
 #include "ActionInterface.hh"
-#include "CoreTrackDataFwd.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
-class CoreParams;
 class StatusChecker;
 
 //---------------------------------------------------------------------------//
@@ -34,24 +33,16 @@ class StatusChecker;
  * that this class can merge across states. Currently there's one sequence per
  * stepper which isn't right.
  */
-template<class P, template<MemSpace M> class S>
 class ActionSequence
 {
   public:
     //!@{
     //! \name Type aliases
-    using BeginRunActionT = BeginRunActionInterface<P, S>;
-    using StepActionT = StepActionInterface<P, S>;
-    using EndRunGatherActionT = EndRunGatherActionInterface<P, S>;
-    using SPBegin = std::shared_ptr<BeginRunActionT>;
-    using SPConstStepAction = std::shared_ptr<StepActionT const>;
-    using SPEndGather = std::shared_ptr<EndRunGatherActionT>;
-    using VecBeginAction = std::vector<SPBegin>;
-    using VecStepAction = std::vector<SPConstStepAction>;
-    using VecEndAction = std::vector<SPEndGather>;
+    using ActionGroupsT = ActionGroups<CoreParams, CoreState>;
     using VecDouble = std::vector<double>;
     //!@}
 
+  public:
     //! Construction/execution options
     struct Options
     {
@@ -66,38 +57,30 @@ class ActionSequence
 
     // Call beginning-of-run actions.
     template<MemSpace M>
-    void begin_run(P const& params, S<M>& state);
+    void begin_run(CoreParams const& params, CoreState<M>& state);
 
     // Launch all actions with the given memory space.
     template<MemSpace M>
-    void step(P const&, S<M>& state);
+    void step(CoreParams const&, CoreState<M>& state);
 
     // Merge results at the end of a run
     template<MemSpace M>
-    void end_run_gather(P const& params, Span<S<M>* const> states);
+    void end_run(CoreParams const& params, Span<CoreState<M>* const> states);
 
     //// ACCESSORS ////
 
     //! Whether synchronization is taking place
     bool action_times() const { return options_.action_times; }
 
-    //! Get the set of beginning-of-run actions
-    VecBeginAction const& begin_run_actions() const { return begin_run_; }
-
-    //! Get the set of end-of-run actions
-    VecEndAction const& end_run_gather_actions() const { return end_run_; }
-
     //! Get the ordered vector of actions in the sequence
-    VecStepAction const& actions() const { return actions_; }
+    ActionGroupsT const& actions() const { return actions_; }
 
     //! Get the corresponding accumulated time, if 'sync' or host called
     VecDouble const& accum_time() const { return accum_time_; }
 
   private:
+    ActionGroupsT actions_;
     Options options_;
-    VecBeginAction begin_run_;
-    VecEndAction end_run_;
-    VecStepAction actions_;
     VecDouble accum_time_;
     std::shared_ptr<StatusChecker const> status_checker_;
 };
