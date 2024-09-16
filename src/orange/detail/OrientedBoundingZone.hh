@@ -52,16 +52,14 @@ class OrientedBoundingZone
         = Collection<T, Ownership::const_reference, MemSpace::native>;
 
     using FastReal3 = OrientedBoundingZoneRecord::Real3;
-    using FastReal3Id = OrientedBoundingZoneRecord::Real3Id;
     using fast_real_type = FastReal3::value_type;
 
     struct StoragePointers
     {
-        StorageItems<FastReal3> const* half_widths;
         StorageItems<TransformRecord> const* transforms;
         StorageItems<real_type> const* reals;
 
-        operator bool() const { return half_widths && transforms && reals; }
+        operator bool() const { return transforms && reals; }
     };
     //!@}
 
@@ -318,7 +316,7 @@ CELER_FUNCTION bool OrientedBoundingZone::is_inside(OffsetPos const& off_pos)
 CELER_FUNCTION OrientedBoundingZone::FastReal3
 OrientedBoundingZone::get_hw(BBoxType bbt)
 {
-    return (*sp_.half_widths)[obz_record_.hw_ids[this->to_int(bbt)]];
+    return obz_record_.half_widths[this->to_int(bbt)];
 }
 
 //---------------------------------------------------------------------------//

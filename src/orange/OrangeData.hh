@@ -142,10 +142,9 @@ struct ConnectivityRecord
 struct OrientedBoundingZoneRecord
 {
     using Real3 = Array<fast_real_type, 3>;
-    using Real3Id = OpaqueId<Real3>;
 
     //! Half-widths of the inner and outer boxes
-    Array<Real3Id, 2> hw_ids;
+    Array<Real3, 2> half_widths;
 
     //! Offset from to center of inner and outer boxes to center of OBZ
     //! coordinate system
@@ -158,7 +157,7 @@ struct OrientedBoundingZoneRecord
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !hw_ids.empty() && !hw_ids.empty() && transform_id;
+        return !half_widths.empty() && !offset_ids.empty() && transform_id;
     }
 };
 

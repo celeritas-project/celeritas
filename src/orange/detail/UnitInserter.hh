@@ -64,7 +64,6 @@ class UnitInserter
     CollectionBuilder<ConnectivityRecord> connectivity_records_;
     CollectionBuilder<VolumeRecord> volume_records_;
     CollectionBuilder<OrientedBoundingZoneRecord> obz_records_;
-    CollectionBuilder<FastReal3> fast_real3s_;
     CollectionBuilder<Daughter> daughters_;
 
     //// HELPER METHODS ////

@@ -45,9 +45,8 @@ class OrientedBoundingZoneTest : public ::celeritas::test::Test
 
 TEST_F(OrientedBoundingZoneTest, basic)
 {
-    CollectionBuilder<FastReal3> all_half_widths(&half_widths_);
-    auto inner_id = all_half_widths.push_back({1., 1., 1.});
-    auto outer_id = all_half_widths.push_back({2., 2., 2.});
+    FastReal3 inner_hw = {1., 1., 1.};
+    FastReal3 outer_hw = {2., 2., 2.};
 
     TransformRecordInserter tri(&transforms_, &reals_);
     auto inner_offset_id = tri(VariantTransform{
@@ -57,15 +56,13 @@ TEST_F(OrientedBoundingZoneTest, basic)
     auto transform_id = tri(
         VariantTransform{std::in_place_type<Translation>, Real3{9, 18, 27}});
 
-    half_widths_ref_ = half_widths_;
     transforms_ref_ = transforms_;
     reals_ref_ = reals_;
 
     OrientedBoundingZoneRecord obz_record{
-        {inner_id, outer_id}, {inner_offset_id, outer_offset_id}, transform_id};
+        {inner_hw, outer_hw}, {inner_offset_id, outer_offset_id}, transform_id};
 
-    OrientedBoundingZone::StoragePointers sp{
-        &half_widths_ref_, &transforms_ref_, &reals_ref_};
+    OrientedBoundingZone::StoragePointers sp{&transforms_ref_, &reals_ref_};
 
     OrientedBoundingZone obz(obz_record, sp);
 

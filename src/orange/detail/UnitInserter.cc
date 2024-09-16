@@ -183,7 +183,6 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , connectivity_records_{&orange_data_->connectivity_records}
     , volume_records_{&orange_data_->volume_records}
     , obz_records_{&orange_data_->obz_records}
-    , fast_real3s_{&orange_data_->fast_real3s}
     , daughters_{&orange_data_->daughters}
 {
     CELER_EXPECT(orange_data);
@@ -394,11 +393,9 @@ void UnitInserter::process_obz_record(VolumeRecord* vol_record,
     OrientedBoundingZoneRecord obz_record;
 
     // Set half widths
-    auto inner_hw_id = fast_real3s_.push_back(
-        calc_half_widths(calc_bumped_(obz_input.inner)));
-    auto outer_hw_id = fast_real3s_.push_back(
-        calc_half_widths(calc_bumped_(obz_input.outer)));
-    obz_record.hw_ids = {inner_hw_id, outer_hw_id};
+    auto inner_hw = calc_half_widths(calc_bumped_(obz_input.inner));
+    auto outer_hw = calc_half_widths(calc_bumped_(obz_input.outer));
+    obz_record.half_widths = {inner_hw, outer_hw};
 
     // Set offsets
     auto inner_offset_id = insert_transform_(VariantTransform{
