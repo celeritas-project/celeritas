@@ -16,6 +16,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/Copier.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Thrust.device.hh"
@@ -111,7 +112,7 @@ size_type inclusive_scan_photons(
     CELER_DEVICE_CHECK_ERROR();
 
     // Copy the last element (accumulated total) back to host
-    return *(stop - 1);
+    return ItemCopier<size_type>{stream}(stop.get() - 1);
 }
 
 //---------------------------------------------------------------------------//
