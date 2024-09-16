@@ -45,7 +45,8 @@ namespace detail
 class OrientedBoundingZone
 {
   public:
-    //!@{ ! \name Type aliases
+    //!@{
+    //! \name Type aliases
     template<class T>
     using StorageItems
         = Collection<T, Ownership::const_reference, MemSpace::native>;
