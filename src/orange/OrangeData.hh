@@ -417,7 +417,6 @@ struct OrangeParamsData
         real_ids = other.real_ids;
         logic_ints = other.logic_ints;
         reals = other.reals;
-        fast_real3s = other.fast_real3s;
         surface_types = other.surface_types;
         connectivity_records = other.connectivity_records;
         volume_records = other.volume_records;
