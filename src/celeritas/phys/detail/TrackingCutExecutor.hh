@@ -73,21 +73,21 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
                                  sim.status() == TrackStatus::errored
                                      ? LogLevel::error
                                      : LogLevel::debug);
-        msg << "Killing track (ID " << sim.track_id().get() << " of event "
-            << sim.event_id().get() << ", track slot "
-            << track.track_slot_id().get() << ") at " << repr(geo.pos())
-            << " [" << units::NativeTraits::Length::label() << "] along "
+        msg << "Killing track (track " << sim.track_id().get() << " of event "
+            << sim.event_id().get() << " in track slot "
+            << track.track_slot_id().get() << ") at " << repr(geo.pos()) << ' '
+            << units::NativeTraits::Length::label() << " along "
             << repr(geo.dir()) << ": ";
         if (!geo.is_outside())
         {
-            msg << "depositing " << deposited << " ["
-                << Energy::unit_type::label() << "] in "
+            msg << "depositing " << deposited << ' '
+                << Energy::unit_type::label() << " in "
                 << "volume " << geo.volume_id().unchecked_get();
         }
         else
         {
-            msg << "lost " << deposited << " [" << Energy::unit_type::label()
-                << "] energy";
+            msg << "lost " << deposited << ' ' << Energy::unit_type::label()
+                << " energy";
         }
     }
 #endif
