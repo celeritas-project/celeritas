@@ -76,7 +76,7 @@ class ModelBuilder
     ModelBuilder(ImportData const& data, Options options);
 
     //! Create an optical model from the data
-    SPModel operator()(IMC imc, ActionIdIter start_id) const;
+    SPModel operator()(IMC imc, ActionIdIter& start_id) const;
 
     //! Imported optical materials
     SPConstImported optical_materials() const
@@ -91,6 +91,7 @@ class ModelBuilder
     //!@{
     //! \name Helper functions to build specific models
     SPModel build_absorption(ActionId) const;
+    SPModel build_rayleigh(ActionId) const;
     //!@}
 };
 

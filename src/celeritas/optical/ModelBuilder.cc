@@ -12,6 +12,7 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/optical/ImportMaterialAdapter.hh"
 #include "celeritas/optical/model/AbsorptionModel.hh"
+#include "celeritas/optical/model/RayleighModel.hh"
 
 namespace celeritas
 {
@@ -20,7 +21,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 auto ModelBuilder::get_all_model_classes() -> std::set<IMC>
 {
-    return std::set<IMC>{IMC::absorption};
+    return std::set<IMC>{IMC::absorption, IMC::rayleigh};
 }
 
 ModelBuilder::ModelBuilder(ImportData const& data,
@@ -37,7 +38,7 @@ ModelBuilder::ModelBuilder(ImportData const& data, Options options)
 {
 }
 
-auto ModelBuilder::operator()(IMC imc, ActionIdIter start_id) const -> SPModel
+auto ModelBuilder::operator()(IMC imc, ActionIdIter& start_id) const -> SPModel
 {
     // First, look for user supplied models
     {
@@ -52,7 +53,8 @@ auto ModelBuilder::operator()(IMC imc, ActionIdIter start_id) const -> SPModel
 
     using BuildMemFn = SPModel (ModelBuilder::*)(ActionId) const;
     static std::unordered_map<IMC, BuildMemFn> const builtin_build{
-        {IMC::absorption, &ModelBuilder::build_absorption}};
+        {IMC::absorption, &ModelBuilder::build_absorption},
+        {IMC::rayleigh, &ModelBuilder::build_rayleigh}};
 
     {
         auto iter = builtin_build.find(imc);
@@ -69,6 +71,11 @@ auto ModelBuilder::operator()(IMC imc, ActionIdIter start_id) const -> SPModel
 auto ModelBuilder::build_absorption(ActionId id) const -> SPModel
 {
     return std::make_shared<AbsorptionModel>(id, input_.optical_materials);
+}
+
+auto ModelBuilder::build_rayleigh(ActionId id) const -> SPModel
+{
+    return std::make_shared<RayleighModel>(id, input_.optical_materials);
 }
 
 auto WarnAndIgnoreModel::operator()(ActionIdIter, UserBuildInput const&) const
