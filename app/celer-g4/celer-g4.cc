@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
     }
     if (filename == "--dump-default"sv)
     {
-        std::cout << nlohmann::json(celeritas::app::RunInput{}).dump(1)
+        std::cout << nlohmann::json(celeritas::app::RunInput()).dump(1)
                   << std::endl;
         return EXIT_SUCCESS;
     }

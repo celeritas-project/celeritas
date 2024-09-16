@@ -74,7 +74,7 @@ size_type exclusive_scan_counts(
     CELER_DEVICE_CHECK_ERROR();
 
     // Copy the last element (accumulated total) back to host
-    return *(stop - 1);
+    return ItemCopier<size_type>{stream_id}(stop.get() - 1);
 }
 
 //---------------------------------------------------------------------------//

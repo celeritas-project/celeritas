@@ -49,7 +49,8 @@ TEST(DeviceVectorTest, all)
     }
     EXPECT_EQ(128, vec.size());
 
-    std::vector<int> data(vec.size());
+    std::vector<int> data;
+    data.resize(vec.size());
     data.front() = 1;
     data.back() = 1234567;
 
