@@ -103,7 +103,7 @@ class ActionInterface
  * argument. This one allows data to be allocated or initialized at the
  * beginning of the run.
  *
- * \todo Maybe we should delete this to allow only stateless actions, since now
+ * \todo Delete this to allow only stateless actions, since now
  * we have aux data? This will reduce overhead for virtual inheritance classes
  * too.
  */
@@ -129,6 +129,8 @@ struct ActionTypeTraits
     using CoreParams = P;
     using CoreStateHost = S<MemSpace::host>;
     using CoreStateDevice = S<MemSpace::device>;
+    using SpanCoreStateHost = Span<S<MemSpace::host>* const>;
+    using SpanCoreStateDevice = Span<S<MemSpace::device>* const>;
     //@}
 };
 
@@ -144,7 +146,8 @@ struct ActionTypeTraits
  * initialize in the constructor and avoid using this interface if possible.
  *
  * \todo This is currently called once per each state on each CPU thread, and
- * it would be more sensible to call a single with all cooperative states.
+ * it would be more sensible to call a single with all cooperative states as we
+ * do with end_run.
  *
  * \warning Because this is called once per thread, the inheriting class is
  * responsible for thread safety (e.g. adding mutexes).

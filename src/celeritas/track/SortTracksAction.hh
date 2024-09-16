@@ -17,7 +17,9 @@ namespace celeritas
  *
  * This action can be applied at different stage of a simulation step,
  * automatically determined by TrackOrder. This should not have any impact on
- * simulation output: it is only useful for accelerator optimizations.
+ * simulation output: it is only useful for GPU device optimizations.
+ *
+ * \todo Keep weak pointer to actions? Use aux data?
  */
 class SortTracksAction final : public CoreStepActionInterface,
                                public CoreBeginRunActionInterface
