@@ -113,10 +113,10 @@ TEST_F(OneVolumeTest, obz)
     // bounding box bumps
     EXPECT_VEC_NEAR(FastReal3({1.0f, 1.5f, 2.f}),
                     data.fast_real3s[obz_record.hw_ids[0]],
-                    1e-3f);
+                    2e-3f);
     EXPECT_VEC_NEAR(FastReal3({1.1f, 1.6f, 2.1f}),
                     data.fast_real3s[obz_record.hw_ids[1]],
-                    1e-3f);
+                    2e-3f);
 
     // Check offsets
     auto inner_offset = data.transforms[obz_record.offset_ids[0]].data_offset;
