@@ -84,7 +84,7 @@ class OrientedBoundingZone
     //!@{
     //! \name Type aliases
 
-    //! Enum to distinquish between inner and outer bboxes
+    //! Enum to distinguish between inner and outer bboxes
     enum class BBoxType
     {
         inner,  //!< inner bbox
