@@ -11,6 +11,7 @@
 #include <vector>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
+#include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
@@ -410,7 +411,11 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
+#if VECGEOM_VERSION < 0x020000
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+#else
+        vecgeom::ABBoxManager<real_type>::Instance().InitABBoxesForCompleteGeometry();
+#endif
     }
 
     // Init the bounding volume hierarchy structure
@@ -570,9 +575,13 @@ void VecgeomParams::build_metadata()
         VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
 
         // Calculate bounding box
+#if VECGEOM_VERSION < 0x020000
+        auto bbox_mgr = ABBoxManager::Instance();
+#else
+        auto bbox_mgr = ABBoxManager<real_type>::Instance();
+#endif
         Vector3D<real_type> lower, upper;
-        ABBoxManager::Instance().ComputeABBox(pv, &lower, &upper);
-
+        bbox_mgr.ComputeABBox(pv, &lower, &upper);
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }
