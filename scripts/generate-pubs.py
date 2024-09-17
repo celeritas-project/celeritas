@@ -11,6 +11,7 @@ import os
 import sys
 
 from itertools import chain
+from pathlib import Path
 from pyzotero import zotero
 from dateutil.parser import parse as parse_date
 
@@ -25,6 +26,7 @@ def log(text):
     sys.stderr.write(text)
     sys.stderr.flush()
 
+
 def data_from(iterable):
     for entry in iterable:
         yield entry['data']
@@ -34,13 +36,13 @@ def cached_collections(zot):
     try:
         ckeys = zot._collection_keys
     except AttributeError:
-        ckeys ={e['name']: e['key'] for e in data_from(zot.collections())}
+        ckeys = {e['name']: e['key'] for e in data_from(zot.collections())}
         zot._collection_keys = ckeys
     return ckeys
 
 
-def collection_items(zot, name, *, limit=8):
-    """Return a generator for items in a given collection name."""
+def collection_items_top(zot, name, *, limit=8):
+    """Return a verbose generator for items in a given collection name."""
     ck = cached_collections(zot)[name]
     log(f"Loading {name}")
     items = zot.collection_items_top(ck, limit=limit)
@@ -68,11 +70,18 @@ def format_names(creators, limit=1):
     return ", ".join(formatted_creators)
 
 
+def append_names(bits, creators, /, **kwargs):
+    names = format_names(creators, **kwargs)
+    if not names:
+        return
+    if names and not names.endswith('.'):
+        names += '.'
+    bits.append(names)
+
+
 def format_presentation(e):
     bits = []
-    bits.append(format_names(e['creators'], limit=3))
-    if not (last := bits[-1]).endswith('.'):
-        bits[-1] = last + '.'
+    append_names(bits, e['creators'], limit=3)
     bits.append("\"{title}\".".format(**e))
     if (meeting := e.get('meetingName')):
         bits.append(f"*{meeting}*,")
@@ -86,9 +95,7 @@ def format_presentation(e):
 
 def format_paper(e):
     bits = []
-    bits.append(format_names(e['creators'], limit=5))
-    if not (last := bits[-1]).endswith('.'):
-        bits[-1] = last + '.'
+    append_names(bits, e['creators'], limit=5)
     bits.append("\"{title}\".".format(**e))
     if (pub := e.get('publicationTitle')):
         bits.append(f"*{pub}*,")
@@ -103,9 +110,7 @@ def format_paper(e):
 
 def format_software(e):
     bits = []
-    bits.append(format_names(e['creators'], limit=100))
-    if not (last := bits[-1]).endswith('.'):
-        bits[-1] = last + '.'
+    append_names(bits, e['creators'], limit=100)
     title = e['title']
     if (version := e.get('version')):
         title = f"{title} *v{version}*"
@@ -117,16 +122,18 @@ def format_software(e):
     return " ".join(bits)
 
 
-def sorted_collection(zot, name):
-    entries = data_from(collection_items(zot, name))
+def sorted_data_by_date(items):
+    entries = data_from(items)
     entries = (e for e in entries if e.get('date'))
     return sorted(entries, key=lambda e: parse_date(e['date']), reverse=True)
 
 
-def run(group_id, out):
-    zot = zotero.Zotero(group_id, "group", API_KEY)
+def print_bibliography(get_collection_items, out):
 
     print(f"""\
+---
+title: Celeritas publications
+---
 <!--
 NOTE: this page is generated automatically from
 https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
@@ -139,24 +146,75 @@ These publications are extracted from the Celeritas team's Zotero database.""", 
         print(f"\n## {name}\n", file=out)
 
     print_subheader("Conference papers")
-    for e in sorted_collection(zot, "Conference papers"):
+    for e in get_collection_items("Conference papers"):
         print("-", format_paper(e), file=out)
 
     print_subheader("Presentations")
-    for e in sorted_collection(zot, "Presentations"):
+    for e in get_collection_items("Presentations"):
         print("-",format_presentation(e), file=out)
 
     print_subheader("Journal articles")
-    for e in sorted_collection(zot, "Journal articles"):
+    for e in get_collection_items("Journal articles"):
         print("-",format_paper(e), file=out)
 
     print_subheader("Technical reports")
-    for e in sorted_collection(zot, "Reports"):
+    for e in get_collection_items("Reports"):
         print("-",format_paper(e), file=out)
 
     print_subheader("Code")
-    for e in sorted_collection(zot, "Code objects"):
+    for e in get_collection_items("Code objects"):
         print("-",format_software(e), file=out)
+
+
+def print_references(get_collection_items, out):
+
+    print(f"""\
+---
+title: Celeritas references
+---
+<!--
+NOTE: this page is generated automatically from
+https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
+-->
+# References
+
+These publications are extracted from the Celeritas team's Zotero database.""", file=out)
+
+    def print_subheader(name):
+        print(f"\n## {name}\n", file=out)
+
+    print_subheader("Physics models and validation")
+    for e in get_collection_items("Physics"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("HEP experiments")
+    for e in get_collection_items("HEP experiments"):
+        print("-",format_paper(e), file=out)
+
+    print_subheader("Software implementations")
+    for e in get_collection_items("Software"):
+        print("-",format_paper(e), file=out)
+
+    print_subheader("Computer science and mathematics")
+    for e in get_collection_items("Computer science"):
+        print("-",format_paper(e), file=out)
+
+    print_subheader("Computational geometry")
+    for e in get_collection_items("Geometry"):
+        print("-",format_paper(e), file=out)
+
+
+def run(group_id, outdir):
+    zot = zotero.Zotero(group_id, "group", API_KEY)
+
+    def sorted_collection(name):
+        return sorted_data_by_date(collection_items_top(zot, name))
+
+    with open(outdir / 'publications.md', 'w') as f:
+        print_bibliography(sorted_collection, f)
+
+    with open(outdir / 'references.md', 'w') as f:
+        print_references(sorted_collection, f)
 
 
 def main():
@@ -169,16 +227,11 @@ def main():
     parser.add_argument(
         "-o", "--output",
         default=None,
-        help="Output filename (empty for stdout)")
+        help="Output directory")
     args = parser.parse_args()
+    outdir = Path(args.output or '.')
+    run(args.group, outdir)
 
-    if not args.output:
-        outfile = sys.stdout
-    else:
-        outfile = open(args.output, 'w')
-
-    run(args.group, outfile)
 
 if __name__ == "__main__":
     main()
-

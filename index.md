@@ -10,12 +10,18 @@ and energy efficiency using GPUs.
 
 See more details on the [code README](https://github.com/celeritas-project/celeritas/blob/develop/README.md) or the documentation linked above.
 
-# For developers
+# For contributors
 
+- Find an interesting [potential project](https://github.com/celeritas-project/celeritas/issues/1406)
 - Before writing new code, read the [development guide](user/appendix/development.html)
 - Explore the codebase with [detailed Doxygen code documentation](dev/index.html)
 
 {% include_relative publications.md %}
+
+# References
+
+A full [list of references](references.html) includes details about physics
+models and links to publications about related software.
 
 # License
 
