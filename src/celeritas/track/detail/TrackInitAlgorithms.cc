@@ -28,7 +28,7 @@ size_type remove_if_alive(
         vacancies,
     StreamId)
 {
-    auto* start = static_cast<TrackSlotId*>(vacancies.data());
+    auto* start = vacancies.data().get();
     auto* stop
         = std::remove_if(start, start + vacancies.size(), IsEqual{occupied()});
     return stop - start;
@@ -50,7 +50,7 @@ size_type exclusive_scan_counts(
     StreamId)
 {
     CELER_EXPECT(!counts.empty());
-    auto* data = static_cast<size_type*>(counts.data());
+    auto* data = counts.data().get();
 #ifdef __cpp_lib_parallel_algorithm
     auto* stop
         = std::exclusive_scan(data, data + counts.size(), data, size_type{0});
@@ -85,10 +85,10 @@ void partition_initializers(
     StreamId)
 {
     // Partition the indices based on the track initializer charge
-    auto start = static_cast<size_type*>(init.indices.data());
+    auto start = init.indices.data().get();
     auto end = start + count;
-    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
-                   + counters.num_initializers - count;
+    auto stencil = init.initializers.data().get() + counters.num_initializers
+                   - count;
     std::stable_partition(
         start, end, IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
 }

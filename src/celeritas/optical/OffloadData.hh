@@ -30,7 +30,7 @@ struct OffloadBufferSize
 {
     size_type cerenkov{0};
     size_type scintillation{0};
-    size_type num_primaries{0};
+    size_type num_photons{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -125,9 +125,12 @@ struct OffloadStateData
     // Pre-step data for generating optical photon distributions
     StateItems<OffloadPreStepData> step;
 
-    // Buffers of distribution data for generating optical primaries
+    // Buffers of distribution data for generating optical photons
     Items<optical::GeneratorDistributionData> cerenkov;
     Items<optical::GeneratorDistributionData> scintillation;
+
+    // Determines which distribution a thread will generate a primary from
+    Items<size_type> offsets;
 
     //// METHODS ////
 
@@ -137,7 +140,8 @@ struct OffloadStateData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !step.empty() && !(cerenkov.empty() && scintillation.empty());
+        return !step.empty() && !offsets.empty()
+               && !(cerenkov.empty() && scintillation.empty());
     }
 
     //! Assign from another set of data
@@ -148,6 +152,7 @@ struct OffloadStateData
         step = other.step;
         cerenkov = other.cerenkov;
         scintillation = other.scintillation;
+        offsets = other.offsets;
         return *this;
     }
 };
@@ -175,6 +180,7 @@ void resize(OffloadStateData<Ownership::value, M>* state,
     {
         resize(&state->scintillation, setup.capacity);
     }
+    resize(&state->offsets, setup.capacity);
 
     CELER_ENSURE(*state);
 }

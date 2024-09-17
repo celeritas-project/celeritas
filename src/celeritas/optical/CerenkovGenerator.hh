@@ -23,7 +23,7 @@
 #include "CerenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"
 #include "MaterialView.hh"
-#include "Primary.hh"
+#include "TrackInitializer.hh"
 
 namespace celeritas
 {
@@ -58,7 +58,7 @@ class CerenkovGenerator
 
     // Sample a Cerenkov photon from the distribution
     template<class Generator>
-    inline CELER_FUNCTION Primary operator()(Generator& rng);
+    inline CELER_FUNCTION TrackInitializer operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -137,7 +137,7 @@ CerenkovGenerator::CerenkovGenerator(MaterialView const& material,
  * Sample Cerenkov photons from the distribution.
  */
 template<class Generator>
-CELER_FUNCTION Primary CerenkovGenerator::operator()(Generator& rng)
+CELER_FUNCTION TrackInitializer CerenkovGenerator::operator()(Generator& rng)
 {
     // Sample energy and direction
     real_type energy;
@@ -165,7 +165,7 @@ CELER_FUNCTION Primary CerenkovGenerator::operator()(Generator& rng)
 
     // Sample azimuthal photon direction
     real_type phi = sample_phi_(rng);
-    Primary photon;
+    TrackInitializer photon;
     photon.direction = rotate(from_spherical(cos_theta, phi), dir_);
     photon.energy = units::MevEnergy(energy);
 
