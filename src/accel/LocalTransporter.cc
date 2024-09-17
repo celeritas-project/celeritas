@@ -112,7 +112,10 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
     StreamId stream_id{static_cast<size_type>(thread_id)};
-    hit_processor_ = params.hit_manager().make_local_processor(stream_id);
+    if (auto const& hit_manager = params.hit_manager())
+    {
+        hit_processor_ = hit_manager->make_local_processor(stream_id);
+    }
 
     // Create stepper
     StepperInput inp;

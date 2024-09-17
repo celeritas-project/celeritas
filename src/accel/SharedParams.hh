@@ -109,13 +109,14 @@ class SharedParams
     //!@{
     //! \name Internal use only
 
+    using SPHitManager = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
-    using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
     using SPState = std::shared_ptr<CoreStateInterface>;
+    using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
 
     // Hit manager, to be used only by LocalTransporter
-    inline detail::HitManager& hit_manager() const;
+    inline SPHitManager const& hit_manager() const;
 
     // Optional offload writer, only for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
@@ -189,12 +190,13 @@ auto SharedParams::Params() const -> SPConstParams
 //---------------------------------------------------------------------------//
 /*!
  * Hit manager, to be used only by LocalTransporter.
+ *
+ * If sensitive detector callback is disabled, the hit manager will be null.
  */
-detail::HitManager& SharedParams::hit_manager() const
+auto SharedParams::hit_manager() const -> SPHitManager const&
 {
     CELER_EXPECT(*this);
-    CELER_ENSURE(hit_manager_);
-    return *hit_manager_;
+    return hit_manager_;
 }
 
 //---------------------------------------------------------------------------//
