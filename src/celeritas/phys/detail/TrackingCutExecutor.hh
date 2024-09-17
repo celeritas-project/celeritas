@@ -73,8 +73,8 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
                                  sim.status() == TrackStatus::errored
                                      ? LogLevel::error
                                      : LogLevel::debug);
-        msg << "Killing track (track " << sim.track_id().get() << " of event "
-            << sim.event_id().get() << " in track slot "
+        msg << "Killing track " << sim.track_id().get() << " of event "
+            << sim.event_id().get() << " (in track slot "
             << track.track_slot_id().get() << ") at " << repr(geo.pos()) << ' '
             << units::NativeTraits::Length::label() << " along "
             << repr(geo.dir()) << ": ";

@@ -178,7 +178,7 @@ TEST_F(SimpleComptonTest, fail_initialize)
         // clang-format off
         static char const* const expected_log_messages[] = {
             "Track started outside the geometry",
-            "Killing track (track 0 of event 15 in track slot 31) at {1001, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
+            "Killing track 0 of event 15 (in track slot 31) at {1001, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
         };
         // clang-format on
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
@@ -301,7 +301,7 @@ TEST_F(BadGeometryTest, no_volume_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Failed to initialize geometry state: could not find associated volume in universe 0 at local position {-5, 0, 0}",
-        "Killing track (track 0 of event 0 in track slot 0) at {-5, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
+        "Killing track 0 of event 0 (in track slot 0) at {-5, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
     };
     // clang-format on
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
@@ -321,7 +321,7 @@ TEST_F(BadGeometryTest, no_material_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Track started in an unknown material",
-        "Killing track (track 0 of event 0 in track slot 0) at {5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 4",
+        "Killing track 0 of event 0 (in track slot 0) at {5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 4",
     };
     // clang-format on
 
@@ -340,7 +340,7 @@ TEST_F(BadGeometryTest, no_new_volume_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "track failed to cross local surface 2 in universe 0 at local position {-6, 0, 0} along local direction {1, 0, 0}",
-        "Killing track (track 0 of event 0 in track slot 0) at {-6, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
+        "Killing track 0 of event 0 (in track slot 0) at {-6, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
     };
 
     // clang-format on
@@ -361,7 +361,7 @@ TEST_F(BadGeometryTest, start_outside_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Track started outside the geometry",
-        "Killing track (track 0 of event 0 in track slot 0) at {20, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
+        "Killing track 0 of event 0 (in track slot 0) at {20, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
     };
     // clang-format on
 
