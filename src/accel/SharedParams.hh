@@ -17,12 +17,15 @@ class G4ParticleDefinition;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 namespace detail
 {
 class HitManager;
 class OffloadWriter;
 }  // namespace detail
+
 class CoreParams;
+class CoreStateInterface;
 struct Primary;
 struct SetupOptions;
 class StepCollector;
@@ -74,13 +77,19 @@ class SharedParams
     // Construct Celeritas using Geant4 data on the master thread.
     explicit SharedParams(SetupOptions const& options);
 
+    // Construct for output only
+    explicit SharedParams(std::string output_filename);
+
     // Initialize shared data on the "master" thread
     inline void Initialize(SetupOptions const& options);
+
+    // Initialize shared data on the "master" thread
+    inline void Initialize(std::string output_filename);
 
     // On worker threads, set up data with thread storage duration
     static void InitializeWorker(SetupOptions const& options);
 
-    // Write (shared) diagnostic output and clear shared data on master.
+    // Write (shared) diagnostic output and clear shared data on master
     void Finalize();
 
     //!@}
@@ -103,6 +112,7 @@ class SharedParams
     using SPHitManager = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPState = std::shared_ptr<CoreStateInterface>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
 
     // Hit manager, to be used only by LocalTransporter
@@ -111,25 +121,17 @@ class SharedParams
     // Optional offload writer, only for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
 
-    // Number of streams, lazily obtained from run manager
-    int num_streams() const;
+    // Output registry
+    inline SPOutputRegistry const& output_reg() const;
 
-    // Output registry, lazily created
-    SPOutputRegistry const& output_reg() const;
+    // Let LocalTransporter register the thread's state
+    void set_state(unsigned int stream_id, SPState&&);
+
+    // Number of streams, lazily obtained from run manager
+    unsigned int num_streams() const;
 
     // Geant geometry wrapper, lazily created
     SPConstGeantGeoParams const& geant_geo_params() const;
-
-    // NASTY HACK TO BE DELETED:
-    // Construct Celeritas using Geant4 data and existing output registry
-    SharedParams(SetupOptions const& options, SPOutputRegistry reg);
-
-    // Initialize shared data on the "master" thread with existing output
-    // registry
-    void Initialize(SetupOptions const& options, SPOutputRegistry reg);
-
-    // Set the output filename when celeritas is disabled
-    void set_output_filename(std::string const&);
     //!@}
 
   private:
@@ -137,20 +139,21 @@ class SharedParams
 
     // Created during initialization
     std::shared_ptr<CoreParams> params_;
-    SPHitManager hit_manager_;
+    std::shared_ptr<detail::HitManager> hit_manager_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
+    std::vector<std::shared_ptr<CoreStateInterface>> states_;
 
     // Lazily created
-    int num_streams_{0};
     SPOutputRegistry output_reg_;
     SPConstGeantGeoParams geant_geo_;
 
     //// HELPER FUNCTIONS ////
 
     void initialize_core(SetupOptions const& options);
+    void set_num_streams(unsigned int num_streams);
     void try_output() const;
 };
 
@@ -161,6 +164,15 @@ class SharedParams
 void SharedParams::Initialize(SetupOptions const& options)
 {
     *this = SharedParams(options);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper for making initialization more obvious from user code.
+ */
+void SharedParams::Initialize(std::string output_filename)
+{
+    *this = SharedParams(std::move(output_filename));
 }
 
 //---------------------------------------------------------------------------//
@@ -178,6 +190,8 @@ auto SharedParams::Params() const -> SPConstParams
 //---------------------------------------------------------------------------//
 /*!
  * Hit manager, to be used only by LocalTransporter.
+ *
+ * If sensitive detector callback is disabled, the hit manager will be null.
  */
 auto SharedParams::hit_manager() const -> SPHitManager const&
 {
@@ -193,6 +207,16 @@ auto SharedParams::offload_writer() const -> SPOffloadWriter const&
 {
     CELER_EXPECT(*this);
     return offload_writer_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output registry for writing data at end of run.
+ */
+auto SharedParams::output_reg() const -> SPOutputRegistry const&
+{
+    CELER_ENSURE(output_reg_);
+    return output_reg_;
 }
 
 //---------------------------------------------------------------------------//

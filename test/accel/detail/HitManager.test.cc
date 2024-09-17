@@ -87,15 +87,25 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         return result;
     }
 
-    HitManager make_hit_manager()
+    HitManager make_hit_manager(bool make_hit_proc = true)
     {
-        return HitManager(*this->geometry(), *this->particle(), sd_setup_, 1);
+        CELER_EXPECT(!processor_);
+        HitManager result(*this->geometry(), *this->particle(), sd_setup_, 1);
+
+        if (make_hit_proc)
+        {
+            processor_ = result.make_local_processor(StreamId{0});
+            EXPECT_TRUE(processor_);
+        }
+
+        return result;
     }
 
   protected:
     SDSetupOptions sd_setup_;
     ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger()};
     static G4LogicalVolume* detached_lv;
+    HitManager::SPProcessor processor_;
 };
 
 G4LogicalVolume* SimpleCmsTest::detached_lv{nullptr};
@@ -175,7 +185,9 @@ TEST_F(SimpleCmsTest, add_duplicate)
 TEST_F(SimpleCmsTest, add_one)
 {
     sd_setup_.force_volumes = find_geant_volumes({"si_tracker"});
-    HitManager man = this->make_hit_manager();
+    // Since we're asking for a volume that doesn't curently have an
+    // SD attached, we can't make the hit processor
+    HitManager man = this->make_hit_manager(/* make_hit_proc = */ false);
 
     EXPECT_EQ(3, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());

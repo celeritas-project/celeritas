@@ -92,5 +92,23 @@ auto GeantGeoNavCollection<Ownership::reference, MemSpace::host>::navigator(
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Clean up on the original thread, necessary for thread-local G4 alloc.
+ *
+ * This is called as an implementation detail in accel/ for multithreaded
+ */
+void GeantGeoNavCollection<Ownership::reference, MemSpace::host>::reset()
+{
+    for (auto& th : this->touch_handles)
+    {
+        th.reset();
+    }
+    for (auto& n : this->navigators)
+    {
+        n.reset();
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
