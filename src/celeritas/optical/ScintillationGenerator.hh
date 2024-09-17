@@ -20,8 +20,8 @@
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "GeneratorDistributionData.hh"
-#include "Primary.hh"
 #include "ScintillationData.hh"
+#include "TrackInitializer.hh"
 
 #include "detail/OpticalUtils.hh"
 
@@ -64,7 +64,7 @@ class ScintillationGenerator
 
     // Sample a single photon from the distribution
     template<class Generator>
-    inline CELER_FUNCTION Primary operator()(Generator& rng);
+    inline CELER_FUNCTION TrackInitializer operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -122,7 +122,7 @@ ScintillationGenerator::ScintillationGenerator(
  * Sample a single scintillation photon.
  */
 template<class Generator>
-CELER_FUNCTION Primary ScintillationGenerator::operator()(Generator& rng)
+CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rng)
 {
     // Sample a component
     ScintRecord const& component = [&] {
@@ -142,7 +142,7 @@ CELER_FUNCTION Primary ScintillationGenerator::operator()(Generator& rng)
         = NormalDistribution{component.lambda_mean, component.lambda_sigma};
     ExponentialDist sample_time(real_type{1} / component.fall_time);
 
-    Primary photon;
+    TrackInitializer photon;
     photon.energy = detail::wavelength_to_energy(sample_lambda_(rng));
 
     // Sample direction

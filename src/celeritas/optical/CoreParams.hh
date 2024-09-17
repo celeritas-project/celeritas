@@ -21,13 +21,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
-class TrackInitParams;
 class SimParams;
 
 namespace optical
 {
 //---------------------------------------------------------------------------//
 class MaterialParams;
+class TrackInitParams;
 // TODO: class PhysicsParams;
 
 //---------------------------------------------------------------------------//
