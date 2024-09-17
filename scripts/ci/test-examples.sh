@@ -36,7 +36,11 @@ cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-# Only run on configurations with '-vecgeom'
-cd "${CELER_SOURCE_DIR}/example/accel"
-build_local
-ctest -V --no-tests=error
+
+if [ -z "CELER_DISABLE_ACCEL_EXAMPLES" ]; then
+  cd "${CELER_SOURCE_DIR}/example/accel"
+  build_local
+  ctest -V --no-tests=error
+else
+  echo "Skipping 'accel' test due to insufficient requirements"
+fi

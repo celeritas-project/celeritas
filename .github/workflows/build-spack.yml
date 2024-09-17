@@ -185,9 +185,17 @@ jobs:
           ./bin/celer-sim --version
       - name: Build examples
         # TODO: ASAN requires flags downstream
+        env: 
+          CELER_DISABLE_ACCEL_EXAMPLES: >-
+            ${{
+              (   (matrix.special == 'minimal')
+               || (matrix.special == 'float')
+              ) && '1' || ''
+            }}
         if: >-
           ${{
             (matrix.special != 'asanlite')
+            && (matrix.special != 'clang-tidy')
           }}
         run: |
           . ${SPACK_VIEW}/rc
