@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "GeantTestBase.hh"
 
-#include <cstring>
 #include <string>
 
 #include "corecel/Config.hh"
 
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
@@ -29,18 +29,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Test for equality of two C strings
-bool cstring_equal(char const* lhs, char const* rhs)
-{
-    return std::strcmp(lhs, rhs) == 0;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 struct GeantTestBase::ImportHelper
 {
     // NOTE: the import function must be static for now so that Vecgeom or

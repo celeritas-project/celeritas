@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "io/ColorUtils.hh"
+#include "io/StringUtils.hh"
 #include "sys/Environment.hh"  // IWYU pragma: keep
 
 namespace celeritas
@@ -42,18 +43,6 @@ std::string build_debug_error_msg(DebugErrorDetails const& d)
     }
     msg << color_code(' ');
     return msg.str();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Test C strings for equality allowing null pointers for LHS.
- */
-bool cstring_equal(char const* lhs, char const* rhs)
-{
-    CELER_EXPECT(rhs);
-    if (!lhs)
-        return false;
-    return std::strcmp(lhs, rhs) == 0;
 }
 
 //---------------------------------------------------------------------------//
