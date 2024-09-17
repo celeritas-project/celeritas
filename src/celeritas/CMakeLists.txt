@@ -82,6 +82,7 @@ list(APPEND SOURCES
   optical/TrackData.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
+  optical/action/ActionGroups.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
