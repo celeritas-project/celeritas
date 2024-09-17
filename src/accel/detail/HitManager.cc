@@ -255,7 +255,7 @@ void HitManager::setup_particles(ParticleParams const& par)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return teh local hit processor.
+ * Return the local hit processor.
  */
 HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 {
