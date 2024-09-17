@@ -241,7 +241,6 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         }
 
         // Add oriented bounding zone record
-
         if (inp.volumes[i].obz)
         {
             this->process_obz_record(&(vol_records[i]), inp.volumes[i].obz);
