@@ -44,6 +44,8 @@ class CelerEmStandardPhysics : public G4VPhysicsConstructor
     void add_gamma_processes();
     // Add EM processes for electrons and positrons
     void add_e_processes(G4ParticleDefinition* p);
+    // Add EM processes for muons
+    void add_mu_processes(G4ParticleDefinition* p);
 };
 
 //---------------------------------------------------------------------------//

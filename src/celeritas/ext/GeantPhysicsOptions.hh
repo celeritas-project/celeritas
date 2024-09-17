@@ -62,8 +62,6 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Gamma physics
-    //! Enable discrete Coulomb
-    bool coulomb_scattering{false};
     //! Enable Compton scattering
     bool compton_scattering{true};
     //! Enable the photoelectric effect
@@ -78,6 +76,8 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Electron and positron physics
+    //! Enable discrete Coulomb
+    bool coulomb_scattering{false};
     //! Enable e- and e+ ionization
     bool ionization{true};
     //! Enable positron annihilation
@@ -88,6 +88,20 @@ struct GeantPhysicsOptions
     MscModelSelection msc{MscModelSelection::urban};
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
+    //!@}
+
+    //!@{
+    //! \name Muon physics
+    //! Enable muon pair production
+    bool mu_pair_production{false};
+    //! Enable muon ionization
+    bool mu_ionization{false};
+    //! Enable muon bremsstrahlung
+    bool mu_bremsstrahlung{false};
+    //! Enable muon single Coulomb scattering
+    bool mu_coulomb{false};
+    //! Enable muon multiple Coulomb scattering
+    bool mu_msc{false};
     //!@}
 
     //!@{
@@ -161,6 +175,11 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.brems == b.brems
            && a.msc == b.msc
            && a.relaxation == b.relaxation
+           && a.mu_pair_production == b.mu_pair_production
+           && a.mu_ionization == b.mu_ionization
+           && a.mu_bremsstrahlung == b.mu_bremsstrahlung
+           && a.mu_coulomb == b.mu_coulomb
+           && a.mu_msc == b.mu_msc
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.eloss_fluctuation == b.eloss_fluctuation
            && a.lpm == b.lpm

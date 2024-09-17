@@ -133,6 +133,8 @@ class ProcessBuilder
     auto build_coulomb() -> SPProcess;
     auto build_ebrems() -> SPProcess;
     auto build_eioni() -> SPProcess;
+    auto build_mubrems() -> SPProcess;
+    auto build_muioni() -> SPProcess;
     auto build_msc() -> SPProcess;
     auto build_neutron_elastic() -> SPProcess;
     auto build_photoelectric() -> SPProcess;

@@ -19,6 +19,8 @@
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/process/MuBremsstrahlungProcess.hh"
+#include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/io/ImportData.hh"
@@ -136,6 +138,8 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::coulomb_scat, &ProcessBuilder::build_coulomb},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
+        {IPC::mu_brems, &ProcessBuilder::build_mubrems},
+        {IPC::mu_ioni, &ProcessBuilder::build_muioni},
         {IPC::neutron_elastic, &ProcessBuilder::build_neutron_elastic},
         {IPC::photoelectric, &ProcessBuilder::build_photoelectric},
         {IPC::rayleigh, &ProcessBuilder::build_rayleigh},
@@ -248,6 +252,26 @@ auto ProcessBuilder::build_coulomb() -> SPProcess
 
     return std::make_shared<CoulombScatteringProcess>(
         this->particle(), this->material(), this->imported(), options);
+}
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_mubrems() -> SPProcess
+{
+    MuBremsstrahlungProcess::Options options;
+    options.use_integral_xs = use_integral_xs_;
+
+    return std::make_shared<MuBremsstrahlungProcess>(
+        this->particle(), this->imported(), options);
+}
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_muioni() -> SPProcess
+{
+    MuIonizationProcess::Options options;
+    options.use_integral_xs = use_integral_xs_;
+
+    return std::make_shared<MuIonizationProcess>(
+        this->particle(), this->imported(), options);
 }
 
 //---------------------------------------------------------------------------//
