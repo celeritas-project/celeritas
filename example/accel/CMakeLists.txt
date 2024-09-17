@@ -13,7 +13,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 find_package(Celeritas 0.5 REQUIRED)
 find_package(Geant4 REQUIRED)
 
-if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "ORANGE")
+if(NOT CELERITAS_USE_Geant4)
   message(SEND_ERROR "This example requires Geant4 support "
     "to be enabled in Celeritas")
 endif()
