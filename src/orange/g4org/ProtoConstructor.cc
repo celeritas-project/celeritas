@@ -29,6 +29,8 @@ using SPConstObject = ProtoConstructor::SPConstObject;
 //---------------------------------------------------------------------------//
 /*!
  * Construct an explicit "background" cell.
+ *
+ * This is the LV's volume with all of the direct daughter LVs subtracted.
  */
 SPConstObject make_explicit_background(LogicalVolume const& lv,
                                        VariantTransform const& transform)
@@ -42,12 +44,24 @@ SPConstObject make_explicit_background(LogicalVolume const& lv,
             Transformed::or_object(child_pv.lv->solid, child_pv.transform));
     }
 
+    SPConstObject interior;
+    if (children.size() > 1)
+    {
+        interior = std::make_shared<AnyObjects>(lv.name + ".children",
+                                                std::move(children));
+    }
+    else if (children.size() == 1)
+    {
+        interior = std::move(children.front());
+    }
+    else
+    {
+        // Rare case (world is the only volume!)
+        return lv.solid;
+    }
+
     return Transformed::or_object(
-        orangeinp::make_subtraction(
-            std::string{lv.name},
-            lv.solid,
-            orangeinp::AnyObjects::or_object(lv.name + ".children",
-                                             std::move(children))),
+        orangeinp::make_subtraction(std::string{lv.name}, lv.solid, interior),
         transform);
 }
 
