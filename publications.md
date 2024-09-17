@@ -4,14 +4,13 @@ https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/ge
 -->
 # Publications
 
-These publications were extracted from the Celeritas team's Zotero database
-on 28 Aug 2024.
+These publications are extracted from the Celeritas team's Zotero database.
 
 ## Conference papers
 
-- S. R. Johnson, J. Esseiva, E. Biondo, P. Canal, M. Demarteau, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Aug 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
+- S. R. Johnson, J. Esseiva, E. Biondo, P. Canal, M. Demarteau, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Sep 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - S. C. Tognini, P. Canal, T. M. Evans, G. Lima, A. L. Lund, *et al*. "Celeritas: GPU-accelerated particle transport for detector simulation in High Energy Physics experiments". in *Snowmass white papers*, Mar 2022. [10.48550/arXiv.2203.09467](https://doi.org/10.48550/arXiv.2203.09467)
-- S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Aug 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
+- S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Sep 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
 
 ## Presentations
 
@@ -25,6 +24,7 @@ on 28 Aug 2024.
 - J. Esseiva. "Celeritas: Efficient detector simulation on GPUs for Geant4". *LBNL ATLAS annual meeting*, 08 Jan 2024.
 - S. R. Johnson. "Celeritas R&D Summary". *Geant4 R&D Assessment*, 13 Dec 2023.
 - S. R. Johnson. "Celeritas: efficient detector simulation on GPUs for Geant4". *Compute Accelerator Forum*, 11 Dec 2023. [presentation](https://indico.cern.ch/event/1264303/contributions/5309868/attachments/2768764/4824731/caf-seminar.pdf)
+- S. R. Johnson. "Full-featured Geant4 GPU acceleration using Celeritas". *SWIFT-HEP #6*, 21 Nov 2023. [presentation](https://indico.cern.ch/event/1324606/contributions/5679207/attachments/2756023/5120474/celeritas.pdf)
 - S. R. Johnson. "Celeritas v0.4: we’re ready!". *CMS Simulation Group Meeting*, 10 Nov 2023. [presentation](https://indico.cern.ch/event/1344583/contributions/5666830/attachments/2750423/4787039/Celeritas-update.pdf)
 - S. R. Johnson. "Celeritas: computational challenges and possible FASTMath solutions". *FASTMath All Hands*, 02 Nov 2023.
 - S. R. Johnson. "High Energy Physics  Monte Carlo on GPU: Celeritas". *Monte Carlo Computational Summit*, 25 Oct 2023.
@@ -51,8 +51,8 @@ on 28 Aug 2024.
 - S. R. Johnson. "ORANGE: surface-based GPU geometry". *27th Geant4 Collaboration Meeting*, 29 Sep 2022. [presentation](https://indico.cern.ch/event/1156193/contributions/5039367/)
 - S. R. Johnson. "Celeritas: Version 0.1". *27th Geant4 Collaboration Meeting*, 26 Sep 2022. [presentation](https://indico.cern.ch/event/1156193/contributions/5053276/)
 - S. R. Johnson. "Celeritas Version 0.1: CMS update". *CMS Simulation Meeting*, 23 Sep 2022. [presentation](https://indico.cern.ch/event/1197830/#116-progress-of-the-celeritas)
-- A. Lund. "Celeritas: GPU-accelerated particle transport for detector simulation in HEP experiments". *CPS Seminar*, 02 Sep 2022.
-- S. Tognini. "Celeritas: HEP detector simulation on GPUs". *Snowmass*, 18 Jul 2022. [poster](https://indico.fnal.gov/event/22303/sessions/20790/#20220718)
+- A. Lund. "Celeritas: GPU-accelerated particle transport for detector simulation in HEP experiments". *CPS Seminar*, 02 Sep 2022. [presentation](https://www.anl.gov/event/celeritas-gpuaccelerated-particle-transport-for-detector-simulation-in-high-energy-physics)
+- S. Tognini. "Celeritas: HEP detector simulation on GPUs [Snowmass]". *Snowmass*, 18 Jul 2022. [poster](https://indico.fnal.gov/event/22303/sessions/20790/#20220718)
 - S. R. Johnson. "Celeritas: GPU detector simulation". *Compute Accelerator Forum*, 29 Jun 2022. [presentation](https://indico.cern.ch/event/1160438/)
 - T. Evans. "Exascale Computing at ORNL Past, Current, and Future: Opportunities for High Energy Physics". *CERN Computing Seminar*, 29 Jun 2022. [presentation](https://indico.cern.ch/event/1175052/)
 - S. R. Johnson. "Celeritas: conclusion and challenges". *HSF Detector Simulation on GPU Community Meeting*, 06 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
@@ -85,8 +85,8 @@ on 28 Aug 2024.
 
 ## Technical reports
 
-- S. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D Report: Accelerating Geant4". Jan 2024.
+- S. R. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D Report: Accelerating Geant4". Jan 2024.
 
 ## Code
 
-- S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Canal, B. Morgan, T. Evans, J. Esseiva. "[Celeritas *v889*](https://doi.org/10.11578/dc.20221011.1)". Jul 2022.
+- S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Canal, B. Morgan, T. Evans, J. Esseiva. "[Celeritas *v1040*](https://doi.org/10.11578/dc.20221011.1)". Jul 2022.
