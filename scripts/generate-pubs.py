@@ -131,9 +131,6 @@ def sorted_data_by_date(items):
 def print_bibliography(get_collection_items, out):
 
     print(f"""\
----
-title: Celeritas publications
----
 <!--
 NOTE: this page is generated automatically from
 https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
@@ -169,9 +166,6 @@ These publications are extracted from the Celeritas team's Zotero database.""", 
 def print_references(get_collection_items, out):
 
     print(f"""\
----
-title: Celeritas references
----
 <!--
 NOTE: this page is generated automatically from
 https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
