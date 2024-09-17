@@ -38,13 +38,10 @@ class ActionGroups
     //! \name Type aliases
     using BeginRunActionT = BeginRunActionInterface<P, S>;
     using StepActionT = StepActionInterface<P, S>;
-    using EndRunActionT = EndRunActionInterface<P, S>;
     using SPBeginAction = std::shared_ptr<BeginRunActionT>;
     using SPConstStepAction = std::shared_ptr<StepActionT const>;
-    using SPEndAction = std::shared_ptr<EndRunActionT>;
     using VecBeginAction = std::vector<SPBeginAction>;
     using VecStepAction = std::vector<SPConstStepAction>;
-    using VecEndAction = std::vector<SPEndAction>;
     //!@}
 
   public:
@@ -57,13 +54,9 @@ class ActionGroups
     //! Get the ordered vector of actions within a step
     VecStepAction const& step() const { return step_actions_; }
 
-    //! Get the set of end-of-run actions
-    VecEndAction const& end_run() const { return end_run_; }
-
   private:
     VecBeginAction begin_run_;
     VecStepAction step_actions_;
-    VecEndAction end_run_;
 };
 
 //---------------------------------------------------------------------------//

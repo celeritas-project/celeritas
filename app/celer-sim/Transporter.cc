@@ -181,6 +181,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 //---------------------------------------------------------------------------//
 /*!
  * Merge times across all threads.
+ *
+ * \todo Action times are to be refactored as aux data.
  */
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const

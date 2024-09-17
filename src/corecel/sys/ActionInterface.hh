@@ -146,8 +146,7 @@ struct ActionTypeTraits
  * initialize in the constructor and avoid using this interface if possible.
  *
  * \todo This is currently called once per each state on each CPU thread, and
- * it would be more sensible to call a single with all cooperative states as we
- * do with end_run.
+ * it would be more sensible to call a single with all cooperative states.
  *
  * \warning Because this is called once per thread, the inheriting class is
  * responsible for thread safety (e.g. adding mutexes).
@@ -161,35 +160,6 @@ class BeginRunActionInterface : public ActionTypeTraits<P, S>,
     virtual void begin_run(P const&, S<MemSpace::host>&) = 0;
     //! Set device data at the beginning of a run
     virtual void begin_run(P const&, S<MemSpace::device>&) = 0;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Interface for combining states at the end of the simulation.
- *
- * This is to provide a "gather" operation to merge different threads' states
- * at the end of the simulation. Note that the states are an array-like
- * "immutable view of mutable states".
- *
- * \note This class is to be used primarily in standalone mode where CPU
- * threads operate cooperatively. If Celeritas is used inside a task-based
- * framework where threads operate independently, classes that take this
- * interface might not be appropriate to use, *or* the span of states may be a
- * subset of the total streams (if only a few are operating cooperatively in a
- * tasking context).
- *
- * \todo We need to refactor the stepper so that we can more readily
- * access the states.
- */
-template<class P, template<MemSpace M> class S>
-class EndRunActionInterface : public ActionTypeTraits<P, S>,
-                              public MutableActionInterface
-{
-  public:
-    //! Merge host data at the end of a run
-    virtual void end_run(P const&, Span<S<MemSpace::host>* const>) = 0;
-    //! Merge device data at the end of a run
-    virtual void end_run(P const&, Span<S<MemSpace::device>* const>) = 0;
 };
 
 //---------------------------------------------------------------------------//

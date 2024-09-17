@@ -72,24 +72,6 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Merge states at the end of the run
- */
-template<MemSpace M>
-void ActionSequence::end_run(CoreParams const& params,
-                             Span<CoreState<M>* const> states)
-{
-    CELER_EXPECT(std::all_of(states.begin(), states.end(), [](auto* s) {
-        return static_cast<bool>(s);
-    }));
-    for (auto const& sp_action : actions_.end_run())
-    {
-        ScopedProfiling profile_this{sp_action->label()};
-        sp_action->end_run(params, states);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Call all explicit actions with host or device data.
  */
 template<MemSpace M>
@@ -179,11 +161,6 @@ template void
 ActionSequence::step(CoreParams const&, CoreState<MemSpace::host>&);
 template void
 ActionSequence::step(CoreParams const&, CoreState<MemSpace::device>&);
-
-template void ActionSequence::end_run(CoreParams const&,
-                                      Span<CoreState<MemSpace::host>* const>);
-template void ActionSequence::end_run(CoreParams const&,
-                                      Span<CoreState<MemSpace::device>* const>);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

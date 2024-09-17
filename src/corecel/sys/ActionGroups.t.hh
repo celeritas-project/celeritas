@@ -40,11 +40,6 @@ ActionGroups<P, S>::ActionGroups(ActionRegistry const& reg)
             // Add beginning-of-run to the array
             begin_run_.emplace_back(std::move(brun));
         }
-        if (auto erun = std::dynamic_pointer_cast<EndRunActionT>(base))
-        {
-            // Add end-of-run to the array
-            end_run_.emplace_back(std::move(erun));
-        }
     }
 
     // Sort actions by increasing order (and secondarily, increasing IDs)
