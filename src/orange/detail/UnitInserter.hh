@@ -51,7 +51,6 @@ class UnitInserter
     TransformRecordInserter insert_transform_;
     SurfacesRecordBuilder build_surfaces_;
     UniverseInserter* insert_universe_;
-    BoundingBoxBumper<fast_real_type, real_type> calc_bumped_;
 
     CollectionBuilder<SimpleUnitRecord> simple_units_;
 
@@ -65,6 +64,7 @@ class UnitInserter
     CollectionBuilder<VolumeRecord> volume_records_;
     CollectionBuilder<OrientedBoundingZoneRecord> obz_records_;
     CollectionBuilder<Daughter> daughters_;
+    BoundingBoxBumper<fast_real_type, real_type> calc_bumped_;
 
     //// HELPER METHODS ////
 

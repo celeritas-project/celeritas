@@ -159,6 +159,22 @@ std::vector<Label> make_volume_labels(UnitInput& inp)
 }
 
 //---------------------------------------------------------------------------//
+//! Create a bounding box bumper for a given tolerance.
+//
+// This bumper will convert *to* fast real type *from* regular
+// real type. It conservatively expand to twice the potential bump distance
+// from a boundary so that the bbox will enclose the point even after a
+// potential bump.
+BoundingBoxBumper<fast_real_type, real_type> make_bumper(Tolerance<> const& tol)
+{
+    Tolerance<real_type> bbox_tol;
+    bbox_tol.rel = 2 * tol.rel;
+    bbox_tol.abs = 2 * tol.abs;
+    CELER_ENSURE(bbox_tol);
+    return BoundingBoxBumper<fast_real_type, real_type>(std::move(bbox_tol));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -184,6 +200,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , volume_records_{&orange_data_->volume_records}
     , obz_records_{&orange_data_->obz_records}
     , daughters_{&orange_data_->daughters}
+    , calc_bumped_(make_bumper(orange_data_->scalars.tol))
 {
     CELER_EXPECT(orange_data);
     CELER_EXPECT(orange_data->scalars.tol);
@@ -191,19 +208,6 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
-
-    // Bounding box bumper and converter *to* fast real type *from* regular
-    // real type: conservatively expand to twice the potential bump distance
-    // from a boundary so that the bbox will enclose the point even after a
-    // potential bump
-    calc_bumped_ = BoundingBoxBumper<fast_real_type, real_type>(
-        [&tol = orange_data_->scalars.tol] {
-            Tolerance<real_type> bbox_tol;
-            bbox_tol.rel = 2 * tol.rel;
-            bbox_tol.abs = 2 * tol.abs;
-            CELER_ENSURE(bbox_tol);
-            return bbox_tol;
-        }());
 }
 
 //---------------------------------------------------------------------------//
