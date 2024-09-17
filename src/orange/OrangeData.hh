@@ -157,7 +157,7 @@ struct OrientedBoundingZoneRecord
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !half_widths.empty() && !offset_ids.empty() && transform_id;
+        return offset_ids[0] && offset_ids[1] && transform_id;
     }
 };
 
