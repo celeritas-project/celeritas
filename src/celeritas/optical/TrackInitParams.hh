@@ -3,14 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/Primary.hh
+//! \file celeritas/optical/TrackInitParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
-#include "geocel/Types.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/Types.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
+
+#include "TrackInitData.hh"
 
 namespace celeritas
 {
@@ -18,16 +19,23 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Optical photon data used to initialize a photon track state.
+ * Manage persistent track initializer data.
  */
-struct Primary
+class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
 {
-    units::MevEnergy energy;
-    Real3 position{0, 0, 0};
-    Real3 direction{0, 0, 0};
-    Real3 polarization{0, 0, 0};
-    real_type time{};
-    VolumeId volume{};
+  public:
+    // Construct with capacity
+    explicit TrackInitParams(size_type capacity);
+
+    //! Access data on host
+    HostRef const& host_ref() const final { return data_.host_ref(); }
+
+    //! Access data on device
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
+
+  private:
+    // Host/device storage and reference
+    CollectionMirror<TrackInitParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

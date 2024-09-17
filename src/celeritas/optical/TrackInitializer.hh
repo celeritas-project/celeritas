@@ -3,33 +3,33 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/TrackSlotUtils.cc
+//! \file celeritas/optical/TrackInitializer.hh
 //---------------------------------------------------------------------------//
-#include "TrackSlotUtils.hh"
+#pragma once
 
-#include <algorithm>
-#include <random>
+#include "corecel/Types.hh"
+#include "geocel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Shuffle track slot indices.
+ * Optical photon data used to initialize a photon track state.
  */
-void shuffle_track_slots(
-    Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>*
-        track_slots,
-    StreamId)
+struct TrackInitializer
 {
-    CELER_EXPECT(track_slots);
-    auto* start = track_slots->data().get();
-    auto seed = static_cast<unsigned int>(track_slots->size());
-    std::mt19937 g{seed};
-    std::shuffle(start, start + track_slots->size(), g);
-}
+    units::MevEnergy energy;
+    Real3 position{0, 0, 0};
+    Real3 direction{0, 0, 0};
+    Real3 polarization{0, 0, 0};
+    real_type time{};
+    VolumeId volume{};
+};
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

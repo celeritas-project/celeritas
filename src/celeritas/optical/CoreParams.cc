@@ -18,6 +18,7 @@
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
+#include "TrackInitParams.hh"
 
 namespace celeritas
 {

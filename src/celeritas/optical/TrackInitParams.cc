@@ -3,33 +3,34 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/TrackSlotUtils.cc
+//! \file celeritas/optical/TrackInitParams.cc
 //---------------------------------------------------------------------------//
-#include "TrackSlotUtils.hh"
+#include "TrackInitParams.hh"
 
-#include <algorithm>
-#include <random>
+#include <utility>
+
+#include "corecel/Assert.hh"
+
+#include "TrackInitData.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Shuffle track slot indices.
+ * Construct with capacity.
  */
-void shuffle_track_slots(
-    Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>*
-        track_slots,
-    StreamId)
+TrackInitParams::TrackInitParams(size_type capacity)
 {
-    CELER_EXPECT(track_slots);
-    auto* start = track_slots->data().get();
-    auto seed = static_cast<unsigned int>(track_slots->size());
-    std::mt19937 g{seed};
-    std::shuffle(start, start + track_slots->size(), g);
+    CELER_EXPECT(capacity > 0);
+
+    HostVal<TrackInitParamsData> host_data;
+    host_data.capacity = capacity;
+    CELER_ASSERT(host_data);
+    data_ = CollectionMirror<TrackInitParamsData>{std::move(host_data)};
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

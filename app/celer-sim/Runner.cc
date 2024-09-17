@@ -573,6 +573,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
         // No optical materials are present
         return;
     }
+    CELER_ASSERT(inp.optical);
 
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
@@ -580,7 +581,9 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.material);
     oc_inp.scintillation
         = ScintillationParams::from_import(imported, core_params_->particle());
-    oc_inp.buffer_capacity = inp.optical_buffer_capacity;
+    oc_inp.buffer_capacity = inp.optical.buffer_capacity;
+    oc_inp.primary_capacity = inp.optical.primary_capacity;
+    oc_inp.auto_flush = inp.optical.auto_flush;
 
     CELER_ASSERT(oc_inp);
     optical_collector_

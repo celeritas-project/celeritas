@@ -13,8 +13,8 @@
 #include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
 
-#include "Primary.hh"
 #include "TrackData.hh"
+#include "TrackInitializer.hh"
 
 namespace celeritas
 {
@@ -72,7 +72,8 @@ class CoreStateInterface : public AuxStateInterface
     virtual size_type size() const = 0;
 
     // Inject optical primaries
-    virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
+    virtual void insert_primaries(Span<TrackInitializer const> host_primaries)
+        = 0;
 
   protected:
     CoreStateInterface() = default;
@@ -137,7 +138,7 @@ class CoreState final : public CoreStateInterface
     CoreStateCounters const& counters() const final { return counters_; }
 
     // Inject primaries to be turned into TrackInitializers
-    void insert_primaries(Span<Primary const> host_primaries) final;
+    void insert_primaries(Span<TrackInitializer const> host_primaries) final;
 
   private:
     // State data
