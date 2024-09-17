@@ -36,7 +36,7 @@ jobs:
           ZOTERO_TOKEN: ${{secrets.ZOTERO_TOKEN}}
           ZOTERO_GROUP: 2380941
         run: |
-          python scripts/generate-pubs.py -g $ZOTERO_GROUP -o publications.md
+          python scripts/generate-pubs.py -g $ZOTERO_GROUP
           echo "DIFF_COUNT=$(git diff -- publications.md | wc -l)" >> $GITHUB_OUTPUT
       - name: Push updated publications
         if: ${{steps.update.outcome != 'failure'

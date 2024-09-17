@@ -27,7 +27,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: 255
+          fetch-depth: 383
           fetch-tags: true
       - name: Configure celeritas
         # Turn warnings into errors only for PRs
@@ -71,7 +71,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: 255
+          fetch-depth: 383
           fetch-tags: true
       - name: Install Python packages
         run: |
