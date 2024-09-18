@@ -70,6 +70,17 @@ TEST_F(BoundingBoxUtilsTest, center)
     }
 }
 
+TEST_F(BoundingBoxUtilsTest, half_widths)
+{
+    BBox bbox = {{-10, -20, -30}, {1, 2, 3}};
+    EXPECT_VEC_SOFT_EQ(Real3({5.5, 11, 16.5}), calc_half_widths(bbox));
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(calc_half_widths(BBox{}), DebugError);
+    }
+}
+
 TEST_F(BoundingBoxUtilsTest, surface_area)
 {
     BBox bbox = {{-1, -2, -3}, {6, 4, 5}};
