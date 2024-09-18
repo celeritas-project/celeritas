@@ -89,6 +89,12 @@ class CoreState final : public CoreStateInterface
               StreamId stream_id,
               size_type num_track_slots);
 
+    // Default destructor
+    ~CoreState();
+
+    // Prevent move/copy
+    CELER_DELETE_COPY_MOVE(CoreState);
+
     //! Thread/stream ID
     StreamId stream_id() const final { return this->ref().stream_id; }
 
@@ -156,7 +162,7 @@ class CoreState final : public CoreStateInterface
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
 
-    // Native pointer to ref or
+    // Native pointer to ref data
     Ptr ptr_;
 
     // Counters for track initialization and activity

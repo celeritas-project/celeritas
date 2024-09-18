@@ -40,6 +40,7 @@ struct GeantGeoNavCollection
     {
         return *this;
     }
+    CELER_FUNCTION void reset() { CELER_ASSERT_UNREACHABLE(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -84,6 +85,9 @@ struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
         return !touch_handles.empty()
                && navigators.size() == touch_handles.size();
     }
+
+    // Clean up on the original thread, necessary for thread-local G4 alloc
+    void reset() { CELER_ASSERT_UNREACHABLE(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -121,8 +125,12 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     explicit operator bool() const
     {
         return !touch_handles.empty()
-               && navigators.size() == touch_handles.size();
+               && navigators.size() == touch_handles.size()
+               && touch_handles.front() && navigators.front();
     }
+
+    // Clean up on the original thread, necessary for thread-local G4 alloc
+    void reset();
 };
 
 //---------------------------------------------------------------------------//

@@ -35,10 +35,12 @@ namespace detail
  * Transfer Celeritas sensitive detector hits to Geant4.
  *
  * This serves a similar purpose to the \c G4FastSimHitMaker class for
- * generating hit objects. It \b must be thread-local because the sensitive
- * detectors it stores are thread-local, and additionally Geant4 makes
- * assumptions about object allocations that cause crashes if the HitProcessor
- * is allocated on one thread and destroyed on another.
+ * generating hit objects.
+ *
+ * \warning This class \b must be thread-local because the sensitive
+ * detectors it points to are thread-local objects. Furthermore, Geant4
+ * thread-local object allocators for the navigation state and tracks mean this
+ * class \b must be destroyed on the same thread on which it was created.
  *
  * Call operator:
  * - Loop over detector steps
@@ -63,9 +65,10 @@ class HitProcessor
     HitProcessor(SPConstVecLV detector_volumes,
                  VecParticle const& particles,
                  StepSelection const& selection,
-                 bool locate_touchable);
+                 bool locate_touchable,
+                 StreamId stream);
 
-    // Default destructor
+    // Log on destruction
     ~HitProcessor();
 
     // Process CPU-generated hits
@@ -102,6 +105,9 @@ class HitProcessor
 
     //! Post-step selection for copying to track
     StepPointSelection post_step_selection_;
+
+    //! Stream ID
+    StreamId stream_;
 
     void update_track(ParticleId id) const;
 };

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "HitManager.hh"
 
+#include <mutex>
 #include <unordered_map>
 #include <utility>
 #include <G4LogicalVolumeStore.hh>
@@ -75,6 +76,7 @@ HitManager::HitManager(GeoParams const& geo,
 
     // Hit processors *must* be allocated on the thread they're used because of
     // geant4 thread-local SDs. There must be one per thread.
+    processor_weakptrs_.resize(num_streams);
     processors_.resize(num_streams);
 
     // Map detector volumes
@@ -87,6 +89,33 @@ HitManager::HitManager(GeoParams const& geo,
 
     CELER_ENSURE(setup.track == !this->particles_.empty());
     CELER_ENSURE(geant_vols_ && geant_vols_->size() == vecgeom_vols_.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create local hit processor.
+ *
+ * Due to Geant4 multithread semantics, this \b must be done on the same CPU
+ * thread on which the resulting processor used.
+ */
+auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
+{
+    CELER_EXPECT(sid < processor_weakptrs_.size());
+    CELER_EXPECT(!processors_[sid.get()]);
+
+    auto result = std::make_shared<HitProcessor>(
+        geant_vols_, particles_, selection_, locate_touchable_, sid);
+    {
+        static std::mutex mutex;
+        std::scoped_lock lock{mutex};
+
+        CELER_ASSERT(!processors_[sid.get()]);
+        processor_weakptrs_[sid.get()] = result;
+        processors_[sid.get()] = result.get();
+    }
+
+    CELER_ENSURE(processors_[sid.get()]);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -117,7 +146,7 @@ auto HitManager::filters() const -> Filters
  */
 void HitManager::process_steps(HostStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    auto& process_hits = this->get_local_hit_processor(state.stream_id);
     process_hits(state.steps);
 }
 
@@ -127,25 +156,8 @@ void HitManager::process_steps(HostStepState state)
  */
 void HitManager::process_steps(DeviceStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    auto& process_hits = this->get_local_hit_processor(state.stream_id);
     process_hits(state.steps);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Destroy local data to avoid Geant4 crashes.
- *
- * This deallocates the local hit processor on the Geant4 thread that was
- * active when allocating it. This is necessary because Geant4 has thread-local
- * allocators that crash if trying to deallocate data allocated on another
- * thread.
- */
-void HitManager::finalize(StreamId sid)
-{
-    CELER_EXPECT(sid < processors_.size());
-    CELER_LOG_LOCAL(debug) << "Deallocating hit processor (stream "
-                           << sid.get() << ")";
-    processors_[sid.unchecked_get()].reset();
 }
 
 //---------------------------------------------------------------------------//
@@ -243,20 +255,17 @@ void HitManager::setup_particles(ParticleParams const& par)
 
 //---------------------------------------------------------------------------//
 /*!
- * Ensure the local hit processor exists, and return it.
+ * Return the local hit processor.
  */
 HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 {
     CELER_EXPECT(sid < processors_.size());
+    CELER_EXPECT(([&] {
+        // Check that shared pointer is still alive
+        auto sp = processor_weakptrs_[sid.get()].lock();
+        return sp && sp.get() == processors_[sid.get()];
+    }()));
 
-    if (CELER_UNLIKELY(!processors_[sid.unchecked_get()]))
-    {
-        CELER_LOG_LOCAL(debug)
-            << "Allocating hit processor (stream " << sid.get() << ")";
-        // Allocate the hit processor locally
-        processors_[sid.unchecked_get()] = std::make_unique<HitProcessor>(
-            geant_vols_, particles_, selection_, locate_touchable_);
-    }
     return *processors_[sid.unchecked_get()];
 }
 
