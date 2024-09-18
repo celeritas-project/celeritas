@@ -49,6 +49,44 @@ enum class RelaxationSelection
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construction options for Geant muon EM physics.
+ */
+struct GeantMuonPhysicsOptions
+{
+    //! Enable muon pair production
+    bool pair_production{false};
+    //! Enable muon ionization
+    bool ionization{false};
+    //! Enable muon bremsstrahlung
+    bool bremsstrahlung{false};
+    //! Enable muon single Coulomb scattering
+    bool coulomb{false};
+    //! Enable muon multiple Coulomb scattering
+    bool msc{false};
+
+    //! True if any process is activated
+    explicit operator bool() const
+    {
+        return pair_production || ionization || bremsstrahlung || coulomb
+               || msc;
+    }
+};
+
+//! Equality operator
+constexpr bool
+operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
+{
+    // clang-format off
+    return a.pair_production == b.pair_production
+           && a.ionization == b.ionization
+           && a.bremsstrahlung == b.bremsstrahlung
+           && a.coulomb == b.coulomb
+           && a.msc == b.msc;
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construction options for Geant physics.
  *
  * These options attempt to default to our closest match to \c
@@ -90,19 +128,8 @@ struct GeantPhysicsOptions
     RelaxationSelection relaxation{RelaxationSelection::none};
     //!@}
 
-    //!@{
-    //! \name Muon physics
-    //! Enable muon pair production
-    bool mu_pair_production{false};
-    //! Enable muon ionization
-    bool mu_ionization{false};
-    //! Enable muon bremsstrahlung
-    bool mu_bremsstrahlung{false};
-    //! Enable muon single Coulomb scattering
-    bool mu_coulomb{false};
-    //! Enable muon multiple Coulomb scattering
-    bool mu_msc{false};
-    //!@}
+    //! Muon EM physics
+    GeantMuonPhysicsOptions muon;
 
     //!@{
     //! \name Physics options
@@ -165,21 +192,16 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
 {
     // clang-format off
     return a.coulomb_scattering == b.coulomb_scattering
-           && a.compton_scattering == b.compton_scattering
            && a.photoelectric == b.photoelectric
            && a.rayleigh_scattering == b.rayleigh_scattering
            && a.gamma_conversion == b.gamma_conversion
            && a.gamma_general == b.gamma_general
+           && a.compton_scattering == b.compton_scattering
            && a.ionization == b.ionization
            && a.annihilation == b.annihilation
            && a.brems == b.brems
            && a.msc == b.msc
            && a.relaxation == b.relaxation
-           && a.mu_pair_production == b.mu_pair_production
-           && a.mu_ionization == b.mu_ionization
-           && a.mu_bremsstrahlung == b.mu_bremsstrahlung
-           && a.mu_coulomb == b.mu_coulomb
-           && a.mu_msc == b.mu_msc
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.eloss_fluctuation == b.eloss_fluctuation
            && a.lpm == b.lpm

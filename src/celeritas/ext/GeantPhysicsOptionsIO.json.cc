@@ -87,6 +87,28 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
     j = std::string{to_cstring(value)};
 }
 
+void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
+{
+#define GMPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
+    GMPO_LOAD_OPTION(pair_production);
+    GMPO_LOAD_OPTION(ionization);
+    GMPO_LOAD_OPTION(bremsstrahlung);
+    GMPO_LOAD_OPTION(coulomb);
+    GMPO_LOAD_OPTION(msc);
+#undef GMPO_LOAD_OPTION
+}
+
+void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
+{
+    j = {
+        CELER_JSON_PAIR(inp, pair_production),
+        CELER_JSON_PAIR(inp, ionization),
+        CELER_JSON_PAIR(inp, bremsstrahlung),
+        CELER_JSON_PAIR(inp, coulomb),
+        CELER_JSON_PAIR(inp, msc),
+    };
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
@@ -110,11 +132,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
 
-    GPO_LOAD_OPTION(mu_pair_production);
-    GPO_LOAD_OPTION(mu_ionization);
-    GPO_LOAD_OPTION(mu_bremsstrahlung);
-    GPO_LOAD_OPTION(mu_coulomb);
-    GPO_LOAD_OPTION(mu_msc);
+    GPO_LOAD_OPTION(muon);
 
     GPO_LOAD_OPTION(em_bins_per_decade);
     GPO_LOAD_OPTION(eloss_fluctuation);
@@ -162,11 +180,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, msc),
         CELER_JSON_PAIR(inp, relaxation),
 
-        CELER_JSON_PAIR(inp, mu_pair_production),
-        CELER_JSON_PAIR(inp, mu_ionization),
-        CELER_JSON_PAIR(inp, mu_bremsstrahlung),
-        CELER_JSON_PAIR(inp, mu_coulomb),
-        CELER_JSON_PAIR(inp, mu_msc),
+        CELER_JSON_PAIR(inp, muon),
 
         CELER_JSON_PAIR(inp, em_bins_per_decade),
         CELER_JSON_PAIR(inp, eloss_fluctuation),

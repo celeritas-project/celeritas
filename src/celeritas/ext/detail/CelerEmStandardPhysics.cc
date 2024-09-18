@@ -53,16 +53,6 @@ namespace celeritas
 {
 namespace detail
 {
-namespace
-{
-bool any_muon_enabled(GeantPhysicsOptions const& options)
-{
-    return options.mu_pair_production || options.mu_ionization
-           || options.mu_bremsstrahlung || options.mu_coulomb
-           || options.mu_msc;
-}
-//---------------------------------------------------------------------------//
-}  // namespace
 //---------------------------------------------------------------------------//
 /*!
  * Safely switch from MscStepLimitAlgorithm to G4MscStepLimitType.
@@ -171,7 +161,7 @@ void CelerEmStandardPhysics::ConstructParticle()
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
     G4Positron::PositronDefinition();
-    if (any_muon_enabled(options_))
+    if (options_.muon)
     {
         G4MuonMinus::MuonMinus();
         G4MuonPlus::MuonPlus();
@@ -192,7 +182,7 @@ void CelerEmStandardPhysics::ConstructProcess()
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Electron());
     this->add_e_processes(G4Positron::Positron());
-    if (any_muon_enabled(options_))
+    if (options_.muon)
     {
         this->add_mu_processes(G4MuonMinus::MuonMinus());
         this->add_mu_processes(G4MuonPlus::MuonPlus());
@@ -481,39 +471,42 @@ void CelerEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
-    if (options_.mu_pair_production)
+    if (options_.muon.pair_production)
     {
         physics_list->RegisterProcess(new G4MuPairProduction(), p);
         CELER_LOG(debug) << "Loaded muon pair production with "
                             "G4MuPairProductionModel";
     }
 
-    if (options_.mu_ionization)
+    if (options_.muon.ionization)
     {
         physics_list->RegisterProcess(new G4MuIonisation(), p);
         CELER_LOG(debug) << "Loaded muon ionization with G4ICRU73QOModel, "
                             "G4BraggModel, and G4MuBetheBlochModel";
     }
 
-    if (options_.mu_bremsstrahlung)
+    if (options_.muon.bremsstrahlung)
     {
         physics_list->RegisterProcess(new G4MuBremsstrahlung(), p);
         CELER_LOG(debug) << "Loaded muon bremsstrahlung with "
                             "G4MuBremsstrahlungModel";
     }
 
-    if (options_.mu_coulomb)
+    if (options_.muon.coulomb)
     {
-        // TODO: update the Celeritas Coulomb scattering model to support muons
+        //! \todo Update the Celeritas single Coulomb scattering model to
+        //! support muons
         physics_list->RegisterProcess(new G4CoulombScattering(), p);
         CELER_LOG(debug) << "Loaded muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
     }
 
-    if (options_.mu_msc)
+    if (options_.muon.msc)
     {
-        // TODO: possibly use Urban MSC until Wentzel VI is implemented and
-        // update the Celeritas Urban model to support muons
+        /*!
+         * \todo Possibly use Urban MSC until Wentzel VI is implemented and
+         * update the Celeritas Urban model to support muons
+         */
         auto process = std::make_unique<G4MuMultipleScattering>();
         process->SetEmModel(new G4WentzelVIModel());
         physics_list->RegisterProcess(process.release(), p);
