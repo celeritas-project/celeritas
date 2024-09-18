@@ -1,0 +1,36 @@
+name: pull_request_completed
+
+# NOTE: this workflow runs on the *develop* branch of the main repository
+# after an incoming pull request is run. Changes to this script *will not*
+# affect a PR and must be tested on a fork first.
+on:
+  workflow_run:
+    workflows: ["pull_request"]
+    types:
+      - completed
+
+permissions:
+  actions: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  report-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download and Extract Artifacts
+      uses: dawidd6/action-download-artifact@e7466d1a7587ed14867642c2ca74b5bcc1e19a2d # v6
+      with:
+         run_id: ${{github.event.workflow_run.id}}
+         path: artifacts
+
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        commit: ${{github.event.workflow_run.head_sha}}
+        event_file: artifacts/event-file/event.json
+        event_name: ${{github.event.workflow_run.event}}
+        files: "artifacts/**/*.xml"
+
+# vim: set nowrap tw=100:
