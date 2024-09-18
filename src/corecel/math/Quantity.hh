@@ -313,7 +313,7 @@ value_as(Quantity<SrcUnitT, ValueT> quant) noexcept -> ValueT
  *
  * Example:
  * \code
-   cout << accessor_unit_label<&ParticleView::mass>() << endl;
+   cout << accessor_unit_label<decltype(&ParticleView::mass)>() << endl;
    \endcode
  */
 template<class T>

@@ -12,11 +12,11 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
-#include "celeritas/optical/Primary.hh"
 #include "celeritas/optical/ScintillationData.hh"
 #include "celeritas/optical/ScintillationGenerator.hh"
 #include "celeritas/optical/ScintillationOffload.hh"
 #include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 

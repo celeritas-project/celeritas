@@ -120,6 +120,35 @@ TEST_F(SurfaceTranslatorTest, general_quadric)
     EXPECT_SOFT_EQ(7.0, distances[1]);
 }
 
+TEST_F(SurfaceTranslatorTest, involute)
+{
+    using Real2 = Involute::Real2;
+    using Sign = Chirality;
+    Sign ccw = Chirality::left;
+    Sign cw = Chirality::right;
+    // See Involute.tst.cc
+    // Cocklwise involute
+    {
+        auto invo = translate(Involute{{1, 0}, 2.0, 0.2, cw, 1.0, 3.0});
+        EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
+        EXPECT_SOFT_EQ(2.0, invo.r_b());
+        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
+        EXPECT_TRUE(cw == invo.sign());
+        EXPECT_SOFT_EQ(1.0, invo.tmin());
+        EXPECT_SOFT_EQ(3.0, invo.tmax());
+    }
+    // Counterclockwise involute
+    {
+        auto invo = translate(Involute{{1, 0}, 2.0, 0.2, ccw, 1.0, 3.0});
+        EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
+        EXPECT_SOFT_EQ(2.0, invo.r_b());
+        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
+        EXPECT_TRUE(ccw == invo.sign());
+        EXPECT_SOFT_EQ(1.0, invo.tmin());
+        EXPECT_SOFT_EQ(3.0, invo.tmax());
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

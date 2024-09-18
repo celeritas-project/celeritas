@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceTranslator.hh"
 
+#include "corecel/Constants.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/MatrixUtils.hh"
@@ -176,6 +177,24 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
 
     return GeneralQuadric{
         second, make_array(other.cross()), real_type(2) * newfirst, newzeroth};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a translated Involute.
+ */
+Involute SurfaceTranslator::operator()(Involute const& other) const
+{
+    using constants::pi;
+    Real3 origin = tr_.transform_up({other.origin()[0], other.origin()[1], 0});
+
+    Involute invo{{origin[0], origin[1]},
+                  other.r_b(),
+                  other.displacement_angle(),
+                  other.sign(),
+                  other.tmin(),
+                  other.tmax()};
+    return invo;
 }
 
 //---------------------------------------------------------------------------//

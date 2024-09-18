@@ -41,6 +41,7 @@ void RunnerOutput::output(JsonPimpl* j) const
 
     auto active = json::array();
     auto alive = json::array();
+    auto generated = json::array();
     auto initializers = json::array();
     auto num_track_slots = json::array();
     auto num_step_iterations = json::array();
@@ -56,6 +57,7 @@ void RunnerOutput::output(JsonPimpl* j) const
         {
             active.push_back(event.active);
             alive.push_back(event.alive);
+            generated.push_back(event.generated);
             initializers.push_back(event.initializers);
         }
         num_track_slots.push_back(event.num_track_slots);
@@ -75,6 +77,7 @@ void RunnerOutput::output(JsonPimpl* j) const
         // Track count output is disabled
         active = nullptr;
         alive = nullptr;
+        generated = nullptr;
         initializers = nullptr;
     }
 
@@ -96,6 +99,7 @@ void RunnerOutput::output(JsonPimpl* j) const
         {{"_index", json::array({"event", "step"})},
          {"active", std::move(active)},
          {"alive", std::move(alive)},
+         {"generated", std::move(generated)},
          {"initializers", std::move(initializers)},
          {"num_track_slots", std::move(num_track_slots)},
          {"num_step_iterations", std::move(num_step_iterations)},

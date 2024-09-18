@@ -51,12 +51,11 @@ namespace celeritas
  * Construct with shared (MT) params.
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
-                                   SharedParams const& params)
+                                   SharedParams& params)
     : auto_flush_(options.auto_flush ? options.auto_flush
                                      : options.max_num_tracks)
     , max_steps_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
-    , hit_manager_{params.hit_manager()}
 {
     CELER_VALIDATE(params,
                    << "Celeritas SharedParams was not initialized before "
@@ -99,14 +98,31 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         }
     }
 
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        /*!
+         * \todo Add support for Geant4 navigation wrapper, which requires
+         * calling \c state.ref().geometry.reset() on the local transporter
+         * thread due to thread-allocated navigator data.
+         */
+        CELER_NOT_IMPLEMENTED(
+            "offloading when using Celeritas Geant4 navigation wrapper");
+    }
+
+    // Create hit processor on the local thread so that it's deallocated when
+    // this object is destroyed
+    StreamId stream_id{static_cast<size_type>(thread_id)};
+    if (auto const& hit_manager = params.hit_manager())
+    {
+        hit_processor_ = hit_manager->make_local_processor(stream_id);
+    }
+
+    // Create stepper
     StepperInput inp;
     inp.params = params.Params();
-    inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
+    inp.stream_id = stream_id;
     inp.num_track_slots = options.max_num_tracks;
     inp.action_times = options.action_times;
-
-    // Set stream ID for finalizing
-    hit_manager_.finalizer(HMFinalizer{inp.stream_id});
 
     if (celeritas::device())
     {
@@ -116,6 +132,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     {
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
+
+    // Save state for reductions at the end
+    params.set_state(stream_id.get(), step_->sp_state());
 }
 
 //---------------------------------------------------------------------------//
@@ -217,7 +236,13 @@ void LocalTransporter::Flush()
         (*dump_primaries_)(buffer_);
     }
 
-    // Abort cleanly for interrupt and user-defined signals
+    /*!
+     * Abort cleanly for interrupt and user-defined (i.e., job manager)
+     * signals.
+     *
+     * \todo The signal handler is \em not thread safe. We may need to set an
+     * atomic/volatile bit so all local transporters abort.
+     */
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
     // Copy buffered tracks to device and transport the first step
@@ -251,7 +276,8 @@ void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
     CELER_VALIDATE(buffer_.empty(),
-                   << "some offloaded tracks were not flushed");
+                   << "offloaded tracks (" << buffer_.size()
+                   << " in buffer) were not flushed");
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";
@@ -283,26 +309,6 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
         }
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear thread-local hit manager on destruction.
- */
-void LocalTransporter::HMFinalizer::operator()(SPHitManger& hm) const
-{
-    if (hm)
-    {
-        if (this->sid)
-        {
-            hm->finalize(this->sid);
-        }
-        else
-        {
-            CELER_LOG_LOCAL(warning) << "Not finalizing hit manager because "
-                                        "stream ID is unset";
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//

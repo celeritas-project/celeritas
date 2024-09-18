@@ -36,7 +36,53 @@ namespace test
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
-class TestEm3NoMsc : public TestEm3Base
+class TrackSortTestBase : virtual public GlobalTestBase
+{
+  public:
+    using VecPrimary = std::vector<Primary>;
+
+    //! Create a stepper
+    template<MemSpace M>
+    Stepper<M> make_stepper(size_type tracks)
+    {
+        CELER_EXPECT(tracks > 0);
+
+        StepperInput result;
+        result.params = this->core();
+        result.stream_id = StreamId{0};
+        result.num_track_slots = tracks;
+        return Stepper<M>{std::move(result)};
+    }
+
+    virtual VecPrimary make_primaries(size_type count) const = 0;
+
+    template<MemSpace M>
+    void step_action(std::string const& label, CoreState<M>& state)
+    {
+        ActionId action_id = this->action_reg()->find_action(label);
+        CELER_VALIDATE(action_id, << "no '" << label << "' action found");
+        auto action = dynamic_cast<CoreStepActionInterface const*>(
+            this->action_reg()->action(action_id).get());
+        CELER_VALIDATE(action, << "action '" << label << "' cannot execute");
+        CELER_TRY_HANDLE(action->step(*this->core(), state),
+                         LogContextException{this->output_reg().get()});
+    }
+
+    template<MemSpace M>
+    void init_from_primaries(CoreState<M>& state, size_type num_primaries)
+    {
+        auto primaries = this->make_primaries(num_primaries);
+        this->insert_primaries(state, make_span(primaries));
+        this->step_action("extend-from-primaries", state);
+        this->step_action("initialize-tracks", state);
+    }
+
+  private:
+    // Primary initialization
+    std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
+};
+
+class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
 {
   public:
     GeantPhysicsOptions build_geant_options() const override
@@ -47,7 +93,7 @@ class TestEm3NoMsc : public TestEm3Base
     }
 
     //! Make a mix of 1 GeV electrons, positrons, and photons along +x
-    std::vector<Primary> make_primaries(size_type count) const
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = units::MevEnergy{1000};
@@ -83,27 +129,9 @@ class TestEm3NoMsc : public TestEm3Base
     }
 };
 
-class TrackSortTestBase : virtual public GlobalTestBase
-{
-  public:
-    //! Create a stepper
-    template<MemSpace M>
-    Stepper<M> make_stepper(size_type tracks)
-    {
-        CELER_EXPECT(tracks > 0);
-
-        StepperInput result;
-        result.params = this->core();
-        result.stream_id = StreamId{0};
-        result.num_track_slots = tracks;
-        return Stepper<M>{std::move(result)};
-    }
-};
-
 #define TestTrackPartitionEm3Stepper \
     TEST_IF_CELERITAS_GEANT(TestTrackPartitionEm3Stepper)
-class TestTrackPartitionEm3Stepper : public TestEm3NoMsc,
-                                     public TrackSortTestBase
+class TestTrackPartitionEm3Stepper : public TestEm3NoMsc
 {
   protected:
     auto build_init() -> SPConstTrackInit override
@@ -118,8 +146,7 @@ class TestTrackPartitionEm3Stepper : public TestEm3NoMsc,
 
 #define TestTrackSortActionIdEm3Stepper \
     TEST_IF_CELERITAS_GEANT(TestTrackSortActionIdEm3Stepper)
-class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc,
-                                        public TrackSortTestBase
+class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc
 {
   protected:
     auto build_init() -> SPConstTrackInit override
@@ -135,7 +162,7 @@ class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc,
 #define TestActionCountEm3Stepper \
     TEST_IF_CELERITAS_GEANT(TestActionCountEm3Stepper)
 template<MemSpace M>
-class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
+class TestActionCountEm3Stepper : public TestEm3NoMsc
 {
   protected:
     using HostActionThreads =
@@ -170,7 +197,7 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
 };
 
 #define PartitionDataTest TEST_IF_CELERITAS_GEANT(PartitionDataTest)
-class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
+class PartitionDataTest : public TestEm3NoMsc
 {
   protected:
     auto build_init() -> SPConstTrackInit override
@@ -180,26 +207,6 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
         input.max_events = 128;
         input.track_order = TrackOrder::partition_charge;
         return std::make_shared<TrackInitParams>(input);
-    }
-
-    template<MemSpace M>
-    void init_from_primaries(CoreState<M>& state, size_type num_primaries)
-    {
-        auto execute = [&](std::string const& label) {
-            ActionId action_id = this->action_reg()->find_action(label);
-            CELER_ASSERT(action_id);
-
-            auto action = dynamic_cast<CoreStepActionInterface const*>(
-                this->action_reg()->action(action_id).get());
-            CELER_ASSERT(action);
-
-            action->step(*this->core(), state);
-        };
-
-        auto primaries = this->make_primaries(num_primaries);
-        state.insert_primaries(make_span(primaries));
-        execute("extend-from-primaries");
-        execute("initialize-tracks");
     }
 
     template<MemSpace M>
@@ -242,22 +249,10 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
 TEST_F(TestEm3NoMsc, host_is_sorting)
 {
     CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 128};
-    auto execute = [&](std::string const& label) {
-        ActionId action_id = this->action_reg()->find_action(label);
-        CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-        auto action = dynamic_cast<CoreStepActionInterface const*>(
-            this->action_reg()->action(action_id).get());
-        CELER_VALIDATE(action, << "action '" << label << "' cannot execute");
-        CELER_TRY_HANDLE(action->step(*this->core(), state),
-                         LogContextException{this->output_reg().get()});
-    };
 
-    auto primaries = this->make_primaries(state.size());
-    state.insert_primaries(make_span(primaries));
-    execute("extend-from-primaries");
-    execute("initialize-tracks");
-    execute("pre-step");
-    execute("sort-tracks-post-step");
+    this->init_from_primaries(state, state.size());
+    this->step_action("pre-step", state);
+    this->step_action("sort-tracks-post-step", state);
     auto track_slots = state.ref().track_slots.data();
     auto actions = detail::get_action_ptr(state.ref(),
                                           this->core()->init()->track_order());

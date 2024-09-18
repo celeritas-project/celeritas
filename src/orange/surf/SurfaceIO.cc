@@ -11,6 +11,7 @@
 #include <ostream>
 
 #include "corecel/cont/ArrayIO.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "ConeAligned.hh"  // IWYU pragma: associated
 #include "CylAligned.hh"  // IWYU pragma: associated
@@ -72,6 +73,22 @@ std::ostream& operator<<(std::ostream& os, GeneralQuadric const& s)
 }
 
 //---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, Involute const& s)
+{
+    std::string sign{"ccw"};
+    real_type a = s.displacement_angle();
+    if (s.sign() == Chirality::right)
+    {
+        sign = "cw";
+        a = constants::pi - a;
+    }
+
+    return os << "Involute " << sign << ": r=" << s.r_b() << ", a=" << a
+              << ", t={" << s.tmin() << ',' << s.tmax()
+              << "} at x=" << s.origin()[0] << ", y=" << s.origin()[1];
+}
+
+//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Plane const& s)
 {
     os << "Plane: n=" << s.normal() << ", d=" << s.displacement();
@@ -106,15 +123,6 @@ std::ostream& operator<<(std::ostream& os, Sphere const& s)
 std::ostream& operator<<(std::ostream& os, SphereCentered const& s)
 {
     os << "Sphere: r=" << std::sqrt(s.radius_sq());
-    return os;
-}
-
-//---------------------------------------------------------------------------//
-std::ostream& operator<<(std::ostream& os, Involute const& s)
-{
-    os << "Involute: r, a, sign, tmin, tmax =" << s.r_b() << ' ' << s.a()
-       << ' ' << s.sign() << ' ' << s.tmin() << ' ' << s.tmax() << " at "
-       << s.origin();
     return os;
 }
 

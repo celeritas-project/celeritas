@@ -192,6 +192,55 @@ TEST_F(SoftSurfaceEqualTest, general_quadric)
         softeq_(ref, SurfaceTranslator(Translation{{large, 0, 0}})(ref)));
 }
 
+TEST_F(SoftSurfaceEqualTest, involute)
+{
+    using Sign = Chirality;
+    Sign ccw = Chirality::left;
+    Sign cw = Chirality::right;
+
+    Involute ref_ccw{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0};
+    Involute ref_cw{{1.0, 0.0}, 1.0, 2.0, cw, 1.0, 2.0};
+
+    // Counterclockwise
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0 + small, 2.0, ccw, 1.0, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0 + large, 2.0, ccw, 1.0, 2.0}));
+
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0 + small, ccw, 1.0, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0 + large, ccw, 1.0, 2.0}));
+
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0 + small, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0 + large, 2.0}));
+
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0 + small}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0 + large}));
+
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0 + small, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0 + large, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0}));
+
+    EXPECT_FALSE(softeq_(ref_ccw, ref_cw));
+
+    // Clockwise
+    EXPECT_TRUE(
+        softeq_(ref_cw, Involute{{1.0, 0.0}, 1.0 + small, 2.0, cw, 1.0, 2.0}));
+    EXPECT_FALSE(
+        softeq_(ref_cw, Involute{{1.0, 0.0}, 1.0 + large, 2.0, cw, 1.0, 2.0}));
+
+    EXPECT_TRUE(softeq_(
+        ref_cw, Involute{{1.0, 0.0}, 1.0, 2.0 + small, cw, 1.0 + small, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_cw, Involute{{1.0, 0.0}, 1.0, 2.0 + large, cw, 1.0 + large, 2.0}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

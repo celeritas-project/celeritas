@@ -61,7 +61,9 @@ G4bool ExceptionHandler::Notify(char const* origin_of_exception,
         case FatalErrorInArgument:
         case RunMustBeAborted:
         case EventMustBeAborted:
+            // Propagate error message into the handler
             CELER_TRY_HANDLE(throw err, handle_);
+            CELER_LOG_LOCAL(debug) << err.what();
             if (auto* run_man = G4RunManager::GetRunManager())
             {
                 if (severity == EventMustBeAborted

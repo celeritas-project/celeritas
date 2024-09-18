@@ -161,7 +161,12 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
                 && sim.is_looping(particle.particle_id(), particle.energy()))
             {
 #if !CELER_DEVICE_COMPILE
-                CELER_LOG_LOCAL(error) << "Killing looping track";
+                CELER_LOG_LOCAL(debug)
+                    << "Track (pid=" << particle.particle_id().get()
+                    << ", E=" << particle.energy().value() << ' '
+                    << ParticleTrackView::Energy::unit_type::label()
+                    << ") is looping after " << sim.num_looping_steps()
+                    << " steps";
 #endif
                 return track.tracking_cut_action();
             }

@@ -27,6 +27,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class CoreParams;
 struct Primary;
+class ExtendFromPrimariesAction;
 
 namespace detail
 {
@@ -63,6 +64,7 @@ struct StepperInput
  */
 struct StepperResult
 {
+    size_type generated{};  //!< New primaries added
     size_type queued{};  //!< Pending track initializers at end of step
     size_type active{};  //!< Active tracks at start of step
     size_type alive{};  //!< Active and alive at end of step
@@ -72,7 +74,15 @@ struct StepperResult
 };
 
 //---------------------------------------------------------------------------//
-//! Interface class for stepper classes.
+/*!
+ * Interface class for stepper classes.
+ *
+ * This allows higher-level classes not to care whether the stepper operates on
+ * host or device.
+ *
+ * \note This class and its daughter may be removed soon to facilitate step
+ * gathering.
+ */
 class StepperInterface
 {
   public:
@@ -82,9 +92,13 @@ class StepperInterface
     using ActionSequence = detail::ActionSequence<CoreParams, CoreState>;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
+    using SPState = std::shared_ptr<CoreStateInterface>;
     //!@}
 
   public:
+    // Warm up before stepping
+    virtual void warm_up() = 0;
+
     // Transport existing states
     virtual StepperResult operator()() = 0;
 
@@ -100,6 +114,9 @@ class StepperInterface
     //! Get the core state interface
     virtual CoreStateInterface const& state() const = 0;
 
+    //! Get a shared pointer to the state (TEMPORARY)
+    virtual SPState sp_state() = 0;
+
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
     ~StepperInterface() = default;
@@ -108,6 +125,9 @@ class StepperInterface
 //---------------------------------------------------------------------------//
 /*!
  * Manage a state vector and execute a single step on all of them.
+ *
+ * \note This is likely to be removed and refactored since we're changing how
+ * primaries are created and how multithread state ownership is managed.
  *
  * \code
    Stepper<MemSpace::host> step(input);
@@ -137,6 +157,9 @@ class Stepper final : public StepperInterface
     // Default destructor
     ~Stepper();
 
+    // Warm up before stepping
+    void warm_up() final;
+
     // Transport existing states
     StepperResult operator()() final;
 
@@ -150,19 +173,24 @@ class Stepper final : public StepperInterface
     ActionSequence const& actions() const final { return *actions_; }
 
     //! Access core data, primarily for debugging
-    StateRef const& state_ref() const { return state_.ref(); }
+    StateRef const& state_ref() const { return state_->ref(); }
 
     //! Get the core state interface for diagnostic output
-    CoreStateInterface const& state() const final { return state_; }
+    CoreStateInterface const& state() const final { return *state_; }
 
     //! Reset the core state counters and data so it can be reused
-    void reset_state() { state_.reset(); }
+    void reset_state() { state_->reset(); }
+
+    //! Get a shared pointer to the state (TEMPORARY, DO NOT USE)
+    SPState sp_state() final { return state_; }
 
   private:
     // Params data
     std::shared_ptr<CoreParams const> params_;
+    // Primary initialization
+    std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
-    CoreState<M> state_;
+    std::shared_ptr<CoreState<M>> state_;
     // Call sequence
     std::shared_ptr<ActionSequence> actions_;
 };

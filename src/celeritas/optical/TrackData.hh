@@ -13,9 +13,9 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
-#include "celeritas/track/TrackInitData.hh"
 
 #include "MaterialData.hh"
+#include "TrackInitData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -83,7 +83,7 @@ struct CoreParamsData
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
-    TrackInitParamsData<W, M> init;  // TODO: don't need max events
+    TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
 
@@ -124,7 +124,7 @@ struct CoreStateData
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;  // TODO: has a few things we don't need
-    TrackInitStateData<W, M> init;  // Still need to track vacancies
+    TrackInitStateData<W, M> init;
 
     //! Unique identifier for "thread-local" data.
     StreamId stream_id;

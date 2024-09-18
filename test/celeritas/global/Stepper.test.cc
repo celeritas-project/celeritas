@@ -94,8 +94,8 @@ class StepperOrderTest : public SimpleComptonTest
         }
     }
 
-    template<MemSpace M>
-    DummyState const& get_state(CoreState<M> const& core_state) const
+    DummyState const&
+    get_dummy_state(CoreStateInterface const& core_state) const
     {
         return get<DummyState>(core_state.aux(), dummy_params_->aux_id());
     }
@@ -178,7 +178,7 @@ TEST_F(SimpleComptonTest, fail_initialize)
         // clang-format off
         static char const* const expected_log_messages[] = {
             "Track started outside the geometry",
-            "Tracking error (track ID 0, track slot 31) at {1001, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
+            "Killing track 0 of event 15 (in track slot 31) at {1001, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
         };
         // clang-format on
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
@@ -254,15 +254,29 @@ TEST_F(StepperOrderTest, setup)
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
 
-TEST_F(StepperOrderTest, host)
+TEST_F(StepperOrderTest, warm_up)
+{
+    Stepper<MemSpace::host> step(this->make_stepper_input(32));
+    auto const& dumstate = this->get_dummy_state(step.state());
+
+    EXPECT_EQ(0, dumstate.action_order.size());
+    step.warm_up();
+    EXPECT_EQ(0, step.state().counters().num_active);
+    EXPECT_EQ(0, step.state().counters().num_alive);
+
+    static char const* const expected_action_order[]
+        = {"user_start", "user_pre", "user_post"};
+    EXPECT_VEC_EQ(expected_action_order, dumstate.action_order);
+}
+
+TEST_F(StepperOrderTest, step)
 {
     constexpr auto M = MemSpace::host;
     size_type num_primaries = 32;
     size_type num_tracks = 64;
 
     Stepper<M> step(this->make_stepper_input(num_tracks));
-    auto const& state
-        = this->get_state(dynamic_cast<CoreState<M> const&>(step.state()));
+    auto const& state = this->get_dummy_state(step.state());
 
     EXPECT_EQ(0, state.action_order.size());
     EXPECT_EQ(M, state.memspace);
@@ -287,7 +301,7 @@ TEST_F(BadGeometryTest, no_volume_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Failed to initialize geometry state: could not find associated volume in universe 0 at local position {-5, 0, 0}",
-        "Tracking error (track ID 0, track slot 0) at {-5, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
+        "Killing track 0 of event 0 (in track slot 0) at {-5, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
     };
     // clang-format on
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
@@ -307,7 +321,7 @@ TEST_F(BadGeometryTest, no_material_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Track started in an unknown material",
-        "Tracking error (track ID 0, track slot 0) at {5, 0, 0} [cm] along {1, 0, 0}: depositing 100 [MeV] in volume 4",
+        "Killing track 0 of event 0 (in track slot 0) at {5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 4",
     };
     // clang-format on
 
@@ -326,7 +340,7 @@ TEST_F(BadGeometryTest, no_new_volume_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "track failed to cross local surface 2 in universe 0 at local position {-6, 0, 0} along local direction {1, 0, 0}",
-        "Tracking error (track ID 0, track slot 0) at {-6, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
+        "Killing track 0 of event 0 (in track slot 0) at {-6, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
     };
 
     // clang-format on
@@ -347,7 +361,7 @@ TEST_F(BadGeometryTest, start_outside_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Track started outside the geometry",
-        "Tracking error (track ID 0, track slot 0) at {20, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
+        "Killing track 0 of event 0 (in track slot 0) at {20, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
     };
     // clang-format on
 

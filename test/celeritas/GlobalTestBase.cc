@@ -23,6 +23,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
 namespace celeritas
@@ -57,6 +58,30 @@ GlobalTestBase::~GlobalTestBase()
             std::cerr << "Failed to write diagnostics: " << e.what();
         }
     }
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Add primaries to be generated.
+ */
+auto GlobalTestBase::primaries_action() -> SPConstPrimariesAction const&
+{
+    if (!primaries_action_)
+    {
+        primaries_action_
+            = ExtendFromPrimariesAction::find_action(*this->core());
+        CELER_ASSERT(primaries_action_);
+    }
+    return primaries_action_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add primaries to be generated.
+ */
+void GlobalTestBase::insert_primaries(CoreStateInterface& state,
+                                      SpanConstPrimary primaries)
+{
+    this->primaries_action()->insert(*core_, state, primaries);
 }
 
 //---------------------------------------------------------------------------//

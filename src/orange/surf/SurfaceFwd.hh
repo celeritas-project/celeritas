@@ -20,13 +20,13 @@ class CylAligned;
 template<Axis T>
 class CylCentered;
 class GeneralQuadric;
+class Involute;
 class Plane;
 template<Axis T>
 class PlaneAligned;
 class SimpleQuadric;
 class Sphere;
 class SphereCentered;
-class Involute;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

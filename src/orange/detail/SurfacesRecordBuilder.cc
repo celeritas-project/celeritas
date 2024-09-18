@@ -39,6 +39,13 @@ auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces) -> result_typ
 
     // Functor to save the surface type and data, and the data offset
     auto emplace_surface = [this](auto&& s) {
+        if constexpr (std::remove_reference_t<decltype(s)>::surface_type()
+                      == SurfaceType::inv)
+        {
+            // See discussion on
+            // https://github.com/celeritas-project/celeritas/pull/1342
+            CELER_NOT_IMPLEMENTED("runtime involute support");
+        }
         types_.push_back(s.surface_type());
         auto data = s.data();
         auto real_range = reals_.insert_back(data.begin(), data.end());

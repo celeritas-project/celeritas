@@ -113,6 +113,15 @@ std::string FaceNamer::Impl::operator()(Sphere const&) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a name for an involute.
+ */
+std::string FaceNamer::Impl::operator()(Involute const&) const
+{
+    return "inv";
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a name for a cone.
  */
 template<Axis T>

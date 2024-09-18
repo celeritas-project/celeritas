@@ -22,14 +22,15 @@ namespace celeritas
 struct CoreStateCounters
 {
     // Initialization input
-    size_type num_vacancies{};  //!< Number of unused track slots
-    size_type num_primaries{};  //!< Number of primaries to be converted
-    size_type num_initializers{};  //!< Number of track initializers
+    size_type num_vacancies{0};  //!< Number of unused track slots
+    size_type num_initializers{0};  //!< Number of track initializers
 
     // Diagnostic output
-    size_type num_secondaries{};  //!< Number of secondaries produced in a step
-    size_type num_active{};  //!< Number of active tracks at start of a step
-    size_type num_alive{};  //!< Number of alive tracks at end of step
+    size_type num_generated{0};  //!< Number of primaries initialized in a step
+    size_type num_secondaries{0};  //!< Number of secondaries produced in a
+                                   //!< step
+    size_type num_active{0};  //!< Number of active tracks at start of a step
+    size_type num_alive{0};  //!< Number of alive tracks at end of step
 };
 
 //---------------------------------------------------------------------------//

@@ -77,6 +77,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/TrackData.cc
+  optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
@@ -268,6 +269,7 @@ celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/detail/CerenkovGeneratorAction)
 celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
 celeritas_polysource(optical/detail/OffloadGatherAction)
@@ -299,7 +301,7 @@ if(NOT CELERITAS_USE_OpenMP
     AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
          OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
   celeritas_target_compile_options(celeritas
-    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
+    PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>"
   )
 endif()
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -308,7 +310,6 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
   )
 endif()
-
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

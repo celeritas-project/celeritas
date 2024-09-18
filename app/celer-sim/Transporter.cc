@@ -73,8 +73,7 @@ void Transporter<M>::operator()()
 {
     CELER_LOG(status) << "Warming up";
     ScopedTimeLog scoped_time;
-    StepperResult step_counts = (*stepper_)();
-    CELER_ENSURE(step_counts.alive == 0);
+    stepper_->warm_up();
 }
 
 //---------------------------------------------------------------------------//
@@ -89,6 +88,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     auto append_track_counts = [&](StepperResult const& track_counts) {
         if (store_track_counts_)
         {
+            result.generated.push_back(track_counts.generated);
             result.initializers.push_back(track_counts.queued);
             result.active.push_back(track_counts.active);
             result.alive.push_back(track_counts.alive);
@@ -112,6 +112,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     };
 
     constexpr size_type min_alloc{65536};
+    result.generated.reserve(std::min(min_alloc, max_steps_));
     result.initializers.reserve(std::min(min_alloc, max_steps_));
     result.active.reserve(std::min(min_alloc, max_steps_));
     result.alive.reserve(std::min(min_alloc, max_steps_));

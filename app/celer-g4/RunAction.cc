@@ -56,9 +56,6 @@ RunAction::RunAction(SPConstOptions options,
 //---------------------------------------------------------------------------//
 /*!
  * Initialize Celeritas.
- *
- * \todo Reusing the existing output registry is a hack needed to preserve the
- * GeantSimpleCalo output. See the \c SharedParams constructor documentation.
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
@@ -72,9 +69,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         {
             // This worker (or master thread) is responsible for initializing
             // celeritas: initialize shared data and setup GPU on all threads
-            CELER_TRY_HANDLE(
-                params_->Initialize(*options_, params_->output_reg()),
-                call_g4exception);
+            CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
             CELER_ASSERT(*params_);
         }
         else
@@ -91,9 +86,20 @@ void RunAction::BeginOfRunAction(G4Run const* run)
             CELER_ASSERT(*transport_);
         }
     }
+    else
+    {
+        CELER_ASSERT(params_);
+        if (init_shared_)
+        {
+            // Construct params for output only
+            auto const& global_setup = *GlobalSetup::Instance();
+            params_->Initialize(global_setup.setup_options().output_file);
+        }
+    }
 
     if (init_shared_)
     {
+        // Construct diagnostics
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
@@ -116,6 +122,10 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 //---------------------------------------------------------------------------//
 /*!
  * Finalize Celeritas.
+ *
+ * \todo In the event of a failure during the stepping loop, it looks like the
+ * exception manager might be unregistered by Geant4 at this point, leading to
+ * a hard G4Exception crash.
  */
 void RunAction::EndOfRunAction(G4Run const*)
 {
@@ -137,8 +147,6 @@ void RunAction::EndOfRunAction(G4Run const*)
     if (init_shared_)
     {
         diagnostics_->timer()->RecordTotalTime(get_transport_time_());
-
-        CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }
 
     if (!SharedParams::CeleritasDisabled())
@@ -156,6 +164,9 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (init_shared_)
     {
+        // Finalize diagnostics (clearing exception handler) after most other
+        // stuff can go wrong
+        CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
         // Clear shared data (if any) and write output (if any)
         CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }

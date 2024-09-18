@@ -369,6 +369,42 @@ TEST(MathTest, ceil_div)
 
 //---------------------------------------------------------------------------//
 
+TEST(MathTest, local_work_calculator)
+{
+    {
+        LocalWorkCalculator<unsigned int> calc_local_work{12, 4};
+        for (auto i : range(4))
+        {
+            EXPECT_EQ(3, calc_local_work(i));
+        }
+        if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(calc_local_work(4), DebugError);
+        }
+    }
+    {
+        LocalWorkCalculator<unsigned int> calc_local_work{7, 5};
+        EXPECT_EQ(2, calc_local_work(0));
+        EXPECT_EQ(2, calc_local_work(1));
+        EXPECT_EQ(1, calc_local_work(2));
+        EXPECT_EQ(1, calc_local_work(3));
+        EXPECT_EQ(1, calc_local_work(4));
+    }
+    {
+        LocalWorkCalculator<unsigned int> calc_local_work{2, 4};
+        EXPECT_EQ(1, calc_local_work(0));
+        EXPECT_EQ(1, calc_local_work(1));
+        EXPECT_EQ(0, calc_local_work(2));
+        EXPECT_EQ(0, calc_local_work(3));
+    }
+    {
+        LocalWorkCalculator<unsigned int> calc_local_work{0, 1};
+        EXPECT_EQ(0, calc_local_work(0));
+    }
+}
+
+//---------------------------------------------------------------------------//
+
 TEST(MathTest, negate)
 {
     double const zero = 0;

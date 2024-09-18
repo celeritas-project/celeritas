@@ -173,6 +173,17 @@ TEST_F(SurfaceActionTest, surface_traits_visitor)
     // Check that all surface types can be visited and are consistent
     for (auto st : range(SurfaceType::size_))
     {
+        if (st == SurfaceType::inv)
+        {
+            if (CELERITAS_DEBUG)
+            {
+                // TODO: see celeritas-project/celeritas#1342
+                EXPECT_THROW(visit_surface_type(get_surface_type, st),
+                             DebugError);
+            }
+            continue;
+        }
+
         SurfaceType actual_st = visit_surface_type(get_surface_type, st);
         EXPECT_EQ(st, actual_st);
     }

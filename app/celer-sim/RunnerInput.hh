@@ -51,6 +51,19 @@ struct RunnerInput
         };
     };
 
+    struct OpticalOptions
+    {
+        size_type buffer_capacity{};  //!< Number of steps that created photons
+        size_type primary_capacity{};  //!< Maximum number of pending primaries
+        size_type auto_flush{};  //!< Threshold number of primaries for
+                                 //!< launching optical tracking loop
+
+        explicit operator bool() const
+        {
+            return buffer_capacity > 0 && primary_capacity > 0
+                   && auto_flush > 0;
+        };
+    };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{0};
 
@@ -85,8 +98,6 @@ struct RunnerInput
     // Control
     unsigned int seed{};
     size_type num_track_slots{};  //!< Divided among streams
-    size_type optical_buffer_capacity{};  //!< Number of steps that created
-                                          //!< optical photons
     size_type max_steps = static_cast<size_type>(-1);
     size_type initializer_capacity{};  //!< Divided among streams
     real_type secondary_stack_factor{};
@@ -112,6 +123,9 @@ struct RunnerInput
 
     // Optional setup options if loading directly from Geant4
     GeantPhysicsOptions physics_options;
+
+    // Options when optical physics is enabled
+    OpticalOptions optical;
 
     //! Whether the run arguments are valid
     explicit operator bool() const
