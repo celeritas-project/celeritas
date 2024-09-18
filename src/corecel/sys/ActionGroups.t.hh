@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+
 #include "corecel/cont/Range.hh"
 
 #include "ActionRegistry.hh"
