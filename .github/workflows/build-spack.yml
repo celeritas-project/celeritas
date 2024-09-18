@@ -150,7 +150,8 @@ jobs:
             # Note this is ignored for geant4, float, clhep
             export CELER_TEST_STRICT=1
           fi
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
+            --output-junit test-results.junit.xml
       - name: Upload failed tests
         if: ${{steps.test.outcome == 'failure'}}
         uses: actions/upload-artifact@v4
@@ -162,6 +163,16 @@ jobs:
             build/**/*.out.json
             build/Testing/Temporary/LastTest.log
             build/Testing/Temporary/LastTestsFailed.log
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{ fromJSON(matrix.geant) < 11
+              && (steps.test.outcome == 'success'
+               || steps.test.outcome == 'failure')}}
+        with:
+          name: test-results-spack-${{matrix.compiler}}-${{matrix.version}}
+          path: "build/test-results.junit.xml"
+          if-no-files-found: error
+          retention-days: 1
       - name: Check using build directory as install
         # TODO: ASAN requires flags downstream
         if: >-

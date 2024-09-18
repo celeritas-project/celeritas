@@ -79,6 +79,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{steps.test.outcome == 'success'
                || steps.test.outcome == 'failure'}}
+        with:
           name: test-results-ultralite-ubuntu
           path: "build/test-results.junit.xml"
           if-no-files-found: error
@@ -120,6 +121,7 @@ jobs:
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
       - name: Test all
+        id: test
         continue-on-error: true
         run: |
           ctest --preset=$Env:CMAKE_PRESET \
@@ -138,7 +140,9 @@ jobs:
           retention-days: 7
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{!cancelled()}}
+        if: ${{steps.test.outcome == 'success'
+               || steps.test.outcome == 'failure'}}
+        with:
           name: test-results-ultralite-windows
           path: "build/test-results.junit.xml"
           if-no-files-found: error

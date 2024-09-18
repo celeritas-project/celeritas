@@ -102,6 +102,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{steps.test.outcome == 'success'
                || steps.test.outcome == 'failure'}}
+        with:
           name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
           path: "build/test-results.junit.xml"
           if-no-files-found: error
@@ -165,6 +166,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{steps.test.outcome == 'success'
                || steps.test.outcome == 'failure'}}
+        with:
           name: test-results-fast-windows
           path: "build/test-results.junit.xml"
           if-no-files-found: error
