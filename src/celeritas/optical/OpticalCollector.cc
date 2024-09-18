@@ -24,6 +24,7 @@
 #include "detail/OffloadGatherAction.hh"
 #include "detail/OffloadParams.hh"
 #include "detail/OpticalLaunchAction.hh"
+#include "detail/ScintGeneratorAction.hh"
 #include "detail/ScintOffloadAction.hh"
 
 namespace celeritas
@@ -70,9 +71,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Action to generate scintillation optical distributions
         scint_action_ = std::make_shared<detail::ScintOffloadAction>(
-            actions.next_id(),
-            offload_params_->aux_id(),
-            std::move(inp.scintillation));
+            actions.next_id(), offload_params_->aux_id(), inp.scintillation);
         actions.insert(scint_action_);
     }
 
@@ -92,6 +91,20 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         actions.insert(cerenkov_gen_action_);
     }
 
+    if (setup.scintillation)
+    {
+        // Action to generate scintillation primaries
+        scint_gen_action_ = std::make_shared<detail::ScintGeneratorAction>(
+            actions.next_id(),
+            offload_params_->aux_id(),
+            // TODO: Hack: generator action must be before launch action
+            // but needs optical state aux ID
+            core.aux_reg()->next_id(),
+            std::move(inp.scintillation),
+            inp.auto_flush);
+        actions.insert(scint_gen_action_);
+    }
+
     // Create launch action with optical params+state and access to gen data
     launch_action_ = detail::OpticalLaunchAction::make_and_insert(
         core, inp.material, offload_params_, inp.primary_capacity);
@@ -105,6 +118,9 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     CELER_ENSURE(!cerenkov_gen_action_
                  || launch_action_->action_id()
                         > cerenkov_gen_action_->action_id());
+    CELER_ENSURE(!scint_gen_action_
+                 || launch_action_->action_id()
+                        > scint_gen_action_->action_id());
 }
 
 //---------------------------------------------------------------------------//
