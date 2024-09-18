@@ -22,11 +22,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  event_file:
-    name: "Upload event file for test reporting"
+  metadata:
+    name: "Save job metadata"
     runs-on: ubuntu-latest
     steps:
-    - name: Upload
+    - name: Upload event file
       uses: actions/upload-artifact@v4
       with:
         name: event-file
