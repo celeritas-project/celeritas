@@ -88,7 +88,8 @@ jobs:
       - name: Test Celeritas
         working-directory: build
         run: |
-          ctest --parallel 2 --timeout 180 --output-on-failure \
+          ctest --parallel $(nproc) --timeout 180 --output-on-failure \
+            --output-junit test-results.junit.xml \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
         working-directory: build
@@ -115,5 +116,13 @@ jobs:
             export LDFLAGS=-Wl,--no-as-needed ${LDFLAGS}
           fi
           ./scripts/ci/test-examples.sh
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{!cancelled()}}
+        with:
+          name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
+          path: "build/test-results.junit.xml"
+          if-no-files-found: error
+          retention-days: 1
 
 # vim: set nowrap tw=100:

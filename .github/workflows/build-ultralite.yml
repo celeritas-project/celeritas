@@ -52,7 +52,8 @@ jobs:
       - name: Run tests
         working-directory: build
         run: |
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure 
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
+            --output-junit test-results.junit.xml
       - name: Install
         working-directory: build
         run: |
@@ -73,6 +74,13 @@ jobs:
           name: ccache-debug-${{github.job}}
           overwrite: true
           retention-days: 7
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{!cancelled()}}
+           name: test-results-ultralite-ubuntu
+           path: "build/test-results.junit.xml"
+           if-no-files-found: error
+           retention-days: 1
   windows:
     name: ultralite-windows
     env:
@@ -112,7 +120,8 @@ jobs:
       - name: Test all
         continue-on-error: true
         run: |
-          ctest --preset=$Env:CMAKE_PRESET 
+          ctest --preset=$Env:CMAKE_PRESET \
+            --output-junit test-results.junit.xml
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |
@@ -125,5 +134,12 @@ jobs:
           name: ccache-debug-${{github.job}}
           overwrite: true
           retention-days: 7
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{!cancelled()}}
+           name: test-results-ultralite-windows
+           path: "build/test-results.junit.xml"
+           if-no-files-found: error
+           retention-days: 1
 
 # vim: set nowrap tw=100:
