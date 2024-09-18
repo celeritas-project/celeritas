@@ -83,7 +83,8 @@ jobs:
       - name: Run tests
         working-directory: build
         run: |
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
+            --output-junit test-results.junit.xml
       - name: Install
         working-directory: build
         run: |
@@ -96,6 +97,13 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{!cancelled()}}
+           name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
+           path: "build/test-results.junit.xml"
+           if-no-files-found: error
+           retention-days: 1
   windows:
     defaults:
       run:
@@ -136,7 +144,8 @@ jobs:
       - name: Test all
         continue-on-error: true
         run: |
-          ctest --preset=$Env:CMAKE_PRESET 
+          ctest --preset=$Env:CMAKE_PRESET \
+            --output-junit test-results.junit.xml
       - name: Install
         working-directory: build
         run: |
@@ -149,5 +158,12 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{!cancelled()}}
+           name: test-results-fast-windows
+           path: "build/test-results.junit.xml"
+           if-no-files-found: error
+           retention-days: 1
 
 # vim: set nowrap tw=100:
