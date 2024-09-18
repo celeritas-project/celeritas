@@ -24,7 +24,7 @@ class LocalLogger
 {
   public:
     // Construct with defaults
-    explicit LocalLogger(int num_threads) : num_threads_(num_threads)
+    explicit LocalLogger(unsigned int num_threads) : num_threads_(num_threads)
     {
         CELER_EXPECT(num_threads_ > 0);
     }
@@ -33,7 +33,7 @@ class LocalLogger
     void operator()(LogProvenance prov, LogLevel lev, std::string msg);
 
   private:
-    int num_threads_;
+    unsigned int num_threads_;
 };
 
 //---------------------------------------------------------------------------//

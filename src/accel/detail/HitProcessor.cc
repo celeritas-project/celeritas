@@ -44,9 +44,11 @@ namespace detail
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            VecParticle const& particles,
                            StepSelection const& selection,
-                           bool locate_touchable)
-    : detector_volumes_(std::move(detector_volumes))
+                           bool locate_touchable,
+                           StreamId stream)
+    : detector_volumes_(std::move(detector_volumes)), stream_{stream}
 {
+    CELER_EXPECT(stream_);
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
     CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
                    << "cannot set 'locate_touchable' because the pre-step "
@@ -54,6 +56,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
                    << "cannot set 'locate_touchable' because the pre-step "
                       "position is not being collected");
+
+    CELER_LOG_LOCAL(debug)
+        << "Setting up hit processor for " << detector_volumes_->size()
+        << " sensitive detectors on stream " << stream_.get();
 
     // Create step and step-owned structures
     step_ = std::make_unique<G4Step>();
@@ -110,8 +116,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
-    CELER_LOG_LOCAL(debug) << "Setting up " << detector_volumes_->size()
-                           << " sensitive detectors";
     detectors_.resize(detector_volumes_->size());
     for (auto i : range(detectors_.size()))
     {
@@ -128,7 +132,19 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 }
 
 //---------------------------------------------------------------------------//
-HitProcessor::~HitProcessor() = default;
+//! Log on destruction
+HitProcessor::~HitProcessor()
+{
+    try
+    {
+        CELER_LOG_LOCAL(debug) << "Deallocating hit processor from stream "
+                               << stream_.unchecked_get();
+    }
+    catch (...)
+    {
+        // Ignore anything bad that happens while logging
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!

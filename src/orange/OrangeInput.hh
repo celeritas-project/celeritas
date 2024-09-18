@@ -25,6 +25,23 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Input definition for a single oriented bounding zone.
+ */
+struct OrientedBoundingZoneInput
+{
+    //! Inner bounding box
+    BBox inner;
+    //! Outer bounding box
+    BBox outer;
+    //! Local to global transformation
+    TransformId transform_id;
+
+    //! Whether the obz definition is valid
+    explicit operator bool() const { return inner && outer && transform_id; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Input definition for a single volume.
  */
 struct VolumeInput
@@ -40,6 +57,8 @@ struct VolumeInput
     std::vector<logic_int> logic{};
     //! Axis-aligned bounding box
     BBox bbox{};
+    //! OrientedBoundingZone
+    OrientedBoundingZoneInput obz;
 
     //! Special flags
     logic_int flags{0};

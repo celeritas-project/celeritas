@@ -82,7 +82,7 @@ inp = {
      "delta_intersection": 0.00001,
      "epsilon_step": 0.00001
     },
-    "sd_type": "event_hit" if use_root else "simple_calo",
+    "sd_type": "simple_calo",
     "step_diagnostic": ext == "none",
     "step_diagnostic_bins": 8,
 }
