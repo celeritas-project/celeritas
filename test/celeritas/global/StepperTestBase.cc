@@ -65,7 +65,7 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
     // Create temporary host stepper to get action ordering
     Stepper<MemSpace::host> temp_stepper(this->make_stepper_input(1));
     auto const& action_seq = temp_stepper.actions();
-    for (auto const& sp_action : action_seq.actions())
+    for (auto const& sp_action : action_seq.actions().step())
     {
         result.actions.emplace_back(sp_action->label());
         result.actions_desc.emplace_back(sp_action->description());
