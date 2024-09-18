@@ -299,7 +299,7 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
     if (action_seq.action_times())
     {
         // Save kernel timing if synchronization is enabled
-        auto const& action_ptrs = action_seq.actions();
+        auto const& action_ptrs = action_seq.actions().step();
         auto const& time = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == time.size());

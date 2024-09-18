@@ -193,7 +193,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
     auto const& action_seq = step.actions();
     if (action_seq.action_times())
     {
-        auto const& action_ptrs = action_seq.actions();
+        auto const& action_ptrs = action_seq.actions().step();
         auto const& times = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == times.size());
