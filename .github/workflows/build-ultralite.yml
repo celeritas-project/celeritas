@@ -45,11 +45,12 @@ jobs:
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
-      - name: Build all
+      - name: Build
         working-directory: build
         run: |
           ninja
       - name: Run tests
+        id: test
         working-directory: build
         run: |
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
@@ -76,11 +77,12 @@ jobs:
           retention-days: 7
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{!cancelled()}}
-           name: test-results-ultralite-ubuntu
-           path: "build/test-results.junit.xml"
-           if-no-files-found: error
-           retention-days: 1
+        if: ${{steps.test.outcome == 'success'
+               || steps.test.outcome == 'failure'}}
+          name: test-results-ultralite-ubuntu
+          path: "build/test-results.junit.xml"
+          if-no-files-found: error
+          retention-days: 1
   windows:
     name: ultralite-windows
     env:
@@ -137,9 +139,9 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: ${{!cancelled()}}
-           name: test-results-ultralite-windows
-           path: "build/test-results.junit.xml"
-           if-no-files-found: error
-           retention-days: 1
+          name: test-results-ultralite-windows
+          path: "build/test-results.junit.xml"
+          if-no-files-found: error
+          retention-days: 1
 
 # vim: set nowrap tw=100:

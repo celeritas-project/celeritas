@@ -76,11 +76,12 @@ jobs:
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
-      - name: Build all
+      - name: Build
         working-directory: build
         run: |
           ninja
       - name: Run tests
+        id: test
         working-directory: build
         run: |
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
@@ -99,11 +100,12 @@ jobs:
           ccache -s
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{!cancelled()}}
-           name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
-           path: "build/test-results.junit.xml"
-           if-no-files-found: error
-           retention-days: 1
+        if: ${{steps.test.outcome == 'success'
+               || steps.test.outcome == 'failure'}}
+          name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
+          path: "build/test-results.junit.xml"
+          if-no-files-found: error
+          retention-days: 1
   windows:
     defaults:
       run:
@@ -142,6 +144,7 @@ jobs:
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
       - name: Test all
+        id: test
         continue-on-error: true
         run: |
           ctest --preset=$Env:CMAKE_PRESET \
@@ -160,10 +163,11 @@ jobs:
           ccache -s
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{!cancelled()}}
-           name: test-results-fast-windows
-           path: "build/test-results.junit.xml"
-           if-no-files-found: error
-           retention-days: 1
+        if: ${{steps.test.outcome == 'success'
+               || steps.test.outcome == 'failure'}}
+          name: test-results-fast-windows
+          path: "build/test-results.junit.xml"
+          if-no-files-found: error
+          retention-days: 1
 
 # vim: set nowrap tw=100:
