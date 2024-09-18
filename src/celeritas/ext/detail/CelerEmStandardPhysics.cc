@@ -20,6 +20,12 @@
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
+#include <G4MuPairProduction.hh>
+#include <G4MuIonisation.hh>
+#include <G4MuBremsstrahlung.hh>
+#include <G4MuMultipleScattering.hh>
 #include <G4PairProductionRelModel.hh>
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
@@ -147,14 +153,19 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
  * triton, He3, alpha, and generic ion, along with Geant4's pseudo-particles
  * geantino and charged geantino.
  *
- * Currently only instantiating e+, e-, gamma, and proton (the latter is needed
- * for msc)
+ * Currently only instantiating e+, e-, gamma, mu-, mu+, and proton (the latter
+ * is needed for msc)
  */
 void CelerEmStandardPhysics::ConstructParticle()
 {
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
     G4Positron::PositronDefinition();
+    if (options_.muon)
+    {
+        G4MuonMinus::MuonMinus();
+        G4MuonPlus::MuonPlus();
+    }
     if (options_.msc != MscModelSelection::none || options_.coulomb_scattering)
     {
         G4Proton::ProtonDefinition();
@@ -171,6 +182,11 @@ void CelerEmStandardPhysics::ConstructProcess()
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Electron());
     this->add_e_processes(G4Positron::Positron());
+    if (options_.muon)
+    {
+        this->add_mu_processes(G4MuonMinus::MuonMinus());
+        this->add_mu_processes(G4MuonPlus::MuonPlus());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -432,6 +448,70 @@ void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         }
 
         physics_list->RegisterProcess(process.release(), p);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add EM processes for muons.
+ *
+ * | Processes                    | Model classes                |
+ * | ---------------------------- | ---------------------------- |
+ * | Pair production              | G4MuPairProductionModel      |
+ * | Ionization (low E, mu-)      | G4ICRU73QOModel              |
+ * | Ionization (low E, mu+)      | G4BraggModel                 |
+ * | Ionization (high E)          | G4MuBetheBlochModel          |
+ * | Bremsstrahlung               | G4MuBremsstrahlungModel      |
+ * | Coulomb scattering           | G4eCoulombScatteringModel    |
+ * | Multiple scattering          | G4WentzelVIModel             |
+ *
+ * \note Currently all muon processes are disabled by default
+ */
+void CelerEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
+{
+    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
+
+    if (options_.muon.pair_production)
+    {
+        physics_list->RegisterProcess(new G4MuPairProduction(), p);
+        CELER_LOG(debug) << "Loaded muon pair production with "
+                            "G4MuPairProductionModel";
+    }
+
+    if (options_.muon.ionization)
+    {
+        physics_list->RegisterProcess(new G4MuIonisation(), p);
+        CELER_LOG(debug) << "Loaded muon ionization with G4ICRU73QOModel, "
+                            "G4BraggModel, and G4MuBetheBlochModel";
+    }
+
+    if (options_.muon.bremsstrahlung)
+    {
+        physics_list->RegisterProcess(new G4MuBremsstrahlung(), p);
+        CELER_LOG(debug) << "Loaded muon bremsstrahlung with "
+                            "G4MuBremsstrahlungModel";
+    }
+
+    if (options_.muon.coulomb)
+    {
+        //! \todo Update the Celeritas single Coulomb scattering model to
+        //! support muons
+        physics_list->RegisterProcess(new G4CoulombScattering(), p);
+        CELER_LOG(debug) << "Loaded muon Coulomb scattering with "
+                            "G4eCoulombScatteringModel";
+    }
+
+    if (options_.muon.msc)
+    {
+        /*!
+         * \todo Possibly use Urban MSC until Wentzel VI is implemented and
+         * update the Celeritas Urban model to support muons
+         */
+        auto process = std::make_unique<G4MuMultipleScattering>();
+        process->SetEmModel(new G4WentzelVIModel());
+        physics_list->RegisterProcess(process.release(), p);
+        CELER_LOG(debug) << "Loaded muon multiple scattering with "
+                            "G4WentzelVIModel";
     }
 }
 
