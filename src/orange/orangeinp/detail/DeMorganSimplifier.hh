@@ -99,6 +99,7 @@ class DeMorganSimplifier
         size_type extent() const noexcept;
 
       private:
+        // TODO: sparse storage
         std::vector<bool> data_;
         size_type extent_;
     };
