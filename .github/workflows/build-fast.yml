@@ -83,6 +83,7 @@ jobs:
         run: |
           ninja
       - name: Run tests
+        id: test
         run: |
           ctest --preset=${CMAKE_PRESET} 
       - name: Install
@@ -142,10 +143,11 @@ jobs:
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
-      - name: Build all
+      - name: Build
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
-      - name: Test all
+      - name: Run tests
+        id: test
         continue-on-error: true
         run: |
           ctest --preset=$Env:CMAKE_PRESET
