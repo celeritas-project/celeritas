@@ -169,7 +169,7 @@ jobs:
               && (steps.test.outcome == 'success'
                || steps.test.outcome == 'failure')}}
         with:
-          name: test-results-spack-${{matrix.compiler}}-${{matrix.version}}
+          name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
           path: "build/test-results.junit.xml"
           if-no-files-found: error
           retention-days: 1

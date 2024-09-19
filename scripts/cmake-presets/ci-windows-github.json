@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
   "configurePresets": [
     {
@@ -76,7 +76,8 @@
       "output": {
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 65536,
-        "outputOnFailure": true
+        "outputOnFailure": true,
+        "outputJUnitFile": "test-results.junit.xml"
       }
     },
     {"name": "fast", "configurePreset": "fast", "inherits": "base"},
