@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "version": 6,
+  "cmakeMinimumRequired": {"major": 3, "minor": 23, "patch": 0},
   "configurePresets": [
     {
       "name": "base",
@@ -158,6 +158,34 @@
         "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"
       }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "timeout": 15,
+        "jobs": 4
+      },
+      "output": {
+        "maxFailedTestOutputSize": 1048576,
+        "maxPassedTestOutputSize": 2048,
+        "outputOnFailure": true,
+        "outputJUnitFile": "$env{CTEST_OUTPUT}"
+      }
+    },
+    {
+      "name": "fast",
+      "configurePreset": "fast",
+      "inherits": "base"
+    },
+    {
+      "name": "ultralite",
+      "configurePreset": "ultralite",
+      "inherits": "base"
     }
   ]
 }

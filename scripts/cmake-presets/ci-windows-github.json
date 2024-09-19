@@ -70,14 +70,14 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
-        "jobs": 16,
+        "jobs": 4,
         "timeout": 180
       },
       "output": {
         "maxFailedTestOutputSize": 1048576,
-        "maxPassedTestOutputSize": 65536,
+        "maxPassedTestOutputSize": 2048,
         "outputOnFailure": true,
-        "outputJUnitFile": "$env{CELER_JUNIT_OUTPUT}\\ctest\\all.xml"
+        "outputJUnitFile": "$env{CTEST_OUTPUT}"
       }
     },
     {"name": "fast", "configurePreset": "fast", "inherits": "base"},

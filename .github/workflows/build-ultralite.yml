@@ -15,7 +15,7 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
-      CELER_JUNIT_OUTPUT: "${{github.workspace}}/test-output/"
+      CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -50,8 +50,7 @@ jobs:
         id: test
         working-directory: build
         run: |
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --output-junit "${{env.CELER_JUNIT_OUTPUT}}ctest/all.xml"
+          ctest --preset=${CMAKE_PRESET} 
       - name: Install
         working-directory: build
         run: |
@@ -78,7 +77,7 @@ jobs:
                || steps.test.outcome == 'failure'}}
         with:
           name: test-results-ultralite-ubuntu
-          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
+          path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
   windows:
@@ -87,6 +86,7 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
       CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
+      CTEST_OUTPUT: "${{github.workspace}}\\test-output\\ctest\\all.xml"
     runs-on: windows-latest
     steps:
       - name: Install dependencies
@@ -140,7 +140,7 @@ jobs:
                || steps.test.outcome == 'failure'}}
         with:
           name: test-results-ultralite-windows
-          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
+          path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
 
