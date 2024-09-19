@@ -103,6 +103,10 @@ class DeMorganSimplifier
         size_type extent_;
     };
 
+    // Similar to get_if but dereference Aliased nodes
+    template<class T>
+    T const* node_is(Node const&) const;
+
     // First pass to find negated set operations
     void find_join_negations();
 
