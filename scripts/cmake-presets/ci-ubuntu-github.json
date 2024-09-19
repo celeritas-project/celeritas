@@ -178,6 +178,11 @@
       }
     },
     {
+      "name": "spack",
+      "configurePreset": "spack",
+      "inherits": "base"
+    },
+    {
       "name": "fast",
       "configurePreset": "fast",
       "inherits": "base"

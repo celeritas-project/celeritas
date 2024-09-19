@@ -56,8 +56,8 @@ jobs:
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
       CC: "clang-15"
       CXX: "clang++-15"
-      CELER_JUNIT_OUTPUT: "${{github.workspace}}/test-output/"
-      GTEST_OUTPUT: "xml:${{env.CELER_JUNIT_OUTPUT}}google/"
+      CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
+      GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
     runs-on: ubuntu-22.04
     continue-on-error: false
     steps:
@@ -152,8 +152,7 @@ jobs:
             # Note this is ignored for geant4, float, clhep
             export CELER_TEST_STRICT=1
           fi
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --output-junit "${{env.CELER_JUNIT_OUTPUT}}ctest/all.xml"
+          ctest --preset=spack
       - name: Upload failed tests
         if: ${{steps.test.outcome == 'failure'}}
         uses: actions/upload-artifact@v4
