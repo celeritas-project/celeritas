@@ -12,10 +12,12 @@
 #include <set>
 #include <vector>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/LogContextException.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
@@ -536,7 +538,20 @@ TEST_F(LArSphereOffloadTest, host_generate)
     auto_flush_ = 16384;
     this->build_optical_collector();
 
+    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::host>(4, 512, 16);
+
+    // clang-format off
+    static char const* const expected_log_messages[] = {
+        "Celeritas optical state initialization complete",
+        "Celeritas core state initialization complete",
+        "Exceeded step count of 8: aborting optical transport loop with 0 tracks and 324193 queued",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[]
+        = {"status", "status", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    // clang-format on
 
     EXPECT_EQ(2, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);

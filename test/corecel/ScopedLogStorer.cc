@@ -48,7 +48,7 @@ ScopedLogStorer::ScopedLogStorer(Logger* orig)
  */
 ScopedLogStorer::~ScopedLogStorer()
 {
-    if (saved_logger_)
+    if (saved_logger_ && logger_)
     {
         *logger_ = std::move(*saved_logger_);
     }
