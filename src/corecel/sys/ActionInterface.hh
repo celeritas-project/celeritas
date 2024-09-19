@@ -231,7 +231,7 @@ class ConcreteAction : virtual public ActionInterface
 
     // Default destructor
     ~ConcreteAction() noexcept;
-    CELER_DEFAULT_COPY_MOVE(ConcreteAction);
+    CELER_DELETE_COPY_MOVE(ConcreteAction);
 
     //! ID of this action for verification
     ActionId action_id() const final { return id_; }
@@ -273,7 +273,7 @@ class StaticConcreteAction : virtual public ActionInterface
 
     // Default destructor
     ~StaticConcreteAction() = default;
-    CELER_DEFAULT_COPY_MOVE(StaticConcreteAction);
+    CELER_DELETE_COPY_MOVE(StaticConcreteAction);
 
     //! ID of this action for verification
     ActionId action_id() const final { return id_; }
