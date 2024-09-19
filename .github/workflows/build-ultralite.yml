@@ -48,7 +48,6 @@ jobs:
           ninja
       - name: Run tests
         id: test
-        working-directory: build
         run: |
           ctest --preset=${CMAKE_PRESET} 
       - name: Install

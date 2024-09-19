@@ -83,8 +83,6 @@ jobs:
         run: |
           ninja
       - name: Run tests
-        id: test
-        working-directory: build
         run: |
           ctest --preset=${CMAKE_PRESET} 
       - name: Install
@@ -148,7 +146,6 @@ jobs:
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
       - name: Test all
-        id: test
         continue-on-error: true
         run: |
           ctest --preset=$Env:CMAKE_PRESET
