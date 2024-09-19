@@ -571,7 +571,7 @@ TEST_F(SolidsTest, trace)
             20,
             75,
         };
-        if (geant4_version < Version{11, 2})
+        if (geant4_version < Version{11, 3})
         {
             // Older versions of Geant4 have a bug in Arb8 that overestimates
             // safety distance to twisted surfaces
