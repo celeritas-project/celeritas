@@ -77,7 +77,7 @@
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 65536,
         "outputOnFailure": true,
-        "outputJUnitFile": "test-results.junit.xml"
+        "outputJUnitFile": "$env{CELER_JUNIT_OUTPUT}\\ctest\\all.xml"
       }
     },
     {"name": "fast", "configurePreset": "fast", "inherits": "base"},

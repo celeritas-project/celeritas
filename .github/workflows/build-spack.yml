@@ -56,6 +56,8 @@ jobs:
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
       CC: "clang-15"
       CXX: "clang++-15"
+      CELER_JUNIT_OUTPUT: "${{github.workspace}}/test-output/"
+      GTEST_OUTPUT: "xml:${{env.CELER_JUNIT_OUTPUT}}google/"
     runs-on: ubuntu-22.04
     continue-on-error: false
     steps:
@@ -151,7 +153,7 @@ jobs:
             export CELER_TEST_STRICT=1
           fi
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --output-junit test-results.junit.xml
+            --output-junit "${{env.CELER_JUNIT_OUTPUT}}ctest/all.xml"
       - name: Upload failed tests
         if: ${{steps.test.outcome == 'failure'}}
         uses: actions/upload-artifact@v4
@@ -170,7 +172,7 @@ jobs:
                || steps.test.outcome == 'failure')}}
         with:
           name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          path: "build/test-results.junit.xml"
+          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
           if-no-files-found: error
           retention-days: 1
       - name: Check using build directory as install
