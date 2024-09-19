@@ -50,10 +50,10 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.positron = particles.find(pdg::positron());
 
-    CELER_VALIDATE(data_.ids,
-                   << "missing electron and/or positron particles (required "
-                      "for "
-                   << this->description() << ")");
+    CELER_VALIDATE(
+        data_.ids,
+        << R"(missing electron and/or positron particles (required for )"
+        << this->description() << ")");
 
     // Get high/low energy limits
     energy_limit_

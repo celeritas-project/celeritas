@@ -53,8 +53,7 @@ LivermorePEModel::LivermorePEModel(ActionId id,
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
-                   << "missing electron and/or gamma particles "
-                      "(required for "
+                   << R"(missing electron and/or gamma particles (required for )"
                    << this->description() << ")");
 
     // Save particle properties
