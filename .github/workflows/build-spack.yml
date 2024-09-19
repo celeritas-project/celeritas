@@ -172,7 +172,7 @@ jobs:
                || steps.test.outcome == 'failure')}}
         with:
           name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
+          path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
       - name: Check using build directory as install

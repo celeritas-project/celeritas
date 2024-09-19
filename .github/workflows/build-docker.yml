@@ -44,8 +44,7 @@ jobs:
                 matrix.special && '-' || '',
                 matrix.special)}}
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true # TODO: DELETEME, see #1305
-      CELER_JUNIT_OUTPUT: "${{github.workspace}}/test-output/"
-      GTEST_OUTPUT: "xml:${{env.CELER_JUNIT_OUTPUT}}google/"
+      GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
     runs-on: ubuntu-latest
     container:
       image: >-
@@ -93,7 +92,7 @@ jobs:
         run: |
           ctest --parallel $(nproc) --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576 \
-            --output-junit "${{env.CELER_JUNIT_OUTPUT}}ctest/all.xml"
+            --output-junit "${{github.workspace}}/test-output/ctest/all.xml"
       - name: Install Celeritas
         working-directory: build
         run: |
@@ -125,7 +124,7 @@ jobs:
                || steps.test.outcome == 'failure'}}
         with:
           name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
-          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
+          path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
 
