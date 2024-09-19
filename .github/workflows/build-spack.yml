@@ -145,7 +145,7 @@ jobs:
           ninja -v -k0 update-root-test-data
       - name: Run tests
         id: test
-        continue-on-error: ${{fromJSON(matrix.geant) < 11}} # TODO: fix failing tests
+        continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
             # Note this is ignored for geant4, float, clhep
@@ -165,7 +165,7 @@ jobs:
             build/Testing/Temporary/LastTestsFailed.log
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{ fromJSON(matrix.geant) < 11
+        if: ${{ !matrix.geant || fromJSON(matrix.geant) >= 11
               && (steps.test.outcome == 'success'
                || steps.test.outcome == 'failure')}}
         with:
