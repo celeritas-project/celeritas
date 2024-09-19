@@ -120,7 +120,9 @@ class LArSphereOffloadTest : public LArSphereBase
     VecPrimary make_primaries(size_type count);
 
     template<MemSpace M>
-    RunResult run(size_type num_tracks, size_type num_steps);
+    RunResult run(size_type num_primaries,
+                  size_type num_track_slots,
+                  size_type num_steps);
 
   protected:
     using SizeId = ItemId<size_type>;
@@ -130,6 +132,7 @@ class LArSphereOffloadTest : public LArSphereBase
     // Optical collector options
     bool use_scintillation_{true};
     bool use_cerenkov_{true};
+    size_type buffer_capacity_{256};
     size_type primary_capacity_{8192};
     size_type auto_flush_{4096};
 
@@ -216,7 +219,7 @@ void LArSphereOffloadTest::build_optical_collector()
     {
         inp.scintillation = this->scintillation();
     }
-    inp.buffer_capacity = 256;
+    inp.buffer_capacity = buffer_capacity_;
     inp.primary_capacity = primary_capacity_;
     inp.auto_flush = auto_flush_;
 
@@ -260,7 +263,8 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto LArSphereOffloadTest::run(size_type num_tracks,
+auto LArSphereOffloadTest::run(size_type num_primaries,
+                               size_type num_track_slots,
                                size_type num_steps) -> RunResult
 {
     using DistRef
@@ -270,7 +274,7 @@ auto LArSphereOffloadTest::run(size_type num_tracks,
     StepperInput step_inp;
     step_inp.params = this->core();
     step_inp.stream_id = StreamId{0};
-    step_inp.num_track_slots = num_tracks;
+    step_inp.num_track_slots = num_track_slots;
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
@@ -281,7 +285,7 @@ auto LArSphereOffloadTest::run(size_type num_tracks,
     RunResult result;
 
     // Initial step
-    auto primaries = this->make_primaries(num_tracks);
+    auto primaries = this->make_primaries(num_primaries);
     StepperResult count;
     CELER_TRY_HANDLE(count = step(make_span(primaries)), log_context);
 
@@ -336,9 +340,9 @@ auto LArSphereOffloadTest::run(size_type num_tracks,
 
 //---------------------------------------------------------------------------//
 template LArSphereOffloadTest::RunResult
-    LArSphereOffloadTest::run<MemSpace::host>(size_type, size_type);
+    LArSphereOffloadTest::run<MemSpace::host>(size_type, size_type, size_type);
 template LArSphereOffloadTest::RunResult
-    LArSphereOffloadTest::run<MemSpace::device>(size_type, size_type);
+    LArSphereOffloadTest::run<MemSpace::device>(size_type, size_type, size_type);
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -349,7 +353,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
     auto_flush_ = size_type(-1);
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, 64);
+    auto result = this->run<MemSpace::host>(4, 4, 64);
 
     EXPECT_EQ(result.cerenkov.total_num_photons
                   + result.scintillation.total_num_photons,
@@ -409,7 +413,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     auto_flush_ = size_type(-1);
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::device>(8, 32);
+    auto result = this->run<MemSpace::device>(8, 8, 32);
 
     EXPECT_EQ(result.cerenkov.total_num_photons
                   + result.scintillation.total_num_photons,
@@ -485,7 +489,7 @@ TEST_F(LArSphereOffloadTest, cerenkov_distributiona)
     auto_flush_ = size_type(-1);
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, 16);
+    auto result = this->run<MemSpace::host>(4, 4, 16);
 
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.scintillation.num_photons.size());
@@ -508,7 +512,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     auto_flush_ = size_type(-1);
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, 16);
+    auto result = this->run<MemSpace::host>(4, 4, 16);
 
     EXPECT_EQ(0, result.cerenkov.total_num_photons);
     EXPECT_EQ(0, result.cerenkov.num_photons.size());
@@ -527,37 +531,28 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
 
 TEST_F(LArSphereOffloadTest, host_generate)
 {
-    use_scintillation_ = false;
-    primary_capacity_ = 32768;
+    buffer_capacity_ = 1024;
+    primary_capacity_ = 524288;
     auto_flush_ = 16384;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, 16);
+    auto result = this->run<MemSpace::host>(4, 512, 16);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_EQ(7, result.optical_launch_step);
-    }
-    else
-    {
-        EXPECT_EQ(8, result.optical_launch_step);
-    }
-
+    EXPECT_EQ(2, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.cerenkov.total_num_photons);
 }
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 {
-    use_scintillation_ = false;
-    primary_capacity_ = 32768;
-    auto_flush_ = 16384;
+    buffer_capacity_ = 2048;
+    primary_capacity_ = 524288;
+    auto_flush_ = 262144;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::device>(32, 4);
+    auto result = this->run<MemSpace::device>(1, 1024, 16);
 
-    EXPECT_EQ(2, result.optical_launch_step);
-
+    EXPECT_EQ(7, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.cerenkov.total_num_photons);
 }
