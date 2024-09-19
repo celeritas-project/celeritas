@@ -10,6 +10,8 @@
 #include <string>
 #include <string_view>
 
+#include "corecel/cont/Span.hh"
+
 #include "ThreadId.hh"
 
 namespace celeritas
@@ -58,7 +60,8 @@ enum class StepActionOrder
  * gathering metadata. The \c StepActionInterface provides additional
  * interfaces for launching kernels. The \c BeginRunActionInterface allows
  * actions to modify the state (or the class instance itself) at the beginning
- * of a stepping loop.
+ * of a stepping loop, and \c EndRunActionInterface allows actions to
+ * gather and merge multiple state information at the end.
  *
  * Using multiple inheritance, you can create an action that inherits from
  * multiple of these classes.
@@ -99,6 +102,10 @@ class ActionInterface
  * Most actions can modify \em only the local "state" being passed as an
  * argument. This one allows data to be allocated or initialized at the
  * beginning of the run.
+ *
+ * \todo Delete this to allow only stateless actions, since now
+ * we have aux data? This will reduce overhead for virtual inheritance classes
+ * too.
  */
 class MutableActionInterface : public virtual ActionInterface
 {
@@ -122,6 +129,8 @@ struct ActionTypeTraits
     using CoreParams = P;
     using CoreStateHost = S<MemSpace::host>;
     using CoreStateDevice = S<MemSpace::device>;
+    using SpanCoreStateHost = Span<S<MemSpace::host>* const>;
+    using SpanCoreStateDevice = Span<S<MemSpace::device>* const>;
     //@}
 };
 
@@ -135,6 +144,12 @@ struct ActionTypeTraits
  *
  * If the class itself--rather than the state--needs initialization, try to
  * initialize in the constructor and avoid using this interface if possible.
+ *
+ * \todo This is currently called once per each state on each CPU thread, and
+ * it would be more sensible to call a single with all cooperative states.
+ *
+ * \warning Because this is called once per thread, the inheriting class is
+ * responsible for thread safety (e.g. adding mutexes).
  */
 template<class P, template<MemSpace M> class S>
 class BeginRunActionInterface : public ActionTypeTraits<P, S>,
@@ -218,6 +233,24 @@ class ConcreteAction : public virtual ActionInterface
     ActionId id_;
     std::string label_;
     std::string description_;
+};
+
+//---------------------------------------------------------------------------//
+//! Action order/ID tuple for comparison in sorting
+struct OrderedAction
+{
+    StepActionOrder order;
+    ActionId id;
+
+    //! Ordering comparison for an action/ID
+    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
+    {
+        if (this->order < other.order)
+            return true;
+        if (this->order > other.order)
+            return false;
+        return this->id < other.id;
+    }
 };
 
 //---------------------------------------------------------------------------//

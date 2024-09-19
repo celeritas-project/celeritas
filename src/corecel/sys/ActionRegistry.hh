@@ -15,7 +15,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "celeritas/Types.hh"
 
 #include "ActionInterface.hh"
 

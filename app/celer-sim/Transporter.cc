@@ -23,9 +23,9 @@
 #include "corecel/sys/Counter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "StepTimer.hh"
@@ -180,7 +180,9 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport the input primaries and all secondaries produced.
+ * Merge times across all threads.
+ *
+ * \todo Action times are to be refactored as aux data.
  */
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
@@ -191,7 +193,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
     auto const& action_seq = step.actions();
     if (action_seq.action_times())
     {
-        auto const& action_ptrs = action_seq.actions();
+        auto const& action_ptrs = action_seq.actions().step();
         auto const& times = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == times.size());
