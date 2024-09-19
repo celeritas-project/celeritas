@@ -124,8 +124,7 @@ jobs:
         id: test
         continue-on-error: true
         run: |
-          ctest --preset=$Env:CMAKE_PRESET \
-            --output-junit test-results.junit.xml
+          ctest --preset=$Env:CMAKE_PRESET
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |

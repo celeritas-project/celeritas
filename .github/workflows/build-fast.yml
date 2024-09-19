@@ -148,8 +148,7 @@ jobs:
         id: test
         continue-on-error: true
         run: |
-          ctest --preset=$Env:CMAKE_PRESET \
-            --output-junit test-results.junit.xml
+          ctest --preset=$Env:CMAKE_PRESET
       - name: Install
         working-directory: build
         run: |
