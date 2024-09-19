@@ -102,11 +102,12 @@ CsgTree DeMorganSimplifier::operator()()
 template<class T>
 T const* DeMorganSimplifier::node_is(Node const& node) const
 {
-    if (auto* alias = std::get_if<Aliased>(&node))
+    Node const* target = &node;
+    while (auto* alias = std::get_if<Aliased>(target))
     {
-        return this->node_is<T>(tree_[alias->node]);
+        target = &tree_[alias->node];
     }
-    return std::get_if<T>(&node);
+    return std::get_if<T>(target);
 }
 
 //---------------------------------------------------------------------------//
