@@ -542,14 +542,16 @@ TEST_F(LArSphereOffloadTest, host_generate)
     auto result = this->run<MemSpace::host>(4, 512, 16);
 
     // clang-format off
-    static char const* const expected_log_messages[] = {
+    static char const* const expected_log_messages[] =  {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        "Exceeded step count of 8: aborting optical transport loop with 0 tracks and 324193 queued",
+        "Boundary action is not implemented",
+        "Boundary action is not implemented",
+        "Exceeded step count of 2: aborting optical transport loop with 0 tracks and 324193 queued",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[]
-        = {"status", "status", "error"};
+        = {"status", "status", "error", "error", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     // clang-format on
 

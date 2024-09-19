@@ -17,6 +17,7 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/TrackInitParams.hh"
 #include "celeritas/optical/action/ActionGroups.hh"
+#include "celeritas/optical/action/BoundaryAction.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
@@ -70,8 +71,6 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
     CELER_EXPECT(offload_params_);
     CELER_EXPECT(primary_capacity > 0);
 
-    auto optical_actions = std::make_shared<ActionRegistry>();
-
     // Create optical core params
     optical_params_ = std::make_shared<optical::CoreParams>([&] {
         optical::CoreParams::Input inp;
@@ -81,22 +80,20 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         inp.rng = core.rng();
         inp.sim = std::make_shared<SimParams>();
         inp.init = std::make_shared<optical::TrackInitParams>(primary_capacity);
-        inp.action_reg = optical_actions;
+        inp.action_reg = std::make_shared<ActionRegistry>();
         inp.max_streams = core.max_streams();
         CELER_ENSURE(inp);
         return inp;
     }());
 
-    // TODO: move generators to the *optical* stepping loop; for now just make
-    // sure enough track initializers are allocated
-
-    // Add along-step
-
-    // Add boundary action
+    // TODO: add generators to the *optical* stepping loop instead of part of
+    // the main loop; for now just make sure enough track initializers are
+    // allocated so that we can initialize them all at the beginning of step
 
     // TODO: should we initialize this at begin-run so that we can add
     // additional optical actions?
-    optical_actions_ = std::make_shared<ActionGroupsT>(*optical_actions);
+    optical_actions_
+        = std::make_shared<ActionGroupsT>(*optical_params_->action_reg());
 }
 
 //---------------------------------------------------------------------------//
@@ -164,7 +161,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     CELER_ASSERT(offload_state);
     CELER_ASSERT(optical_state.size() > 0);
 
-    constexpr size_type max_steps{8};
+    constexpr size_type max_steps{2};
     size_type remaining_steps = max_steps;
 
     // Loop while photons are yet to be tracked
