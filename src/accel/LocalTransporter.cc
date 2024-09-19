@@ -32,7 +32,7 @@
 #include "geocel/g4/Convert.geant.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -299,7 +299,7 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
     if (action_seq.action_times())
     {
         // Save kernel timing if synchronization is enabled
-        auto const& action_ptrs = action_seq.actions();
+        auto const& action_ptrs = action_seq.actions().step();
         auto const& time = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == time.size());

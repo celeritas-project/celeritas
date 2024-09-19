@@ -11,7 +11,6 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {

@@ -20,7 +20,7 @@ class CoreState;
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
-//! Action interface for core stepping loop
+//! Interface called at beginning of the core stepping loop
 using CoreBeginRunActionInterface
     = BeginRunActionInterface<CoreParams, CoreState>;
 
@@ -51,26 +51,6 @@ class [[deprecated]] ExplicitCoreActionInterface
 
     //! Execute the action with device data
     virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
-};
-
-//---------------------------------------------------------------------------//
-// HELPER STRUCTS
-//---------------------------------------------------------------------------//
-//! Action order/ID tuple for comparison in sorting
-struct OrderedAction
-{
-    StepActionOrder order;
-    ActionId id;
-
-    //! Ordering comparison for an action/ID
-    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
-    {
-        if (this->order < other.order)
-            return true;
-        if (this->order > other.order)
-            return false;
-        return this->id < other.id;
-    }
 };
 
 //---------------------------------------------------------------------------//
