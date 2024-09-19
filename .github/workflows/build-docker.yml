@@ -119,7 +119,7 @@ jobs:
           fi
           ./scripts/ci/test-examples.sh
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         if: ${{steps.test.outcome == 'success' || steps.test.outcome == 'failure'}}
         with:
           name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}

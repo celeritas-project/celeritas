@@ -145,6 +145,7 @@ jobs:
           ninja -v -k0 update-root-test-data
       - name: Run tests
         id: test
+        if: ${{matrix.special != 'clang-tidy'}}
         continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
