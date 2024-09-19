@@ -39,6 +39,8 @@ jobs:
       CMAKE_PRESET: fast
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
+      CELER_JUNIT_OUTPUT: "${{github.workspace}}\\test-output\\"
+      GTEST_OUTPUT: "xml:${{env.CELER_JUNIT_OUTPUT}}google\\"
     runs-on: >-
       ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
         || matrix.runner == 'jammy' && 'ubuntu-22.04'
@@ -85,7 +87,7 @@ jobs:
         working-directory: build
         run: |
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --output-junit test-results.junit.xml
+            --output-junit "${{env.CELER_JUNIT_OUTPUT}}ctest/all.xml"
       - name: Install
         working-directory: build
         run: |
@@ -104,7 +106,7 @@ jobs:
                || steps.test.outcome == 'failure'}}
         with:
           name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
-          path: "build/test-results.junit.xml"
+          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
           if-no-files-found: error
           retention-days: 1
   windows:
@@ -115,6 +117,8 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
       CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: fast
+      CELER_JUNIT_OUTPUT: "${{github.workspace}}/test-output/"
+      GTEST_OUTPUT: "xml:${{env.CELER_JUNIT_OUTPUT}}google/"
     runs-on: windows-latest
     steps:
       - name: Install dependencies
@@ -167,7 +171,7 @@ jobs:
                || steps.test.outcome == 'failure'}}
         with:
           name: test-results-fast-windows
-          path: "build/test-results.junit.xml"
+          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
           if-no-files-found: error
           retention-days: 1
 

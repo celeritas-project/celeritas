@@ -8,10 +8,6 @@ concurrency:
   group: build-ultralite-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
-# env:
-#   CCACHE_DEBUG: 1
-#   CCACHE_DEBUGDIR: ${{github.workspace}}/ccache-debug
-
 jobs:
   linux:
     name: ultralite-ubuntu
@@ -19,6 +15,7 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
+      CELER_JUNIT_OUTPUT: "${{github.workspace}}/test-output/"
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -54,7 +51,7 @@ jobs:
         working-directory: build
         run: |
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --output-junit test-results.junit.xml
+            --output-junit "${{env.CELER_JUNIT_OUTPUT}}ctest/all.xml"
       - name: Install
         working-directory: build
         run: |
@@ -81,7 +78,7 @@ jobs:
                || steps.test.outcome == 'failure'}}
         with:
           name: test-results-ultralite-ubuntu
-          path: "build/test-results.junit.xml"
+          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
           if-no-files-found: error
           retention-days: 1
   windows:
@@ -143,7 +140,7 @@ jobs:
                || steps.test.outcome == 'failure'}}
         with:
           name: test-results-ultralite-windows
-          path: "build/test-results.junit.xml"
+          path: "${{env.CELER_JUNIT_OUTPUT}}**/*.xml"
           if-no-files-found: error
           retention-days: 1
 
