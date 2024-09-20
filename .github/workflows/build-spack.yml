@@ -157,6 +157,7 @@ jobs:
       - name: Run app tests
         id: apptest
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
         env:
           CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
         run: |
@@ -166,6 +167,7 @@ jobs:
         if: >-
           ${{
             always()
+            && !(fromJSON(matrix.geant || '0') < 11)
             && (steps.unittest.outcome == 'success'
                 || steps.unittest.outcome == 'failure')
           }}
