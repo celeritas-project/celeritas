@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/decay/data/MuDecayData.hh"
@@ -98,7 +99,7 @@ template<class Engine>
 CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 {
     // Allocate space for the single electron or positron to be emitted
-    // TODO: expand if we add neutrinos
+    // \todo Expand if we add neutrinos
     Secondary* charged_lepton = allocate_(1);
     if (charged_lepton == nullptr)
     {
@@ -106,11 +107,9 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    charged_lepton->particle_id = secondary_id_;
-
     UniformRealDistribution<real_type> sample_uniform;
 
-    // TODO: This differs from physics manual, that states E_max = m_\mu / 2
+    // \todo This differs from physics manual, that states E_max = m_\mu / 2
     real_type max_electron_energy = real_type{0.5} * shared_.muon_mass
                                     - shared_.electron_mass;
     real_type x_max = real_type{1}
@@ -119,82 +118,90 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
     real_type decay_rate;
     real_type electron_energy;
-    real_type electron_neutrino_energy;
+    real_type electron_neutrino_energy_frac;
     real_type electron_energy_frac;
-    real_type decay_rate_term;
 
-    for ([[maybe_unused]] auto i : range(1000))
+    size_type const max_iter = 1000;  // \todo Why?
+    size_type outer_loop{0}, inner_loop{0};
+
+    do
     {
+        outer_loop++;
         electron_energy_frac = sample_uniform(rng);
-
-        for ([[maybe_unused]] auto j : range(1000))
+        do
         {
+            inner_loop++;
             electron_energy = max_electron_energy * sample_uniform(rng);
             decay_rate = sample_uniform(rng);
-            if (decay_rate
-                <= electron_energy * (real_type{1} - electron_energy))
+
+            if (inner_loop > max_iter)
             {
+                electron_energy = max_electron_energy;
                 break;
             }
-            electron_energy = max_electron_energy;
-        }
-        electron_neutrino_energy = electron_energy;
-        if (electron_neutrino_energy >= real_type{1} - electron_energy)
+
+        } while (decay_rate
+                 > electron_energy * (real_type{1} - electron_energy));
+
+        if (outer_loop > max_iter)
         {
+            electron_neutrino_energy_frac = 1 - electron_energy_frac;
             break;
         }
-        electron_neutrino_energy = real_type{1} - electron_energy;
-    }
-    real_type muon_neutrino_energy = real_type{2} - electron_energy
-                                     - electron_neutrino_energy;
+    } while (electron_neutrino_energy_frac
+             < real_type{1} - electron_energy_frac);
 
-    real_type cos_theta, sin_theta, r_phi, r_theta, r_psi;
-    cos_theta = real_type{1} - 2 / electron_energy
-                - 2 / electron_neutrino_energy
-                + 2 / (electron_neutrino_energy * electron_energy);
-    sin_theta = std::sqrt(real_type{1} - ipow<2>(cos_theta));
+    real_type muon_neutrino_energy = real_type{2} - electron_energy_frac
+                                     - electron_neutrino_energy_frac;
 
-    real_type const twopi = real_type{2} * constants::pi;
-    r_theta = std::acos(2 * sample_uniform(rng) - 1);
-    r_phi = twopi * sample_uniform(rng);
+    // Angle between charged lepton and electron neutrino
+    real_type cos_theta
+        = real_type{1} - 2 / electron_energy - 2 / electron_neutrino_energy_frac
+          + 2 / (electron_neutrino_energy_frac * electron_energy);
+    CELER_ASSERT(std::fabs(cos_theta) <= 1);
 
-    // Charged lepton
+    real_type sin_theta = std::sqrt(1 - ipow<2>(cos_theta));
+    CELER_ASSERT(std::fabs(sin_theta) <= 1);
+
+    // Sample spherically uniform direction of the charged lepton
+    real_type sampled_theta = 2 * constants::pi * sample_uniform(rng);
+    real_type sampled_phi = constants::pi * sample_uniform(rng);
+
+    //// Charged lepton ////
+    charged_lepton->particle_id = secondary_id_;
     charged_lepton->energy = std::sqrt(
         ipow<2>(electron_energy) * ipow<2>(max_electron_energy)
         + 2 * electron_energy * max_electron_energy * shared_.electron_mass);
-    // Since it is at rest, a random initial direction is selected
-    charged_lepton->direction = {0, 0, 1}
-                                * rotate(from_spherical(r_theta, r_phi));
+    charged_lepton->direction
+        = rotate({0, 0, 1}, from_spherical(sampled_theta, sampled_phi));
 
-    // Temporary neutrinos; not added to the final decay result
+    //// Electron neutrino ////
+    Secondary* electron_neutrino;  // Not added to the decay result
 
-    // Electron neutrino
-    Secondary electron_neutrino;
-
-    // The extra term becomes necessary if neutrino masses are set as non-zero
-    electron_neutrino.energy
-        = sqrt(ipow<2>(electron_neutrino_energy) * ipow<2>(max_electron_energy)
+    // Extra term is necessary if neutrino masses are not neglected
+    electron_neutrino->energy
+        = sqrt(ipow<2>(electron_neutrino_energy_frac) * ipow<2>(max_electron_energy)
                /* + 2 * electron_neutrino_energy * max_electron_energy * electron_neutrino_mass */);
-    electron_neutrino.direction = {sin_theta, 0, cos_theta}
-                                  * rotate(from_spherical(r_theta, r_phi));
+    electron_neutrino->direction = rotate(
+        {sin_theta, 0, cos_theta}, from_spherical(sampled_theta, sampled_phi));
 
-    // Muon neutrino
-    Secondary muon_neutrino;
+    //// Muon neutrino ////
+    Secondary* muon_neutrino;  // Not added to the decay result
 
-    // The extra term becomes necessary if neutrino masses are set as non-zero
-    muon_neutrino.energy
+    // Extra term is necessary if neutrino masses are not neglected
+    muon_neutrino->energy
         = sqrt(ipow<2>(muon_neutrino_energy) * ipow<2>(max_electron_energy)
                /* + 2 * muon_neutrino_energy * max_electron_energy * muon_neutrino_mass */);
-    muon_neutrino.direction
-        = {-sin_theta * electron_neutrino_energy / muon_neutrino_energy,
-           0,
-           -electron_energy / muon_neutrino_energy
-               - cos_theta * electron_neutrino_energy / muon_neutrino_energy}
-          * rotate(from_spherical(r_theta, r_phi));
+    muon_neutrino->direction = rotate(
+        {-sin_theta * electron_neutrino_energy_frac / muon_neutrino_energy,
+         0,
+         -electron_energy / muon_neutrino_energy
+             - cos_theta * electron_neutrino_energy_frac / muon_neutrino_energy},
+        from_spherical(theta, phi));
 
     Interaction result;
     result.action = Interaction::Action::decay;
-    result.secondaries = {charged_lepton, 1};  // TODO: expand if we add nu's
+    result.secondaries = {charged_lepton, 1};  // \todo Expand if we add nu's
 
     return result;
 }
