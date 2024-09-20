@@ -42,6 +42,7 @@ jobs:
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
       - name: Build
+        id: build
         working-directory: build
         run: |
           ninja
@@ -73,8 +74,12 @@ jobs:
           retention-days: 7
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{steps.test.outcome == 'success'
-               || steps.test.outcome == 'failure'}}
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
         with:
           name: test-results-ultralite-ubuntu
           path: "test-output/**/*.xml"
@@ -136,8 +141,12 @@ jobs:
           retention-days: 7
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{steps.test.outcome == 'success'
-               || steps.test.outcome == 'failure'}}
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
         with:
           name: test-results-ultralite-windows
           path: "test-output/**/*.xml"

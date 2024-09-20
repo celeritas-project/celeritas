@@ -77,6 +77,7 @@ jobs:
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
       - name: Build
+        id: build
         working-directory: build
         run: |
           ninja
@@ -88,8 +89,7 @@ jobs:
           ctest -LE app --preset=${CMAKE_PRESET}-unit
       - name: Run app tests
         id: apptest
-        if: ${{steps.unittest.outcome == 'success'
-               || steps.unittest.outcome == 'failure'}}
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
         env:
           CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
         run: |
@@ -108,8 +108,12 @@ jobs:
           ccache -s
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{steps.unittest.outcome == 'success'
-               || steps.unittest.outcome == 'failure'}}
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
         with:
           name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
           path: "test-output/**/*.xml"
@@ -150,6 +154,7 @@ jobs:
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
       - name: Build
+        id: build
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
       - name: Run unit tests
@@ -160,9 +165,8 @@ jobs:
         run: |
           ctest --preset=$Env:CMAKE_PRESET-unit
       - name: Run app tests
-        id: test
-        if: ${{steps.unittest.outcome == 'success'
-               || steps.unittest.outcome == 'failure'}}
+        id: apptest
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
         env:
           CTEST_OUTPUT: "${{github.workspace}}\\test-output\\ctest\\all.xml"
         run: |
@@ -181,8 +185,12 @@ jobs:
           ccache -s
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{steps.unittest.outcome == 'success'
-               || steps.unittest.outcome == 'failure'}}
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
         with:
           name: test-results-fast-windows
           path: "test-output/**/*.xml"

@@ -156,14 +156,19 @@ jobs:
           ctest -LE app --preset=spack-unit
       - name: Run app tests
         id: apptest
-        if: ${{steps.build.outcome == 'success'}}
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
         env:
           CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
         run: |
           ctest -L app --preset=spack-app
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{steps.build.outcome == 'success'}}
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
         with:
           name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
           path: "test-output/**/*.xml"
@@ -179,10 +184,13 @@ jobs:
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
+        id: install
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
         working-directory: build
         run: |
           ninja install
       - name: Check installation
+        if: ${{steps.install.outcome == 'success'}}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant celer-dump-data \

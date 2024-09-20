@@ -121,7 +121,9 @@ jobs:
       - name: Upload test results
         if: >-
           ${{
-            (steps.test.outcome == 'success' || steps.test.outcome == 'failure')
+            always()
+            && (steps.test.outcome == 'success'
+                || steps.test.outcome == 'failure')
             && (env.CMAKE_PRESET != 'ndebug-vecgeom')
           }}
         uses: actions/upload-artifact@v3
