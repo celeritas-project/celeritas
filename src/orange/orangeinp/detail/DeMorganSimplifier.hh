@@ -57,6 +57,9 @@ class DeMorganSimplifier
     //! node id >= 2
     static constexpr auto has_parents_index_{NodeId{1}};
 
+    //! First meaningfull node id in a CsgTree
+    static constexpr auto first_node_id_{NodeId{2}};
+
     //! Helper struct to translate ids from the original tree to ids in the
     //! simplified tree
     struct MatchingNodes
@@ -104,9 +107,8 @@ class DeMorganSimplifier
         size_type extent_;
     };
 
-    // Similar to get_if but dereference Aliased nodes
-    template<class T>
-    T const* node_is(Node const&) const;
+    // Dereference Aliased nodes
+    NodeId dealias(NodeId) const;
 
     // First pass to find negated set operations
     void find_join_negations();
