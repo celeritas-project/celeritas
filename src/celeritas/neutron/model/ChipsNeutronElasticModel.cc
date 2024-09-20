@@ -33,9 +33,9 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
     ParticleParams const& particles,
     MaterialParams const& materials,
     ReadData load_data)
-    : ConcreteAction(id,
-                     "neutron-elastic-chips",
-                     "interact by neutron elastic scattering (CHIPS)")
+    : StaticConcreteAction(id,
+                           "neutron-elastic-chips",
+                           "interact by neutron elastic scattering (CHIPS)")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);

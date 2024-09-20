@@ -18,7 +18,7 @@ class ParticleParams;
 /*!
  * Set up and launch the Bethe-Bloch muon ionization model interaction.
  */
-class MuBetheBlochModel final : public Model, public ConcreteAction
+class MuBetheBlochModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data

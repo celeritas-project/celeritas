@@ -27,17 +27,17 @@ namespace celeritas
  */
 MollerBhabhaModel::MollerBhabhaModel(ActionId id,
                                      ParticleParams const& particles)
-    : ConcreteAction(
+    : StaticConcreteAction(
           id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
 {
     CELER_EXPECT(id);
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.positron = particles.find(pdg::positron());
 
-    CELER_VALIDATE(data_.ids.electron && data_.ids.positron,
-                   << "missing electron and/or positron particles "
-                      "(required for "
-                   << this->description() << ")");
+    CELER_VALIDATE(
+        data_.ids.electron && data_.ids.positron,
+        << R"(missing electron and/or positron particles (required for )"
+        << this->description() << ")");
 
     data_.electron_mass = particles.get(data_.ids.electron).mass();
 

@@ -20,7 +20,7 @@ namespace detail
  * Select a model for tracks undergoing a discrete interaction.
  */
 class DiscreteSelectAction final : public CoreStepActionInterface,
-                                   public ConcreteAction
+                                   public StaticConcreteAction
 {
   public:
     // Construct with ID

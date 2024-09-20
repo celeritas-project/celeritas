@@ -18,7 +18,7 @@ class ParticleParams;
 /*!
  * Set up and launch the Bragg ionization model interaction.
  */
-class BraggModel final : public Model, public ConcreteAction
+class BraggModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data

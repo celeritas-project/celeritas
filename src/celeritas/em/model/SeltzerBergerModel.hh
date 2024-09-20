@@ -46,7 +46,7 @@ class ParticleParams;
  * screened nuclei and orbital electrons of neutral atoms with Z = 1–100", At.
  * Data Nucl. Data Tables 35, 345–418.
  */
-class SeltzerBergerModel final : public Model, public ConcreteAction
+class SeltzerBergerModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{

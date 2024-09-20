@@ -74,11 +74,11 @@ class MyExplicitAction final : public MockStepActionInterface,
     mutable int device_count_{-100};
 };
 
-class MyImplicitAction final : public ConcreteAction
+class MyImplicitAction final : public StaticConcreteAction
 {
   public:
     // Construct with ID and label
-    using ConcreteAction::ConcreteAction;
+    using StaticConcreteAction::StaticConcreteAction;
 };
 
 //---------------------------------------------------------------------------//

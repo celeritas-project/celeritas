@@ -20,7 +20,7 @@ namespace detail
  * \sa CoreTrackView::tracking_cut_action
  */
 class TrackingCutAction final : public CoreStepActionInterface,
-                                public ConcreteAction
+                                public StaticConcreteAction
 {
   public:
     // Construct with ID
