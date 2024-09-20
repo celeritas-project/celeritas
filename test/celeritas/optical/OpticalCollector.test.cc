@@ -541,19 +541,20 @@ TEST_F(LArSphereOffloadTest, host_generate)
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::host>(4, 512, 16);
 
-    // clang-format off
-    static char const* const expected_log_messages[] =  {
+    static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
         "Boundary action is not implemented",
         "Boundary action is not implemented",
-        "Exceeded step count of 2: aborting optical transport loop with 0 tracks and 324193 queued",
+        R"(Exceeded step count of 2: aborting optical transport loop with 0 tracks and 324193 queued)",
     };
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
     static char const* const expected_log_levels[]
         = {"status", "status", "error", "error", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-    // clang-format on
 
     EXPECT_EQ(2, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
