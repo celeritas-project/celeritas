@@ -239,9 +239,9 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // We might have to insert a negated version of that node
         if (new_negated_nodes_[node_id.get()])
         {
-            Node const* target_node{&tree_[this->dealias(node_id)]};
-            CELER_EXPECT(!std::get_if<Negated>(target_node)
-                         && !std::get_if<Joined>(target_node)
+            Node const& target_node{tree_[this->dealias(node_id)]};
+            CELER_EXPECT(!std::holds_alternative<Negated>(target_node)
+                         && !std::holds_alternative<Joined>(target_node)
                          && !trans.new_negation);
             auto [new_negated_node_id, negated_inserted]
                 = result.insert(Negated{new_id});
