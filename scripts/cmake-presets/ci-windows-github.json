@@ -76,11 +76,22 @@
       "output": {
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 2048,
-        "outputOnFailure": true,
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "fast-unit",
+      "configurePreset": "fast",
+      "inherits": "base"
+    },
+    {
+      "name": "fast-app",
+      "configurePreset": "fast",
+      "inherits": "base",
+      "output": {
         "outputJUnitFile": "$env{CTEST_OUTPUT}"
       }
     },
-    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
     {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ]
 }

@@ -15,7 +15,6 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
-      CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -48,6 +47,8 @@ jobs:
           ninja
       - name: Run tests
         id: test
+        env:
+          CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
         run: |
           ctest --preset=${CMAKE_PRESET} 
       - name: Install
@@ -85,7 +86,6 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
       CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
-      CTEST_OUTPUT: "${{github.workspace}}\\test-output\\ctest\\all.xml"
     runs-on: windows-latest
     steps:
       - name: Install dependencies
@@ -118,7 +118,8 @@ jobs:
           cmake --build --preset=$Env:CMAKE_PRESET 
       - name: Test all
         id: test
-        continue-on-error: true
+        env:
+          CTEST_OUTPUT: "${{github.workspace}}\\test-output\\ctest\\all.xml"
         run: |
           ctest --preset=$Env:CMAKE_PRESET
       - name: Show ccache stats

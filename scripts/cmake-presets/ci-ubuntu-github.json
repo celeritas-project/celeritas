@@ -88,7 +88,6 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_CLANG_TIDY": {"type": "PATH", "value": "$env{CLANG_TIDY}"}
-
       }
     },
     {
@@ -173,19 +172,34 @@
       "output": {
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 2048,
-        "outputOnFailure": true,
-        "outputJUnitFile": "$env{CTEST_OUTPUT}"
+        "outputOnFailure": true
       }
     },
     {
-      "name": "spack",
+      "name": "spack-unit",
       "configurePreset": "spack",
       "inherits": "base"
     },
     {
-      "name": "fast",
+      "name": "spack-app",
+      "configurePreset": "spack",
+      "inherits": "base",
+      "output": {
+        "outputJUnitFile": "$env{CTEST_OUTPUT}"
+      }
+    },
+    {
+      "name": "fast-unit",
       "configurePreset": "fast",
       "inherits": "base"
+    },
+    {
+      "name": "fast-app",
+      "configurePreset": "fast",
+      "inherits": "base",
+      "output": {
+        "outputJUnitFile": "$env{CTEST_OUTPUT}"
+      }
     },
     {
       "name": "ultralite",

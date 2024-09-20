@@ -122,7 +122,6 @@ jobs:
         uses: actions/upload-artifact@v3
         # TODO junit export doesn't work on the older version of ctest on the image
         if: false
-        #if: ${{steps.test.outcome == 'success' || steps.test.outcome == 'failure'}}
         with:
           name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
           path: "test-output/**/*.xml"

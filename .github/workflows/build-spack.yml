@@ -56,8 +56,6 @@ jobs:
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
       CC: "clang-15"
       CXX: "clang++-15"
-      CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
-      GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
     runs-on: ubuntu-22.04
     continue-on-error: false
     steps:
@@ -134,6 +132,7 @@ jobs:
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
       - name: Build all
+        id: build
         working-directory: build
         continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
@@ -143,32 +142,28 @@ jobs:
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
-      - name: Run tests
-        id: test
+      - name: Run unit tests
+        id: unittest
         if: ${{matrix.special != 'clang-tidy'}}
         continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
+        env:
+          GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
             # Note this is ignored for geant4, float, clhep
             export CELER_TEST_STRICT=1
           fi
-          ctest --preset=spack
-      - name: Upload failed tests
-        if: ${{steps.test.outcome == 'failure'}}
-        uses: actions/upload-artifact@v4
-        with:
-          name: failed-${{github.job}}-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          if-no-files-found: warn
-          retention-days: 3
-          path: |
-            build/**/*.out.json
-            build/Testing/Temporary/LastTest.log
-            build/Testing/Temporary/LastTestsFailed.log
+          ctest -LE app --preset=spack-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{steps.build.outcome == 'success'}}
+        env:
+          CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
+        run: |
+          ctest -L app --preset=spack-app
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: ${{ !matrix.geant || fromJSON(matrix.geant) >= 11
-              && (steps.test.outcome == 'success'
-               || steps.test.outcome == 'failure')}}
+        if: ${{steps.build.outcome == 'success'}}
         with:
           name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
           path: "test-output/**/*.xml"
