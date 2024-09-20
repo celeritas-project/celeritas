@@ -25,12 +25,10 @@
 
 #include "detail/VecgeomCompatibility.hh"
 
-#if VECGEOM_VERSION < 0x020000
-#    include "detail/BVHNavigator.hh"
-#elif defined(VECGEOM_USE_SURF)
-#    include "detail/SurfNavigator.hh"
+#if defined(VECGEOM_USE_SURF)
+#    include "geocel/vg/detail/SurfNavigator.hh"
 #else
-#    include <VecGeom/navigation/BVHNavigator.h>
+#    include "geocel/vg/detail/BVHNavigator.hh"
 #endif
 
 namespace celeritas
@@ -57,12 +55,10 @@ class VecgeomTrackView
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;
-#if VECGEOM_VERSION < 0x020000
-    using Navigator = celeritas::detail::BVHNavigator;
-#elif defined(VECGEOM_USE_SURF)
+#if defined(VECGEOM_USE_SURF)
     using Navigator = celeritas::detail::SurfNavigator;
 #else
-    using Navigator = vecgeom::BVHNavigator;
+    using Navigator = celeritas::detail::BVHNavigator;
 #endif
     //!@}
 
@@ -215,13 +211,17 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
-    vecgeom::VPlacedVolume const* worldvol = params_.world_volume;
     bool const contains_point = true;
-
+#ifdef VECGEOM_USE_SURF
+    auto world_id = vecgeom::NavigationState::WorldId();
     // LocatePointIn sets `vgstate_`
-    Navigator::LocatePointIn(
-        worldvol, detail::to_vector(pos_), vgstate_, contains_point);
-
+    Navigator::LocatePointIn(world_id, detail::to_vector(pos_), vgstate_, contains_point);
+#else
+    vecgeom::VPlacedVolume const* worldvol = params_.world_volume;
+    // LocatePointIn sets `vgstate_`
+    Navigator::LocatePointIn(worldvol,
+        detail::to_vector(pos_), vgstate_, contains_point);
+#endif
     return *this;
 }
 
@@ -421,10 +421,16 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
+    #ifdef VECGEOM_USE_SURF
+        long hitsurf_id = -1;
+        Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
+            detail::to_vector(this->dir_), hitsurf_id, vgnext_);
+    #else
         // Some navigators require an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
         Navigator::RelocateToNextVolume(
             temp_pos, detail::to_vector(this->dir_), vgnext_);
+    #endif
     }
 
     vgstate_ = vgnext_;
