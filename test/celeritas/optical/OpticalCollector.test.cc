@@ -568,7 +568,11 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     auto_flush_ = 262144;
     this->build_optical_collector();
 
+    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::device>(1, 1024, 16);
+    static char const* const expected_log_levels[]
+        = {"status", "status", "error", "error", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(7, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
