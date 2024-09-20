@@ -156,7 +156,9 @@ jobs:
           ctest -LE app --preset=spack-unit
       - name: Run app tests
         id: apptest
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{!cancelled()
+            && matrix.special != 'clang-tidy'
+            && steps.build.outcome == 'success'}}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
         env:
           CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"

@@ -87,6 +87,12 @@ namespace std
 template<class T, std::size_t Extent>
 struct hash<celeritas::Span<T, Extent>>
 {
+    using ItemHashT
+        = std::conditional<(std::has_unique_object_representations_v<T>
+                            || std::is_floating_point_v<T>),
+                           void,
+                           std::hash<std::remove_cv_t<T>>>;
+
     std::size_t operator()(celeritas::Span<T, Extent> const& s) const
     {
         if constexpr (std::has_unique_object_representations_v<T>)
