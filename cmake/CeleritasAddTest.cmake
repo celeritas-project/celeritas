@@ -15,7 +15,7 @@ Commands
 .. command:: celeritas_setup_tests
 
   Set dependencies for the python tests in the current CMakeLists file,
-  always resetting the num_process  option (see the Variables
+  always resetting the num_process option (see the Variables
   section below) but leaving the link/dependency options in place.
 
     celeritas_setup_tests(
