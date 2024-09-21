@@ -568,8 +568,7 @@ TEST_F(FourSteelSlabsEmStandard, isotopes)
     EXPECT_VEC_EQ(expected_isotope_atomic_number, isotope_atomic_number);
     EXPECT_VEC_EQ(expected_isotope_atomic_mass_number,
                   isotope_atomic_mass_number);
-    EXPECT_VEC_SOFT_EQ(expected_isotope_nuclear_mass,
-                       expected_isotope_nuclear_mass);
+    EXPECT_VEC_SOFT_EQ(expected_isotope_nuclear_mass, isotope_nuclear_mass);
 }
 
 //---------------------------------------------------------------------------//
