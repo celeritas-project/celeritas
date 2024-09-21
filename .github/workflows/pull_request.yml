@@ -26,6 +26,7 @@ jobs:
     name: "Save job metadata"
     runs-on: ubuntu-latest
     steps:
+    # Event file is needed for EnricoMi/publish-unit-test-result-action
     - name: Upload event file
       uses: actions/upload-artifact@v4
       with:
