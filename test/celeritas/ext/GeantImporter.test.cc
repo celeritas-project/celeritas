@@ -386,7 +386,6 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     };
     EXPECT_VEC_EQ(expected_processes, summary.processes);
     static char const* expected_models[] = {
-        "bethe_bloch",
         "urban_msc",
         "icru_73_qo",
         "bragg",
@@ -402,6 +401,15 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
         "mu_brems",
         "mu_pair_prod",
     };
+    if (geant4_version < Version(11, 1, 0))
+    {
+        // Older versions of Geant4 use the Bethe-Bloch model for muon
+        // ionization at intermediate energies
+        auto iter = std::find(
+            summary.models.begin(), summary.models.end(), "bethe_bloch");
+        EXPECT_TRUE(iter != summary.models.end());
+        summary.models.erase(iter, iter + 1);
+    }
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
@@ -431,7 +439,6 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     };
     EXPECT_VEC_EQ(expected_processes, summary.processes);
     static char const* expected_models[] = {
-        "bethe_bloch",
         "urban_msc",
         "icru_73_qo",
         "bragg",
@@ -447,6 +454,15 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
         "mu_brems",
         "mu_pair_prod",
     };
+    if (geant4_version < Version(11, 1, 0))
+    {
+        // Older versions of Geant4 use the Bethe-Bloch model for muon
+        // ionization at intermediate energies
+        auto iter = std::find(
+            summary.models.begin(), summary.models.end(), "bethe_bloch");
+        EXPECT_TRUE(iter != summary.models.end());
+        summary.models.erase(iter, iter + 1);
+    }
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
