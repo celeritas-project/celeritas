@@ -51,10 +51,8 @@ class Model : public StepActionInterface<CoreParams, CoreState>,
         return StepActionOrder::post;
     }
 
-    // Build mean free path grid for the given optical material
-    virtual void
-    build_mfp(OpticalMaterialId opt_mat, detail::MfpBuilder build) const
-        = 0;
+    // Build mean free path grids for all optical materials
+    virtual void build_mfps(detail::MfpBuilder build) const = 0;
 };
 
 //---------------------------------------------------------------------------//

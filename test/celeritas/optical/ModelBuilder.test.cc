@@ -49,7 +49,8 @@ class ModelBuilderTest : public celeritas::test::ImportedDataTestBase
     void check_one_model(ImportModelClass imc)
     {
         ModelBuilderOptions options{};
-        ModelBuilder model_builder{import_data_, options};
+        ModelBuilder model_builder{
+            ImportedMaterials::from_import(import_data_), options};
 
         ActionId start_id{0};
         auto iter = ModelBuilder::ActionIdIter{start_id};
@@ -106,7 +107,8 @@ TEST_F(ModelBuilderTest, build_wls)
 TEST_F(ModelBuilderTest, build_all)
 {
     ModelBuilderOptions options{};
-    ModelBuilder model_builder{import_data_, options};
+    ModelBuilder model_builder{ImportedMaterials::from_import(import_data_),
+                               options};
 
     ActionId start_id{0};
     auto iter = ModelBuilder::ActionIdIter{start_id};
@@ -136,7 +138,8 @@ TEST_F(ModelBuilderTest, warn_and_ignore)
          WarnAndIgnoreModel{ImportModelClass::absorption}}};
 
     ModelBuilderOptions options{};
-    ModelBuilder model_builder{import_data_, user_map, options};
+    ModelBuilder model_builder{
+        ImportedMaterials::from_import(import_data_), user_map, options};
 
     ActionId start_id{0};
     auto iter = ModelBuilder::ActionIdIter{start_id};

@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/optical/ImportMaterialAdapter.hh"
-#include "celeritas/optical/Model.hh"
+#include "../ImportedModelAdapter.hh"
+#include "../Model.hh"
 
 namespace celeritas
 {
@@ -21,18 +21,11 @@ namespace optical
 class AbsorptionModel : public Model
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedMaterials const>;
-    using ImportedAdapter = ImportMaterialAdapter<ImportModelClass::absorption>;
-    //!@}
-
-  public:
     // Construct with imported data
-    AbsorptionModel(ActionId id, SPConstImported imported);
+    AbsorptionModel(ActionId id, ImportedModelAdapter imported);
 
     // Build the mean free paths for this model
-    void build_mfp(OpticalMaterialId, detail::MfpBuilder) const override final;
+    void build_mfps(detail::MfpBuilder) const override final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const override final;
@@ -41,7 +34,7 @@ class AbsorptionModel : public Model
     void step(CoreParams const&, CoreStateDevice&) const override final;
 
   private:
-    ImportedAdapter imported_;
+    ImportedModelAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

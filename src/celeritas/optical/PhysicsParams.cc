@@ -9,8 +9,11 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/optical/Model.hh"
-#include "celeritas/optical/detail/MfpBuilder.hh"
+
+#include "Model.hh"
+#include "ModelBuilder.hh"
+
+#include "detail/MfpBuilder.hh"
 
 namespace celeritas
 {
@@ -28,7 +31,7 @@ class DiscreteSelectAction : public ConcreteAction
 };
 
 //---------------------------------------------------------------------------//
-PhysicsParams::PhysicsParams(ModelBuilder builder, Input input)
+PhysicsParams::PhysicsParams(Input input)
 {
     CELER_EXPECT(input.action_registry);
 
@@ -42,14 +45,14 @@ PhysicsParams::PhysicsParams(ModelBuilder builder, Input input)
         action_reg.insert(discrete_action_);
 
         // Create models
-        models_ = this->build_models(builder, action_reg);
+        models_ = this->build_models(input.model_builders, action_reg);
     }
 
     // Construct data
     HostValue host_data;
-    this->build_options(input.options, host_data);
     host_data.scalars.num_models = this->num_models();
-    this->build_mfp(builder.optical_materials(), host_data);
+    this->build_options(input.options, host_data);
+    this->build_mfps(host_data);
 
     // Copy data to device
     data_ = CollectionMirror<PhysicsParamsData>{std::move(host_data)};
@@ -58,34 +61,25 @@ PhysicsParams::PhysicsParams(ModelBuilder builder, Input input)
                  == host_ref().scalars.discrete_action());
 }
 
-auto PhysicsParams::build_models(ModelBuilder const& build_model,
+auto PhysicsParams::build_models(std::vector<SPConstModelBuilder> const& builders,
                                  ActionRegistry& action_reg) const -> VecModels
 {
     VecModels models;
+    models.reserve(builders.size());
 
-    for (auto imc : ModelBuilder::get_all_model_classes())
+    for (auto const& build : builders)
     {
-        auto id_iter = ModelBuilder::ActionIdIter{action_reg.next_id()};
-        auto model = build_model(imc, id_iter);
+        auto action_id = action_reg.next_id();
+        auto model = (*build)(action_id);
 
-        if (model)
-        {
-            CELER_ASSERT(model->action_id() == *id_iter++);
+        CELER_ASSERT(model);
+        CELER_ASSERT(model->action_id() == action_id);
 
-            action_reg.insert(model);
-            models.push_back(std::move(model));
-        }
-        else
-        {
-            // Deliberately ignored model
-            CELER_LOG(debug)
-                << "Ignored optical model class '" << to_cstring(imc);
-        }
+        action_reg.insert(model);
+        models.push_back(std::move(model));
     }
 
-    // May want to allow no models built if users don't want to run optical
-    // physics?
-    CELER_ENSURE(!models.empty());
+    CELER_ENSURE(models.size() == builders.size());
     return models;
 }
 
@@ -94,7 +88,7 @@ void PhysicsParams::build_options(Options const& /* options */,
 {
 }
 
-void PhysicsParams::build_mfp(SPConstMaterials materials, HostValue& data) const
+void PhysicsParams::build_mfps(HostValue& data) const
 {
     auto build_grid_id = make_builder(&data.grid_ids);
     auto build_table = make_builder(&data.tables);
@@ -106,15 +100,9 @@ void PhysicsParams::build_mfp(SPConstMaterials materials, HostValue& data) const
 
         // Build the per material grids
         GenericGridInserter inserter(&data.reals, &data.grids);
-
         std::vector<ValueGridId> grid_ids;
-        grid_ids.reserve(materials->size());
 
-        for (auto opt_mat_id : range(OpticalMaterialId{materials->size()}))
-        {
-            model.build_mfp(opt_mat_id,
-                            detail::MfpBuilder(&inserter, &grid_ids));
-        }
+        model.build_mfps(detail::MfpBuilder{&inserter, &grid_ids});
 
         // Build table from material grids
         ValueTable mfp_table;

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AbsorptionModel.hh"
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/detail/MfpBuilder.hh"
 
@@ -18,7 +19,7 @@ namespace optical
 /*!
  * Construct the model from imported data.
  */
-AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
+AbsorptionModel::AbsorptionModel(ActionId id, ImportedModelAdapter imported)
     : Model(id, "absorption", "interact by optical absorption")
     , imported_(std::move(imported))
 {
@@ -28,10 +29,23 @@ AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
 /*!
  * Build the mean free paths for the model.
  */
-void AbsorptionModel::build_mfp(OpticalMaterialId id,
-                                detail::MfpBuilder build) const
+void AbsorptionModel::build_mfps(detail::MfpBuilder build) const
 {
-    build(imported_.get(id).absorption_length);
+    for (auto mat : range(OpticalMaterialId{imported_.num_materials()}))
+    {
+        if (auto const* mfp = imported_.preferred_mfp(mat))
+        {
+            build(*mfp);
+        }
+        else
+        {
+            CELER_LOG(warning)
+                << "No absorption MFP for optical material ID " << mat.get();
+
+            // Insert an empty MFP table so indexing is correct
+            build();
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

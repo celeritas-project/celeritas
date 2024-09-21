@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RayleighModel.hh"
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/detail/MfpBuilder.hh"
 
@@ -18,7 +19,7 @@ namespace optical
 /*!
  * Construct the model from imported data.
  */
-RayleighModel::RayleighModel(ActionId id, SPConstImported imported)
+RayleighModel::RayleighModel(ActionId id, ImportedModelAdapter imported)
     : Model(id, "rayleigh", "interact by optical rayleigh")
     , imported_(std::move(imported))
 {
@@ -28,10 +29,22 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported)
 /*!
  * Build the mean free paths for the model.
  */
-void RayleighModel::build_mfp(OpticalMaterialId id,
-                              detail::MfpBuilder build) const
+void RayleighModel::build_mfps(detail::MfpBuilder build) const
 {
-    build(imported_.get(id).mfp);
+    for (auto mat : range(OpticalMaterialId{imported_.num_materials()}))
+    {
+        if (auto const* mfp = imported_.preferred_mfp(mat))
+        {
+            build(*mfp);
+        }
+        else
+        {
+            CELER_LOG(warning)
+                << "No Rayleigh MFP for optical material ID " << mat.get();
+
+            build();
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

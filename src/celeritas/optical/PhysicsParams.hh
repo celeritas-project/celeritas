@@ -15,9 +15,8 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/optical/ImportMaterialAdapter.hh"
-#include "celeritas/optical/ModelBuilder.hh"
-#include "celeritas/optical/PhysicsData.hh"
+
+#include "PhysicsData.hh"
 
 namespace celeritas
 {
@@ -25,6 +24,9 @@ class ActionRegistry;
 
 namespace optical
 {
+struct ModelBuilder;
+class Model;
+
 //---------------------------------------------------------------------------//
 
 struct PhysicsParamsOptions
@@ -36,8 +38,8 @@ class PhysicsParams : public ParamsDataInterface<PhysicsParamsData>
   public:
     //!@{
     //! \name Type aliases
+    using SPConstModelBuilder = std::shared_ptr<ModelBuilder const>;
     using SPConstModel = std::shared_ptr<Model const>;
-    using SPConstMaterials = std::shared_ptr<ImportedMaterials const>;
 
     using ActionIdRange = Range<ActionId>;
     using Options = PhysicsParamsOptions;
@@ -46,13 +48,15 @@ class PhysicsParams : public ParamsDataInterface<PhysicsParamsData>
     //! Optical physics parameter construction arguments
     struct Input
     {
+        std::vector<SPConstModelBuilder> model_builders;
+
         ActionRegistry* action_registry = nullptr;
         Options options;
     };
 
   public:
     // Construct with models and helper classes
-    explicit PhysicsParams(ModelBuilder, Input);
+    explicit PhysicsParams(Input);
 
     //// HOST ACCESSORS ////
 
@@ -62,7 +66,7 @@ class PhysicsParams : public ParamsDataInterface<PhysicsParamsData>
     // Get a model
     inline SPConstModel const& model(ModelId mid) const
     {
-        CELER_EXPECT(mid < num_models());
+        CELER_EXPECT(mid && mid < num_models());
         return models_[mid.get()];
     }
 
@@ -90,10 +94,11 @@ class PhysicsParams : public ParamsDataInterface<PhysicsParamsData>
 
     CollectionMirror<PhysicsParamsData> data_;
 
-    VecModels build_models(ModelBuilder const& builder,
-                           ActionRegistry& action_reg) const;
+    VecModels
+    build_models(std::vector<SPConstModelBuilder> const& model_builders,
+                 ActionRegistry& action_reg) const;
     void build_options(Options const& options, HostValue& host_data) const;
-    void build_mfp(SPConstMaterials materials, HostValue& host_data) const;
+    void build_mfps(HostValue& host_data) const;
 };
 
 //---------------------------------------------------------------------------//

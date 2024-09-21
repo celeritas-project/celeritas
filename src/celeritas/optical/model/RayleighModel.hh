@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../ImportMaterialAdapter.hh"
+#include "../ImportedModelAdapter.hh"
 #include "../Model.hh"
 
 namespace celeritas
@@ -21,18 +21,11 @@ namespace optical
 class RayleighModel : public Model
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedMaterials const>;
-    using ImportedAdapter = ImportMaterialAdapter<ImportModelClass::rayleigh>;
-    //!@}
-
-  public:
     // Construct with imported data
-    RayleighModel(ActionId id, SPConstImported imported);
+    RayleighModel(ActionId id, ImportedModelAdapter imported);
 
     // Build the mean free paths for this model
-    void build_mfp(OpticalMaterialId, detail::MfpBuilder) const override final;
+    void build_mfps(detail::MfpBuilder) const override final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const override final;
@@ -41,7 +34,7 @@ class RayleighModel : public Model
     void step(CoreParams const&, CoreStateDevice&) const override final;
 
   private:
-    ImportedAdapter imported_;
+    ImportedModelAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//
