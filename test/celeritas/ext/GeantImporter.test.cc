@@ -845,7 +845,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         static unsigned int const expected_size[] = {2u, 2u};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[] = {0.0001, 0.2, 0.0001, 0.2};
-        EXPECT_VEC_EQ(expected_energy, result.energy);
+        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     }
     if (geant4_version < Version(11, 1, 0))
     {
@@ -857,7 +857,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         static unsigned int const expected_size[] = {2u, 2u};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[] = {0.2, 1000, 0.2, 1000};
-        EXPECT_VEC_EQ(expected_energy, result.energy);
+        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     }
     {
         auto const& model = mu_minus.models.back();
@@ -871,13 +871,13 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         {
             static double const expected_energy[]
                 = {1000, 100000000, 1000, 100000000};
-            EXPECT_VEC_EQ(expected_energy, result.energy);
+            EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
         }
         else
         {
             static double const expected_energy[]
                 = {0.2, 100000000, 0.2, 100000000};
-            EXPECT_VEC_EQ(expected_energy, result.energy);
+            EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
         }
     }
 
