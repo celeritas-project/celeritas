@@ -120,7 +120,8 @@ ImportPhysicsVector
 import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units);
 
 // Import a 2D physics vector
-ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv);
+ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
+                                              Array<ImportUnits, 3> units);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

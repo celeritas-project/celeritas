@@ -1080,9 +1080,10 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
     {
         if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
         {
+            using IU = ImportUnits;
             result.atomic_number.push_back(z);
-            result.physics_vectors.push_back(
-                detail::import_physics_2dvector(*pv));
+            result.physics_vectors.push_back(detail::import_physics_2dvector(
+                *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
         }
     }
     CELER_ENSURE(result);

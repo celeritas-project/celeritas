@@ -953,6 +953,8 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
         table_value.push_back(pv.value.back() / barn);
     }
 
+    real_type const tol = geant4_version < Version(11, 1, 0) ? 1e-12 : 0.03;
+
     static double const expected_table_x[] = {
         -6.1928487397154,
         0,
@@ -979,19 +981,20 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
     };
     static double const expected_table_value[] = {
         0,
-        24.363843626056,
+        0.24363843626056,
         0,
-        225.7683855817,
+        2.257683855817,
         0,
-        1898.3775898741,
+        18.983775898741,
         0,
-        8658.5529175975,
+        86.585529175975,
         0,
-        79341.396760823,
+        793.41396760823,
     };
-    EXPECT_VEC_SOFT_EQ(expected_table_x, table_x);
-    EXPECT_VEC_SOFT_EQ(expected_table_y, table_y);
-    EXPECT_VEC_SOFT_EQ(expected_table_value, table_value);
+    EXPECT_VEC_NEAR(expected_table_x, table_x, tol);
+    EXPECT_VEC_NEAR(expected_table_y, table_y, tol);
+    EXPECT_VEC_NEAR(
+        expected_table_value, table_value, this->comparison_tolerance());
 }
 
 //---------------------------------------------------------------------------//

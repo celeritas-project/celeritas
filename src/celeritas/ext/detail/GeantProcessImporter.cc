@@ -430,8 +430,14 @@ import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
 /*!
  * Import a 2D physics vector.
  */
-ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv)
+ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
+                                              Array<ImportUnits, 3> units)
 {
+    // Convert units
+    double const x_scaling = native_value_from_clhep(units[0]);
+    double const y_scaling = native_value_from_clhep(units[1]);
+    double const v_scaling = native_value_from_clhep(units[2]);
+
     ImportPhysics2DVector pv;
     pv.x.resize(g4pv.GetLengthX());
     pv.y.resize(g4pv.GetLengthY());
@@ -439,11 +445,11 @@ ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv)
 
     for (auto i : range(pv.x.size()))
     {
-        pv.x[i] = g4pv.GetX(i);
+        pv.x[i] = g4pv.GetX(i) * x_scaling;
         for (auto j : range(pv.y.size()))
         {
-            pv.y[j] = g4pv.GetY(j);
-            pv.value[pv.y.size() * i + j] = g4pv.GetValue(i, j);
+            pv.y[j] = g4pv.GetY(j) * y_scaling;
+            pv.value[pv.y.size() * i + j] = g4pv.GetValue(i, j) * v_scaling;
         }
     }
     CELER_ENSURE(pv);
