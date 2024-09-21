@@ -5,7 +5,7 @@ on:
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   # TODO: this currently includes non-GPU builds as well
