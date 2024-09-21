@@ -18,6 +18,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
+#include <G4Physics2DVector.hh>
 #include <G4PhysicsTable.hh>
 #include <G4PhysicsVector.hh>
 #include <G4PhysicsVectorType.hh>
@@ -423,6 +424,30 @@ import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
         import_vec.y[i] = g4v[i] * y_scaling;
     }
     return import_vec;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import a 2D physics vector.
+ */
+ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv)
+{
+    ImportPhysics2DVector pv;
+    pv.x.resize(g4pv.GetLengthX());
+    pv.y.resize(g4pv.GetLengthY());
+    pv.value.resize(pv.x.size() * pv.y.size());
+
+    for (auto i : range(pv.x.size()))
+    {
+        pv.x[i] = g4pv.GetX(i);
+        for (auto j : range(pv.y.size()))
+        {
+            pv.y[j] = g4pv.GetY(j);
+            pv.value[pv.y.size() * i + j] = g4pv.GetValue(i, j);
+        }
+    }
+    CELER_ENSURE(pv);
+    return pv;
 }
 
 //---------------------------------------------------------------------------//

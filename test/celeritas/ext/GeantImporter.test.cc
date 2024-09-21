@@ -247,13 +247,16 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     {
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
+        opts.muon.ionization = true;
+        opts.muon.bremsstrahlung = true;
+        opts.muon.pair_production = true;
         opts.verbose = true;
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":false,"coulomb":false,"ionization":false,"msc":false,"pair_production":false},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":false,"pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -366,25 +369,39 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"e_ioni",
-                                               "e_brems",
-                                               "photoelectric",
-                                               "compton",
-                                               "conversion",
-                                               "rayleigh",
-                                               "annihilation"};
+    static char const* expected_processes[] = {
+        "e_ioni",
+        "e_brems",
+        "photoelectric",
+        "compton",
+        "conversion",
+        "rayleigh",
+        "annihilation",
+        "mu_ioni",
+        "mu_brems",
+        "mu_pair_prod",
+    };
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"urban_msc",
-                                            "moller_bhabha",
-                                            "e_brems_sb",
-                                            "e_brems_lpm",
-                                            "e_plus_to_gg",
-                                            "livermore_photoelectric",
-                                            "klein_nishina",
-                                            "bethe_heitler_lpm",
-                                            "livermore_rayleigh"};
+    static char const* expected_models[] = {
+        "bethe_bloch",
+        "urban_msc",
+        "icru_73_qo",
+        "bragg",
+        "moller_bhabha",
+        "e_brems_sb",
+        "e_brems_lpm",
+        "e_plus_to_gg",
+        "livermore_photoelectric",
+        "klein_nishina",
+        "bethe_heitler_lpm",
+        "livermore_rayleigh",
+        "mu_bethe_bloch",
+        "mu_brems",
+        "mu_pair_prod",
+    };
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
@@ -397,25 +414,39 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma", "proton"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"e_ioni",
-                                               "e_brems",
-                                               "photoelectric",
-                                               "compton",
-                                               "conversion",
-                                               "rayleigh",
-                                               "annihilation"};
+    static char const* expected_processes[] = {
+        "e_ioni",
+        "e_brems",
+        "photoelectric",
+        "compton",
+        "conversion",
+        "rayleigh",
+        "annihilation",
+        "mu_ioni",
+        "mu_brems",
+        "mu_pair_prod",
+    };
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"urban_msc",
-                                            "moller_bhabha",
-                                            "e_brems_sb",
-                                            "e_brems_lpm",
-                                            "e_plus_to_gg",
-                                            "livermore_photoelectric",
-                                            "klein_nishina",
-                                            "bethe_heitler_lpm",
-                                            "livermore_rayleigh"};
+    static char const* expected_models[] = {
+        "bethe_bloch",
+        "urban_msc",
+        "icru_73_qo",
+        "bragg",
+        "moller_bhabha",
+        "e_brems_sb",
+        "e_brems_lpm",
+        "e_plus_to_gg",
+        "livermore_photoelectric",
+        "klein_nishina",
+        "bethe_heitler_lpm",
+        "livermore_rayleigh",
+        "mu_bethe_bloch",
+        "mu_brems",
+        "mu_pair_prod",
+    };
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
@@ -842,7 +873,7 @@ TEST_F(FourSteelSlabsEmStandard, trans_parameters)
     auto&& import_data = this->imported_data();
 
     EXPECT_EQ(1000, import_data.trans_params.max_substeps);
-    EXPECT_EQ(3, import_data.trans_params.looping.size());
+    EXPECT_EQ(5, import_data.trans_params.looping.size());
     for (auto const& kv : import_data.trans_params.looping)
     {
         EXPECT_EQ(10, kv.second.threshold_trials);
@@ -894,6 +925,73 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
     EXPECT_VEC_EQ(expected_sb_table_x, sb_table_x);
     EXPECT_VEC_EQ(expected_sb_table_y, sb_table_y);
     EXPECT_VEC_EQ(expected_sb_table_value, sb_table_value);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
+{
+    auto&& import_data = this->imported_data();
+
+    auto const& data = import_data.mu_pair_production_data;
+
+    int const expected_atomic_number[] = {1, 4, 13, 29, 92};
+    EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);
+
+    EXPECT_EQ(5, data.physics_vectors.size());
+
+    std::vector<double> table_x;
+    std::vector<double> table_y;
+    std::vector<double> table_value;
+
+    for (auto const& pv : data.physics_vectors)
+    {
+        table_x.push_back(pv.x.front());
+        table_y.push_back(pv.y.front());
+        table_value.push_back(pv.value.front() / barn);
+        table_x.push_back(pv.x.back());
+        table_y.push_back(pv.y.back());
+        table_value.push_back(pv.value.back() / barn);
+    }
+
+    static double const expected_table_x[] = {
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+    };
+    static double const expected_table_y[] = {
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+    };
+    static double const expected_table_value[] = {
+        0,
+        24.363843626056,
+        0,
+        225.7683855817,
+        0,
+        1898.3775898741,
+        0,
+        8658.5529175975,
+        0,
+        79341.396760823,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_table_x, table_x);
+    EXPECT_VEC_SOFT_EQ(expected_table_y, table_y);
+    EXPECT_VEC_SOFT_EQ(expected_table_value, table_value);
 }
 
 //---------------------------------------------------------------------------//
