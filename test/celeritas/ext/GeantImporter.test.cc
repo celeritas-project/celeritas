@@ -809,6 +809,131 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, muioni)
+{
+    real_type const tol = this->comparison_tolerance();
+
+    ImportProcess const& mu_minus = this->find_process(
+        celeritas::pdg::mu_minus(), ImportProcessClass::mu_ioni);
+    EXPECT_EQ(ImportProcessType::electromagnetic, mu_minus.process_type);
+    EXPECT_EQ(celeritas::pdg::electron().get(), mu_minus.secondary_pdg);
+
+    // Test model
+    ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2,
+              mu_minus.models.size());
+    {
+        auto const& model = mu_minus.models.front();
+        EXPECT_EQ(ImportModelClass::icru_73_qo, model.model_class);
+
+        auto result = summarize(model.materials);
+        EXPECT_TRUE(result.xs.empty());
+        static unsigned int const expected_size[] = {2u, 2u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static double const expected_energy[] = {0.0001, 0.2, 0.0001, 0.2};
+        EXPECT_VEC_EQ(expected_energy, result.energy);
+    }
+    if (geant4_version < Version(11, 1, 0))
+    {
+        auto const& model = mu_minus.models[1];
+        EXPECT_EQ(ImportModelClass::bethe_bloch, model.model_class);
+
+        auto result = summarize(model.materials);
+        EXPECT_TRUE(result.xs.empty());
+        static unsigned int const expected_size[] = {2u, 2u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static double const expected_energy[] = {0.2, 1000, 0.2, 1000};
+        EXPECT_VEC_EQ(expected_energy, result.energy);
+    }
+    {
+        auto const& model = mu_minus.models.back();
+        EXPECT_EQ(ImportModelClass::mu_bethe_bloch, model.model_class);
+
+        auto result = summarize(model.materials);
+        EXPECT_TRUE(result.xs.empty());
+        static unsigned int const expected_size[] = {2u, 2u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        if (geant4_version < Version(11, 1, 0))
+        {
+            static double const expected_energy[]
+                = {1000, 100000000, 1000, 100000000};
+            EXPECT_VEC_EQ(expected_energy, result.energy);
+        }
+        else
+        {
+            static double const expected_energy[]
+                = {0.2, 100000000, 0.2, 100000000};
+            EXPECT_VEC_EQ(expected_energy, result.energy);
+        }
+    }
+
+    auto const& tables = mu_minus.tables;
+    ASSERT_EQ(3, tables.size());
+    {
+        // Test energy loss table
+        ImportPhysicsTable const& dedx = tables[0];
+        ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
+        EXPECT_EQ(ImportUnits::mev, dedx.x_units);
+        EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
+        ASSERT_EQ(2, dedx.physics_vectors.size());
+
+        ImportPhysicsVector const& steel = dedx.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(85, steel.x.size());
+        EXPECT_SOFT_EQ(1e-4, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_NEAR(83.221648535690946, to_inv_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(11.40198961519433, to_inv_cm(steel.y.back()), tol);
+    }
+    {
+        // Test range table
+        ImportPhysicsTable const& range = tables[1];
+        ASSERT_EQ(ImportTableType::range, range.table_type);
+        EXPECT_EQ(ImportUnits::mev, range.x_units);
+        EXPECT_EQ(ImportUnits::cm, range.y_units);
+        ASSERT_EQ(2, range.physics_vectors.size());
+
+        ImportPhysicsVector const& steel = range.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(85, steel.x.size());
+        EXPECT_SOFT_EQ(1e-4, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_NEAR(2.4032208387968519e-06, to_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(8772935.4124113899, to_cm(steel.y.back()), tol);
+    }
+    {
+        // Test cross-section table
+        ImportPhysicsTable const& xs = tables[2];
+        ASSERT_EQ(ImportTableType::lambda, xs.table_type);
+        EXPECT_EQ(ImportUnits::mev, xs.x_units);
+        EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
+        ASSERT_EQ(2, xs.physics_vectors.size());
+
+        ImportPhysicsVector const& steel = xs.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(45, steel.x.size());
+        EXPECT_SOFT_NEAR(54.542938808612199, steel.x.front(), tol);
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(0, steel.y.front());
+        EXPECT_SOFT_NEAR(0.10167398809855273, to_inv_cm(steel.y[1]), tol);
+        EXPECT_SOFT_NEAR(0.47315182268065914, to_inv_cm(steel.y.back()), tol);
+    }
+
+    // Check mu+
+    ImportProcess const& mu_plus = this->find_process(
+        celeritas::pdg::mu_plus(), ImportProcessClass::mu_ioni);
+    EXPECT_EQ(ImportProcessType::electromagnetic, mu_plus.process_type);
+    EXPECT_EQ(celeritas::pdg::electron().get(), mu_plus.secondary_pdg);
+
+    auto const& models = mu_plus.models;
+    ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2, models.size());
+    EXPECT_EQ(ImportModelClass::bragg, models.front().model_class);
+    EXPECT_EQ(ImportModelClass::mu_bethe_bloch, models.back().model_class);
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, volumes)
 {
     auto&& import_data = this->imported_data();
