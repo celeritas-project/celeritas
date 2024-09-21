@@ -14,6 +14,7 @@
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/StringUtils.hh"
 
 #include "celeritas_test.hh"
 
@@ -58,6 +59,10 @@ TEST(ReprTest, string)
     EXPECT_EQ("\"abcd\\a\"", repr_to_string(std::string("abcd\a")));
     EXPECT_EQ("std::string hi{\"hello\"}",
               repr_to_string(std::string("hello"), "hi"));
+
+    auto longstr = repr_to_string(std::string(100, 'x'));
+    EXPECT_TRUE(starts_with(longstr, "R\"(xxx")) << longstr;
+    EXPECT_TRUE(ends_with(longstr, "xxx)\"")) << longstr;
 }
 
 TEST(ReprTest, container)
@@ -73,6 +78,11 @@ TEST(ReprTest, container)
 
     std::string const strings[] = {"a", "", "special\nchars\t"};
     EXPECT_EQ("{\"a\", \"\", \"special\\nchars\\t\"}", repr_to_string(strings));
+
+    auto long_vec_str
+        = repr_to_string(std::vector<std::string>(10, std::string(75, 'x')));
+    cout << long_vec_str;
+    EXPECT_TRUE(ends_with(long_vec_str, ")\",}")) << long_vec_str;
 }
 
 //---------------------------------------------------------------------------//

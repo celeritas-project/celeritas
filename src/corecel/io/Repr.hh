@@ -224,9 +224,17 @@ struct ReprTraits<std::string_view>
     static void init(std::ostream&) {}
     static void print_value(std::ostream& os, std::string_view value)
     {
-        std::streamsize width = os.width();
+        using ssize = std::streamsize;
+        ssize width = os.width();
+        os.width(
+            std::max(width - static_cast<ssize>(value.size()) - 2, ssize{0}));
 
-        os.width(width - value.size() - 2);
+        if (value.size() > 70)
+        {
+            // Print long literal string on one line
+            os << "R\"(" << value << ")\"";
+            return;
+        }
 
         os << '"';
         for (char c : value)
@@ -408,10 +416,17 @@ struct ContainerReprTraits
 
     static void print_value(std::ostream& os, Container const& data)
     {
+        auto orig_pos = os.tellp();
         os << '{'
            << join_stream(
-                  std::begin(data), std::end(data), ", ", RT::print_value)
-           << '}';
+                  std::begin(data), std::end(data), ", ", RT::print_value);
+        auto new_pos = os.tellp();
+        if (orig_pos >= 0 && new_pos >= 0 && new_pos - orig_pos > 160)
+        {
+            // Add a trailing ',' to long outputs to help clang-format
+            os << ',';
+        }
+        os << '}';
     }
 };
 
