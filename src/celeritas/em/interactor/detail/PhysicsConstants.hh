@@ -64,10 +64,16 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_upper_limit()
     return units::MevEnergy{1e3};  //! 1 GeV
 }
 
-//! Energy threshold between muon ionization models. TODO: make configurable
-CELER_CONSTEXPR_FUNCTION units::MevEnergy mu_bethe_bloch_lower_limit()
+//! Maximum energy for the Bragg model
+CELER_CONSTEXPR_FUNCTION units::MevEnergy bragg_upper_limit()
 {
     return units::MevEnergy{0.2};  //! 200 keV
+}
+
+//! Maximum energy for the Bethe-Bloch model
+CELER_CONSTEXPR_FUNCTION units::MevEnergy bethe_bloch_upper_limit()
+{
+    return units::MevEnergy{1e3};  //! 1 GeV
 }
 
 //! Maximum energy for EM models to be valid

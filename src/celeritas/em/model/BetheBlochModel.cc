@@ -3,13 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/MuBetheBlochModel.cc
+//! \file celeritas/em/model/BetheBlochModel.cc
 //---------------------------------------------------------------------------//
-#include "MuBetheBlochModel.hh"
+#include "BetheBlochModel.hh"
 
+#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/data/MuBetheBlochData.hh"
-#include "celeritas/em/executor/MuBetheBlochExecutor.hh"
+#include "celeritas/em/data/BetheBlochData.hh"
+#include "celeritas/em/executor/BetheBlochExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -26,22 +27,41 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-MuBetheBlochModel::MuBetheBlochModel(ActionId id,
-                                     ParticleParams const& particles)
-    : StaticConcreteAction(id,
-                           "ioni-mu-bethe-bloch",
-                           "interact by muon ionization (Bethe-Bloch)")
+BetheBlochModel::BetheBlochModel(ActionId id,
+                                 ParticleParams const& particles,
+                                 SetApplicability applicability)
+    : StaticConcreteAction(
+        id, "ioni-bethe-bloch", "interact by ionization (Bethe-Bloch)")
+    , applicability_(applicability)
 {
     CELER_EXPECT(id);
-    data_.electron = particles.find(pdg::electron());
-    data_.mu_minus = particles.find(pdg::mu_minus());
-    data_.mu_plus = particles.find(pdg::mu_plus());
+    CELER_EXPECT(!applicability_.empty());
 
-    CELER_VALIDATE(data_.electron && data_.mu_minus && data_.mu_plus,
-                   << "missing electron and/or muon particles (required for "
-                   << this->description() << ")");
+    HostVal<BetheBlochData> host_data;
 
-    data_.electron_mass = particles.get(data_.electron).mass();
+    auto particle_ids = make_builder(&host_data.particles);
+    particle_ids.reserve(applicability_.size());
+    for (auto const& applic : applicability_)
+    {
+        CELER_VALIDATE(applic,
+                       << "invalid applicability with particle ID "
+                       << applic.particle.unchecked_get()
+                       << " and energy limits ("
+                       << value_as<units::MevEnergy>(applic.lower) << ", "
+                       << value_as<units::MevEnergy>(applic.upper)
+                       << ") [MeV] for Bethe-Bloch model");
+        particle_ids.push_back(applic.particle);
+    }
+
+    host_data.electron = particles.find(pdg::electron());
+    CELER_VALIDATE(host_data.electron,
+                   << "missing electron (required for " << this->description()
+                   << ")");
+
+    host_data.electron_mass = particles.get(host_data.electron).mass();
+
+    // Move to mirrored data, copying to device
+    data_ = CollectionMirror<BetheBlochData>{std::move(host_data)};
 
     CELER_ENSURE(data_);
 }
@@ -50,25 +70,16 @@ MuBetheBlochModel::MuBetheBlochModel(ActionId id,
 /*!
  * Particle types and energy ranges that this model applies to.
  */
-auto MuBetheBlochModel::applicability() const -> SetApplicability
+auto BetheBlochModel::applicability() const -> SetApplicability
 {
-    Applicability mu_minus_applic;
-    mu_minus_applic.particle = data_.mu_minus;
-    // TODO: refactor model so it's constructed with applicability
-    mu_minus_applic.lower = detail::bragg_upper_limit();
-    mu_minus_applic.upper = detail::high_energy_limit();
-
-    Applicability mu_plus_applic = mu_minus_applic;
-    mu_plus_applic.particle = data_.mu_plus;
-
-    return {mu_minus_applic, mu_plus_applic};
+    return applicability_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto MuBetheBlochModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto BetheBlochModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
     // Aside from the production cut, the discrete interaction is material
     // independent, so no element is sampled
@@ -79,20 +90,19 @@ auto MuBetheBlochModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void MuBetheBlochModel::step(CoreParams const& params,
-                             CoreStateHost& state) const
+void BetheBlochModel::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{MuBetheBlochExecutor{this->host_ref()}});
+        InteractionApplier{BetheBlochExecutor{this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void MuBetheBlochModel::step(CoreParams const&, CoreStateDevice&) const
+void BetheBlochModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

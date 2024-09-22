@@ -56,7 +56,7 @@ auto BraggModel::applicability() const -> SetApplicability
     Applicability applic;
     applic.particle = data_.inc_particle;
     applic.lower = zero_quantity();
-    applic.upper = detail::mu_bethe_bloch_lower_limit();
+    applic.upper = detail::bragg_upper_limit();
 
     return {applic};
 }

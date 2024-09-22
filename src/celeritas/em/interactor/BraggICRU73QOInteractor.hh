@@ -125,7 +125,7 @@ BraggICRU73QOInteractor::BraggICRU73QOInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared.inc_particle);
     CELER_EXPECT(inc_energy_ > cutoffs.energy(electron_id_));
-    CELER_EXPECT(inc_energy_ < detail::mu_bethe_bloch_lower_limit());
+    CELER_EXPECT(inc_energy_ < detail::bragg_upper_limit());
 }
 
 //---------------------------------------------------------------------------//

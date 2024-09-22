@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/interactor/MuBetheBlochInteractor.hh
+//! \file celeritas/em/interactor/BetheBlochInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,12 +14,13 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/data/MuBetheBlochData.hh"
-#include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
+#include "celeritas/em/data/BetheBlochData.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
+#include "celeritas/random/distribution/InverseSquareDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "detail/IoniFinalStateHelper.hh"
 #include "detail/PhysicsConstants.hh"
@@ -28,16 +29,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform the discrete part of the muon ionization process.
+ * Perform the discrete part of the muon or hadron ionization process.
  *
- * This simulates the production of delta rays by incident mu- and mu+ with
- * energies above 200 keV.
- *
- * \note This performs the same sampling routine as in Geant4's
- * G4MuBetheBlochModel and as documented in the Geant4 Physics Reference Manual
- * (Release 11.1) section 11.1.
+ * \note This performs the same sampling routine as in Geant4's \c
+ * G4BetheBlochModel and as documented in the Geant4 Physics Reference Manual
+ * (Release 11.2) section 12.1.5.
  */
-class MuBetheBlochInteractor
+class BetheBlochInteractor
 {
   public:
     //!@{
@@ -48,13 +46,13 @@ class MuBetheBlochInteractor
     //!@}
 
   public:
-    // Construct with shared and state data
+    //! Construct with shared and state data
     inline CELER_FUNCTION
-    MuBetheBlochInteractor(MuBetheBlochData const& shared,
-                           ParticleTrackView const& particle,
-                           CutoffView const& cutoffs,
-                           Real3 const& inc_direction,
-                           StackAllocator<Secondary>& allocate);
+    BetheBlochInteractor(NativeCRef<BetheBlochData> const& shared,
+                         ParticleTrackView const& particle,
+                         CutoffView const& cutoffs,
+                         Real3 const& inc_direction,
+                         StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -71,18 +69,18 @@ class MuBetheBlochInteractor
     Energy inc_energy_;
     // Incident particle momentum [MeV / c]
     Momentum inc_momentum_;
-    // Muon mass
+    // Muon mass [MeV / c^2]
     Mass inc_mass_;
-    // Electron mass
+    // Square of fractional speed of light for incident particle
+    real_type beta_sq_;
+    // Electron mass [MeV / c^2]
     Mass electron_mass_;
     // Secondary electron ID
     ParticleId electron_id_;
-    // Secondary electron cutoff for current material [MeV]
-    Energy electron_cutoff_;
+    // Minimum energy of the secondary electron [MeV]
+    real_type min_secondary_energy_;
     // Maximum energy of the secondary electron [MeV]
-    Energy max_secondary_energy_;
-    // Secondary electron energy distribution
-    MuBBEnergyDistribution sample_energy_;
+    real_type max_secondary_energy_;
 
     //// HELPER FUNCTIONS ////
 
@@ -95,8 +93,9 @@ class MuBetheBlochInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION MuBetheBlochInteractor::MuBetheBlochInteractor(
-    MuBetheBlochData const& shared,
+CELER_FUNCTION
+BetheBlochInteractor::BetheBlochInteractor(
+    NativeCRef<BetheBlochData> const& shared,
     ParticleTrackView const& particle,
     CutoffView const& cutoffs,
     Real3 const& inc_direction,
@@ -106,21 +105,14 @@ CELER_FUNCTION MuBetheBlochInteractor::MuBetheBlochInteractor(
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_mass_(particle.mass())
+    , beta_sq_(particle.beta_sq())
     , electron_mass_(shared.electron_mass)
     , electron_id_(shared.electron)
-    , electron_cutoff_(cutoffs.energy(electron_id_))
-    , max_secondary_energy_(this->calc_max_secondary_energy())
-    , sample_energy_(inc_energy_,
-                     inc_mass_,
-                     particle.beta_sq(),
-                     electron_mass_,
-                     electron_cutoff_,
-                     max_secondary_energy_)
+    , min_secondary_energy_(value_as<Energy>(cutoffs.energy(electron_id_)))
+    , max_secondary_energy_(value_as<Energy>(this->calc_max_secondary_energy()))
 {
-    CELER_EXPECT(particle.particle_id() == shared.mu_minus
-                 || particle.particle_id() == shared.mu_plus);
-    CELER_EXPECT(inc_energy_ > electron_cutoff_);
-    CELER_EXPECT(inc_energy_ >= detail::bragg_upper_limit());
+    CELER_EXPECT(shared.applies(particle.particle_id()));
+    CELER_EXPECT(value_as<Energy>(inc_energy_) > min_secondary_energy_);
 }
 
 //---------------------------------------------------------------------------//
@@ -128,11 +120,11 @@ CELER_FUNCTION MuBetheBlochInteractor::MuBetheBlochInteractor(
  * Simulate discrete muon ionization.
  */
 template<class Engine>
-CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
 {
-    if (electron_cutoff_ > max_secondary_energy_)
+    if (min_secondary_energy_ >= max_secondary_energy_)
     {
-        // No interaction if the maximum secondary energy is below the cutoff
+        // No interaction if the maximum secondary energy is below the limit
         return Interaction::from_unchanged();
     }
 
@@ -144,29 +136,44 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Sample the delta ray energy to construct the final sampler
-    detail::IoniFinalStateHelper sample_interaction(inc_energy_,
-                                                    inc_direction_,
-                                                    inc_momentum_,
-                                                    inc_mass_,
-                                                    sample_energy_(rng),
-                                                    electron_mass_,
-                                                    electron_id_,
-                                                    secondary);
+    // Sample the delta ray energy
+    InverseSquareDistribution sample_energy{min_secondary_energy_,
+                                            max_secondary_energy_};
+    real_type energy;
+    do
+    {
+        // Sample 1/E^2 from Emin to Emax
+        energy = sample_energy(rng);
+        /*!
+         * \todo Adjust rejection functions if particle has positive spin
+         */
+    } while (RejectionSampler<>(
+        1 - (beta_sq_ / max_secondary_energy_) * energy)(rng));
 
-    // Update kinematics of the final state and return this interaction
-    return sample_interaction(rng);
+    /*!
+     * \todo For hadrons, suppress high energy delta ray production with the
+     * projectile form factor
+     */
+
+    // Update kinematics of the final state and return the interaction
+    return detail::IoniFinalStateHelper(inc_energy_,
+                                        inc_direction_,
+                                        inc_momentum_,
+                                        inc_mass_,
+                                        Energy{energy},
+                                        electron_mass_,
+                                        electron_id_,
+                                        secondary)(rng);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate maximum kinetic energy of the secondary electron.
+ * Calculate maximum kinematically allowed kinetic energy of the secondary.
  *
- * TODO this should be precomputed and used as part of the "applicability" per
- * particle type, not included in the interactor. See celeritas#907 .
+ * TODO: Refactor as helper function
  */
-CELER_FUNCTION auto
-MuBetheBlochInteractor::calc_max_secondary_energy() const -> Energy
+CELER_FUNCTION auto BetheBlochInteractor::calc_max_secondary_energy() const
+    -> Energy
 {
     real_type mass_ratio = value_as<Mass>(electron_mass_)
                            / value_as<Mass>(inc_mass_);
