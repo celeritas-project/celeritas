@@ -27,12 +27,11 @@ namespace celeritas
  *
  * This class can be used to call a functor that applies to \c CoreTrackView
  * using a \c ThreadId, so that the tracks can be easily looped over as a
- * group on CPU or GPU.
+ * group on CPU or GPU. It applies a remapping from \em thread to \em slot if
+ * the tracks are sorted. Otherwise, thread and track slot have the same
+ * numerical value.
  *
  * This is primarily used by \c ActionLauncher .
- *
- * TODO: maybe rename this \c ThreadExecutor (since it takes a thread?) and
- * call the embedded class a \c TrackExecutor (since it takes a CoreTrackView?)
  *
  * \code
 void foo_kernel(CoreParamsPtr const params,
@@ -46,6 +45,9 @@ void foo_kernel(CoreParamsPtr const params,
     }
 }
 \endcode
+ *
+ * \todo Rename to ThreadExecutor. The template parameter, which must operate
+ * on a core track view, is a track executor.
  */
 template<class T>
 class TrackExecutor
@@ -68,7 +70,7 @@ class TrackExecutor
     {
     }
 
-    //! Call the underlying function using the core track for this thread.
+    //! Call the underlying function, using indirection array if needed
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
