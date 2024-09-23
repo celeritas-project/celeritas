@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Set up and launch two-gamma positron annihiliation.
  */
-class EPlusGGModel final : public Model, public ConcreteAction
+class EPlusGGModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data

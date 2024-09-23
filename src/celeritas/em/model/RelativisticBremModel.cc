@@ -39,7 +39,8 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
                                              MaterialParams const& materials,
                                              SPConstImported data,
                                              bool enable_lpm)
-    : ConcreteAction(id, "brems-rel", "interact by relativistic bremsstrahlung")
+    : StaticConcreteAction(
+          id, "brems-rel", "interact by relativistic bremsstrahlung")
     , imported_(data,
                 particles,
                 ImportProcessClass::e_brems,
@@ -55,7 +56,7 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
     host_ref.ids.gamma = particles.find(pdg::gamma());
 
     CELER_VALIDATE(host_ref.ids,
-                   << "missing IDs (required for " << this->description()
+                   << "missing particles (required for " << this->description()
                    << ")");
 
     // Save particle properties

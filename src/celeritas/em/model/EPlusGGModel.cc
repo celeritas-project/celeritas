@@ -25,9 +25,10 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 EPlusGGModel::EPlusGGModel(ActionId id, ParticleParams const& particles)
-    : ConcreteAction(id,
-                     "annihil-2-gamma",
-                     "interact by positron annihilation yielding two gammas")
+    : StaticConcreteAction(
+          id,
+          "annihil-2-gamma",
+          R"(interact by positron annihilation yielding two gammas)")
 {
     CELER_EXPECT(id);
     data_.positron = particles.find(pdg::positron());

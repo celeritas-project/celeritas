@@ -18,7 +18,7 @@ class ParticleParams;
 /*!
  * Set up and launch the ICRU73QO ionization model interaction.
  */
-class ICRU73QOModel final : public Model, public ConcreteAction
+class ICRU73QOModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data

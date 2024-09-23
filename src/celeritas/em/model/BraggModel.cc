@@ -29,7 +29,8 @@ namespace celeritas
  * TODO: This model also applies to hadrons.
  */
 BraggModel::BraggModel(ActionId id, ParticleParams const& particles)
-    : ConcreteAction(id, "ioni-bragg", "interact by muon ionization (Bragg)")
+    : StaticConcreteAction(
+          id, "ioni-bragg", "interact by muon ionization (Bragg)")
 {
     CELER_EXPECT(id);
 

@@ -24,7 +24,7 @@ class IsotopeView;
 /*!
  * Set up and launch the Wentzel Coulomb scattering model interaction.
  */
-class CoulombScatteringModel final : public Model, public ConcreteAction
+class CoulombScatteringModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{

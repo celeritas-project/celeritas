@@ -56,7 +56,7 @@ enum class StepActionOrder
  * different reasons to pause the state or mark it for future modification
  * (range limitation, propagation loop limit).
  *
- * The \c ActionInterface provides a no-overhead virtual interface for
+ * The \c ActionInterface provides a clean virtual interface for
  * gathering metadata. The \c StepActionInterface provides additional
  * interfaces for launching kernels. The \c BeginRunActionInterface allows
  * actions to modify the state (or the class instance itself) at the beginning
@@ -64,7 +64,10 @@ enum class StepActionOrder
  * gather and merge multiple state information at the end.
  *
  * Using multiple inheritance, you can create an action that inherits from
- * multiple of these classes.
+ * multiple of these classes. Note also that the function signatures are
+ * similar to other high-level interfaces classes in Celeritas (e.g., \c
+ * AuxParamsInterface, \c OutputInterface), so one "label" can be used to
+ * satisfy multiple interfaces.
  *
  * The \c label should be a brief lowercase hyphen-separated string, usually a
  * noun, with perhaps some sort of category being the first token.
@@ -76,7 +79,7 @@ class ActionInterface
 {
   public:
     // Default virtual destructor allows deletion by pointer-to-interface
-    virtual ~ActionInterface();
+    virtual ~ActionInterface() noexcept = 0;
 
     //! ID of this action for verification and ordering
     virtual ActionId action_id() const = 0;
@@ -171,15 +174,13 @@ class BeginRunActionInterface : public ActionTypeTraits<P, S>,
  */
 template<class P, template<MemSpace M> class S>
 class StepActionInterface : public ActionTypeTraits<P, S>,
-                            public virtual ActionInterface
+                            virtual public ActionInterface
 {
   public:
     //! Dependency ordering of the action inside the step
     virtual StepActionOrder order() const = 0;
-
     //! Execute the action with host data
     virtual void step(P const&, S<MemSpace::host>&) const = 0;
-
     //! Execute the action with device data
     virtual void step(P const&, S<MemSpace::device>&) const = 0;
 };
@@ -210,15 +211,27 @@ class StepActionInterface : public ActionTypeTraits<P, S>,
       using ConcreteAction::ConcreteAction;
   };
  * \endcode
+ *
+ * The \c noexcept declarations improve code generation for the
+ * common use case of multiple inheritance.
+ *
+ * \note Use this class when multiple instances of the class may coexist in the
+ * same stepping loop.
  */
-class ConcreteAction : public virtual ActionInterface
+class ConcreteAction : virtual public ActionInterface
 {
   public:
     // Construct from ID, unique label
-    ConcreteAction(ActionId id, std::string label);
+    ConcreteAction(ActionId id, std::string label) noexcept(!CELERITAS_DEBUG);
 
     // Construct from ID, unique label, and description
-    ConcreteAction(ActionId id, std::string label, std::string description);
+    ConcreteAction(ActionId id,
+                   std::string label,
+                   std::string description) noexcept(!CELERITAS_DEBUG);
+
+    // Default destructor
+    ~ConcreteAction() noexcept;
+    CELER_DELETE_COPY_MOVE(ConcreteAction);
 
     //! ID of this action for verification
     ActionId action_id() const final { return id_; }
@@ -236,6 +249,49 @@ class ConcreteAction : public virtual ActionInterface
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Concrete mixin utility class for managing an action with static strings.
+ *
+ * This is a typical use case for "singleton" actions where a maximum of one
+ * can exist per stepping loop. The action ID still must be supplied at
+ * runtime.
+ *
+ * \note Use this class when the label and description are compile-time
+ * constants.
+ */
+class StaticConcreteAction : virtual public ActionInterface
+{
+  public:
+    // Construct from ID, unique label
+    StaticConcreteAction(ActionId id,
+                         std::string_view label) noexcept(!CELERITAS_DEBUG);
+
+    // Construct from ID, unique label, and description
+    StaticConcreteAction(ActionId id,
+                         std::string_view label,
+                         std::string_view description) noexcept(!CELERITAS_DEBUG);
+
+    // Default destructor
+    ~StaticConcreteAction() = default;
+    CELER_DELETE_COPY_MOVE(StaticConcreteAction);
+
+    //! ID of this action for verification
+    ActionId action_id() const final { return id_; }
+
+    //! Short label
+    std::string_view label() const final { return label_; }
+
+    //! Descriptive label
+    std::string_view description() const final { return description_; }
+
+  private:
+    ActionId id_;
+    std::string_view label_;
+    std::string_view description_;
+};
+
+//---------------------------------------------------------------------------//
+
 //! Action order/ID tuple for comparison in sorting
 struct OrderedAction
 {
