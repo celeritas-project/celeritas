@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/ApplierTraits.hh
+//! \file corecel/sys/detail/KernelTraitsImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -59,20 +59,6 @@ struct HasApplier<T, std::void_t<typename T::Applier>> : std::true_type
 
 template<typename T>
 inline constexpr bool has_applier_v = HasApplier<T>::value;
-
-//---------------------------------------------------------------------------//
-//! Predicates used for \c __launch_bounds__ arguments
-template<typename T>
-inline constexpr bool kernel_no_bound
-    = !has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;
-
-template<typename T>
-inline constexpr bool kernel_max_blocks
-    = has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;
-
-template<typename T>
-inline constexpr bool kernel_max_blocks_min_warps
-    = has_max_block_size_v<T> && has_min_warps_per_eu_v<T>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
