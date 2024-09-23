@@ -26,7 +26,7 @@ namespace detail
  * Construct with an action ID.
  */
 PreStepAction::PreStepAction(ActionId aid)
-    : ConcreteAction(aid, "pre-step", "update beginning-of-step state")
+    : StaticConcreteAction(aid, "pre-step", "update beginning-of-step state")
 {
 }
 

@@ -22,7 +22,7 @@ namespace detail
  * - Sample the mean free path and calculate the physics step limits.
  */
 class PreStepAction final : public CoreStepActionInterface,
-                            public ConcreteAction
+                            public StaticConcreteAction
 {
   public:
     // Construct with ID

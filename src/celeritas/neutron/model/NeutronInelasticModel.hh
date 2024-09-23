@@ -28,7 +28,7 @@ class ParticleParams;
 /*!
  * Set up and launch the neutron inelastic model interaction.
  */
-class NeutronInelasticModel final : public Model, public ConcreteAction
+class NeutronInelasticModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{

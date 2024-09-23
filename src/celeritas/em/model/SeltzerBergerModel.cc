@@ -44,7 +44,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                                        MaterialParams const& materials,
                                        SPConstImported data,
                                        ReadData load_sb_table)
-    : ConcreteAction(
+    : StaticConcreteAction(
           id, "brems-sb", "interact by Seltzer-Berger bremsstrahlung")
     , imported_(data,
                 particles,
@@ -64,9 +64,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     host_data.ids.positron = particles.find(pdg::positron());
     host_data.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
-                   << "missing electron, positron, and/or gamma particles "
-                      "(required for "
-                   << this->description() << ")");
+                   << "missing particles (required for " << this->description()
+                   << ")");
 
     // Save particle properties
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
