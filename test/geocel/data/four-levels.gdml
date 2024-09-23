@@ -175,7 +175,7 @@
   </materials>
 
   <solids>
-    <sphere lunit="mm" name="Shape2" rmax="50" deltaphi="360" deltatheta="180" aunit="deg" />
+    <orb lunit="mm" name="Shape2" r="50"/>
     <box lunit="mm" name="Shape1" x="120" y="120" z="120"/>
     <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Envelope" phi="0" theta="0" x1="140" x2="140" x3="140" x4="140" y1="160" y2="160" z="180"/>
     <box lunit="mm" name="World" x="480" y="480" z="480"/>

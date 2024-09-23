@@ -130,6 +130,17 @@ make_unplaced_boolean(VPlacedVolume const* left, VPlacedVolume const* right)
 }
 
 //---------------------------------------------------------------------------//
+VUnplacedVolume* make_sphere(double radius)
+{
+    CELER_EXPECT(radius > 0);
+#ifdef VECGEOM_USE_SURF
+    return GeoManager::MakeInstance<UnplacedSphere>(
+        0, radius, 0, vecgeom::kPi * 2, 0, vecgeom::kPi);
+#endif
+    return GeoManager::MakeInstance<UnplacedOrb>(radius);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -156,8 +167,7 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
     double vol = this->calc_capacity(solid_base);
-    double radius = std::cbrt(vol / (4.0 / 3.0 * constants::pi));
-    return GeoManager::MakeInstance<UnplacedOrb>(radius);
+    return make_sphere(std::cbrt(vol / (4.0 / 3.0 * constants::pi)));
 }
 
 //---------------------------------------------------------------------------//
@@ -177,17 +187,25 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         VGSC_TYPE_FUNC(Box              , box),
         VGSC_TYPE_FUNC(Cons             , cons),
         VGSC_TYPE_FUNC(CutTubs          , cuttubs),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(Ellipsoid        , ellipsoid),
         VGSC_TYPE_FUNC(EllipticalCone   , ellipticalcone),
         VGSC_TYPE_FUNC(EllipticalTube   , ellipticaltube),
+#endif
         VGSC_TYPE_FUNC(ExtrudedSolid    , extrudedsolid),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(GenericPolycone  , genericpolycone),
+#endif
         VGSC_TYPE_FUNC(GenericTrap      , generictrap),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(Hype             , hype),
+#endif
         VGSC_TYPE_FUNC(IntersectionSolid, intersectionsolid),
         VGSC_TYPE_FUNC(Orb              , orb),
         VGSC_TYPE_FUNC(Para             , para),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(Paraboloid       , paraboloid),
+#endif
         VGSC_TYPE_FUNC(Polycone         , polycone),
         VGSC_TYPE_FUNC(Polyhedra        , polyhedra),
         VGSC_TYPE_FUNC(ReflectedSolid   , reflectedsolid),
@@ -416,7 +434,12 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 auto SolidConverter::orb(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Orb const&>(solid_base);
-    return GeoManager::MakeInstance<UnplacedOrb>(scale_(solid.GetRadius()));
+    auto radius = scale_(solid.GetRadius());
+#ifdef VECGEOM_USE_SURF
+    CELER_LOG(info) << "Replacing orb with equivalent sphere for surface "
+                       "geometry";
+#endif
+    return make_sphere(radius);
 }
 
 //---------------------------------------------------------------------------//
