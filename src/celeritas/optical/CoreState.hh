@@ -12,6 +12,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 #include "TrackData.hh"
 #include "TrackInitializer.hh"
@@ -21,27 +22,6 @@ namespace celeritas
 namespace optical
 {
 class CoreParams;
-
-//---------------------------------------------------------------------------//
-/*!
- * Counters for track initialization and activity.
- *
- * These counters are updated *by value on the host at every step* so they
- * should not be stored in TrackInitStateData because then the device-memory
- * copy will not be synchronized.
- */
-struct CoreStateCounters
-{
-    // Initialization input
-    size_type num_vacancies{};  //!< Number of unused track slots
-    size_type num_generated{};  //!< Number of primary initializers generated
-    size_type num_initializers{};  //!< Number of track initializers
-
-    // Diagnostic output
-    size_type num_secondaries{};  //!< Number of secondaries produced in a step
-    size_type num_active{};  //!< Number of active tracks at start of a step
-    size_type num_alive{};  //!< Number of alive tracks at end of step
-};
 
 //---------------------------------------------------------------------------//
 /*!

@@ -59,7 +59,7 @@ inline void resize(PhysicsStateData<Ownership::value, M>*,
 struct CoreScalars
 {
     // TODO: maybe replace with a surface crossing manager to handle boundary
-    // conditions
+    // conditions (see CoreParams.cc)
     ActionId boundary_action;
 
     StreamId::size_type max_streams{0};

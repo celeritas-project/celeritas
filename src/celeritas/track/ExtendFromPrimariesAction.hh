@@ -25,6 +25,10 @@ class CoreStateInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers from queued host primary particles.
+ *
+ * \todo Change "generate" step order to be at the end of the loop
+ * alongside create secondaries, and execute the action immediately after
+ * adding primaries.
  */
 class ExtendFromPrimariesAction final : public AuxParamsInterface,
                                         public CoreStepActionInterface

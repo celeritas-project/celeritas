@@ -12,10 +12,12 @@
 #include <set>
 #include <vector>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/LogContextException.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
@@ -536,7 +538,23 @@ TEST_F(LArSphereOffloadTest, host_generate)
     auto_flush_ = 16384;
     this->build_optical_collector();
 
+    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::host>(4, 512, 16);
+
+    static char const* const expected_log_messages[] = {
+        "Celeritas optical state initialization complete",
+        "Celeritas core state initialization complete",
+        "Boundary action is not implemented",
+        "Boundary action is not implemented",
+        R"(Exceeded step count of 2: aborting optical transport loop with 0 tracks and 324193 queued)",
+    };
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
+    static char const* const expected_log_levels[]
+        = {"status", "status", "error", "error", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(2, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
@@ -550,7 +568,11 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     auto_flush_ = 262144;
     this->build_optical_collector();
 
+    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::device>(1, 1024, 16);
+    static char const* const expected_log_levels[]
+        = {"status", "status", "error", "error", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(7, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
