@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Set up and launch the Bethe-Heitler model interaction.
  */
-class BetheHeitlerModel final : public Model, public ConcreteAction
+class BetheHeitlerModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{

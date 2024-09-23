@@ -1,24 +1,24 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/detail/BoundaryAction.hh
+//! \file celeritas/optical/action/BoundaryAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/global/ActionInterface.hh"
+#include "ActionInterface.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
  * Move a track across a boundary.
  */
-class BoundaryAction final : public CoreStepActionInterface,
-                             public StaticConcreteAction
+class BoundaryAction final : public OpticalStepActionInterface,
+                             public ConcreteAction
 {
   public:
     // Construct with ID
@@ -35,5 +35,5 @@ class BoundaryAction final : public CoreStepActionInterface,
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -27,7 +27,7 @@ class ParticleParams;
  * Set up and launch the relativistic Bremsstrahlung model for high-energy
  * electrons and positrons with the Landau-Pomeranchuk-Migdal (LPM) effect
  */
-class RelativisticBremModel final : public Model, public ConcreteAction
+class RelativisticBremModel final : public Model, public StaticConcreteAction
 {
   public:
     //@{

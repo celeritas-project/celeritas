@@ -8,6 +8,7 @@
 #include "orange/orangeinp/CsgTreeUtils.hh"
 
 #include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/CsgTypes.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
 #include "orange/orangeinp/detail/PostfixLogicBuilder.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
@@ -703,6 +704,24 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     EXPECT_EQ(volumes[0], NodeId{20});
 }
 
+TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
+{
+    auto s0 = this->insert(Surface{S{0}});
+    auto s1 = this->insert(Surface{S{1}});
+    auto n0 = this->insert(Negated{s1});
+    auto j0 = this->insert(Joined{op_and, {s0, n0}});
+    auto a0 = this->insert(Aliased{j0});
+    this->insert(Negated{a0});
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "all{2,4}, 6: ->{5}, 7: not{5}, }",
+        to_string(tree_));
+    auto simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "not{4}, 6: any{3,4}, 7: all{2,5}, }",
+        to_string(simplified));
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp

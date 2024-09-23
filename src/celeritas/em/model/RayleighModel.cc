@@ -34,7 +34,8 @@ RayleighModel::RayleighModel(ActionId id,
                              ParticleParams const& particles,
                              MaterialParams const& materials,
                              SPConstImported data)
-    : ConcreteAction(id, "scat-rayleigh", "interact by Rayleigh scattering")
+    : StaticConcreteAction(
+          id, "scat-rayleigh", "interact by Rayleigh scattering")
     , imported_(data,
                 particles,
                 ImportProcessClass::rayleigh,

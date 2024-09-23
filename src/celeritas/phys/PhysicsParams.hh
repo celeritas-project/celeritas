@@ -194,7 +194,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    using SPAction = std::shared_ptr<ConcreteAction>;
+    using SPAction = std::shared_ptr<StaticConcreteAction>;
     using VecModel = std::vector<std::pair<SPConstModel, ProcessId>>;
     using HostValue = celeritas::HostVal<PhysicsParamsData>;
 

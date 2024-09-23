@@ -25,7 +25,7 @@ class ParticleParams;
 /*!
  * Set up and launch the Livermore photoelectric model interaction.
  */
-class LivermorePEModel final : public Model, public ConcreteAction
+class LivermorePEModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{
