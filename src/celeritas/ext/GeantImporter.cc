@@ -1058,6 +1058,8 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
 {
     CELER_EXPECT(pdg == pdg::mu_minus() || pdg == pdg::mu_plus());
 
+    using IU = ImportUnits;
+
     G4ParticleDefinition const* pdef
         = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
     CELER_ASSERT(pdef);
@@ -1074,18 +1076,35 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
     G4ElementData* el_data = model->GetElementData();
     CELER_ASSERT(el_data);
 
-    constexpr int z_max = 99;
     ImportMuPairProductionTable result;
-    for (int z = 1; z < z_max; ++z)
+    if (G4VERSION_NUMBER < 1120)
     {
-        if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
+        constexpr int element_data_size = 99;
+        for (int z = 1; z < element_data_size; ++z)
         {
-            using IU = ImportUnits;
-            result.atomic_number.push_back(z);
+            if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
+            {
+                result.atomic_number.push_back(z);
+                result.physics_vectors.push_back(
+                    detail::import_physics_2dvector(
+                        *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+            }
+        }
+    }
+    else
+    {
+        // The muon pair production model in newer Geant4 versions initializes
+        // and accesses the element data by Z index rather than Z number
+        result.atomic_number = {1, 4, 13, 29, 92};
+        for (int i : range(result.atomic_number.size()))
+        {
+            G4Physics2DVector const* pv = el_data->GetElement2DData(i);
+            CELER_ASSERT(pv);
             result.physics_vectors.push_back(detail::import_physics_2dvector(
                 *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
         }
     }
+
     CELER_ENSURE(result);
     return result;
 }
