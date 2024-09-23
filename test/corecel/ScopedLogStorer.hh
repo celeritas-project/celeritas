@@ -49,6 +49,9 @@ class ScopedLogStorer
     // Construct reference with default level
     explicit ScopedLogStorer(Logger* orig);
 
+    // Construct null storer for disassociating before destruction
+    ScopedLogStorer() = default;
+
     // Restore original logger on destruction
     ~ScopedLogStorer();
 
@@ -78,7 +81,7 @@ class ScopedLogStorer
     }
 
   private:
-    Logger* logger_;
+    Logger* logger_{nullptr};
     std::unique_ptr<Logger> saved_logger_;
     VecString messages_;
     VecString levels_;

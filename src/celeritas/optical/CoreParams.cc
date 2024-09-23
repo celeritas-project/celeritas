@@ -19,6 +19,7 @@
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "TrackInitParams.hh"
+#include "action/BoundaryAction.hh"
 
 namespace celeritas
 {
@@ -62,11 +63,7 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     //// START ACTIONS ////
 
-    CELER_DISCARD(reg);
 #if 0
-    // NOTE: due to ordering by {start, ID}, ExtendFromPrimariesAction *must*
-    // precede InitializeTracksAction
-    reg->insert(make_shared<ExtendFromPrimariesAction>(reg->next_id()));
     reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
 #endif
 
@@ -75,11 +72,11 @@ CoreScalars build_actions(ActionRegistry* reg)
     //// POST-STEP ACTIONS ////
 
     // Construct geometry boundary action
+    // TODO: it might make more sense to build these actions right before
+    // making the action group: re-examine once we add a surface physics
+    // manager
     scalars.boundary_action = reg->next_id();
-#if 0
-    reg->insert(make_shared<detail::BoundaryAction>(
-        scalars.boundary_action));
-#endif
+    reg->insert(make_shared<BoundaryAction>(scalars.boundary_action));
 
     //// END ACTIONS ////
 
