@@ -79,10 +79,9 @@ TEST(ReprTest, container)
     std::string const strings[] = {"a", "", "special\nchars\t"};
     EXPECT_EQ("{\"a\", \"\", \"special\\nchars\\t\"}", repr_to_string(strings));
 
-    auto long_vec_str
-        = repr_to_string(std::vector<std::string>(10, std::string(75, 'x')));
-    cout << long_vec_str;
-    EXPECT_TRUE(ends_with(long_vec_str, ")\",}")) << long_vec_str;
+    std::vector<std::string> long_vec(20, std::string(10, 'x'));
+    auto long_vec_str = repr_to_string(long_vec);
+    EXPECT_TRUE(ends_with(long_vec_str, "\",}")) << long_vec_str;
 }
 
 //---------------------------------------------------------------------------//

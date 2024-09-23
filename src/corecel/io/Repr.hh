@@ -252,6 +252,8 @@ struct ReprTraits<std::string_view>
 template<>
 struct ReprTraits<std::string>
 {
+    using value_type = std::string::value_type;
+
     static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "std::string", name);
@@ -267,6 +269,8 @@ struct ReprTraits<std::string>
 template<>
 struct ReprTraits<char*>
 {
+    using value_type = char;
+
     static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "char const*", name);
@@ -416,12 +420,10 @@ struct ContainerReprTraits
 
     static void print_value(std::ostream& os, Container const& data)
     {
-        auto orig_pos = os.tellp();
         os << '{'
            << join_stream(
                   std::begin(data), std::end(data), ", ", RT::print_value);
-        auto new_pos = os.tellp();
-        if (orig_pos >= 0 && new_pos >= 0 && new_pos - orig_pos > 160)
+        if (std::size(data) > 8)
         {
             // Add a trailing ',' to long outputs to help clang-format
             os << ',';
