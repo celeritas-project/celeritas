@@ -9,6 +9,7 @@ Download publications from the Zotero database.
 import json
 import os
 import sys
+from urllib.parse import urlparse
 
 from itertools import chain
 from pathlib import Path
@@ -82,43 +83,64 @@ def append_names(bits, creators, /, **kwargs):
 def format_presentation(e):
     bits = []
     append_names(bits, e['creators'], limit=3)
+
     bits.append("\"{title}\".".format(**e))
+
     if (meeting := e.get('meetingName')):
         bits.append(f"*{meeting}*,")
+
     date = parse_date(e['date'])
     bits.append(date.strftime("%d %b %Y."))
+
     if (url := e.get('url')):
         pt = e.get('presentationType', "").lower() or "presentation"
         bits.append(f"[{pt}]({url})")
+
     return " ".join(bits)
 
 
 def format_paper(e):
     bits = []
     append_names(bits, e['creators'], limit=5)
+
     bits.append("\"{title}\".".format(**e))
+
     if (pub := e.get('publicationTitle')):
         bits.append(f"*{pub}*,")
     elif (proc := e.get('proceedingsTitle')):
         bits.append(f"in *{proc}*,")
+    elif (pub := e.get('publisher')):
+        bits.append(f"{pub},")
+
+    if (place := e.get('place')):
+        bits.append(f"{place},")
+
     date = parse_date(e['date'])
     bits.append(date.strftime("%b %Y.").lstrip())
+
     if (doi := e.get('DOI')):
         bits.append(f"[{doi}](https://doi.org/{doi})")
+    elif (url := e.get('url')):
+        hostname = urlparse(url).hostname
+        bits.append(f"[{hostname}]({url})")
+
     return " ".join(bits)
 
 
 def format_software(e):
     bits = []
     append_names(bits, e['creators'], limit=100)
+
     title = e['title']
     if (version := e.get('version')):
         title = f"{title} *v{version}*"
     if (url := e.get('url')):
         title = f"[{title}]({url})"
     bits.append(f"\"{title}\".")
+
     date = parse_date(e['date'])
     bits.append(date.strftime("%b %Y.").lstrip())
+
     return " ".join(bits)
 
 
