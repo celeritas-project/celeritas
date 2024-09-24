@@ -7,43 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "SimpleCaloImpl.hh"
 
-#include "corecel/DeviceRuntimeApi.hh"
-
 #include "corecel/Types.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/sys/Stream.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 
-#include "SimpleCaloExecutor.hh"  // IWYU pragma: associated
+#include "SimpleCaloExecutor.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-/*!
- * Accumulate energy deposition on device.
- */
-__global__ void simple_calo_accum_kernel(DeviceRef<StepStateData> const step,
-                                         DeviceRef<SimpleCaloStateData> calo)
-{
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < step.size()))
-        return;
-
-    SimpleCaloExecutor execute{step, calo};
-    execute(tid);
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-// KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 /*!
  * Accumulate energy deposition on device.
@@ -52,11 +24,11 @@ void simple_calo_accum(DeviceRef<StepStateData> const& step,
                        DeviceRef<SimpleCaloStateData>& calo)
 {
     CELER_EXPECT(step && calo);
-    CELER_LAUNCH_KERNEL(simple_calo_accum,
-                        step.size(),
-                        celeritas::device().stream(step.stream_id).get(),
-                        step,
-                        calo);
+
+    SimpleCaloExecutor execute_thread{step, calo};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "simple-calo-accum");
+    launch_kernel(step.size(), step.stream_id, execute_thread);
 }
 
 //---------------------------------------------------------------------------//

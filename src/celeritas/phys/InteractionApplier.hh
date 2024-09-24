@@ -9,11 +9,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/KernelTraits.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/global/detail/ApplierTraits.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "CutoffView.hh"
@@ -62,8 +62,7 @@ struct InteractionApplier : public InteractionApplierBaseImpl<F>
 };
 
 template<class F>
-struct InteractionApplier<F,
-                          std::enable_if_t<detail::kernel_max_blocks_min_warps<F>>>
+struct InteractionApplier<F, std::enable_if_t<kernel_max_blocks_min_warps<F>>>
     : public InteractionApplierBaseImpl<F>
 {
     static constexpr int max_block_size = F::max_block_size;
@@ -76,7 +75,7 @@ struct InteractionApplier<F,
 };
 
 template<class F>
-struct InteractionApplier<F, std::enable_if_t<detail::kernel_max_blocks<F>>>
+struct InteractionApplier<F, std::enable_if_t<kernel_max_blocks<F>>>
     : public InteractionApplierBaseImpl<F>
 {
     static constexpr int max_block_size = F::max_block_size;
