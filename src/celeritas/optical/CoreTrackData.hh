@@ -136,8 +136,7 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && physics && rng && sim && init
-               && stream_id;
+        return geometry && physics && rng && sim && init && stream_id;
     }
 
     //! Assign from another set of data
