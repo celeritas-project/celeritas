@@ -466,6 +466,13 @@ void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
  * | Multiple scattering          | G4WentzelVIModel             |
  *
  * \note Currently all muon processes are disabled by default
+ *
+ * \todo Prior to version 11.1.0, Geant4 used the \c G4BetheBlochModel for muon
+ * ionization between 200 keV and 1 GeV and the \c G4MuBetheBlochModel above 1
+ * GeV. Since version 11.1.0, the \c G4MuBetheBlochModel is used for all
+ * energies above 200 keV.
+ *
+ * \todo Implement energy loss fluctuation models for muon ionization.
  */
 void CelerEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {

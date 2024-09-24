@@ -7,20 +7,19 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
+#include "ImportPhysicsVector.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Seltzer Berger differential cross sections for a single element.
+ *
+ * This 2-dimensional table stores the scaled bremsstrahlung differential cross
+ * section [mb]. The x grid is the log energy of the incident particle [MeV],
+ * and the y grid is the ratio of the gamma energy to the incident energy.
  */
-struct ImportSBTable
-{
-    std::vector<double> x;  //!< Log energy of incident particle / MeV
-    std::vector<double> y;  //!< Ratio of gamma energy to incident energy
-    std::vector<double> value;  //!< Scaled DCS [mb] [ny * x + y]
-};
+using ImportSBTable = ImportPhysics2DVector;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

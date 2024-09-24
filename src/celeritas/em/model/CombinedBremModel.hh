@@ -22,7 +22,6 @@
 
 namespace celeritas
 {
-struct ImportSBTable;
 class MaterialParams;
 class ParticleParams;
 

@@ -26,6 +26,7 @@ class G4VMultipleScattering;
 class G4ParticleDefinition;
 class G4PhysicsTable;
 class G4PhysicsVector;
+class G4Physics2DVector;
 
 namespace celeritas
 {
@@ -117,6 +118,10 @@ class GeantProcessImporter
 // Import a physics vector with the given x, y units
 ImportPhysicsVector
 import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units);
+
+// Import a 2D physics vector
+ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
+                                              Array<ImportUnits, 3> units);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
