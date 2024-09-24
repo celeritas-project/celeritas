@@ -415,6 +415,11 @@ TEST_F(RootJsonDumperTest, all)
 "livermore_pe_data" : [],
 "neutron_elastic_data" : [],
 "atomic_relaxation_data" : [],
+"mu_pair_production_data" : {
+  "_typename" : "celeritas::ImportMuPairProductionTable",
+  "atomic_number" : [],
+  "physics_vectors" : []
+},
 "em_params" : {
   "_typename" : "celeritas::ImportEmParameters",
   "energy_loss_fluct" : true,
