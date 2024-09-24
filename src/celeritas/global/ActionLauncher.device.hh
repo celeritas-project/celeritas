@@ -121,16 +121,18 @@ void ActionLauncher<F>::operator()(CoreParams const& params,
                                    F const& call_thread) const
 {
     CELER_EXPECT(state.stream_id());
-    if (is_action_sorted(action.order(), params.init()->track_order()))
+    if (state.has_action_range()
+        && is_action_sorted(action.order(), params.init()->track_order()))
     {
+        // Launch on a subset of threads
         return (*this)(state.get_action_range(action.action_id()),
                        state.stream_id(),
                        call_thread);
     }
     else
     {
-        return (*this)(
-            range(ThreadId{state.size()}), state.stream_id(), call_thread);
+        // Not partitioned by action: launch on all threads
+        return (*this)(state, call_thread);
     }
 }
 

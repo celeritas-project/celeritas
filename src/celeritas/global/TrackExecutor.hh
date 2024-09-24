@@ -88,8 +88,8 @@ class TrackExecutor
 /*!
  * Launch the track only when a certain condition applies to the sim state.
  *
- * The condition C must have the signature \code
- * <bool(SimTrackView const&)>
+ * The condition \c C must have the signature \code
+ * (SimTrackView const&) -> bool
   \endcode
  *
  * see \c make_active_track_executor for an example where this is used to apply

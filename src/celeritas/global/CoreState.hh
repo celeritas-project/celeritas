@@ -143,6 +143,9 @@ class CoreState final : public CoreStateInterface
 
     //// TRACK SORTING ////
 
+    //! Return whether tracks can be sorted by action
+    bool has_action_range() const { return !offsets_.empty(); }
+
     // Get a range of sorted track slots about to undergo a given action
     Range<ThreadId> get_action_range(ActionId action_id) const;
 
