@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/em/data/BetheBlochData.hh"
+#include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -24,8 +24,8 @@ class BetheBlochModel final : public Model, public StaticConcreteAction
   public:
     //@{
     //! Type aliases
-    using HostRef = HostCRef<BetheBlochData>;
-    using DeviceRef = DeviceCRef<BetheBlochData>;
+    using HostRef = HostCRef<MuHadIonizationData>;
+    using DeviceRef = DeviceCRef<MuHadIonizationData>;
     //@}
 
   public:
@@ -52,7 +52,7 @@ class BetheBlochModel final : public Model, public StaticConcreteAction
 
   private:
     // Host/device storage and reference
-    CollectionMirror<BetheBlochData> data_;
+    CollectionMirror<MuHadIonizationData> data_;
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability_;
 };

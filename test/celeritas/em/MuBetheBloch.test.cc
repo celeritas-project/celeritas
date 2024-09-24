@@ -8,7 +8,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/interactor/MuBetheBlochInteractor.hh"
+#include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
+#include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
+#include "celeritas/em/model/MuBetheBlochModel.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
@@ -53,10 +55,14 @@ class MuBetheBlochTest : public InteractorHostTestBase
 
         // Set model data
         auto const& particles = *this->particle_params();
-        data_.electron = particles.find(pdg::electron());
-        data_.mu_minus = particles.find(pdg::mu_minus());
-        data_.mu_plus = particles.find(pdg::mu_plus());
-        data_.electron_mass = particles.get(data_.electron).mass();
+        Applicability mu_minus;
+        mu_minus.particle = particles.find(pdg::mu_minus());
+        mu_minus.lower = detail::bragg_icru73qo_upper_limit();
+        mu_minus.upper = detail::high_energy_limit();
+        Applicability mu_plus = mu_minus;
+        mu_plus.particle = particles.find(pdg::mu_plus());
+        model_ = std::make_shared<MuBetheBlochModel>(
+            ActionId{0}, particles, Model::SetApplicability{mu_minus, mu_plus});
 
         // Set default particle to muon with energy of 1 GeV
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{1e3});
@@ -78,7 +84,7 @@ class MuBetheBlochTest : public InteractorHostTestBase
 
         auto const& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(data_.electron, electron.particle_id);
+        EXPECT_EQ(model_->host_ref().electron, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
@@ -90,7 +96,7 @@ class MuBetheBlochTest : public InteractorHostTestBase
     }
 
   protected:
-    MuBetheBlochData data_;
+    std::shared_ptr<MuBetheBlochModel> model_;
 };
 
 //---------------------------------------------------------------------------//
@@ -104,11 +110,12 @@ TEST_F(MuBetheBlochTest, basic)
     this->resize_secondaries(num_samples);
 
     // Create the interactor
-    MuBetheBlochInteractor interact(data_,
-                                    this->particle_track(),
-                                    this->cutoff_params()->get(MaterialId{0}),
-                                    this->direction(),
-                                    this->secondary_allocator());
+    MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
+        model_->host_ref(),
+        this->particle_track(),
+        this->cutoff_params()->get(MaterialId{0}),
+        this->direction(),
+        this->secondary_allocator());
     RandomEngine& rng = this->rng();
 
     std::vector<real_type> energy;
@@ -160,8 +167,8 @@ TEST_F(MuBetheBlochTest, basic)
         this->set_cutoff_params(cut_inp);
 
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.2});
-        MuBetheBlochInteractor interact(
-            data_,
+        MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
+            model_->host_ref(),
             this->particle_track(),
             this->cutoff_params()->get(MaterialId{0}),
             this->direction(),
@@ -199,8 +206,8 @@ TEST_F(MuBetheBlochTest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            MuBetheBlochInteractor interact(
-                data_,
+            MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
+                model_->host_ref(),
                 this->particle_track(),
                 this->cutoff_params()->get(MaterialId{0}),
                 this->direction(),

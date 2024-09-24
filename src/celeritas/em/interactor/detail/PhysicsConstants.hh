@@ -64,8 +64,8 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_upper_limit()
     return units::MevEnergy{1e3};  //! 1 GeV
 }
 
-//! Maximum energy for the Bragg model
-CELER_CONSTEXPR_FUNCTION units::MevEnergy bragg_upper_limit()
+//! Maximum energy for the Bragg and ICRU73QO models
+CELER_CONSTEXPR_FUNCTION units::MevEnergy bragg_icru73qo_upper_limit()
 {
     return units::MevEnergy{0.2};  //! 200 keV
 }
@@ -80,18 +80,6 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy bethe_bloch_upper_limit()
 CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
 {
     return units::MevEnergy{1e8};  //! 100 TeV
-}
-
-//! Used in Bragg model to calculate minimum energy transfer to delta ray
-CELER_CONSTEXPR_FUNCTION units::MevEnergy bragg_lowest_kin_energy()
-{
-    return units::MevEnergy{2.5e-4};  //! 0.25 keV
-}
-
-//! Used in ICRU73QO model to calculate minimum energy transfer to delta ray
-CELER_CONSTEXPR_FUNCTION units::MevEnergy icru73qo_lowest_kin_energy()
-{
-    return units::MevEnergy{5e-3};  //! 5 keV
 }
 
 //---------------------------------------------------------------------------//

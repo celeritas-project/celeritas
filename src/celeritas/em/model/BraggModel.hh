@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/em/data/BraggICRU73QOData.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -21,8 +22,15 @@ class ParticleParams;
 class BraggModel final : public Model, public StaticConcreteAction
 {
   public:
+    //@{
+    //! Type aliases
+    using HostRef = HostCRef<MuHadIonizationData>;
+    using DeviceRef = DeviceCRef<MuHadIonizationData>;
+    //@}
+
+  public:
     // Construct from model ID and other necessary data
-    BraggModel(ActionId id, ParticleParams const& particles);
+    BraggModel(ActionId, ParticleParams const&, SetApplicability);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -38,12 +46,16 @@ class BraggModel final : public Model, public StaticConcreteAction
 
     //!@{
     //! Access model data
-    BraggICRU73QOData const& host_ref() const { return data_; }
-    BraggICRU73QOData const& device_ref() const { return data_; }
+    HostRef const& host_ref() const { return data_.host_ref(); }
+    DeviceRef const& device_ref() const { return data_.device_ref(); }
     //!@}
 
   private:
-    BraggICRU73QOData data_;
+    // Host/device storage and reference
+    CollectionMirror<MuHadIonizationData> data_;
+    // Particle types and energy ranges that this model applies to
+    SetApplicability applicability_;
+    //!@{
 };
 
 //---------------------------------------------------------------------------//

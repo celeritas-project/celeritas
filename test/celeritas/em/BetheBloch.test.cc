@@ -8,7 +8,8 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/interactor/BetheBlochInteractor.hh"
+#include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
+#include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
 #include "celeritas/em/model/BetheBlochModel.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
@@ -56,10 +57,10 @@ class BetheBlochTest : public InteractorHostTestBase
         auto const& particles = *this->particle_params();
         Applicability mu_minus;
         mu_minus.particle = particles.find(pdg::mu_minus());
-        mu_minus.lower = detail::bragg_upper_limit();
+        mu_minus.lower = detail::bragg_icru73qo_upper_limit();
         mu_minus.upper = detail::bethe_bloch_upper_limit();
         Applicability mu_plus = mu_minus;
-        mu_minus.particle = particles.find(pdg::mu_plus());
+        mu_plus.particle = particles.find(pdg::mu_plus());
         model_ = std::make_shared<BetheBlochModel>(
             ActionId{0}, particles, Model::SetApplicability{mu_minus, mu_plus});
 
@@ -109,11 +110,12 @@ TEST_F(BetheBlochTest, basic)
     this->resize_secondaries(num_samples);
 
     // Create the interactor
-    BetheBlochInteractor interact(model_->host_ref(),
-                                  this->particle_track(),
-                                  this->cutoff_params()->get(MaterialId{0}),
-                                  this->direction(),
-                                  this->secondary_allocator());
+    MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
+        model_->host_ref(),
+        this->particle_track(),
+        this->cutoff_params()->get(MaterialId{0}),
+        this->direction(),
+        this->secondary_allocator());
     RandomEngine& rng = this->rng();
 
     std::vector<real_type> energy;
@@ -169,11 +171,12 @@ TEST_F(BetheBlochTest, basic)
         this->set_cutoff_params(cut_inp);
 
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.2});
-        BetheBlochInteractor interact(model_->host_ref(),
-                                      this->particle_track(),
-                                      this->cutoff_params()->get(MaterialId{0}),
-                                      this->direction(),
-                                      this->secondary_allocator());
+        MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
+            model_->host_ref(),
+            this->particle_track(),
+            this->cutoff_params()->get(MaterialId{0}),
+            this->direction(),
+            this->secondary_allocator());
 
         Interaction result = interact(rng);
         EXPECT_EQ(0, result.secondaries.size());
@@ -207,7 +210,7 @@ TEST_F(BetheBlochTest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            BetheBlochInteractor interact(
+            MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
                 model_->host_ref(),
                 this->particle_track(),
                 this->cutoff_params()->get(MaterialId{0}),

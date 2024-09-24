@@ -9,8 +9,9 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/data/BetheBlochData.hh"
-#include "celeritas/em/executor/BetheBlochExecutor.hh"
+#include "celeritas/em/data/MuHadIonizationData.hh"
+#include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
+#include "celeritas/em/executor/MuHadIonizationExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -20,6 +21,8 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+
+#include "detail/MuHadIonizationBuilder.hh"
 
 namespace celeritas
 {
@@ -35,33 +38,9 @@ BetheBlochModel::BetheBlochModel(ActionId id,
     , applicability_(applicability)
 {
     CELER_EXPECT(id);
-    CELER_EXPECT(!applicability_.empty());
 
-    HostVal<BetheBlochData> host_data;
-
-    auto particle_ids = make_builder(&host_data.particles);
-    particle_ids.reserve(applicability_.size());
-    for (auto const& applic : applicability_)
-    {
-        CELER_VALIDATE(applic,
-                       << "invalid applicability with particle ID "
-                       << applic.particle.unchecked_get()
-                       << " and energy limits ("
-                       << value_as<units::MevEnergy>(applic.lower) << ", "
-                       << value_as<units::MevEnergy>(applic.upper)
-                       << ") [MeV] for Bethe-Bloch model");
-        particle_ids.push_back(applic.particle);
-    }
-
-    host_data.electron = particles.find(pdg::electron());
-    CELER_VALIDATE(host_data.electron,
-                   << "missing electron (required for " << this->description()
-                   << ")");
-
-    host_data.electron_mass = particles.get(host_data.electron).mass();
-
-    // Move to mirrored data, copying to device
-    data_ = CollectionMirror<BetheBlochData>{std::move(host_data)};
+    detail::MuHadIonizationBuilder build_data(particles, this->description());
+    data_ = CollectionMirror<MuHadIonizationData>{build_data(applicability_)};
 
     CELER_ENSURE(data_);
 }
@@ -96,7 +75,8 @@ void BetheBlochModel::step(CoreParams const& params, CoreStateHost& state) const
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{BetheBlochExecutor{this->host_ref()}});
+        InteractionApplier{MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
+            this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 

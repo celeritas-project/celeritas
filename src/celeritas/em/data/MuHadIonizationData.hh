@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/data/BetheBlochData.hh
+//! \file celeritas/em/data/MuHadIonizationData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,10 +18,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Data for the Bethe-Bloch ionization model.
+ * Data for muon and hadron ionization.
+ *
+ * This data is used for the Bragg, ICRU73QO, Bethe-Bloch, and muon Bethe-Bloch
+ * models and can be reused for different incident particle types. The
+ * particles are set using the model applicability.
  */
 template<Ownership W, MemSpace M>
-struct BetheBlochData
+struct MuHadIonizationData
 {
     //// TYPES ////
 
@@ -48,7 +52,7 @@ struct BetheBlochData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    BetheBlochData& operator=(BetheBlochData<W2, M2> const& other)
+    MuHadIonizationData& operator=(MuHadIonizationData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         particles = other.particles;

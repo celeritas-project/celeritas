@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "BetheBlochModel.hh"
 
-#include "celeritas/em/executor/BetheBlochExecutor.hh"
+#include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
+#include "celeritas/em/executor/MuHadIonizationExecutor.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -27,7 +28,8 @@ void BetheBlochModel::step(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{BetheBlochExecutor{this->device_ref()}});
+        InteractionApplier{MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
+            this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(params, state, *this, execute);
 }
