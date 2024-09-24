@@ -88,7 +88,6 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_CLANG_TIDY": {"type": "PATH", "value": "$env{CLANG_TIDY}"}
-
       }
     },
     {
@@ -104,6 +103,14 @@
       "description": "Build with release, assertions, VecGeom",
       "inherits": [".vecgeom", "spack"],
       "cacheVariables": {
+      }
+    },
+    {
+      "name": "reldeb-vecgeom-vgsurf",
+      "description": "Build with release, assertions, VecGeom",
+      "inherits": ["reldeb-vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
