@@ -22,6 +22,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  metadata:
+    name: "Save job metadata"
+    runs-on: ubuntu-latest
+    steps:
+    # Event file is needed for EnricoMi/publish-unit-test-result-action
+    - name: Upload event file
+      uses: actions/upload-artifact@v4
+      with:
+        name: event-file
+        path: ${{github.event_path}}
   build-fast:
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
@@ -35,6 +45,8 @@ jobs:
     - name: Success
       run: "true"
   build-docker:
+    # Since docker builds aren't cached and are large, don't run on draft
+    if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-docker.yml
   build-spack:

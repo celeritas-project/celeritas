@@ -15,6 +15,7 @@
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/io/ImportSBTable.hh"
 
 #include "AtomicNumber.hh"
 #include "Process.hh"
@@ -27,7 +28,6 @@ class MaterialParams;
 class ParticleParams;
 struct ImportData;
 struct ImportLivermorePE;
-struct ImportSBTable;
 
 //---------------------------------------------------------------------------//
 //! Options used for constructing built-in Celeritas processes

@@ -14,6 +14,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Equality operator, mainly for debugging.
+ */
+bool operator==(ImportPhysics2DVector const& a, ImportPhysics2DVector const& b)
+{
+    return a.x == b.x && a.y == b.y && a.value == b.value;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the string value for a vector type.
  */
 char const* to_cstring(ImportPhysicsVectorType value)

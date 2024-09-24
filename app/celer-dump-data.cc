@@ -706,6 +706,44 @@ void print_livermore_pe_data(ImportData::ImportLivermorePEMap const& lpe_map)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Print muon pair production sampling table.
+ */
+void print_mupp_data(ImportMuPairProductionTable const& mupp_data)
+{
+    if (!mupp_data)
+    {
+        CELER_LOG(info) << "Muon pair production sampling table not available";
+        return;
+    }
+
+    CELER_LOG(info) << "Loaded muon pair production sampling table with size "
+                    << mupp_data.physics_vectors.size();
+
+    cout << R"gfm(
+# Muon pair production sampling table
+
+| Atomic number | Endpoints (x, y, value)                                     |
+| ------------- | ----------------------------------------------------------- |
+)gfm";
+
+    for (auto i : range(mupp_data.atomic_number.size()))
+    {
+        auto z = mupp_data.atomic_number[i];
+        auto const& pv = mupp_data.physics_vectors[i];
+
+        cout << "| " << setw(13) << z << " | (" << setprecision(3) << setw(7)
+             << pv.x.front() << ", " << setprecision(3) << setw(7)
+             << pv.y.front() << ", " << setprecision(3) << setw(7)
+             << pv.value.front() << ") -> (" << setprecision(3) << setw(7)
+             << pv.x.back() << ", " << setprecision(3) << setw(7)
+             << pv.y.back() << ", " << setprecision(3) << setw(8)
+             << pv.value.back() << ") |\n";
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Print atomic relaxation map.
  */
 void print_atomic_relaxation_data(
@@ -921,6 +959,7 @@ int main(int argc, char* argv[])
 
     print_sb_data(data.sb_data);
     print_livermore_pe_data(data.livermore_pe_data);
+    print_mupp_data(data.mu_pair_production_data);
     print_atomic_relaxation_data(data.atomic_relaxation_data);
 
     print_em_params(data.em_params);

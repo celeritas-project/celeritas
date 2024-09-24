@@ -76,14 +76,24 @@ jobs:
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
-      - name: Build all
+      - name: Build
+        id: build
         working-directory: build
         run: |
           ninja
-      - name: Run tests
-        working-directory: build
+      - name: Run unit tests
+        id: unittest
+        env:
+          GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
         run: |
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure
+          ctest -LE app --preset=${CMAKE_PRESET}-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        env:
+          CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
+        run: |
+          ctest -L app --preset=${CMAKE_PRESET}-app
       - name: Install
         working-directory: build
         run: |
@@ -96,6 +106,19 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
+        with:
+          name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
   windows:
     defaults:
       run:
@@ -130,13 +153,24 @@ jobs:
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
-      - name: Build all
+      - name: Build
+        id: build
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
-      - name: Test all
+      - name: Run unit tests
+        id: unittest
         continue-on-error: true
+        env:
+          GTEST_OUTPUT: "xml:${{github.workspace}}\\test-output\\google\\"
         run: |
-          ctest --preset=$Env:CMAKE_PRESET 
+          ctest --preset=$Env:CMAKE_PRESET-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        env:
+          CTEST_OUTPUT: "${{github.workspace}}\\test-output\\ctest\\all.xml"
+        run: |
+          ctest --preset=$Env:CMAKE_PRESET-app
       - name: Install
         working-directory: build
         run: |
@@ -149,5 +183,18 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
+        with:
+          name: test-results-fast-windows
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
 
 # vim: set nowrap tw=100:
