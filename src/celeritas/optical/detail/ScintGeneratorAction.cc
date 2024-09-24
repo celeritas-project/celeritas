@@ -17,8 +17,8 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/ScintillationParams.hh"
-#include "celeritas/optical/TrackData.hh"
 
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"

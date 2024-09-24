@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/TrackData.hh
+//! \file celeritas/optical/CoreTrackData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,6 +14,7 @@
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 
+#include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"

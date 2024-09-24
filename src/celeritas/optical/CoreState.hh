@@ -14,7 +14,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
-#include "TrackData.hh"
+#include "CoreTrackData.hh"
 #include "TrackInitializer.hh"
 
 namespace celeritas
