@@ -38,7 +38,7 @@ void RaytraceImager<G>::launch_raytrace_kernel(
     detail::RaytraceExecutor<GeoTrackView, CalcId> execute_thread{
         geo_params, geo_states, img_params, img_states, CalcId{}};
 
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel{
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel{
         std::string{"raytrace-"} + GeoTraits<G>::name};
     launch_kernel(geo_states.size(), StreamId{0}, execute_thread);
 }

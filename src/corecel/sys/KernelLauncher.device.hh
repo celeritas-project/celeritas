@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
 #include <type_traits>
 
 #include "corecel/DeviceRuntimeApi.hh"
@@ -18,7 +19,6 @@
 
 #include "Device.hh"
 #include "KernelParamCalculator.device.hh"
-#include "KernelTraits.hh"
 #include "Stream.hh"
 #include "ThreadId.hh"
 

@@ -65,23 +65,23 @@ class ActionLauncher : public KernelLauncher<F>
     using ActionInterfaceT = CoreStepActionInterface;
 
   public:
-    // Create a launcher from a label, string, etc.
-    using KernelLauncher::KernelLauncher;
+    // Create a launcher from a string
+    using KernelLauncher<F>::KernelLauncher;
 
     //! Create a launcher from an action
     explicit ActionLauncher(ActionInterfaceT const& action)
-        : KernelLauncher{action.label()}
+        : ActionLauncher{action.label()}
     {
     }
 
     //! Create a launcher with a string extension
     ActionLauncher(ActionInterfaceT const& action, std::string_view ext)
-        : KernelLauncher{std::string(action.label()) + "-" + std::string(ext)}
+        : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
     {
     }
 
     // Launch a kernel for a thread range, custom number of threads
-    using KernelLauncher::operator();
+    using KernelLauncher<F>::operator();
 
     //! Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,

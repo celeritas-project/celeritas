@@ -8,13 +8,13 @@
 #pragma once
 
 #include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/KernelTraits.hh"
 #include "corecel/sys/ThreadId.hh"
-
-#include "ApplierTraits.hh"
 
 namespace celeritas
 {
