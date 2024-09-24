@@ -11,13 +11,11 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/track/SimTrackView.hh"
+#include "celeritas/track/SimFunctors.hh"
 
 #include "CoreTrackData.hh"
 #include "CoreTrackDataFwd.hh"
 #include "CoreTrackView.hh"
-
-#include "detail/TrackExecutorImpl.hh"
 
 namespace celeritas
 {
@@ -166,10 +164,8 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
                            CoreStatePtr<MemSpace::native> const& state,
                            T&& apply_track)
 {
-    return ConditionalTrackExecutor{params,
-                                    state,
-                                    detail::AppliesValid{},
-                                    celeritas::forward<T>(apply_track)};
+    return ConditionalTrackExecutor{
+        params, state, AppliesValid{}, celeritas::forward<T>(apply_track)};
 }
 
 //---------------------------------------------------------------------------//
@@ -190,7 +186,7 @@ make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
                                     state,
-                                    detail::IsStepActionEqual{action},
+                                    IsStepActionEqual{action},
                                     celeritas::forward<T>(apply_track)};
 }
 
@@ -208,7 +204,7 @@ make_along_step_track_executor(CoreParamsPtr<MemSpace::native> params,
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
                                     state,
-                                    detail::IsAlongStepActionEqual{action},
+                                    IsAlongStepActionEqual{action},
                                     celeritas::forward<T>(apply_track)};
 }
 

@@ -51,17 +51,17 @@ class ActionLauncher : public KernelLauncher<F>
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
-    using ActionInterfaceT = CoreStepActionInterface;
+    using StepActionT = CoreStepActionInterface;
 
   public:
     // Create a launcher from a string
     using KernelLauncher<F>::KernelLauncher;
 
     // Create a launcher from an action
-    explicit ActionLauncher(ActionInterfaceT const& action);
+    explicit ActionLauncher(StepActionT const& action);
 
     // Create a launcher with a string extension
-    ActionLauncher(ActionInterfaceT const& action, std::string_view ext);
+    ActionLauncher(StepActionT const& action, std::string_view ext);
 
     // Launch a kernel for a thread range or number of threads
     using KernelLauncher<F>::operator();
@@ -73,7 +73,7 @@ class ActionLauncher : public KernelLauncher<F>
     // Launch with reduced grid size for when tracks are sorted
     void operator()(CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
-                    ActionInterfaceT const& action,
+                    StepActionT const& action,
                     F const& call_thread) const;
 };
 
@@ -82,7 +82,7 @@ class ActionLauncher : public KernelLauncher<F>
  * Create a launcher from an action.
  */
 template<class F>
-ActionLauncher<F>::ActionLauncher(ActionInterfaceT const& action)
+ActionLauncher<F>::ActionLauncher(StepActionT const& action)
     : ActionLauncher{action.label()}
 {
 }
@@ -92,7 +92,7 @@ ActionLauncher<F>::ActionLauncher(ActionInterfaceT const& action)
  * Create a launcher with a string extension.
  */
 template<class F>
-ActionLauncher<F>::ActionLauncher(ActionInterfaceT const& action,
+ActionLauncher<F>::ActionLauncher(StepActionT const& action,
                                   std::string_view ext)
     : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
 {
@@ -113,14 +113,15 @@ void ActionLauncher<F>::operator()(CoreState<MemSpace::device> const& state,
 //---------------------------------------------------------------------------//
 /*!
  * Launch with reduced grid size for when tracks are sorted.
+ *
+ * \todo Reorder arguments for consistency with ActionLauncher.hh
  */
 template<class F>
 void ActionLauncher<F>::operator()(CoreParams const& params,
                                    CoreState<MemSpace::device> const& state,
-                                   ActionInterfaceT const& action,
+                                   StepActionT const& action,
                                    F const& call_thread) const
 {
-    CELER_EXPECT(state.stream_id());
     if (state.has_action_range()
         && is_action_sorted(action.order(), params.init()->track_order()))
     {
