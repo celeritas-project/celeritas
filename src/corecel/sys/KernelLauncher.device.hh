@@ -117,6 +117,13 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
 //---------------------------------------------------------------------------//
 /*!
  * Launch a kernel with a custom number of threads.
+ *
+ * The launch arguments have the same ordering as CUDA/HIP kernel launch
+ * arguments.
+ *
+ * \param num_threads Total number of active consecutive threads
+ * \param stream_id Execute the kernel on this device stream
+ * \param call_thread Call the given functor with the thread ID
  */
 template<class F>
 void KernelLauncher<F>::operator()(size_type num_threads,

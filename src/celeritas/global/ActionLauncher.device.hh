@@ -71,9 +71,9 @@ class ActionLauncher : public KernelLauncher<F>
                     F const& call_thread) const;
 
     // Launch with reduced grid size for when tracks are sorted
-    void operator()(CoreParams const& params,
+    void operator()(StepActionT const& action,
+                    CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
-                    StepActionT const& action,
                     F const& call_thread) const;
 };
 
@@ -114,12 +114,12 @@ void ActionLauncher<F>::operator()(CoreState<MemSpace::device> const& state,
 /*!
  * Launch with reduced grid size for when tracks are sorted.
  *
- * \todo Reorder arguments for consistency with ActionLauncher.hh
+ * These argument should be consistent with those in \c ActionLauncher.hh .
  */
 template<class F>
-void ActionLauncher<F>::operator()(CoreParams const& params,
+void ActionLauncher<F>::operator()(StepActionT const& action,
+                                   CoreParams const& params,
                                    CoreState<MemSpace::device> const& state,
-                                   StepActionT const& action,
                                    F const& call_thread) const
 {
     if (state.has_action_range()
