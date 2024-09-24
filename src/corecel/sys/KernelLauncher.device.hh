@@ -49,19 +49,19 @@ namespace celeritas
  void FooAction::launch_kernel(size_type count) const
  {
     auto execute_thread = make_blah_executor(blah);
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(*this);
-    launch_kernel(state, execute_thread);
+    static KernelLauncher<decltype(execute_thread)> const
+ launch_kernel("blah"); launch_kernel(state, execute_thread);
  }
  * \endcode
  */
 template<class F>
 class KernelLauncher
 {
-    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
-                   || CELER_COMPILER == CELER_COMPILER_CLANG)
-                      && !std::is_pointer_v<F> && !std::is_reference_v<F>,
-                  "Launched action must be a trivially copyable function "
-                  "object");
+    static_assert(
+        (std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
+         || CELER_COMPILER == CELER_COMPILER_CLANG)
+            && !std::is_pointer_v<F> && !std::is_reference_v<F>,
+        R"(Launched action must be a trivially copyable function object)");
 
   public:
     // Create a launcher from a label
@@ -88,7 +88,7 @@ class KernelLauncher
  * Create a launcher from a label.
  */
 template<class F>
-explicit KernelLauncher<F>::KernelLauncher(std::string_view name)
+KernelLauncher<F>::KernelLauncher(std::string_view name)
     : calc_launch_params_{name, &detail::launch_action_impl<F>}
 {
 }
