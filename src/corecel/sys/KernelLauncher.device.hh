@@ -50,7 +50,8 @@ namespace celeritas
  {
     auto execute_thread = make_blah_executor(blah);
     static KernelLauncher<decltype(execute_thread)> const
- launch_kernel("blah"); launch_kernel(state, execute_thread);
+ launch_kernel("blah");
+    launch_kernel(state, execute_thread);
  }
  * \endcode
  */

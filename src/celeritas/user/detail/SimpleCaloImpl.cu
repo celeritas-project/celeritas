@@ -10,14 +10,12 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
 
-#include "SimpleCaloExecutor.hh"  // IWYU pragma: associated
+#include "SimpleCaloExecutor.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-// KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 /*!
  * Accumulate energy deposition on device.

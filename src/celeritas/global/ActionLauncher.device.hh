@@ -27,30 +27,19 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Profile and launch Celeritas kernels.
+ * Profile and launch core stepping loop kernels.
  *
- * The template argument \c F may define a member type named \c Applier.
- * \c F::Applier should have up to two static constexpr int variables named
- * \c max_block_size and/or \c min_warps_per_eu.
- * If present, the kernel will use appropriate \c __launch_bounds__.
- * If \c F::Applier::min_warps_per_eu exists then \c F::Applier::max_block_size
- * must also be present or we get a compile error.
- *
- * The semantics of the second \c __launch_bounds__ argument differs between
- * CUDA and HIP.  \c ActionLauncher expects HIP semantics. If Celeritas is
- * built targeting CUDA, it will automatically convert that argument to match
- * CUDA semantics.
- *
- * The CUDA-specific 3rd argument \c maxBlocksPerCluster is not supported.
+ * This is an extension to \c KernelLauncher which uses an action's label and
+ * takes core params/state to determine the launch size and/or action range.
  *
  * Example:
  * \code
  void FooAction::step(CoreParams const& params,
                       CoreStateDevice& state) const
  {
-    auto execute_thread = make_blah_executor(blah);
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
-    launch_kernel(state, execute_thread);
+   auto execute_thread = make_blah_executor(blah);
+   static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
+   launch_kernel(state, execute_thread);
  }
  * \endcode
  */
