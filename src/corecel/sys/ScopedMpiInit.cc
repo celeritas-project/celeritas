@@ -55,8 +55,8 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
             break;
         }
         case Status::initialized: {
-            CELER_LOG(warning) << "MPI was initialized before calling "
-                                  "ScopedMpiInit";
+            CELER_LOG(warning)
+                << R"(MPI was initialized before calling ScopedMpiInit)";
             break;
         }
     }

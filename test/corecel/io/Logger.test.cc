@@ -33,8 +33,8 @@ class LoggerTest : public Test
     {
         if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
         {
-            comm_self = MpiCommunicator::comm_self();
-            comm_world = MpiCommunicator::comm_world();
+            comm_self = MpiCommunicator::self();
+            comm_world = MpiCommunicator::world();
         }
     }
 

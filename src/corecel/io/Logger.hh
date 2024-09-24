@@ -69,7 +69,7 @@ class MpiCommunicator;
  *
  * This object \em is assignable, so to replace the default log handler with a
  * different one, you can call \code
-   world_logger = Logger(MpiCommunicator::comm_world(), my_handler);
+   world_logger = Logger(celeritas::comm_world(), my_handler);
  * \endcode
  */
 class Logger
@@ -84,10 +84,11 @@ class Logger
     //! Get the default log level
     static constexpr LogLevel default_level() { return LogLevel::status; }
 
-    // Construct with default communicator
+    // Construct with default celeritas communicator
     explicit Logger(LogHandler handle);
 
-    // Construct with communicator (only rank zero is active) and handler
+    // Construct with custom communicator (only rank zero is active) and
+    // handler
     Logger(MpiCommunicator const& comm, LogHandler handle);
 
     // Create a logger that flushes its contents when it destructs
