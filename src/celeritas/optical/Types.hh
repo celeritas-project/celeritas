@@ -30,6 +30,8 @@ using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord>;
  */
 namespace optical
 {
+
+using ModelId = OpaqueId<class Model>;
 }
 
 //---------------------------------------------------------------------------//

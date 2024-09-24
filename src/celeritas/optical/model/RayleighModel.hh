@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/AbsorptionModel.hh
+//! \file celeritas/optical/model/RayleighModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,13 +16,13 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch the optical absorption model interaction.
+ * Set up and launch the optical Rayleigh model interaction.
  */
-class AbsorptionModel : public Model
+class RayleighModel : public Model
 {
   public:
     // Construct with imported data
-    AbsorptionModel(ActionId id, ImportedModelAdapter imported);
+    RayleighModel(ActionId id, ImportedModelAdapter imported);
 
     // Build the mean free paths for this model
     void build_mfps(detail::MfpBuilder) const override final;

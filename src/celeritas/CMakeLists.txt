@@ -56,6 +56,7 @@ list(APPEND SOURCES
   io/ImportData.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
+  io/ImportOpticalModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -71,12 +72,16 @@ list(APPEND SOURCES
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
-  optical/CerenkovParams.cc
+  optical/ImportedModelAdapter.cc
+  optical/ModelImporter.cc
+  optical/PhysicsParams.cc
+  optical/CoreData.cc
   optical/CoreParams.cc
   optical/CoreState.cc
-  optical/OpticalCollector.cc
+  optical/CerenkovParams.cc
   optical/MaterialParams.cc
-  optical/TrackData.cc
+  optical/OpticalCollector.cc
+  optical/Types.cc
   optical/ScintillationParams.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
@@ -268,10 +273,13 @@ celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/model/AbsorptionModel)
+celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
 celeritas_polysource(optical/detail/OffloadGatherAction)
 celeritas_polysource(optical/detail/ScintOffloadAction)
+celeritas_polysource(optical/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

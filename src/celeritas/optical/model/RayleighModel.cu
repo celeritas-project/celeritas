@@ -3,17 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/AbsorptionModel.cu
+//! \file celeritas/optical/model/RayleighModel.cu
 //---------------------------------------------------------------------------//
-#include "AbsorptionModel.hh"
+#include "RayleighModel.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 //---------------------------------------------------------------------------//
-void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const {}
-
+void RayleighModel::step(CoreParams const&, CoreStateDevice&) const {}
 //---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

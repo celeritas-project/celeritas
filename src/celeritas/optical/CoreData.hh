@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/TrackData.hh
+//! \file celeritas/optical/CoreData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,42 +16,13 @@
 #include "celeritas/track/TrackInitData.hh"
 
 #include "MaterialData.hh"
+#include "PhysicsData.hh"
 #include "Types.hh"
 
 namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-// XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
-// IMPLEMENT ME!
-
-template<Ownership W, MemSpace M>
-struct PhysicsParamsData
-{
-    explicit CELER_FUNCTION operator bool() const { return true; }
-};
-template<Ownership W, MemSpace M>
-struct PhysicsStateData
-{
-    explicit CELER_FUNCTION operator bool() const { return true; }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    PhysicsStateData& operator=(PhysicsStateData<W2, M2>&)
-    {
-        return *this;
-    }
-};
-
-template<MemSpace M>
-inline void resize(PhysicsStateData<Ownership::value, M>*,
-                   HostCRef<PhysicsParamsData> const&,
-                   size_type)
-{
-}
-
-// XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
 //---------------------------------------------------------------------------//
 /*!
  * Memspace-independent core variables.

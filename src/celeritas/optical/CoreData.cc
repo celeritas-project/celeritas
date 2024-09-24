@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/TrackData.cc
+//! \file celeritas/optical/CoreData.cc
 //---------------------------------------------------------------------------//
-#include "TrackData.hh"
+#include "CoreData.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
 

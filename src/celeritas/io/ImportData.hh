@@ -15,6 +15,7 @@
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
 #include "ImportOpticalMaterial.hh"
+#include "ImportOpticalModel.hh"
 #include "ImportParameters.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
@@ -82,6 +83,7 @@ struct ImportData
     std::vector<ImportParticle> particles;
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
+    std::vector<ImportOpticalModel> optical_models;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportNeutronElasticMap neutron_elastic_data;
