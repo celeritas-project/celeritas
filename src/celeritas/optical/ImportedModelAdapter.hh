@@ -12,7 +12,7 @@
 
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/io/ImportOpticalModel.hh"
 
 #include "Types.hh"
 
@@ -20,15 +20,6 @@ namespace celeritas
 {
 namespace optical
 {
-/*!
- * Raw impoted optical model data.
- */
-struct ImportOpticalModel
-{
-    ImportModelClass model_class;
-    std::vector<ImportPhysicsVector> mfps;  //!< per optical material MFPs
-};
-
 /*!
  * Collection of all imported data needed to build optical models.
  */

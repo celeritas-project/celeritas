@@ -56,6 +56,7 @@ list(APPEND SOURCES
   io/ImportData.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
+  io/ImportOpticalModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -71,7 +72,6 @@ list(APPEND SOURCES
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
-  optical/dummy.cc
   optical/ImportedModelAdapter.cc
   optical/ModelImporter.cc
   optical/PhysicsParams.cc

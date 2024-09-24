@@ -67,6 +67,8 @@ class ModelImporter
     //!@}
 
   public:
+    static std::set<IMC> get_available_model_classes(SPConstImported models);
+
     //! Construct from imported and shared data
     ModelImporter(SPConstImported models,
                   UserBuildMap user_build,

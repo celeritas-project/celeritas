@@ -20,6 +20,19 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+auto ModelImporter::get_available_model_classes(SPConstImported models)
+    -> std::set<IMC>
+{
+    std::set<IMC> model_classes;
+
+    for (auto mid : range(ModelId{models->num_models()}))
+    {
+        model_classes.insert(models->model(mid).model_class);
+    }
+
+    return model_classes;
+}
+
 ModelImporter::ModelImporter(SPConstImported data,
                              UserBuildMap user_build,
                              Options /* options */)

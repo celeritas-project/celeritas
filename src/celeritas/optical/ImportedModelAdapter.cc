@@ -23,13 +23,11 @@ ImportedModels::from_import(ImportData const& data)
     std::vector<ImportOpticalModel> models;
 
     // Copy imported models from data
-    /*
     for (auto const& model : data.optical_models)
     {
         models.push_back(model);
         imported_classes.insert(model.model_class);
     }
-    */
 
     // Create built-in imported models if not present
     for (auto imc : std::vector<IMC>{IMC::absorption, IMC::rayleigh})
