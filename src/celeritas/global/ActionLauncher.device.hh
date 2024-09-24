@@ -46,7 +46,7 @@ namespace celeritas
  * Example:
  * \code
  void FooAction::step(CoreParams const& params,
-                         CoreStateDevice& state) const
+                      CoreStateDevice& state) const
  {
     auto execute_thread = make_blah_executor(blah);
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
@@ -68,49 +68,82 @@ class ActionLauncher : public KernelLauncher<F>
     // Create a launcher from a string
     using KernelLauncher<F>::KernelLauncher;
 
-    //! Create a launcher from an action
-    explicit ActionLauncher(ActionInterfaceT const& action)
-        : ActionLauncher{action.label()}
-    {
-    }
+    // Create a launcher from an action
+    explicit ActionLauncher(ActionInterfaceT const& action);
 
-    //! Create a launcher with a string extension
-    ActionLauncher(ActionInterfaceT const& action, std::string_view ext)
-        : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
-    {
-    }
+    // Create a launcher with a string extension
+    ActionLauncher(ActionInterfaceT const& action, std::string_view ext);
 
-    // Launch a kernel for a thread range, custom number of threads
+    // Launch a kernel for a thread range or number of threads
     using KernelLauncher<F>::operator();
 
-    //! Launch a kernel for the wrapped executor
+    // Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
-                    F const& call_thread) const
+                    F const& call_thread) const;
+
+    // Launch with reduced grid size for when tracks are sorted
+    void operator()(CoreParams const& params,
+                    CoreState<MemSpace::device> const& state,
+                    ActionInterfaceT const& action,
+                    F const& call_thread) const;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a launcher from an action.
+ */
+template<class F>
+ActionLauncher<F>::ActionLauncher(ActionInterfaceT const& action)
+    : ActionLauncher{action.label()}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a launcher with a string extension.
+ */
+template<class F>
+ActionLauncher<F>::ActionLauncher(ActionInterfaceT const& action,
+                                  std::string_view ext)
+    : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a kernel for the wrapped executor.
+ */
+template<class F>
+void ActionLauncher<F>::operator()(CoreState<MemSpace::device> const& state,
+                                   F const& call_thread) const
+{
+    return (*this)(
+        range(ThreadId{state.size()}), state.stream_id(), call_thread);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch with reduced grid size for when tracks are sorted.
+ */
+template<class F>
+void ActionLauncher<F>::operator()(CoreParams const& params,
+                                   CoreState<MemSpace::device> const& state,
+                                   ActionInterfaceT const& action,
+                                   F const& call_thread) const
+{
+    CELER_EXPECT(state.stream_id());
+    if (is_action_sorted(action.order(), params.init()->track_order()))
+    {
+        return (*this)(state.get_action_range(action.action_id()),
+                       state.stream_id(),
+                       call_thread);
+    }
+    else
     {
         return (*this)(
             range(ThreadId{state.size()}), state.stream_id(), call_thread);
     }
-
-    //! Launch with reduced grid size for when tracks are sorted
-    void operator()(CoreParams const& params,
-                    CoreState<MemSpace::device> const& state,
-                    ActionInterfaceT const& action,
-                    F const& call_thread) const
-    {
-        CELER_EXPECT(state.stream_id());
-        if (is_action_sorted(action.order(), params.init()->track_order()))
-        {
-            return (*this)(state.get_action_range(action.action_id()),
-                           state.stream_id(),
-                           call_thread);
-        }
-        else
-        {
-            return (*this)(
-                range(ThreadId{state.size()}), state.stream_id(), call_thread);
-        }
-    }
-};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

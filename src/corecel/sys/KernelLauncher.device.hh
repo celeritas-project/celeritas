@@ -64,41 +64,68 @@ class KernelLauncher
                   "object");
 
   public:
-    //! Create a launcher from a label
-    explicit KernelLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F>}
-    {
-    }
+    // Create a launcher from a label
+    explicit inline KernelLauncher(std::string_view name);
 
-    //! Launch a kernel for a thread range
-    void operator()(Range<ThreadId> threads,
-                    StreamId stream_id,
-                    F const& call_thread) const
-    {
-        if (!threads.empty())
-        {
-            using StreamT = CELER_DEVICE_PREFIX(Stream_t);
-            StreamT stream = celeritas::device().stream(stream_id).get();
-            auto config = calc_launch_params_(threads.size());
-            detail::launch_action_impl<F>
-                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                    threads, call_thread);
-        }
-    }
+    // Launch a kernel for a thread range
+    inline void operator()(Range<ThreadId> threads,
+                           StreamId stream_id,
+                           F const& call_thread) const;
 
-    //! Launch a kernel with a custom number of threads
-    void operator()(size_type num_threads,
-                    StreamId stream_id,
-                    F const& call_thread) const
-    {
-        CELER_EXPECT(num_threads > 0);
-        CELER_EXPECT(stream_id);
-        (*this)(range(ThreadId{num_threads}), stream_id, call_thread);
-    }
+    // Launch a kernel with a custom number of threads
+    inline void operator()(size_type num_threads,
+                           StreamId stream_id,
+                           F const& call_thread) const;
 
   private:
     KernelParamCalculator calc_launch_params_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Create a launcher from a label.
+ */
+template<class F>
+explicit KernelLauncher<F>::KernelLauncher(std::string_view name)
+    : calc_launch_params_{name, &detail::launch_action_impl<F>}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a kernel for a thread range.
+ */
+template<class F>
+void KernelLauncher<F>::operator()(Range<ThreadId> threads,
+                                   StreamId stream_id,
+                                   F const& call_thread) const
+{
+    if (!threads.empty())
+    {
+        using StreamT = CELER_DEVICE_PREFIX(Stream_t);
+        StreamT stream = celeritas::device().stream(stream_id).get();
+        auto config = calc_launch_params_(threads.size());
+        detail::launch_action_impl<F>
+            <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                threads, call_thread);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a kernel with a custom number of threads.
+ */
+template<class F>
+void KernelLauncher<F>::operator()(size_type num_threads,
+                                   StreamId stream_id,
+                                   F const& call_thread) const
+{
+    CELER_EXPECT(num_threads > 0);
+    CELER_EXPECT(stream_id);
+    (*this)(range(ThreadId{num_threads}), stream_id, call_thread);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
