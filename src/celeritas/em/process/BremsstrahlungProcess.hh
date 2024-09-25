@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/io/ImportSBTable.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -20,8 +21,6 @@
 
 namespace celeritas
 {
-struct ImportSBTable;
-
 //---------------------------------------------------------------------------//
 /*!
  * Bremsstrahlung process for electrons and positrons.

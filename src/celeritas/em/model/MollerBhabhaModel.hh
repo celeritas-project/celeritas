@@ -18,7 +18,7 @@ class ParticleParams;
 /*!
  * Set up and launch the Moller-Bhabha model interaction.
  */
-class MollerBhabhaModel final : public Model, public ConcreteAction
+class MollerBhabhaModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data

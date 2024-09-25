@@ -22,7 +22,6 @@
 
 namespace celeritas
 {
-struct ImportSBTable;
 class MaterialParams;
 class ParticleParams;
 
@@ -31,7 +30,7 @@ class ParticleParams;
  * Set up and launch a combined model of SeltzerBergerModel at the low energy
  * and RelativisticBremModel at the high energy for e+/e- Bremsstrahlung.
  */
-class CombinedBremModel final : public Model, public ConcreteAction
+class CombinedBremModel final : public Model, public StaticConcreteAction
 {
   public:
     //@{

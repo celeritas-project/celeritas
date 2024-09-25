@@ -524,6 +524,28 @@ CELER_CONSTEXPR_FUNCTION T ceil_div(T top, T bottom)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate local work for a given worker ID.
+ *
+ * This calculates the amount of local work for the given worker ID when
+ * dividing \c total_work tasks over \c num_workers workers.
+ */
+template<class T>
+struct LocalWorkCalculator
+{
+    static_assert(std::is_unsigned<T>::value, "Value is not an unsigned int");
+
+    T total_work;
+    T num_workers;
+
+    CELER_CONSTEXPR_FUNCTION T operator()(T local_id)
+    {
+        CELER_EXPECT(local_id < num_workers);
+        return total_work / num_workers + (local_id < total_work % num_workers);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Negation that won't return signed zeros.
  */
 template<class T>

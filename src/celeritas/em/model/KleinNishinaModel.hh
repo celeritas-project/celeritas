@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Set up and launch the Klein-Nishina model interaction.
  */
-class KleinNishinaModel final : public Model, public ConcreteAction
+class KleinNishinaModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data

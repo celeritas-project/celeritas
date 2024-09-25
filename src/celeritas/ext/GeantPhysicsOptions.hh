@@ -49,6 +49,44 @@ enum class RelaxationSelection
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construction options for Geant muon EM physics.
+ */
+struct GeantMuonPhysicsOptions
+{
+    //! Enable muon pair production
+    bool pair_production{false};
+    //! Enable muon ionization
+    bool ionization{false};
+    //! Enable muon bremsstrahlung
+    bool bremsstrahlung{false};
+    //! Enable muon single Coulomb scattering
+    bool coulomb{false};
+    //! Enable muon multiple Coulomb scattering
+    bool msc{false};
+
+    //! True if any process is activated
+    explicit operator bool() const
+    {
+        return pair_production || ionization || bremsstrahlung || coulomb
+               || msc;
+    }
+};
+
+//! Equality operator
+constexpr bool
+operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
+{
+    // clang-format off
+    return a.pair_production == b.pair_production
+           && a.ionization == b.ionization
+           && a.bremsstrahlung == b.bremsstrahlung
+           && a.coulomb == b.coulomb
+           && a.msc == b.msc;
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construction options for Geant physics.
  *
  * These options attempt to default to our closest match to \c
@@ -62,8 +100,6 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Gamma physics
-    //! Enable discrete Coulomb
-    bool coulomb_scattering{false};
     //! Enable Compton scattering
     bool compton_scattering{true};
     //! Enable the photoelectric effect
@@ -78,6 +114,8 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Electron and positron physics
+    //! Enable discrete Coulomb
+    bool coulomb_scattering{false};
     //! Enable e- and e+ ionization
     bool ionization{true};
     //! Enable positron annihilation
@@ -89,6 +127,9 @@ struct GeantPhysicsOptions
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
     //!@}
+
+    //! Muon EM physics
+    GeantMuonPhysicsOptions muon;
 
     //!@{
     //! \name Physics options
@@ -151,11 +192,11 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
 {
     // clang-format off
     return a.coulomb_scattering == b.coulomb_scattering
-           && a.compton_scattering == b.compton_scattering
            && a.photoelectric == b.photoelectric
            && a.rayleigh_scattering == b.rayleigh_scattering
            && a.gamma_conversion == b.gamma_conversion
            && a.gamma_general == b.gamma_general
+           && a.compton_scattering == b.compton_scattering
            && a.ionization == b.ionization
            && a.annihilation == b.annihilation
            && a.brems == b.brems

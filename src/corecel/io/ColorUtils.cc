@@ -36,12 +36,12 @@ bool use_color()
                 color_str = std::string(color_cstr);
             }
         }
-        if (color_str == "0")
+        if (color_str == "0" || color_str == "no")
         {
             // Color is explicitly disabled
             return false;
         }
-        if (!color_str.empty())
+        if (color_str == "1" || color_str == "yes")
         {
             // Color is explicitly enabled
             return true;

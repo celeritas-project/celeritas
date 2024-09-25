@@ -63,12 +63,29 @@ CoreState<M>::CoreState(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the state is being transported with no active particles.
+ *
+ * The warmup stage is useful for profiling and debugging since the first
+ * step iteration can do the following:
+ * - Initialize asynchronous memory pools
+ * - Interrogate kernel functions for properties to be output later
+ * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
+ */
+template<MemSpace M>
+bool CoreState<M>::warming_up() const
+{
+    CELER_NOT_IMPLEMENTED("warming up");
+    return counters_.num_active == 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Inject primaries to be turned into TrackInitializers.
  *
  * These will be converted by the ProcessPrimaries action.
  */
 template<MemSpace M>
-void CoreState<M>::insert_primaries(Span<Primary const>)
+void CoreState<M>::insert_primaries(Span<TrackInitializer const>)
 {
     CELER_NOT_IMPLEMENTED("primary insertion");
 }

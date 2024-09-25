@@ -11,7 +11,11 @@
 #include <type_traits>
 #include <vector>
 
+#include "corecel/Config.hh"
+
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/sys/TypeDemangler.hh"
 
 #include "AuxInterface.hh"
 
@@ -74,6 +78,14 @@ S& get(AuxStateVec& vec, AuxId auxid)
     static_assert(std::is_base_of_v<AuxStateInterface, S>);
     CELER_EXPECT(auxid < vec.size());
     auto* ptr = &vec.at(auxid);
+    if constexpr (CELERITAS_DEBUG)
+    {
+        CELER_VALIDATE(
+            dynamic_cast<S*>(ptr),
+            << "Aux state id " << auxid.get() << " should have type "
+            << TypeDemangler<AuxStateInterface>{}(*ptr)
+            << " but was accessed with type " << TypeDemangler<S>{}());
+    }
     CELER_ENSURE(dynamic_cast<S*>(ptr));
     return *static_cast<S*>(ptr);
 }
@@ -88,6 +100,14 @@ S const& get(AuxStateVec const& vec, AuxId auxid)
     static_assert(std::is_base_of_v<AuxStateInterface, S>);
     CELER_EXPECT(auxid < vec.size());
     auto* ptr = &vec.at(auxid);
+    if constexpr (CELERITAS_DEBUG)
+    {
+        CELER_VALIDATE(
+            dynamic_cast<S const*>(ptr),
+            << "Aux state id " << auxid.get() << " should have type "
+            << TypeDemangler<AuxStateInterface>{}(*ptr)
+            << " but was accessed with type " << TypeDemangler<S>{}());
+    }
     CELER_ENSURE(dynamic_cast<S const*>(ptr));
     return *static_cast<S const*>(ptr);
 }

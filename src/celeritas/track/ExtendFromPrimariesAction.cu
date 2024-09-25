@@ -22,8 +22,9 @@ namespace celeritas
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const&,
     CoreStateDevice& state,
-    Span<Primary const> primaries) const
+    PrimaryStateData<MemSpace::device> const& pstate) const
 {
+    auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute_thread{
         state.ptr(), primaries, state.counters()};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);

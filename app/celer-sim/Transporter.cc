@@ -23,9 +23,9 @@
 #include "corecel/sys/Counter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "StepTimer.hh"
@@ -73,8 +73,7 @@ void Transporter<M>::operator()()
 {
     CELER_LOG(status) << "Warming up";
     ScopedTimeLog scoped_time;
-    StepperResult step_counts = (*stepper_)();
-    CELER_ENSURE(step_counts.alive == 0);
+    stepper_->warm_up();
 }
 
 //---------------------------------------------------------------------------//
@@ -89,6 +88,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     auto append_track_counts = [&](StepperResult const& track_counts) {
         if (store_track_counts_)
         {
+            result.generated.push_back(track_counts.generated);
             result.initializers.push_back(track_counts.queued);
             result.active.push_back(track_counts.active);
             result.alive.push_back(track_counts.alive);
@@ -112,6 +112,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     };
 
     constexpr size_type min_alloc{65536};
+    result.generated.reserve(std::min(min_alloc, max_steps_));
     result.initializers.reserve(std::min(min_alloc, max_steps_));
     result.active.reserve(std::min(min_alloc, max_steps_));
     result.alive.reserve(std::min(min_alloc, max_steps_));
@@ -179,7 +180,9 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport the input primaries and all secondaries produced.
+ * Merge times across all threads.
+ *
+ * \todo Action times are to be refactored as aux data.
  */
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
@@ -190,7 +193,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
     auto const& action_seq = step.actions();
     if (action_seq.action_times())
     {
-        auto const& action_ptrs = action_seq.actions();
+        auto const& action_ptrs = action_seq.actions().step();
         auto const& times = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == times.size());

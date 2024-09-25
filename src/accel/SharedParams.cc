@@ -35,6 +35,7 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
@@ -195,17 +196,17 @@ bool SharedParams::KillOffloadTracks()
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up Celeritas using Geant4 data and existing output registery.
+ * Set up Celeritas using Geant4 data.
  *
- * A design oversight in the \c GeantSimpleCalo means that the action registry
- * *must* be created before \c SharedParams is initialized, and in the case
- * where Celeritas is not disabled, initialization clears the existing
- * registry. This prevents the calorimeter from writing output.
+ * This is a separate step from construction because it has to happen at the
+ * beginning of the run, not when user classes are created. It should be called
+ * from the "master" thread (for MT mode) or from the main thread (for Serial),
+ * and it must complete before any worker thread tries to access the shared
+ * data.
  */
-SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
+SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
-    output_reg_ = std::move(oreg);
 
     CELER_VALIDATE(!CeleritasDisabled(),
                    << "Celeritas shared params cannot be initialized when "
@@ -237,6 +238,7 @@ SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
 
     // Construct core data
     this->initialize_core(options);
+    CELER_ASSERT(output_reg_);
 
     if (output_filename_ != "-")
     {
@@ -274,42 +276,21 @@ SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize shared data with existing output registry.
+ * Set up Celeritas components for a Geant4-only run.
  *
- * TODO: this is a hack to be deleted in v0.5.
+ * This is for doing standalone Geant4 calculations without offloading from
+ * Celeritas, but still using components such as the simple calorimeter.
  */
-void SharedParams::Initialize(SetupOptions const& options, SPOutputRegistry reg)
+SharedParams::SharedParams(std::string output_filename)
+    : output_filename_{std::move(output_filename)}
 {
-    CELER_EXPECT(reg);
-    *this = SharedParams(options, std::move(reg));
-}
+    CELER_EXPECT(!output_filename_.empty());
 
-//---------------------------------------------------------------------------//
-/*!
- * Save a diagnostic output filename from a Geant4 app when Celeritas is off.
- *
- * This will be overwritten when calling Initialized with setup options.
- *
- * TODO: this hack should be deleted in v0.5.
- */
-void SharedParams::set_output_filename(std::string const& filename)
-{
-    output_filename_ = filename;
-}
+    CELER_LOG_LOCAL(debug) << "Constructing output registry for no-offload "
+                              "run";
+    output_reg_ = std::make_shared<OutputRegistry>();
 
-//---------------------------------------------------------------------------//
-/*!
- * Set up Celeritas using Geant4 data.
- *
- * This is a separate step from construction because it has to happen at the
- * beginning of the run, not when user classes are created. It should be called
- * from the "master" thread (for MT mode) or from the main thread (for Serial),
- * and it must complete before any worker thread tries to access the shared
- * data.
- */
-SharedParams::SharedParams(SetupOptions const& options)
-    : SharedParams(options, nullptr)
-{
+    CELER_ENSURE(output_reg_);
 }
 
 //---------------------------------------------------------------------------//
@@ -382,51 +363,35 @@ auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 
 //---------------------------------------------------------------------------//
 /*!
- * Lazily obtained number of streams.
+ * Let LocalTransporter register the thread's state.
  */
-int SharedParams::num_streams() const
+void SharedParams::set_state(unsigned int stream_id, SPState&& state)
 {
-    if (CELER_UNLIKELY(!num_streams_))
-    {
-        // Initial lock-free check failed; now lock and create if needed
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (!num_streams_)
-        {
-            // Default to setting the maximum number of streams based on Geant4
-            // run manager.
-            const_cast<SharedParams*>(this)->num_streams_
-                = celeritas::get_geant_num_threads();
+    CELER_EXPECT(*this);
+    CELER_EXPECT(stream_id < states_.size());
+    CELER_EXPECT(state);
+    CELER_EXPECT(!states_[stream_id]);
 
-            CELER_LOG_LOCAL(debug)
-                << "Set number of streams to " << num_streams_;
-        }
-    }
-
-    CELER_ENSURE(num_streams_ > 0);
-    return num_streams_;
+    states_[stream_id] = std::move(state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Lazily created output registry.
+ * Lazily obtained number of streams.
  */
-auto SharedParams::output_reg() const -> SPOutputRegistry const&
+unsigned int SharedParams::num_streams() const
 {
-    if (CELER_UNLIKELY(!output_reg_))
+    if (CELER_UNLIKELY(states_.empty()))
     {
         // Initial lock-free check failed; now lock and create if needed
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (!output_reg_)
-        {
-            CELER_LOG_LOCAL(debug) << "Constructing output registry";
-
-            auto output_reg = std::make_shared<OutputRegistry>();
-            const_cast<SharedParams*>(this)->output_reg_
-                = std::move(output_reg);
-            CELER_ENSURE(output_reg_);
-        }
+        // Default to setting the maximum number of streams based on Geant4
+        // run manager.
+        const_cast<SharedParams*>(this)->set_num_streams(
+            celeritas::get_geant_num_threads());
     }
-    return output_reg_;
+
+    CELER_ENSURE(!states_.empty());
+    return states_.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -492,7 +457,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     // Create registries
     params.action_reg = std::make_shared<ActionRegistry>();
-    params.output_reg = this->output_reg();
+    params.output_reg = std::make_shared<OutputRegistry>();
+    output_reg_ = params.output_reg;
 
     // Load geometry
     params.geometry = [&options] {
@@ -578,19 +544,10 @@ void SharedParams::initialize_core(SetupOptions const& options)
         CELER_VALIDATE(num_streams > 0,
                        << "nonpositive number of streams (" << num_streams
                        << ") returned by SetupOptions.get_num_streams");
-        params.max_streams = num_streams;
-        // Save number of streams... no other thread should be updating this
-        // simultaneously but we just make sure of it
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (num_streams_ != 0 && num_streams_ != num_streams)
-        {
-            // This could happen if someone queries the number of streams
-            // before initializing celeritas
-            CELER_LOG(warning)
-                << "Changing number of streams from " << num_streams_
-                << " to user-specified " << num_streams;
-        }
-        num_streams_ = num_streams;
+        params.max_streams = static_cast<size_type>(num_streams);
+        this->set_num_streams(num_streams);
+        CELER_ASSERT(this->num_streams()
+                     == static_cast<unsigned int>(num_streams));
     }
     else
     {
@@ -644,6 +601,34 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     // Save output filename (possibly empty if disabling output)
     output_filename_ = options.output_file;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save the number of streams (thread-safe).
+ *
+ * This could be obtained from the run manager *or* set by the user.
+ */
+void SharedParams::set_num_streams(unsigned int num_streams)
+{
+    CELER_EXPECT(num_streams > 0);
+
+    std::lock_guard scoped_lock{updating_mutex()};
+    if (!states_.empty() && states_.size() != num_streams)
+    {
+        // This could happen if someone queries the number of streams
+        // before initializing celeritas
+        CELER_LOG(warning) << "Changing number of streams from "
+                           << states_.size() << " to user-specified "
+                           << num_streams;
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Setting number of streams to " << num_streams;
+    }
+
+    states_.resize(num_streams);
 }
 
 //---------------------------------------------------------------------------//

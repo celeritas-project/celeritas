@@ -34,6 +34,9 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     // Construct with capacity and number of events
     explicit TrackInitParams(Input const&);
 
+    //! Maximum number of initializers
+    size_type capacity() const { return host_ref().capacity; }
+
     //! Event number cannot exceed this value
     size_type max_events() const { return host_ref().max_events; }
 

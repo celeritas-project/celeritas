@@ -102,7 +102,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(num_track_slots);
-    LDIO_LOAD_OPTION(optical_buffer_capacity);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
@@ -123,6 +122,8 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(brem_combined);
     LDIO_LOAD_OPTION(track_order);
     LDIO_LOAD_OPTION(physics_options);
+
+    LDIO_LOAD_OPTION(optical);
 
 #undef LDIO_LOAD_DEPRECATED
 #undef LDIO_LOAD_OPTION
@@ -181,7 +182,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 
     LDIO_SAVE(seed);
     LDIO_SAVE(num_track_slots);
-    LDIO_SAVE(optical_buffer_capacity);
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(secondary_stack_factor);
@@ -202,6 +202,8 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
                    v.physics_file.empty()
                        || !ends_with(v.physics_file, ".root"));
 
+    LDIO_SAVE(optical);
+
 #undef LDIO_SAVE_OPTION
 #undef LDIO_SAVE_WHEN
 #undef LDIO_SAVE
@@ -220,6 +222,22 @@ void to_json(nlohmann::json& j, app::RunnerInput::EventFileSampling const& efs)
     j = nlohmann::json{
         CELER_JSON_PAIR(efs, num_events),
         CELER_JSON_PAIR(efs, num_merged),
+    };
+}
+
+void from_json(nlohmann::json const& j, app::RunnerInput::OpticalOptions& oo)
+{
+    CELER_JSON_LOAD_REQUIRED(j, oo, buffer_capacity);
+    CELER_JSON_LOAD_REQUIRED(j, oo, primary_capacity);
+    CELER_JSON_LOAD_REQUIRED(j, oo, auto_flush);
+}
+
+void to_json(nlohmann::json& j, app::RunnerInput::OpticalOptions const& oo)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(oo, buffer_capacity),
+        CELER_JSON_PAIR(oo, primary_capacity),
+        CELER_JSON_PAIR(oo, auto_flush),
     };
 }
 

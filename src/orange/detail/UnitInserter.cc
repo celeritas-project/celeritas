@@ -22,7 +22,6 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "UniverseInserter.hh"
-#include "../BoundingBoxUtils.hh"
 #include "../OrangeInput.hh"
 #include "../surf/LocalSurfaceVisitor.hh"
 
@@ -160,6 +159,22 @@ std::vector<Label> make_volume_labels(UnitInput& inp)
 }
 
 //---------------------------------------------------------------------------//
+//! Create a bounding box bumper for a given tolerance.
+//
+// This bumper will convert *to* fast real type *from* regular
+// real type. It conservatively expand to twice the potential bump distance
+// from a boundary so that the bbox will enclose the point even after a
+// potential bump.
+BoundingBoxBumper<fast_real_type, real_type> make_bumper(Tolerance<> const& tol)
+{
+    Tolerance<real_type> bbox_tol;
+    bbox_tol.rel = 2 * tol.rel;
+    bbox_tol.abs = 2 * tol.abs;
+    CELER_ENSURE(bbox_tol);
+    return BoundingBoxBumper<fast_real_type, real_type>(std::move(bbox_tol));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -183,7 +198,9 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , surface_types_{&orange_data_->surface_types}
     , connectivity_records_{&orange_data_->connectivity_records}
     , volume_records_{&orange_data_->volume_records}
+    , obz_records_{&orange_data_->obz_records}
     , daughters_{&orange_data_->daughters}
+    , calc_bumped_(make_bumper(orange_data_->scalars.tol))
 {
     CELER_EXPECT(orange_data);
     CELER_EXPECT(orange_data->scalars.tol);
@@ -208,19 +225,6 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     // Insert surfaces
     unit.surfaces = this->build_surfaces_(inp.surfaces);
 
-    // Bounding box bumper and converter *to* fast real type *from* regular
-    // real type: conservatively expand to twice the potential bump distance
-    // from a boundary so that the bbox will enclose the point even after a
-    // potential bump
-    BoundingBoxBumper<fast_real_type, real_type> calc_bumped{
-        [&tol = orange_data_->scalars.tol] {
-            Tolerance<real_type> bbox_tol;
-            bbox_tol.rel = 2 * tol.rel;
-            bbox_tol.abs = 2 * tol.abs;
-            CELER_ENSURE(bbox_tol);
-            return bbox_tol;
-        }()};
-
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
@@ -233,18 +237,24 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
-            bboxes.push_back(calc_bumped(inp.volumes[i].bbox));
+            bboxes.push_back(calc_bumped_(inp.volumes[i].bbox));
         }
         else
         {
             bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
         }
 
+        // Add oriented bounding zone record
+        if (inp.volumes[i].obz)
+        {
+            this->process_obz_record(&(vol_records[i]), inp.volumes[i].obz);
+        }
+
         // Add embedded universes
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
         {
-            process_daughter(&(vol_records[i]),
-                             inp.daughter_map.at(LocalVolumeId(i)));
+            this->process_daughter(&(vol_records[i]),
+                                   inp.daughter_map.at(LocalVolumeId(i)));
         }
 
         // Add connectivity for explicitly connected volumes
@@ -341,6 +351,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                                 std::begin(nowhere_logic),
                                 std::end(nowhere_logic)));
         CELER_EXPECT(!v.bbox);
+        CELER_EXPECT(!v.obz);
         CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
         // Rely on incoming flags for "simple_safety": false from .org.json,
         // maybe true if built from GDML
@@ -371,6 +382,36 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
 
     return output;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process a single oriented bounding zone record.
+ */
+void UnitInserter::process_obz_record(VolumeRecord* vol_record,
+                                      OrientedBoundingZoneInput const& obz_input)
+{
+    CELER_EXPECT(obz_input);
+
+    OrientedBoundingZoneRecord obz_record;
+
+    // Set half widths
+    auto inner_hw = calc_half_widths(calc_bumped_(obz_input.inner));
+    auto outer_hw = calc_half_widths(calc_bumped_(obz_input.outer));
+    obz_record.half_widths = {inner_hw, outer_hw};
+
+    // Set offsets
+    auto inner_offset_id = insert_transform_(VariantTransform{
+        std::in_place_type<Translation>, calc_center(obz_input.inner)});
+    auto outer_offset_id = insert_transform_(VariantTransform{
+        std::in_place_type<Translation>, calc_center(obz_input.outer)});
+    obz_record.offset_ids = {inner_offset_id, outer_offset_id};
+
+    // Set transformation
+    obz_record.transform_id = obz_input.transform_id;
+
+    // Save the OBZ record to the volume record
+    vol_record->obz_id = obz_records_.push_back(obz_record);
 }
 
 //---------------------------------------------------------------------------//

@@ -95,6 +95,26 @@ inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the half widths of the bounding box.
+ *
+ * \pre The bounding box cannot be null
+ */
+template<class T>
+inline Array<T, 3> calc_half_widths(BoundingBox<T> const& bbox)
+{
+    CELER_EXPECT(bbox);
+
+    Array<T, 3> hw;
+    for (auto ax : range(to_int(Axis::size_)))
+    {
+        hw[ax] = (bbox.upper()[ax] - bbox.lower()[ax]) / 2;
+    }
+
+    return hw;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the surface area of a bounding box.
  *
  * \pre The bounding box cannot be null

@@ -27,6 +27,8 @@
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4MscStepLimitType.hh>
+#include <G4MuPairProduction.hh>
+#include <G4MuPairProductionModel.hh>
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
@@ -1049,6 +1051,65 @@ ImportEmParameters import_em_parameters()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the sampling table for electron-positron pair production by muons.
+ */
+ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
+{
+    CELER_EXPECT(pdg == pdg::mu_minus() || pdg == pdg::mu_plus());
+
+    using IU = ImportUnits;
+
+    G4ParticleDefinition const* pdef
+        = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
+    CELER_ASSERT(pdef);
+
+    auto const* process = dynamic_cast<G4MuPairProduction const*>(
+        pdef->GetProcessManager()->GetProcess(
+            to_geant_name(ImportProcessClass::mu_pair_prod)));
+    CELER_ASSERT(process);
+    CELER_ASSERT(process->NumberOfModels() == 1);
+
+    auto* model = dynamic_cast<G4MuPairProductionModel*>(process->EmModel());
+    CELER_ASSERT(model);
+
+    G4ElementData* el_data = model->GetElementData();
+    CELER_ASSERT(el_data);
+
+    ImportMuPairProductionTable result;
+    if (G4VERSION_NUMBER < 1120)
+    {
+        constexpr int element_data_size = 99;
+        for (int z = 1; z < element_data_size; ++z)
+        {
+            if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
+            {
+                result.atomic_number.push_back(z);
+                result.physics_vectors.push_back(
+                    detail::import_physics_2dvector(
+                        *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+            }
+        }
+    }
+    else
+    {
+        // The muon pair production model in newer Geant4 versions initializes
+        // and accesses the element data by Z index rather than Z number
+        result.atomic_number = {1, 4, 13, 29, 92};
+        for (int i : range(result.atomic_number.size()))
+        {
+            G4Physics2DVector const* pv = el_data->GetElement2DData(i);
+            CELER_ASSERT(pv);
+            result.physics_vectors.push_back(detail::import_physics_2dvector(
+                *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+        }
+    }
+
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -1104,6 +1165,14 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
     ScopedProfiling profile_this{"import-geant"};
     ImportData imported;
 
+    auto have_process = [&imported](ImportProcessClass ipc) {
+        return std::any_of(imported.processes.begin(),
+                           imported.processes.end(),
+                           [ipc](ImportProcess const& ip) {
+                               return ip.process_class == ipc;
+                           });
+    };
+
     {
         CELER_LOG(status) << "Transferring data from Geant4";
         ScopedGeantExceptionHandler scoped_exceptions;
@@ -1135,6 +1204,18 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                    imported.particles,
                                    imported.elements,
                                    imported.phys_materials);
+
+            if (have_process(ImportProcessClass::mu_pair_prod))
+            {
+                auto mu_minus = import_mupp_table(pdg::mu_minus());
+                auto mu_plus = import_mupp_table(pdg::mu_plus());
+                CELER_VALIDATE(
+                    mu_minus.atomic_number == mu_plus.atomic_number
+                        && mu_minus.physics_vectors == mu_plus.physics_vectors,
+                    << "muon pair production sampling tables for "
+                       "mu- and mu+ differ");
+                imported.mu_pair_production_data = std::move(mu_minus);
+            }
         }
         imported.regions = import_regions();
         imported.volumes = this->import_volumes(selected.unique_volumes);
@@ -1154,14 +1235,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         ScopedTimeLog scoped_time;
 
         detail::AllElementReader load_data{imported.elements};
-
-        auto have_process = [&imported](ImportProcessClass ipc) {
-            return std::any_of(imported.processes.begin(),
-                               imported.processes.end(),
-                               [ipc](ImportProcess const& ip) {
-                                   return ip.process_class == ipc;
-                               });
-        };
 
         if (have_process(ImportProcessClass::e_brems))
         {

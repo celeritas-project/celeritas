@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/ActionSequence.cc
+//! \file celeritas/global/ActionSequence.cc
 //---------------------------------------------------------------------------//
 #include "ActionSequence.hh"
 
@@ -21,65 +21,27 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
 #include "celeritas/track/StatusChecker.hh"
 
-#include "../ActionInterface.hh"
-#include "../CoreState.hh"
-#include "../Debug.hh"
+#include "ActionInterface.hh"
+#include "CoreParams.hh"
+#include "CoreState.hh"
+#include "Debug.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct from an action registry and sequence options.
  */
-template<class P, template<MemSpace M> class S>
-ActionSequence<P, S>::ActionSequence(ActionRegistry const& reg, Options options)
-    : options_(std::move(options))
+ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
+    : actions_{reg}, options_{std::move(options)}
 {
-    actions_.reserve(reg.num_actions());
-    // Loop over all action IDs
-    for (auto aidx : range(reg.num_actions()))
-    {
-        // Get abstract action shared pointer to determine type
-        auto const& base = reg.action(ActionId{aidx});
-        static_assert(std::is_same_v<StepActionT, CoreStepActionInterface>);
-        if (auto step_act = std::dynamic_pointer_cast<StepActionT const>(base))
-        {
-            // Add stepping action to our array
-            actions_.push_back(std::move(step_act));
-        }
-    }
-
-    begin_run_.reserve(reg.mutable_actions().size());
-    // Loop over all mutable actions
-    for (auto const& base : reg.mutable_actions())
-    {
-        if (auto brun
-            = std::dynamic_pointer_cast<CoreBeginRunActionInterface>(base))
-        {
-            // Add beginning-of-run to the array
-            begin_run_.emplace_back(std::move(brun));
-        }
-    }
-
-    // Sort actions by increasing order (and secondarily, increasing IDs)
-    std::sort(actions_.begin(),
-              actions_.end(),
-              [](SPConstStepAction const& a, SPConstStepAction const& b) {
-                  return OrderedAction{a->order(), a->action_id()}
-                         < OrderedAction{b->order(), b->action_id()};
-              });
-
     // Initialize timing
-    accum_time_.resize(actions_.size());
+    accum_time_.resize(actions_.step().size());
 
     // Get status checker if available
-    for (auto const& brun_sp : begin_run_)
+    for (auto const& brun_sp : actions_.begin_run())
     {
         if (auto sc = std::dynamic_pointer_cast<StatusChecker>(brun_sp))
         {
@@ -91,18 +53,17 @@ ActionSequence<P, S>::ActionSequence(ActionRegistry const& reg, Options options)
         }
     }
 
-    CELER_ENSURE(actions_.size() == accum_time_.size());
+    CELER_ENSURE(actions_.step().size() == accum_time_.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Initialize actions and states.
  */
-template<class P, template<MemSpace M> class S>
 template<MemSpace M>
-void ActionSequence<P, S>::begin_run(P const& params, S<M>& state)
+void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 {
-    for (auto const& sp_action : begin_run_)
+    for (auto const& sp_action : actions_.begin_run())
     {
         ScopedProfiling profile_this{sp_action->label()};
         sp_action->begin_run(params, state);
@@ -113,9 +74,8 @@ void ActionSequence<P, S>::begin_run(P const& params, S<M>& state)
 /*!
  * Call all explicit actions with host or device data.
  */
-template<class P, template<MemSpace M> class S>
 template<MemSpace M>
-void ActionSequence<P, S>::step(P const& params, S<M>& state)
+void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
 {
     [[maybe_unused]] Stream::StreamT stream = nullptr;
     if (M == MemSpace::device && options_.action_times)
@@ -123,7 +83,7 @@ void ActionSequence<P, S>::step(P const& params, S<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    if constexpr (M == MemSpace::host && std::is_same_v<CoreParams, P>)
+    if constexpr (M == MemSpace::host)
     {
         if (status_checker_)
         {
@@ -131,8 +91,8 @@ void ActionSequence<P, S>::step(P const& params, S<M>& state)
         }
     }
 
-    // Running a single track slot on host:
-    // Skip inapplicable post-step action
+    // When running a single track slot on host, we can preemptively skip
+    // inapplicable post-step actions
     auto const skip_post_action = [&](auto const& action) {
         if constexpr (M != MemSpace::host)
         {
@@ -143,12 +103,14 @@ void ActionSequence<P, S>::step(P const& params, S<M>& state)
                       != state.ref().sim.post_step_action[TrackSlotId{0}];
     };
 
+    auto step_actions = make_span(actions_.step());
     if (options_.action_times && !state.warming_up())
     {
         // Execute all actions and record the time elapsed
-        for (auto i : range(actions_.size()))
+        for (auto i : range(step_actions.size()))
         {
-            if (auto const& action = *actions_[i]; !skip_post_action(action))
+            if (auto const& action = *step_actions[i];
+                !skip_post_action(action))
             {
                 ScopedProfiling profile_this{action.label()};
                 Stopwatch get_time;
@@ -168,7 +130,7 @@ void ActionSequence<P, S>::step(P const& params, S<M>& state)
     else
     {
         // Just loop over the actions
-        for (auto const& sp_action : actions_)
+        for (auto const& sp_action : actions_.step())
         {
             if (auto const& action = *sp_action; !skip_post_action(action))
             {
@@ -182,34 +144,23 @@ void ActionSequence<P, S>::step(P const& params, S<M>& state)
         }
     }
 
-    if (M == MemSpace::host && std::is_same_v<CoreParams, P> && status_checker_)
+    if (M == MemSpace::host && status_checker_)
     {
         g_debug_executing_params = nullptr;
     }
 }
 
 //---------------------------------------------------------------------------//
-// Explicit template instantiation
-//---------------------------------------------------------------------------//
-
-template class ActionSequence<CoreParams, CoreState>;
 
 template void
-ActionSequence<CoreParams, CoreState>::begin_run(CoreParams const&,
-                                                 CoreState<MemSpace::host>&);
+ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::host>&);
 template void
-ActionSequence<CoreParams, CoreState>::begin_run(CoreParams const&,
-                                                 CoreState<MemSpace::device>&);
+ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::device>&);
 
 template void
-ActionSequence<CoreParams, CoreState>::step(CoreParams const&,
-                                            CoreState<MemSpace::host>&);
+ActionSequence::step(CoreParams const&, CoreState<MemSpace::host>&);
 template void
-ActionSequence<CoreParams, CoreState>::step(CoreParams const&,
-                                            CoreState<MemSpace::device>&);
-
-// TODO: add explicit template instantiation of execute for optical data
+ActionSequence::step(CoreParams const&, CoreState<MemSpace::device>&);
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -30,10 +30,12 @@ class ScintillationParams;
 namespace detail
 {
 class CerenkovOffloadAction;
+class CerenkovGeneratorAction;
 class OffloadGatherAction;
 class OpticalLaunchAction;
 class OffloadParams;
 class ScintOffloadAction;
+class ScintGeneratorAction;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -76,11 +78,18 @@ class OpticalCollector
         //! Number of steps that have created optical particles
         size_type buffer_capacity{};
 
+        //! Maximum number of buffered initializers in optical tracking loop
+        size_type primary_capacity{};
+
+        //! Threshold number of initializers for launching optical loop
+        size_type auto_flush{};
+
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
             return material && (scintillation || cerenkov)
-                   && buffer_capacity > 0;
+                   && buffer_capacity > 0 && primary_capacity > 0
+                   && auto_flush > 0;
         }
     };
 
@@ -91,6 +100,9 @@ class OpticalCollector
     // Aux ID for optical offload data
     AuxId offload_aux_id() const;
 
+    // Aux ID for optical state data
+    AuxId optical_aux_id() const;
+
   private:
     //// TYPES ////
 
@@ -98,15 +110,20 @@ class OpticalCollector
     using SPCerenkovAction = std::shared_ptr<detail::CerenkovOffloadAction>;
     using SPScintAction = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
+    using SPCerenkovGenAction
+        = std::shared_ptr<detail::CerenkovGeneratorAction>;
+    using SPScintGenAction = std::shared_ptr<detail::ScintGeneratorAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
 
-    SPOffloadParams gen_params_;
+    SPOffloadParams offload_params_;
 
     SPGatherAction gather_action_;
     SPCerenkovAction cerenkov_action_;
     SPScintAction scint_action_;
+    SPCerenkovGenAction cerenkov_gen_action_;
+    SPScintGenAction scint_gen_action_;
     SPLaunchAction launch_action_;
 
     // TODO: tracking loop launch action

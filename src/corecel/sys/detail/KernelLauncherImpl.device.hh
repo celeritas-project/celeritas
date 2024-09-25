@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/ActionLauncherKernel.device.hh
+//! \file corecel/sys/detail/KernelLauncherImpl.device.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/KernelTraits.hh"
 #include "corecel/sys/ThreadId.hh"
-
-#include "ApplierTraits.hh"
 
 namespace celeritas
 {
