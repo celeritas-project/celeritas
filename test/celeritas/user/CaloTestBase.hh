@@ -14,7 +14,7 @@
 #include "corecel/io/Repr.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "StepCollectorTestBase.hh"
+#include "SimpleLoopTestBase.hh"
 
 namespace celeritas
 {
@@ -26,7 +26,7 @@ class SimpleCalo;
 namespace test
 {
 //---------------------------------------------------------------------------//
-class CaloTestBase : virtual public StepCollectorTestBase
+class CaloTestBase : virtual public SimpleLoopTestBase
 {
   public:
     using VecPrimary = std::vector<Primary>;

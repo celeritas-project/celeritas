@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/StepCollectorTestBase.hh
+//! \file celeritas/user/SimpleLoopTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,7 +19,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class StepCollectorTestBase : virtual public GlobalTestBase
+/*!
+ * Add primaries and iterate up to a given number of steps.
+ */
+class SimpleLoopTestBase : virtual public GlobalTestBase
 {
   public:
     //!@{
@@ -29,7 +32,10 @@ class StepCollectorTestBase : virtual public GlobalTestBase
     //!@}
 
   public:
-    virtual VecPrimary make_primaries(size_type count) = 0;
+    virtual VecPrimary make_primaries(size_type count) const = 0;
+
+    //! # primaries / # track slots
+    virtual double initial_occupancy() const { return 1.0; }
 
   protected:
     template<MemSpace M>

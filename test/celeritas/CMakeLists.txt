@@ -88,7 +88,7 @@ celeritas_add_test_library(testcel_celeritas
   user/DiagnosticTestBase.cc
   user/ExampleMctruth.cc
   user/MctruthTestBase.cc
-  user/StepCollectorTestBase.cc
+  user/SimpleLoopTestBase.cc
 )
 
 celeritas_target_link_libraries(testcel_celeritas
