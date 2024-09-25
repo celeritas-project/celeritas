@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "BetheBlochModel.hh"
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
@@ -36,12 +35,10 @@ BetheBlochModel::BetheBlochModel(ActionId id,
     : StaticConcreteAction(
         id, "ioni-bethe-bloch", "interact by ionization (Bethe-Bloch)")
     , applicability_(applicability)
+    , data_(detail::MuHadIonizationBuilder(particles,
+                                           this->label())(applicability_))
 {
     CELER_EXPECT(id);
-
-    detail::MuHadIonizationBuilder build_data(particles, this->description());
-    data_ = CollectionMirror<MuHadIonizationData>{build_data(applicability_)};
-
     CELER_ENSURE(data_);
 }
 

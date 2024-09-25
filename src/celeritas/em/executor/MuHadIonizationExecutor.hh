@@ -23,7 +23,7 @@ struct MuHadIonizationExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<MuHadIonizationData> params;
+    MuHadIonizationData params;
 };
 
 //---------------------------------------------------------------------------//

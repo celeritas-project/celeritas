@@ -10,7 +10,6 @@
 #include <set>
 #include <string_view>
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/phys/Applicability.hh"
@@ -24,41 +23,40 @@ namespace detail
 /*!
  * Construct muon and hadron ionization data.
  *
- * This small helper class constructs the common data and model-dependent
- * incident particles for the muon and hadron ionization models.
+ * This small helper class constructs and validates the data for the muon and
+ * hadron ionization models.
  */
 class MuHadIonizationBuilder
 {
   public:
     //!@{
     //! \name Type aliases
-    using Data = HostVal<MuHadIonizationData>;
     using Energy = units::MevEnergy;
     using SetApplicability = std::set<Applicability>;
     //!@}
 
   public:
-    // Construct with shared particle data and model description
+    // Construct with shared particle data and model label
     explicit inline MuHadIonizationBuilder(ParticleParams const& particles,
-                                           std::string_view description);
+                                           std::string_view label);
 
     // Construct model data from applicability
-    inline Data operator()(SetApplicability const&) const;
+    inline MuHadIonizationData operator()(SetApplicability const&) const;
 
   private:
     ParticleParams const& particles_;
-    std::string_view description_;
+    std::string_view label_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with shared particle data and model description.
+ * Construct with shared particle data and model label.
  */
 MuHadIonizationBuilder::MuHadIonizationBuilder(ParticleParams const& particles,
-                                               std::string_view description)
-    : particles_(particles), description_(description)
+                                               std::string_view label)
+    : particles_(particles), label_(label)
 {
 }
 
@@ -66,30 +64,28 @@ MuHadIonizationBuilder::MuHadIonizationBuilder(ParticleParams const& particles,
 /*!
  * Construct model data from applicability.
  */
-auto MuHadIonizationBuilder::operator()(
-    SetApplicability const& applicability) const -> Data
+MuHadIonizationData
+MuHadIonizationBuilder::operator()(SetApplicability const& applicability) const
 {
     CELER_EXPECT(!applicability.empty());
 
-    Data data;
+    MuHadIonizationData data;
 
-    auto particles = make_builder(&data.particles);
-    particles.reserve(applicability.size());
     for (auto const& applic : applicability)
     {
-        CELER_VALIDATE(applic,
-                       << "invalid applicability with particle ID "
-                       << applic.particle.unchecked_get()
-                       << " and energy limits ("
-                       << value_as<Energy>(applic.lower) << ", "
-                       << value_as<Energy>(applic.upper) << ") [MeV] for "
-                       << description_);
-        particles.push_back(applic.particle);
+        CELER_VALIDATE(
+            applic,
+            << "invalid applicability with particle `"
+            << (applic.particle ? particles_.id_to_label(applic.particle) : "")
+            << "' and energy limits (" << value_as<Energy>(applic.lower)
+            << ", " << value_as<Energy>(applic.upper) << ") [MeV] for model '"
+            << label_ << "'");
     }
 
     data.electron = particles_.find(pdg::electron());
     CELER_VALIDATE(data.electron,
-                   << "missing electron (required for " << description_ << ")");
+                   << "missing electron (required for model '" << label_
+                   << "')");
 
     data.electron_mass = particles_.get(data.electron).mass();
 

@@ -118,7 +118,7 @@ TEST_F(BraggICRU73QOTest, basic)
     std::vector<real_type> energy;
     std::vector<real_type> costheta;
 
-    auto sample = [&](HostCRef<MuHadIonizationData> data) {
+    auto sample = [&](MuHadIonizationData const& data) {
         // Reserve 4 secondaries, one for each sample
         int const num_samples = 4;
         this->resize_secondaries(num_samples);
@@ -218,7 +218,7 @@ TEST_F(BraggICRU73QOTest, stress_test)
     std::vector<real_type> avg_energy;
     std::vector<real_type> avg_costheta;
 
-    auto sample = [&](HostCRef<MuHadIonizationData> data) {
+    auto sample = [&](MuHadIonizationData const& data) {
         unsigned int const num_samples = 10000;
 
         avg_engine_samples.clear();

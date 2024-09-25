@@ -54,7 +54,7 @@ class MuHadIonizationInteractor
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
-    MuHadIonizationInteractor(NativeCRef<MuHadIonizationData> const& shared,
+    MuHadIonizationInteractor(MuHadIonizationData const& shared,
                               ParticleTrackView const& particle,
                               CutoffView const& cutoffs,
                               Real3 const& inc_direction,
@@ -95,7 +95,7 @@ class MuHadIonizationInteractor
  */
 template<class ES>
 CELER_FUNCTION MuHadIonizationInteractor<ES>::MuHadIonizationInteractor(
-    NativeCRef<MuHadIonizationData> const& shared,
+    MuHadIonizationData const& shared,
     ParticleTrackView const& particle,
     CutoffView const& cutoffs,
     Real3 const& inc_direction,
@@ -109,7 +109,6 @@ CELER_FUNCTION MuHadIonizationInteractor<ES>::MuHadIonizationInteractor(
     , electron_id_(shared.electron)
     , sample_energy_(particle, cutoffs.energy(electron_id_), electron_mass_)
 {
-    CELER_EXPECT(shared.applies(particle.particle_id()));
     CELER_EXPECT(inc_energy_ > sample_energy_.min_secondary_energy());
 }
 

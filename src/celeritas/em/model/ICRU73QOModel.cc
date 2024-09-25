@@ -34,12 +34,10 @@ ICRU73QOModel::ICRU73QOModel(ActionId id,
     : StaticConcreteAction(
         id, "ioni-icru73qo", "interact by muon ionization (ICRU73QO)")
     , applicability_(applicability)
+    , data_(detail::MuHadIonizationBuilder(particles,
+                                           this->label())(applicability_))
 {
     CELER_EXPECT(id);
-
-    detail::MuHadIonizationBuilder build_data(particles, this->description());
-    data_ = CollectionMirror<MuHadIonizationData>{build_data(applicability_)};
-
     CELER_ENSURE(data_);
 }
 

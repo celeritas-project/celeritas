@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/phys/Model.hh"
 
@@ -21,13 +20,6 @@ class ParticleParams;
  */
 class BetheBlochModel final : public Model, public StaticConcreteAction
 {
-  public:
-    //@{
-    //! Type aliases
-    using HostRef = HostCRef<MuHadIonizationData>;
-    using DeviceRef = DeviceCRef<MuHadIonizationData>;
-    //@}
-
   public:
     // Construct from model ID and other necessary data
     BetheBlochModel(ActionId, ParticleParams const&, SetApplicability);
@@ -46,15 +38,15 @@ class BetheBlochModel final : public Model, public StaticConcreteAction
 
     //!@{
     //! Access model data
-    HostRef const& host_ref() const { return data_.host_ref(); }
-    DeviceRef const& device_ref() const { return data_.device_ref(); }
+    MuHadIonizationData const& host_ref() const { return data_; }
+    MuHadIonizationData const& device_ref() const { return data_; }
     //!@}
 
   private:
-    // Host/device storage and reference
-    CollectionMirror<MuHadIonizationData> data_;
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability_;
+    // Model data
+    MuHadIonizationData data_;
 };
 
 //---------------------------------------------------------------------------//

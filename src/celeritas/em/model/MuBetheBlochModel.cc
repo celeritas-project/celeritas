@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "MuBetheBlochModel.hh"
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
@@ -36,12 +35,10 @@ MuBetheBlochModel::MuBetheBlochModel(ActionId id,
     : StaticConcreteAction(
         id, "ioni-mu-bethe-bloch", "interact by muon ionization (Bethe-Bloch)")
     , applicability_(applicability)
+    , data_(detail::MuHadIonizationBuilder(particles,
+                                           this->label())(applicability_))
 {
     CELER_EXPECT(id);
-
-    detail::MuHadIonizationBuilder build_data(particles, this->description());
-    data_ = CollectionMirror<MuHadIonizationData>{build_data(applicability_)};
-
     CELER_ENSURE(data_);
 }
 
