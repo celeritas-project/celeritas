@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SimpleLoopTestBase.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/io/LogContextException.hh"
 #include "celeritas/global/Stepper.hh"
 
@@ -32,7 +33,8 @@ void SimpleLoopTestBase::run_impl(size_type num_tracks, size_type num_steps)
     double primary_frac = this->initial_occupancy();
     CELER_VALIDATE(primary_frac >= 0, << "invalid initial occupancy");
     // Initial step
-    auto primaries = this->make_primaries(num_tracks * primary_frac);
+    auto primaries = this->make_primaries(
+        static_cast<size_type>(num_tracks * primary_frac));
     StepperResult count;
     CELER_TRY_HANDLE(count = step(make_span(primaries)), log_context);
 
