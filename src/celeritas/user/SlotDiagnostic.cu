@@ -20,7 +20,7 @@ namespace celeritas
 void SlotDiagnostic::step(CoreParams const& params, CoreStateDevice& state) const
 {
     // Allocate temporary device memory
-    DeviceVector<int> device_buffer(state.size(), stream_id);
+    DeviceVector<int> device_buffer(state.size(), state.stream_id());
 
     TrackExecutor execute{
         params.ptr<MemSpace::native>(),
@@ -35,7 +35,7 @@ void SlotDiagnostic::step(CoreParams const& params, CoreStateDevice& state) cons
     device_buffer = {};
 
     // Write IDs to
-    this->write_step(statea.aux());
+    this->write_buffer(state.aux());
 }
 
 //---------------------------------------------------------------------------//
