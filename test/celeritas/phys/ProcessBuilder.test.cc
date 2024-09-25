@@ -8,7 +8,6 @@
 #include "celeritas/phys/ProcessBuilder.hh"
 
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/Version.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
@@ -583,8 +582,8 @@ TEST_F(ProcessBuilderTest, mu_ionization)
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
-    // Note that versions of Geant4 use the \c G4MuBetheBloch model for all
-    // energies above 200, so only have three models
+    // Note that newer versions of Geant4 use the \c G4MuBetheBloch model for
+    // all energies above 200 so will only have three models
     ASSERT_EQ(4, models.size());
     ASSERT_TRUE(models[0]);
     EXPECT_EQ("ioni-icru73qo", models[0]->label());

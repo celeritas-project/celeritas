@@ -28,7 +28,7 @@ struct MuHadIonizationExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply the Bethe-Bloch interactor to the current track.
+ * Apply the muon or hadron ionization interactor to the current track.
  */
 template<class ES>
 CELER_FUNCTION Interaction
