@@ -175,7 +175,6 @@ class TestEm3SlotTest : virtual public TestEm3Base,
 TEST_F(TestEm3SlotTest, host)
 {
     auto result = this->run<MemSpace::host>(32, 64);
-    result.print_expected();
 
     static char const* const expected_labels[] = {"gamma", "e-", "e+"};
     EXPECT_VEC_EQ(expected_labels, result.labels);
@@ -219,6 +218,7 @@ TEST_F(TestEm3SlotTest, host)
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
 {
     auto result = this->run<MemSpace::host>(64, 16);
+
     static char const* const expected_labels[] = {"gamma", "e-", "e+"};
     EXPECT_VEC_EQ(expected_labels, result.labels);
     static char const* const expected_slots[] = {
@@ -240,6 +240,11 @@ TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
         "0000000000000000000000000-000000-00-000------++--------+-+-+-+-+",
     };
     EXPECT_VEC_EQ(expected_slots, result.slots);
+}
+
+TEST_F(TestEm3SlotTest, DISABLED_long_demo)
+{
+    this->run<MemSpace::host>(2046, 256);
 }
 
 //---------------------------------------------------------------------------//
