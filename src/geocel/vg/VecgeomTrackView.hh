@@ -211,17 +211,15 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
-    bool const contains_point = true;
+    constexpr bool contains_point = true;
 #ifdef VECGEOM_USE_SURF
-    auto world_id = vecgeom::NavigationState::WorldId();
-    // LocatePointIn sets `vgstate_`
-    Navigator::LocatePointIn(world_id, detail::to_vector(pos_), vgstate_, contains_point);
+    auto world = vecgeom::NavigationState::WorldId();
 #else
-    vecgeom::VPlacedVolume const* worldvol = params_.world_volume;
-    // LocatePointIn sets `vgstate_`
-    Navigator::LocatePointIn(worldvol,
-        detail::to_vector(pos_), vgstate_, contains_point);
+    vecgeom::VPlacedVolume const* world = params_.world_volume;
 #endif
+    // LocatePointIn sets `vgstate_`
+    Navigator::LocatePointIn(
+        world, detail::to_vector(pos_), vgstate_, contains_point);
     return *this;
 }
 
