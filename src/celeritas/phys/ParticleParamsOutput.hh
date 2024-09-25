@@ -28,7 +28,7 @@ class ParticleParamsOutput final : public OutputInterface
 
   public:
     // Construct from shared physics data
-    explicit ParticleParamsOutput(SPConstParticleParams physics);
+    explicit ParticleParamsOutput(SPConstParticleParams particles);
 
     //! Category of data to write
     Category category() const final { return Category::internal; }

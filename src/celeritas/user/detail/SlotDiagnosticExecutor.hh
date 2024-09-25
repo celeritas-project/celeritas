@@ -41,13 +41,19 @@ struct SlotDiagnosticExecutor
 CELER_FUNCTION void
 SlotDiagnosticExecutor::operator()(CoreTrackView const& track)
 {
-    auto sim = track.make_sim_view();
-    int result{-1};
-    if (sim.status() != TrackStatus::inactive)
-    {
+    int result = [&track] {
+        auto sim = track.make_sim_view();
+        if (sim.status() == TrackStatus::inactive)
+        {
+            return -1;
+        }
+        else if (sim.status() == TrackStatus::errored)
+        {
+            return -2;
+        }
         // Save particle ID
-        result = track.make_particle_view().particle_id().get();
-    }
+        return static_cast<int>(track.make_particle_view().particle_id().get());
+    }();
 
     size_type const index = track.track_slot_id().get();
     (&*output)[index] = result;

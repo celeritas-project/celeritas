@@ -10,13 +10,16 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/ParticleParamsOutput.hh"
 
 #include "detail/SlotDiagnosticExecutor.hh"
 
@@ -33,17 +36,45 @@ struct SlotDiagnostic::State final : AuxStateInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct and add to core params.
+ */
+std::shared_ptr<SlotDiagnostic>
+SlotDiagnostic::make_and_insert(CoreParams const& core,
+                                std::string filename_base)
+{
+    ActionRegistry& actions = *core.action_reg();
+    AuxParamsRegistry& aux = *core.aux_reg();
+    auto result = std::make_shared<SlotDiagnostic>(actions.next_id(),
+                                                   aux.next_id(),
+                                                   std::move(filename_base),
+                                                   core.particle());
+    actions.insert(result);
+    aux.insert(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with IDs and filename base.
+ *
+ * This also writes to the "metadata" JSON suffix.
  */
 SlotDiagnostic::SlotDiagnostic(ActionId action_id,
                                AuxId aux_id,
-                               std::string filename_base)
+                               std::string filename_base,
+                               std::shared_ptr<ParticleParams const> particle)
     : sad_{action_id, "slot-diagnostic", "track slot properties"}
     , aux_id_{aux_id}
     , filename_base_{std::move(filename_base)}
 {
     CELER_EXPECT(aux_id_);
     CELER_EXPECT(!filename_base_.empty());
+
+    // Write metadata file with particle names
+    std::string filename = filename_base_ + "metadata.json";
+    std::ofstream outfile(filename, std::ios::out | std::ios::trunc);
+    CELER_VALIDATE(outfile, << "failed to open file at '" << filename << "'");
+    outfile << ParticleParamsOutput(particle);
 }
 
 //---------------------------------------------------------------------------//
@@ -119,7 +150,7 @@ void SlotDiagnostic::write_buffer(AuxStateVec& aux_state) const
 
     // Write the buffer as a line of JSON output
     nlohmann::json j = state.buffer;
-    state.outfile << j.dump(0) << std::endl;
+    state.outfile << j.dump() << std::endl;
 }
 
 //---------------------------------------------------------------------------//
