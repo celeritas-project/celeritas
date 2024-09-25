@@ -38,8 +38,6 @@ struct MuDecayIds
  */
 struct MuDecayData
 {
-    using Mass = units::MevMass;
-
     //! Particle identifiers
     MuDecayIds ids;
 

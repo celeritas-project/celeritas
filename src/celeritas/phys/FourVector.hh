@@ -23,8 +23,6 @@ namespace celeritas
  */
 struct FourVector
 {
-    //// DATA ////
-
     Real3 mom{0, 0, 0};  //!< Particle momentum
     real_type energy{0};  //!< Particle energy
 
