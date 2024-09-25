@@ -15,6 +15,7 @@
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/io/ImportSBTable.hh"
 
 #include "AtomicNumber.hh"
 #include "Process.hh"
@@ -27,7 +28,6 @@ class MaterialParams;
 class ParticleParams;
 struct ImportData;
 struct ImportLivermorePE;
-struct ImportSBTable;
 
 //---------------------------------------------------------------------------//
 //! Options used for constructing built-in Celeritas processes
@@ -133,6 +133,8 @@ class ProcessBuilder
     auto build_coulomb() -> SPProcess;
     auto build_ebrems() -> SPProcess;
     auto build_eioni() -> SPProcess;
+    auto build_mubrems() -> SPProcess;
+    auto build_muioni() -> SPProcess;
     auto build_msc() -> SPProcess;
     auto build_neutron_elastic() -> SPProcess;
     auto build_photoelectric() -> SPProcess;

@@ -25,17 +25,17 @@ namespace celeritas
  */
 KleinNishinaModel::KleinNishinaModel(ActionId id,
                                      ParticleParams const& particles)
-    : ConcreteAction(id,
-                     "scat-klein-nishina",
-                     "interact by Compton scattering (simple Klein-Nishina)")
+    : StaticConcreteAction(
+          id,
+          "scat-klein-nishina",
+          R"(interact by Compton scattering (simple Klein-Nishina))")
 {
     CELER_EXPECT(id);
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.gamma = particles.find(pdg::gamma());
 
     CELER_VALIDATE(data_.ids.electron && data_.ids.gamma,
-                   << "missing electron, positron and/or gamma particles "
-                      "(required for "
+                   << R"(missing electron and/or gamma particles (required for )"
                    << this->description() << ")");
     data_.inv_electron_mass = 1
                               / value_as<KleinNishinaData::Mass>(

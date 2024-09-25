@@ -1,6 +1,10 @@
 {
 "brems": "all",
 "coulomb_scattering": true,
+"muon": {
+ "ionization": true,
+ "bremsstrahlung": true
+},
 "eloss_fluctuation": true,
 "em_bins_per_decade": 7,
 "integral_approach": true,

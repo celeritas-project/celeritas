@@ -29,8 +29,8 @@ namespace detail
  */
 struct SimpleCaloExecutor
 {
-    NativeRef<StepStateData> const& step;
-    NativeRef<SimpleCaloStateData>& calo;
+    NativeRef<StepStateData> const step;
+    NativeRef<SimpleCaloStateData> calo;
 
     inline CELER_FUNCTION void operator()(TrackSlotId tid);
     CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid)

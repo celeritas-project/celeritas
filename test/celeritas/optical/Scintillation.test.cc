@@ -12,11 +12,11 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
-#include "celeritas/optical/Primary.hh"
 #include "celeritas/optical/ScintillationData.hh"
 #include "celeritas/optical/ScintillationGenerator.hh"
 #include "celeritas/optical/ScintillationOffload.hh"
 #include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -277,7 +277,7 @@ TEST_F(MaterialScintillationTest, basic)
                            - generated_dist.points[StepPoint::pre].pos);
 
     // Create the generator and output vectors
-    ScintillationGenerator generate_photon(generated_dist, params->host_ref());
+    ScintillationGenerator generate_photon(params->host_ref(), generated_dist);
     std::vector<real_type> energy;
     std::vector<real_type> time;
     std::vector<real_type> cos_theta;
@@ -403,7 +403,7 @@ TEST_F(MaterialScintillationTest, stress_test)
     }
 
     // Create the generator
-    ScintillationGenerator generate_photon(result, data);
+    ScintillationGenerator generate_photon(data, result);
 
     // Check results
     real_type avg_lambda{0};

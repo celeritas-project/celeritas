@@ -27,7 +27,7 @@ namespace detail
  * Construct with action ID.
  */
 BoundaryAction::BoundaryAction(ActionId aid)
-    : ConcreteAction(aid, "geo-boundary", "cross a geometry boundary")
+    : StaticConcreteAction(aid, "geo-boundary", "cross a geometry boundary")
 {
 }
 

@@ -25,7 +25,7 @@ class ParticleParams;
 /*!
  * Set up and launch Rayleigh scattering.
  */
-class RayleighModel final : public Model, public ConcreteAction
+class RayleighModel final : public Model, public StaticConcreteAction
 {
   public:
     //@{

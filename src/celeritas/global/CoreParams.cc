@@ -119,14 +119,14 @@ ActionId find_along_step_id(ActionRegistry const& reg)
 }
 
 //---------------------------------------------------------------------------//
-class PropagationLimitAction final : public ConcreteAction
+class PropagationLimitAction final : public StaticConcreteAction
 {
   public:
     //! Construct with ID
     explicit PropagationLimitAction(ActionId id)
-        : ConcreteAction(id,
-                         "geo-propagation-limit",
-                         "pause due to propagation misbehavior")
+        : StaticConcreteAction(id,
+                               "geo-propagation-limit",
+                               "pause due to propagation misbehavior")
     {
     }
 };

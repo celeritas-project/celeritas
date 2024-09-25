@@ -80,6 +80,7 @@ char const* to_cstring(ImportUnits value)
         "1/len-MeV",
         "MeV^2/len",
         "len^2",
+        "MeV-len^2",
         "time",
         "1/len^3",
         "len-time^2/mass",
@@ -118,6 +119,8 @@ double native_value_from(UnitSystem sys, ImportUnits q)
             return ipow<2>(mev) / len;
         case ImportUnits::len_sq:
             return ipow<2>(len);
+        case ImportUnits::mev_len_sq:
+            return mev * ipow<2>(len);
         case ImportUnits::time:
             return time;
         case ImportUnits::inv_len_cb:

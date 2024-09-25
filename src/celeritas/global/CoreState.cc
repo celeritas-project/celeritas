@@ -72,6 +72,25 @@ CoreState<M>::CoreState(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Print diagnostic when core state is being deleted.
+ */
+template<MemSpace M>
+CoreState<M>::~CoreState()
+{
+    try
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Deallocating " << to_cstring(M) << " core state (stream "
+            << this->stream_id().unchecked_get() << ')';
+    }
+    catch (...)
+    {
+        // Ignore anything bad that happens while logging
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the state should be transported with no active particles.
  *
  * This can only be called when there are no active tracks. It should be

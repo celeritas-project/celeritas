@@ -29,7 +29,8 @@ namespace celeritas
 MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId id,
                                              ParticleParams const& particles,
                                              SPConstImported data)
-    : ConcreteAction(id, "brems-muon", "interact by bremsstrahlung (muon)")
+    : StaticConcreteAction(
+          id, "brems-muon", "interact by bremsstrahlung (muon)")
     , imported_(data,
                 particles,
                 ImportProcessClass::mu_brems,

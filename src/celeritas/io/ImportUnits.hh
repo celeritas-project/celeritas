@@ -33,6 +33,7 @@ enum class ImportUnits
     len_mev_inv,  //!< Scaled (1/E) macroscopic xs [1/len-MeV]
     mev_sq_per_len,  //!< Scaled [E^2] macroscopic xs  [MeV^2/len]
     len_sq,  //!< Microscopic cross section [len^2]
+    mev_len_sq,  //!< [MeV-len^2]
     time,  //!< Time [time]
     inv_len_cb,  //!< Number density [1/len^3]
     len_time_sq_per_mass,  //!< Inverse pressure [len-time^2/mass]

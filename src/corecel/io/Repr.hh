@@ -224,9 +224,17 @@ struct ReprTraits<std::string_view>
     static void init(std::ostream&) {}
     static void print_value(std::ostream& os, std::string_view value)
     {
-        std::streamsize width = os.width();
+        using ssize = std::streamsize;
+        ssize width = os.width();
+        os.width(
+            std::max(width - static_cast<ssize>(value.size()) - 2, ssize{0}));
 
-        os.width(width - value.size() - 2);
+        if (value.size() > 70)
+        {
+            // Print long literal string on one line
+            os << "R\"(" << value << ")\"";
+            return;
+        }
 
         os << '"';
         for (char c : value)
@@ -244,6 +252,8 @@ struct ReprTraits<std::string_view>
 template<>
 struct ReprTraits<std::string>
 {
+    using value_type = std::string::value_type;
+
     static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "std::string", name);
@@ -259,6 +269,8 @@ struct ReprTraits<std::string>
 template<>
 struct ReprTraits<char*>
 {
+    using value_type = char;
+
     static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "char const*", name);
@@ -410,8 +422,13 @@ struct ContainerReprTraits
     {
         os << '{'
            << join_stream(
-                  std::begin(data), std::end(data), ", ", RT::print_value)
-           << '}';
+                  std::begin(data), std::end(data), ", ", RT::print_value);
+        if (std::size(data) > 8)
+        {
+            // Add a trailing ',' to long outputs to help clang-format
+            os << ',';
+        }
+        os << '}';
     }
 };
 

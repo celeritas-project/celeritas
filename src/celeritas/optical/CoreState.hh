@@ -12,36 +12,16 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
-#include "Primary.hh"
 #include "TrackData.hh"
+#include "TrackInitializer.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 class CoreParams;
-
-//---------------------------------------------------------------------------//
-/*!
- * Counters for track initialization and activity.
- *
- * These counters are updated *by value on the host at every step* so they
- * should not be stored in TrackInitStateData because then the device-memory
- * copy will not be synchronized.
- */
-struct CoreStateCounters
-{
-    // Initialization input
-    size_type num_vacancies{};  //!< Number of unused track slots
-    size_type num_generated{};  //!< Number of primary initializers generated
-    size_type num_initializers{};  //!< Number of track initializers
-
-    // Diagnostic output
-    size_type num_secondaries{};  //!< Number of secondaries produced in a step
-    size_type num_active{};  //!< Number of active tracks at start of a step
-    size_type num_alive{};  //!< Number of alive tracks at end of step
-};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -72,7 +52,8 @@ class CoreStateInterface : public AuxStateInterface
     virtual size_type size() const = 0;
 
     // Inject optical primaries
-    virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
+    virtual void insert_primaries(Span<TrackInitializer const> host_primaries)
+        = 0;
 
   protected:
     CoreStateInterface() = default;
@@ -137,7 +118,7 @@ class CoreState final : public CoreStateInterface
     CoreStateCounters const& counters() const final { return counters_; }
 
     // Inject primaries to be turned into TrackInitializers
-    void insert_primaries(Span<Primary const> host_primaries) final;
+    void insert_primaries(Span<TrackInitializer const> host_primaries) final;
 
   private:
     // State data

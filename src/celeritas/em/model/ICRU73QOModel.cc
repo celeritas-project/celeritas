@@ -29,7 +29,8 @@ namespace celeritas
  * TODO: This model also applies to hadrons.
  */
 ICRU73QOModel::ICRU73QOModel(ActionId id, ParticleParams const& particles)
-    : ConcreteAction(id, "ioni-bragg", "interact by muon ionization (ICRU73QO)")
+    : StaticConcreteAction(
+          id, "ioni-icru73qo", "interact by muon ionization (ICRU73QO)")
 {
     CELER_EXPECT(id);
 

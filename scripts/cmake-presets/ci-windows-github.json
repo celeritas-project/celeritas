@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
   "configurePresets": [
     {
@@ -70,16 +70,28 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
-        "jobs": 16,
+        "jobs": 4,
         "timeout": 180
       },
       "output": {
         "maxFailedTestOutputSize": 1048576,
-        "maxPassedTestOutputSize": 65536,
+        "maxPassedTestOutputSize": 2048,
         "outputOnFailure": true
       }
     },
-    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {
+      "name": "fast-unit",
+      "configurePreset": "fast",
+      "inherits": "base"
+    },
+    {
+      "name": "fast-app",
+      "configurePreset": "fast",
+      "inherits": "base",
+      "output": {
+        "outputJUnitFile": "$env{CTEST_OUTPUT}"
+      }
+    },
     {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ]
 }

@@ -31,7 +31,7 @@ void TrackingCutAction::step(CoreParams const& params,
                                               TrackingCutExecutor{});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(params, state, *this, execute);
+    launch_kernel(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

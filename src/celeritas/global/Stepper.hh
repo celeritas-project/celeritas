@@ -29,11 +29,7 @@ class CoreParams;
 struct Primary;
 class ExtendFromPrimariesAction;
 
-namespace detail
-{
-template<class P, template<MemSpace M> class S>
 class ActionSequence;
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -74,16 +70,25 @@ struct StepperResult
 };
 
 //---------------------------------------------------------------------------//
-//! Interface class for stepper classes.
+/*!
+ * Interface class for stepper classes.
+ *
+ * This allows higher-level classes not to care whether the stepper operates on
+ * host or device.
+ *
+ * \note This class and its daughter may be removed soon to facilitate step
+ * gathering.
+ */
 class StepperInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequence = detail::ActionSequence<CoreParams, CoreState>;
+    using ActionSequenceT = ActionSequence;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
+    using SPState = std::shared_ptr<CoreStateInterface>;
     //!@}
 
   public:
@@ -100,10 +105,13 @@ class StepperInterface
     virtual void reseed(EventId event_id) = 0;
 
     //! Get action sequence for timing diagnostics
-    virtual ActionSequence const& actions() const = 0;
+    virtual ActionSequenceT const& actions() const = 0;
 
     //! Get the core state interface
     virtual CoreStateInterface const& state() const = 0;
+
+    //! Get a shared pointer to the state (TEMPORARY)
+    virtual SPState sp_state() = 0;
 
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
@@ -113,6 +121,9 @@ class StepperInterface
 //---------------------------------------------------------------------------//
 /*!
  * Manage a state vector and execute a single step on all of them.
+ *
+ * \note This is likely to be removed and refactored since we're changing how
+ * primaries are created and how multithread state ownership is managed.
  *
  * \code
    Stepper<MemSpace::host> step(input);
@@ -155,16 +166,19 @@ class Stepper final : public StepperInterface
     void reseed(EventId event_id) final;
 
     //! Get action sequence for timing diagnostics
-    ActionSequence const& actions() const final { return *actions_; }
+    ActionSequenceT const& actions() const final { return *actions_; }
 
     //! Access core data, primarily for debugging
-    StateRef const& state_ref() const { return state_.ref(); }
+    StateRef const& state_ref() const { return state_->ref(); }
 
     //! Get the core state interface for diagnostic output
-    CoreStateInterface const& state() const final { return state_; }
+    CoreStateInterface const& state() const final { return *state_; }
 
     //! Reset the core state counters and data so it can be reused
-    void reset_state() { state_.reset(); }
+    void reset_state() { state_->reset(); }
+
+    //! Get a shared pointer to the state (TEMPORARY, DO NOT USE)
+    SPState sp_state() final { return state_; }
 
   private:
     // Params data
@@ -172,9 +186,9 @@ class Stepper final : public StepperInterface
     // Primary initialization
     std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
-    CoreState<M> state_;
+    std::shared_ptr<CoreState<M>> state_;
     // Call sequence
-    std::shared_ptr<ActionSequence> actions_;
+    std::shared_ptr<ActionSequenceT> actions_;
 };
 
 //---------------------------------------------------------------------------//

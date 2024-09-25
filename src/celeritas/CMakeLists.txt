@@ -27,6 +27,8 @@ list(APPEND SOURCES
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
+  em/process/MuIonizationProcess.cc
+  em/process/MuBremsstrahlungProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantOpticalPhysicsOptions.cc
@@ -38,6 +40,8 @@ list(APPEND SOURCES
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
+  global/ActionGroups.cc
+  global/ActionSequence.cc
   global/CoreParams.cc
   global/CoreState.cc
   global/CoreTrackData.cc
@@ -45,7 +49,6 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
-  global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
   grid/TwodGridBuilder.cc
@@ -77,7 +80,9 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/TrackData.cc
+  optical/TrackInitParams.cc
   optical/ScintillationParams.cc
+  optical/action/ActionGroups.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
@@ -137,8 +142,9 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantProcessImporter.cc
     ext/detail/MuHadEmStandardPhysics.cc
   )
-  celeritas_get_g4libs(_cg4_libs global geometry materials processes run
-    physicslists tasking)
+  celeritas_get_g4libs(_cg4_libs
+    global geometry materials processes run physicslists tasking
+  )
   list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
@@ -268,9 +274,12 @@ celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/action/BoundaryAction)
+celeritas_polysource(optical/detail/CerenkovGeneratorAction)
 celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
 celeritas_polysource(optical/detail/OffloadGatherAction)
+celeritas_polysource(optical/detail/ScintGeneratorAction)
 celeritas_polysource(optical/detail/ScintOffloadAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
