@@ -88,7 +88,7 @@ class SurfNavigator
             return step_limit;
         }
 
-	long hitsurf_id = 0;
+        long hitsurf_id = -1;
         auto step = vgbrep::protonav::BVHSurfNavigator<Precision>::ComputeStepAndNextSurface(
             globalpoint, globaldir, in_state, out_state, hitsurf_id, step_limit);
         return step;
