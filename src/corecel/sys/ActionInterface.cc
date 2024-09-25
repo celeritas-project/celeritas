@@ -50,9 +50,33 @@ ConcreteAction::~ConcreteAction() noexcept = default;
 /*!
  * Construct a concrete action from a label and ID.
  */
+StaticActionData::StaticActionData(
+    ActionId id, std::string_view label) noexcept(!CELERITAS_DEBUG)
+    : StaticActionData{id, label, {}}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a concrete action from an ID, a unique label, and a description.
+ */
+StaticActionData::StaticActionData(
+    ActionId id,
+    std::string_view label,
+    std::string_view description) noexcept(!CELERITAS_DEBUG)
+    : id_{id}, label_{label}, description_{description}
+{
+    CELER_ASSERT(id_);
+    CELER_ASSERT(!label_.empty());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a concrete action from a label and ID.
+ */
 StaticConcreteAction::StaticConcreteAction(
     ActionId id, std::string_view label) noexcept(!CELERITAS_DEBUG)
-    : StaticConcreteAction{id, label, {}}
+    : sad_{id, label}
 {
 }
 
@@ -64,10 +88,8 @@ StaticConcreteAction::StaticConcreteAction(
     ActionId id,
     std::string_view label,
     std::string_view description) noexcept(!CELERITAS_DEBUG)
-    : id_{id}, label_{label}, description_{description}
+    : sad_{id, label, description}
 {
-    CELER_ASSERT(id_);
-    CELER_ASSERT(!label_.empty());
 }
 
 //---------------------------------------------------------------------------//
