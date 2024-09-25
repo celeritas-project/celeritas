@@ -130,17 +130,6 @@ make_unplaced_boolean(VPlacedVolume const* left, VPlacedVolume const* right)
 }
 
 //---------------------------------------------------------------------------//
-VUnplacedVolume* make_sphere(double radius)
-{
-    CELER_EXPECT(radius > 0);
-#ifdef VECGEOM_USE_SURF
-    return GeoManager::MakeInstance<UnplacedSphere>(
-        0, radius, 0, vecgeom::kPi * 2, 0, vecgeom::kPi);
-#endif
-    return GeoManager::MakeInstance<UnplacedOrb>(radius);
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -167,7 +156,8 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
     double vol = this->calc_capacity(solid_base);
-    return make_sphere(std::cbrt(vol / (4.0 / 3.0 * constants::pi)));
+    double radius = std::cbrt(vol / (4.0 / 3.0 * constants::pi));
+    return GeoManager::MakeInstance<UnplacedOrb>(radius);
 }
 
 //---------------------------------------------------------------------------//
@@ -434,12 +424,7 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 auto SolidConverter::orb(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Orb const&>(solid_base);
-    auto radius = scale_(solid.GetRadius());
-#ifdef VECGEOM_USE_SURF
-    CELER_LOG(info) << "Replacing orb with equivalent sphere for surface "
-                       "geometry";
-#endif
-    return make_sphere(radius);
+    return GeoManager::MakeInstance<UnplacedOrb>(scale_(solid.GetRadius()));
 }
 
 //---------------------------------------------------------------------------//
