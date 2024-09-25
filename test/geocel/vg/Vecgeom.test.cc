@@ -131,6 +131,89 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 
 //---------------------------------------------------------------------------//
+// TWO BOXES
+//---------------------------------------------------------------------------//
+
+class TwoBoxesTest : public VecgeomVgdmlTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_vgdml("two-boxes.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TwoBoxesTest, accessors)
+{
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(2, geom.num_volumes());
+
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-500.001, -500.001, -500.001}),
+                       to_cm(bbox.lower()));
+    EXPECT_VEC_SOFT_EQ((Real3{500.001, 500.001, 500.001}),
+                       to_cm(bbox.upper()));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TwoBoxesTest, track)
+{
+    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", this->volume_name(geo));
+
+    // Shouldn't hit boundary
+    auto next = geo.find_next_step(from_cm(1.25));
+    EXPECT_SOFT_EQ(1.25, to_cm(next.distance));
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(from_cm(1.25));
+    EXPECT_SOFT_EQ(5 - 1.25, to_cm(geo.find_safety()));
+
+    // Change direction and try again (hit)
+    geo.set_dir({1, 0, 0});
+    next = geo.find_next_step(from_cm(50));
+    EXPECT_SOFT_EQ(5, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_FALSE(geo.is_outside());
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("world", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
+    if (geo.is_on_boundary() && CELERITAS_DEBUG)
+    {
+        // Don't check the safety distance on the boundary; we know by
+        // definition it's zero
+        EXPECT_THROW(geo.find_safety(), DebugError);
+    }
+
+    // Scatter to tangent along boundary
+    geo.set_dir({1e-8, 1, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(500, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    geo.move_internal(from_cm(2));
+
+    // Scatter back inside
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_NEAR(2e-8, to_cm(next.distance), 1e-4);
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.cross_boundary();
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+}
+
+//---------------------------------------------------------------------------//
 // SIMPLE CMS TEST
 //---------------------------------------------------------------------------//
 

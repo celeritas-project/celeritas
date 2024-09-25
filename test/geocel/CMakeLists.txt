@@ -76,16 +76,12 @@ if(CELERITAS_USE_VecGeom)
   set(_vecgeom_tests)
   if(VecGeom_GDML_FOUND)
     list(APPEND _vecgeom_tests
+      "TwoBoxesTest.*"
       "SimpleCmsTest.*"
+      "FourLevelsTest.*"
+      "SolidsTest.*"
+      "CmseTest.*"
     )
-    if(NOT VecGeom_SURF_FOUND)
-      # TODO: vecgeom surface doesn't support some of these shapes
-      list(APPEND _vecgeom_tests
-        "FourLevelsTest.*"
-        "SolidsTest.*"
-        "CmseTest.*"
-      )
-    endif()
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
