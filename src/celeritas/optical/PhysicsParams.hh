@@ -20,19 +20,35 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class ActionRegistry;
 
 namespace optical
 {
+//---------------------------------------------------------------------------//
 struct ModelBuilder;
 class Model;
 
 //---------------------------------------------------------------------------//
-
+/*!
+ * Options to construct optical physics.
+ */
 struct PhysicsParamsOptions
 {
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Manage physics data for optical models.
+ *
+ * PhysicsParams takes a vector of optical ModelBuilders, which are used
+ * to construct models that will be registered in the action registry.
+ * MFP tables for optical materials are constructed for each model, and
+ * their mappings are constructed in PhysicsParamsData.
+ *
+ * The following actions are also constructed:
+ *  - "discrete-select": sample models by XS for a discrete interaction
+ */
 class PhysicsParams : public ParamsDataInterface<PhysicsParamsData>
 {
   public:
@@ -60,22 +76,14 @@ class PhysicsParams : public ParamsDataInterface<PhysicsParamsData>
 
     //// HOST ACCESSORS ////
 
-    // Number of optical models
+    //! Number of optical models
     inline ModelId::size_type num_models() const { return models_.size(); }
 
     // Get a model
-    inline SPConstModel const& model(ModelId mid) const
-    {
-        CELER_EXPECT(mid && mid < num_models());
-        return models_[mid.get()];
-    }
+    inline SPConstModel const& model(ModelId mid) const;
 
     // Get the action IDs for all models
-    inline ActionIdRange model_actions() const
-    {
-        auto offset = host_ref().scalars.model_to_action;
-        return {ActionId{offset}, ActionId{offset + this->num_models()}};
-    }
+    inline ActionIdRange model_actions() const;
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -88,18 +96,44 @@ class PhysicsParams : public ParamsDataInterface<PhysicsParamsData>
     using HostValue = HostVal<PhysicsParamsData>;
     using VecModels = std::vector<SPConstModel>;
 
+    // Actions
     SPAction discrete_action_;
-
     VecModels models_;
 
+    // Host/device storage
     CollectionMirror<PhysicsParamsData> data_;
 
+    //!@{
+    //! \name Data construction helper functions
     VecModels
     build_models(std::vector<SPConstModelBuilder> const& model_builders,
                  ActionRegistry& action_reg) const;
     void build_options(Options const& options, HostValue& host_data) const;
     void build_mfps(HostValue& host_data) const;
+    //!@}
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get optical model associated with the given identifier.
+ */
+auto PhysicsParams::model(ModelId mid) const -> SPConstModel const&
+{
+    CELER_EXPECT(mid && mid < num_models());
+    return models_[mid.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action identifiers for all optical models.
+ */
+auto PhysicsParams::model_actions() const -> ActionIdRange
+{
+    auto offset = host_ref().scalars.model_to_action;
+    return {ActionId{offset}, ActionId{offset + this->num_models()}};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

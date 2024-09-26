@@ -19,7 +19,10 @@ namespace celeritas
 {
 namespace optical
 {
-
+//---------------------------------------------------------------------------//
+/*!
+ * TODO: Temporary discrete select action!
+ */
 class DiscreteSelectAction : public ConcreteAction
 {
   public:
@@ -31,6 +34,17 @@ class DiscreteSelectAction : public ConcreteAction
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct physics parameters from imported and shared data.
+ *
+ * The following actions are first constructed:
+ *  - "discrete-select": sample models by XS for discrete interaction
+ *
+ * Optical models provided by the model builders input are then
+ * constructed and registered in the action registry. Finally,
+ * scalar data, options, and MFP tables are constructed on the
+ * physics data storage.
+ */
 PhysicsParams::PhysicsParams(Input input)
 {
     CELER_EXPECT(input.action_registry);
@@ -61,6 +75,12 @@ PhysicsParams::PhysicsParams(Input input)
                  == host_ref().scalars.discrete_action());
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Builds optical models from list of model builders.
+ *
+ * Models are created and registered in the action registry.
+ */
 auto PhysicsParams::build_models(std::vector<SPConstModelBuilder> const& builders,
                                  ActionRegistry& action_reg) const -> VecModels
 {
@@ -83,11 +103,23 @@ auto PhysicsParams::build_models(std::vector<SPConstModelBuilder> const& builder
     return models;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Builds optical physics options.
+ */
 void PhysicsParams::build_options(Options const& /* options */,
                                   HostValue& /* host_data */) const
 {
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Builds MFP tables for each optical model.
+ *
+ * Iterates over the constructed optical models and has them build their MFP
+ * grids for each optical material. These grids are then mapped to per-model
+ * value tables, and the mappings are stored in the optical PhysicsData.
+ */
 void PhysicsParams::build_mfps(HostValue& data) const
 {
     auto build_grid_id = make_builder(&data.grid_ids);

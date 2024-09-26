@@ -20,19 +20,55 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-auto ModelImporter::get_available_model_classes(SPConstImported models)
-    -> std::set<IMC>
+// IMPORTED MODEL HELPERS
+//---------------------------------------------------------------------------//
+/*!
+ * Helper class used to build optical models that only require an action ID
+ * and imported data.
+ */
+template<class M>
+class ImportedModelBuilder : public ModelBuilder
 {
-    std::set<IMC> model_classes;
+  public:
+    //!@{
+    //! \name Type aliases
+    using SPModel = std::shared_ptr<Model>;
+    //!@}
 
-    for (auto mid : range(ModelId{models->num_models()}))
+  public:
+    //! Construct builder with data to be provided to the model
+    ImportedModelBuilder(ImportedModelAdapter imported) : imported_(imported)
     {
-        model_classes.insert(models->model(mid).model_class);
     }
 
-    return model_classes;
-}
+    //! Construct model with given action identifier
+    SPModel operator()(ActionId id) const override
+    {
+        return std::make_shared<M>(id, imported_);
+    }
 
+  private:
+    ImportedModelAdapter imported_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct built-in ModelBuilders for the given import model class.
+ */
+template<class M>
+std::shared_ptr<ModelBuilder> build_builtin(ImportedModelAdapter imported)
+{
+    return std::make_shared<ImportedModelBuilder<M>>(std::move(imported));
+}
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from imported data.
+ *
+ * The UserBuildMap allows the default behavior to be overridden when
+ * constructing a given optical model.
+ */
 ModelImporter::ModelImporter(SPConstImported data,
                              UserBuildMap user_build,
                              Options /* options */)
@@ -41,11 +77,24 @@ ModelImporter::ModelImporter(SPConstImported data,
     CELER_EXPECT(input_.models);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from imported data without custom user builders.
+ */
 ModelImporter::ModelImporter(SPConstImported data, Options options)
     : ModelImporter(std::move(data), UserBuildMap{}, options)
 {
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Create an optical model builder for the given ImportModelClass.
+ *
+ * First, attempts to use custom user build functions if available. Otherwise,
+ * default built-in methods are attempted.
+ *
+ * Returned values may be null, indicated the model should not be built.
+ */
 auto ModelImporter::operator()(IMC imc) const -> SPModelBuilder
 {
     // First, look for user supplied models
@@ -59,24 +108,36 @@ auto ModelImporter::operator()(IMC imc) const -> SPModelBuilder
 
     // Fallback to built-in models
 
-    using BuildMemFn = SPModelBuilder (ModelImporter::*)(IMC) const;
-    static std::unordered_map<IMC, BuildMemFn> const builtin_build{
-        {IMC::absorption, &ModelImporter::build_builtin<AbsorptionModel>},
-        {IMC::rayleigh, &ModelImporter::build_builtin<RayleighModel>}};
+    // Find imported model ID for the built-in model
+    auto const& builtin_id_map = input_.models->builtin_id_map();
+    auto data_iter = builtin_id_map.find(imc);
+    CELER_VALIDATE(data_iter != builtin_id_map.end(),
+                   << "no imported data for optical model '" << to_cstring(imc)
+                   << "'");
+    ImportedModelAdapter model_data{input_.models, data_iter->second};
 
-    {
-        auto iter = builtin_build.find(imc);
-        CELER_VALIDATE(iter != builtin_build.end(),
-                       << "cannot create builder for unsupported optical "
-                          "model '"
-                       << to_cstring(imc) << "'");
-        BuildMemFn build_impl{iter->second};
-        auto result = (this->*build_impl)(imc);
-        CELER_ENSURE(result);
-        return result;
-    }
+    // Find the construction method for the built-in model
+    using BuildFn = SPModelBuilder (*)(ImportedModelAdapter);
+    static std::unordered_map<IMC, BuildFn> const builtin_build{
+        {IMC::absorption, &build_builtin<AbsorptionModel>},
+        {IMC::rayleigh, &build_builtin<RayleighModel>}};
+
+    auto build_iter = builtin_build.find(imc);
+    CELER_VALIDATE(build_iter != builtin_build.end(),
+                   << "cannot create builder for unsupported optical model '"
+                   << to_cstring(imc) << "'");
+    BuildFn build_impl{build_iter->second};
+
+    // Create the model builder
+    auto result = (*build_impl)(std::move(model_data));
+    CELER_ENSURE(result);
+    return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Warn that the optical model is missing and return a null result.
+ */
 auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const
     -> SPModelBuilder
 {

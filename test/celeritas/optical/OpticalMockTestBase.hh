@@ -47,6 +47,7 @@ class OpticalMockTestBase : virtual public GlobalTestBase
 
   protected:
     SPConstOpticalPhysics build_optical_physics();
+    SPConstOpticalMaterial build_optical_material() override;
 
     SPConstGeo build_geometry() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
@@ -62,10 +63,6 @@ class OpticalMockTestBase : virtual public GlobalTestBase
     SPConstWentzelOKVI build_wentzel() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstCerenkov build_cerenkov() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstOpticalMaterial build_optical_material() override
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
     SPConstScintillation build_scintillation() override
     {
         CELER_ASSERT_UNREACHABLE();

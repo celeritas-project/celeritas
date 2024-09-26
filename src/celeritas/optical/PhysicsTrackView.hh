@@ -22,12 +22,10 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Optical physics data for a track.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    PhysicsTrackView ...;
-   \endcode
+ * The physics track data provides an interface for data and operations common
+ * to most optical models.
  */
 class PhysicsTrackView
 {

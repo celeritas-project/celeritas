@@ -9,12 +9,11 @@
 
 #include <memory>
 
-#include "ImportedModelAdapter.hh"
-
 namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
 class Model;
 
 //---------------------------------------------------------------------------//
@@ -28,34 +27,8 @@ struct ModelBuilder
     using SPModel = std::shared_ptr<Model>;
     //!@}
 
+    //! Construct model with given action identifer
     virtual SPModel operator()(ActionId id) const = 0;
-};
-
-/*!
- * Helper class used to build optical models that only require an action ID
- * and imported data.
- */
-template<class M>
-class ImportedModelBuilder : public ModelBuilder
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPModel = std::shared_ptr<Model>;
-    //!@}
-
-  public:
-    ImportedModelBuilder(ImportedModelAdapter imported) : imported_(imported)
-    {
-    }
-
-    SPModel operator()(ActionId id) const override
-    {
-        return std::make_shared<M>(id, imported_);
-    }
-
-  private:
-    ImportedModelAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

@@ -15,10 +15,16 @@ namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Enumerator for available optical physics models.
+ *
+ * This enum is used to identify the optical model that imported model MFP
+ * tables correspond to.
+ */
 enum class ImportModelClass
 {
     other,
-    // Optical
     absorption,
     rayleigh,
     wls,
@@ -26,11 +32,19 @@ enum class ImportModelClass
     size_
 };
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Get the string form of one of the enumerations
 char const* to_cstring(ImportModelClass imc);
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 
 //---------------------------------------------------------------------------//
 /*!
+ * Imported data for an optical physics model.
  */
 struct ImportOpticalModel
 {

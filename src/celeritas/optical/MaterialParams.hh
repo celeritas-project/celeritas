@@ -65,6 +65,12 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // Construct with optical property data
     explicit MaterialParams(Input const& inp);
 
+    //! Number of optical materials
+    OpticalMaterialId::size_type num_materials() const
+    {
+        return num_materials_;
+    }
+
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
@@ -72,6 +78,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
+    OpticalMaterialId::size_type num_materials_;
+
     CollectionMirror<MaterialParamsData> data_;
 };
 

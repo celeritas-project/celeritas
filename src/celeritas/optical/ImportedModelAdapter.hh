@@ -20,45 +20,52 @@ namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
 /*!
  * Collection of all imported data needed to build optical models.
+ *
+ * Only one imported model data for built-in optical models is expected.
  */
 class ImportedModels
 {
   public:
-    //! Construct imported model data from general imported data
+    //!@{
+    //! \name Type aliases
+    using IMC = ImportModelClass;
+    using ImportedModelId = OpaqueId<ImportOpticalModel>;
+    using ModelIdMap = std::unordered_map<IMC, ImportedModelId>;
+    //!@}
+
+  public:
+    // Built-in optical model classes
+    constexpr static std::array<IMC, 2> builtin_model_classes();
+
+    // Construct imported model data from general imported data
     static std::shared_ptr<ImportedModels> from_import(ImportData const&);
 
-    //! Construct imported model data directly
+    // Construct imported model data directly
     explicit ImportedModels(std::vector<ImportOpticalModel> models,
                             std::vector<ImportOpticalMaterial> materials);
 
-    //! Get imported model data from the given identifier
-    inline ImportOpticalModel const& model(ModelId mid) const
-    {
-        CELER_EXPECT(mid && mid.get() < models_.size());
-        return models_[mid.get()];
-    }
+    // Get imported model data from the given identifier
+    ImportOpticalModel const& model(ImportedModelId mid) const;
 
-    //! Number of imported models
-    inline ModelId::size_type num_models() const { return models_.size(); }
+    // Number of imported models
+    ImportedModelId::size_type num_models() const;
 
-    //! Get imported material data from the given identifier
-    inline ImportOpticalMaterial const& material(OpticalMaterialId mat_id) const
-    {
-        CELER_EXPECT(mat_id && mat_id.get() < materials_.size());
-        return materials_[mat_id.get()];
-    }
+    // Get imported material data from the given identifier
+    ImportOpticalMaterial const& material(OpticalMaterialId mat_id) const;
 
-    //! Number of imported materials
-    inline OpticalMaterialId::size_type num_materials() const
-    {
-        return materials_.size();
-    }
+    // Number of imported materials
+    OpticalMaterialId::size_type num_materials() const;
+
+    // Mapping from built-in model class to imported model ID
+    ModelIdMap const& builtin_id_map() const;
 
   private:
     std::vector<ImportOpticalModel> models_;
     std::vector<ImportOpticalMaterial> materials_;
+    ModelIdMap builtin_id_map_;
 };
 
 //---------------------------------------------------------------------------//
@@ -78,79 +85,34 @@ class ImportedModelAdapter
   public:
     //!@{
     //! \name Type aliases
+    using ImportedModelId = ImportedModels::ImportedModelId;
     using SPConstImported = std::shared_ptr<ImportedModels const>;
     //!@}
 
   public:
-    ImportedModelAdapter(SPConstImported imported, ModelId mid)
-        : model_(mid), imported_(imported)
-    {
-        CELER_EXPECT(imported_);
-        CELER_EXPECT(model_ && model_ < imported_->num_models());
-    }
+    // Construct adapter for given imported model identifier
+    ImportedModelAdapter(SPConstImported imported, ImportedModelId mid);
 
-    inline ImportOpticalMaterial const& material(OpticalMaterialId mat) const
-    {
-        CELER_EXPECT(mat && mat < imported_->num_materials());
-        return imported_->material(mat);
-    }
+    // Imported optical material data
+    ImportOpticalMaterial const& material(OpticalMaterialId mat) const;
 
-    inline OpticalMaterialId::size_type num_materials() const
-    {
-        return imported_->num_materials();
-    }
+    // Number of imported optical materials
+    OpticalMaterialId::size_type num_materials() const;
 
-    inline ImportPhysicsVector const* imported_mfp(OpticalMaterialId mat) const
-    {
-        CELER_EXPECT(mat && mat < imported_->num_materials());
+    // Get imported MFP grid, if available
+    ImportPhysicsVector const* imported_mfp(OpticalMaterialId mat) const;
 
-        ImportPhysicsVector const* mfp = nullptr;
+    // Get material MFP grid, if available
+    ImportPhysicsVector const* material_mfp(OpticalMaterialId mat) const;
 
-        auto const& model = this->model();
-        if (mat.get() < model.mfps.size() && model.mfps[mat.get()])
-        {
-            mfp = &model.mfps[mat.get()];
-        }
-
-        return mfp;
-    }
-
-    inline ImportPhysicsVector const* material_mfp(OpticalMaterialId mat) const
-    {
-        switch (this->model().model_class)
-        {
-            case ImportModelClass::absorption:
-                return &this->material(mat).absorption.absorption_length;
-            case ImportModelClass::rayleigh:
-                return &this->material(mat).rayleigh.mfp;
-            default:
-                return nullptr;
-        }
-    }
-
-    inline ImportPhysicsVector const* preferred_mfp(OpticalMaterialId mat) const
-    {
-        if (auto const* mfp = this->imported_mfp(mat))
-        {
-            return mfp;
-        }
-        else if (auto const* mfp = this->material_mfp(mat))
-        {
-            return mfp;
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
+    // Get preferred MFP based on available grids
+    ImportPhysicsVector const* preferred_mfp(OpticalMaterialId mat) const;
 
   private:
-    inline ImportOpticalModel const& model() const
-    {
-        return imported_->model(model_);
-    }
+    // Model this adapter refers to
+    ImportOpticalModel const& model() const;
 
-    ModelId model_;
+    ImportedModelId model_;
     SPConstImported imported_;
 };
 

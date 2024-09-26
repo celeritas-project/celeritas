@@ -36,22 +36,22 @@ class Model : public StepActionInterface<CoreParams, CoreState>,
               public ConcreteAction
 {
   public:
-    // Construct with defaults
+    //! Construct with defaults
     Model(ActionId id, std::string const& label, std::string const& description)
         : ConcreteAction(id, label, description)
     {
     }
 
-    // Virtual destructor for polymorphic deletion
+    //! Virtual destructor for polymorphic deletion
     virtual ~Model() = default;
 
-    // Action order for optical models is always post-step
+    //! Action order for optical models is always post-step
     StepActionOrder order() const override final
     {
         return StepActionOrder::post;
     }
 
-    // Build mean free path grids for all optical materials
+    //! Build mean free path grids for all optical materials
     virtual void build_mfps(detail::MfpBuilder build) const = 0;
 };
 

@@ -15,6 +15,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/io/ImportOpticalModel.hh"
 
 #include "ModelBuilder.hh"
 #include "Types.hh"
@@ -29,7 +30,6 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 class Model;
-class ImportModel;
 class ImportedModels;
 
 //---------------------------------------------------------------------------//
@@ -41,7 +41,14 @@ struct ModelImporterOptions
 };
 
 //---------------------------------------------------------------------------//
-
+/*!
+ * Construct ModelBuilders from imported data.
+ *
+ * Provides an interface for creating ModelBuilders for built-in models from
+ * imported data. Users may provide custom build functions to override the
+ * default behavior. Custom user models should be handled elsewhere since
+ * imported models do not distinguish by optical ImportModelClass.
+ */
 class ModelImporter
 {
   public:
@@ -67,46 +74,28 @@ class ModelImporter
     //!@}
 
   public:
-    static std::set<IMC> get_available_model_classes(SPConstImported models);
-
-    //! Construct from imported and shared data
+    // Construct from imported data
     ModelImporter(SPConstImported models,
                   UserBuildMap user_build,
                   Options options);
 
-    //! Construct from imported and shared data without custom user builders
+    // Construct from imported and shared data without custom user builders
     ModelImporter(SPConstImported models, Options options);
 
-    //! Create an optical model from the data
+    // Create an optical model builder for the given ImportModelClass
     SPModelBuilder operator()(IMC imc) const;
 
   private:
     UserBuildInput input_;
     UserBuildMap user_build_map_;
-
-    template<class M>
-    SPModelBuilder build_builtin(IMC imc) const
-    {
-        SPModelBuilder builder = nullptr;
-
-        for (auto model_id : range(ModelId{input_.models->num_models()}))
-        {
-            if (input_.models->model(model_id).model_class == imc)
-            {
-                builder = std::make_shared<ImportedModelBuilder<M>>(
-                    ImportedModelAdapter{input_.models, model_id});
-                break;
-            }
-        }
-
-        CELER_ENSURE(builder);
-        return builder;
-    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Warn about a missing optical model and deliberately skip it.
+ *
+ * May be provided as a custom user build function to ModelImporter to
+ * skip the construction of an optical model builder.
  */
 struct WarnAndIgnoreModel
 {

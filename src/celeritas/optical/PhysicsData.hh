@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/optical/Types.hh"
@@ -23,6 +24,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 using ValueGrid = GenericGridRecord;
 using ValueGridId = OpaqueId<ValueGrid>;
+using ValueTableId = OpaqueId<struct ValueTable>;
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -38,8 +40,10 @@ struct ValueTable
     explicit CELER_FUNCTION operator bool() const { return !grids.empty(); }
 };
 
-using ValueTableId = OpaqueId<ValueTable>;
-
+//---------------------------------------------------------------------------//
+/*!
+ * Physics tables for a specific optical model.
+ */
 struct ModelTables
 {
     ValueTableId mfp_table;
@@ -204,11 +208,11 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
                    HostCRef<PhysicsParamsData> const& params,
                    size_type size)
 {
-    CELER_ASSERT(state);
+    CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
 
-    resize(&state->states, size);
-    resize(&state->per_model_xs, params.scalars.num_models * size);
+    ::celeritas::resize(&state->states, size);
+    ::celeritas::resize(&state->per_model_xs, params.scalars.num_models * size);
 }
 
 //---------------------------------------------------------------------------//

@@ -84,6 +84,7 @@ MaterialParams::from_import(ImportData const& data,
  * Construct with optical property data.
  */
 MaterialParams::MaterialParams(Input const& inp)
+    : num_materials_(inp.properties.size())
 {
     CELER_EXPECT(!inp.properties.empty());
     CELER_EXPECT(!inp.volume_to_mat.empty());
