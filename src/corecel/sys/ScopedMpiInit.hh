@@ -14,6 +14,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * RAII class for initializing and finalizing MPI.
+ *
+ * \note Unlike the MpiCommunicator and MpiOperations class, it is not
+ * necessary to link against MPI to use this class.
  */
 class ScopedMpiInit
 {
@@ -44,7 +47,11 @@ class ScopedMpiInit
     CELER_DELETE_COPY_MOVE(ScopedMpiInit);
     //!@}
 
+    // Shortcut for comm_world().size() > 1
+    bool is_world_multiprocess() const;
+
   private:
+    bool do_finalize_{false};
     static Status status_;
 };
 

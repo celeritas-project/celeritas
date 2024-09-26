@@ -166,6 +166,10 @@ if(CELERITAS_USE_HepMC3)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
 endif()
 
+if(CELERITAS_USE_MPI)
+  list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
+endif()
+
 if(CELERITAS_USE_OpenMP)
   list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()

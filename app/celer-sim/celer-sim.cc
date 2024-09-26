@@ -33,7 +33,6 @@
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -166,17 +165,13 @@ void print_usage(std::string_view exec_name)
  */
 int main(int argc, char* argv[])
 {
-    using celeritas::MpiCommunicator;
     using celeritas::ScopedMpiInit;
     using celeritas::to_string;
-    using std::cerr;
     using std::cout;
     using std::endl;
 
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    auto const& comm = celeritas::comm_world();
-
-    if (comm.size() > 1)
+    if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "TODO: this app cannot run in parallel";
         return EXIT_FAILURE;
@@ -212,7 +207,7 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    activate_device(comm);
+    celeritas::activate_device();
 
     std::ifstream infile;
     std::istream* instream = nullptr;
