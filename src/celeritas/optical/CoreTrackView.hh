@@ -50,7 +50,7 @@ class CoreTrackView
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
 
-    // Return a particle view
+    // Return a physics view
     inline CELER_FUNCTION TrackView physics() const;
 
     // Return an RNG engine
