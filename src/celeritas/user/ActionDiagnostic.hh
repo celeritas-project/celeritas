@@ -50,6 +50,10 @@ class ActionDiagnostic final : public CoreStepActionInterface,
     //!@}
 
   public:
+    // Construct and add to core params
+    static std::shared_ptr<ActionDiagnostic>
+    make_and_insert(CoreParams const& core);
+
     // Construct with ID, deferring other data till later
     explicit ActionDiagnostic(ActionId id);
 

@@ -37,6 +37,10 @@ class StepDiagnostic final : public CoreStepActionInterface,
     //!@}
 
   public:
+    // Construct and add to core params
+    static std::shared_ptr<StepDiagnostic>
+    make_and_insert(CoreParams const& core, size_type max_bins);
+
     //! Construct with particle data
     StepDiagnostic(ActionId id,
                    SPConstParticle particle,
