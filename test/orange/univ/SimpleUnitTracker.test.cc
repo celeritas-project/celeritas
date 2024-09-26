@@ -129,6 +129,12 @@ class FiveVolumesTest : public SimpleUnitTrackerTest
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }
 };
 
+#define ConeTest TEST_IF_CELERITAS_GEANT_AND_DOUBLE(ConeTest)
+class ConeTest : public SimpleUnitTrackerTest
+{
+    void SetUp() override { this->build_gdml_geometry("cone.gdml"); }
+};
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURE IMPLEMENTATION
 //---------------------------------------------------------------------------//
@@ -965,6 +971,22 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
+}
+
+TEST_F(ConeTest, safety)
+{
+    // Check safety distance within a cone, where simple safety is not
+    // supported
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    LocalVolumeId vol1 = ui.local_volume(this->find_volume("vol1")).volume;
+
+    // In the center of the cone, the safety distance should be the radius of
+    // the cone
+    EXPECT_NEAR(13, tracker.safety({0., 0., 0.}, vol1), 1E-3);
+
+    // Outside the inner part of the OBZ, the safety distance should be zero
+    EXPECT_EQ(0., tracker.safety({0., 0., 1.}, vol1));
 }
 
 //---------------------------------------------------------------------------//

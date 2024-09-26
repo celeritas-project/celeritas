@@ -91,6 +91,13 @@
 #    define TEST_IF_CELERITAS_GEANT(name) DISABLED_##name
 #endif
 
+//! Construct a test name that is disabled GEANT4 is disable or realtype=float
+#if CELERITAS_USE_GEANT4 && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+#    define TEST_IF_CELERITAS_GEANT_AND_DOUBLE(name) name
+#else
+#    define TEST_IF_CELERITAS_GEANT_AND_DOUBLE(name) DISABLED_##name
+#endif
+
 //! Construct a test name that is disabled when ROOT is disabled
 #if CELERITAS_USE_ROOT
 #    define TEST_IF_CELERITAS_USE_ROOT(name) name

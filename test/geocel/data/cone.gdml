@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!-- Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers. -->
+<!-- See the top-level COPYRIGHT file for details. -->
+<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
+<!-- \file cylinders.gdml -->
+<!-- \brief three concentric cylinders -->
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1"/>
+    </isotope>
+    <element name="H">
+      <fraction n="1" ref="H1"/>
+    </element>
+    <material name="lo density celerogen" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-20"/>
+      <fraction n="1" ref="H"/>
+    </material>
+    <material name="hi density celerogen" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-19"/>
+      <fraction n="1" ref="H"/>
+    </material>
+    <material name="celer composite" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="173"/>
+      <D unit="g/cm3" value="1"/>
+      <fraction n="0.1" ref="H"/>
+      <fraction n="0.3" ref="C"/>
+      <fraction n="0.6" ref="O"/>
+    </material>
+  </materials>
+
+<define>
+  <position name="origin" unit="cm" x="0" y="0" z="0" />
+</define>
+
+<solids>
+  <box name="OuterBox" lunit="cm" x="200" y="200" z="200"/>
+  <cone name="cone1" rmin1="0" rmax1="13" rmin2="0" rmax2="0" z="50" deltaphi="360" aunit="deg" lunit="cm"/>
+  <tube name="cyl2" rmax="20" z="50" deltaphi="360" aunit="deg" lunit="cm"/>
+  <tube name="cyl3" rmax="30" z="50" deltaphi="360" aunit="deg" lunit="cm"/>
+</solids>
+
+<structure>
+  <volume name="vol1">
+    <solidref ref="cone1"/>
+    <materialref ref="lo density celerogen"/>
+  </volume>
+  <volume name="vol2">
+    <solidref ref="cyl2"/>
+    <materialref ref="hi density celerogen"/>
+  </volume>
+  <volume name="vol3">
+    <solidref ref="cyl3"/>
+    <materialref ref="celer composite"/>
+  </volume>
+
+  <volume name="World">
+    <solidref ref="OuterBox"/>
+    <materialref ref="lo density celerogen"/>
+    <physvol>
+      <volumeref ref="vol1"/>
+      <position ref="origin"/>
+    </physvol>
+    <physvol>
+      <volumeref ref="vol2"/>
+      <position ref="origin"/>
+    </physvol>
+    <physvol>
+      <volumeref ref="vol3"/>
+      <position ref="origin"/>
+    </physvol>
+  </volume>
+</structure>
+
+<setup name="Default" version="1.0">
+  <world ref="World"/>
+</setup>
+
+
+</gdml>
+

@@ -11,6 +11,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 #include "orange/detail/BIHTraverser.hh"
+#include "orange/detail/OrientedBoundingZone.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
@@ -100,6 +101,7 @@ class SimpleUnitTracker
 
     ParamsRef const& params_;
     SimpleUnitRecord const& unit_record_;
+    detail::OrientedBoundingZone::StoragePointers obz_storage_;
 
     //// METHODS ////
 
@@ -143,7 +145,9 @@ class SimpleUnitTracker
  */
 CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
-    : params_(params), unit_record_(params.simple_units[suid])
+    : params_(params)
+    , unit_record_(params.simple_units[suid])
+    , obz_storage_({&params_.transforms, &params_.reals})
 {
     CELER_EXPECT(params_);
 }
@@ -301,8 +305,12 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
     if (!vol.simple_safety())
     {
         // Has a tricky surface: we can't use the simple algorithm to calculate
-        // the safety, so return a conservative estimate.
-        return 0;
+        // the safety, use the oriented bounding zone
+        auto const& obz_id
+            = params_.volume_records[unit_record_.volumes[volid]].obz_id;
+        detail::OrientedBoundingZone obz(params_.obz_records[obz_id],
+                                         obz_storage_);
+        return obz.calc_safety_inside(pos);
     }
 
     // Calculate minimim distance to all local faces
