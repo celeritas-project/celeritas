@@ -240,12 +240,7 @@ int main(int argc, char* argv[])
     using celeritas::ScopedMpiInit;
 
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    MpiCommunicator comm = [] {
-        if (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled)
-            return MpiCommunicator{};
-
-        return MpiCommunicator::comm_world();
-    }();
+    auto const& comm = celeritas::comm_world();
 
     if (comm.size() > 1)
     {

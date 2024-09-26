@@ -9,7 +9,6 @@
 
 #include "MpiCommunicator.hh"
 
-#include "detail/MpiCommunicatorImpl.hh"
 #include "detail/MpiCommunicatorImpl.hh"  // IWYU pragma: keep
 
 namespace celeritas
@@ -27,6 +26,8 @@ namespace celeritas
  * A "null" communicator (the default) does not use MPI calls and can be
  * constructed without calling \c MPI_Init or having MPI compiled. It will act
  * like \c MPI_Comm_Self but will not actually use MPI calls.
+ *
+ * \note This does not perform any copying or freeing of MPI communiators.
  */
 class MpiCommunicator
 {
