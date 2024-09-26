@@ -30,6 +30,7 @@
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MemRegistry.hh"
 #include "corecel/sys/MemRegistryIO.json.hh"
+#include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
@@ -236,6 +237,14 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     if (!input_.aux_reg)
     {
         input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
+    if (!input_.mpi_comm)
+    {
+        // Create with a non-owning reference to the world communicator. This
+        // is safe since the world comm is a static variable whose lifetime
+        // should extend beyond anything that uses shared params.
+        input_.mpi_comm.reset(&celeritas::comm_world(),
+                              [](MpiCommunicator const*) {});
     }
 
     ScopedMem record_mem("CoreParams.construct");
