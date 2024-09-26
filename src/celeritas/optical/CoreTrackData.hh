@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/TrackData.hh
+//! \file celeritas/optical/CoreTrackData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,6 +14,7 @@
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 
+#include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
@@ -120,7 +121,7 @@ struct CoreStateData
     using Items = StateCollection<T, W, M>;
 
     GeoStateData<W, M> geometry;
-    Items<OpticalMaterialId> materials;
+    // TODO: should we cache the material ID?
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;  // TODO: has a few things we don't need
@@ -135,8 +136,7 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && !materials.empty() && physics && rng && sim && init
-               && stream_id;
+        return geometry && physics && rng && sim && init && stream_id;
     }
 
     //! Assign from another set of data
@@ -145,7 +145,6 @@ struct CoreStateData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
-        materials = other.materials;
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;

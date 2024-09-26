@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/TrackData.cc
+//! \file celeritas/optical/CoreTrackData.cc
 //---------------------------------------------------------------------------//
-#include "TrackData.hh"
+#include "CoreTrackData.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
 
@@ -35,7 +35,6 @@ void resize(CoreStateData<Ownership::value, M>* state,
     // Geant4 state is stream-local
     resize(&state->geometry, params.geometry, stream_id, size);
 #endif
-    resize(&state->materials, size);
     resize(&state->physics, params.physics, size);
     resize(&state->rng, params.rng, stream_id, size);
     resize(&state->sim, params.sim, size);
