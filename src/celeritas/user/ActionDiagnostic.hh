@@ -27,6 +27,11 @@ class ActionRegistry;
 //---------------------------------------------------------------------------//
 /*!
  * Tally post-step actions for each particle type.
+ *
+ * This adds an \c action-diagnostic entry to the \c result category of the
+ * main Celeritas output that has the number of times a post-step action was
+ * selected, grouped by particle type. It integrates over all steps and all
+ * events.
  */
 class ActionDiagnostic final : public CoreStepActionInterface,
                                public CoreBeginRunActionInterface,

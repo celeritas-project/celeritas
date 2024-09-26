@@ -19,4 +19,5 @@ implementation for the Celeritas codebase.
    core-physics/propagation.rst
    core-physics/rng.rst
    core-physics/import.rst
+   core-physics/diagnostics.rst
 

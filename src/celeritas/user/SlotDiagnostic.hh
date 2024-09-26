@@ -44,6 +44,9 @@ class ParticleParams;
  * \todo Instead of writing separate files, we should probably use a
  * multi-stream output manager (not yet implemented) to save the result for the
  * end.
+ *
+ * \note To plot the resulting files, see \c
+ * scripts/user/plot-slot-diagnostic.py
  */
 class SlotDiagnostic final : public CoreStepActionInterface,
                              public AuxParamsInterface

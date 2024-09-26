@@ -134,7 +134,7 @@ void ActionDiagnostic::output(JsonPimpl* j) const
  * Get the nonzero diagnostic results accumulated over all streams.
  *
  * This builds a map of particle/action combinations to the number of
- * occurances over all events.
+ * occurrences over all events.
  */
 auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
 {
