@@ -134,10 +134,12 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(step_diagnostic);
     RI_LOAD_OPTION(step_diagnostic_bins);
+    RI_LOAD_OPTION(slot_diagnostic_prefix);
 
 #undef RI_LOAD_OPTION
 #undef RI_LOAD_REQUIRED
 
+    // TODO: move these validation checks to GlobalSetup
     CELER_VALIDATE(v.event_file.empty() == static_cast<bool>(v.primary_options),
                    << "either a HepMC3 filename or options to generate "
                       "primaries must be provided (but not both)");
@@ -212,6 +214,7 @@ void to_json(nlohmann::json& j, RunInput const& v)
 
     RI_SAVE(step_diagnostic);
     RI_SAVE_OPTION(step_diagnostic_bins);
+    RI_SAVE_OPTION(slot_diagnostic_prefix);
 
 #undef RI_SAVE_OPTION
 #undef RI_SAVE

@@ -87,15 +87,14 @@ inp = {
     "step_diagnostic_bins": 8,
 }
 
-with open(inp_file, "w") as f:
-    json.dump(inp, f, indent=1)
-
 kwargs = {}
 if use_celeritas:
     # IO through streams should work with celeritas or g4 as driver, but just
     # do it here as an example
     inp_file = "-"
     inp["output_file"] = "-"
+    inp["slot_diagnostic_prefix"] = f"slot-diag-{ext}-"
+
     env = dict(environ)
     kwargs = dict(
         input=json.dumps(inp).encode(),
@@ -103,6 +102,10 @@ if use_celeritas:
         env=env,
     )
 
+print(inp)
+
+with open(f"{problem_name}.inp.json", "w") as f:
+    json.dump(inp, f, indent=1)
 
 print("Running", exe, inp_file, file=stderr)
 result = subprocess.run([exe, inp_file], **kwargs)

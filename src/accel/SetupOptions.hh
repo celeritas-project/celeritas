@@ -168,6 +168,12 @@ struct SetupOptions
     //! \name Track init options
     TrackOrder track_order{TrackOrder::unsorted};
     //!@}
+
+    //!@{
+    //! \name Diagnostic setup
+    //! Filename base for slot diagnostics
+    std::string slot_diagnostic_prefix;
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
