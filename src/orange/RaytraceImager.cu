@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RaytraceImager.hh"
 
-#include "geocel/rasterize/RaytraceImager.cuda.t.hh"
+#include "geocel/rasterize/RaytraceImager.device.t.hh"
 
 #include "OrangeData.hh"
 #include "OrangeGeoTraits.hh"

@@ -45,7 +45,7 @@ void launch_limit_msc_step(CoreStepActionInterface const& action,
         detail::MscStepLimitApplier{UrbanMsc{msc_data}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "limit-step-msc-urban");
-    launch_kernel(params, state, action, execute_thread);
+    launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ void launch_propagate(CoreStepActionInterface const& action,
         detail::PropagationApplier{detail::LinearPropagatorFactory{}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "propagate-linear");
-    launch_kernel(params, state, action, execute_thread);
+    launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -80,7 +80,7 @@ void launch_apply_msc(CoreStepActionInterface const& action,
         detail::MscApplier{UrbanMsc{msc_data}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "scatter-msc-urban");
-    launch_kernel(params, state, action, execute_thread);
+    launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -97,7 +97,7 @@ void launch_update_time(CoreStepActionInterface const& action,
                                          detail::TimeUpdater{});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "update-time");
-    launch_kernel(params, state, action, execute_thread);
+    launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -115,7 +115,7 @@ void launch_apply_eloss(CoreStepActionInterface const& action,
         detail::ElossApplier{detail::FluctELoss{fluct}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "apply-eloss-fluct");
-    launch_kernel(params, state, action, execute_thread);
+    launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -132,7 +132,7 @@ void launch_apply_eloss(CoreStepActionInterface const& action,
         detail::ElossApplier{detail::MeanELoss{}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "apply-eloss-mean");
-    launch_kernel(params, state, action, execute_thread);
+    launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -148,7 +148,7 @@ void launch_update_track(CoreStepActionInterface const& action,
                                          detail::TrackUpdater{});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "update-track");
-    launch_kernel(params, state, action, execute_thread);
+    launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//

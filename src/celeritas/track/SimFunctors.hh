@@ -3,18 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/TrackExecutorImpl.hh
+//! \file celeritas/sim/SimFunctors.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/track/SimTrackView.hh"
+
+#include "SimTrackView.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 // CONDITIONS
@@ -61,5 +60,4 @@ struct IsAlongStepActionEqual
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
