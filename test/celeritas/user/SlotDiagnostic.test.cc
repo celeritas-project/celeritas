@@ -246,11 +246,11 @@ TEST_F(TestEm3SlotTest, DISABLED_long_demo)
 {
     if (celeritas::device())
     {
-        this->run<MemSpace::device>(2046, 256);
+        this->run<MemSpace::device>(512, 256);
     }
     else
     {
-        this->run<MemSpace::host>(2046, 256);
+        this->run<MemSpace::host>(512, 256);
     }
 }
 
