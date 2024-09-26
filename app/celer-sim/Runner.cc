@@ -66,6 +66,7 @@
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
+#include "celeritas/user/SlotDiagnostic.hh"
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/StepDiagnostic.hh"
@@ -605,6 +606,12 @@ void Runner::build_diagnostics(RunnerInput const& inp)
     {
         StepDiagnostic::make_and_insert(*core_params_,
                                         inp.step_diagnostic_bins);
+    }
+
+    if (!inp.slot_diagnostic_prefix.empty())
+    {
+        SlotDiagnostic::make_and_insert(*core_params_,
+                                        inp.slot_diagnostic_prefix);
     }
 }
 
