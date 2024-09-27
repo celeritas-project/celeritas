@@ -56,7 +56,7 @@ auto MuIonizationProcess::build_models(ActionIdIter start_id) const -> VecModel
     Applicability mm;
     mm.particle = particles_->find(pdg::mu_minus());
     mm.lower = zero_quantity();
-    mm.upper = detail::bragg_icru73qo_upper_limit();
+    mm.upper = options_.bragg_icru73qo_upper_limit;
     result.push_back(std::make_shared<ICRU73QOModel>(
         *start_id++, *particles_, SetApplicability{mm}));
 
@@ -72,7 +72,7 @@ auto MuIonizationProcess::build_models(ActionIdIter start_id) const -> VecModel
         // Older Geant4 versions use Bethe-Bloch at intermediate energies
         CELER_ASSERT(imported_.has_model(pdg::mu_plus(), IMC::bethe_bloch));
         mm.lower = mm.upper;
-        mm.upper = detail::bethe_bloch_upper_limit();
+        mm.upper = options_.bethe_bloch_upper_limit;
         mp.lower = mm.lower;
         mp.upper = mm.upper;
         result.push_back(std::make_shared<BetheBlochModel>(

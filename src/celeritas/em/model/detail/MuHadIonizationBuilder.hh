@@ -37,8 +37,8 @@ class MuHadIonizationBuilder
 
   public:
     // Construct with shared particle data and model label
-    explicit inline MuHadIonizationBuilder(ParticleParams const& particles,
-                                           std::string_view label);
+    inline MuHadIonizationBuilder(ParticleParams const& particles,
+                                  std::string_view label);
 
     // Construct model data from applicability
     inline MuHadIonizationData operator()(SetApplicability const&) const;

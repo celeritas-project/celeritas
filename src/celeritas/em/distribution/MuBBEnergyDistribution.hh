@@ -23,7 +23,28 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample the energy of the delta ray for the MuBetheBloch ionization model.
+ * Sample delta ray energy for the muon Bethe-Bloch ionization model.
+ 8
+ * This samples the energy according to the muon Bethe-Bloch model, as
+ * described in the Geant4 Physics Reference Manual release 11.2 section 11.1.
+ * At the higher energies for which this model is applied, leading radiative
+ * corrections are taken into account. The differential cross section can be
+ * written as
+ * \f[
+   \sigma(E, \epsilon) = \sigma_{BB}(E, \epsilon)\left[1 + \frac{\alpha}{2\pi}
+   \log \left(1 + \frac{2\epsilon}{m_e} \log \left(\frac{4 m_e E(E -
+   \epsilon}{m_{\mu}^2(2\epsilon + m_e)} \right) \right) \right].
+ * \f]
+ * \f$ \sigma_{BB}(E, \epsilon) \f$ is the Bethe-Bloch cross section, \f$ m_e
+ * \f$ is the electron mass, \f$ m_{\mu} \f$ is the muon mass, \f$ E \f$ is the
+ * total energy of the muon, and \f$ \epsilon = \omega + T \f$ is the energy
+ * transfer, where \f$ T \f$ is the kinetic energy of the electron and \f$
+ * \omega \f$ is the energy of the radiative gamma (which is neglected).
+ *
+ * As in the Bethe-Bloch model, the energy is sampled by factorizing the cross
+ * section as \f$ \sigma = C f(T) g(T) \f$, where \f$ f(T) = \frac{1}{T^2} \f$
+ * and \f$ T \in [T_{cut}, T_{max}] \f$. The energy is sampled from \f$ f(T)
+ * \f$ and accepted with probability \f$ g(T) \f$.
  */
 class MuBBEnergyDistribution
 {

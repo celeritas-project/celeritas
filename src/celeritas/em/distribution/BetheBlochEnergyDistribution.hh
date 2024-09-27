@@ -28,16 +28,21 @@ namespace celeritas
  *
  * This samples the energy according to the Bethe-Bloch model, as described in
  * the Geant4 Physics Reference Manual release 11.2 section 12.1.5. The
- * differential cross section can be factorized as
+ * Bethe-Bloch differential cross section can be written as
+ * \f[
+   \difd{\sigma}{T} = 2\pi r_e^2 mc^2 Z \frac{z_p^2}{\beta^2}\frac{1}{T^2}
+   \left[1 - \beta^2 \frac{T}{T_{max}} + s \frac{T^2}{2E^2} \right]
+ * \f]
+ * and factorized as
  * \f[
    \difd{\sigma}{T} = C f(T) g(T)
  * \f]
  * with \f$ T \in [T_{cut}, T_{max}] \f$, where \f$ f(T) = \frac{1}{T^2} \f$,
  * \f$ g(T) = 1 - \beta^2 \frac{T}{T_max} + s \frac{T^2}{2 E^2} \f$, \f$ T \f$
- * is the kinetic energy of the incident particle, \f$ E \f$ is the total
- * energy, and \f$ s \f$ is 0 for spinless particles and 1 otherwise. The
- * energy is sampled from \f$ f(T) \f$ and accepted with probability \f$ g(T)
- * \f$.
+ * is the kinetic energy of the electron, \f$ E \f$ is the total energy of the
+ * incident particle, and \f$ s \f$ is 0 for spinless particles and 1
+ * otherwise. The energy is sampled from \f$ f(T) \f$ and accepted with
+ * probability \f$ g(T) \f$.
  */
 class BetheBlochEnergyDistribution
 {

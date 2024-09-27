@@ -11,6 +11,7 @@
 #include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
 #include "celeritas/em/model/BetheBlochModel.hh"
+#include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
@@ -57,8 +58,9 @@ class BetheBlochTest : public InteractorHostTestBase
         auto const& particles = *this->particle_params();
         Applicability mu_minus;
         mu_minus.particle = particles.find(pdg::mu_minus());
-        mu_minus.lower = detail::bragg_icru73qo_upper_limit();
-        mu_minus.upper = detail::bethe_bloch_upper_limit();
+        mu_minus.lower
+            = MuIonizationProcess::Options{}.bragg_icru73qo_upper_limit;
+        mu_minus.upper = MuIonizationProcess::Options{}.bethe_bloch_upper_limit;
         Applicability mu_plus = mu_minus;
         mu_plus.particle = particles.find(pdg::mu_plus());
         model_ = std::make_shared<BetheBlochModel>(
@@ -102,6 +104,68 @@ class BetheBlochTest : public InteractorHostTestBase
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
+TEST_F(BetheBlochTest, distribution)
+{
+    int num_samples = 1e5;
+    int num_bins = 12;
+
+    MevEnergy cutoff{0.001};
+
+    std::vector<int> counters;
+    std::vector<real_type> min_energy;
+    std::vector<real_type> max_energy;
+    for (real_type energy : {0.2, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5, 1e7})
+    {
+        this->set_inc_particle(pdg::mu_minus(), MevEnergy(energy));
+        std::mt19937 rng;
+
+        BetheBlochEnergyDistribution sample(
+            this->particle_track(), cutoff, model_->host_ref().electron_mass);
+        real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
+        real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
+
+        std::vector<int> count(num_bins);
+        for ([[maybe_unused]] int i : range(num_samples))
+        {
+            auto r = value_as<MevEnergy>(sample(rng));
+            ASSERT_GE(r, min);
+            ASSERT_LE(r, max);
+            int bin = int((1 / r - 1 / min) / (1 / max - 1 / min) * num_bins);
+            CELER_ASSERT(bin >= 0 && bin < num_bins);
+            ++count[bin];
+        }
+        counters.insert(counters.end(), count.begin(), count.end());
+        min_energy.push_back(min);
+        max_energy.push_back(max);
+    }
+
+    static int const expected_counters[] = {
+        8273, 8487, 8379, 8203, 8303, 8419, 8249, 8422, 8366, 8265, 8334, 8300,
+        8281, 8499, 8383, 8211, 8309, 8428, 8256, 8435, 8371, 8263, 8320, 8244,
+        8294, 8514, 8391, 8225, 8326, 8440, 8269, 8446, 8391, 8279, 8321, 8104,
+        8283, 8499, 8389, 8211, 8312, 8427, 8257, 8440, 8380, 8278, 8340, 8184,
+        8268, 8482, 8377, 8202, 8302, 8416, 8240, 8429, 8371, 8267, 8338, 8308,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
+    };
+    static double const expected_min_energy[]
+        = {0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
+    static double const expected_max_energy[] = {
+        0.0038354680957569,
+        0.019248476995285,
+        0.20048052363148,
+        2.7972680400033,
+        100.69707462436,
+        4855.7535710157,
+        90256.629501068,
+        9989193.9209199,
+    };
+    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
+    EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
+}
 
 TEST_F(BetheBlochTest, basic)
 {

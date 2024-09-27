@@ -64,18 +64,6 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_upper_limit()
     return units::MevEnergy{1e3};  //! 1 GeV
 }
 
-//! Maximum energy for the Bragg and ICRU73QO models
-CELER_CONSTEXPR_FUNCTION units::MevEnergy bragg_icru73qo_upper_limit()
-{
-    return units::MevEnergy{0.2};  //! 200 keV
-}
-
-//! Maximum energy for the Bethe-Bloch model
-CELER_CONSTEXPR_FUNCTION units::MevEnergy bethe_bloch_upper_limit()
-{
-    return units::MevEnergy{1e3};  //! 1 GeV
-}
-
 //! Maximum energy for EM models to be valid
 CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
 {

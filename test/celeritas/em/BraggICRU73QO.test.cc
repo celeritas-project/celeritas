@@ -13,6 +13,7 @@
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/model/BraggModel.hh"
 #include "celeritas/em/model/ICRU73QOModel.hh"
+#include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
@@ -61,7 +62,8 @@ class BraggICRU73QOTest : public InteractorHostTestBase
         Applicability mu_minus;
         mu_minus.particle = particles.find(pdg::mu_minus());
         mu_minus.lower = zero_quantity();
-        mu_minus.upper = detail::bragg_icru73qo_upper_limit();
+        mu_minus.upper
+            = MuIonizationProcess::Options{}.bragg_icru73qo_upper_limit;
         icru73qo_model_ = std::make_shared<ICRU73QOModel>(
             ActionId{0}, particles, Model::SetApplicability{mu_minus});
 
@@ -112,6 +114,68 @@ class BraggICRU73QOTest : public InteractorHostTestBase
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
+TEST_F(BraggICRU73QOTest, distribution)
+{
+    int num_samples = 1e5;
+    int num_bins = 12;
+
+    MevEnergy cutoff{1e-6};
+
+    std::vector<int> counters;
+    std::vector<real_type> min_energy;
+    std::vector<real_type> max_energy;
+    for (real_type energy : {1e-4, 1e-3, 1e-2, 0.1, 0.2, 0.5, 1.0})
+    {
+        this->set_inc_particle(pdg::mu_minus(), MevEnergy(energy));
+        std::mt19937 rng;
+
+        BraggICRU73QOEnergyDistribution sample(
+            this->particle_track(),
+            cutoff,
+            bragg_model_->host_ref().electron_mass);
+        real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
+        real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
+
+        std::vector<int> count(num_bins);
+        for ([[maybe_unused]] int i : range(num_samples))
+        {
+            auto r = value_as<MevEnergy>(sample(rng));
+            ASSERT_GE(r, min);
+            ASSERT_LE(r, max);
+            int bin = int((1 / r - 1 / min) / (1 / max - 1 / min) * num_bins);
+            CELER_ASSERT(bin >= 0 && bin < num_bins);
+            ++count[bin];
+        }
+        counters.insert(counters.end(), count.begin(), count.end());
+        min_energy.push_back(min);
+        max_energy.push_back(max);
+    }
+
+    static int const expected_counters[] = {
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
+    };
+    static double const expected_min_energy[]
+        = {1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06};
+    static double const expected_max_energy[] = {
+        1.9159563630249e-06,
+        1.915964366753e-05,
+        0.00019160444039615,
+        0.001916844768863,
+        0.0038354680957569,
+        0.0096020089408745,
+        0.019248476995285,
+    };
+    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
+    EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
+}
 
 TEST_F(BraggICRU73QOTest, basic)
 {
