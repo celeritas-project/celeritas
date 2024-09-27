@@ -212,7 +212,26 @@ TEST_F(TestEm3SlotTest, host)
         " 00    0    0 -            -  --", " 00    0    0 -            -    ",
         " 0     0    0 -            -  --", "       0    0 -            -   -",
     };
-    EXPECT_VEC_EQ(expected_slots, result.slots);
+    if (this->is_ci_build())
+    {
+        EXPECT_VEC_EQ(expected_slots, result.slots);
+    }
+    else
+    {
+        // At least the first 6 step iterations are the same for all tested
+        // versions of geant4
+        std::vector<std::string> expected_slots_small(
+            std::begin(expected_slots), std::begin(expected_slots) + 6);
+        std::vector<std::string> slots_small(
+            result.slots.begin(),
+            result.slots.begin() + max<std::size_t>(6, result.slots.size()));
+        EXPECT_VEC_EQ(expected_slots_small, slots_small);
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated diagnostic results are required for CI tests";
+        }
+    }
 }
 
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
@@ -239,7 +258,20 @@ TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
         "0000000000000000000000000-0000000000000-+----++--------+-+-+-+-+",
         "0000000000000000000000000-000000-00-000------++--------+-+-+-+-+",
     };
-    EXPECT_VEC_EQ(expected_slots, result.slots);
+    if (this->is_ci_build())
+    {
+        EXPECT_VEC_EQ(expected_slots, result.slots);
+    }
+    else
+    {
+        ASSERT_GT(result.slots.size(), 8);
+        EXPECT_EQ(64, result.slots[0].size());
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated diagnostic results are required for CI tests";
+        }
+    }
 }
 
 TEST_F(TestEm3SlotTest, DISABLED_long_demo)
