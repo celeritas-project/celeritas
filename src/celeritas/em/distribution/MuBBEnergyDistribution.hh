@@ -130,7 +130,7 @@ MuBBEnergyDistribution::MuBBEnergyDistribution(ParticleTrackView const& particle
                                                Energy electron_cutoff,
                                                Mass electron_mass)
     : inc_mass_(value_as<Mass>(particle.mass()))
-    , total_energy_(value_as<Energy>(particle.energy()) + inc_mass_)
+    , total_energy_(value_as<Energy>(particle.total_energy()))
     , beta_sq_(particle.beta_sq())
     , electron_mass_(value_as<Mass>(electron_mass))
     , min_energy_(electron_cutoff)

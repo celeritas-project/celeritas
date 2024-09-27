@@ -45,7 +45,7 @@ class RBDiffXsCalculator
   public:
     // Construct with incident electron and current element
     inline CELER_FUNCTION RBDiffXsCalculator(RelativisticBremRef const& shared,
-                                             Energy energy,
+                                             ParticleTrackView const& particle,
                                              MaterialView const& material,
                                              ElementComponentId elcomp_id);
 
@@ -116,14 +116,13 @@ class RBDiffXsCalculator
  */
 CELER_FUNCTION
 RBDiffXsCalculator::RBDiffXsCalculator(RelativisticBremRef const& shared,
-                                       Energy energy,
+                                       ParticleTrackView const& particle,
                                        MaterialView const& material,
                                        ElementComponentId elcomp_id)
     : elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , material_(material)
     , element_(material.make_element_view(elcomp_id))
-    , total_energy_(value_as<units::MevEnergy>(energy)
-                    + value_as<units::MevMass>(shared.electron_mass))
+    , total_energy_(value_as<Energy>(particle.total_energy()))
 {
     real_type density_factor = material.electron_density()
                                * detail::migdal_constant();
