@@ -19,6 +19,7 @@ namespace optical
  * Temporary class for testing optical interactors.
  *
  * \todo Fill with actual code.
+ * \todo Rename ParticleTrackView (?) Should polarization live here as well?
  */
 class TrackView
 {
