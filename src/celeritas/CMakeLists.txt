@@ -77,9 +77,9 @@ list(APPEND SOURCES
   optical/CerenkovParams.cc
   optical/CoreParams.cc
   optical/CoreState.cc
+  optical/CoreTrackData.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
-  optical/TrackData.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/action/ActionGroups.cc
