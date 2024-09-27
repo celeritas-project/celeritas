@@ -24,7 +24,7 @@ namespace optical
 /*!
  * Launch the boundary action on device.
  */
-void BoundaryAction::step(CoreParams const&, CoreStateDevice&) const
+void BoundaryAction::step(CoreParams const& params, CoreStateDevice& state) const
 {
     auto execute = make_action_thread_executor(params.ptr<MemSpace::native>(),
                                                state.ptr(),
@@ -32,7 +32,7 @@ void BoundaryAction::step(CoreParams const&, CoreStateDevice&) const
                                                detail::BoundaryExecutor{});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(*this, params, state, execute);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//
