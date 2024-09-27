@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/MuBetheBloch.test.cc
+//! \file celeritas/em/BetheBloch.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
+#include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
-#include "celeritas/em/model/MuBetheBlochModel.hh"
+#include "celeritas/em/model/BetheBlochModel.hh"
 #include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
@@ -26,7 +26,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MuBetheBlochTest : public InteractorHostTestBase
+class BetheBlochTest : public InteractorHostTestBase
 {
     using Base = InteractorHostTestBase;
 
@@ -60,14 +60,14 @@ class MuBetheBlochTest : public InteractorHostTestBase
         mu_minus.particle = particles.find(pdg::mu_minus());
         mu_minus.lower
             = MuIonizationProcess::Options{}.bragg_icru73qo_upper_limit;
-        mu_minus.upper = detail::high_energy_limit();
+        mu_minus.upper = MuIonizationProcess::Options{}.bethe_bloch_upper_limit;
         Applicability mu_plus = mu_minus;
         mu_plus.particle = particles.find(pdg::mu_plus());
-        model_ = std::make_shared<MuBetheBlochModel>(
+        model_ = std::make_shared<BetheBlochModel>(
             ActionId{0}, particles, Model::SetApplicability{mu_minus, mu_plus});
 
-        // Set default particle to muon with energy of 1 GeV
-        this->set_inc_particle(pdg::mu_minus(), MevEnergy{1e3});
+        // Set default particle to muon with energy of 10 MeV
+        this->set_inc_particle(pdg::mu_minus(), MevEnergy{10});
         this->set_inc_direction({0, 0, 1});
         this->set_material("Cu");
     }
@@ -98,14 +98,14 @@ class MuBetheBlochTest : public InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<MuBetheBlochModel> model_;
+    std::shared_ptr<BetheBlochModel> model_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MuBetheBlochTest, distribution)
+TEST_F(BetheBlochTest, distribution)
 {
     int num_samples = 100000;
     int num_bins = 12;
@@ -120,7 +120,7 @@ TEST_F(MuBetheBlochTest, distribution)
         this->set_inc_particle(pdg::mu_minus(), MevEnergy(energy));
         std::mt19937 rng;
 
-        MuBBEnergyDistribution sample(
+        BetheBlochEnergyDistribution sample(
             this->particle_track(), cutoff, model_->host_ref().electron_mass);
         real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
         real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
@@ -145,10 +145,10 @@ TEST_F(MuBetheBlochTest, distribution)
         8281, 8499, 8383, 8211, 8309, 8428, 8256, 8435, 8371, 8263, 8320, 8244,
         8294, 8514, 8391, 8225, 8326, 8440, 8269, 8446, 8391, 8279, 8321, 8104,
         8283, 8499, 8389, 8211, 8312, 8427, 8257, 8440, 8380, 8278, 8340, 8184,
-        8272, 8488, 8374, 8191, 8308, 8410, 8232, 8419, 8370, 8281, 8338, 8317,
-        8278, 8490, 8370, 8191, 8311, 8404, 8246, 8413, 8371, 8255, 8335, 8336,
-        8308, 8467, 8361, 8164, 8309, 8404, 8226, 8442, 8359, 8296, 8330, 8334,
-        8353, 8428, 8388, 8264, 8315, 8312, 8227, 8499, 8323, 8280, 8266, 8345,
+        8268, 8482, 8377, 8202, 8302, 8416, 8240, 8429, 8371, 8267, 8338, 8308,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
+        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
     };
     static double const expected_min_energy[]
         = {0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
@@ -167,14 +167,14 @@ TEST_F(MuBetheBlochTest, distribution)
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
 }
 
-TEST_F(MuBetheBlochTest, basic)
+TEST_F(BetheBlochTest, basic)
 {
     // Reserve 4 secondaries, one for each sample
     int const num_samples = 4;
     this->resize_secondaries(num_samples);
 
     // Create the interactor
-    MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
+    MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
         model_->host_ref(),
         this->particle_track(),
         this->cutoff_params()->get(MaterialId{0}),
@@ -203,14 +203,18 @@ TEST_F(MuBetheBlochTest, basic)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    static double const expected_energy[] = {0.0073808587493352,
-                                             0.0045240316369054,
-                                             0.0010035512057465,
-                                             0.0010192538277565};
-    static double const expected_costheta[] = {0.085027068970677,
-                                               0.066660728134886,
-                                               0.031450169056164,
-                                               0.031695022051136};
+    static double const expected_energy[] = {
+        0.0071536254658967,
+        0.0044460343975567,
+        0.0051966857337682,
+        0.0010332114718837,
+    };
+    static double const expected_costheta[] = {
+        0.20412950131105,
+        0.16112014959461,
+        0.17413342534288,
+        0.07778872399166,
+    };
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
@@ -231,7 +235,7 @@ TEST_F(MuBetheBlochTest, basic)
         this->set_cutoff_params(cut_inp);
 
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.2});
-        MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
+        MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
             model_->host_ref(),
             this->particle_track(),
             this->cutoff_params()->get(MaterialId{0}),
@@ -244,7 +248,7 @@ TEST_F(MuBetheBlochTest, basic)
     }
 }
 
-TEST_F(MuBetheBlochTest, stress_test)
+TEST_F(BetheBlochTest, stress_test)
 {
     unsigned int const num_samples = 10000;
     std::vector<real_type> avg_engine_samples;
@@ -270,7 +274,7 @@ TEST_F(MuBetheBlochTest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
+            MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
                 model_->host_ref(),
                 this->particle_track(),
                 this->cutoff_params()->get(MaterialId{0}),
@@ -298,23 +302,27 @@ TEST_F(MuBetheBlochTest, stress_test)
 
     // Gold values for average number of calls to RNG
     static double const expected_avg_engine_samples[]
-        = {6.0069, 6.011, 6.0185, 6.0071, 6.043, 6.1304, 6.456, 6.9743};
-    static double const expected_avg_energy[] = {0.001820244315187,
-                                                 0.0030955371350616,
-                                                 0.0051011191515049,
-                                                 0.0071137840944271,
-                                                 0.011366437776212,
-                                                 0.012948850359578,
-                                                 0.011869147598544,
-                                                 0.037634371734214};
-    static double const expected_avg_costheta[] = {0.67374005035636,
-                                                   0.37023194384465,
-                                                   0.14030216439644,
-                                                   0.06933001323056,
-                                                   0.060919687684128,
-                                                   0.060365597604504,
-                                                   0.061014987960578,
-                                                   0.060456801678551};
+        = {6.0069, 6.011, 6.0185, 6.0071, 6.0002, 6, 6, 6};
+    static double const expected_avg_energy[] = {
+        0.001820244315187,
+        0.0030955371350616,
+        0.0051011191515049,
+        0.0071137840944271,
+        0.010051462815079,
+        0.0091324190520607,
+        0.010625686784878,
+        0.012563698826237,
+    };
+    static double const expected_avg_costheta[] = {
+        0.67374005035636,
+        0.37023194384465,
+        0.14030216439644,
+        0.06933001323056,
+        0.060759849187212,
+        0.060385882216971,
+        0.060522416476511,
+        0.060172252455851,
+    };
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);

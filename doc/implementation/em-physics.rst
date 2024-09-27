@@ -54,15 +54,19 @@ The following table summarizes the EM processes and models in Celeritas.
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Rayleigh scattering |  Livermore                  | :cpp:class:`celeritas::RayleighInteractor`          |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`\mu^-`  | Ionization          |  ICRU73QO                   | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      | :math:`\mu^-`  | Ionization          |  ICRU73QO                   | :cpp:class:`celeritas::MuHadIonizationInteractor`   |       0--200 keV         |
       |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
-      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--1 GeV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Mu Bethe--Bloch            | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--100 TeV       |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::MuHadIonizationInteractor`   |       0--200 keV         |
       |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
-      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--1 GeV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Mu Bethe--Bloch            | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--100 TeV       |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
@@ -109,15 +113,19 @@ The following table summarizes the EM processes and models in Celeritas.
                                     \cline{2-5}
                                     & Rayleigh scattering                 & Livermore            & \texttt{\scriptsize celeritas::RayleighInteractor}          & 0--100 TeV \\
           \hline
-          \multirow{3}{*}{$\mu^-$}  & \multirow{2}{*}{Ionization}         & ICRU73QO             & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+          \multirow{3}{*}{$\mu^-$}  & \multirow{2}{*}{Ionization}         & ICRU73QO             & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 0--200 keV \\
                                                                           \cline{3-5}
-                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 1 GeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Mu Bethe--Bloch      & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 100 TeV \\
                                     \cline{2-5}
                                     & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
           \hline
-          \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+          \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 0--200 keV \\
                                                                           \cline{3-5}
-                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 1 GeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Mu Bethe--Bloch      & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 100 TeV \\
                                     \cline{2-5}
                                     & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
           \hline
@@ -154,13 +162,14 @@ as properties of any secondary particles produced.
 Ionization
 ----------
 
-.. doxygenclass:: celeritas::BraggICRU73QOInteractor
 .. doxygenclass:: celeritas::MollerBhabhaInteractor
-.. doxygenclass:: celeritas::MuBetheBlochInteractor
+.. doxygenclass:: celeritas::MuHadIonizationInteractor
 
 The exiting energy distribution from most of these ionization models
 are sampled using external helper distributions.
 
+.. doxygenclass:: celeritas::BetheBlochEnergyDistribution
+.. doxygenclass:: celeritas::BraggICRU73QOEnergyDistribution
 .. doxygenclass:: celeritas::BhabhaEnergyDistribution
 .. doxygenclass:: celeritas::MollerEnergyDistribution
 .. doxygenclass:: celeritas::MuBBEnergyDistribution
@@ -280,4 +289,5 @@ to provide cross sections, setup options, and other data to the EM physics.
 .. doxygenstruct:: celeritas::ImportLivermoreSubshell
 .. doxygenstruct:: celeritas::ImportLivermorePE
 
-.. doxygenstruct:: celeritas::ImportSBTable
+.. doxygenstruct:: celeritas::ImportMuPairProductionTable
+.. doxygentypedef:: celeritas::ImportSBTable

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/ICRU73QOModel.hh
+//! \file celeritas/em/model/BetheBlochModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,13 +16,13 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch the ICRU73QO ionization model interaction.
+ * Set up and launch the Bethe-Bloch ionization model interaction.
  */
-class ICRU73QOModel final : public Model, public StaticConcreteAction
+class BetheBlochModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data
-    ICRU73QOModel(ActionId, ParticleParams const&, SetApplicability);
+    BetheBlochModel(ActionId, ParticleParams const&, SetApplicability);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

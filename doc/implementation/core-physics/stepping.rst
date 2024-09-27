@@ -64,7 +64,7 @@ stepping loop: :cpp:class:`CoreBeginRunActionInterface` is called once per event
 is called once per step, ordered using :cpp:enum:`celeritas::StepActionOrder`.
 
 .. doxygenclass:: celeritas::ActionInterface
-.. doxygenclass:: celeritas::CoreBeginRunActionInterface
+.. doxygentypedef:: celeritas::CoreBeginRunActionInterface
 .. doxygenclass:: celeritas::StepActionInterface
 
 .. doxygenenum:: celeritas::StepActionOrder
