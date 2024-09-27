@@ -33,7 +33,7 @@ class MuDecayInteractor
 {
   public:
     //!@{
-    // \name Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     //!@}
 
@@ -56,11 +56,13 @@ class MuDecayInteractor
     // Incident muon energy
     units::MevEnergy const inc_energy_;
     // Incident direction
-    Real3 const& inc_direction_;
+    Real3 const inc_direction_;
     // Secondary electron or positron id
     ParticleId secondary_id_;
     // Allocate space for a secondary particles
     StackAllocator<Secondary>& allocate_;
+    // Incident muon's four vector
+    FourVector inc_fourvec_;
     // Inverse boost of incident muon
     Real3 inv_boost_inc_fourvec_;
     // Max possible sampled energy
@@ -70,19 +72,19 @@ class MuDecayInteractor
 
     //// HELPER FUNCTIONS ////
 
-    // Return boosted four vector to the lab frame
+    // Boost center of mass four vector to the lab frame
     inline CELER_FUNCTION FourVector to_lab_frame(Real3 const& dir,
                                                   Energy const& energy,
                                                   real_type const& mass);
 
-    // Return rotated final direction in the muon's rest frame
+    // Return rotated final direction in the center of mass (muon's rest frame)
     inline CELER_FUNCTION Real3 calc_cm_dir(Real3 const& dir,
                                             real_type const& costheta,
                                             real_type const& phi);
 
-    // Calculate final particle energ from the sampled fraction
-    inline CELER_FUNCTION Energy calc_energy(real_type const& energy_frac,
-                                             real_type const& mass);
+    // Calculate particle energy in the center of mass
+    inline CELER_FUNCTION Energy energy(real_type const& energy_frac,
+                                        real_type const& mass);
 };
 
 //---------------------------------------------------------------------------//
@@ -110,12 +112,12 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
 
     // \todo Set up whole decay channel if we do return the neutrinos
 
-    // Inverse boost incident muon four vector for later use
+    // Calculate inverse boost incident muon four vector for later use
     Real3 inc_momentum = inc_direction_ * inc_energy_.value();
-    FourVector inc_4vec{
+    inc_fourvec_ = {
         inc_momentum,
         std::sqrt(ipow<2>(norm(inc_momentum)) + ipow<2>(shared_.muon_mass))};
-    inv_boost_inc_fourvec_ = -boost_vector(inc_4vec);
+    inv_boost_inc_fourvec_ = -boost_vector(inc_fourvec_);
 
     // \todo This differs from physics manual, that states E_{max} = m_\mu / 2
     max_energy_ = 0.5 * shared_.muon_mass - shared_.electron_mass;
@@ -197,20 +199,17 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         = std::cos(2 * constants::pi * generate_canonical(rng));
     real_type decay_dir_phi = constants::pi * generate_canonical(rng);
 
-    // Charged lepton
+    // Define energy and direction for all secondaries
     auto charged_lep_energy
-        = this->calc_energy(sample_result, shared_.electron_mass);
-    // Start from a random dir (e.g. +z) and rotate it
+        = this->energy(sample_result, shared_.electron_mass);
     auto charged_lep_dir
         = this->calc_cm_dir({0, 0, 1}, decay_dir_costheta, decay_dir_phi);
 
-    // Electron neutrino
-    auto electron_nu_energy = this->calc_energy(electron_nu_energy_frac, 0);
+    auto electron_nu_energy = this->energy(electron_nu_energy_frac, 0);
     auto electron_nu_dir = this->calc_cm_dir(
         {sin_theta, 0, cos_theta}, decay_dir_costheta, decay_dir_phi);
 
-    // Muon neutrino
-    auto muon_nu_energy = this->calc_energy(muon_nu_energy_frac, 0);
+    auto muon_nu_energy = this->energy(muon_nu_energy_frac, 0);
     auto muon_nu_dir = this->calc_cm_dir(
         {-sin_theta * electron_nu_energy_frac / muon_nu_energy_frac,
          0,
@@ -219,7 +218,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         decay_dir_costheta,
         decay_dir_phi);
 
-    // Move all three particles to lab frame
+    // Move all particles to the lab frame
     auto charged_lep_4vec = this->to_lab_frame(
         charged_lep_dir, charged_lep_energy, shared_.electron_mass);
     auto electron_nu_4vec
@@ -258,9 +257,7 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
 
     Real3 p = dir * energy.value();  // Momentum [MeV]
     FourVector lepton_4vec{p, std::sqrt(ipow<2>(norm(p)) + ipow<2>(mass))};
-
-    boost(inv_boost_inc_fourvec_, &lepton_4vec);
-    boost(boost_vector(lepton_4vec), &lepton_4vec);
+    boost(boost_vector(inc_fourvec_), &lepton_4vec);
 
     return lepton_4vec;
 }
@@ -284,8 +281,7 @@ CELER_FUNCTION Real3 MuDecayInteractor::calc_cm_dir(Real3 const& dir,
  * energy with respect to the maximum possible energy ( \c max_energy_ ).
  */
 CELER_FUNCTION units::MevEnergy
-MuDecayInteractor::calc_energy(real_type const& energy_frac,
-                               real_type const& mass)
+MuDecayInteractor::energy(real_type const& energy_frac, real_type const& mass)
 {
     return Energy{std::sqrt(ipow<2>(energy_frac) * ipow<2>(max_energy_)
                             + 2 * energy_frac * max_energy_ * mass)};
