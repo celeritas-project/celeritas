@@ -407,17 +407,16 @@ function(celeritas_add_test SOURCE_FILE)
       # Launch with MPI directly
       _celeritasaddtest_mpi_cmd(_test_cmd "${_np}" "${_EXE_NAME}")
 
-      set(_test_args "${_EXE_ARGS}")
+      set(_test_args)
       if(_filter)
         list(APPEND _test_args "--gtest_filter=${_filter}")
       endif()
       if(CELERITAS_TEST_XML)
         string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" _xml_name "${_TEST_NAME}")
         list(APPEND _test_args
-          "--gtest_output=xml:${CELERITAS_TEST_XML}${_xml_name}.xml"
+          "--gtest_output=xml:${CELERITAS_TEST_XML}/${_xml_name}.xml"
         )
       endif()
-
 
       add_test(NAME "${_TEST_NAME}" COMMAND ${_test_cmd} ${_test_args})
       list(APPEND _ADDED_TESTS "${_TEST_NAME}")
