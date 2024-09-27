@@ -183,6 +183,7 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_REAL_EQ(0.0, particle.decay_constant());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
+    EXPECT_REAL_EQ(1.0109989461, particle.total_energy().value());
     EXPECT_SOFT_EQ(0.74453076757415848, particle.beta_sq());
     EXPECT_SOFT_EQ(0.86286196322132447,
                    value_as<units::LightSpeed>(particle.speed()));
@@ -223,6 +224,7 @@ TEST_F(ParticleTestHost, gamma)
     EXPECT_REAL_EQ(10, particle.energy().value());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
+    EXPECT_REAL_EQ(10, particle.total_energy().value());
     EXPECT_REAL_EQ(1.0, particle.beta_sq());
     EXPECT_REAL_EQ(1.0, particle.speed().value());
     EXPECT_REAL_EQ(10, particle.momentum().value());

@@ -79,8 +79,6 @@ class SeltzerBergerInteractor
     Momentum const inc_momentum_;
     // Incident particle direction
     Real3 const& inc_direction_;
-    // Incident particle flag for selecting XS correction factor
-    bool const inc_particle_is_electron_;
     // Production cutoff for gammas
     Energy const gamma_cutoff_;
     // Allocate space for a secondary particle
@@ -116,17 +114,15 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(inc_direction)
-    , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
     , elcomp_id_(elcomp_id)
     , sample_photon_energy_(shared.differential_xs,
-                            particle.energy(),
+                            particle,
                             gamma_cutoff_,
                             material,
                             elcomp_id,
-                            shared.electron_mass,
-                            inc_particle_is_electron_)
+                            particle.particle_id() == shared_.ids.electron)
     , sample_costheta_(inc_energy_, particle.mass())
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
