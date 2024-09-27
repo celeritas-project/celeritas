@@ -91,6 +91,9 @@ class ParticleTrackView
 
     //// DERIVED PROPERTIES (indirection plus calculation) ////
 
+    // Kinetic energy plus rest energy [MeV]
+    inline CELER_FUNCTION Energy total_energy() const;
+
     // Square of fraction of lightspeed [unitless]
     inline CELER_FUNCTION real_type beta_sq() const;
 
@@ -255,6 +258,16 @@ CELER_FUNCTION bool ParticleTrackView::is_stable() const
 
 //---------------------------------------------------------------------------//
 // COMBINED PROPERTIES
+//---------------------------------------------------------------------------//
+/*!
+ * Kinetic energy plus rest energy [MeV].
+ */
+CELER_FUNCTION auto ParticleTrackView::total_energy() const -> Energy
+{
+    return Energy(value_as<Energy>(this->energy())
+                  + value_as<units::MevMass>(this->mass()));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Square of \f$ \beta \f$, which is the fraction of lightspeed [unitless].
