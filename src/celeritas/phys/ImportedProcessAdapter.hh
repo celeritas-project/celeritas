@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <initializer_list>
 #include <map>
 #include <memory>
@@ -122,6 +123,9 @@ class ImportedProcessAdapter
     // Access the imported processes
     SPConstImported const& processes() const { return imported_; }
 
+    // Whether the given model is present in the process
+    inline bool has_model(PDGNumber, ImportModelClass) const;
+
   private:
     using ImportTableId = OpaqueId<ImportPhysicsTable>;
     using ImportProcessId = ImportedProcesses::ImportProcessId;
@@ -178,6 +182,20 @@ ImportedProcessAdapter::get_lambda(ParticleId id) const
     ImportTableId tab = iter->second.lambda;
     CELER_ENSURE(tab);
     return imported_->get(iter->second.process).tables[tab.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the given model is present in the process.
+ */
+bool ImportedProcessAdapter::has_model(PDGNumber pdg, ImportModelClass imc) const
+{
+    auto const& models
+        = imported_->get(imported_->find({pdg, process_class_})).models;
+    return std::any_of(
+        models.begin(), models.end(), [&imc](ImportModel const& m) {
+            return m.model_class == imc;
+        });
 }
 
 //---------------------------------------------------------------------------//

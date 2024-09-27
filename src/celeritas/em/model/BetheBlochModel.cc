@@ -3,12 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/ICRU73QOModel.cc
+//! \file celeritas/em/model/BetheBlochModel.cc
 //---------------------------------------------------------------------------//
-#include "ICRU73QOModel.hh"
+#include "BetheBlochModel.hh"
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/distribution/BraggICRU73QOEnergyDistribution.hh"
+#include "celeritas/em/data/MuHadIonizationData.hh"
+#include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
 #include "celeritas/em/executor/MuHadIonizationExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -28,11 +29,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-ICRU73QOModel::ICRU73QOModel(ActionId id,
-                             ParticleParams const& particles,
-                             SetApplicability applicability)
+BetheBlochModel::BetheBlochModel(ActionId id,
+                                 ParticleParams const& particles,
+                                 SetApplicability applicability)
     : StaticConcreteAction(
-        id, "ioni-icru73qo", "interact by muon ionization (ICRU73QO)")
+        id, "ioni-bethe-bloch", "interact by ionization (Bethe-Bloch)")
     , applicability_(applicability)
     , data_(detail::MuHadIonizationBuilder(particles,
                                            this->label())(applicability_))
@@ -45,7 +46,7 @@ ICRU73QOModel::ICRU73QOModel(ActionId id,
 /*!
  * Particle types and energy ranges that this model applies to.
  */
-auto ICRU73QOModel::applicability() const -> SetApplicability
+auto BetheBlochModel::applicability() const -> SetApplicability
 {
     return applicability_;
 }
@@ -54,7 +55,7 @@ auto ICRU73QOModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto ICRU73QOModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto BetheBlochModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
     // Aside from the production cut, the discrete interaction is material
     // independent, so no element is sampled
@@ -65,21 +66,20 @@ auto ICRU73QOModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void ICRU73QOModel::step(CoreParams const& params, CoreStateHost& state) const
+void BetheBlochModel::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{
-            MuHadIonizationExecutor<BraggICRU73QOEnergyDistribution>{
-                this->host_ref()}});
+        InteractionApplier{MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
+            this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void ICRU73QOModel::step(CoreParams const&, CoreStateDevice&) const
+void BetheBlochModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

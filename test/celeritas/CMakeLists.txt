@@ -122,6 +122,7 @@ celeritas_add_test(em/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
+celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
 celeritas_add_test(em/CombinedBrem.test.cc ${_needs_double})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})

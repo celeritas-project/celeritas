@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/BraggModel.cu
+//! \file celeritas/em/model/BetheBlochModel.cu
 //---------------------------------------------------------------------------//
-#include "BraggModel.hh"
+#include "BetheBlochModel.hh"
 
-#include "celeritas/em/distribution/BraggICRU73QOEnergyDistribution.hh"
+#include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
 #include "celeritas/em/executor/MuHadIonizationExecutor.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -21,15 +21,15 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void BraggModel::step(CoreParams const& params, CoreStateDevice& state) const
+void BetheBlochModel::step(CoreParams const& params,
+                           CoreStateDevice& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{
-            MuHadIonizationExecutor<BraggICRU73QOEnergyDistribution>{
-                this->device_ref()}});
+        InteractionApplier{MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
+            this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(*this, params, state, execute);
 }
