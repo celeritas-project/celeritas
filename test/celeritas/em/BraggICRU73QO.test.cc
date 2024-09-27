@@ -117,7 +117,7 @@ class BraggICRU73QOTest : public InteractorHostTestBase
 
 TEST_F(BraggICRU73QOTest, distribution)
 {
-    int num_samples = 1e5;
+    int num_samples = 100000;
     int num_bins = 12;
 
     MevEnergy cutoff{1e-6};

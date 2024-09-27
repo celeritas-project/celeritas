@@ -107,7 +107,7 @@ class MuBetheBlochTest : public InteractorHostTestBase
 
 TEST_F(MuBetheBlochTest, distribution)
 {
-    int num_samples = 1e5;
+    int num_samples = 100000;
     int num_bins = 12;
 
     MevEnergy cutoff{0.001};
