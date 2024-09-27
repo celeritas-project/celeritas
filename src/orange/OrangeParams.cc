@@ -7,12 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "OrangeParams.hh"
 
-#include <charconv>
 #include <fstream>
 #include <initializer_list>
 #include <limits>
 #include <numeric>
-#include <regex>
 #include <utility>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -102,43 +100,6 @@ OrangeInput input_from_file(std::string filename)
                        << filename << "'");
     }
     return input_from_json(std::move(filename));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update faces/intersections if we know the "automatic" value is wrong.
- *
- * See https://github.com/celeritas-project/celeritas/issues/1334 .
- */
-void apply_face_intersect_hack(std::string const& var,
-                               OrangeParamsScalars* scalars)
-{
-    std::string mfi = celeritas::getenv(var);
-    if (mfi.empty())
-    {
-        return;
-    }
-    CELER_LOG(warning)
-        << "Using a temporary, unsupported, and dangerous hack to "
-           "override maximum faces and intersections in ORANGE: "
-        << var << "='" << mfi << "'";
-
-    static std::regex const mfi_regex{R"re(^(\d+),(\d+)$)re"};
-    std::smatch mfi_match;
-    CELER_VALIDATE(std::regex_match(mfi, mfi_match, mfi_regex),
-                   << "invalid pattern for " << var);
-    auto update = [](char const* type, auto const& submatch, size_type* dest) {
-        auto&& s = submatch.str();
-        int updated{-1};
-        std::from_chars(s.data(), s.data() + s.length(), updated);
-        CELER_VALIDATE(updated > 0,
-                       << "invalid maximum " << type << ": " << updated);
-        CELER_LOG(warning) << "Forcing maximum " << type << " from " << *dest
-                           << " to " << updated;
-        *dest = static_cast<size_type>(updated);
-    };
-    update("faces", mfi_match[0], &scalars->max_faces);
-    update("intersections", mfi_match[1], &scalars->max_intersections);
 }
 
 //---------------------------------------------------------------------------//
@@ -236,8 +197,6 @@ OrangeParams::OrangeParams(OrangeInput&& input)
                    << " (a volume's CSG tree is too deep); but the logic "
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
-
-    apply_face_intersect_hack("ORANGE_MAX_FACE_INTERSECT", &host_data.scalars);
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
