@@ -64,7 +64,7 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
         = std::min(counters.num_vacancies, counters.num_initializers);
     if (num_new_tracks > 0 || core_state.warming_up())
     {
-        if (core_params.init()->track_order() == TrackOrder::partition_charge)
+        if (core_params.init()->track_order() == TrackOrder::init_charge)
         {
             // Reset track initializer indices
             fill_sequence(&core_state.ref().init.indices,
@@ -85,7 +85,7 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
         counters.num_initializers -= num_new_tracks;
         counters.num_vacancies -= num_new_tracks;
 
-        if (core_params.init()->track_order() == TrackOrder::partition_charge)
+        if (core_params.init()->track_order() == TrackOrder::init_charge)
         {
             // Clear stale parent track IDs
             fill(TrackSlotId{}, &core_state.ref().init.parents);

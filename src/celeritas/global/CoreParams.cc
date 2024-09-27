@@ -254,21 +254,21 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     };
     switch (TrackOrder track_order = input_.init->track_order())
     {
-        case TrackOrder::unsorted:
-        case TrackOrder::partition_charge:
-        case TrackOrder::shuffled:
+        case TrackOrder::none:
+        case TrackOrder::init_charge:
+        case TrackOrder::reindex_shuffle:
             break;
-        case TrackOrder::partition_status:
-        case TrackOrder::sort_step_limit_action:
-        case TrackOrder::sort_along_step_action:
-        case TrackOrder::sort_particle_type:
+        case TrackOrder::reindex_status:
+        case TrackOrder::reindex_step_limit_action:
+        case TrackOrder::reindex_along_step_action:
+        case TrackOrder::reindex_particle_type:
             // Sort with just the given track order
             insert_sort_tracks_action(track_order);
             break;
-        case TrackOrder::sort_action:
+        case TrackOrder::reindex_both_action:
             // Sort twice
-            insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
-            insert_sort_tracks_action(TrackOrder::sort_along_step_action);
+            insert_sort_tracks_action(TrackOrder::reindex_step_limit_action);
+            insert_sort_tracks_action(TrackOrder::reindex_along_step_action);
             break;
         case TrackOrder::size_:
             CELER_ASSERT_UNREACHABLE();

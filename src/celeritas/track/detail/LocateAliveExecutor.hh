@@ -84,7 +84,7 @@ CELER_FUNCTION void LocateAliveExecutor::operator()(TrackSlotId tid) const
             return occupied();
         }
         else if (num_secondaries > 0
-                 && params->init.track_order != TrackOrder::partition_charge)
+                 && params->init.track_order != TrackOrder::init_charge)
         {
             // The track was killed and produced secondaries: in this case, the
             // empty track slot will be filled with the first secondary. Mark

@@ -247,7 +247,7 @@ auto MockTestBase::build_init() -> SPConstTrackInit
     TrackInitParams::Input input;
     input.capacity = 4096;
     input.max_events = 4096;
-    input.track_order = TrackOrder::unsorted;
+    input.track_order = TrackOrder::none;
     return std::make_shared<TrackInitParams>(input);
 }
 

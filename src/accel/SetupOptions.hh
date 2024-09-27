@@ -133,8 +133,8 @@ struct SetupOptions
 
     //!@{
     //! \name Track reordering options
-    TrackOrder track_order{Device::num_devices() ? TrackOrder::partition_charge
-                                                 : TrackOrder::unsorted};
+    TrackOrder track_order{Device::num_devices() ? TrackOrder::init_charge
+                                                 : TrackOrder::none};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)

@@ -14,6 +14,7 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"

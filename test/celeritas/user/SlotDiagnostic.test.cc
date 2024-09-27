@@ -141,7 +141,7 @@ class TestEm3SlotTest : virtual public TestEm3Base,
         TrackInitParams::Input input;
         input.capacity = 32768;
         input.max_events = 16;
-        input.track_order = TrackOrder::partition_charge;
+        input.track_order = TrackOrder::init_charge;
         return std::make_shared<TrackInitParams>(input);
     }
 
