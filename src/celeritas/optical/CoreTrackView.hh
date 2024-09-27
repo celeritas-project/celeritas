@@ -63,7 +63,7 @@ class CoreTrackView
     inline CELER_FUNCTION ActionId boundary_action() const;
 
     // Flag a track for deletion
-    void apply_errored();
+    inline CELER_FUNCTION void apply_errored();
 
   private:
     ParamsRef const& params_;
