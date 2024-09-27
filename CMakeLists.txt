@@ -79,6 +79,12 @@ cmake_dependent_option(CELERITAS_TEST_VERBOSE
   "Increase logging level for tests" "${CELERITAS_DEBUG}"
   "CELERITAS_BUILD_TESTS" OFF
 )
+if(CELERITAS_BUILD_TESTS)
+  set(CELERITAS_TEST_XML "" CACHE PATH
+    "If non-empty, write JUnit output from google tests"
+  )
+  mark_as_advanced(CELERITAS_TEST_XML)
+endif()
 
 #----------------------------------------------------------------------------#
 # CELERITAS CORE IMPLEMENTATION OPTIONS
