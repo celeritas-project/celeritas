@@ -53,7 +53,9 @@ bool is_ignored_trailing(unsigned char c)
 
 //---------------------------------------------------------------------------//
 /*!
- * Test C strings for equality allowing null pointers for LHS.
+ * Test C strings for equality, allowing one or the other to be null.
+ *
+ * If one pointer is null, the result compares \c false.
  */
 bool cstring_equal(char const* lhs, char const* rhs)
 {

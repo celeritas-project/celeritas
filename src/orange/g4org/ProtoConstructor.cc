@@ -45,19 +45,20 @@ SPConstObject make_explicit_background(LogicalVolume const& lv,
     }
 
     SPConstObject interior;
-    if (children.size() > 1)
+    if (CELER_UNLIKELY(children.empty()))
     {
-        interior = std::make_shared<AnyObjects>(lv.name + ".children",
-                                                std::move(children));
+        // Rare case (world is the only volume!)
+        return lv.solid;
     }
     else if (children.size() == 1)
     {
+        // One child: interior becomes that object
         interior = std::move(children.front());
     }
     else
     {
-        // Rare case (world is the only volume!)
-        return lv.solid;
+        interior = std::make_shared<AnyObjects>(lv.name + ".children",
+                                                std::move(children));
     }
 
     return Transformed::or_object(
