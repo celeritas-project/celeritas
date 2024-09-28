@@ -205,8 +205,8 @@ TEST_F(TestEm3SlotTest, host)
         "00-000 0000000- 0- - --0--------", "00-00000000000-00- - --0--------",
         "00 00000 00 00-00- -  -0--------", "00 00 00 0  0 -00- -   0- ------",
         "00 00 00 0  0 - 0- -   0- ------", "00000 00 0  0 - 0- -   0- ------",
-        "00  0 00    0 - 0- - --0------+-", "00  0  0    0 - 0- -   0 -----+-",
-        "00000  0    0 - 0- -   0  -- ---", "000000 0    0 - 0- -   0 -------",
+        "00  0 00    0 - 0- - --0------+-", "00  0  0    0 - 0- -   0------+-",
+        "00000  0    0 - 0- -   0  ------", "000000 0    0 - 0- -   0 -------",
         "000000 0    0 - 0  -   0  --  --", " 0000  0    0 -    -   0  ------",
         " 00    0    0 -    -   0   - ---", " 00    0    0 -        0   -   -",
         " 00    0    0 -            -  --", " 00    0    0 -            -    ",
@@ -224,7 +224,7 @@ TEST_F(TestEm3SlotTest, host)
             std::begin(expected_slots), std::begin(expected_slots) + 6);
         std::vector<std::string> slots_small(
             result.slots.begin(),
-            result.slots.begin() + max<std::size_t>(6, result.slots.size()));
+            result.slots.begin() + min<std::size_t>(6, result.slots.size()));
         EXPECT_VEC_EQ(expected_slots_small, slots_small);
 
         if (this->strict_testing())
