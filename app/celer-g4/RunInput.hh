@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/sys/Device.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
@@ -73,7 +74,8 @@ struct RunInput
     bool default_stream{false};  //!< Launch all kernels on the default stream
 
     // Track reordering options
-    TrackOrder track_order{TrackOrder::unsorted};
+    TrackOrder track_order{Device::num_devices() ? TrackOrder::partition_charge
+                                                 : TrackOrder::unsorted};
 
     // Physics setup options
     PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};

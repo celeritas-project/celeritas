@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -132,7 +133,8 @@ struct SetupOptions
 
     //!@{
     //! \name Track reordering options
-    TrackOrder track_order{TrackOrder::unsorted};
+    TrackOrder track_order{Device::num_devices() ? TrackOrder::partition_charge
+                                                 : TrackOrder::unsorted};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)

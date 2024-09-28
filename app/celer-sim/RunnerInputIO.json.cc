@@ -109,7 +109,14 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
     LDIO_LOAD_OPTION(default_stream);
-    LDIO_LOAD_OPTION(warm_up);
+    if (auto iter = j.find("warm_up"); iter != j.end())
+    {
+        iter->get_to(v.warm_up);
+    }
+    else if (v.use_device)
+    {
+        v.warm_up = true;
+    }
 
     LDIO_LOAD_DEPRECATED(mag_field, field);
 
@@ -120,7 +127,14 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(step_limiter);
     LDIO_LOAD_OPTION(brem_combined);
-    LDIO_LOAD_OPTION(track_order);
+    if (auto iter = j.find("track_order"); iter != j.end())
+    {
+        iter->get_to(v.track_order);
+    }
+    else if (v.use_device)
+    {
+        v.track_order = TrackOrder::partition_charge;
+    }
     LDIO_LOAD_OPTION(physics_options);
 
     LDIO_LOAD_OPTION(optical);
