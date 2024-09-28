@@ -26,6 +26,7 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/grid/TwodGridBuilder.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
@@ -154,30 +155,16 @@ void SeltzerBergerModel::step(CoreParams const&, CoreStateDevice&) const
 void SeltzerBergerModel::append_table(ImportSBTable const& imported,
                                       HostXsTables* tables) const
 {
-    auto reals = make_builder(&tables->reals);
+    CELER_EXPECT(imported);
 
-    CELER_ASSERT(!imported.value.empty()
-                 && imported.value.size()
-                        == imported.x.size() * imported.y.size());
     size_type const num_x = imported.x.size();
     size_type const num_y = imported.y.size();
 
     SBElementTableData table;
-
-    //! \todo Refactor as a builder helper using DedupeCollectionBuilder
-
-    // Incident charged particle log energy grid
-    table.grid.x = reals.insert_back(imported.x.begin(), imported.x.end());
-
-    // Photon reduced energy grid
-    table.grid.y = reals.insert_back(imported.y.begin(), imported.y.end());
-
-    // 2D scaled DCS grid
-    table.grid.values
-        = reals.insert_back(imported.value.begin(), imported.value.end());
+    table.grid = TwodGridBuilder{&tables->reals}(imported);
 
     // Find the location of the highest cross section at each incident E
-    std::vector<size_type> argmax(table.grid.x.size());
+    std::vector<size_type> argmax(num_x);
     for (size_type i : range(num_x))
     {
         // Get the xs data for the given incident energy coordinate
