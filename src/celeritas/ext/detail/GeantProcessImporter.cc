@@ -428,6 +428,11 @@ import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
 //---------------------------------------------------------------------------//
 /*!
  * Import a 2D physics vector.
+ *
+ * \note In Geant4 the values are stored as a vector of vectors indexed as
+ * [y][x]. Because the Celeritas \c TwodGridCalculator and \c
+ * TwodSubgridCalculator expect the y grid values to be on the inner dimension,
+ * the table is inverted during import so that the x and y grids are swapped.
  */
 ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
                                               Array<ImportUnits, 3> units)
@@ -438,17 +443,17 @@ ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
     double const v_scaling = native_value_from_clhep(units[2]);
 
     ImportPhysics2DVector pv;
-    pv.x.resize(g4pv.GetLengthX());
-    pv.y.resize(g4pv.GetLengthY());
+    pv.x.resize(g4pv.GetLengthY());
+    pv.y.resize(g4pv.GetLengthX());
     pv.value.resize(pv.x.size() * pv.y.size());
 
     for (auto i : range(pv.x.size()))
     {
-        pv.x[i] = g4pv.GetX(i) * x_scaling;
+        pv.x[i] = g4pv.GetY(i) * y_scaling;
         for (auto j : range(pv.y.size()))
         {
-            pv.y[j] = g4pv.GetY(j) * y_scaling;
-            pv.value[pv.y.size() * i + j] = g4pv.GetValue(i, j) * v_scaling;
+            pv.y[j] = g4pv.GetX(j) * x_scaling;
+            pv.value[pv.y.size() * i + j] = g4pv.GetValue(j, i) * v_scaling;
         }
     }
     CELER_ENSURE(pv);
