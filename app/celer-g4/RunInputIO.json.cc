@@ -13,6 +13,7 @@
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/TypesIO.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
@@ -93,6 +94,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
     {
         v.auto_flush = v.num_track_slots;
     }
+
+    RI_LOAD_OPTION(track_order);
 
     RI_LOAD_OPTION(physics_list);
     RI_LOAD_OPTION(physics_options);
@@ -184,6 +187,8 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE(action_times);
     RI_SAVE(default_stream);
     RI_SAVE(auto_flush);
+
+    RI_SAVE(track_order);
 
     RI_SAVE(physics_list);
     if (v.physics_list != PhysicsListSelection::ftfp_bert)

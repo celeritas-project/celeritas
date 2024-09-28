@@ -18,29 +18,11 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/TypesIO.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/user/RootStepWriterIO.json.hh"
-
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, TrackOrder& value)
-{
-    static auto const from_string
-        = StringEnumMapper<TrackOrder>::from_cstring_func(to_cstring,
-                                                          "track order");
-    value = from_string(j.get<std::string>());
-}
-
-void to_json(nlohmann::json& j, TrackOrder const& value)
-{
-    j = std::string{to_cstring(value)};
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
 
 namespace celeritas
 {
@@ -109,7 +91,14 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
     LDIO_LOAD_OPTION(default_stream);
-    LDIO_LOAD_OPTION(warm_up);
+    if (auto iter = j.find("warm_up"); iter != j.end())
+    {
+        iter->get_to(v.warm_up);
+    }
+    else if (v.use_device)
+    {
+        v.warm_up = true;
+    }
 
     LDIO_LOAD_DEPRECATED(mag_field, field);
 
@@ -120,7 +109,14 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(step_limiter);
     LDIO_LOAD_OPTION(brem_combined);
-    LDIO_LOAD_OPTION(track_order);
+    if (auto iter = j.find("track_order"); iter != j.end())
+    {
+        iter->get_to(v.track_order);
+    }
+    else if (v.use_device)
+    {
+        v.track_order = TrackOrder::partition_charge;
+    }
     LDIO_LOAD_OPTION(physics_options);
 
     LDIO_LOAD_OPTION(optical);
