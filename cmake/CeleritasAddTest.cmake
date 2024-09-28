@@ -413,7 +413,8 @@ function(celeritas_add_test SOURCE_FILE)
         list(APPEND _test_args "--gtest_filter=${_filter}")
       endif()
       if(CELERITAS_TEST_XML)
-        string(REGEX REPLACE "[^a-zA-Z0-9_.+*-]+" "_" _xml_name "${_TEST_NAME}")
+        string(REGEX REPLACE "\\*" "ALL" _xml_name "${_TEST_NAME}")
+        string(REGEX REPLACE "[^a-zA-Z0-9_.-]+" "_" _xml_name "${_xml_name}")
         list(APPEND _test_args
           "--gtest_output=xml:${CELERITAS_TEST_XML}/${_xml_name}.xml"
         )
