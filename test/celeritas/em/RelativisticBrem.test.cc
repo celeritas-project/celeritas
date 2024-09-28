@@ -125,13 +125,13 @@ TEST_F(RelativisticBremTest, dxsec)
 
     // Create the differential cross section
     RBDiffXsCalculator dxsec_lpm(model_lpm_->host_ref(),
-                                 this->particle_track().energy(),
+                                 this->particle_track(),
                                  material_view,
                                  ElementComponentId{0});
 
     // Create the differential cross section
     RBDiffXsCalculator dxsec(model_->host_ref(),
-                             this->particle_track().energy(),
+                             this->particle_track(),
                              material_view,
                              ElementComponentId{0});
 
