@@ -12,6 +12,7 @@
 
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -47,6 +48,7 @@ SlotDiagnostic::make_and_insert(CoreParams const& core,
     auto result = std::make_shared<SlotDiagnostic>(actions.next_id(),
                                                    aux.next_id(),
                                                    std::move(filename_base),
+                                                   core.max_streams(),
                                                    core.particle());
     actions.insert(result);
     aux.insert(result);
@@ -62,6 +64,7 @@ SlotDiagnostic::make_and_insert(CoreParams const& core,
 SlotDiagnostic::SlotDiagnostic(ActionId action_id,
                                AuxId aux_id,
                                std::string filename_base,
+                               size_type num_streams,
                                std::shared_ptr<ParticleParams const> particle)
     : sad_{action_id, "slot-diagnostic", "track slot properties"}
     , aux_id_{aux_id}
@@ -69,12 +72,24 @@ SlotDiagnostic::SlotDiagnostic(ActionId action_id,
 {
     CELER_EXPECT(aux_id_);
     CELER_EXPECT(!filename_base_.empty());
+    CELER_EXPECT(num_streams > 0);
 
     // Write metadata file with particle names
     std::string filename = filename_base_ + "metadata.json";
     std::ofstream outfile(filename, std::ios::out | std::ios::trunc);
     CELER_VALIDATE(outfile, << "failed to open file at '" << filename << "'");
-    outfile << ParticleParamsOutput(particle);
+    outfile <<
+        [&particle, &num_streams] {
+            JsonPimpl json_wrap;
+            ParticleParamsOutput{particle}.output(&json_wrap);
+            nlohmann::json j = {
+                {"id", "particle"},
+                {"metadata", std::move(json_wrap.obj)},
+                {"num_streams", num_streams},
+            };
+            return j;
+        }()
+            .dump(0);
 }
 
 //---------------------------------------------------------------------------//

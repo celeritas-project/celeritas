@@ -45,7 +45,7 @@ char pid_to_char(int i)
 
 //---------------------------------------------------------------------------//
 
-class SlotDiagnosticTest : virtual public SimpleLoopTestBase
+class SlotDiagnosticTest : public SimpleLoopTestBase
 {
   protected:
     struct RunResult
@@ -88,7 +88,8 @@ auto SlotDiagnosticTest::parse_output() const -> RunResult
         CELER_VALIDATE(infile, << "failed to load metadata");
         auto md = json::parse(infile);
         std::vector<std::string> labels;
-        md.at("label").get_to(labels);
+        EXPECT_EQ(1, md.at("num_streams").get<int>());
+        md.at("metadata").at("label").get_to(labels);
         return labels;
     }();
 

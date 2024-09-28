@@ -60,6 +60,7 @@ class SlotDiagnostic final : public CoreStepActionInterface,
     SlotDiagnostic(ActionId action_id,
                    AuxId aux_id,
                    std::string filename_base,
+                   size_type num_stream,
                    std::shared_ptr<ParticleParams const> particle);
 
     //!@{
