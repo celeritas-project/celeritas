@@ -88,8 +88,6 @@ jobs:
       - name: Test Celeritas
         id: test
         working-directory: build
-        env:
-          GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
         run: |
           ctest --parallel $(nproc) --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576

@@ -9,7 +9,9 @@
 
 #include <algorithm>
 #include <cctype>
-#include <string>
+#include <cstring>
+
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
@@ -50,7 +52,23 @@ bool is_ignored_trailing(unsigned char c)
 }
 
 //---------------------------------------------------------------------------//
-// Return a string view with leading and trailing whitespace removed
+/*!
+ * Test C strings for equality, allowing one or the other to be null.
+ *
+ * If one pointer is null, the result compares \c false.
+ */
+bool cstring_equal(char const* lhs, char const* rhs)
+{
+    CELER_EXPECT(rhs || lhs);
+    if (!lhs || !rhs)
+        return false;
+    return std::strcmp(lhs, rhs) == 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a string view with leading and trailing whitespace removed.
+ */
 std::string_view trim(std::string_view input)
 {
     auto start = input.begin();

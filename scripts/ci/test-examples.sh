@@ -36,11 +36,11 @@ cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-# Only run on configurations with '-vecgeom'
-if [ "${CMAKE_PRESET#*"-vecgeom"}" != "${CMAKE_PRESET}" ]; then
+
+if [ -z "CELER_DISABLE_ACCEL_EXAMPLES" ]; then
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error
 else
-  echo "Skipping 'accel' test: vecgeom appears not to be available"
+  echo "Skipping 'accel' test due to insufficient requirements"
 fi
