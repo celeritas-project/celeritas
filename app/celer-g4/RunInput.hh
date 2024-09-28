@@ -72,6 +72,9 @@ struct RunInput
     bool action_times{false};
     bool default_stream{false};  //!< Launch all kernels on the default stream
 
+    // Track reordering options
+    TrackOrder track_order{TrackOrder::unsorted};
+
     // Physics setup options
     PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};
     GeantPhysicsOptions physics_options;

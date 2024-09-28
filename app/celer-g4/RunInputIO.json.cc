@@ -19,6 +19,25 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+void from_json(nlohmann::json const& j, TrackOrder& value)
+{
+    static auto const from_string
+        = StringEnumMapper<TrackOrder>::from_cstring_func(to_cstring,
+                                                          "track order");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, TrackOrder const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
+
+namespace celeritas
+{
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -93,6 +112,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
     {
         v.auto_flush = v.num_track_slots;
     }
+
+    RI_LOAD_OPTION(track_order);
 
     RI_LOAD_OPTION(physics_list);
     RI_LOAD_OPTION(physics_options);
@@ -184,6 +205,8 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE(action_times);
     RI_SAVE(default_stream);
     RI_SAVE(auto_flush);
+
+    RI_SAVE(track_order);
 
     RI_SAVE(physics_list);
     if (v.physics_list != PhysicsListSelection::ftfp_bert)
