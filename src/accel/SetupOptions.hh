@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -130,6 +131,12 @@ struct SetupOptions
     size_type auto_flush{};
     //!@}
 
+    //!@{
+    //! \name Track reordering options
+    TrackOrder track_order{Device::num_devices() ? TrackOrder::partition_charge
+                                                 : TrackOrder::unsorted};
+    //!@}
+
     //! Set the number of streams (defaults to run manager # threads)
     IntAccessor get_num_streams;
 
@@ -162,11 +169,6 @@ struct SetupOptions
     bool action_times{false};
     //! Launch all kernels on the default stream
     bool default_stream{false};
-    //!@}
-
-    //!@{
-    //! \name Track init options
-    TrackOrder track_order{TrackOrder::unsorted};
     //!@}
 
     //!@{

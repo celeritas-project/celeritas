@@ -167,10 +167,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->cuda_heap_size = input_.cuda_heap_size;
         options_->action_times = input_.action_times;
         options_->default_stream = input_.default_stream;
-
-        // TODO: add track_order I/O
-
-        options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
+        options_->track_order = input_.track_order;
     }
     else if (ends_with(filename, ".mac"))
     {
