@@ -230,7 +230,7 @@ TEST_F(TestEm3SlotTest, host)
 
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
 {
-    auto result = this->run<MemSpace::host>(64, 16);
+    auto result = this->run<MemSpace::device>(64, 16);
 
     static char const* const expected_labels[] = {"gamma", "e-", "e+"};
     EXPECT_VEC_EQ(expected_labels, result.labels);
