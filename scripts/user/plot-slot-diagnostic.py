@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from collections import namedtuple
+from pathlib import Path
 from matplotlib.colors import ListedColormap, NoNorm
 
 PARTICLE_COLORS = ListedColormap([
@@ -27,21 +28,30 @@ PARTICLE_COLORS = ListedColormap([
 StepDiagnostic = namedtuple('StepDiagnostic', ['steps', 'metadata'])
 
 
-def load_steps(basename):
+def load_one_step(basename, i):
+    with open(f"{basename}{i:d}.jsonl") as f:
+        steps = []
+        for line in f:
+            steps.append(json.loads(line))
+
+    return np.array(steps)
+
+
+def load_steps(basename, streams=None):
     with open(basename + 'metadata.json') as f:
         metadata = json.load(f)
 
-    steps = []
-    with open(basename + '0.jsonl') as f:
-        for line in f:
-            steps.append(json.loads(line))
-    return StepDiagnostic(np.array(steps), metadata)
+    if streams is None:
+        # Load all streams
+        streams = range(metadata['num_streams'])
+    all_steps = {i: load_one_step(basename, i) for i in streams}
+    return StepDiagnostic(all_steps, metadata)
 
 
 def plot_steps(ax, steps, metadata):
-    assert metadata['_label'] == 'particle'
+    assert metadata['id'] == 'particle'
     steps = np.asarray(steps)
-    labels = metadata['label']
+    labels = metadata['metadata']['label']
     assert np.issubdtype(steps.dtype, np.integer)
     assert np.amax(steps) < len(labels)
     assert np.amin(steps) >= -2
@@ -70,13 +80,27 @@ def plot_steps(ax, steps, metadata):
         'cbar': cbar,
     }
 
-def run(basename, outname):
-    stepdiag = load_steps(basename)
-    (fig, ax) = plt.subplots(figsize=(6,4))
-    plot_steps(ax, stepdiag.steps, stepdiag.metadata)
-    kwargs = (dict(transparent=True) if outname.endswith('.pdf')
+
+def run(basename, outname, streams=None):
+    outname = Path(outname)
+    stepdiag = load_steps(basename, streams)
+    def plot_cur_steps(s):
+        (fig, ax) = plt.subplots()
+        plot_steps(ax, s, stepdiag.metadata)
+        return fig
+
+    # Set output arguments
+    kwargs = (dict(transparent=True) if outname.suffix == '.pdf'
               else dict(dpi=300))
-    fig.savefig(outname, bbox_inches='tight', **kwargs)
+    kwargs['bbox_inches'] = 'tight'
+
+    if len(stepdiag.steps) == 1:
+        s = next(iter(stepdiag.steps.values()))
+        plot_cur_steps(s).savefig(outname, **kwargs)
+    else:
+        for i, s in stepdiag.steps.items():
+            name = outname.parent / f"{outname.stem}-{i}{outname.suffix}"
+            plot_cur_steps(s).savefig(name, **kwargs)
 
 def main():
     import argparse
@@ -89,6 +113,7 @@ def main():
         "-o", "--output",
         default=None,
         help="Output filename (empty for prefix + plot.png)")
+    # TODO: add 'streams' argument
     args = parser.parse_args()
 
     outfile = args.output or args.prefix + "plot.png"
