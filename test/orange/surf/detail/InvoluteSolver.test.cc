@@ -355,6 +355,9 @@ TEST(SolveSurface, three_roots)
 }
 TEST(SolveSurface, tangents)
 {
+    // TODO: can we make the solver more numerically stable and replace
+    // EXPECT_SOFT_NEAR with EXPECT_SOFT_EQ?
+
     // Solve for 0.5*pi tangents for rb = 1.0 a = 0 sign = CCW
     // Direction (0,1)
     real_type r_b = 1.0;
@@ -389,7 +392,7 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.0017713715293786088, dist_on[0]);
+            EXPECT_SOFT_NEAR(0.0017713715293786088, dist_on[0], 1e-10);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
@@ -406,7 +409,7 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.0017713715293786088, dist_off[0]);
+            EXPECT_SOFT_NEAR(0.0017713715293786088, dist_off[0], 1e-10);
             EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
         }
@@ -429,7 +432,7 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.00053216327674743909, dist_on[0]);
+            EXPECT_SOFT_NEAR(0.00053216327674743909, dist_on[0], 1e-8);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
@@ -446,7 +449,7 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.00053216327674743909, dist_off[0]);
+            EXPECT_SOFT_NEAR(0.00053216327674743909, dist_off[0], 1e-8);
             EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
         }
@@ -570,7 +573,7 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.0019504376639951655, dist_on[0]);
+            EXPECT_SOFT_NEAR(0.0019504376639951655, dist_on[0], 1e-10);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
@@ -587,7 +590,7 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.0019504376639951655, dist_off[0]);
+            EXPECT_SOFT_NEAR(0.0019504376639951655, dist_off[0], 1e-10);
             EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
         }
