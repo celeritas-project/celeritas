@@ -6,6 +6,7 @@
 //! \file celeritas/optical/Absorption.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/interactor/AbsorptionInteractor.hh"
+// #include "celeritas/optical/model/AbsorptionModel.hh"
 
 #include "celeritas_test.hh"
 
@@ -37,6 +38,22 @@ TEST_F(AbsorptionInteractorTest, basic)
     {
         EXPECT_EQ(Interaction::Action::absorbed, result.action);
     }
+}
+
+class AbsorptionModelTest : public ::celeritas::test::Test
+{
+  protected:
+    void SetUp() override {}
+};
+
+// Check model name and description are properly initialized
+TEST_F(AbsorptionModelTest, description)
+{
+}
+
+// Check absorption model MFP tables match imported ones
+TEST_F(AbsorptionModelTest, interaction_mfp)
+{
 }
 
 //---------------------------------------------------------------------------//
