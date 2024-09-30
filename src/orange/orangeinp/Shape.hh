@@ -124,5 +124,19 @@ using PrismShape = Shape<Prism>;
 using SphereShape = Shape<Sphere>;
 
 //---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class Shape<Box>;
+extern template class Shape<Cone>;
+extern template class Shape<Cylinder>;
+extern template class Shape<Ellipsoid>;
+extern template class Shape<GenPrism>;
+extern template class Shape<Involute>;
+extern template class Shape<Parallelepiped>;
+extern template class Shape<Prism>;
+extern template class Shape<Sphere>;
+
+//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
