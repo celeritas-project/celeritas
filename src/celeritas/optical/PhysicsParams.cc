@@ -65,6 +65,7 @@ PhysicsParams::PhysicsParams(Input input)
     // Construct data
     HostValue host_data;
     host_data.scalars.num_models = this->num_models();
+    host_data.scalars.model_to_action = 1;
     this->build_options(input.options, host_data);
     this->build_mfps(host_data);
 

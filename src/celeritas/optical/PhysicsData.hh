@@ -129,6 +129,7 @@ struct PhysicsParamsData
         grids = other.grids;
         grid_ids = other.grid_ids;
         tables = other.tables;
+        model_tables = other.model_tables;
         reals = other.reals;
         scalars = other.scalars;
         return *this;

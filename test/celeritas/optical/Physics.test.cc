@@ -73,10 +73,18 @@ TEST_F(PhysicsParamsTest, models)
         action_ids.insert(model.action_id());
     }
 
-    static std::string_view const expected_model_names[] = {""};
+    static std::string_view const expected_model_names[]
+        = {"mock-optical-model-1",
+           "mock-optical-model-2",
+           "mock-optical-model-3",
+           "mock-optical-model-4"};
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
-    static std::string_view const expected_model_desc[] = {""};
+    static std::string_view const expected_model_desc[]
+        = {"mock-optical-description-1",
+           "mock-optical-description-2",
+           "mock-optical-description-3",
+           "mock-optical-description-4"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // ActionId range should correspond to model actions
@@ -84,6 +92,36 @@ TEST_F(PhysicsParamsTest, models)
     for (auto action_id : physics.model_actions())
     {
         EXPECT_EQ(1, action_ids.count(action_id));
+    }
+}
+
+TEST_F(PhysicsParamsTest, params_data)
+{
+    auto data = this->optical_physics()->host_ref();
+
+    EXPECT_EQ(this->optical_physics()->num_models(), data.model_tables.size());
+
+    for (auto model_id : range(ModelId{data.model_tables.size()}))
+    {
+        ValueTableId table_id = data.model_tables[model_id].mfp_table;
+
+        ASSERT_TRUE(table_id < data.tables.size());
+
+        auto const& value_table = data.tables[table_id];
+
+        EXPECT_EQ(this->optical_material()->num_materials(),
+                  value_table.grids.size());
+
+        for (auto mat_id : range(OpticalMaterialId{value_table.grids.size()}))
+        {
+            auto grid_id_ref = value_table.grids[mat_id.get()];
+
+            ASSERT_TRUE(grid_id_ref < data.grid_ids.size());
+
+            ValueGridId grid_id = data.grid_ids[grid_id_ref];
+
+            EXPECT_TRUE(grid_id < data.grids.size());
+        }
     }
 }
 
@@ -184,7 +222,8 @@ TEST_F(PhysicsViewHostTest, track_interaction_mfp)
 
 TEST_F(PhysicsViewHostTest, track_mfp_grid)
 {
-    static int expected_grid_ids[] = {-1};
+    static int const expected_grid_ids[]
+        = {0, 3, 6, 9, 1, 4, 7, 10, 2, 5, 8, 11};
 
     for (auto tid : range(TrackSlotId{num_tracks}))
     {
@@ -211,7 +250,18 @@ TEST_F(PhysicsViewHostTest, track_calc_mfp)
 {
     Energy const energy{1.0};
 
-    static real_type expected_mfps[] = {0};
+    static real_type const expected_mfps[] = {2.5011999988012,
+                                              8.1000899100045,
+                                              0.1,
+                                              1.200194999805,
+                                              9.3001498500075,
+                                              2.7,
+                                              7.5,
+                                              11.101198801199,
+                                              83.1,
+                                              91.106494993505,
+                                              1.8000599400002,
+                                              180.00053666613};
 
     for (auto tid : range(TrackSlotId{num_tracks}))
     {
@@ -228,7 +278,7 @@ TEST_F(PhysicsViewHostTest, track_calc_mfp)
             }
         }
 
-        EXPECT_VEC_EQ(expected_mfps, mfps);
+        EXPECT_VEC_SOFT_EQ(expected_mfps, mfps);
     }
 }
 

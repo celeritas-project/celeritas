@@ -136,8 +136,10 @@ auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
 {
     // Empty optical material data...
     MaterialParams::Input input;
-    input.properties
-        = std::vector<ImportOpticalProperty>(3, ImportOpticalProperty{});
+    ImportPhysicsVector mock_ri_grid{
+        ImportPhysicsVectorType::linear, {1e-3, 1e2}, {1.4, 3.7}};
+    input.properties = std::vector<ImportOpticalProperty>(
+        3, ImportOpticalProperty{mock_ri_grid});
 
     return std::make_shared<MaterialParams>(std::move(input));
 }
