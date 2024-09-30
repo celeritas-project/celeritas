@@ -38,11 +38,11 @@ namespace test
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class KnStepCollectorTestBase : public SimpleTestBase,
-                                virtual public StepCollectorTestBase
+class KnSimpleLoopTestBase : public SimpleTestBase,
+                             virtual public SimpleLoopTestBase
 {
   protected:
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.particle_id = this->particle()->find(pdg::gamma());
@@ -62,11 +62,11 @@ class KnStepCollectorTestBase : public SimpleTestBase,
     }
 };
 
-class KnMctruthTest : public KnStepCollectorTestBase, public MctruthTestBase
+class KnMctruthTest : public KnSimpleLoopTestBase, public MctruthTestBase
 {
 };
 
-class KnCaloTest : public KnStepCollectorTestBase, public CaloTestBase
+class KnCaloTest : public KnSimpleLoopTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final { return {"inner"}; }
 };
@@ -74,7 +74,7 @@ class KnCaloTest : public KnStepCollectorTestBase, public CaloTestBase
 //---------------------------------------------------------------------------//
 
 class TestEm3CollectorTestBase : public TestEm3Base,
-                                 virtual public StepCollectorTestBase
+                                 virtual public SimpleLoopTestBase
 {
     SPConstAction build_along_step() override
     {
@@ -92,7 +92,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
         return result;
     }
 
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = MevEnergy{10.0};
@@ -135,7 +135,7 @@ class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 // ERROR CHECKING
 //---------------------------------------------------------------------------//
 
-TEST_F(KnStepCollectorTestBase, mixing_types)
+TEST_F(KnSimpleLoopTestBase, mixing_types)
 {
     auto calo = std::make_shared<SimpleCalo>(
         std::vector<Label>{"inner"}, *this->geometry(), 1);
@@ -150,7 +150,7 @@ TEST_F(KnStepCollectorTestBase, mixing_types)
                  celeritas::RuntimeError);
 }
 
-TEST_F(KnStepCollectorTestBase, multiple_interfaces)
+TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
 {
     // Add mctruth twice so each step is doubly written
     auto mctruth = std::make_shared<ExampleMctruth>();

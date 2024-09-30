@@ -220,6 +220,10 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
                 "defaultStream",
                 "Launch all kernels on the default stream");
     }
+
+    add_cmd(&options->slot_diagnostic_prefix,
+            "slotDiagnosticPrefix",
+            "Filename base for slot diagnostics");
 }
 
 //---------------------------------------------------------------------------//

@@ -250,6 +250,42 @@ class ConcreteAction : virtual public ActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Concrete utility class for managing an action with static strings.
+ *
+ * This is an implementation detail of \c StaticConcreteAction, but it can be
+ * used manually for classes that inherit from multiple \c label methods (e.g.,
+ * something that's both an action and has aux data) for which the mixin method
+ * does not work.
+ */
+class StaticActionData
+{
+  public:
+    // Construct from ID, unique label
+    StaticActionData(ActionId id,
+                     std::string_view label) noexcept(!CELERITAS_DEBUG);
+
+    // Construct from ID, unique label, and description
+    StaticActionData(ActionId id,
+                     std::string_view label,
+                     std::string_view description) noexcept(!CELERITAS_DEBUG);
+
+    //! ID of this action for verification
+    ActionId action_id() const { return id_; }
+
+    //! Short label
+    std::string_view label() const { return label_; }
+
+    //! Descriptive label
+    std::string_view description() const { return description_; }
+
+  private:
+    ActionId id_;
+    std::string_view label_;
+    std::string_view description_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Concrete mixin utility class for managing an action with static strings.
  *
  * This is a typical use case for "singleton" actions where a maximum of one
@@ -276,18 +312,16 @@ class StaticConcreteAction : virtual public ActionInterface
     CELER_DELETE_COPY_MOVE(StaticConcreteAction);
 
     //! ID of this action for verification
-    ActionId action_id() const final { return id_; }
+    ActionId action_id() const final { return sad_.action_id(); }
 
     //! Short label
-    std::string_view label() const final { return label_; }
+    std::string_view label() const final { return sad_.label(); }
 
     //! Descriptive label
-    std::string_view description() const final { return description_; }
+    std::string_view description() const final { return sad_.description(); }
 
   private:
-    ActionId id_;
-    std::string_view label_;
-    std::string_view description_;
+    StaticActionData sad_;
 };
 
 //---------------------------------------------------------------------------//
