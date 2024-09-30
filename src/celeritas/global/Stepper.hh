@@ -192,4 +192,11 @@ class Stepper final : public StepperInterface
 };
 
 //---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class Stepper<MemSpace::host>;
+extern template class Stepper<MemSpace::device>;
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -93,5 +93,12 @@ void step_gather_device(DeviceCRef<CoreParamsData> const&,
                         DeviceRef<StepStateData>&);
 
 //---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class StepGatherAction<StepPoint::pre>;
+extern template class StepGatherAction<StepPoint::post>;
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
