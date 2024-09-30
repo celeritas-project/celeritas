@@ -38,7 +38,7 @@ namespace test
 class SimpleComptonDiagnosticTest : public SimpleTestBase,
                                     public DiagnosticTestBase
 {
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = MevEnergy{10.0};
@@ -81,7 +81,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         return result;
     }
 
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = MevEnergy{10.0};

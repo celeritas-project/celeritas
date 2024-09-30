@@ -99,6 +99,7 @@ struct RunInput
     // Geant4 diagnostics
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
+    std::string slot_diagnostic_prefix;
 
     // Whether the run arguments are valid
     explicit operator bool() const;

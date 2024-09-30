@@ -30,8 +30,9 @@ class CoreStateInterface;
  * alongside create secondaries, and execute the action immediately after
  * adding primaries.
  */
-class ExtendFromPrimariesAction final : public AuxParamsInterface,
-                                        public CoreStepActionInterface
+class ExtendFromPrimariesAction final : public CoreStepActionInterface,
+                                        public AuxParamsInterface
+
 {
   public:
     // Construct and add to core params
@@ -52,11 +53,23 @@ class ExtendFromPrimariesAction final : public AuxParamsInterface,
                 Span<Primary const> host_primaries) const;
 
     //!@{
-    //! \name Aux/action metadata interface
-    // Short name for the action
-    std::string_view label() const final;
-    // Description of the action for user interaction
-    std::string_view description() const final;
+    //! \name Metadata interface
+    //! Label for the auxiliary data and action
+    std::string_view label() const final { return sad_.label(); }
+    // Description of the action
+    std::string_view description() const final { return sad_.description(); }
+    //!@}
+
+    //!@{
+    //! \name Step action interface
+    //! ID of the action
+    ActionId action_id() const final { return sad_.action_id(); }
+    //! Dependency ordering of the action
+    StepActionOrder order() const final { return StepActionOrder::generate; }
+    // Perform a host action within a step
+    void step(CoreParams const& params, CoreStateHost& state) const final;
+    // Perform a device action within a step
+    void step(CoreParams const& params, CoreStateDevice& state) const final;
     //!@}
 
     //!@{
@@ -67,20 +80,8 @@ class ExtendFromPrimariesAction final : public AuxParamsInterface,
     UPState create_state(MemSpace m, StreamId id, size_type size) const final;
     //!@}
 
-    //!@{
-    //! \name Step action interface
-    //! ID of the action
-    ActionId action_id() const final { return id_; }
-    //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::generate; }
-    // Perform a host action within a step
-    void step(CoreParams const& params, CoreStateHost& state) const final;
-    // Perform a device action within a step
-    void step(CoreParams const& params, CoreStateDevice& state) const final;
-    //!@}
-
   private:
-    ActionId id_;
+    StaticActionData sad_;
     AuxId aux_id_;
 
     template<MemSpace M>

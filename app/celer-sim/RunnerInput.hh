@@ -92,6 +92,7 @@ struct RunnerInput
     bool action_diagnostic{};
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
+    std::string slot_diagnostic_prefix;  //!< Base name for slot diagnostic
     bool write_track_counts{true};  //!< Output track counts for each step
     bool write_step_times{true};  //!< Output elapsed times for each step
 

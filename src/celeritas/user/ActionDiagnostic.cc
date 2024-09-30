@@ -20,6 +20,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -33,6 +34,21 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct and add to core params.
+ */
+std::shared_ptr<ActionDiagnostic>
+ActionDiagnostic::make_and_insert(CoreParams const& core)
+{
+    ActionRegistry& actions = *core.action_reg();
+    OutputRegistry& out = *core.output_reg();
+    auto result = std::make_shared<ActionDiagnostic>(actions.next_id());
+    actions.insert(result);
+    out.insert(result);
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with the action ID.
@@ -118,7 +134,7 @@ void ActionDiagnostic::output(JsonPimpl* j) const
  * Get the nonzero diagnostic results accumulated over all streams.
  *
  * This builds a map of particle/action combinations to the number of
- * occurances over all events.
+ * occurrences over all events.
  */
 auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
 {

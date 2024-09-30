@@ -71,27 +71,10 @@ ExtendFromPrimariesAction::find_action(CoreParams const& core)
  */
 ExtendFromPrimariesAction::ExtendFromPrimariesAction(ActionId action_id,
                                                      AuxId aux_id)
-    : id_{action_id}, aux_id_{aux_id}
+    : sad_{action_id, efp_label, "create track initializers from primaries"}
+    , aux_id_{aux_id}
 {
-    CELER_EXPECT(id_ && aux_id_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Short name for the action.
- */
-std::string_view ExtendFromPrimariesAction::label() const
-{
-    return efp_label;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Description of the action for user interaction.
- */
-std::string_view ExtendFromPrimariesAction::description() const
-{
-    return "create track initializers from primaries";
+    CELER_EXPECT(aux_id_);
 }
 
 //---------------------------------------------------------------------------//

@@ -170,6 +170,12 @@ struct SetupOptions
     //! Launch all kernels on the default stream
     bool default_stream{false};
     //!@}
+
+    //!@{
+    //! \name Diagnostic setup
+    //! Filename base for slot diagnostics
+    std::string slot_diagnostic_prefix;
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

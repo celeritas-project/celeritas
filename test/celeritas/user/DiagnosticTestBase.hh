@@ -14,7 +14,7 @@
 #include "corecel/io/Repr.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "StepCollectorTestBase.hh"
+#include "SimpleLoopTestBase.hh"
 
 namespace celeritas
 {
@@ -25,7 +25,7 @@ class StepDiagnostic;
 namespace test
 {
 //---------------------------------------------------------------------------//
-class DiagnosticTestBase : virtual public StepCollectorTestBase
+class DiagnosticTestBase : virtual public SimpleLoopTestBase
 {
   public:
     //!@{
