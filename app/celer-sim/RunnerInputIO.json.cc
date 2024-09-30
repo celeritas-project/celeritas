@@ -18,8 +18,7 @@
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/TypesIO.hh"
+#include "celeritas/TypesIO.json.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
@@ -117,7 +116,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     }
     else if (v.use_device)
     {
-        v.track_order = TrackOrder::partition_charge;
+        v.track_order = TrackOrder::init_charge;
     }
     LDIO_LOAD_OPTION(physics_options);
 

@@ -3,16 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/TypesIO.hh
+//! \file celeritas/TypesIO.json.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "TypesIO.json.hh"
 
-#include <nlohmann/json.hpp>
+#include <unordered_map>
 
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
-
-#include "Types.hh"
+#include "corecel/io/StringEnumMapper.hh"
 
 namespace celeritas
 {
@@ -20,7 +19,7 @@ namespace celeritas
 /*!
  * Read options from JSON.
  */
-inline void from_json(nlohmann::json const& j, TrackOrder& value)
+void from_json(nlohmann::json const& j, TrackOrder& value)
 {
     static auto const from_string
         = StringEnumMapper<TrackOrder>::from_cstring_func(to_cstring,
@@ -32,7 +31,7 @@ inline void from_json(nlohmann::json const& j, TrackOrder& value)
     }
     catch (RuntimeError const& e)
     {
-        std::unordered_map<std::string, TrackOrder> old_names{
+        static std::unordered_map<std::string, TrackOrder> old_names{
             {"unsorted", TrackOrder::none},
             {"partition_charge", TrackOrder::init_charge},
             {"shuffled", TrackOrder::reindex_shuffle},
@@ -56,7 +55,7 @@ inline void from_json(nlohmann::json const& j, TrackOrder& value)
 /*!
  * Write options to JSON.
  */
-inline void to_json(nlohmann::json& j, TrackOrder const& value)
+void to_json(nlohmann::json& j, TrackOrder const& value)
 {
     j = std::string{to_cstring(value)};
 }
