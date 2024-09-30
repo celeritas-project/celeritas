@@ -118,6 +118,7 @@ using ConeShape = Shape<Cone>;
 using CylinderShape = Shape<Cylinder>;
 using EllipsoidShape = Shape<Ellipsoid>;
 using GenPrismShape = Shape<GenPrism>;
+using InvoluteShape = Shape<Involute>;
 using ParallelepipedShape = Shape<Parallelepiped>;
 using PrismShape = Shape<Prism>;
 using SphereShape = Shape<Sphere>;
