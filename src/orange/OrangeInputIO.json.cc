@@ -326,7 +326,11 @@ void from_json(nlohmann::json const& j, UnitInput& value)
  */
 void to_json(nlohmann::json& j, UnitInput const& value)
 {
-    CELER_EXPECT(value);
+    if (!value)
+    {
+        CELER_LOG(warning) << "Unit '" << value.label
+                           << "' is not in a valid state";
+    }
 
     j["_type"] = "unit";
     j["md"]["name"] = value.label;
