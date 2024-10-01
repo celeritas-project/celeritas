@@ -8,7 +8,6 @@
 #include "UnitInserter.hh"
 
 #include <algorithm>
-#include <charconv>
 #include <iostream>
 #include <regex>
 #include <set>
@@ -217,8 +216,7 @@ ForceMax const& forced_scalar_max()
                        << "invalid pattern for " << mfi_hack_envname);
         auto get = [](char const* type, auto const& submatch) {
             auto&& s = submatch.str();
-            int updated{-1};
-            std::from_chars(s.data(), s.data() + s.length(), updated);
+            auto updated = std::stoi(s);
             CELER_VALIDATE(updated > 0,
                            << "invalid maximum " << type << ": " << updated);
             CELER_LOG(warning)
