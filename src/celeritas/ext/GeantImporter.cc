@@ -225,11 +225,9 @@ auto& optical_particles_map()
  * To retrieve a material-only component simply do not use particle name.
  */
 std::vector<ImportScintComponent>
-fill_vec_import_scint_comp(MatPropGetter& get_property,
-                           std::string prefix = {})
+fill_vec_import_scint_comp(MatPropGetter& get_property, std::string prefix = {})
 {
-    CELER_EXPECT(prefix.empty()
-                 || optical_particles_map().count(prefix));
+    CELER_EXPECT(prefix.empty() || optical_particles_map().count(prefix));
 
     // All the components below are "SCINTILLATIONYIELD",
     // "ELECTRONSCINTILLATIONYIELD", etc.

@@ -32,8 +32,9 @@ namespace celeritas
 MuBetheBlochModel::MuBetheBlochModel(ActionId id,
                                      ParticleParams const& particles,
                                      SetApplicability applicability)
-    : StaticConcreteAction(
-        id, "ioni-mu-bethe-bloch", "interact by muon ionization (Bethe-Bloch)")
+    : StaticConcreteAction(id,
+                           "ioni-mu-bethe-bloch",
+                           "interact by muon ionization (Bethe-Bloch)")
     , applicability_(applicability)
     , data_(detail::MuHadIonizationBuilder(particles,
                                            this->label())(applicability_))
