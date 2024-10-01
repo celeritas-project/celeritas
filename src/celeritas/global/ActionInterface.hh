@@ -64,9 +64,9 @@ is_action_sorted(StepActionOrder aorder, TrackOrder torder)
 {
     // CAUTION: check that this matches \c SortTracksAction::SortTracksAction
     return (aorder == StepActionOrder::post
-            && torder == TrackOrder::reindex_along_step_action)
+            && torder == TrackOrder::reindex_step_limit_action)
            || (aorder == StepActionOrder::along
-               && torder == TrackOrder::reindex_step_limit_action)
+               && torder == TrackOrder::reindex_along_step_action)
            || (torder == TrackOrder::reindex_both_action
                && (aorder == StepActionOrder::post
                    || aorder == StepActionOrder::along));
