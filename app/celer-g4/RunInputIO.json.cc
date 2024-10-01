@@ -12,6 +12,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/TypesIO.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
@@ -72,6 +73,10 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     // Check version (if available)
     check_format(j, "celer-g4");
+
+    RI_LOAD_OPTION(cuda_heap_size);
+    RI_LOAD_OPTION(cuda_stack_size);
+    RI_LOAD_REQUIRED(environ);
 
     RI_LOAD_REQUIRED(geometry_file);
     RI_LOAD_OPTION(event_file);
@@ -172,6 +177,10 @@ void to_json(nlohmann::json& j, RunInput const& v)
     // Save version and format type
     save_format(j, "celer-g4");
 
+    RI_SAVE_OPTION(cuda_stack_size);
+    RI_SAVE_OPTION(cuda_heap_size);
+    RI_SAVE(environ);
+
     RI_SAVE(geometry_file);
     RI_SAVE_OPTION(event_file);
 
@@ -184,8 +193,6 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE_OPTION(max_steps);
     RI_SAVE(initializer_capacity);
     RI_SAVE(secondary_stack_factor);
-    RI_SAVE_OPTION(cuda_stack_size);
-    RI_SAVE_OPTION(cuda_heap_size);
     RI_SAVE(action_times);
     RI_SAVE(default_stream);
     RI_SAVE(auto_flush);

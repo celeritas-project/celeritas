@@ -133,6 +133,16 @@ void GlobalSetup::ReadInput(std::string const& filename)
         CELER_ASSERT(instream);
         nlohmann::json::parse(*instream).get_to(input_);
 
+        if (input_.cuda_stack_size != RunInput::unspecified)
+        {
+            options_->cuda_stack_size = input_.cuda_stack_size;
+        }
+        if (input_.cuda_heap_size != RunInput::unspecified)
+        {
+            options_->cuda_heap_size = input_.cuda_heap_size;
+        }
+        celeritas::environment().merge(input_.environ);
+
         if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
@@ -179,8 +189,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
         options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
 
-        options_->cuda_stack_size = input_.cuda_stack_size;
-        options_->cuda_heap_size = input_.cuda_heap_size;
         options_->action_times = input_.action_times;
         options_->default_stream = input_.default_stream;
         options_->track_order = input_.track_order;

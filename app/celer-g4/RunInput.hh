@@ -12,9 +12,17 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
+
+#ifdef _WIN32
+#    include <cstdlib>
+#    ifdef environ
+#        undef environ
+#    endif
+#endif
 
 namespace celeritas
 {
@@ -54,8 +62,9 @@ struct RunInput
     static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     // Global environment
-    size_type cuda_stack_size{};
-    size_type cuda_heap_size{};
+    size_type cuda_stack_size{unspecified};
+    size_type cuda_heap_size{unspecified};
+    Environment environ;  //!< Supplement existing env variables
 
     // Problem definition
     std::string geometry_file;  //!< Path to GDML file
