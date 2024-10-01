@@ -204,10 +204,31 @@ rejection sampling.
 
 .. doxygenclass:: celeritas::MuBremsDiffXsCalculator
 
-Scattering
-----------
+Photon scattering
+-----------------
 
-Elastic scattering of charged particles can be simulated in three ways:
+.. doxygenclass:: celeritas::KleinNishinaInteractor
+.. doxygenclass:: celeritas::RayleighInteractor
+
+Conversion/annihilation/photoelectric
+-------------------------------------
+
+.. doxygenclass:: celeritas::BetheHeitlerInteractor
+.. doxygenclass:: celeritas::EPlusGGInteractor
+.. doxygenclass:: celeritas::LivermorePEInteractor
+
+.. doxygenclass:: celeritas::AtomicRelaxation
+
+Positron annihilation and Livermore photoelectric cross sections are calculated
+on the fly (as opposed to pretabulated cross sections).
+
+.. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
+.. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
+
+Coulomb scattering
+------------------
+
+Elastic scattering of charged particles off atoms can be simulated in three ways:
 
 * A detailed single scattering model in which each scattering interaction is
   sampled
@@ -229,29 +250,12 @@ simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
 
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
-.. doxygenclass:: celeritas::KleinNishinaInteractor
-.. doxygenclass:: celeritas::RayleighInteractor
-
 .. doxygenclass:: celeritas::WentzelDistribution
 .. doxygenclass:: celeritas::MottRatioCalculator
 
-Conversion/annihilation/photoelectric
--------------------------------------
-
-.. doxygenclass:: celeritas::BetheHeitlerInteractor
-.. doxygenclass:: celeritas::EPlusGGInteractor
-.. doxygenclass:: celeritas::LivermorePEInteractor
-
-.. doxygenclass:: celeritas::AtomicRelaxation
-
-Positron annihilation and Livermore photoelectric cross sections are calculated
-on the fly (as opposed to pretabulated cross sections).
-
-.. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
-.. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
-
-Multiple scattering
--------------------
+.. doxygenclass:: celeritas::ExpNuclearFormFactor
+.. doxygenclass:: celeritas::GaussianNuclearFormFactor
+.. doxygenclass:: celeritas::UUNuclearFormFactor
 
 .. doxygenclass:: celeritas::detail::UrbanMscSafetyStepLimit
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
