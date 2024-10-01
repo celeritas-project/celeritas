@@ -305,31 +305,30 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         CELER_TRY_HANDLE(count = step(), log_context);
     }
 
-    auto get_result
-        = [&](OffloadResult& result, DistRef const& buffer, size_type size) {
-              auto host_buffer = copy_to_host(buffer);
-              std::set<real_type> charge;
-              for (auto const& dist :
-                   host_buffer[DistRange(DistId(0), DistId(size))])
-              {
-                  result.total_num_photons += dist.num_photons;
-                  result.num_photons.push_back(dist.num_photons);
-                  if (!dist)
-                  {
-                      continue;
-                  }
-                  charge.insert(dist.charge.value());
+    auto get_result = [&](OffloadResult& result,
+                          DistRef const& buffer,
+                          size_type size) {
+        auto host_buffer = copy_to_host(buffer);
+        std::set<real_type> charge;
+        for (auto const& dist : host_buffer[DistRange(DistId(0), DistId(size))])
+        {
+            result.total_num_photons += dist.num_photons;
+            result.num_photons.push_back(dist.num_photons);
+            if (!dist)
+            {
+                continue;
+            }
+            charge.insert(dist.charge.value());
 
-                  auto const& pre = dist.points[StepPoint::pre];
-                  auto const& post = dist.points[StepPoint::post];
-                  EXPECT_GT(pre.speed, zero_quantity());
-                  EXPECT_NE(post.pos, pre.pos);
-                  EXPECT_GT(dist.step_length, 0);
-                  EXPECT_EQ(0, dist.material.get());
-              }
-              result.charge.insert(
-                  result.charge.end(), charge.begin(), charge.end());
-          };
+            auto const& pre = dist.points[StepPoint::pre];
+            auto const& post = dist.points[StepPoint::post];
+            EXPECT_GT(pre.speed, zero_quantity());
+            EXPECT_NE(post.pos, pre.pos);
+            EXPECT_GT(dist.step_length, 0);
+            EXPECT_EQ(0, dist.material.get());
+        }
+        result.charge.insert(result.charge.end(), charge.begin(), charge.end());
+    };
 
     auto const& state = offload_state.store.ref();
     auto const& sizes = offload_state.buffer_size;
