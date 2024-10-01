@@ -26,6 +26,7 @@ class ActionRegistry;
 class CutoffParams;
 class GeoMaterialParams;
 class MaterialParams;
+class MpiCommunicator;
 class OutputRegistry;
 class ParticleParams;
 class PhysicsParams;
@@ -53,6 +54,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
+    using SPConstMpiCommunicator = std::shared_ptr<MpiCommunicator const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPUserRegistry = std::shared_ptr<AuxParamsRegistry>;
@@ -74,11 +76,12 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstRng rng;
         SPConstSim sim;
         SPConstTrackInit init;
-        SPConstWentzelOKVI wentzel;  //!< Optional
+        SPConstWentzelOKVI wentzel;  //!< Optional (TODO: aux data?)
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
-        SPUserRegistry aux_reg;  //!< Optional
+        SPUserRegistry aux_reg;  //!< Optional, empty default
+        SPConstMpiCommunicator mpi_comm;  //!< Optional, world_comm default
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -114,6 +117,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     SPUserRegistry const& aux_reg() const { return input_.aux_reg; }
+    SPConstMpiCommunicator const& mpi_comm() const { return input_.mpi_comm; }
     //!@}
 
     //! Access data on the host

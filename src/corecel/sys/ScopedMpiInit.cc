@@ -20,6 +20,7 @@
 #include "corecel/io/Logger.hh"
 
 #include "Environment.hh"
+#include "MpiCommunicator.hh"
 #include "Stopwatch.hh"
 
 namespace celeritas
@@ -52,11 +53,12 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
             CELER_MPI_CALL(MPI_Init(argc, argv));
             status_ = Status::initialized;
             CELER_LOG(debug) << "MPI initialization took " << get_time() << "s";
+            do_finalize_ = true;
             break;
         }
         case Status::initialized: {
-            CELER_LOG(warning) << "MPI was initialized before calling "
-                                  "ScopedMpiInit";
+            CELER_LOG(warning)
+                << R"(MPI was initialized before calling ScopedMpiInit)";
             break;
         }
     }
@@ -69,21 +71,21 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
  */
 ScopedMpiInit::~ScopedMpiInit()
 {
-    if (status_ == Status::initialized)
+    if (do_finalize_)
     {
-        status_ = Status::uninitialized;
         try
         {
             CELER_MPI_CALL(MPI_Finalize());
+            status_ = Status::uninitialized;
         }
         catch (RuntimeError const& e)
         {
-            std::cerr << "During destruction of scoped MPI initialization: "
+            std::clog << "During destruction of scoped MPI initialization: "
                       << e.what() << std::endl;
         }
         catch (...)
         {
-            std::cerr << "Failure during destruction of scoped MPI"
+            std::clog << "Failure during destruction of scoped MPI"
                       << std::endl;
         }
     }
@@ -119,6 +121,20 @@ auto ScopedMpiInit::status() -> Status
         }
     }
     return status_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convenience method to determine whether a multiprocess job is running.
+ *
+ * This is a shortcut for <code>comm_world().size() > 1</code> meant primarily
+ * for applications. Linking against MPI is not required to use it.
+ */
+bool ScopedMpiInit::is_world_multiprocess() const
+{
+    if (status_ == Status::disabled)
+        return false;
+    return comm_world().size() > 1;
 }
 
 //---------------------------------------------------------------------------//

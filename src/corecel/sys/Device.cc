@@ -327,10 +327,7 @@ void activate_device(Device&& device)
  */
 void activate_device()
 {
-    if (Device::num_devices() > 0)
-    {
-        return activate_device(Device(0));
-    }
+    return activate_device(celeritas::comm_world());
 }
 
 //---------------------------------------------------------------------------//
