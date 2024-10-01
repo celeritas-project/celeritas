@@ -79,12 +79,13 @@ struct RunInput
     size_type initializer_capacity{};
     real_type secondary_stack_factor{};
     size_type auto_flush{};  //!< Defaults to num_track_slots
+
     bool action_times{false};
     bool default_stream{false};  //!< Launch all kernels on the default stream
 
     // Track reordering options
-    TrackOrder track_order{Device::num_devices() ? TrackOrder::partition_charge
-                                                 : TrackOrder::unsorted};
+    TrackOrder track_order{Device::num_devices() ? TrackOrder::init_charge
+                                                 : TrackOrder::none};
 
     // Physics setup options
     PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};

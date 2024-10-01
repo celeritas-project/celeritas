@@ -146,16 +146,16 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
 {
     switch (order)
     {
-        case TrackOrder::partition_status:
+        case TrackOrder::reindex_status:
             return partition_impl(states.track_slots,
                                   IsNotInactive{states.sim.status.data()},
                                   states.stream_id);
-        case TrackOrder::sort_along_step_action:
-        case TrackOrder::sort_step_limit_action:
+        case TrackOrder::reindex_along_step_action:
+        case TrackOrder::reindex_step_limit_action:
             return sort_impl(states.track_slots,
                              get_action_ptr(states, order),
                              states.stream_id);
-        case TrackOrder::sort_particle_type: {
+        case TrackOrder::reindex_particle_type: {
             using Id =
                 typename decltype(states.particles.particle_id)::value_type;
             return sort_impl<Id>(states.track_slots,
@@ -179,8 +179,8 @@ void count_tracks_per_action(
     Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>& out,
     TrackOrder order)
 {
-    CELER_ASSERT(order == TrackOrder::sort_along_step_action
-                 || order == TrackOrder::sort_step_limit_action);
+    CELER_ASSERT(order == TrackOrder::reindex_along_step_action
+                 || order == TrackOrder::reindex_step_limit_action);
 
     auto start = device_pointer_cast(make_observer(offsets.data()));
     thrust::fill(thrust_execute_on(states.stream_id),

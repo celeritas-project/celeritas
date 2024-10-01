@@ -128,7 +128,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             CELER_ASSERT(ti);
 
             if (!initialized && sim.status() != TrackStatus::alive
-                && params->init.track_order != TrackOrder::partition_charge)
+                && params->init.track_order != TrackOrder::init_charge)
             {
                 /*!
                  * Skip in-place initialization when tracks are partitioned by
@@ -169,7 +169,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     = ti;
 
                 if (offset <= data.parents.size()
-                    && (params->init.track_order != TrackOrder::partition_charge
+                    && (params->init.track_order != TrackOrder::init_charge
                         || sim.status() == TrackStatus::alive))
                 {
                     // Store the thread ID of the secondary's parent if the

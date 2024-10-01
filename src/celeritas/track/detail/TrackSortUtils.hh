@@ -80,11 +80,11 @@ template<Ownership W, MemSpace M>
 CELER_FUNCTION ObserverPtr<ActionId const>
 get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
 {
-    if (order == TrackOrder::sort_along_step_action)
+    if (order == TrackOrder::reindex_along_step_action)
     {
         return states.sim.along_step_action.data();
     }
-    else if (order == TrackOrder::sort_step_limit_action)
+    else if (order == TrackOrder::reindex_step_limit_action)
     {
         return states.sim.post_step_action.data();
     }
