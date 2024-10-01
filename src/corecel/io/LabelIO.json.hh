@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <sstream>
 #include <nlohmann/json.hpp>
 
 #include "Label.hh"

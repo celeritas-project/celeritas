@@ -120,7 +120,7 @@ struct RunnerInput
     bool brem_combined{false};
 
     // Track reordering options
-    TrackOrder track_order{TrackOrder::unsorted};
+    TrackOrder track_order{TrackOrder::none};
 
     // Optional setup options if loading directly from Geant4
     GeantPhysicsOptions physics_options;

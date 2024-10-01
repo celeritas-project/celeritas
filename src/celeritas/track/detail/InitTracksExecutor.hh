@@ -75,7 +75,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     auto const& data = state->init;
 
     auto get_idx = [&](size_type size) {
-        if (params->init.track_order == TrackOrder::partition_charge)
+        if (params->init.track_order == TrackOrder::init_charge)
         {
             // Get the index into the track initializer or parent track slot ID
             // array from the sorted indices
@@ -95,7 +95,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // View to the new track to be initialized
     CoreTrackView vacancy{
         *params, *state, [&] {
-            if (params->init.track_order == TrackOrder::partition_charge)
+            if (params->init.track_order == TrackOrder::init_charge)
             {
                 return data.vacancies[TrackSlotId(
                     index_partitioned(num_new_tracks,

@@ -93,3 +93,13 @@ Initialization and execution
 
 .. doxygenclass:: celeritas::Stepper
 
+Track sort order
+----------------
+
+For performance reasons such as reducing divergence and improving memory access
+patterns, it is desirable to map similar tracks into similar threads. There
+will be an upcoming paper describing and analyzing these options in more
+detail.
+
+.. doxygenenum:: celeritas::TrackOrder
+   :no-link:
