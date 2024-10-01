@@ -76,7 +76,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(cuda_heap_size);
     RI_LOAD_OPTION(cuda_stack_size);
-    RI_LOAD_REQUIRED(environ);
+    RI_LOAD_OPTION(environ);
 
     RI_LOAD_REQUIRED(geometry_file);
     RI_LOAD_OPTION(event_file);
