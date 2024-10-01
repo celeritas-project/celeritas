@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/TsaiUrbanDistribution.test.cc
+//! \file celeritas/em/distribution/TsaiUrbanDistribution.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 

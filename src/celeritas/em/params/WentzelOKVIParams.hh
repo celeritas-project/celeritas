@@ -12,7 +12,6 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
-#include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 namespace celeritas
@@ -86,9 +85,6 @@ class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
 
     // Retrieve matrix of interpolated Mott positron coefficients
     static CoeffMat get_positron_mott_coeffs(AtomicNumber z);
-
-    // Calculate the nuclear form prefactor
-    static real_type calc_nuclear_form_prefactor(IsotopeView const& iso);
 };
 
 //---------------------------------------------------------------------------//

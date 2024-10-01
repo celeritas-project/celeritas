@@ -15,6 +15,7 @@
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/em/distribution/WentzelDistribution.hh"
+#include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
@@ -87,7 +88,7 @@ class CoulombScatteringInteractor
 
     //// HELPER FUNCTIONS ////
 
-    //! Calculates the recoil energy for the given scattering angle
+    // Calculates the recoil energy for the given scattering angle
     inline CELER_FUNCTION real_type calc_recoil_energy(real_type cos_theta) const;
 };
 
@@ -149,12 +150,11 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
 
     // Recoil energy is kinetic energy transfered to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());
-    real_type recoil_energy = calc_recoil_energy(cos_theta);
-    CELER_EXPECT(0 <= recoil_energy && recoil_energy <= inc_energy);
+    real_type recoil_energy = this->calc_recoil_energy(cos_theta);
+    CELER_ASSERT(0 <= recoil_energy && recoil_energy <= inc_energy);
     result.energy = Energy{inc_energy - recoil_energy};
 
     //! \todo For high enough recoil energies, ions are produced
-
     result.energy_deposition = Energy{recoil_energy};
 
     return result;
@@ -168,12 +168,13 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
 CELER_FUNCTION real_type
 CoulombScatteringInteractor::calc_recoil_energy(real_type cos_theta) const
 {
-    real_type one_minus_cos_theta = 1 - cos_theta;
-    return value_as<MomentumSq>(particle_.momentum_sq()) * one_minus_cos_theta
-           / (value_as<Mass>(target_.nuclear_mass())
-              + (value_as<Mass>(particle_.mass())
-                 + value_as<Energy>(particle_.energy()))
-                    * one_minus_cos_theta);
+    real_type projectile_momsq = value_as<MomentumSq>(particle_.momentum_sq());
+    real_type projectile_mass = value_as<Mass>(particle_.mass())
+                                + value_as<Energy>(particle_.energy());
+    real_type target_mass = value_as<Mass>(target_.nuclear_mass());
+
+    return projectile_momsq * (1 - cos_theta)
+           / (target_mass + projectile_mass * (1 - cos_theta));
 }
 
 //---------------------------------------------------------------------------//
