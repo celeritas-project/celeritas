@@ -105,7 +105,7 @@ void OrangeGeoTestBase::build_geometry(std::string const& filename)
         = std::make_unique<Params>(this->test_data_path("orange", filename));
 
     static std::string const expected_log_levels[] = {"info"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
     ASSERT_TRUE(this->geometry());
 }
 

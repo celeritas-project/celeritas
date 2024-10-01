@@ -230,4 +230,11 @@ auto& CoreState<M>::native_action_thread_offsets()
 }
 
 //---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class CoreState<MemSpace::host>;
+extern template class CoreState<MemSpace::device>;
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

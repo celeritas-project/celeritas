@@ -188,6 +188,15 @@ using PrismSolid = Solid<Prism>;
 using SphereSolid = Solid<Sphere>;
 
 //---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class Solid<Cone>;
+extern template class Solid<Cylinder>;
+extern template class Solid<Prism>;
+extern template class Solid<Sphere>;
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!

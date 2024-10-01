@@ -124,7 +124,7 @@ class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::sort_step_limit_action;
+        input.track_order = TrackOrder::reindex_step_limit_action;
         return std::make_shared<TrackInitParams>(input);
     }
 };
@@ -139,7 +139,7 @@ class TestTrackPartitionEm3Stepper : public TestEm3NoMsc
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::partition_status;
+        input.track_order = TrackOrder::reindex_status;
         return std::make_shared<TrackInitParams>(input);
     }
 };
@@ -154,7 +154,7 @@ class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::sort_step_limit_action;
+        input.track_order = TrackOrder::reindex_step_limit_action;
         return std::make_shared<TrackInitParams>(input);
     }
 };
@@ -176,7 +176,7 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::sort_step_limit_action;
+        input.track_order = TrackOrder::reindex_step_limit_action;
         return std::make_shared<TrackInitParams>(input);
     }
 
@@ -205,7 +205,7 @@ class PartitionDataTest : public TestEm3NoMsc
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 128;
-        input.track_order = TrackOrder::partition_charge;
+        input.track_order = TrackOrder::init_charge;
         return std::make_shared<TrackInitParams>(input);
     }
 
@@ -287,7 +287,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -295,7 +295,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -331,7 +331,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -339,7 +339,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -372,7 +372,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -380,7 +380,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -419,7 +419,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -427,7 +427,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -451,11 +451,11 @@ TEST_F(TestActionCountEm3StepperH, host_count_actions)
 
     auto loop = [&] {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         detail::count_tracks_per_action(step.state_ref(),
                                         buffer[AllActionThreads{}],
                                         buffer,
-                                        TrackOrder::sort_step_limit_action);
+                                        TrackOrder::reindex_step_limit_action);
 
         check_action_count(buffer, step.state().size());
         step();
@@ -494,12 +494,12 @@ TEST_F(TestActionCountEm3StepperD, TEST_IF_CELER_DEVICE(device_count_actions))
 
     auto loop = [&] {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         detail::count_tracks_per_action(
             step.state_ref(),
             buffer_d[NativeActionThreads::AllItemsT{}],
             buffer_h,
-            TrackOrder::sort_step_limit_action);
+            TrackOrder::reindex_step_limit_action);
 
         check_action_count(buffer_h, step.state().size());
         step();

@@ -59,7 +59,7 @@ struct ImportEmParameters
     double screening_factor{1};
     //! Factor for dynamic computation of angular limit between SS and MSC
     double angle_limit_factor{1};
-    //! Nuclear form factor model for Coulomm scattering
+    //! Nuclear form factor model for Coulomb scattering
     NuclearFormFactorType form_factor{NuclearFormFactorType::exponential};
 
     //! Whether parameters are assigned and valid

@@ -14,6 +14,7 @@ set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 list(APPEND SOURCES
   Types.cc
+  TypesIO.json.cc
   em/detail/Utils.cc
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
