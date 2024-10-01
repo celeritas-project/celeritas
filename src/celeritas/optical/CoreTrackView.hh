@@ -13,7 +13,12 @@
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
+#include "TrackInitializer.hh"
 #include "TrackView.hh"
+
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#endif
 
 namespace celeritas
 {
@@ -37,6 +42,9 @@ class CoreTrackView
     inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
                                         StateRef const& states,
                                         TrackSlotId slot);
+
+    // Initialize the track states
+    inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
 
     // Return a geometry view
     inline CELER_FUNCTION GeoTrackView geometry() const;
@@ -86,6 +94,41 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
     : params_(params), states_(states), track_slot_id_(track_slot)
 {
     CELER_EXPECT(track_slot_id_ < states_.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the track states.
+ */
+CELER_FUNCTION CoreTrackView&
+CoreTrackView::operator=(TrackInitializer const& other)
+{
+    //! \todo Add optical sim data/view?
+    SimTrackInitializer sim{};
+    sim.time = other.time;
+    this->sim() = sim;
+
+    // Initialize the geometry state
+    auto geo = this->geometry();
+    geo = GeoTrackInitializer{other.position, other.direction};
+    if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
+    {
+#if !CELER_DEVICE_COMPILE
+        if (geo.is_outside())
+        {
+            // Print an error message if initialization was "successful" but
+            // track is outside
+            CELER_LOG_LOCAL(error) << "Track started outside the geometry";
+        }
+#endif
+        this->apply_errored();
+    }
+
+    //! \todo Add optical particle data and initialize particle
+
+    //! \todo Clear physics state
+
+    return *this;
 }
 
 //---------------------------------------------------------------------------//
