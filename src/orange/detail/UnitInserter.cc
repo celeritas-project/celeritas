@@ -441,7 +441,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         output.logic = logic_ints_.insert_back(std::begin(nowhere_logic),
                                                std::end(nowhere_logic));
         output.max_intersections = 0;
-        output.flags = VolumeRecord::implicit_vol;
+        output.flags = VolumeRecord::implicit_vol
+                       | VolumeRecord::Flags::simple_safety;
     }
 
     // Calculate the maximum stack depth of the volume definition
