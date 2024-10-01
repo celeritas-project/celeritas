@@ -25,7 +25,7 @@ namespace optical
 class CerenkovParams;
 class MaterialParams;
 class ScintillationParams;
-}
+}  // namespace optical
 
 namespace detail
 {

@@ -20,12 +20,12 @@
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
+#include <G4MuBremsstrahlung.hh>
+#include <G4MuIonisation.hh>
+#include <G4MuMultipleScattering.hh>
+#include <G4MuPairProduction.hh>
 #include <G4MuonMinus.hh>
 #include <G4MuonPlus.hh>
-#include <G4MuPairProduction.hh>
-#include <G4MuIonisation.hh>
-#include <G4MuBremsstrahlung.hh>
-#include <G4MuMultipleScattering.hh>
 #include <G4PairProductionRelModel.hh>
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>

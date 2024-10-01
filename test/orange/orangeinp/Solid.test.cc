@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/Solid.hh"
 
-#include "orange/orangeinp/Shape.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "orange/orangeinp/Shape.hh"
 
 #include "CsgTestUtils.hh"
 #include "ObjectTestBase.hh"

@@ -32,7 +32,7 @@ BraggModel::BraggModel(ActionId id,
                        ParticleParams const& particles,
                        SetApplicability applicability)
     : StaticConcreteAction(
-        id, "ioni-bragg", "interact by muon ionization (Bragg)")
+          id, "ioni-bragg", "interact by muon ionization (Bragg)")
     , applicability_(applicability)
     , data_(detail::MuHadIonizationBuilder(particles,
                                            this->label())(applicability_))
