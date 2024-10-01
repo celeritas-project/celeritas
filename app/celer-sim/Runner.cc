@@ -293,8 +293,26 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.output_reg = std::move(outreg);
 
     // Load geometry: use existing world volume or reload from geometry file
-    params.geometry = g4world ? std::make_shared<GeoParams>(g4world)
-                              : std::make_shared<GeoParams>(inp.geometry_file);
+    params.geometry = [&geo_file = inp.geometry_file, g4world] {
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
+            auto const& filename = celeritas::getenv(fi_hack_envname);
+            if (!filename.empty())
+            {
+                CELER_LOG(warning)
+                    << "Using a temporary, unsupported, and dangerous hack to "
+                       "override the ORANGE geometry file: "
+                    << fi_hack_envname << "='" << filename << "'";
+                return std::make_shared<GeoParams>(filename);
+            }
+        }
+        if (g4world)
+        {
+            return std::make_shared<GeoParams>(g4world);
+        }
+        return std::make_shared<GeoParams>(geo_file);
+    }();
 
     if (!params.geometry->supports_safety())
     {
