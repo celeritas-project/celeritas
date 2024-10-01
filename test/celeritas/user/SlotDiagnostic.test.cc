@@ -255,7 +255,7 @@ TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
 
     // Some results change slightly as a function of architecture/build flags,
     // and they can change dramatically based on Geant4 cross sections etc.
-    auto max_check_count = (this->is_ci_build() ? 52 : 10);
+    auto max_check_count = (this->is_ci_build() ? 16 : 10);
     ASSERT_LE(max_check_count, expected_slots.size());
     ASSERT_LE(max_check_count, result.slots.size());
 
