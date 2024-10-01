@@ -29,7 +29,7 @@ namespace celeritas
  * a templated params data class \c P, a stream ID, and a state size.
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
-class AuxStateData : public AuxStateInterface
+class AuxStateData final : public AuxStateInterface
 {
   public:
     //!@{

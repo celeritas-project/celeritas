@@ -83,15 +83,11 @@ jobs:
           ninja
       - name: Run unit tests
         id: unittest
-        env:
-          GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
         run: |
           ctest -LE app --preset=${CMAKE_PRESET}-unit
       - name: Run app tests
         id: apptest
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
-        env:
-          CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
         run: |
           ctest -L app --preset=${CMAKE_PRESET}-app
       - name: Install
@@ -160,15 +156,11 @@ jobs:
       - name: Run unit tests
         id: unittest
         continue-on-error: true
-        env:
-          GTEST_OUTPUT: "xml:${{github.workspace}}\\test-output\\google\\"
         run: |
           ctest --preset=$Env:CMAKE_PRESET-unit
       - name: Run app tests
         id: apptest
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
-        env:
-          CTEST_OUTPUT: "${{github.workspace}}\\test-output\\ctest\\all.xml"
         run: |
           ctest --preset=$Env:CMAKE_PRESET-app
       - name: Install

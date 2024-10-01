@@ -14,7 +14,7 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
-#include "TrackData.hh"
+#include "CoreTrackData.hh"
 
 namespace celeritas
 {

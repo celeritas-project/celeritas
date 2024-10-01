@@ -20,12 +20,12 @@
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
+#include <G4MuBremsstrahlung.hh>
+#include <G4MuIonisation.hh>
+#include <G4MuMultipleScattering.hh>
+#include <G4MuPairProduction.hh>
 #include <G4MuonMinus.hh>
 #include <G4MuonPlus.hh>
-#include <G4MuPairProduction.hh>
-#include <G4MuIonisation.hh>
-#include <G4MuBremsstrahlung.hh>
-#include <G4MuMultipleScattering.hh>
 #include <G4PairProductionRelModel.hh>
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
@@ -467,7 +467,7 @@ void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
  *
  * \note Currently all muon processes are disabled by default
  *
- * \todo Prior to version 11.1.0, Geant4 used the \c G4BetheBlochModel for muon
+ * \note Prior to version 11.1.0, Geant4 used the \c G4BetheBlochModel for muon
  * ionization between 200 keV and 1 GeV and the \c G4MuBetheBlochModel above 1
  * GeV. Since version 11.1.0, the \c G4MuBetheBlochModel is used for all
  * energies above 200 keV.

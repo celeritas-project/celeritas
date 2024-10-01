@@ -3,39 +3,29 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/StepCollectorTestBase.hh
+//! \file celeritas/optical/CoreTrackDataFwd.hh
+//! \brief Forward declarations for some structs defined in CoreTrackData.
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
-
 #include "corecel/Types.hh"
-#include "celeritas/phys/Primary.hh"
-
-#include "../GlobalTestBase.hh"
 
 namespace celeritas
 {
-namespace test
+namespace optical
 {
 //---------------------------------------------------------------------------//
-class StepCollectorTestBase : virtual public GlobalTestBase
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecPrimary = std::vector<Primary>;
-    using VecString = std::vector<std::string>;
-    //!@}
+template<Ownership W, MemSpace M>
+struct CoreParamsData;
 
-  public:
-    virtual VecPrimary make_primaries(size_type count) = 0;
+template<Ownership W, MemSpace M>
+struct CoreStateData;
 
-  protected:
-    template<MemSpace M>
-    void run_impl(size_type num_tracks, size_type num_steps);
-};
+template<MemSpace M>
+using CoreParamsPtr = CRefPtr<CoreParamsData, M>;
+template<MemSpace M>
+using CoreStatePtr = RefPtr<CoreStateData, M>;
 
 //---------------------------------------------------------------------------//
-}  // namespace test
+}  // namespace optical
 }  // namespace celeritas

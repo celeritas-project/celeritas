@@ -25,6 +25,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_HOSTNAME": "windows-github",
+        "CELERITAS_TEST_XML": "$env{GITHUB_WORKSPACE}/test-output/google/",
         "CMAKE_BUILD_TYPE":      "Release",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
@@ -89,7 +90,7 @@
       "configurePreset": "fast",
       "inherits": "base",
       "output": {
-        "outputJUnitFile": "$env{CTEST_OUTPUT}"
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
       }
     },
     {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}

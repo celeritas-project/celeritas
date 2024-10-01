@@ -18,6 +18,8 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -32,22 +34,40 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct and add to core params.
+ */
+std::shared_ptr<StepDiagnostic>
+StepDiagnostic::make_and_insert(CoreParams const& core, size_type max_step_bin)
+{
+    ActionRegistry& actions = *core.action_reg();
+    OutputRegistry& out = *core.output_reg();
+    auto result = std::make_shared<StepDiagnostic>(
+        actions.next_id(), core.particle(), max_step_bin, core.max_streams());
+    actions.insert(result);
+    out.insert(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with particle data.
  */
 StepDiagnostic::StepDiagnostic(ActionId id,
                                SPConstParticle particle,
-                               size_type max_steps,
+                               size_type max_step_bin,
                                size_type num_streams)
     : id_(id), num_streams_(num_streams)
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(particle);
-    CELER_EXPECT(max_steps > 0);
     CELER_EXPECT(num_streams_ > 0);
+
+    CELER_VALIDATE(max_step_bin > 0,
+                   << "nonpositive step diagnostic 'max' bin");
 
     // Add two extra bins for underflow and overflow
     HostVal<ParticleTallyParamsData> host_params;
-    host_params.num_bins = max_steps + 2;
+    host_params.num_bins = max_step_bin + 2;
     host_params.num_particles = particle->size();
     store_ = {std::move(host_params), num_streams_};
 

@@ -66,6 +66,7 @@
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
+#include "celeritas/user/SlotDiagnostic.hh"
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/StepDiagnostic.hh"
@@ -598,27 +599,19 @@ void Runner::build_diagnostics(RunnerInput const& inp)
 {
     if (inp.action_diagnostic)
     {
-        auto action_diagnostic = std::make_shared<ActionDiagnostic>(
-            core_params_->action_reg()->next_id());
-
-        // Add to action registry
-        core_params_->action_reg()->insert(action_diagnostic);
-        // Add to output interface
-        core_params_->output_reg()->insert(action_diagnostic);
+        ActionDiagnostic::make_and_insert(*core_params_);
     }
 
     if (inp.step_diagnostic)
     {
-        auto step_diagnostic = std::make_shared<StepDiagnostic>(
-            core_params_->action_reg()->next_id(),
-            core_params_->particle(),
-            inp.step_diagnostic_bins,
-            core_params_->max_streams());
+        StepDiagnostic::make_and_insert(*core_params_,
+                                        inp.step_diagnostic_bins);
+    }
 
-        // Add to action registry
-        core_params_->action_reg()->insert(step_diagnostic);
-        // Add to output interface
-        core_params_->output_reg()->insert(step_diagnostic);
+    if (!inp.slot_diagnostic_prefix.empty())
+    {
+        SlotDiagnostic::make_and_insert(*core_params_,
+                                        inp.slot_diagnostic_prefix);
     }
 }
 

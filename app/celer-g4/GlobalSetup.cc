@@ -48,6 +48,9 @@ GlobalSetup* GlobalSetup::Instance()
 //---------------------------------------------------------------------------//
 /*!
  * Set configurable properties from the UI.
+ *
+ * \deprecated Macro support for celer-g4 is deprecated: it will only take JSON
+ * in the future.
  */
 GlobalSetup::GlobalSetup()
 {
@@ -154,13 +157,18 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->max_steps = input_.max_steps;
         options_->initializer_capacity = input_.initializer_capacity;
         options_->secondary_stack_factor = input_.secondary_stack_factor;
+        options_->auto_flush = input_.auto_flush;
+
+        options_->max_field_substeps = input_.field_options.max_substeps;
+
         options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
+        options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
+
         options_->cuda_stack_size = input_.cuda_stack_size;
         options_->cuda_heap_size = input_.cuda_heap_size;
         options_->action_times = input_.action_times;
         options_->default_stream = input_.default_stream;
-        options_->auto_flush = input_.auto_flush;
-        options_->max_field_substeps = input_.field_options.max_substeps;
+        options_->track_order = input_.track_order;
     }
     else if (ends_with(filename, ".mac"))
     {

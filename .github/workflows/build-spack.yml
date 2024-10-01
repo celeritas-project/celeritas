@@ -146,8 +146,6 @@ jobs:
         id: unittest
         if: ${{matrix.special != 'clang-tidy'}}
         continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
-        env:
-          GTEST_OUTPUT: "xml:${{github.workspace}}/test-output/google/"
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
             # Note this is ignored for geant4, float, clhep
@@ -160,8 +158,6 @@ jobs:
             && matrix.special != 'clang-tidy'
             && steps.build.outcome == 'success'}}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
-        env:
-          CTEST_OUTPUT: "${{github.workspace}}/test-output/ctest/all.xml"
         run: |
           ctest -L app --preset=spack-app
       - name: Upload test results
@@ -204,9 +200,17 @@ jobs:
           ./bin/celer-sim --version
       - name: Build examples
         # TODO: ASAN requires flags downstream
+        env: 
+          CELER_DISABLE_ACCEL_EXAMPLES: >-
+            ${{
+              (   (matrix.special == 'minimal')
+               || (matrix.special == 'float')
+              ) && '1' || ''
+            }}
         if: >-
           ${{
             (matrix.special != 'asanlite')
+            && (matrix.special != 'clang-tidy')
           }}
         run: |
           . ${SPACK_VIEW}/rc

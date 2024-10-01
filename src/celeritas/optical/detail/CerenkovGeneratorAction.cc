@@ -18,8 +18,8 @@
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/MaterialParams.hh"
-#include "celeritas/optical/TrackData.hh"
 
 #include "CerenkovGeneratorExecutor.hh"
 #include "OffloadParams.hh"

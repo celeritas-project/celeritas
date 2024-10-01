@@ -25,6 +25,7 @@ class MuIonizationProcess : public Process
   public:
     //!@{
     //! \name Type aliases
+    using Energy = units::MevEnergy;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
@@ -32,8 +33,12 @@ class MuIonizationProcess : public Process
     // Options for electron and positron ionization
     struct Options
     {
-        bool use_integral_xs{true};  //!> Use integral method for sampling
-                                     //! discrete interaction length
+        //! Maximum energy for the Bragg and ICRU73QO models
+        Energy bragg_icru73qo_upper_limit{0.2};  //!< 200 keV
+        //! Maximum energy for the Bethe-Bloch model
+        Energy bethe_bloch_upper_limit{1e3};  //!< 1 GeV
+        //! Use integral method for sampling discrete interaction length
+        bool use_integral_xs{true};
     };
 
   public:
