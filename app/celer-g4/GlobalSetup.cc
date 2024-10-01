@@ -17,6 +17,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/ExceptionConverter.hh"
@@ -131,6 +132,20 @@ void GlobalSetup::ReadInput(std::string const& filename)
         }
         CELER_ASSERT(instream);
         nlohmann::json::parse(*instream).get_to(input_);
+
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
+            auto const& filename = celeritas::getenv(fi_hack_envname);
+            if (!filename.empty())
+            {
+                CELER_LOG(warning)
+                    << "Using a temporary, unsupported, and dangerous hack to "
+                       "override the ORANGE geometry file: "
+                    << fi_hack_envname << "='" << filename << "'";
+                options_->geometry_file = filename;
+            }
+        }
 
         // Output options
         options_->output_file = input_.output_file;
