@@ -44,7 +44,6 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.material = get_ref<M>(*p.material);
     // TODO: ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
-    ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
@@ -101,7 +100,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     // TODO: CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
-    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(max_streams);

@@ -20,7 +20,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
-class SimParams;
 
 namespace optical
 {
@@ -41,7 +40,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstGeo = std::shared_ptr<GeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
-    using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
 
@@ -57,7 +55,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstMaterial material;
         // TODO: physics
         SPConstRng rng;
-        SPConstSim sim;
         SPConstTrackInit init;
 
         SPActionRegistry action_reg;
@@ -68,7 +65,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && sim && init && action_reg
+            return geometry && material && rng && init && action_reg
                    && max_streams;
         }
     };

@@ -9,10 +9,10 @@
 
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
-#include "celeritas/track/SimTrackView.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
+#include "SimTrackView.hh"
 #include "TrackInitializer.hh"
 #include "TrackView.hh"
 
@@ -103,10 +103,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 CELER_FUNCTION CoreTrackView&
 CoreTrackView::operator=(TrackInitializer const& other)
 {
-    //! \todo Add optical sim data/view?
-    SimTrackInitializer sim{};
-    sim.time = other.time;
-    this->sim() = sim;
+    // Initialiize the sim state
+    this->sim() = SimTrackView::Initializer{other.time};
 
     // Initialize the geometry state
     auto geo = this->geometry();
@@ -185,7 +183,7 @@ CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
  */
 CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 {
-    return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
+    return SimTrackView{states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
