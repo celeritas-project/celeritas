@@ -92,6 +92,9 @@ class StepperInterface
     //!@}
 
   public:
+    // Default virtual destructor
+    virtual ~StepperInterface();
+
     // Warm up before stepping
     virtual void warm_up() = 0;
 
@@ -114,8 +117,8 @@ class StepperInterface
     virtual SPState sp_state() = 0;
 
   protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~StepperInterface() = default;
+    StepperInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(StepperInterface);
 };
 
 //---------------------------------------------------------------------------//
