@@ -543,7 +543,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        R"(Exceeded step count of 2: aborting optical transport loop with 0 tracks and 324193 queued)",
+        R"(Exceeded step count of 2: aborting optical transport loop with 512 active tracks, 0 alive tracks, and 323681 queued)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {

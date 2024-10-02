@@ -20,6 +20,7 @@
 #include "MaterialParams.hh"
 #include "TrackInitParams.hh"
 #include "action/BoundaryAction.hh"
+#include "action/InitializeTracksAction.hh"
 
 namespace celeritas
 {
@@ -62,9 +63,7 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     //// START ACTIONS ////
 
-#if 0
     reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
-#endif
 
     //// PRE-STEP ACTIONS ////
 

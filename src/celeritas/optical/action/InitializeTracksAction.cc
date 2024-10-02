@@ -74,8 +74,10 @@ void InitializeTracksAction::step_impl(CoreParams const& params,
     // empty slots in the track vector and the number of track initializers
     size_type num_new_tracks
         = std::min(counters.num_vacancies, counters.num_initializers);
-    if (num_new_tracks > 0 || state.warming_up())
+    if (num_new_tracks > 0)
     {
+        //! \todo Execute this block if warming up
+
         // Launch a kernel to initialize tracks
         this->step_impl(params, state, num_new_tracks);
 
