@@ -182,7 +182,7 @@ TEST_F(SplineXsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
     XsGridData data(this->data());
     data.prime_index = 3;  // disallowed
 
-    size_type order=1;
+    size_type order = 1;
 
     EXPECT_THROW(SplineXsCalculator(data, this->values(), order), DebugError);
 }

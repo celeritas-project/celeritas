@@ -48,9 +48,9 @@ class SplineXsCalculator
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    SplineXsCalculator(XsGridData const& grid, Values const& values,
-                      size_type const order);
+    inline CELER_FUNCTION SplineXsCalculator(XsGridData const& grid,
+                                             Values const& values,
+                                             size_type const order);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -77,7 +77,9 @@ class SplineXsCalculator
     size_type order_;
 
     CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
-    CELER_FORCEINLINE_FUNCTION real_type interpolate(real_type energy, size_type low_idx, size_type high_idx) const;
+    CELER_FORCEINLINE_FUNCTION real_type interpolate(real_type energy,
+                                                     size_type low_idx,
+                                                     size_type high_idx) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -87,14 +89,17 @@ class SplineXsCalculator
  * Construct from cross section data.
  */
 CELER_FUNCTION
-SplineXsCalculator::SplineXsCalculator(XsGridData const& grid, Values const& values, size_type const order)
+SplineXsCalculator::SplineXsCalculator(XsGridData const& grid,
+                                       Values const& values,
+                                       size_type const order)
     : data_(grid), reals_(values), loge_grid_(data_.log_energy), order_(order)
 {
     CELER_EXPECT(data_);
     CELER_ASSERT(grid.value.size() == data_.log_energy.size);
 
-    // order of interpolation must be smaller than the grid size for effective spline interpolation.
-    // Max order is set to be clipped at minimum and maximum energy indices so this may be unnecessary
+    // order of interpolation must be smaller than the grid size for effective
+    // spline interpolation. Max order is set to be clipped at minimum and
+    // maximum energy indices so this may be unnecessary
     CELER_ASSERT(order < grid.value.size());
 }
 
@@ -136,15 +141,18 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         lower_idx = loge_grid_.find(loge);
         CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
 
-        // number of grid indexs away from the specified energy that need to be checked in both directions
+        // number of grid indexs away from the specified energy that need to be
+        // checked in both directions
         size_type order_steps = order_ / 2 + 1;
 
         // true bounding indices of the grid that will be checked
         size_type true_low_idx;
         size_type true_high_idx;
 
-        // If the interpolation requests out-of-bounds indices, clip the extents. This will reduce the order of the interpolation
-        //todo - instead of clipping the bounds, alter both the low and high index to keep the range just shifted down
+        // If the interpolation requests out-of-bounds indices, clip the
+        // extents. This will reduce the order of the interpolation
+        // todo - instead of clipping the bounds, alter both the low and high
+        // index to keep the range just shifted down
         bool clipped = false;
         if (lower_idx >= order_steps - 1)
         {
@@ -155,7 +163,7 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
             true_low_idx = 0;
             clipped = true;
         }
-        if (lower_idx + order_steps < loge_grid_.size() )
+        if (lower_idx + order_steps < loge_grid_.size())
         {
             true_high_idx = lower_idx + order_steps;
         }
@@ -165,7 +173,8 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
             clipped = true;
         }
 
-        //if the requested interpolation order is even, a direction must be selected to interpolate to
+        // if the requested interpolation order is even, a direction must be
+        // selected to interpolate to
         if (order_ % 2 == 0)
         {
             real_type low_dist = loge - loge_grid_[lower_idx];
@@ -185,8 +194,6 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
     }
 
     return result;
-
-
 }
 
 //---------------------------------------------------------------------------//
@@ -219,7 +226,8 @@ CELER_FUNCTION real_type SplineXsCalculator::get(size_type index) const
 /*!
  * Get the raw cross section data at a particular index.
  */
-CELER_FUNCTION real_type SplineXsCalculator::interpolate(real_type energy, size_type low_idx, size_type high_idx) const
+CELER_FUNCTION real_type SplineXsCalculator::interpolate(
+    real_type energy, size_type low_idx, size_type high_idx) const
 {
     CELER_EXPECT(high_idx < loge_grid_.size());
     real_type result = 0.0;
@@ -232,19 +240,20 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(real_type energy, size_
         real_type denom = 1.0;
 
         // Inner loop over indices for determining the weight
-        for (size_type inner_idx = low_idx; inner_idx < high_idx + 1; ++inner_idx)
+        for (size_type inner_idx = low_idx; inner_idx < high_idx + 1;
+             ++inner_idx)
         {
             // don't contribute for inner and outer index the same
             if (inner_idx != outer_idx)
             {
-               real_type inner_e = std::exp(loge_grid_[inner_idx]);
-               num *= (energy - inner_e);
-               denom *= (outer_e - inner_e);
+                real_type inner_e = std::exp(loge_grid_[inner_idx]);
+                num *= (energy - inner_e);
+                denom *= (outer_e - inner_e);
             }
         }
         real_type weight = num / denom;
         real_type value = this->get(outer_idx);
-        if(outer_idx >= data_.prime_index)
+        if (outer_idx >= data_.prime_index)
         {
             value /= outer_e;
         }
@@ -254,7 +263,6 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(real_type energy, size_
 
     return result;
 }
-
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
