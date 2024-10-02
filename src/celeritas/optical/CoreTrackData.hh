@@ -15,6 +15,7 @@
 
 #include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"
+#include "ParticleData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
@@ -120,6 +121,7 @@ struct CoreStateData
 
     GeoStateData<W, M> geometry;
     // TODO: should we cache the material ID?
+    ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
@@ -134,7 +136,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && physics && rng && sim && init && stream_id;
+        return geometry && particle && physics && rng && sim && init
+               && stream_id;
     }
 
     //! Assign from another set of data
@@ -143,6 +146,7 @@ struct CoreStateData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
+        particle = other.particle;
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;

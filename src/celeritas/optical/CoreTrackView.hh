@@ -12,9 +12,9 @@
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
+#include "ParticleTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
-#include "TrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -58,8 +58,8 @@ class CoreTrackView
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
 
-    // Return a physics view
-    inline CELER_FUNCTION TrackView physics() const;
+    // Return a particle view
+    inline CELER_FUNCTION ParticleTrackView particle() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -101,14 +101,14 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
  * Initialize the track states.
  */
 CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& other)
+CoreTrackView::operator=(TrackInitializer const& init)
 {
     // Initialiize the sim state
-    this->sim() = SimTrackView::Initializer{other.time};
+    this->sim() = SimTrackView::Initializer{init.time};
 
     // Initialize the geometry state
     auto geo = this->geometry();
-    geo = GeoTrackInitializer{other.position, other.direction};
+    geo = GeoTrackInitializer{init.position, init.direction};
     if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
     {
 #if !CELER_DEVICE_COMPILE
@@ -120,11 +120,14 @@ CoreTrackView::operator=(TrackInitializer const& other)
         }
 #endif
         this->apply_errored();
+        return *this;
     }
 
-    //! \todo Add optical particle data and initialize particle
+    // Initialize the particle state
+    this->particle()
+        = ParticleTrackView::Initializer{init.energy, init.polarization};
 
-    //! \todo Clear physics state
+    //! \todo Add physics view and clear physics state
 
     return *this;
 }
@@ -161,11 +164,11 @@ CoreTrackView::material(GeoTrackView const& geo) const -> MaterialView
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a physics view.
+ * Return a particle view.
  */
-CELER_FUNCTION auto CoreTrackView::physics() const -> TrackView
+CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 {
-    CELER_NOT_IMPLEMENTED("physics track view");
+    return ParticleTrackView{states_.particle, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

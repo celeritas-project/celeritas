@@ -13,7 +13,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/optical/Interaction.hh"
-#include "celeritas/optical/TrackView.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
@@ -37,8 +37,8 @@ class RayleighInteractor
 {
   public:
     // Construct interactor from an optical track
-    inline CELER_FUNCTION
-    RayleighInteractor(TrackView const& particle, Real3 const& direction);
+    inline CELER_FUNCTION RayleighInteractor(ParticleTrackView const& particle,
+                                             Real3 const& direction);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -55,8 +55,9 @@ class RayleighInteractor
 /*!
  * Construct the interactor for the given optical track.
  */
-CELER_FUNCTION RayleighInteractor::RayleighInteractor(TrackView const& particle,
-                                                      Real3 const& direction)
+CELER_FUNCTION
+RayleighInteractor::RayleighInteractor(ParticleTrackView const& particle,
+                                       Real3 const& direction)
     : inc_dir_(direction), inc_pol_(particle.polarization())
 {
     CELER_EXPECT(is_soft_unit_vector(inc_dir_));

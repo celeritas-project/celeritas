@@ -33,10 +33,10 @@ class SimTrackView
   public:
     // Construct from local data
     inline CELER_FUNCTION
-    SimTrackView(NativeRef<SimStateData> const& states, TrackSlotId tid);
+    SimTrackView(NativeRef<SimStateData> const&, TrackSlotId);
 
     // Initialize the sim state
-    inline CELER_FUNCTION SimTrackView& operator=(Initializer const& other);
+    inline CELER_FUNCTION SimTrackView& operator=(Initializer const&);
 
     // Add the time change over the step
     inline CELER_FUNCTION void add_time(real_type delta);
@@ -87,7 +87,7 @@ class SimTrackView
 
   private:
     NativeRef<SimStateData> const& states_;
-    TrackSlotId const track_slot_;
+    TrackSlotId track_slot_;
 };
 
 //---------------------------------------------------------------------------//
@@ -106,16 +106,16 @@ SimTrackView::SimTrackView(NativeRef<SimStateData> const& states,
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Initialize the particle.
+ * Initialize the simulation state.
  */
-CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer const& other)
+CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer const& init)
 {
     states_.status[track_slot_] = TrackStatus::initializing;
     states_.post_step_action[track_slot_] = {};
     states_.along_step_action[track_slot_] = {};
     states_.step_length[track_slot_] = {};
     states_.num_steps[track_slot_] = 0;
-    states_.time[track_slot_] = other.time;
+    states_.time[track_slot_] = init.time;
     return *this;
 }
 

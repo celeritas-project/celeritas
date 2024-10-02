@@ -26,7 +26,9 @@ using namespace celeritas::test;
  */
 InteractorHostTestBase::InteractorHostTestBase() : inc_direction_({0, 0, 1})
 {
-    pt_view_ = std::make_shared<TrackView>(Energy{13e-6}, Real3{1, 0, 0});
+    ps_ = StateStore<ParticleStateData>(1);
+    pt_view_ = std::make_shared<ParticleTrackView>(ps_.ref(), TrackSlotId{0});
+    *pt_view_ = ParticleTrackView::Initializer{Energy{13e-6}, Real3{1, 0, 0}};
 }
 
 //---------------------------------------------------------------------------//
@@ -55,7 +57,10 @@ void InteractorHostTestBase::set_inc_direction(Real3 const& dir)
 void InteractorHostTestBase::set_inc_energy(Energy energy)
 {
     CELER_EXPECT(pt_view_);
-    pt_view_ = std::make_shared<TrackView>(energy, pt_view_->polarization());
+    ParticleTrackView::Initializer init;
+    init.energy = energy;
+    init.polarization = pt_view_->polarization();
+    *pt_view_ = init;
 }
 
 //---------------------------------------------------------------------------//
@@ -65,7 +70,10 @@ void InteractorHostTestBase::set_inc_energy(Energy energy)
 void InteractorHostTestBase::set_inc_polarization(Real3 const& pol)
 {
     CELER_EXPECT(pt_view_);
-    pt_view_ = std::make_shared<TrackView>(pt_view_->energy(), pol);
+    ParticleTrackView::Initializer init;
+    init.energy = pt_view_->energy();
+    init.polarization = pol;
+    *pt_view_ = init;
 }
 
 //---------------------------------------------------------------------------//
@@ -81,7 +89,7 @@ auto InteractorHostTestBase::direction() const -> Real3 const&
 /*!
  * Get the track view of the incident photon.
  */
-TrackView const& InteractorHostTestBase::photon_track() const
+ParticleTrackView const& InteractorHostTestBase::particle_track() const
 {
     CELER_EXPECT(pt_view_);
     return *pt_view_;
