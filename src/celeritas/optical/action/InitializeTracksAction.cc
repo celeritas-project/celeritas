@@ -57,12 +57,7 @@ void InitializeTracksAction::step(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize track states.
- *
- * Tracks created from secondaries produced in this step will have the geometry
- * state copied over from the parent instead of initialized from the position.
- * If there are more empty slots than new secondaries, they will be filled by
- * any track initializers remaining from previous steps using the position.
+ * Initialize optical track states.
  */
 template<MemSpace M>
 void InitializeTracksAction::step_impl(CoreParams const& params,

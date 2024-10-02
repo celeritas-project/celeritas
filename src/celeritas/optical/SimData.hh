@@ -35,21 +35,18 @@ struct SimStateData
 
     //// DATA ////
 
+    Items<real_type> time;  //!< Time elapsed in lab frame since start of event
+    Items<real_type> step_length;
     Items<TrackStatus> status;
     Items<ActionId> post_step_action;
-    Items<ActionId> along_step_action;
-    Items<real_type> step_length;
-    Items<size_type> num_steps;  //!< Total number of steps taken
-    Items<real_type> time;  //!< Time elapsed in lab frame since start of event
 
     //// METHODS ////
 
     //! Check whether the interface is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !num_steps.empty() && !time.empty() && !status.empty()
-               && !step_length.empty() && !post_step_action.empty()
-               && !along_step_action.empty();
+        return !time.empty() && !step_length.empty() && !status.empty()
+               && !post_step_action.empty();
     }
 
     //! State size
@@ -60,12 +57,10 @@ struct SimStateData
     SimStateData& operator=(SimStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+        time = other.time;
+        step_length = other.step_length;
         status = other.status;
         post_step_action = other.post_step_action;
-        along_step_action = other.along_step_action;
-        step_length = other.step_length;
-        num_steps = other.num_steps;
-        time = other.time;
         return *this;
     }
 };
@@ -79,14 +74,13 @@ inline void resize(SimStateData<Ownership::value, M>* data, size_type size)
 {
     CELER_EXPECT(size > 0);
 
+    resize(&data->time, size);
+    resize(&data->step_length, size);
+
     resize(&data->status, size);
     fill(TrackStatus::inactive, &data->status);
 
     resize(&data->post_step_action, size);
-    resize(&data->along_step_action, size);
-    resize(&data->step_length, size);
-    resize(&data->num_steps, size);
-    resize(&data->time, size);
 
     CELER_ENSURE(*data);
 }

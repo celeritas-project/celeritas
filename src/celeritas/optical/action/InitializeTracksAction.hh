@@ -16,9 +16,6 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  * Initialize optical track states.
- *
- * If there are more empty slots than new secondaries, they will be filled by
- * any track initializers remaining from previous steps using the position.
  */
 class InitializeTracksAction final : public OpticalStepActionInterface,
                                      public ConcreteAction
