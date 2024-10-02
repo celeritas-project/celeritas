@@ -79,7 +79,7 @@ class SurfNavigator
                              Vector3D const& globaldir,
                              Precision step_limit,
                              vecgeom::NavigationState const& in_state,
-                             vecgeom::NavigationState& out_state)
+                             vecgeom::NavigationState& out_state, long& hitsurf)
     {
         if (step_limit <= 0)
         {
@@ -88,9 +88,8 @@ class SurfNavigator
             return step_limit;
         }
 
-        long hitsurf_id = -1;
         auto step = vgbrep::protonav::BVHSurfNavigator<Precision>::ComputeStepAndNextSurface(
-            globalpoint, globaldir, in_state, out_state, hitsurf_id, step_limit);
+            globalpoint, globaldir, in_state, out_state, hitsurf, step_limit);
         return step;
     }
 
@@ -102,10 +101,11 @@ class SurfNavigator
     ComputeStepAndPropagatedState(Vector3D const& globalpoint,
                                   Vector3D const& globaldir,
                                   Precision step_limit,
+                                  long &hit_surf,
                                   vecgeom::NavigationState const& in,
                                   vecgeom::NavigationState& out)
     {
-      return ComputeStepAndNextVolume(globalpoint, globaldir, step_limit, in, out);
+      return ComputeStepAndNextVolume(globalpoint, globaldir, step_limit, in, out, hit_surf);
     }
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: the
@@ -114,7 +114,7 @@ class SurfNavigator
     CELER_FUNCTION static void
     RelocateToNextVolume(Vector3D const& globalpoint,
                          Vector3D const& globaldir,
-			 long hitsurf_index,
+                         long hitsurf_index,
                          vecgeom::NavigationState& out_state)
     {
         vgbrep::CrossedSurface crossed_surf;

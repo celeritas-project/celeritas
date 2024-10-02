@@ -161,6 +161,9 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
+#ifdef VECGEOM_USE_SURF
+    long hit_surf_{-1};
+#endif
 
     //// HELPER FUNCTIONS ////
 
@@ -244,6 +247,7 @@ VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
     }
 
     // Set up the next state and initialize the direction
+    vgnext_ = vgstate_;
     dir_ = init.dir;
 
     CELER_ENSURE(!this->has_next_step());
@@ -292,8 +296,7 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 /*!
  * Find the distance to the next geometric boundary.
  *
- * This function is allowed to be allowed to be called from the exterior for
- * ray tracing.
+ * This function is allowed to be called from the exterior for ray tracing.
  */
 CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
 {
@@ -305,14 +308,18 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
                                           detail::to_vector(dir_),
                                           vecgeom::kInfLength);
 
-        vgnext_.Clear();
-        vgnext_.Push(pplvol);
-        vgnext_.SetBoundaryState(true);
         next_step_ = max(next_step_, this->extra_push());
-
+        vgnext_.Clear();
         Propagation result;
         result.distance = next_step_;
         result.boundary = next_step_ < vecgeom::kInfLength;
+
+        if (result.boundary)
+        {
+            vgnext_.Push(pplvol);
+            vgnext_.SetBoundaryState(true);
+        }
+
         return result;
     }
 
@@ -333,7 +340,11 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      detail::to_vector(dir_),
                                                      max_step,
                                                      vgstate_,
-                                                     vgnext_);
+                                                     vgnext_
+#ifdef VECGEOM_USE_SURF
+                                                     , hit_surf_
+#endif
+                                                     );
     next_step_ = max(next_step_, this->extra_push());
 
     if (!this->is_next_boundary())
@@ -420,9 +431,8 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     if (vgnext_.Top() != nullptr)
     {
     #ifdef VECGEOM_USE_SURF
-        long hitsurf_id = -1;
         Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
-            detail::to_vector(this->dir_), hitsurf_id, vgnext_);
+            detail::to_vector(this->dir_), hit_surf_, vgnext_);
     #else
         // Some navigators require an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
@@ -446,7 +456,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(dist > 0 && dist <= next_step_);
+    CELER_EXPECT(dist > 0 && dist < next_step_);
     CELER_EXPECT(dist != next_step_ || !this->is_next_boundary());
 
     // Move and update next_step_
@@ -500,7 +510,7 @@ CELER_FUNCTION bool VecgeomTrackView::has_next_step() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether a next step has been calculated.
+ * Whether the calculated next step will take track to next boundary.
  */
 CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 {
