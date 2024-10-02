@@ -280,6 +280,7 @@ celeritas_add_test(grid/RangeCalculator.test.cc)
 celeritas_add_test(grid/ValueGridBuilder.test.cc)
 celeritas_add_test(grid/ValueGridInserter.test.cc)
 celeritas_add_test(grid/XsCalculator.test.cc)
+celeritas_add_test(grid/SplineXsCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # IO
