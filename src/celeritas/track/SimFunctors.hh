@@ -3,15 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/sim/SimFunctors.hh
+//! \file celeritas/track/SimFunctors.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-
-#include "SimTrackView.hh"
 
 namespace celeritas
 {
@@ -23,7 +21,8 @@ namespace celeritas
  */
 struct AppliesValid
 {
-    CELER_FUNCTION bool operator()(SimTrackView const& sim) const
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& sim) const
     {
         return is_track_valid(sim.status());
     }
@@ -37,7 +36,8 @@ struct IsStepActionEqual
 {
     ActionId action;
 
-    CELER_FUNCTION bool operator()(SimTrackView const& sim) const
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& sim) const
     {
         return sim.post_step_action() == this->action;
     }
@@ -51,7 +51,8 @@ struct IsAlongStepActionEqual
 {
     ActionId action;
 
-    CELER_FUNCTION bool operator()(SimTrackView const& sim) const
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& sim) const
     {
         CELER_EXPECT(AppliesValid{}(sim)
                      == static_cast<bool>(sim.along_step_action()));
