@@ -60,6 +60,7 @@ list(APPEND SOURCES
   io/ImportData.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
+  io/ImportOpticalModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -140,6 +141,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
+    ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/MuHadEmStandardPhysics.cc
   )

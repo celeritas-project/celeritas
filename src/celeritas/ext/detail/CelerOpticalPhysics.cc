@@ -251,21 +251,21 @@ void CelerOpticalPhysics::ConstructProcess()
                "process";
     }
 
-    auto wls = std::make_unique<G4OpWLS>();
-#if G4VERSION_NUMBER < 1070
-    wls->UseTimeProfile(to_cstring(options_.wavelength_shifting));
-#endif
     if (process_is_active(OpticalProcessType::wavelength_shifting, options_))
     {
+        auto wls = std::make_unique<G4OpWLS>();
+#if G4VERSION_NUMBER < 1070
+        wls->UseTimeProfile(to_cstring(options_.wavelength_shifting));
+#endif
         process_manager->AddDiscreteProcess(wls.release());
         CELER_LOG(debug) << "Loaded Optical wavelength shifting with G4OpWLS "
                             "process";
     }
 
 #if G4VERSION_NUMBER >= 1070
-    auto wls2 = std::make_unique<G4OpWLS2>();
     if (process_is_active(OpticalProcessType::wavelength_shifting_2, options_))
     {
+        auto wls2 = std::make_unique<G4OpWLS2>();
         process_manager->AddDiscreteProcess(wls2.release());
         // I need to check how this differs from G4OpWLS...
         CELER_LOG(debug) << "Loaded second optical wavelength shifting with "

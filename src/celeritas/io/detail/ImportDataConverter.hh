@@ -19,6 +19,7 @@ struct ImportModel;
 struct ImportModelMaterial;
 struct ImportMscModel;
 struct ImportOpticalMaterial;
+struct ImportOpticalModel;
 struct ImportParticle;
 struct ImportPhysicsTable;
 struct ImportProcess;
@@ -44,6 +45,7 @@ class ImportDataConverter
     void operator()(ImportGeoMaterial* data);
     void operator()(ImportPhysMaterial* data);
     void operator()(ImportOpticalMaterial* data);
+    void operator()(ImportOpticalModel* data);
     void operator()(ImportModel* data);
     void operator()(ImportModelMaterial* data);
     void operator()(ImportMscModel* data);
