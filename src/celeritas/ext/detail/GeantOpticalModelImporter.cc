@@ -94,7 +94,7 @@ ImportOpticalModel GeantOpticalModelImporter::operator()(IMC imc) const
         case IMC::wls:
             return ImportOpticalModel{imc, this->import_mfps("WLSABSLENGTH")};
         default:
-            return ImportOpticalModel{IMC::size_, {}};
+            CELER_ASSERT_UNREACHABLE();
     }
 }
 

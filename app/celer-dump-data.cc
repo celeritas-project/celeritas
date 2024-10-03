@@ -775,32 +775,6 @@ void print_atomic_relaxation_data(
 }
 
 //---------------------------------------------------------------------------//
-struct OpticalMfpHelper
-{
-    ImportPhysicsVector const& mfp;
-};
-
-/*!
- * Print optical material properties map.
- */
-void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
-                             std::vector<ImportOpticalMaterial> const& io_mats)
-{
-    if (io_models.empty())
-    {
-        CELER_LOG(info) << "Optical model data not available";
-        return;
-    }
-
-    if (io_mats.empty())
-    {
-        CELER_LOG(info) << "Optical material data not available";
-        return;
-    }
-
-    CELER_LOG(info) << "Loaded optical material data map with size "
-                    << io_mats.size();
-
 #define POM_STREAM_SCALAR_COMP(ID, STRUCT, NAME, UNITS, COMP)             \
     "| " << setw(11) << ID << " | " << setw(20) << #NAME << COMP << " | " \
          << setw(15) << to_cstring(UNITS) << " | " << setprecision(3)     \
@@ -817,6 +791,69 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
          << ") -> (" << setprecision(3) << setw(10) << STRUCT.NAME.x.back()   \
          << ", " << setprecision(3) << setw(10) << STRUCT.NAME.y.back()       \
          << ") | " << setw(7) << STRUCT.NAME.x.size() << " |\n";
+
+/*!
+ * Helper class for printing imported optical models.
+ */
+class OpticalMfpHelper
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecModels = std::vector<ImportOpticalModel>;
+    //!@}
+
+    // MFP to print for the model
+    struct MfpPrinter
+    {
+        ImportPhysicsVector const& mfp;
+    };
+
+    //! Construct helper for given model class out of the models
+    OpticalMfpHelper(std::vector<ImportOpticalModel> const& models, optical::ImportModelClass imc)
+        : mfps_(nullptr)
+    {
+        auto iter = std::find_if(models.begin(), models.end(), [imc] (auto const& m) { return m.model_class == imc; });
+        if (iter != models.end())
+        {
+            mfps_ = &iter->mfps;
+        }
+    }
+
+    //! Print the MFP if the model exists and has the given material
+    void print_mfp(std::size_t mid) const
+    {
+        if (mfps_ && mid < mfps_->size())
+        {
+            MfpPrinter printer{(*mfps_)[mid]};
+            cout << POM_STREAM_VECTOR(mid, printer, mfp, ImportUnits::len);
+        }
+    }
+
+  private:
+    std::vector<ImportPhysicsVector> const* mfps_;
+};
+
+/*!
+ * Print optical material properties map.
+ */
+void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
+                             std::vector<ImportOpticalMaterial> const& io_mats)
+{
+    if (io_mats.empty())
+    {
+        CELER_LOG(info) << "Optical material data not available";
+        return;
+    }
+
+    if (io_models.empty())
+    {
+        CELER_LOG(info) << "Optical model data not available";
+    }
+
+    CELER_LOG(info) << "Loaded optical material data map with size "
+                    << io_mats.size();
+
     static char const header[] = R"gfm(
 
 | Material ID | Property                   | Units           | Scalar    | Vector endpoints (MeV, value)                        | Size    |
@@ -864,15 +901,14 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
     }
 
     {
-        auto iter = std::find_if(
-            io_models.begin(), io_models.end(), [](auto const& m) {
-                return m.model_class == optical::ImportModelClass::rayleigh;
-            });
+        OpticalMfpHelper rayleigh_model(io_models, optical::ImportModelClass::rayleigh);
 
         cout << "\n## Rayleigh";
         cout << header;
         for (auto mid : range(io_mats.size()))
         {
+            rayleigh_model.print_mfp(mid);
+
             auto const& rayl = io_mats[mid].rayleigh;
             if (!rayl)
             {
@@ -882,60 +918,46 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
             cout << POM_STREAM_SCALAR(mid, rayl, scale_factor, IU::unitless);
             cout << POM_STREAM_SCALAR(
                 mid, rayl, compressibility, IU::len_time_sq_per_mass);
-
-            if (iter != io_models.end() && mid < iter->mfps.size())
-            {
-                OpticalMfpHelper rayl_helper{iter->mfps[mid]};
-                cout << POM_STREAM_VECTOR(mid, rayl_helper, mfp, IU::len);
-            }
         }
     }
 
     {
-        auto iter = std::find_if(
-            io_models.begin(), io_models.end(), [](auto const& m) {
-                return m.model_class == optical::ImportModelClass::absorption;
-            });
+        OpticalMfpHelper absorption_helper(io_models, optical::ImportModelClass::absorption);
 
         cout << "\n## Absorption";
         cout << header;
         for (auto mid : range(io_mats.size()))
         {
-            if (iter != io_models.end() && mid < iter->mfps.size())
-            {
-                OpticalMfpHelper abs_helper{iter->mfps[mid]};
-                cout << POM_STREAM_VECTOR(mid, abs_helper, mfp, IU::len);
-            }
+            absorption_helper.print_mfp(mid);
         }
         cout << endl;
     }
 
     {
-        auto iter = std::find_if(
-            io_models.begin(), io_models.end(), [](auto const& m) {
-                return m.model_class == optical::ImportModelClass::wls;
-            });
+        OpticalMfpHelper wls_helper(io_models, optical::ImportModelClass::wls);
 
         cout << "\n## WLS";
         cout << header;
         for (auto mid : range(io_mats.size()))
         {
+            wls_helper.print_mfp(mid);
+
             auto const& wls = io_mats[mid].wls;
+            if (!wls)
+            {
+                continue;
+            }
+
             cout << POM_STREAM_SCALAR(mid, wls, mean_num_photons, IU::unitless);
             cout << POM_STREAM_SCALAR(mid, wls, time_constant, IU::time);
-
-            if (iter != io_models.end() && mid < iter->mfps.size())
-            {
-                OpticalMfpHelper wls_helper{iter->mfps[mid]};
-                cout << POM_STREAM_VECTOR(mid, wls_helper, mfp, IU::len);
-            }
             cout << POM_STREAM_VECTOR(mid, wls, component, IU::unitless);
         }
         cout << endl;
     }
+}
+
 #undef PEP_STREAM_SCALAR
 #undef PEP_STREAM_VECTOR
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace

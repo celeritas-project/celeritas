@@ -42,6 +42,7 @@ void print_usage(char const* exec_name)
     std::cerr
         << "usage: " << exec_name << " {input}.gdml "
                                      "[{options}.json, -, ''] {output}.[root, json]\n"
+           "       " << exec_name << " {input}.gdml [{options.json, -, ''] {output}.[root, json] --gen-test\n"
            "       " << exec_name << " --dump-default\n";
     // clang-format on
 }
@@ -80,17 +81,13 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
 //---------------------------------------------------------------------------//
 void run(std::string const& gdml_filename,
          std::string const& opts_filename,
-         std::string const& out_filename)
+         std::string const& out_filename,
+         GeantImporter::DataSelection selection)
 {
     // Construct options, set up Geant4, read data
     auto imported = [&] {
         GeantImporter import(
             GeantSetup(gdml_filename, load_options(opts_filename)));
-        GeantImporter::DataSelection selection;
-        selection.particles = GeantImporter::DataSelection::em
-                              | GeantImporter::DataSelection::optical;
-        selection.processes = selection.particles;
-        selection.reader_data = true;
         return import(selection);
     }();
 
@@ -160,16 +157,36 @@ int main(int argc, char* argv[])
         std::cout << nlohmann::json{options}.dump(indent) << std::endl;
         return EXIT_SUCCESS;
     }
-    if (args.size() != 3)
+    if (args.size() != 3 && args.size() != 4)
     {
         // Incorrect number of arguments: print help and exit
         print_usage(argv[0]);
         return 2;
     }
 
+    GeantImporter::DataSelection selection;
+    selection.particles = GeantImporter::DataSelection::em
+                          | GeantImporter::DataSelection::optical;
+    selection.processes = selection.particles;
+    selection.reader_data = true;
+
+    if (args.size() == 4)
+    {
+        if (args.back() == "--gen-test")
+        {
+            selection.reader_data = false;
+        }
+        else
+        {
+            // Incorrect option for reader_data
+            print_usage(argv[0]);
+            return 2;
+        }
+    }
+
     try
     {
-        run(args[0], args[1], args[2]);
+        run(args[0], args[1], args[2], selection);
     }
     catch (RuntimeError const& e)
     {

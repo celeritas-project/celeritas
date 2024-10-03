@@ -404,7 +404,7 @@ celeritas_add_test(user/StepCollector.test.cc
 
 set(_root_data)
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
-  foreach(_filename "four-steel-slabs" "simple-cms")
+  foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")
@@ -421,6 +421,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "${_gdml}"
         "${_basename}.geant.json"
         "${_output}"
+        "--gen-test"
       VERBATIM
     )
     list(APPEND _root_data "${_output}")
