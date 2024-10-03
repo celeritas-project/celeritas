@@ -29,22 +29,11 @@ AbsorptionModel::AbsorptionModel(ActionId id, ImportedModelAdapter imported)
 /*!
  * Build the mean free paths for the model.
  */
-void AbsorptionModel::build_mfps(detail::MfpBuilder build) const
+void AbsorptionModel::build_mfps(detail::MfpBuilder& build) const
 {
     for (auto mat : range(OpticalMaterialId{imported_.num_materials()}))
     {
-        if (auto const* mfp = imported_.preferred_mfp(mat))
-        {
-            build(*mfp);
-        }
-        else
-        {
-            CELER_LOG(warning)
-                << "No absorption MFP for optical material ID " << mat.get();
-
-            // Insert an empty MFP table so indexing is correct
-            build();
-        }
+        build(imported_.mfp(mat));
     }
 }
 

@@ -25,7 +25,7 @@ class AbsorptionModel : public Model
     AbsorptionModel(ActionId id, ImportedModelAdapter imported);
 
     // Build the mean free paths for this model
-    void build_mfps(detail::MfpBuilder) const override final;
+    void build_mfps(detail::MfpBuilder&) const override final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const override final;

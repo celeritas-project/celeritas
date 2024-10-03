@@ -3,11 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/MfpBuilder.test.cc
+//! \file celeritas/optical/MockImportedData.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/detail/MfpBuilder.hh"
-
 #include "MockImportedData.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -21,7 +20,7 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MfpBuilderTest : public ::celeritas::test::Test, public MockImportedData
+class MockImportedDataTest : public ::celeritas::test::Test, public MockImportedData
 {
   protected:
     void SetUp() override {}
@@ -30,32 +29,41 @@ class MfpBuilderTest : public ::celeritas::test::Test, public MockImportedData
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-// Check MFP tables are built with correct structure from imported data
-TEST_F(MfpBuilderTest, construct_tables)
+// Validate that the mock optical data makes sense
+TEST_F(MockImportedDataTest, validate)
 {
-    std::vector<ItemRange<Grid>> tables;
-    auto const& models = this->import_models();
+    auto const& models = import_models();
+    auto const& materials = import_materials();
 
-    // Build MFP tables from imported data
+    EXPECT_EQ(4, models.size());
+    EXPECT_EQ(5, materials.size());
+
+    // Check models
+
     for (auto const& model : models)
     {
-        auto build = this->create_mfp_builder();
+        EXPECT_NE(ImportModelClass::size_, model.model_class);
+        EXPECT_EQ(materials.size(), model.mfps.size());
 
         for (auto const& mfp : model.mfps)
         {
-            build(mfp);
+            EXPECT_EQ(ImportPhysicsVectorType::linear, mfp.vector_type);
+            EXPECT_TRUE(mfp);
         }
-
-        tables.push_back(build.grid_ids());
     }
 
-    ASSERT_EQ(models.size(), tables.size());
+    // Check IDs correspond to correct imported model
 
-    // Check each MFP table has been built correctly
-    for (auto table_id : range(tables.size()))
-    {
-        this->check_built_table(models[table_id].mfps, tables[table_id]);
-    }
+    ASSERT_LT(absorption_id().get(), models.size());
+    EXPECT_EQ(ImportModelClass::absorption, models[absorption_id().get()].model_class);
+
+    ASSERT_LT(rayleigh_id().get(), models.size());
+    EXPECT_EQ(ImportModelClass::rayleigh, models[rayleigh_id().get()].model_class);
+
+    ASSERT_LT(wls_id().get(), models.size());
+    EXPECT_EQ(ImportModelClass::wls, models[wls_id().get()].model_class);
+
+    // TODO: Check materials
 }
 
 //---------------------------------------------------------------------------//

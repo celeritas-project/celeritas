@@ -48,7 +48,7 @@ class Model : public StepActionInterface<CoreParams, CoreState>,
     }
 
     //! Build mean free path grids for all optical materials
-    virtual void build_mfps(detail::MfpBuilder build) const = 0;
+    virtual void build_mfps(detail::MfpBuilder& build) const = 0;
 };
 
 //---------------------------------------------------------------------------//
