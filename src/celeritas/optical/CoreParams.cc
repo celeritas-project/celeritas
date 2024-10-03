@@ -22,6 +22,7 @@
 #include "action/BoundaryAction.hh"
 #include "action/InitializeTracksAction.hh"
 #include "action/LocateVacanciesAction.hh"
+#include "action/PreStepAction.hh"
 
 namespace celeritas
 {
@@ -67,6 +68,8 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
 
     //// PRE-STEP ACTIONS ////
+
+    reg->insert(make_shared<PreStepAction>(reg->next_id()));
 
     //// POST-STEP ACTIONS ////
 
