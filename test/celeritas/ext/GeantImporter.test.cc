@@ -330,6 +330,15 @@ class LarSphere : public GeantImporterTest
     {
         return "lar-sphere"sv;
     }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = GeantImporterTest::build_geant_options();
+        opts.optical.absorption = true;
+        opts.optical.rayleigh_scattering = true;
+        opts.optical.wavelength_shifting = WLSTimeProfileSelection::delta;
+        return opts;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -1593,6 +1602,7 @@ TEST_F(OneSteelSphereGG, physics)
 TEST_F(LarSphere, optical)
 {
     auto&& imported = this->imported_data();
+    ASSERT_EQ(3, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1695,43 +1705,59 @@ TEST_F(LarSphere, optical)
     EXPECT_VEC_EQ(expected_comp_ft, expected_comp_ft);
 
     // Check Rayleigh optical properties
-    auto const& rayleigh = optical.rayleigh;
-    EXPECT_TRUE(rayleigh);
-    EXPECT_EQ(1, rayleigh.scale_factor);
+    auto const& rayleigh_model = imported.optical_models[1];
+    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
+    ASSERT_EQ(1, rayleigh_model.mfps.size());
+
+    auto const& rayleigh_mfp = rayleigh_model.mfps.front();
+    EXPECT_EQ(11, rayleigh_mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
+    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh_mfp.y.front()));
+    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh_mfp.y.back()));
+
+    auto const& rayleigh_mat = optical.rayleigh;
+    EXPECT_TRUE(rayleigh_mat);
+    EXPECT_EQ(1, rayleigh_mat.scale_factor);
     EXPECT_REAL_EQ(0.024673059861887867 * centimeter * ipow<2>(second) / gram,
-                   rayleigh.compressibility);
-    EXPECT_EQ(11, rayleigh.mfp.x.size());
-    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh.mfp.x.front());
-    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh.mfp.x.back());
-    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh.mfp.y.front()));
-    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh.mfp.y.back()));
+                   rayleigh_mat.compressibility);
 
     // Check absorption optical properties
-    auto const& abs = optical.absorption;
-    EXPECT_TRUE(abs);
-    EXPECT_EQ(2, abs.absorption_length.x.size());
-    EXPECT_DOUBLE_EQ(1.3778e-06, abs.absorption_length.x.front());
-    EXPECT_DOUBLE_EQ(1.55e-05, abs.absorption_length.x.back());
-    EXPECT_REAL_EQ(86.4473, to_cm(abs.absorption_length.y.front()));
-    EXPECT_REAL_EQ(0.000296154, to_cm(abs.absorption_length.y.back()));
+    auto const& absorption_model = imported.optical_models[0];
+    EXPECT_EQ(optical::ImportModelClass::absorption,
+              absorption_model.model_class);
+    ASSERT_EQ(1, absorption_model.mfps.size());
+
+    auto const& absorption_mfp = absorption_model.mfps.front();
+    EXPECT_EQ(2, absorption_mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.3778e-06, absorption_mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, absorption_mfp.x.back());
+    EXPECT_REAL_EQ(86.4473, to_cm(absorption_mfp.y.front()));
+    EXPECT_REAL_EQ(0.000296154, to_cm(absorption_mfp.y.back()));
 
     // Check WLS optical properties
-    auto const& wls = optical.wls;
-    EXPECT_TRUE(wls);
-    EXPECT_REAL_EQ(3, wls.mean_num_photons);
-    EXPECT_REAL_EQ(6 * nanosecond, wls.time_constant);
-    EXPECT_EQ(2, wls.absorption_length.x.size());
-    EXPECT_EQ(wls.absorption_length.x.size(), wls.absorption_length.y.size());
-    EXPECT_EQ(ImportPhysicsVectorType::free, wls.absorption_length.vector_type);
-    EXPECT_EQ(wls.component.vector_type, wls.absorption_length.vector_type);
+    auto const& wls_model = imported.optical_models[2];
+    EXPECT_EQ(optical::ImportModelClass::wls, wls_model.model_class);
+    ASSERT_EQ(1, wls_model.mfps.size());
+
+    auto const& wls_mfp = wls_model.mfps.front();
+    EXPECT_EQ(2, wls_mfp.x.size());
+    EXPECT_EQ(wls_mfp.x.size(), wls_mfp.y.size());
+    EXPECT_EQ(ImportPhysicsVectorType::free, wls_mfp.vector_type);
+
+    auto const& wls_mat = optical.wls;
+    EXPECT_TRUE(wls_mat);
+    EXPECT_REAL_EQ(3, wls_mat.mean_num_photons);
+    EXPECT_REAL_EQ(6 * nanosecond, wls_mat.time_constant);
+    EXPECT_EQ(wls_mat.component.vector_type, wls_mfp.vector_type);
 
     std::vector<double> abslen_grid, comp_grid;
-    for (auto i : range(wls.absorption_length.x.size()))
+    for (auto i : range(wls_mfp.x.size()))
     {
-        abslen_grid.push_back(wls.absorption_length.x[i]);
-        abslen_grid.push_back(to_cm(wls.absorption_length.y[i]));
-        comp_grid.push_back(wls.component.x[i]);
-        comp_grid.push_back(wls.component.y[i]);
+        abslen_grid.push_back(wls_mfp.x[i]);
+        abslen_grid.push_back(to_cm(wls_mfp.y[i]));
+        comp_grid.push_back(wls_mat.component.x[i]);
+        comp_grid.push_back(wls_mat.component.y[i]);
     }
 
     static real_type const expected_abslen_grid[]
