@@ -264,6 +264,7 @@ TEST_F(RootJsonDumperTest, all)
   }}]
 }],
 "optical_materials" : [],
+"optical_models": [],
 "regions" : [{
   "_typename" : "celeritas::ImportRegion",
   "name" : "DefaultRegionForTheWorld",

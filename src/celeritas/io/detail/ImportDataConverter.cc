@@ -49,6 +49,11 @@ void ImportDataConverter::operator()(ImportData* data)
         (*this)(&m);
     }
 
+    for (auto& m : data->optical_models)
+    {
+        (*this)(&m);
+    }
+
     for (auto& p : data->processes)
     {
         (*this)(&p);
@@ -118,14 +123,20 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
             comp.fall_time *= time_;
         }
     }
-    for (auto& mfp : data->rayleigh.mfp.y)
-    {
-        mfp *= len_;
-    }
     data->rayleigh.compressibility *= inv_pressure_;
-    for (auto& abs_len : data->absorption.absorption_length.y)
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataConverter::operator()(ImportOpticalModel* data)
+{
+    CELER_EXPECT(data);
+
+    for (auto& mfp_grid : data->mfps)
     {
-        abs_len *= len_;
+        for (auto& mfp : mfp_grid.y)
+        {
+            mfp *= len_;
+        }
     }
 }
 
