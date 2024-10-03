@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AbsorptionModel.hh"
 
-#include "corecel/io/Logger.hh"
+#include "corecel/Assert.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/detail/MfpBuilder.hh"
 
@@ -43,7 +43,7 @@ void AbsorptionModel::build_mfps(detail::MfpBuilder& build) const
  */
 void AbsorptionModel::step(CoreParams const& params, CoreStateHost& state) const
 {
-    // TODO: implement
+    CELER_NOT_IMPLEMENTED("optical core physics");
 }
 
 //---------------------------------------------------------------------------//
