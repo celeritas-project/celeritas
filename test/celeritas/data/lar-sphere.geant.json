@@ -1,6 +1,5 @@
 {
  "_format": "geant-physics",
- "_units": "cgs",
  "_version": "0.5.0",
  "angle_limit_factor": 1.0,
  "annihilation": true,
