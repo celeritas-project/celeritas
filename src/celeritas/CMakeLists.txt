@@ -14,6 +14,7 @@ set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 list(APPEND SOURCES
   Types.cc
+  TypesIO.json.cc
   em/detail/Utils.cc
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
@@ -166,6 +167,10 @@ if(CELERITAS_USE_HepMC3)
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_hepmc>)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
+endif()
+
+if(CELERITAS_USE_MPI)
+  list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
 endif()
 
 if(CELERITAS_USE_OpenMP)

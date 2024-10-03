@@ -33,7 +33,7 @@ BetheBlochModel::BetheBlochModel(ActionId id,
                                  ParticleParams const& particles,
                                  SetApplicability applicability)
     : StaticConcreteAction(
-        id, "ioni-bethe-bloch", "interact by ionization (Bethe-Bloch)")
+          id, "ioni-bethe-bloch", "interact by ionization (Bethe-Bloch)")
     , applicability_(applicability)
     , data_(detail::MuHadIonizationBuilder(particles,
                                            this->label())(applicability_))

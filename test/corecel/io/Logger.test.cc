@@ -33,8 +33,8 @@ class LoggerTest : public Test
     {
         if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
         {
-            comm_self = MpiCommunicator::comm_self();
-            comm_world = MpiCommunicator::comm_world();
+            comm_self = MpiCommunicator::self();
+            comm_world = MpiCommunicator::world();
         }
     }
 
@@ -75,8 +75,8 @@ TEST_F(LoggerTest, global_handlers)
     // Replace 'local' with a null-op logger, so the log message will never
     // show
     self_logger() = Logger(comm_self, nullptr);
-    CELER_LOG_LOCAL(critical) << "the last enemy that shall be destroyed is "
-                                 "death";
+    CELER_LOG_LOCAL(critical)
+        << R"(It is pitch black. You are likely to be eaten by a grue.)";
 }
 
 TEST_F(LoggerTest, null)

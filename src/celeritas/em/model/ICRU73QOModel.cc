@@ -32,7 +32,7 @@ ICRU73QOModel::ICRU73QOModel(ActionId id,
                              ParticleParams const& particles,
                              SetApplicability applicability)
     : StaticConcreteAction(
-        id, "ioni-icru73qo", "interact by muon ionization (ICRU73QO)")
+          id, "ioni-icru73qo", "interact by muon ionization (ICRU73QO)")
     , applicability_(applicability)
     , data_(detail::MuHadIonizationBuilder(particles,
                                            this->label())(applicability_))

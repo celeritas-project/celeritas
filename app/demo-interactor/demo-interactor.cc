@@ -21,7 +21,6 @@
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
-#include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -102,8 +101,7 @@ int main(int argc, char* argv[])
     using namespace celeritas;
 
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
-        && MpiCommunicator::comm_world().size() > 1)
+    if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
@@ -116,6 +114,9 @@ int main(int argc, char* argv[])
         std::cerr << "usage: " << args[0] << " {input}.json" << std::endl;
         return EXIT_FAILURE;
     }
+
+    CELER_LOG(warning)
+        << args[0] << " is deprecated and will be removed in Celeriatas v0.6";
 
     // Initialize GPU
     activate_device();

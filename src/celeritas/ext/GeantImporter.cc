@@ -193,8 +193,7 @@ std::vector<ImportScintComponent>
 fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                            std::string prefix = {})
 {
-    CELER_EXPECT(prefix.empty()
-                 || optical_particles_map().count(prefix));
+    CELER_EXPECT(prefix.empty() || optical_particles_map().count(prefix));
 
     // All the components below are "SCINTILLATIONYIELD",
     // "ELECTRONSCINTILLATIONYIELD", etc.

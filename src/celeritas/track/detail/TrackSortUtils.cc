@@ -72,14 +72,14 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
 {
     switch (order)
     {
-        case TrackOrder::partition_status:
+        case TrackOrder::reindex_status:
             return partition_impl(states.track_slots,
                                   IsNotInactive{states.sim.status.data()});
-        case TrackOrder::sort_along_step_action:
-        case TrackOrder::sort_step_limit_action:
+        case TrackOrder::reindex_along_step_action:
+        case TrackOrder::reindex_step_limit_action:
             return sort_impl(states.track_slots,
                              IdLess{get_action_ptr(states, order)});
-        case TrackOrder::sort_particle_type:
+        case TrackOrder::reindex_particle_type:
             return sort_impl(states.track_slots,
                              IdLess{states.particles.particle_id.data()});
         default:
@@ -99,8 +99,8 @@ void count_tracks_per_action(
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
     TrackOrder order)
 {
-    CELER_ASSERT(order == TrackOrder::sort_along_step_action
-                 || order == TrackOrder::sort_step_limit_action);
+    CELER_ASSERT(order == TrackOrder::reindex_along_step_action
+                 || order == TrackOrder::reindex_step_limit_action);
 
     ActionAccessor get_action{get_action_ptr(states, order),
                               states.track_slots.data()};
