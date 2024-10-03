@@ -40,31 +40,32 @@ TEST_F(SplineXsCalculatorTest, simple)
     // *No* magical 1/E scaling
     this->build(1.0, 1e5, 6);
 
-    size_type order = 1;
+    for (size_type order = 1; order < 4; ++order)
+    {
+        SplineXsCalculator calc(this->data(), this->values(), order);
 
-    SplineXsCalculator calc(this->data(), this->values(), order);
+        // Test on grid points
+        EXPECT_SOFT_EQ(1.0, calc(Energy{1}));
+        EXPECT_SOFT_EQ(1e2, calc(Energy{1e2}));
+        EXPECT_SOFT_EQ(1e5 - 1e-6, calc(Energy{1e5 - 1e-6}));
+        EXPECT_SOFT_EQ(1e5, calc(Energy{1e5}));
 
-    // Test on grid points
-    EXPECT_SOFT_EQ(1.0, calc(Energy{1}));
-    EXPECT_SOFT_EQ(1e2, calc(Energy{1e2}));
-    EXPECT_SOFT_EQ(1e5 - 1e-6, calc(Energy{1e5 - 1e-6}));
-    EXPECT_SOFT_EQ(1e5, calc(Energy{1e5}));
+        // Test access by index
+        EXPECT_SOFT_EQ(1.0, calc[0]);
+        EXPECT_SOFT_EQ(1e2, calc[2]);
+        EXPECT_SOFT_EQ(1e5, calc[5]);
 
-    // Test access by index
-    EXPECT_SOFT_EQ(1.0, calc[0]);
-    EXPECT_SOFT_EQ(1e2, calc[2]);
-    EXPECT_SOFT_EQ(1e5, calc[5]);
+        // Test between grid points
+        EXPECT_SOFT_EQ(5, calc(Energy{5}));
 
-    // Test between grid points
-    EXPECT_SOFT_EQ(5, calc(Energy{5}));
+        // Test out-of-bounds
+        EXPECT_SOFT_EQ(1.0, calc(Energy{0.0001}));
+        EXPECT_SOFT_EQ(1e5, calc(Energy{1e7}));
 
-    // Test out-of-bounds
-    EXPECT_SOFT_EQ(1.0, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(1e5, calc(Energy{1e7}));
-
-    // Test energy grid bounds
-    EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
-    EXPECT_SOFT_EQ(1e5, value_as<Energy>(calc.energy_max()));
+        // Test energy grid bounds
+        EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
+        EXPECT_SOFT_EQ(1e5, value_as<Energy>(calc.energy_max()));
+    }
 }
 
 TEST_F(SplineXsCalculatorTest, scaled_lowest)
@@ -74,33 +75,35 @@ TEST_F(SplineXsCalculatorTest, scaled_lowest)
     this->build(0.1, 1e4, 6);
     this->set_prime_index(0);
 
-    size_type order = 1;
+    for (size_type order = 1; order < 4; ++order)
+    {
+        SplineXsCalculator calc(this->data(), this->values(), order);
 
-    SplineXsCalculator calc(this->data(), this->values(), order);
+        // Test on grid points
+        EXPECT_SOFT_EQ(1, calc(Energy{0.1}));
+        EXPECT_SOFT_EQ(1, calc(Energy{1e2}));
+        EXPECT_SOFT_EQ(1, calc(Energy{1e4 - 1e-6}));
+        EXPECT_SOFT_EQ(1, calc(Energy{1e4}));
 
-    // Test on grid points
-    EXPECT_SOFT_EQ(1, calc(Energy{0.1}));
-    EXPECT_SOFT_EQ(1, calc(Energy{1e2}));
-    EXPECT_SOFT_EQ(1, calc(Energy{1e4 - 1e-6}));
-    EXPECT_SOFT_EQ(1, calc(Energy{1e4}));
+        // Test access by index
+        EXPECT_SOFT_EQ(1, calc[0]);
+        EXPECT_SOFT_EQ(1, calc[2]);
+        EXPECT_SOFT_EQ(1, calc[5]);
 
-    // Test access by index
-    EXPECT_SOFT_EQ(1, calc[0]);
-    EXPECT_SOFT_EQ(1, calc[2]);
-    EXPECT_SOFT_EQ(1, calc[5]);
+        // Test between grid points
+        EXPECT_SOFT_EQ(1, calc(Energy{0.2}));
+        EXPECT_SOFT_EQ(1, calc(Energy{5}));
 
-    // Test between grid points
-    EXPECT_SOFT_EQ(1, calc(Energy{0.2}));
-    EXPECT_SOFT_EQ(1, calc(Energy{5}));
+        // Test out-of-bounds: cross section still scales according to 1/E
+        // (TODO: this might not be the best behavior for the lower energy
+        // value)
+        EXPECT_SOFT_EQ(1000, calc(Energy{0.0001}));
+        EXPECT_SOFT_EQ(0.1, calc(Energy{1e5}));
 
-    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
-    // this might not be the best behavior for the lower energy value)
-    EXPECT_SOFT_EQ(1000, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(0.1, calc(Energy{1e5}));
-
-    // Test energy grid bounds
-    EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
-    EXPECT_SOFT_EQ(1e4, value_as<Energy>(calc.energy_max()));
+        // Test energy grid bounds
+        EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
+        EXPECT_SOFT_EQ(1e4, value_as<Energy>(calc.energy_max()));
+    }
 }
 
 TEST_F(SplineXsCalculatorTest, scaled_middle)
@@ -118,33 +121,34 @@ TEST_F(SplineXsCalculatorTest, scaled_middle)
         x *= 3;
     }
 
-    size_type order = 1;
+    for (size_type order = 1; order < 4; ++order)
+    {
+        SplineXsCalculator calc(this->data(), this->values(), order);
 
-    SplineXsCalculator calc(this->data(), this->values(), order);
+        // Test on grid points
+        EXPECT_SOFT_EQ(3, calc(Energy{0.1}));
+        EXPECT_SOFT_EQ(3, calc(Energy{1e2}));
+        EXPECT_SOFT_EQ(3, calc(Energy{1e4 - 1e-6}));
+        EXPECT_SOFT_EQ(3, calc(Energy{1e4}));
 
-    // Test on grid points
-    EXPECT_SOFT_EQ(3, calc(Energy{0.1}));
-    EXPECT_SOFT_EQ(3, calc(Energy{1e2}));
-    EXPECT_SOFT_EQ(3, calc(Energy{1e4 - 1e-6}));
-    EXPECT_SOFT_EQ(3, calc(Energy{1e4}));
+        // Test access by index
+        EXPECT_SOFT_EQ(3, calc[0]);
+        EXPECT_SOFT_EQ(3, calc[2]);
+        EXPECT_SOFT_EQ(3, calc[5]);
 
-    // Test access by index
-    EXPECT_SOFT_EQ(3, calc[0]);
-    EXPECT_SOFT_EQ(3, calc[2]);
-    EXPECT_SOFT_EQ(3, calc[5]);
+        // Test between grid points
+        EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
+        EXPECT_SOFT_EQ(3, calc(Energy{5}));
 
-    // Test between grid points
-    EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
-    EXPECT_SOFT_EQ(3, calc(Energy{5}));
+        // Test out-of-bounds: cross section still scales according to 1/E
+        // (TODO: this might not be the right behavior for
+        EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
+        EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
 
-    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
-    // this might not be the right behavior for
-    EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
-
-    // Test energy grid bounds
-    EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
-    EXPECT_SOFT_EQ(1e4, value_as<Energy>(calc.energy_max()));
+        // Test energy grid bounds
+        EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
+        EXPECT_SOFT_EQ(1e4, value_as<Energy>(calc.energy_max()));
+    }
 }
 
 TEST_F(SplineXsCalculatorTest, scaled_highest)
@@ -182,7 +186,7 @@ TEST_F(SplineXsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
     XsGridData data(this->data());
     data.prime_index = 3;  // disallowed
 
-    size_type order = 1;
+    size_type order = 2;
 
     EXPECT_THROW(SplineXsCalculator(data, this->values(), order), DebugError);
 }
