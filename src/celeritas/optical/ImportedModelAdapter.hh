@@ -7,14 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <set>
+#include <unordered_map>
+#include <vector>
+
 #include "corecel/OpaqueId.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
-
-#include <memory>
-#include <vector>
-#include <unordered_map>
-#include <set>
 
 namespace celeritas
 {
@@ -86,7 +86,6 @@ class ImportedModelAdapter
     OpticalMaterialId::size_type num_materials() const;
 
   private:
-
     // Get imported model referred to by this adapter
     ImportOpticalModel const& model() const;
 

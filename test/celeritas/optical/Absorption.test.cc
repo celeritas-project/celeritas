@@ -28,7 +28,8 @@ class AbsorptionInteractorTest : public ::celeritas::test::Test
     void SetUp() override {}
 };
 
-class AbsorptionModelTest : public ::celeritas::test::Test, public MockImportedData
+class AbsorptionModelTest : public ::celeritas::test::Test,
+                            public MockImportedData
 {
   protected:
     void SetUp() override {}
@@ -36,7 +37,10 @@ class AbsorptionModelTest : public ::celeritas::test::Test, public MockImportedD
     //! Construct absorption model from mock data
     std::shared_ptr<AbsorptionModel const> create_model() const
     {
-        return std::make_shared<AbsorptionModel const>(ActionId{0}, ImportedModelAdapter{MockImportedData::absorption_id(), MockImportedData::create_imported_models()});
+        return std::make_shared<AbsorptionModel const>(
+            ActionId{0},
+            ImportedModelAdapter{MockImportedData::absorption_id(),
+                                 MockImportedData::create_imported_models()});
     }
 };
 
@@ -78,7 +82,9 @@ TEST_F(AbsorptionModelTest, interaction_mfp)
 
     model->build_mfps(builder);
 
-    this->check_built_table(this->import_models()[this->absorption_id().get()].mfps, builder.grid_ids());
+    this->check_built_table(
+        this->import_models()[this->absorption_id().get()].mfps,
+        builder.grid_ids());
 }
 
 //---------------------------------------------------------------------------//

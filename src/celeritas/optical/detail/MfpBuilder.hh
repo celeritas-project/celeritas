@@ -21,7 +21,7 @@ namespace detail
  *
  * Tracks individual grid IDs that have been built, and returns them
  * as an ItemRange which may be used by model MFP tables. Can likely
- * be refactored into GenericGridInserter. 
+ * be refactored into GenericGridInserter.
  */
 class MfpBuilder
 {
@@ -63,13 +63,14 @@ MfpBuilder::MfpBuilder(RealCollection* real_data, GridCollection* grid_data)
     : insert_grid_(real_data, grid_data)
     , grid_data_(grid_data)
     , grid_id_first_(grid_data->size())
-{}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Build the grid.
  *
- * Passes its arguments directly to a GenericGridInserter. 
+ * Passes its arguments directly to a GenericGridInserter.
  */
 template<typename... Args>
 void MfpBuilder::operator()(Args const&... args)

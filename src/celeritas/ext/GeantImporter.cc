@@ -86,8 +86,6 @@
 #include "detail/GeantMaterialPropertyGetter.hh"
 #include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
-#include "detail/GeantOpticalModelImporter.hh"
-#include "detail/GeantMaterialPropertyGetter.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
 inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
@@ -792,13 +790,9 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportPhysMaterial> const& materials)
-<<<<<<< HEAD
     -> std::tuple<std::vector<ImportProcess>,
                   std::vector<ImportMscModel>,
                   std::vector<ImportOpticalModel>>
-=======
-    -> std::tuple<std::vector<ImportProcess>, std::vector<ImportMscModel>, std::vector<ImportOpticalModel>>
->>>>>>> 36d9fa65a (Added optical ImportedModelAdapter, mock test data, and Geant4 import options for optical models)
 {
     ParticleFilter include_particle{process_flags};
     ProcessFilter include_process{process_flags};
@@ -871,7 +865,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
         else if (dynamic_cast<G4OpAbsorption const*>(&process))
         {
-<<<<<<< HEAD
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::absorption));
         }
@@ -884,17 +877,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         {
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
-=======
-            optical_models.push_back(import_optical_model(optical::ImportModelClass::absorption));
-        }
-        else if (dynamic_cast<G4OpRayleigh const*>(&process))
-        {
-            optical_models.push_back(import_optical_model(optical::ImportModelClass::rayleigh));
-        }
-        else if (dynamic_cast<G4OpWLS const*>(&process))
-        {
-            optical_models.push_back(import_optical_model(optical::ImportModelClass::wls));
->>>>>>> 36d9fa65a (Added optical ImportedModelAdapter, mock test data, and Geant4 import options for optical models)
         }
         else
         {
@@ -935,12 +917,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
-<<<<<<< HEAD
     return {
         std::move(processes), std::move(msc_models), std::move(optical_models)};
-=======
-    return {std::move(processes), std::move(msc_models), std::move(optical_models)};
->>>>>>> 36d9fa65a (Added optical ImportedModelAdapter, mock test data, and Geant4 import options for optical models)
 }
 
 //---------------------------------------------------------------------------//
@@ -1185,12 +1163,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             std::vector<OpticalMaterialId> geo_to_opt;
             if (selected.processes & DataSelection::optical)
             {
-<<<<<<< HEAD
                 std::tie(imported.optical_materials, geo_to_opt)
                     = import_optical();
-=======
-                std::tie(imported.optical_materials, geo_to_opt) = import_optical();
->>>>>>> 36d9fa65a (Added optical ImportedModelAdapter, mock test data, and Geant4 import options for optical models)
             }
 
             imported.isotopes = import_isotopes();
@@ -1201,13 +1175,9 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (selected.processes != DataSelection::none)
         {
-<<<<<<< HEAD
             std::tie(imported.processes,
                      imported.msc_models,
                      imported.optical_models)
-=======
-            std::tie(imported.processes, imported.msc_models, imported.optical_models)
->>>>>>> 36d9fa65a (Added optical ImportedModelAdapter, mock test data, and Geant4 import options for optical models)
                 = import_processes(selected.processes,
                                    imported.particles,
                                    imported.elements,

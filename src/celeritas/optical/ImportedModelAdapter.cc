@@ -19,7 +19,8 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Check imported model MFP tables all have the same number of optical materials, and all their model classes are valid.
+ * Check imported model MFP tables all have the same number of optical
+ * materials, and all their model classes are valid.
  */
 struct CheckImportModel
 {
@@ -27,7 +28,8 @@ struct CheckImportModel
 
     bool operator()(ImportOpticalModel const& model) const
     {
-        return model.model_class != ImportModelClass::size_ && model.mfps.size() == num_materials;
+        return model.model_class != ImportModelClass::size_
+               && model.mfps.size() == num_materials;
     }
 };
 
@@ -48,7 +50,8 @@ auto ImportedModels::builtin_model_classes() -> std::set<IMC> const&
 /*!
  * Construct list of imported model from imported data.
  */
-std::shared_ptr<ImportedModels> ImportedModels::from_import(ImportData const& io)
+std::shared_ptr<ImportedModels>
+ImportedModels::from_import(ImportData const& io)
 {
     return std::make_shared<ImportedModels>(io.optical_models);
 }
@@ -60,7 +63,10 @@ std::shared_ptr<ImportedModels> ImportedModels::from_import(ImportData const& io
 ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
     : models_(std::move(models))
 {
-    CELER_EXPECT(models_.empty() || std::all_of(models_.begin(), models_.end(), CheckImportModel{models_.front().mfps.size()}));
+    CELER_EXPECT(models_.empty()
+                 || std::all_of(models_.begin(),
+                                models_.end(),
+                                CheckImportModel{models_.front().mfps.size()}));
 
     // Load all built-in IMCs into the map
     for (IMC imc : ImportedModels::builtin_model_classes())
@@ -84,7 +90,10 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
             }
             else
             {
-                CELER_LOG(warning) << "Duplicate built-in optical model '" << to_cstring(imc) << "' data has been imported; will use first imported data";
+                CELER_LOG(warning)
+                    << "Duplicate built-in optical model '" << to_cstring(imc)
+                    << "' data has been imported; will use first imported "
+                       "data";
             }
         }
     }
@@ -104,7 +113,7 @@ ImportOpticalModel const& ImportedModels::model(ImportedModelId mid) const
 /*!
  * Get number of imported models.
  */
-auto ImportedModels::num_models() const -> ImportedModelId::size_type 
+auto ImportedModels::num_models() const -> ImportedModelId::size_type
 {
     return models_.size();
 }
@@ -125,7 +134,8 @@ auto ImportedModels::builtin_model_id(IMC imc) const -> ImportedModelId
 /*!
  * Create an adapter from imported models for the given model ID.
  */
-ImportedModelAdapter::ImportedModelAdapter(ImportedModelId mid, SPConstImported imported)
+ImportedModelAdapter::ImportedModelAdapter(ImportedModelId mid,
+                                           SPConstImported imported)
     : model_id_(mid), imported_(imported)
 {
     CELER_EXPECT(imported_);

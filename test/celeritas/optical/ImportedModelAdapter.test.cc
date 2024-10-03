@@ -25,18 +25,21 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedModelAdapterTest : public ::celeritas::test::Test, public MockImportedData
+class ImportedModelAdapterTest : public ::celeritas::test::Test,
+                                 public MockImportedData
 {
   protected:
     void SetUp() override {}
 
-    void check_model(ImportOpticalModel const& expected_model, ImportOpticalModel const& imported_model) const
+    void check_model(ImportOpticalModel const& expected_model,
+                     ImportOpticalModel const& imported_model) const
     {
         EXPECT_EQ(expected_model.model_class, imported_model.model_class);
         ASSERT_EQ(expected_model.mfps.size(), imported_model.mfps.size());
         for (auto mat_id : range(imported_model.mfps.size()))
         {
-            this->check_mfp(expected_model.mfps[mat_id], imported_model.mfps[mat_id]);
+            this->check_mfp(expected_model.mfps[mat_id],
+                            imported_model.mfps[mat_id]);
         }
     }
 };
@@ -51,9 +54,10 @@ TEST_F(ImportedModelAdapterTest, from_import)
     {
         // Load example import data
         ScopedRootErrorHandler scoped_root_error_;
-        RootImporter import_from_root(Test::test_data_path("celeritas", "lar-sphere.root").c_str());
+        RootImporter import_from_root(
+            Test::test_data_path("celeritas", "lar-sphere.root").c_str());
         import_data = import_from_root();
-        
+
         EXPECT_EQ(3, import_data.optical_models.size());
         EXPECT_EQ(1, import_data.optical_materials.size());
     }
@@ -65,7 +69,8 @@ TEST_F(ImportedModelAdapterTest, from_import)
 
     for (auto model_id : range(ImportedModelId{imported_models->num_models()}))
     {
-        this->check_model(import_data.optical_models[model_id.get()], imported_models->model(model_id));
+        this->check_model(import_data.optical_models[model_id.get()],
+                          imported_models->model(model_id));
     }
 }
 
@@ -74,12 +79,13 @@ TEST_F(ImportedModelAdapterTest, from_import)
 TEST_F(ImportedModelAdapterTest, build_mock)
 {
     auto const& expected_models = this->import_models();
-    auto  imported_models = this->create_imported_models();
+    auto imported_models = this->create_imported_models();
 
     ASSERT_EQ(expected_models.size(), imported_models->num_models());
     for (auto model_id : range(ImportedModelId{imported_models->num_models()}))
     {
-        this->check_model(expected_models[model_id.get()], imported_models->model(model_id)) ;
+        this->check_model(expected_models[model_id.get()],
+                          imported_models->model(model_id));
     }
 }
 
@@ -88,13 +94,16 @@ TEST_F(ImportedModelAdapterTest, build_mock)
 TEST_F(ImportedModelAdapterTest, builtin_map)
 {
     using IMC = ImportModelClass;
-    std::array<IMC, 3> expected_builtin_imcs{IMC::absorption, IMC::rayleigh, IMC::wls};
-    std::array<ImportedModelId, 3> expected_builtin_ids{absorption_id(), rayleigh_id(), wls_id()};
+    std::array<IMC, 3> expected_builtin_imcs{
+        IMC::absorption, IMC::rayleigh, IMC::wls};
+    std::array<ImportedModelId, 3> expected_builtin_ids{
+        absorption_id(), rayleigh_id(), wls_id()};
 
     auto imported_models = this->create_imported_models();
 
     // Check built-in models match expected ones
-    EXPECT_EQ(expected_builtin_imcs.size(), ImportedModels::builtin_model_classes().size());
+    EXPECT_EQ(expected_builtin_imcs.size(),
+              ImportedModels::builtin_model_classes().size());
     for (auto imc : expected_builtin_imcs)
     {
         EXPECT_EQ(1, ImportedModels::builtin_model_classes().count(imc));
@@ -128,7 +137,8 @@ TEST_F(ImportedModelAdapterTest, adapter_mfps)
         ASSERT_EQ(expected_model.mfps.size(), adapter.num_materials());
         for (auto mat_id : range(OpticalMaterialId{adapter.num_materials()}))
         {
-            this->check_mfp(expected_model.mfps[mat_id.get()], adapter.mfp(mat_id));
+            this->check_mfp(expected_model.mfps[mat_id.get()],
+                            adapter.mfp(mat_id));
         }
     }
 }

@@ -20,7 +20,8 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MockImportedDataTest : public ::celeritas::test::Test, public MockImportedData
+class MockImportedDataTest : public ::celeritas::test::Test,
+                             public MockImportedData
 {
   protected:
     void SetUp() override {}
@@ -55,10 +56,12 @@ TEST_F(MockImportedDataTest, validate)
     // Check IDs correspond to correct imported model
 
     ASSERT_LT(absorption_id().get(), models.size());
-    EXPECT_EQ(ImportModelClass::absorption, models[absorption_id().get()].model_class);
+    EXPECT_EQ(ImportModelClass::absorption,
+              models[absorption_id().get()].model_class);
 
     ASSERT_LT(rayleigh_id().get(), models.size());
-    EXPECT_EQ(ImportModelClass::rayleigh, models[rayleigh_id().get()].model_class);
+    EXPECT_EQ(ImportModelClass::rayleigh,
+              models[rayleigh_id().get()].model_class);
 
     ASSERT_LT(wls_id().get(), models.size());
     EXPECT_EQ(ImportModelClass::wls, models[wls_id().get()].model_class);

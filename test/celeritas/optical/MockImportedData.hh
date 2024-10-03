@@ -8,13 +8,12 @@
 #pragma once
 
 #include "corecel/data/Collection.hh"
-
-#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
-#include "celeritas/grid/GenericGridData.hh"
-#include "celeritas/optical/detail/MfpBuilder.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
+#include "celeritas/optical/detail/MfpBuilder.hh"
 
 #include "celeritas_test.hh"
 
@@ -45,7 +44,7 @@ class MockImportedData
     using ImportedModelId = typename ImportedModels::ImportedModelId;
     using SPConstImported = std::shared_ptr<ImportedModels const>;
 
-    template <class T>
+    template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     using MfpBuilder = ::celeritas::optical::detail::MfpBuilder;
     //!@}
@@ -69,10 +68,11 @@ class MockImportedData
 
     //!@{
     //! \name Check results
-    void check_mfp(ImportPhysicsVector const& expected, ImportPhysicsVector const& imported) const;
-    void check_built_table(ImportedMfpTable const& expected, ItemRange<Grid> const& table) const;
+    void check_mfp(ImportPhysicsVector const& expected,
+                   ImportPhysicsVector const& imported) const;
+    void check_built_table(ImportedMfpTable const& expected,
+                           ItemRange<Grid> const& table) const;
     //!@}
-
 
     //!@{
     //! \name Storage data
