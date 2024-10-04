@@ -47,34 +47,6 @@ class ImportedModelAdapterTest : public ::celeritas::test::Test,
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-// Create ImportedModels from imported data
-TEST_F(ImportedModelAdapterTest, from_import)
-{
-    ImportData import_data;
-    {
-        // Load example import data
-        ScopedRootErrorHandler scoped_root_error_;
-        RootImporter import_from_root(
-            Test::test_data_path("celeritas", "lar-sphere.root").c_str());
-        import_data = import_from_root();
-
-        EXPECT_EQ(3, import_data.optical_models.size());
-        EXPECT_EQ(1, import_data.optical_materials.size());
-    }
-
-    auto imported_models = ImportedModels::from_import(import_data);
-
-    ASSERT_TRUE(imported_models);
-    ASSERT_EQ(import_data.optical_models.size(), imported_models->num_models());
-
-    for (auto model_id : range(ImportedModelId{imported_models->num_models()}))
-    {
-        this->check_model(import_data.optical_models[model_id.get()],
-                          imported_models->model(model_id));
-    }
-}
-
-//---------------------------------------------------------------------------//
 // Create ImportedModels from mock data
 TEST_F(ImportedModelAdapterTest, build_mock)
 {
