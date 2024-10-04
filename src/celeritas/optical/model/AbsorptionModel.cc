@@ -41,7 +41,7 @@ void AbsorptionModel::build_mfps(detail::MfpBuilder& build) const
 /*!
  * Execute the model on the host.
  */
-void AbsorptionModel::step(CoreParams const& params, CoreStateHost& state) const
+void AbsorptionModel::step(CoreParams const&, CoreStateHost&) const
 {
     CELER_NOT_IMPLEMENTED("optical core physics");
 }

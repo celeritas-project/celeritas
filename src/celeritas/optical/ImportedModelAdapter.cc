@@ -24,7 +24,7 @@ namespace optical
  */
 struct CheckImportModel
 {
-    size_type num_materials;
+    std::size_t num_materials;
 
     bool operator()(ImportOpticalModel const& model) const
     {
@@ -74,9 +74,9 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
         builtin_id_map_.insert({imc, ImportedModelId{}});
     }
 
-    for (auto model_id : range(ImportedModelId{models_.size()}))
+    for (auto model_id : range(models_.size()))
     {
-        IMC imc = models_[model_id.get()].model_class;
+        IMC imc = models_[model_id].model_class;
 
         // Check if IMC is built-in
         auto iter = builtin_id_map_.find(imc);
@@ -86,7 +86,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
             ImportedModelId& mapped_id = iter->second;
             if (!mapped_id)
             {
-                mapped_id = model_id;
+                mapped_id = ImportedModelId(model_id);
             }
             else
             {
