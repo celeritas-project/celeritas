@@ -38,14 +38,14 @@ class MfpBuilder
 
   public:
     // Construct with given inserter
-    MfpBuilder(RealCollection* real_data, GridCollection* grid_data);
+    inline MfpBuilder(RealCollection* real_data, GridCollection* grid_data);
 
     // Build the grid
     template<typename... Args>
     inline void operator()(Args const&... args);
 
     // Get the range of grid IDs that have been built
-    GridIdRange grid_ids() const;
+    inline GridIdRange grid_ids() const;
 
   private:
     GridInserter insert_grid_;
