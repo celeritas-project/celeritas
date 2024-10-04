@@ -15,7 +15,7 @@
 #include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/detail/MfpBuilder.hh"
 
-#include "celeritas_test.hh"
+#include "Test.hh"
 
 namespace celeritas
 {
@@ -31,7 +31,7 @@ using namespace ::celeritas::test;
  * A base class that provides common mock data and functionality for testing
  * optical physics.
  */
-class MockImportedData : public Test
+class MockImportedData : public ::celeritas::test::Test
 {
   protected:
     //!@{

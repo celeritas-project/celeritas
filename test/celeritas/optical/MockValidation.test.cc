@@ -19,8 +19,7 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MockValidationTest : public ::celeritas::test::Test,
-                           public MockImportedData
+class MockValidationTest : public MockImportedData
 {
   protected:
     void SetUp() override {}

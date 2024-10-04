@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "MockImportedData.hh"
 
+#include "TestMacros.hh"
+
 namespace celeritas
 {
 namespace optical
