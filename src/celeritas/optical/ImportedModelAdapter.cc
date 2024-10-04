@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ImportedModelAdapter.hh"
 
+#include <algorithm>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
