@@ -31,7 +31,7 @@ using namespace ::celeritas::test;
  * A base class that provides common mock data and functionality for testing
  * optical physics.
  */
-class MockImportedData
+class MockImportedData : public Test
 {
   protected:
     //!@{

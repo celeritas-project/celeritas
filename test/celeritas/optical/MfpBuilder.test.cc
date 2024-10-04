@@ -21,7 +21,7 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MfpBuilderTest : public ::celeritas::test::Test, public MockImportedData
+class MfpBuilderTest : public MockImportedData
 {
   protected:
     void SetUp() override {}

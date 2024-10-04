@@ -28,8 +28,7 @@ class AbsorptionInteractorTest : public ::celeritas::test::Test
     void SetUp() override {}
 };
 
-class AbsorptionModelTest : public ::celeritas::test::Test,
-                            public MockImportedData
+class AbsorptionModelTest : public MockImportedData
 {
   protected:
     void SetUp() override {}
