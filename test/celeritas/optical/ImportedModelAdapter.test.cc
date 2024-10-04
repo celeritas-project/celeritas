@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/ImportedModelAdapter.hh"
 
+#include <array>
+
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
