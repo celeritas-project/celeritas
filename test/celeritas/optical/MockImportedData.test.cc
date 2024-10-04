@@ -48,7 +48,7 @@ TEST_F(MockImportedDataTest, validate)
 
         for (auto const& mfp : model.mfps)
         {
-            EXPECT_EQ(ImportPhysicsVectorType::linear, mfp.vector_type);
+            EXPECT_EQ(ImportPhysicsVectorType::free, mfp.vector_type);
             EXPECT_TRUE(mfp);
         }
     }

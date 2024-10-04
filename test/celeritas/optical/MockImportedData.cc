@@ -59,7 +59,7 @@ ImportPhysicsVector mock_vec(unsigned int i, unsigned int j)
     CELER_EXPECT(grids[i].size() == values[j].size());
 
     return ImportPhysicsVector{
-        ImportPhysicsVectorType::linear, grids[i], values[j]};
+        ImportPhysicsVectorType::free, grids[i], values[j]};
 }
 
 //---------------------------------------------------------------------------//
@@ -154,8 +154,7 @@ auto MockImportedData::create_empty_imported_models() const -> SPConstImported
 {
     std::vector<ImportOpticalModel> empty_models;
     empty_models.reserve(this->import_models().size());
-    ImportPhysicsVector const empty_vec{
-        ImportPhysicsVectorType::linear, {}, {}};
+    ImportPhysicsVector const empty_vec{ImportPhysicsVectorType::free, {}, {}};
     for (auto const& model : this->import_models())
     {
         empty_models.push_back(
