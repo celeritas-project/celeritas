@@ -3,10 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/MockImportedData.test.cc
+//! \file celeritas/optical/MockValidation.test.cc
 //---------------------------------------------------------------------------//
 #include "MockImportedData.hh"
-
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -20,8 +19,8 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MockImportedDataTest : public ::celeritas::test::Test,
-                             public MockImportedData
+class MockValidationTest : public ::celeritas::test::Test,
+                           public MockImportedData
 {
   protected:
     void SetUp() override {}
@@ -31,7 +30,7 @@ class MockImportedDataTest : public ::celeritas::test::Test,
 // TESTS
 //---------------------------------------------------------------------------//
 // Validate that the mock optical data makes sense
-TEST_F(MockImportedDataTest, validate)
+TEST_F(MockValidationTest, validate)
 {
     auto const& models = import_models();
     auto const& materials = import_materials();
