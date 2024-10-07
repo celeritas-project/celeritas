@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
+#include "geocel/rasterize/SafetyImager.hh"
 
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"
@@ -358,6 +359,32 @@ TEST_F(ZnenvGeantTest, trace)
         EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
         EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
     }
+}
+
+//---------------------------------------------------------------------------//
+class PincellTest : public GeantOrangeTest
+{
+    std::string geometry_basename() const final { return "pincell"; }
+};
+
+TEST_F(PincellTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = {-12, -12, 0};
+    inp.upper_right = {12, 12, 0};
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 255;
+
+    write_image(ImageParams{inp}, "org-pincell-xy-mid.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = -5.5;
+    write_image(ImageParams{inp}, "org-pincell-xy-lo.jsonl");
+
+    inp.lower_left = {-12, 0, -12};
+    inp.upper_right = {12, 0, 12};
+    write_image(ImageParams{inp}, "org-pincell-xz-mid.jsonl");
 }
 
 //---------------------------------------------------------------------------//

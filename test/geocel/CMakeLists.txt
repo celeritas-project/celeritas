@@ -99,7 +99,7 @@ if(CELERITAS_USE_VecGeom)
     set(_vecgeom_tests DISABLE)
   endif()
   celeritas_add_device_test(vg/Vecgeom
-    LINK_LIBRARIES VecGeom::vecgeom
+    LINK_LIBRARIES VecGeom::vecgeom nlohmann_json::nlohmann_json
     FILTER ${_vecgeom_tests}
     ${_fixme_cgs}
   )
@@ -113,7 +113,7 @@ if(CELERITAS_USE_Geant4)
 endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs})
+  celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs}  nlohmann_json::nlohmann_json)
   celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
 endif()
 

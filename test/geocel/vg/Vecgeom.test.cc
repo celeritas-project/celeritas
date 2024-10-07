@@ -22,6 +22,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/rasterize/SafetyImager.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
@@ -1546,6 +1547,36 @@ TEST_F(ArbitraryGeantTest, dump)
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
     world->PrintContent();
+}
+
+//---------------------------------------------------------------------------//
+class PincellTest : public VecgeomGeantTestBase
+{
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml(this->geometry_basename() + ".gdml");
+    }
+    std::string geometry_basename() const override { return "pincell"; }
+};
+
+TEST_F(PincellTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = {-12, -12, 0};
+    inp.upper_right = {12, 12, 0};
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 255;
+
+    write_image(ImageParams{inp}, "vg-pincell-xy-mid.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = -5.5;
+    write_image(ImageParams{inp}, "vg-pincell-xy-lo.jsonl");
+
+    inp.lower_left = {-12, 0, -12};
+    inp.upper_right = {12, 0, 12};
+    write_image(ImageParams{inp}, "vg-pincell-xz-mid.jsonl");
 }
 
 //---------------------------------------------------------------------------//

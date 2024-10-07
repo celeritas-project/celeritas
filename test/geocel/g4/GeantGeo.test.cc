@@ -20,6 +20,7 @@
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
+#include "geocel/rasterize/SafetyImager.hh"
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
@@ -895,6 +896,32 @@ TEST_F(ZnenvTest, trace)
         EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
         EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
     }
+}
+
+//---------------------------------------------------------------------------//
+class PincellTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override { return "pincell"; }
+};
+
+TEST_F(PincellTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = {-12, -12, 0};
+    inp.upper_right = {12, 12, 0};
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 255;
+
+    write_image(ImageParams{inp}, "g4-pincell-xy-mid.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = -5.5;
+    write_image(ImageParams{inp}, "g4-pincell-xy-lo.jsonl");
+
+    inp.lower_left = {-12, 0, -12};
+    inp.upper_right = {12, 0, 12};
+    write_image(ImageParams{inp}, "g4-pincell-xz-mid.jsonl");
 }
 
 //---------------------------------------------------------------------------//

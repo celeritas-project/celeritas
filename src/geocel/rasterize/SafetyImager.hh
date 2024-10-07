@@ -84,7 +84,7 @@ void SafetyImager<G>::operator()(ImageParams const& image, std::string filename)
 {
     std::ofstream out{filename, std::ios::out | std::ios::trunc};
     CELER_VALIDATE(out, << "failed to open '" << filename << "'");
-    out << nlohmann::json(image).dump(0) << std::endl;
+    out << nlohmann::json(image).dump() << std::endl;
 
     auto const& scalars = image.scalars();
     real_type max_distance = celeritas::max(scalars.dims[0], scalars.dims[1])
@@ -103,7 +103,7 @@ void SafetyImager<G>::operator()(ImageParams const& image, std::string filename)
         {
             line.push_back(calc_safety(i, j));
         }
-        out << nlohmann::json(line).dump(0) << std::endl;
+        out << nlohmann::json(line).dump() << std::endl;
     }
 }
 
