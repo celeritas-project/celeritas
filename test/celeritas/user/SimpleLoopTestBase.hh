@@ -34,8 +34,8 @@ class SimpleLoopTestBase : virtual public GlobalTestBase
   public:
     virtual VecPrimary make_primaries(size_type count) const = 0;
 
-    //! # primaries / # track slots
-    virtual double initial_occupancy() const { return 1.0; }
+    // # primaries given # track slots: default is passthrough
+    virtual size_type initial_occupancy(size_type num_tracks) const;
 
   protected:
     template<MemSpace M>

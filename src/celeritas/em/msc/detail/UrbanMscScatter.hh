@@ -264,7 +264,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             // many of the class member data
             theta0_ = this->compute_theta0();
 
-            if (theta0_ < 1e-8)
+            if (theta0_ < real_type(1e-8))
             {
                 // Arbitrarily (?) small angle change (theta_0^2 < 1e-16):
                 // skip sampling angular distribution if width of direction

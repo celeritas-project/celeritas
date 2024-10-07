@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map>
+#include <map>
 
 #include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
@@ -107,7 +107,7 @@ struct ImportTransParameters
     //!@{
     //! \name Type aliases
     using PDGInt = int;
-    using ImportLoopingMap = std::unordered_map<PDGInt, ImportLoopingThreshold>;
+    using ImportLoopingMap = std::map<PDGInt, ImportLoopingThreshold>;
     //!@}
 
     //! Thresholds for killing looping tracks
