@@ -63,8 +63,6 @@ class MuDecayInteractor
     StackAllocator<Secondary>& allocate_;
     // Incident muon's four vector
     FourVector inc_fourvec_;
-    // Inverse boost of incident muon
-    Real3 inv_boost_inc_fourvec_;
     // Max possible sampled energy
     real_type max_energy_;
     // Max sampled fractional energy
@@ -117,7 +115,6 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     inc_fourvec_ = {
         inc_momentum,
         std::sqrt(ipow<2>(norm(inc_momentum)) + ipow<2>(shared_.muon_mass))};
-    inv_boost_inc_fourvec_ = -boost_vector(inc_fourvec_);
 
     // \todo This differs from physics manual, that states E_{max} = m_\mu / 2
     max_energy_ = 0.5 * shared_.muon_mass - shared_.electron_mass;
@@ -155,9 +152,8 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    real_type sample_result;
+    real_type electron_energy_frac;
     real_type electron_nu_energy_frac;
-    real_type sampled_energy_frac;  // Outgoing electron
 
     size_type const max_iter = 1000;  // \todo Why?
 
@@ -165,31 +161,31 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     {
         for ([[maybe_unused]] auto j : range(max_iter))
         {
-            sample_result = sample_max_ * generate_canonical(rng);
-            real_type rej = generate_canonical(rng);
-            if (rej <= sample_result * (real_type{1} - sample_result))
+            electron_nu_energy_frac = sample_max_ * generate_canonical(rng);
+            if (generate_canonical(rng)
+                <= electron_nu_energy_frac
+                       * (real_type{1} - electron_nu_energy_frac))
             {
                 break;
             }
-            sample_result = sample_max_;
+            electron_nu_energy_frac = sample_max_;
         }
 
-        sampled_energy_frac = generate_canonical(rng);  // Charged lepton
-        electron_nu_energy_frac = sampled_energy_frac;
-        if (sample_result >= real_type{1} - sampled_energy_frac)
+        electron_energy_frac = generate_canonical(rng);
+        if (electron_nu_energy_frac >= real_type{1} - electron_energy_frac)
         {
             break;
         }
-        electron_nu_energy_frac = real_type{1} - sampled_energy_frac;
+        electron_nu_energy_frac = real_type{1} - electron_energy_frac;
     }
 
-    real_type muon_nu_energy_frac = real_type{2} - sampled_energy_frac
+    real_type muon_nu_energy_frac = real_type{2} - electron_energy_frac
                                     - electron_nu_energy_frac;
 
     // Angle between charged lepton and electron neutrino
-    real_type cos_theta = real_type{1} - 0.5 * sample_result
-                          - 0.5 * electron_nu_energy_frac
-                          + 0.5 * (electron_nu_energy_frac * sample_result);
+    real_type cos_theta
+        = real_type{1} - 2 / electron_energy_frac - 2 / electron_nu_energy_frac
+          + 2 / (electron_nu_energy_frac * electron_energy_frac);
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
     real_type sin_theta = std::sqrt(1 - ipow<2>(cos_theta));
     CELER_ASSERT(std::fabs(sin_theta) <= 1);
@@ -201,7 +197,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
     // Define energy and direction for all secondaries
     auto charged_lep_energy
-        = this->energy(sample_result, shared_.electron_mass);
+        = this->energy(electron_energy_frac, shared_.electron_mass);
     auto charged_lep_dir
         = this->calc_cm_dir({0, 0, 1}, decay_dir_costheta, decay_dir_phi);
 
@@ -213,7 +209,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     auto muon_nu_dir = this->calc_cm_dir(
         {-sin_theta * electron_nu_energy_frac / muon_nu_energy_frac,
          0,
-         -sample_result / muon_nu_energy_frac
+         -electron_energy_frac / muon_nu_energy_frac
              - cos_theta * electron_nu_energy_frac / muon_nu_energy_frac},
         decay_dir_costheta,
         decay_dir_phi);
@@ -226,7 +222,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     auto muon_nu_4vec = this->to_lab_frame(muon_nu_dir, muon_nu_energy, 0);
 
     // \todo Return electron only?
-    Interaction result;
+    Interaction result = Interaction::from_absorption();
     result.action = Interaction::Action::decay;
     result.secondaries = {secondaries, 3};
 
@@ -245,7 +241,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
 //---------------------------------------------------------------------------//
 /*!
- * Boost secondary to the lab frame
+ * Boost secondary to the lab frame. This assumes the primary to be at rest.
  */
 CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
                                                           Energy const& energy,
@@ -264,7 +260,8 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate decay direction for particle in the muon's rest frame.
+ * Return final direction for secondary in the muon's rest frame after
+ * rotation.
  */
 CELER_FUNCTION Real3 MuDecayInteractor::calc_cm_dir(Real3 const& dir,
                                                     real_type const& costheta,
@@ -285,7 +282,6 @@ MuDecayInteractor::energy(real_type const& energy_frac, real_type const& mass)
 {
     return Energy{std::sqrt(ipow<2>(energy_frac) * ipow<2>(max_energy_)
                             + 2 * energy_frac * max_energy_ * mass)};
-    ;
 }
 
 //---------------------------------------------------------------------------//
