@@ -42,7 +42,6 @@ void SimpleLoopTestBase::run_impl(size_type num_tracks, size_type num_steps)
     LogContextException log_context{this->output_reg().get()};
 
     size_type num_primaries = this->initial_occupancy(num_tracks);
-    CELER_VALIDATE(num_primaries >= 0, << "invalid num primaries");
     // Initial step
     auto primaries = this->make_primaries(num_primaries);
     StepperResult count;
