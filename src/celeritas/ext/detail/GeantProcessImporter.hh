@@ -33,14 +33,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// DEPRECATED: remove in v0.5
-enum class TableSelection
-{
-    minimal,  //!< Store only lambda, dedx, and range
-    all
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Simplify the convoluted mechanism to store Geant4 process, model, and XS
  * table data.
@@ -54,7 +46,7 @@ enum class TableSelection
  *
  * \code
  *  std::vector<ImportProcess> processes;
- *  GeantProcessImporter import(TableSelection::all, materials, elements);
+ *  GeantProcessImporter import(materials, elements);
  *
  *  G4ParticleTable::G4PTblDicIterator& particle_iterator
  *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -82,8 +74,7 @@ class GeantProcessImporter
 {
   public:
     // Construct with selected list of tables
-    GeantProcessImporter(TableSelection which_tables,
-                         std::vector<ImportPhysMaterial> const& materials,
+    GeantProcessImporter(std::vector<ImportPhysMaterial> const& materials,
                          std::vector<ImportElement> const& elements);
 
     // Import processes
