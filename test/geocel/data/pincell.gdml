@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <solids>
+    <polyhedra name="hex_s" lunit="cm" aunit="deg" deltaphi="360" numsides="6" startphi="0" >
+       <zplane z="-5.0" rmin="0" rmax="5.0"/>
+       <zplane z=" 5.0" rmin="0" rmax="5.0"/>
+    </polyhedra>
+    <tube name="cyl_s" lunit="cm" aunit="deg" z="20.0" rmax="10.0" rmin="0" startphi="0" deltaphi="360"/>
+    <box lunit="cm" name="box_s" x="30" y="30" z="50"/>
+  </solids>
+  <structure>
+    <volume name="hex">
+      <solidref ref="hex_s"/>
+    </volume>
+    <volume name="cyl">
+      <solidref ref="cyl_s"/>
+      <physvol>
+        <volumeref ref="hex"/>
+      </physvol>
+    </volume>
+    <volume name="box">
+      <solidref ref="box_s"/>
+      <physvol>
+        <volumeref ref="cyl"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="box"/>
+  </setup>
+</gdml>
