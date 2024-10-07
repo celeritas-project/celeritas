@@ -331,6 +331,10 @@ TEST_F(FourLevelsTest, consecutive_compute)
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
     EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
 }
 
 //---------------------------------------------------------------------------//
@@ -437,7 +441,7 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-8, to_cm(next.distance));
+    EXPECT_SOFT_EQ(1e-8, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
@@ -550,7 +554,7 @@ TEST_F(FourLevelsTest, safety)
     for (auto i : range(11))
     {
         real_type r = 2.0 * i + 0.1;
-        geo = {{r, r, r}, {1, 0, 0}};
+        geo = {from_cm({r, r, r}), {1, 0, 0}};
 
         if (!geo.is_outside())
         {
