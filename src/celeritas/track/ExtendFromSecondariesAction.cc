@@ -78,6 +78,13 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
 
     /*! \todo If we don't have space for all the secondaries, we will need to
      * buffer the current track initializers to create room.
+     *
+     * This isn't trivial because we will need to:
+     * - Allocate a new buffer (probably do something like 2x, rounding up to
+     *   nearest power of 2)?
+     * - Update the collection references for track sim
+     * - Update the *copies* of that reference (?) like in track state
+     * - Copy to device to update the on-device refrences (state.ptr)
      */
     counters.num_initializers += counters.num_secondaries;
     CELER_VALIDATE(counters.num_initializers <= init.initializers.size(),
