@@ -8,6 +8,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Physics models and validation
 
+- A. Howard. "Electromagnetic physics II: Optical Photons". Oct 2023. [indico.cern.ch](https://indico.cern.ch/event/1304769/contributions/5487618/)
 - E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor. "CODATA Recommended Values of the Fundamental Physical Constants: 2018". *Journal of Physical and Chemical Reference Data*, Sep 2021. [10.1063/5.0064853](https://doi.org/10.1063/5.0064853)
 - W. R. Saunders, J. Grant, E. H. Müller. "A new algorithm for electrostatic interactions in Monte Carlo simulations of charged particles". *Journal of Computational Physics*, Apr 2021. [10.1016/j.jcp.2020.110099](https://doi.org/10.1016/j.jcp.2020.110099)
 - Bureau International des Poids et Mesures. "The International System of Units". Oct 2019.
