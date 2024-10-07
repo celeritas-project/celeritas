@@ -159,7 +159,7 @@ set(CELERITASTEST_NP_DEFAULT "${_procs}" CACHE INTERNAL
 set(_procs)
 
 if(NOT CELERITAS_USE_MPI)
-  # Construct test name with MPI enabled, or empty if not applicable
+  # Skip tests that require greater than 1 process
   function(_celeritasaddtest_test_name outvar test_name np suffix)
     set(_name "${test_name}${suffix}")
     if(np GREATER 1)
@@ -168,13 +168,13 @@ if(NOT CELERITAS_USE_MPI)
     set(${outvar} "${_name}" PARENT_SCOPE)
   endfunction()
 
-  # Construct MPI command, or empty if not applicable
+  # Construct execution command
   function(_celeritasaddtest_mpi_cmd outvar np test_exe)
     set(_cmd "${test_exe}" ${ARGN})
     set(${outvar} "${_cmd}" PARENT_SCOPE)
   endfunction()
 else()
-  # Construct test name with MPI enabled but not tribits
+  # Construct test name with number of processors
   function(_celeritasaddtest_test_name outvar test_name np suffix)
     if(np GREATER CELERITAS_MAX_NUMPROCS)
       set(_name)
@@ -186,6 +186,7 @@ else()
     set(${outvar} "${_name}" PARENT_SCOPE)
   endfunction()
 
+  # Construct MPI command
   function(_celeritasaddtest_mpi_cmd outvar np test_exe)
     if(np GREATER 1)
       set(_cmd "${MPIEXEC_EXECUTABLE}" ${MPIEXEC_NUMPROC_FLAG} "${np}"
@@ -407,9 +408,16 @@ function(celeritas_add_test SOURCE_FILE)
       # Launch with MPI directly
       _celeritasaddtest_mpi_cmd(_test_cmd "${_np}" "${_EXE_NAME}")
 
-      set(_test_args "${_EXE_ARGS}")
+      set(_test_args)
       if(_filter)
         list(APPEND _test_args "--gtest_filter=${_filter}")
+      endif()
+      if(CELERITAS_TEST_XML)
+        string(REGEX REPLACE "\\*" "ALL" _xml_name "${_TEST_NAME}")
+        string(REGEX REPLACE "[^a-zA-Z0-9_.-]+" "_" _xml_name "${_xml_name}")
+        list(APPEND _test_args
+          "--gtest_output=xml:${CELERITAS_TEST_XML}/${_xml_name}.xml"
+        )
       endif()
 
       add_test(NAME "${_TEST_NAME}" COMMAND ${_test_cmd} ${_test_args})

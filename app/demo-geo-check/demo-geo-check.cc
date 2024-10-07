@@ -89,6 +89,9 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    CELER_LOG(warning)
+        << args[0] << " is deprecated and will be removed in Celeriatas v0.6";
+
     std::ifstream infile;
     std::istream* instream_ptr = nullptr;
     if (args[1] != "-")

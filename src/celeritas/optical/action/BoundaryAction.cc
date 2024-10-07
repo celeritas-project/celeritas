@@ -11,6 +11,11 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 
+#include "ActionLauncher.hh"
+#include "TrackSlotExecutor.hh"
+
+#include "detail/BoundaryExecutor.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -28,9 +33,13 @@ BoundaryAction::BoundaryAction(ActionId aid)
 /*!
  * Launch the boundary action on host.
  */
-void BoundaryAction::step(CoreParams const&, CoreStateHost&) const
+void BoundaryAction::step(CoreParams const& params, CoreStateHost& state) const
 {
-    CELER_LOG_LOCAL(error) << "Boundary action is not implemented";
+    auto execute = make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                               state.ptr(),
+                                               this->action_id(),
+                                               detail::BoundaryExecutor{});
+    return launch_action(state, execute);
 }
 
 #if !CELER_USE_DEVICE

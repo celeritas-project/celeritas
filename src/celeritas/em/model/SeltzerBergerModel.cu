@@ -29,7 +29,7 @@ void SeltzerBergerModel::step(CoreParams const& params,
         this->action_id(),
         InteractionApplier{SeltzerBergerExecutor{this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(params, state, *this, execute);
+    launch_kernel(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

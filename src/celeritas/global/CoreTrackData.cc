@@ -8,6 +8,7 @@
 #include "CoreTrackData.hh"
 
 #include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/io/Logger.hh"
 
 #include "detail/TrackSlotUtils.hh"
 
@@ -43,13 +44,14 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->init, params.init, stream_id, size);
     state->stream_id = stream_id;
 
-    if (params.init.track_order != TrackOrder::unsorted
-        && params.init.track_order != TrackOrder::partition_charge)
+    if (params.init.track_order != TrackOrder::none
+        && params.init.track_order != TrackOrder::init_charge)
     {
         resize(&state->track_slots, size);
         fill_sequence(&state->track_slots, stream_id);
-        if (params.init.track_order == TrackOrder::shuffled)
+        if (params.init.track_order == TrackOrder::reindex_shuffle)
         {
+            CELER_LOG(debug) << "Shuffling track slots";
             detail::shuffle_track_slots(&state->track_slots, stream_id);
         }
     }

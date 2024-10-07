@@ -143,6 +143,9 @@ class CoreState final : public CoreStateInterface
 
     //// TRACK SORTING ////
 
+    //! Return whether tracks can be sorted by action
+    bool has_action_range() const { return !offsets_.empty(); }
+
     // Get a range of sorted track slots about to undergo a given action
     Range<ThreadId> get_action_range(ActionId action_id) const;
 
@@ -225,6 +228,13 @@ auto& CoreState<M>::native_action_thread_offsets()
 {
     return offsets_.native_action_thread_offsets();
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class CoreState<MemSpace::host>;
+extern template class CoreState<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

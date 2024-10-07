@@ -48,8 +48,8 @@ TEST(CommunicatorTest, null)
 
 TEST(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
 {
-    MpiCommunicator comm = MpiCommunicator::comm_self();
-    EXPECT_NE(MpiCommunicator::comm_world().mpi_comm(), comm.mpi_comm());
+    MpiCommunicator comm = MpiCommunicator::self();
+    EXPECT_NE(MpiCommunicator::world().mpi_comm(), comm.mpi_comm());
 
     // "self" comm always acts like it's running in serial
     EXPECT_EQ(1, comm.size());
@@ -61,7 +61,7 @@ TEST(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
 
 TEST(CommunicatorTest, TEST_IF_CELERITAS_MPI(world))
 {
-    MpiCommunicator comm = MpiCommunicator::comm_world();
+    MpiCommunicator comm = MpiCommunicator::world();
 
 #if CELERITAS_USE_MPI
     EXPECT_EQ(MPI_COMM_WORLD, comm.mpi_comm());

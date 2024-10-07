@@ -59,12 +59,12 @@ single "action" class can, for example, allocate states at the beginning of the
 run and execute once per step.
 
 There are currently two different actions that act as extension points to the
-stepping loop: :cpp:class:`CoreBeginRunActionInterface` is called once per event
+stepping loop: :cpp:class:`BeginRunActionInterface` is called once per event
 (or set of simultaneously initialized events), and :cpp:class:`StepActionInterface`
 is called once per step, ordered using :cpp:enum:`celeritas::StepActionOrder`.
 
 .. doxygenclass:: celeritas::ActionInterface
-.. doxygenclass:: celeritas::CoreBeginRunActionInterface
+.. doxygenclass:: celeritas::BeginRunActionInterface
 .. doxygenclass:: celeritas::StepActionInterface
 
 .. doxygenenum:: celeritas::StepActionOrder
@@ -93,3 +93,13 @@ Initialization and execution
 
 .. doxygenclass:: celeritas::Stepper
 
+Track sort order
+----------------
+
+For performance reasons such as reducing divergence and improving memory access
+patterns, it is desirable to map similar tracks into similar threads. There
+will be an upcoming paper describing and analyzing these options in more
+detail.
+
+.. doxygenenum:: celeritas::TrackOrder
+   :no-link:

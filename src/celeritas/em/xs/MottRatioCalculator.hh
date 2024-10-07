@@ -20,16 +20,17 @@ namespace celeritas
 /*!
  * Calculates the ratio of Mott cross section to the Rutherford cross section.
  *
- * The ratio is an interpolated approximation developed in
- * T. Lijian, H. Quing and L. Zhengming, Radiat. Phys. Chem. 45 (1995),
- *   235-245
- * and described in the Geant Physics Reference Manual [PRM] (Release 1.11)
- * section 8.4.
+ * This ratio is an adjustment of the cross section from a purely classical
+ * treatment of a point nucleus in an electronic cloud (Rutherford scattering)
+ * to a quantum mechanical treatment. The implementation is an interpolated
+ * approximation developed in [LQZ95] and described in the Geant Physics
+ * Reference Manual [PRM] (Release 1.11) section 8.4
  *
- * The parameter cos_theta is the cosine of the
- * scattered angle in the z-aligned momentum frame.
+ * [LQZ95] T. Lijian, H. Quing and L. Zhengming, Radiat. Phys. Chem. 45 (1995),
+ *     235-245
  *
- * For 1 <= Z <= 92, an interpolated expression is used [PRM 8.48].
+ * The parameter \c cos_theta is the cosine of the scattered angle in the
+ * z-aligned momentum frame.
  */
 class MottRatioCalculator
 {

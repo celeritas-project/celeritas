@@ -95,7 +95,7 @@ void set_log_level_from_env(Logger* log, std::string const& level_env)
  * Construct with default communicator and handler.
  */
 Logger::Logger(LogHandler handle)
-    : Logger(MpiCommunicator::comm_default(), std::move(handle))
+    : Logger(celeritas::comm_world(), std::move(handle))
 {
 }
 
@@ -158,7 +158,7 @@ Logger make_default_world_logger()
  */
 Logger make_default_self_logger()
 {
-    auto comm = MpiCommunicator::comm_default();
+    auto const& comm = celeritas::comm_world();
     auto handler = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
                        ? LocalHandler{comm}
                        : LogHandler{&default_global_handler};

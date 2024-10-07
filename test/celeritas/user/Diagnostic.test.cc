@@ -38,7 +38,7 @@ namespace test
 class SimpleComptonDiagnosticTest : public SimpleTestBase,
                                     public DiagnosticTestBase
 {
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = MevEnergy{10.0};
@@ -81,7 +81,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         return result;
     }
 
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = MevEnergy{10.0};
@@ -240,7 +240,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0],[0,0,0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0],[0,0,0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0,0]]})json",
+            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0,0,0],[0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0,0,0,0]]})json",
             this->action_output());
         EXPECT_JSON_EQ(
             R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",

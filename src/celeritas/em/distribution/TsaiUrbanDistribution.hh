@@ -64,8 +64,8 @@ class TsaiUrbanDistribution
  */
 CELER_FUNCTION
 TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy, Mass mass)
+    : umax_(2 * (1 + energy.value() / mass.value()))
 {
-    umax_ = 2 * (1 + energy.value() / mass.value());
 }
 
 //---------------------------------------------------------------------------//

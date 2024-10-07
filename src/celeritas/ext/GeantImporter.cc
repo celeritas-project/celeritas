@@ -32,6 +32,9 @@
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
+#include <G4OpAbsorption.hh>
+#include <G4OpRayleigh.hh>
+#include <G4OpWLS.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
@@ -80,6 +83,8 @@
 #include "GeantSetup.hh"
 
 #include "detail/AllElementReader.hh"
+#include "detail/GeantMaterialPropertyGetter.hh"
+#include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
@@ -166,46 +171,6 @@ struct ProcessFilter
 };
 
 //---------------------------------------------------------------------------//
-//! Retrieve and store optical material properties, if present.
-struct MatPropGetter
-{
-    using MPT = G4MaterialPropertiesTable;
-
-    MPT const& mpt;
-
-    bool operator()(double* dst, char const* name, ImportUnits q)
-    {
-        if (!mpt.ConstPropertyExists(name))
-        {
-            return false;
-        }
-        *dst = mpt.GetConstProperty(name) * native_value_from_clhep(q);
-        return true;
-    }
-
-    bool operator()(double* dst, std::string name, int comp, ImportUnits q)
-    {
-        // Geant4 10.6 and earlier require a const char* argument
-        name += std::to_string(comp);
-        return (*this)(dst, name.c_str(), q);
-    }
-
-    bool
-    operator()(ImportPhysicsVector* dst, std::string const& name, ImportUnits q)
-    {
-        // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
-        // and <=10.6 require const char*
-        auto const* g4vector = const_cast<MPT&>(mpt).GetProperty(name.c_str());
-        if (!g4vector)
-        {
-            return false;
-        }
-        *dst = detail::import_physics_vector(*g4vector, {ImportUnits::mev, q});
-        return true;
-    }
-};
-
-//---------------------------------------------------------------------------//
 //! Map particles defined in \c G4MaterialConstPropertyIndex .
 auto& optical_particles_map()
 {
@@ -225,11 +190,10 @@ auto& optical_particles_map()
  * To retrieve a material-only component simply do not use particle name.
  */
 std::vector<ImportScintComponent>
-fill_vec_import_scint_comp(MatPropGetter& get_property,
+fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                            std::string prefix = {})
 {
-    CELER_EXPECT(prefix.empty()
-                 || optical_particles_map().count(prefix));
+    CELER_EXPECT(prefix.empty() || optical_particles_map().count(prefix));
 
     // All the components below are "SCINTILLATIONYIELD",
     // "ELECTRONSCINTILLATIONYIELD", etc.
@@ -547,7 +511,7 @@ import_optical()
         }
 
         ImportOpticalMaterial optical;
-        MatPropGetter get_property{*mpt};
+        detail::GeantMaterialPropertyGetter get_property{*mpt};
 
         // Save common properties
         bool has_rindex = get_property(&optical.properties.refractive_index,
@@ -587,7 +551,6 @@ import_optical()
         }
 
         // Save Rayleigh properties
-        get_property(&optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
         get_property(&optical.rayleigh.scale_factor,
                      "RS_SCALE_FACTOR",
                      ImportUnits::unitless);
@@ -595,19 +558,12 @@ import_optical()
                      "ISOTHERMAL_COMPRESSIBILITY",
                      ImportUnits::len_time_sq_per_mass);
 
-        // Save absorption properties
-        get_property(&optical.absorption.absorption_length,
-                     "ABSLENGTH",
-                     ImportUnits::len);
-
         // Save WLS properties
         get_property(&optical.wls.mean_num_photons,
                      "WLSMEANNUMBERPHOTONS",
                      ImportUnits::unitless);
         get_property(
             &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
-        get_property(
-            &optical.wls.absorption_length, "WLSABSLENGTH", ImportUnits::len);
         get_property(
             &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
 
@@ -834,18 +790,21 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportPhysMaterial> const& materials)
-    -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
+    -> std::tuple<std::vector<ImportProcess>,
+                  std::vector<ImportMscModel>,
+                  std::vector<ImportOpticalModel>>
 {
     ParticleFilter include_particle{process_flags};
     ProcessFilter include_process{process_flags};
 
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
+    std::vector<ImportOpticalModel> optical_models;
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
-    detail::GeantProcessImporter import_process(
-        detail::TableSelection::minimal, materials, elements);
+    detail::GeantProcessImporter import_process(materials, elements);
+    detail::GeantOpticalModelImporter import_optical_model(materials);
 
     auto append_process = [&](G4ParticleDefinition const& particle,
                               G4VProcess const& process) -> void {
@@ -903,6 +862,21 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
+        else if (dynamic_cast<G4OpAbsorption const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::absorption));
+        }
+        else if (dynamic_cast<G4OpRayleigh const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::rayleigh));
+        }
+        else if (dynamic_cast<G4OpWLS const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::wls));
+        }
         else
         {
             CELER_LOG(error)
@@ -942,7 +916,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
-    return {std::move(processes), std::move(msc_models)};
+    return {
+        std::move(processes), std::move(msc_models), std::move(optical_models)};
 }
 
 //---------------------------------------------------------------------------//
@@ -1199,7 +1174,9 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (selected.processes != DataSelection::none)
         {
-            std::tie(imported.processes, imported.msc_models)
+            std::tie(imported.processes,
+                     imported.msc_models,
+                     imported.optical_models)
                 = import_processes(selected.processes,
                                    imported.particles,
                                    imported.elements,

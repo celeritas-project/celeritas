@@ -44,10 +44,10 @@ class RBEnergySampler
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION RBEnergySampler(RelativisticBremRef const& shared,
-                                          Energy const& inc_energy,
+                                          ParticleTrackView const& particle,
                                           CutoffView const& cutoffs,
                                           MaterialView const& material,
-                                          ElementComponentId const& elcomp_id);
+                                          ElementComponentId elcomp_id);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -72,17 +72,17 @@ class RBEnergySampler
  */
 CELER_FUNCTION
 RBEnergySampler::RBEnergySampler(RelativisticBremRef const& shared,
-                                 Energy const& inc_energy,
+                                 ParticleTrackView const& particle,
                                  CutoffView const& cutoffs,
                                  MaterialView const& material,
-                                 ElementComponentId const& elcomp_id)
-    : calc_dxsec_(shared, inc_energy, material, elcomp_id)
+                                 ElementComponentId elcomp_id)
+    : calc_dxsec_(shared, particle, material, elcomp_id)
 {
     // Min and max kinetic energy limits for sampling the secondary photon
-    real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.ids.gamma));
-    tmin_sq_ = ipow<2>(min(gamma_cutoff, inc_energy.value()));
-    tmax_sq_ = ipow<2>(min(value_as<Energy>(detail::high_energy_limit()),
-                           inc_energy.value()));
+    tmin_sq_ = ipow<2>(value_as<Energy>(
+        min(cutoffs.energy(shared.ids.gamma), particle.energy())));
+    tmax_sq_ = ipow<2>(
+        value_as<Energy>(min(detail::high_energy_limit(), particle.energy())));
 
     CELER_ENSURE(tmax_sq_ >= tmin_sq_);
 }

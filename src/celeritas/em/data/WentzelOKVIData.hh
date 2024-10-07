@@ -93,7 +93,7 @@ struct WentzelOKVIData
     // User-assignable parameters
     CoulombParameters params;
 
-    // Constant prefactor for the squared momentum transfer [(MeV/c)^-2]
+    // Constant prefactor for the squared momentum transfer [(MeV/c)^{-2}]
     IsotopeItems<real_type> nuclear_form_prefactor;
 
     // Per element form factors

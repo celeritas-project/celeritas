@@ -44,7 +44,7 @@ void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
                 field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate-rzmap");
-        launch_kernel(params, state, *this, execute_thread);
+        launch_kernel(*this, params, state, execute_thread);
     }
     if (this->has_msc())
     {

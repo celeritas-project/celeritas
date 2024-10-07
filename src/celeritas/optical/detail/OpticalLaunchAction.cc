@@ -18,7 +18,6 @@
 #include "celeritas/optical/TrackInitParams.hh"
 #include "celeritas/optical/action/ActionGroups.hh"
 #include "celeritas/optical/action/BoundaryAction.hh"
-#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
@@ -78,7 +77,6 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         inp.material = std::move(material);
         // TODO: unique RNG streams for optical loop
         inp.rng = core.rng();
-        inp.sim = std::make_shared<SimParams>();
         inp.init = std::make_shared<optical::TrackInitParams>(primary_capacity);
         inp.action_reg = std::make_shared<ActionRegistry>();
         inp.max_streams = core.max_streams();
@@ -184,10 +182,12 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
-            CELER_LOG_LOCAL(error) << "Exceeded step count of " << max_steps
-                                   << ": aborting optical transport loop with "
-                                   << counters.num_alive << " tracks and "
-                                   << counters.num_initializers << " queued";
+            CELER_LOG_LOCAL(error)
+                << "Exceeded step count of " << max_steps
+                << ": aborting optical transport loop with "
+                << counters.num_active << " active tracks, "
+                << counters.num_alive << " alive tracks, and "
+                << counters.num_initializers << " queued";
             break;
         }
     }

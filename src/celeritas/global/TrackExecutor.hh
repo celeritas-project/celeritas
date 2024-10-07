@@ -11,13 +11,11 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/track/SimTrackView.hh"
+#include "celeritas/track/SimFunctors.hh"
 
 #include "CoreTrackData.hh"
 #include "CoreTrackDataFwd.hh"
 #include "CoreTrackView.hh"
-
-#include "detail/TrackExecutorImpl.hh"
 
 namespace celeritas
 {
@@ -27,12 +25,11 @@ namespace celeritas
  *
  * This class can be used to call a functor that applies to \c CoreTrackView
  * using a \c ThreadId, so that the tracks can be easily looped over as a
- * group on CPU or GPU.
+ * group on CPU or GPU. It applies a remapping from \em thread to \em slot if
+ * the tracks are sorted. Otherwise, thread and track slot have the same
+ * numerical value.
  *
  * This is primarily used by \c ActionLauncher .
- *
- * TODO: maybe rename this \c ThreadExecutor (since it takes a thread?) and
- * call the embedded class a \c TrackExecutor (since it takes a CoreTrackView?)
  *
  * \code
 void foo_kernel(CoreParamsPtr const params,
@@ -46,6 +43,9 @@ void foo_kernel(CoreParamsPtr const params,
     }
 }
 \endcode
+ *
+ * \todo Rename to ThreadExecutor. The template parameter, which must operate
+ * on a core track view, is a track executor.
  */
 template<class T>
 class TrackExecutor
@@ -68,7 +68,7 @@ class TrackExecutor
     {
     }
 
-    //! Call the underlying function using the core track for this thread.
+    //! Call the underlying function, using indirection array if needed
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
@@ -86,8 +86,8 @@ class TrackExecutor
 /*!
  * Launch the track only when a certain condition applies to the sim state.
  *
- * The condition C must have the signature \code
- * <bool(SimTrackView const&)>
+ * The condition \c C must have the signature \code
+ * (SimTrackView const&) -> bool
   \endcode
  *
  * see \c make_active_track_executor for an example where this is used to apply
@@ -164,10 +164,8 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
                            CoreStatePtr<MemSpace::native> const& state,
                            T&& apply_track)
 {
-    return ConditionalTrackExecutor{params,
-                                    state,
-                                    detail::AppliesValid{},
-                                    celeritas::forward<T>(apply_track)};
+    return ConditionalTrackExecutor{
+        params, state, AppliesValid{}, celeritas::forward<T>(apply_track)};
 }
 
 //---------------------------------------------------------------------------//
@@ -188,7 +186,7 @@ make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
                                     state,
-                                    detail::IsStepActionEqual{action},
+                                    IsStepActionEqual{action},
                                     celeritas::forward<T>(apply_track)};
 }
 
@@ -206,7 +204,7 @@ make_along_step_track_executor(CoreParamsPtr<MemSpace::native> params,
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
                                     state,
-                                    detail::IsAlongStepActionEqual{action},
+                                    IsAlongStepActionEqual{action},
                                     celeritas::forward<T>(apply_track)};
 }
 

@@ -18,8 +18,8 @@
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/MaterialParams.hh"
-#include "celeritas/optical/TrackData.hh"
 
 #include "CerenkovGeneratorExecutor.hh"
 #include "OffloadParams.hh"
@@ -147,7 +147,8 @@ void CerenkovGeneratorAction::generate(CoreParams const& core_params,
                                           cerenkov_->host_ref(),
                                           offload_state.store.ref(),
                                           optical_state.ptr(),
-                                          offload_state.buffer_size}};
+                                          offload_state.buffer_size,
+                                          optical_state.counters()}};
     launch_action(*this, core_params, core_state, execute);
 }
 

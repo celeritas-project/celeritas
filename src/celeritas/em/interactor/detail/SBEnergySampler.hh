@@ -44,12 +44,11 @@ class SBEnergySampler
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION SBEnergySampler(SBTable const& differential_xs,
-                                          Energy const& inc_energy,
-                                          Energy const& gamma_cutoff,
+                                          ParticleTrackView const& particle,
+                                          Energy gamma_cutoff,
                                           MaterialView const& material,
-                                          ElementComponentId const& elcomp_id,
-                                          Mass const& inc_mass,
-                                          bool const is_electron);
+                                          ElementComponentId elcomp_id,
+                                          bool is_electron);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -60,17 +59,17 @@ class SBEnergySampler
     // Differential cross section table
     SBTable const& differential_xs_;
     // Incident particle energy
-    Energy const inc_energy_;
+    Energy inc_energy_;
     // Production cutoff for gammas
-    Energy const gamma_cutoff_;
+    Energy gamma_cutoff_;
     // Material in which interaction occurs
     MaterialView const& material_;
     // Element in which interaction occurs
-    ElementComponentId const elcomp_id_;
+    ElementComponentId elcomp_id_;
     // Incident particle mass
-    Mass const inc_mass_;
+    Mass inc_mass_;
     // Incident particle identification flag
-    bool const inc_particle_is_electron_;
+    bool is_electron_;
     // Density correction
     real_type density_correction_;
 };
@@ -83,24 +82,23 @@ class SBEnergySampler
  */
 CELER_FUNCTION
 SBEnergySampler::SBEnergySampler(SBTable const& differential_xs,
-                                 Energy const& inc_energy,
-                                 Energy const& gamma_cutoff,
+                                 ParticleTrackView const& particle,
+                                 Energy gamma_cutoff,
                                  MaterialView const& material,
-                                 ElementComponentId const& elcomp_id,
-                                 Mass const& inc_mass,
-                                 bool const is_electron)
+                                 ElementComponentId elcomp_id,
+                                 bool is_electron)
     : differential_xs_(differential_xs)
-    , inc_energy_(inc_energy)
+    , inc_energy_(value_as<Energy>(particle.energy()))
     , gamma_cutoff_(gamma_cutoff)
     , material_(material)
     , elcomp_id_(elcomp_id)
-    , inc_mass_(inc_mass)
-    , inc_particle_is_electron_(is_electron)
+    , inc_mass_(value_as<Mass>(particle.mass()))
+    , is_electron_(is_electron)
 {
     // Density correction
     real_type density_factor = material.electron_density() * migdal_constant();
-    real_type total_energy_val = inc_energy_.value() + inc_mass_.value();
-    density_correction_ = density_factor * ipow<2>(total_energy_val);
+    density_correction_ = density_factor
+                          * ipow<2>(value_as<Energy>(particle.total_energy()));
 }
 
 //---------------------------------------------------------------------------//
@@ -122,7 +120,7 @@ CELER_FUNCTION auto SBEnergySampler::operator()(Engine& rng) -> Energy
         SBEnergyDistHelper::EnergySq{density_correction_},
         gamma_cutoff_);
 
-    if (inc_particle_is_electron_)
+    if (is_electron_)
     {
         // Rejection sample without modifying cross section
         SBEnergyDistribution<SBElectronXsCorrector> sample_gamma_energy(

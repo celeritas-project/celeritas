@@ -95,20 +95,14 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         // Add the Celeritas step diagnostic if Celeritas offloading is enabled
         if (params)
         {
-            auto step_diagnostic = std::make_shared<celeritas::StepDiagnostic>(
-                params.Params()->action_reg()->next_id(),
-                params.Params()->particle(),
-                num_bins,
-                num_threads);
-            params.Params()->action_reg()->insert(step_diagnostic);
-            output_reg->insert(step_diagnostic);
+            StepDiagnostic::make_and_insert(*params.Params(), num_bins);
         }
     }
 
     if (!params)
     {
         // Celeritas core params didn't add system metadata: do it ourselves
-        // Save system diagnostic information
+        // to save system diagnostic information
         output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
             OutputInterface::Category::system,
             "memory",

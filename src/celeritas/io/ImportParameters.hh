@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map>
+#include <map>
 
 #include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
@@ -59,7 +59,7 @@ struct ImportEmParameters
     double screening_factor{1};
     //! Factor for dynamic computation of angular limit between SS and MSC
     double angle_limit_factor{1};
-    //! Nuclear form factor model for Coulomm scattering
+    //! Nuclear form factor model for Coulomb scattering
     NuclearFormFactorType form_factor{NuclearFormFactorType::exponential};
 
     //! Whether parameters are assigned and valid
@@ -107,7 +107,7 @@ struct ImportTransParameters
     //!@{
     //! \name Type aliases
     using PDGInt = int;
-    using ImportLoopingMap = std::unordered_map<PDGInt, ImportLoopingThreshold>;
+    using ImportLoopingMap = std::map<PDGInt, ImportLoopingThreshold>;
     //!@}
 
     //! Thresholds for killing looping tracks

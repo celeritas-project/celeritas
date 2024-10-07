@@ -54,6 +54,9 @@ ScopeExit(F&& func) -> ScopeExit<F>;
 }  // namespace
 
 //---------------------------------------------------------------------------//
+StepperInterface::~StepperInterface() = default;
+
+//---------------------------------------------------------------------------//
 /*!
  * Construct with problem parameters and setup options.
  */

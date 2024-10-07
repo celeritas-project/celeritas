@@ -13,7 +13,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 find_package(Celeritas 0.5 REQUIRED)
 find_package(Geant4 REQUIRED)
 
-if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "ORANGE")
+if(NOT CELERITAS_USE_Geant4)
   message(SEND_ERROR "This example requires Geant4 support "
     "to be enabled in Celeritas")
 endif()
@@ -80,8 +80,13 @@ endfunction()
 function(add_example_impl target rmtype)
   set(_test_name "${target}-${rmtype}")
   add_test(NAME "${_test_name}" COMMAND "$<TARGET_FILE:${target}>")
+  set(_env
+    ${_g4data_env}
+    "G4RUN_MANAGER_TYPE=${rmtype}"
+    "CELER_DISABLE_PARALLEL=1"
+  )
   set_tests_properties(${_test_name} PROPERTIES
-    ENVIRONMENT "${_g4data_env};G4RUN_MANAGER_TYPE=${rmtype}"
+    ENVIRONMENT "${_env}"
     LABELS "app"
   )
 endfunction()

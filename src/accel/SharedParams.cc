@@ -57,6 +57,7 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/user/SlotDiagnostic.hh"
 #include "celeritas/user/StepCollector.hh"
 
 #include "AlongStepFactory.hh"
@@ -595,6 +596,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Create params
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
+
+    // Add diagnostics
+    if (!options.slot_diagnostic_prefix.empty())
+    {
+        SlotDiagnostic::make_and_insert(*params_,
+                                        options.slot_diagnostic_prefix);
+    }
 
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());

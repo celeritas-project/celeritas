@@ -10,8 +10,8 @@
 #include <type_traits>
 
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/KernelTraits.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/global/detail/ApplierTraits.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"

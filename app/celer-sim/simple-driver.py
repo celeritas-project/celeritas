@@ -111,6 +111,7 @@ inp = {
     'physics_options': physics_options,
     'field': None,
     'optical': optical_options,
+    'slot_diagnostic_prefix': f"slot-diag-{run_name}-",
 }
 
 with open(f'{run_name}.inp.json', 'w') as f:
