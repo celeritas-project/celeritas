@@ -34,6 +34,7 @@ InteractorHostTestBase::InteractorHostTestBase()
     constexpr MevMass mumass{105.6583745};
 
     // Default particle params
+    // clang-format off
     ParticleParams::Input par_inp = {
         {"electron",
          pdg::electron(),
@@ -50,13 +51,14 @@ InteractorHostTestBase::InteractorHostTestBase()
          pdg::mu_minus(),
          mumass,
          ElementaryCharge{-1},
-         stable_decay_constant},
+         1 / 2.1969811e-6},
         {"mu_plus",
          pdg::mu_plus(),
          mumass,
          ElementaryCharge{1},
-         stable_decay_constant},
+         1 / 2.1969811e-6},
     };
+    // clang-format on
     this->set_particle_params(std::move(par_inp));
 
     // Default material params
