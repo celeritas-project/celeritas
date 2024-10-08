@@ -186,7 +186,8 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
                 << "Exceeded step count of " << max_steps
                 << ": aborting optical transport loop with "
                 << counters.num_active << " active tracks, "
-                << counters.num_alive << " alive tracks, and "
+                << counters.num_alive << " alive tracks, "
+                << counters.num_vacancies << " vacancies, and "
                 << counters.num_initializers << " queued";
             break;
         }

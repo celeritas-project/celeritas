@@ -21,6 +21,8 @@
 #include "TrackInitParams.hh"
 #include "action/BoundaryAction.hh"
 #include "action/InitializeTracksAction.hh"
+#include "action/LocateVacanciesAction.hh"
+#include "action/PreStepAction.hh"
 
 namespace celeritas
 {
@@ -67,6 +69,8 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     //// PRE-STEP ACTIONS ////
 
+    reg->insert(make_shared<PreStepAction>(reg->next_id()));
+
     //// POST-STEP ACTIONS ////
 
     // Construct geometry boundary action
@@ -77,6 +81,8 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(make_shared<BoundaryAction>(scalars.boundary_action));
 
     //// END ACTIONS ////
+
+    reg->insert(make_shared<LocateVacanciesAction>(reg->next_id()));
 
     // TODO: extend from secondaries action
 
