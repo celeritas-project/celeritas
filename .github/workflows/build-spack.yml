@@ -101,8 +101,8 @@ jobs:
           echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
           echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
           spack env activate . --sh > "${SPACK_VIEW}/rc"
-      - name: Cache ccache
-        uses: actions/cache@v4
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
@@ -151,6 +151,15 @@ jobs:
         continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
           ninja -v -k0
+      - name: Save ccache
+        if: ${{always() && steps.build.outcome == 'success'}}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+          restore-keys: |
+            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+            ccache-${{env.CMAKE_PRESET}}
       - name: Regenerate ROOT test data
         if: ${{
           matrix.geant == '11.0'
