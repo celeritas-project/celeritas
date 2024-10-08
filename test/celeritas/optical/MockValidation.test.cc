@@ -64,7 +64,13 @@ TEST_F(MockValidationTest, validate)
     ASSERT_LT(wls_id().get(), models.size());
     EXPECT_EQ(ImportModelClass::wls, models[wls_id().get()].model_class);
 
-    // TODO: Check materials
+    // Check materials
+
+    for (auto const& material : materials)
+    {
+        EXPECT_TRUE(material.properties);
+        EXPECT_TRUE(material.rayleigh);
+    }
 }
 
 //---------------------------------------------------------------------------//

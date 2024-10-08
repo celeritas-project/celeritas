@@ -81,7 +81,7 @@ TEST_F(AbsorptionModelTest, interaction_mfp)
 
     model->build_mfps(builder);
 
-    this->check_built_table(
+    this->check_built_table_exact(
         this->import_models()[this->absorption_id().get()].mfps,
         builder.grid_ids());
 }

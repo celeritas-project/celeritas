@@ -6,8 +6,10 @@
 //! \file celeritas/optical/OpticalRayleigh.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/interactor/RayleighInteractor.hh"
+#include "celeritas/optical/model/RayleighModel.hh"
 
 #include "InteractorHostTestBase.hh"
+#include "MockImportedData.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -17,7 +19,8 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
-
+//---------------------------------------------------------------------------//
+// TEST HARNESS
 //---------------------------------------------------------------------------//
 
 class RayleighInteractorTest : public InteractorHostTestBase
@@ -38,6 +41,49 @@ class RayleighInteractorTest : public InteractorHostTestBase
     }
 };
 
+class RayleighModelTest : public MockImportedData
+{
+  protected:
+    void SetUp() override {}
+
+    //! Construct Rayleigh model from mock data
+    std::shared_ptr<RayleighModel const> create_model() const
+    {
+        return std::make_shared<RayleighModel const>(
+            ActionId{0},
+            ImportedModelAdapter{MockImportedData::rayleigh_id(),
+                                 MockImportedData::create_imported_models()},
+            this->create_input());
+    }
+
+    //! Construct Rayleigh model with only mock material data
+    std::shared_ptr<RayleighModel const> create_empty_model() const
+    {
+        return std::make_shared<RayleighModel const>(
+            ActionId{0},
+            ImportedModelAdapter{
+                MockImportedData::rayleigh_id(),
+                MockImportedData::create_empty_imported_models()},
+            this->create_input());
+    }
+
+    //! Create mock input for Rayleigh model
+    RayleighModel::Input create_input() const
+    {
+        RayleighModel::Input input;
+        for (auto const& material : this->import_materials())
+        {
+            input.properties.push_back(material.properties);
+            input.rayleigh.push_back(material.rayleigh);
+        }
+        return input;
+    }
+};
+
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+// Basic tests for Rayleigh scattering interaction
 TEST_F(RayleighInteractorTest, basic)
 {
     int const num_samples = 4;
@@ -77,6 +123,8 @@ TEST_F(RayleighInteractorTest, basic)
     EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
 }
 
+//---------------------------------------------------------------------------//
+// Test statistical consistency over larger number of samples
 TEST_F(RayleighInteractorTest, stress_test)
 {
     int const num_samples = 1'000;
@@ -114,6 +162,63 @@ TEST_F(RayleighInteractorTest, stress_test)
     EXPECT_VEC_SOFT_EQ(expected_dir_moment, dir_moment);
     EXPECT_VEC_SOFT_EQ(expected_pol_moment, pol_moment);
     EXPECT_EQ(12200, rng_engine.count());
+}
+
+//---------------------------------------------------------------------------//
+// Check model name and description are properly initialized
+TEST_F(RayleighModelTest, description)
+{
+    auto model = create_model();
+
+    EXPECT_EQ(ActionId{0}, model->action_id());
+    EXPECT_EQ("optical-rayleigh", model->label());
+    EXPECT_EQ("interact by optical Rayleigh", model->description());
+}
+
+//---------------------------------------------------------------------------//
+// Check Rayleigh model MFP tables match imported ones
+TEST_F(RayleighModelTest, interaction_mfp)
+{
+    auto model = create_model();
+    auto builder = this->create_mfp_builder();
+
+    model->build_mfps(builder);
+
+    this->check_built_table_exact(
+        this->import_models()[this->rayleigh_id().get()].mfps,
+        builder.grid_ids());
+}
+
+//---------------------------------------------------------------------------//
+// Check Rayleigh model MFP tables constructed from Einstein-Smoluchowski
+// formula based on material data
+TEST_F(RayleighModelTest, material_mfp)
+{
+    static std::vector<std::vector<double>> expected_energies = {
+        {1.098177, 1.256172, 1.484130},
+        {1.098177, 1.256172, 1.484130},
+        {1.098177, 6.812319},
+        {1, 2, 5},
+        {1.098177, 6.812319},
+    };
+
+    static std::vector<std::vector<double>> expected_mfps
+        = {{1189584.7068151, 682569.13017288, 343507.60086802},
+           {12005096.767467, 6888377.4406869, 3466623.2384762},
+           {1189584.7068151, 277.60444893823},
+           {11510.805603078, 322.70360179716, 4.230373664558},
+           {12005096.767467, 2801.539271218}};
+
+    auto expected_mfp_tables
+        = detail::convert_vector_units<detail::ElectronVolt, units::Centimeter>(
+            expected_energies, expected_mfps);
+
+    auto model = create_empty_model();
+    auto builder = this->create_mfp_builder();
+
+    model->build_mfps(builder);
+
+    this->check_built_table_soft(expected_mfp_tables, builder.grid_ids());
 }
 
 //---------------------------------------------------------------------------//
