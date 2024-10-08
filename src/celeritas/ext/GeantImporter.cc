@@ -803,8 +803,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
-    detail::GeantProcessImporter import_process(
-        detail::TableSelection::minimal, materials, elements);
+    detail::GeantProcessImporter import_process(materials, elements);
     detail::GeantOpticalModelImporter import_optical_model(materials);
 
     auto append_process = [&](G4ParticleDefinition const& particle,
