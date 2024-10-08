@@ -24,17 +24,22 @@ struct MuDecayIds
     ParticleId mu_plus;
     ParticleId electron;
     ParticleId positron;
+    ParticleId electron_neutrino;
+    ParticleId anti_electron_neutrino;
+    ParticleId muon_neutrino;
+    ParticleId anti_muon_neutrino;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return mu_minus && mu_plus && electron && positron;
+        return mu_minus && mu_plus && electron && positron && electron_neutrino
+               && anti_electron_neutrino && muon_neutrino && anti_muon_neutrino;
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating a KleinNishinaInteractor.
+ * Device data for creating a muon decay interactor.
  */
 struct MuDecayData
 {

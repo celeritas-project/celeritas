@@ -26,6 +26,11 @@ class MuDecayInteractorTest : public InteractorHostTestBase
         data_.ids.positron = params.find(pdg::positron());
         data_.ids.mu_minus = params.find(pdg::mu_minus());
         data_.ids.mu_plus = params.find(pdg::mu_plus());
+        data_.ids.electron_neutrino = params.find(pdg::electron_neutrino());
+        data_.ids.anti_electron_neutrino
+            = params.find(pdg::anti_electron_neutrino());
+        data_.ids.muon_neutrino = params.find(pdg::mu_neutrino());
+        data_.ids.anti_muon_neutrino = params.find(pdg::anti_mu_neutrino());
         data_.electron_mass = params.get(data_.ids.electron).mass().value();
         data_.muon_mass = params.get(data_.ids.mu_minus).mass().value();
     }
@@ -50,11 +55,11 @@ TEST_F(MuDecayInteractorTest, basic)
     }
 
     this->set_inc_direction({0, 0, 1});
-    auto const hundred_mev = MevEnergy{100};
+    auto const one_mev = MevEnergy{1};
 
-    // Anti-muon
+    // Anti-muon decay
     {
-        this->set_inc_particle(pdg::mu_plus(), hundred_mev);
+        this->set_inc_particle(pdg::mu_plus(), one_mev);
 
         MuDecayInteractor interact(data_,
                                    this->particle_track(),
@@ -64,11 +69,15 @@ TEST_F(MuDecayInteractorTest, basic)
         EXPECT_EQ(Interaction::Action::decay, result.action);
         EXPECT_EQ(pdg::positron(),
                   params.id_to_pdg(result.secondaries[0].particle_id));
+        EXPECT_EQ(pdg::electron_neutrino(),
+                  params.id_to_pdg(result.secondaries[1].particle_id));
+        EXPECT_EQ(pdg::anti_mu_neutrino(),
+                  params.id_to_pdg(result.secondaries[2].particle_id));
     }
 
-    // Muon
+    // Muon decay
     {
-        this->set_inc_particle(pdg::mu_minus(), hundred_mev);
+        this->set_inc_particle(pdg::mu_minus(), one_mev);
 
         MuDecayInteractor interact(data_,
                                    this->particle_track(),
@@ -79,6 +88,9 @@ TEST_F(MuDecayInteractorTest, basic)
         auto const& sec = result.secondaries;
         EXPECT_EQ(3, sec.size());
         EXPECT_EQ(pdg::electron(), params.id_to_pdg(sec[0].particle_id));
+        EXPECT_EQ(pdg::anti_electron_neutrino(),
+                  params.id_to_pdg(sec[1].particle_id));
+        EXPECT_EQ(pdg::mu_neutrino(), params.id_to_pdg(sec[2].particle_id));
     }
 }
 

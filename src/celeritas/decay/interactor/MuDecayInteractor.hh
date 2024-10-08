@@ -57,8 +57,8 @@ class MuDecayInteractor
     units::MevEnergy const inc_energy_;
     // Incident direction
     Real3 const inc_direction_;
-    // Secondary electron or positron id
-    ParticleId secondary_id_;
+    // Define decay channel based on muon or anti-muon primary
+    bool is_muon_;
     // Allocate space for a secondary particles
     StackAllocator<Secondary>& allocate_;
     // Incident muon's four vector
@@ -104,11 +104,8 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     CELER_EXPECT(particle.particle_id() == shared_.ids.mu_minus
                  || particle.particle_id() == shared_.ids.mu_plus);
 
-    secondary_id_ = (particle.particle_id() == shared_.ids.mu_minus)
-                        ? shared_.ids.electron
-                        : shared_.ids.positron;
-
-    // \todo Set up whole decay channel if we do return the neutrinos
+    // Define decay channel
+    is_muon_ = (particle.particle_id() == shared_.ids.mu_minus) ? true : false;
 
     // Calculate inverse boost incident muon four vector for later use
     Real3 inc_momentum = inc_direction_ * inc_energy_.value();
@@ -116,7 +113,7 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
         inc_momentum,
         std::sqrt(ipow<2>(norm(inc_momentum)) + ipow<2>(shared_.muon_mass))};
 
-    // \todo This differs from physics manual, that states E_{max} = m_\mu / 2
+    // \todo This differs from physics manual which states E_{max} = m_\mu / 2
     max_energy_ = 0.5 * shared_.muon_mass - shared_.electron_mass;
 
     sample_max_ = real_type{1}
@@ -225,14 +222,19 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     Interaction result = Interaction::from_absorption();
     result.action = Interaction::Action::decay;
     result.secondaries = {secondaries, 3};
+    auto const& ids = shared_.ids;
 
-    result.secondaries[0].particle_id = secondary_id_;
+    result.secondaries[0].particle_id = is_muon_ ? ids.electron : ids.positron;
     result.secondaries[0].energy = Energy{charged_lep_4vec.energy};
     result.secondaries[0].direction = make_unit_vector(charged_lep_4vec.mom);
 
+    result.secondaries[1].particle_id = is_muon_ ? ids.anti_electron_neutrino
+                                                 : ids.electron_neutrino;
     result.secondaries[1].energy = Energy{electron_nu_4vec.energy};
     result.secondaries[1].direction = make_unit_vector(electron_nu_4vec.mom);
 
+    result.secondaries[2].particle_id = is_muon_ ? ids.muon_neutrino
+                                                 : ids.anti_muon_neutrino;
     result.secondaries[2].energy = Energy{muon_nu_4vec.energy};
     result.secondaries[2].direction = make_unit_vector(muon_nu_4vec.mom);
 
