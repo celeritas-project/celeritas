@@ -51,11 +51,10 @@ void RayleighModel::build_mfps(detail::MfpBuilder& build) const
         {
             build(mfp);
         }
-        else
+        else if (auto const& rayl = rayleigh_[mat.get()])
         {
             ImportPhysicsVector const& r_index
                 = properties_[mat.get()].refractive_index;
-            ImportOpticalRayleigh const& rayl = rayleigh_[mat.get()];
 
             constexpr real_type hbarc = hbar_planck * c_light;
 
@@ -66,16 +65,6 @@ void RayleighModel::build_mfps(detail::MfpBuilder& build) const
 
             real_type c1 = scale_factor * beta_t * temperature * k_boltzmann
                            / (6 * pi);
-
-            if (!rayl || c1 <= 0)
-            {
-                CELER_LOG(warning)
-                    << "Could not construct optical Rayleigh MFP table for "
-                       "optical material "
-                    << mat.get() << " since its imported data was invalid";
-                build();
-                continue;
-            }
 
             ImportPhysicsVector calculated_mfp{
                 ImportPhysicsVectorType::free,
@@ -98,6 +87,14 @@ void RayleighModel::build_mfps(detail::MfpBuilder& build) const
             }
 
             build(calculated_mfp);
+        }
+        else
+        {
+            CELER_LOG(warning)
+                << "Could not construct optical Rayleigh MFP table for "
+                   "optical material "
+                << mat.get() << " since its imported data was invalid";
+            build();
         }
     }
 }
