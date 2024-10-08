@@ -157,9 +157,6 @@ jobs:
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-            ccache-${{env.CMAKE_PRESET}}
       - name: Regenerate ROOT test data
         if: ${{
           matrix.geant == '11.0'
