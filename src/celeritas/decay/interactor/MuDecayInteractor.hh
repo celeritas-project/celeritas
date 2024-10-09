@@ -28,6 +28,14 @@ namespace celeritas
 /*!
  * Perform muon decay.
  *
+ * Only one decay channel is implemented, with muons decaying to
+ * \f[
+ * \mu^- \longrightarrow e^- \overline{\nu}_e \nu_\mu
+ * \f]
+ * or
+ * \f[
+ * \mu^+ \longrightarrow e^+ \nu_e \overline{\nu}_\mu
+ * \f].
  */
 class MuDecayInteractor
 {
@@ -55,30 +63,25 @@ class MuDecayInteractor
     MuDecayData shared_;
     // Incident muon energy
     units::MevEnergy const inc_energy_;
-    // Incident direction
+    // Incident muon direction
     Real3 const inc_direction_;
-    // Define decay channel based on muon or anti-muon primary
-    bool is_muon_;
     // Allocate space for a secondary particles
     StackAllocator<Secondary>& allocate_;
-    // Incident muon's four vector
+    // Define decay channel based on muon or anti-muon primary
+    ParticleId secondary_id_[3];
+    // Incident muon four vector
     FourVector inc_fourvec_;
-    // Max possible sampled energy
-    real_type max_energy_;
     // Max sampled fractional energy
     real_type sample_max_;
+    // Maximum electron energy
+    real_type max_energy_;
 
     //// HELPER FUNCTIONS ////
 
-    // Boost center of mass four vector to the lab frame
+    // Boost four vector from the rest frame to the lab frame
     inline CELER_FUNCTION FourVector to_lab_frame(Real3 const& dir,
                                                   Energy const& energy,
                                                   real_type const& mass);
-
-    // Return rotated final direction in the center of mass (muon's rest frame)
-    inline CELER_FUNCTION Real3 calc_cm_dir(Real3 const& dir,
-                                            real_type const& costheta,
-                                            real_type const& phi);
 
     // Calculate particle energy in the center of mass
     inline CELER_FUNCTION Energy energy(real_type const& energy_frac,
@@ -105,19 +108,26 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
                  || particle.particle_id() == shared_.ids.mu_plus);
 
     // Define decay channel
-    is_muon_ = (particle.particle_id() == shared_.ids.mu_minus) ? true : false;
+    auto const& ids = shared_.ids;
+    bool muon = (particle.particle_id() == ids.mu_minus) ? true : false;
+    secondary_id_[0] = muon ? ids.electron : ids.positron;
+    secondary_id_[1] = muon ? ids.anti_electron_neutrino
+                            : ids.electron_neutrino;
+    secondary_id_[2] = muon ? ids.muon_neutrino : ids.anti_muon_neutrino;
 
-    // Calculate inverse boost incident muon four vector for later use
+    // Set up muon four vector to boost decay to the lab-frame
     Real3 inc_momentum = inc_direction_ * inc_energy_.value();
     inc_fourvec_ = {
         inc_momentum,
         std::sqrt(ipow<2>(norm(inc_momentum)) + ipow<2>(shared_.muon_mass))};
 
-    // \todo This differs from physics manual which states E_{max} = m_\mu / 2
-    max_energy_ = 0.5 * shared_.muon_mass - shared_.electron_mass;
-
+    // Sampling constants
     sample_max_ = real_type{1}
                   + ipow<2>(shared_.electron_mass) / ipow<2>(shared_.muon_mass);
+    // Geant4 online physics manual defines E_{max} = m_\mu / 2, which differs
+    // from the v11.0.3 source code, used here. This difference changes
+    // E_{max} by ~1%.
+    max_energy_ = 0.5 * shared_.muon_mass - shared_.electron_mass;
 }
 
 //---------------------------------------------------------------------------//
@@ -179,39 +189,38 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     real_type muon_nu_energy_frac = real_type{2} - electron_energy_frac
                                     - electron_nu_energy_frac;
 
+    // Energy of secondaries at rest frame (neutrino masses are ignored)
+    auto charged_lep_energy
+        = this->energy(electron_energy_frac, shared_.electron_mass);
+    auto electron_nu_energy = this->energy(electron_nu_energy_frac, 0);
+    auto muon_nu_energy = this->energy(muon_nu_energy_frac, 0);
+
     // Angle between charged lepton and electron neutrino
     real_type cos_theta
         = real_type{1} - 2 / electron_energy_frac - 2 / electron_nu_energy_frac
           + 2 / (electron_nu_energy_frac * electron_energy_frac);
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
     real_type sin_theta = std::sqrt(1 - ipow<2>(cos_theta));
-    CELER_ASSERT(std::fabs(sin_theta) <= 1);
 
-    // Sample spherically uniform direction to be applied to the decay
-    real_type decay_dir_costheta
-        = std::cos(2 * constants::pi * generate_canonical(rng));
-    real_type decay_dir_phi = constants::pi * generate_canonical(rng);
+    // Define initial arbitrary direction of secondaries at rest frame
+    Real3 charged_lep_dir = {0, 0, 1};
+    Real3 electron_nu_dir = {sin_theta, 0, cos_theta};
+    Real3 muon_nu_dir
+        = {-(electron_nu_energy_frac / muon_nu_energy_frac) * sin_theta,
+           0,
+           -electron_energy_frac / muon_nu_energy_frac
+               - (electron_nu_energy_frac / muon_nu_energy_frac) * cos_theta};
 
-    // Define energy and direction for all secondaries
-    auto charged_lep_energy
-        = this->energy(electron_energy_frac, shared_.electron_mass);
-    auto charged_lep_dir
-        = this->calc_cm_dir({0, 0, 1}, decay_dir_costheta, decay_dir_phi);
+    // Apply a spherically uniform rotation to the decay
+    real_type rotate_costheta = 2 * generate_canonical(rng) - 1;
+    real_type rotate_phi = 2 * constants::pi * generate_canonical(rng);
+    auto rotate_dir = from_spherical(rotate_costheta, rotate_phi);
 
-    auto electron_nu_energy = this->energy(electron_nu_energy_frac, 0);
-    auto electron_nu_dir = this->calc_cm_dir(
-        {sin_theta, 0, cos_theta}, decay_dir_costheta, decay_dir_phi);
+    charged_lep_dir = rotate(charged_lep_dir, rotate_dir);
+    electron_nu_dir = rotate(electron_nu_dir, rotate_dir);
+    muon_nu_dir = rotate(muon_nu_dir, rotate_dir);
 
-    auto muon_nu_energy = this->energy(muon_nu_energy_frac, 0);
-    auto muon_nu_dir = this->calc_cm_dir(
-        {-sin_theta * electron_nu_energy_frac / muon_nu_energy_frac,
-         0,
-         -electron_energy_frac / muon_nu_energy_frac
-             - cos_theta * electron_nu_energy_frac / muon_nu_energy_frac},
-        decay_dir_costheta,
-        decay_dir_phi);
-
-    // Move all particles to the lab frame
+    // Boost secondaries to the lab frame
     auto charged_lep_4vec = this->to_lab_frame(
         charged_lep_dir, charged_lep_energy, shared_.electron_mass);
     auto electron_nu_4vec
@@ -222,19 +231,16 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     Interaction result = Interaction::from_absorption();
     result.action = Interaction::Action::decay;
     result.secondaries = {secondaries, 3};
-    auto const& ids = shared_.ids;
 
-    result.secondaries[0].particle_id = is_muon_ ? ids.electron : ids.positron;
+    result.secondaries[0].particle_id = secondary_id_[0];
     result.secondaries[0].energy = Energy{charged_lep_4vec.energy};
     result.secondaries[0].direction = make_unit_vector(charged_lep_4vec.mom);
 
-    result.secondaries[1].particle_id = is_muon_ ? ids.anti_electron_neutrino
-                                                 : ids.electron_neutrino;
+    result.secondaries[1].particle_id = secondary_id_[1];
     result.secondaries[1].energy = Energy{electron_nu_4vec.energy};
     result.secondaries[1].direction = make_unit_vector(electron_nu_4vec.mom);
 
-    result.secondaries[2].particle_id = is_muon_ ? ids.muon_neutrino
-                                                 : ids.anti_muon_neutrino;
+    result.secondaries[2].particle_id = secondary_id_[2];
     result.secondaries[2].energy = Energy{muon_nu_4vec.energy};
     result.secondaries[2].direction = make_unit_vector(muon_nu_4vec.mom);
 
@@ -243,7 +249,10 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
 //---------------------------------------------------------------------------//
 /*!
- * Boost secondary to the lab frame. This assumes the primary to be at rest.
+ * Boost secondary to the lab frame.
+ *
+ * \note This assumes the primary to be at rest and, thus, there is no need to
+ * perform an inverse boost of the primary at the CM frame.
  */
 CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
                                                           Energy const& energy,
@@ -258,20 +267,6 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
     boost(boost_vector(inc_fourvec_), &lepton_4vec);
 
     return lepton_4vec;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return final direction for secondary in the muon's rest frame after
- * rotation.
- */
-CELER_FUNCTION Real3 MuDecayInteractor::calc_cm_dir(Real3 const& dir,
-                                                    real_type const& costheta,
-                                                    real_type const& phi)
-{
-    Real3 result = make_unit_vector(dir);
-    result = rotate(result, from_spherical(costheta, phi));
-    return result;
 }
 
 //---------------------------------------------------------------------------//
