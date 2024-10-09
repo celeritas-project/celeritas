@@ -716,7 +716,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: ->{5}, 7: not{5}, }",
         to_string(tree_));
-    auto simplified = transform_negated_joins(tree_);
+    auto simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: any{3,4}, 7: all{2,5}, }",

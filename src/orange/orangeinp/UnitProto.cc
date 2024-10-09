@@ -457,7 +457,12 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                                ", ",
                                write_node_labels);
         }
-        unit_builder.simplifiy_joins();
+
+        if (input_.simplification == UnitSimplification::csgtree_infix_logic)
+        {
+            unit_builder.simplifiy_joins();
+        }
+
         /*! \todo We can sometimes eliminate CSG surfaces and nodes that aren't
          * used by the actual volumes>
          */
