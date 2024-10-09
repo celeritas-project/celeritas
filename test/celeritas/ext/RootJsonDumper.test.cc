@@ -202,7 +202,7 @@ TEST_F(RootJsonDumperTest, all)
   "name" : "G4_STAINLESS-STEEL",
   "state" : 1,
   "temperature" : 293.15,
-  "number_density" : 86993489258991530803200,
+  "number_density" : 86993489258991547580416,
   "elements" : [{
     "_typename" : "celeritas::ImportMatElemComponent",
     "element_id" : 0,
@@ -263,6 +263,7 @@ TEST_F(RootJsonDumperTest, all)
     "range" : 0.1
   }}]
 }],
+"optical_models" : [],
 "optical_materials" : [],
 "regions" : [{
   "_typename" : "celeritas::ImportRegion",
@@ -386,7 +387,7 @@ TEST_F(RootJsonDumperTest, all)
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [1e-4, 100],
-      "y" : [0.0919755519795958, 128.588033594672]
+      "y" : [0.0919755519795959, 128.588033594672]
     }]
   }
 }, {
@@ -415,6 +416,11 @@ TEST_F(RootJsonDumperTest, all)
 "livermore_pe_data" : [],
 "neutron_elastic_data" : [],
 "atomic_relaxation_data" : [],
+"mu_pair_production_data" : {
+  "_typename" : "celeritas::ImportMuPairProductionTable",
+  "atomic_number" : [],
+  "physics_vectors" : []
+},
 "em_params" : {
   "_typename" : "celeritas::ImportEmParameters",
   "energy_loss_fluct" : true,
@@ -435,7 +441,11 @@ TEST_F(RootJsonDumperTest, all)
 },
 "trans_params" : {
   "_typename" : "celeritas::ImportTransParameters",
-  "looping" : [{"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : -11, "second" : {
+  "looping" : [{"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : -13, "second" : {
+    "_typename" : "celeritas::ImportLoopingThreshold",
+    "threshold_trials" : 10,
+    "important_energy" : 250
+  }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : -11, "second" : {
     "_typename" : "celeritas::ImportLoopingThreshold",
     "threshold_trials" : 10,
     "important_energy" : 250
@@ -443,15 +453,11 @@ TEST_F(RootJsonDumperTest, all)
     "_typename" : "celeritas::ImportLoopingThreshold",
     "threshold_trials" : 10,
     "important_energy" : 250
-  }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : 22, "second" : {
-    "_typename" : "celeritas::ImportLoopingThreshold",
-    "threshold_trials" : 10,
-    "important_energy" : 250
-  }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : -13, "second" : {
-    "_typename" : "celeritas::ImportLoopingThreshold",
-    "threshold_trials" : 10,
-    "important_energy" : 250
   }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : 13, "second" : {
+    "_typename" : "celeritas::ImportLoopingThreshold",
+    "threshold_trials" : 10,
+    "important_energy" : 250
+  }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : 22, "second" : {
     "_typename" : "celeritas::ImportLoopingThreshold",
     "threshold_trials" : 10,
     "important_energy" : 250

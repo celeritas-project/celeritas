@@ -72,10 +72,8 @@ class CombinedBremInteractor
 
     // SB and relativistic data
     CombinedBremRef const& shared_;
-    // Incident particle energy
-    Energy const inc_energy_;
-    // Incident particle direction
-    Momentum const inc_momentum_;
+    // Incident particle
+    ParticleTrackView const& particle_;
     // Incident particle direction
     Real3 const& inc_direction_;
     // Energy cutoffs
@@ -88,8 +86,6 @@ class CombinedBremInteractor
     MaterialView const& material_;
     // Element in which interaction occurs
     ElementComponentId const elcomp_id_;
-    // Incident particle flag for selecting XS correction factor
-    bool const is_electron_;
     // Secondary angular distribution
     TsaiUrbanDistribution sample_costheta_;
 };
@@ -110,21 +106,19 @@ CombinedBremInteractor::CombinedBremInteractor(
     MaterialView const& material,
     ElementComponentId const& elcomp_id)
     : shared_(shared)
-    , inc_energy_(particle.energy())
-    , inc_momentum_(particle.momentum())
+    , particle_(particle)
     , inc_direction_(direction)
     , cutoffs_(cutoffs)
     , gamma_cutoff_(cutoffs.energy(shared.rb_data.ids.gamma))
     , allocate_(allocate)
     , material_(material)
     , elcomp_id_(elcomp_id)
-    , is_electron_(particle.particle_id() == shared.rb_data.ids.electron)
-    , sample_costheta_(inc_energy_, particle.mass())
+    , sample_costheta_(particle.energy(), particle.mass())
 {
-    CELER_EXPECT(is_electron_
+    CELER_EXPECT(particle.particle_id() == shared.rb_data.ids.electron
                  || particle.particle_id() == shared.rb_data.ids.positron);
     CELER_EXPECT(gamma_cutoff_ > zero_quantity());
-    CELER_EXPECT(inc_energy_ > gamma_cutoff_);
+    CELER_EXPECT(particle_.energy() > gamma_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
@@ -144,28 +138,28 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 
     // Sample the bremsstrahlung photon energy
     Energy gamma_energy;
-    if (inc_energy_ >= detail::seltzer_berger_upper_limit())
+    if (particle_.energy() >= detail::seltzer_berger_upper_limit())
     {
         detail::RBEnergySampler sample_energy{
-            shared_.rb_data, inc_energy_, cutoffs_, material_, elcomp_id_};
+            shared_.rb_data, particle_, cutoffs_, material_, elcomp_id_};
         gamma_energy = sample_energy(rng);
     }
     else
     {
-        detail::SBEnergySampler sample_energy{shared_.sb_differential_xs,
-                                              inc_energy_,
-                                              gamma_cutoff_,
-                                              material_,
-                                              elcomp_id_,
-                                              shared_.rb_data.electron_mass,
-                                              is_electron_};
+        detail::SBEnergySampler sample_energy{
+            shared_.sb_differential_xs,
+            particle_,
+            gamma_cutoff_,
+            material_,
+            elcomp_id_,
+            particle_.particle_id() == shared_.rb_data.ids.electron};
         gamma_energy = sample_energy(rng);
     }
 
     // Update kinematics of the final state and return this interaction
-    return detail::BremFinalStateHelper(inc_energy_,
+    return detail::BremFinalStateHelper(particle_.energy(),
                                         inc_direction_,
-                                        inc_momentum_,
+                                        particle_.momentum(),
                                         shared_.rb_data.ids.gamma,
                                         gamma_energy,
                                         sample_costheta_(rng),

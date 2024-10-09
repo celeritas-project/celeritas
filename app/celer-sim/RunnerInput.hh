@@ -92,6 +92,7 @@ struct RunnerInput
     bool action_diagnostic{};
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
+    std::string slot_diagnostic_prefix;  //!< Base name for slot diagnostic
     bool write_track_counts{true};  //!< Output track counts for each step
     bool write_step_times{true};  //!< Output elapsed times for each step
 
@@ -105,7 +106,7 @@ struct RunnerInput
     bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream
     bool default_stream{false};  //!< Launch all kernels on the default stream
-    bool warm_up{CELER_USE_DEVICE};  //!< Run a nullop step first
+    bool warm_up{false};  //!< Run a nullop step first
 
     // Magnetic field vector [* 1/Tesla] and associated field options
     Real3 field{no_field()};
@@ -118,8 +119,8 @@ struct RunnerInput
     // Options for physics
     bool brem_combined{false};
 
-    // Track init options
-    TrackOrder track_order{TrackOrder::unsorted};
+    // Track reordering options
+    TrackOrder track_order{TrackOrder::none};
 
     // Optional setup options if loading directly from Geant4
     GeantPhysicsOptions physics_options;

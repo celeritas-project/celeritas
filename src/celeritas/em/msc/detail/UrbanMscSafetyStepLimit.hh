@@ -209,6 +209,8 @@ CELER_FUNCTION real_type UrbanMscSafetyStepLimit::operator()(Engine& rng)
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the minimum of the true path length limit.
+ *
+ * See \c G4UrbanMscModel::ComputeTlimitmin .
  */
 CELER_FUNCTION real_type UrbanMscSafetyStepLimit::calc_limit_min(
     UrbanMscMaterialData const& msc, Energy const inc_energy) const

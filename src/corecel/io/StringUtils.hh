@@ -26,6 +26,10 @@ bool ends_with(std::string_view main_string, std::string_view suffix);
 bool is_ignored_trailing(unsigned char c);
 
 //---------------------------------------------------------------------------//
+// Compare two C strings for equality, allowing null for one
+bool cstring_equal(char const* lhs, char const* rhs);
+
+//---------------------------------------------------------------------------//
 // Return a string view with leading and trailing whitespace removed
 [[nodiscard]] std::string_view trim(std::string_view input);
 

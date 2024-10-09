@@ -22,6 +22,7 @@
 #include "KernelAttributes.hh"
 #include "ThreadId.hh"  // IWYU pragma: export
 
+//---------------------------------------------------------------------------//
 /*!
  * \def CELER_LAUNCH_KERNEL
  *

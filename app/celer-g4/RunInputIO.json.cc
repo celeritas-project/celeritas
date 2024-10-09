@@ -12,7 +12,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/sys/Environment.hh"
-#include "celeritas/Types.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
+#include "celeritas/TypesIO.json.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
@@ -72,6 +73,10 @@ void from_json(nlohmann::json const& j, RunInput& v)
     // Check version (if available)
     check_format(j, "celer-g4");
 
+    RI_LOAD_OPTION(cuda_heap_size);
+    RI_LOAD_OPTION(cuda_stack_size);
+    RI_LOAD_OPTION(environ);
+
     RI_LOAD_REQUIRED(geometry_file);
     RI_LOAD_OPTION(event_file);
 
@@ -93,6 +98,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
     {
         v.auto_flush = v.num_track_slots;
     }
+
+    RI_LOAD_OPTION(track_order);
 
     RI_LOAD_OPTION(physics_list);
     RI_LOAD_OPTION(physics_options);
@@ -134,10 +141,12 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(step_diagnostic);
     RI_LOAD_OPTION(step_diagnostic_bins);
+    RI_LOAD_OPTION(slot_diagnostic_prefix);
 
 #undef RI_LOAD_OPTION
 #undef RI_LOAD_REQUIRED
 
+    // TODO: move these validation checks to GlobalSetup
     CELER_VALIDATE(v.event_file.empty() == static_cast<bool>(v.primary_options),
                    << "either a HepMC3 filename or options to generate "
                       "primaries must be provided (but not both)");
@@ -167,6 +176,10 @@ void to_json(nlohmann::json& j, RunInput const& v)
     // Save version and format type
     save_format(j, "celer-g4");
 
+    RI_SAVE_OPTION(cuda_stack_size);
+    RI_SAVE_OPTION(cuda_heap_size);
+    RI_SAVE(environ);
+
     RI_SAVE(geometry_file);
     RI_SAVE_OPTION(event_file);
 
@@ -179,11 +192,11 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE_OPTION(max_steps);
     RI_SAVE(initializer_capacity);
     RI_SAVE(secondary_stack_factor);
-    RI_SAVE_OPTION(cuda_stack_size);
-    RI_SAVE_OPTION(cuda_heap_size);
     RI_SAVE(action_times);
     RI_SAVE(default_stream);
     RI_SAVE(auto_flush);
+
+    RI_SAVE(track_order);
 
     RI_SAVE(physics_list);
     if (v.physics_list != PhysicsListSelection::ftfp_bert)
@@ -212,6 +225,7 @@ void to_json(nlohmann::json& j, RunInput const& v)
 
     RI_SAVE(step_diagnostic);
     RI_SAVE_OPTION(step_diagnostic_bins);
+    RI_SAVE_OPTION(slot_diagnostic_prefix);
 
 #undef RI_SAVE_OPTION
 #undef RI_SAVE

@@ -93,7 +93,7 @@ TEST_F(RootImporterTest, particles)
     // Particle ordering is the same as in the ROOT file
     static char const* expected_loaded_names[]
         = {"e+", "e-", "gamma", "mu+", "mu-"};
-    static const int expected_loaded_pdgs[] = {-11, 11, 22, -13, 13};
+    static int const expected_loaded_pdgs[] = {-11, 11, 22, -13, 13};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
     EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);

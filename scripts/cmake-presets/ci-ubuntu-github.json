@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "version": 6,
+  "cmakeMinimumRequired": {"major": 3, "minor": 23, "patch": 0},
   "configurePresets": [
     {
       "name": "base",
@@ -26,7 +26,8 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_HOSTNAME": "ubuntu-github",
-        "CMAKE_BUILD_TYPE":      "Release",
+        "CELERITAS_TEST_XML": "$env{GITHUB_WORKSPACE}/test-output/google/",
+        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
@@ -88,7 +89,6 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_CLANG_TIDY": {"type": "PATH", "value": "$env{CLANG_TIDY}"}
-
       }
     },
     {
@@ -158,6 +158,51 @@
         "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"
       }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "timeout": 15,
+        "jobs": 4
+      },
+      "output": {
+        "maxFailedTestOutputSize": 1048576,
+        "maxPassedTestOutputSize": 2048,
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "spack-unit",
+      "configurePreset": "spack",
+      "inherits": "base"
+    },
+    {
+      "name": "spack-app",
+      "configurePreset": "spack",
+      "inherits": "base",
+      "output": {
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
+      }
+    },
+    {
+      "name": "fast-unit",
+      "configurePreset": "fast",
+      "inherits": "base"
+    },
+    {
+      "name": "fast-app",
+      "configurePreset": "fast",
+      "inherits": "spack-app"
+    },
+    {
+      "name": "ultralite",
+      "configurePreset": "ultralite",
+      "inherits": "base"
     }
   ]
 }

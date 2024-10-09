@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/Solid.hh"
 
+#include "corecel/sys/TypeDemangler.hh"
 #include "orange/orangeinp/Shape.hh"
 
 #include "CsgTestUtils.hh"
@@ -300,11 +301,13 @@ TEST_F(SolidTest, cyl)
 
 TEST_F(SolidTest, or_shape)
 {
+    TypeDemangler<ObjectInterface> demangle_shape;
     {
         auto shape = ConeSolid::or_shape(
             "cone", Cone{{1, 2}, 10.0}, std::nullopt, SolidEnclosedAngle{});
         EXPECT_TRUE(shape);
-        EXPECT_TRUE(dynamic_cast<ConeShape const*>(shape.get()));
+        EXPECT_TRUE(dynamic_cast<ConeShape const*>(shape.get()))
+            << "actual shape: " << demangle_shape(*shape);
     }
     {
         auto solid = ConeSolid::or_shape("cone",
@@ -312,7 +315,8 @@ TEST_F(SolidTest, or_shape)
                                          Cone{{0.9, 1.9}, 10.0},
                                          SolidEnclosedAngle{});
         EXPECT_TRUE(solid);
-        EXPECT_TRUE(dynamic_cast<ConeSolid const*>(solid.get()));
+        EXPECT_TRUE(dynamic_cast<ConeSolid const*>(solid.get()))
+            << demangle_shape(*solid);
     }
 }
 

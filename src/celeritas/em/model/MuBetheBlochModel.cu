@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "MuBetheBlochModel.hh"
 
-#include "celeritas/em/executor/MuBetheBlochExecutor.hh"
+#include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
+#include "celeritas/em/executor/MuHadIonizationExecutor.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -27,9 +28,10 @@ void MuBetheBlochModel::step(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{MuBetheBlochExecutor{this->device_ref()}});
+        InteractionApplier{MuHadIonizationExecutor<MuBBEnergyDistribution>{
+            this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(params, state, *this, execute);
+    launch_kernel(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

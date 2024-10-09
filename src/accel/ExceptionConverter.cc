@@ -20,6 +20,7 @@
 #include "corecel/OpaqueIdIO.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
@@ -183,19 +184,35 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
     catch (RuntimeError const& e)
     {
         // Translate a runtime error into a G4Exception call
-        std::ostringstream where;
-        if (!e.details().file.empty())
-        {
-            where << strip_source_dir(e.details().file);
-        }
-        if (e.details().line != 0)
-        {
-            where << ':' << e.details().line;
-        }
-        G4Exception(where.str().c_str(),
-                    err_code_,
-                    FatalException,
-                    e.details().what.c_str());
+        std::string const where = [&d = e.details()] {
+            std::ostringstream os;
+            if (!d.file.empty())
+            {
+                os << strip_source_dir(d.file);
+            }
+            if (d.line != 0)
+            {
+                os << ':' << d.line;
+            }
+            return std::move(os).str();
+        }();
+
+        std::string const what = [&d = e.details()] {
+            std::ostringstream os;
+            os << "Celeritas " << (d.which ? d.which : "unknown") << " error: ";
+            if (cstring_equal(d.which, RuntimeError::not_config_err_str))
+            {
+                os << "required dependency is disabled in this build: ";
+            }
+            else if (cstring_equal(d.which, RuntimeError::not_impl_err_str))
+            {
+                os << "feature is not yet implemented: ";
+            }
+            os << d.what;
+
+            return std::move(os).str();
+        }();
+        G4Exception(where.c_str(), err_code_, FatalException, what.c_str());
     }
     catch (DebugError const& e)
     {

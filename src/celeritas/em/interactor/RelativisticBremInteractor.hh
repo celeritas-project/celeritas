@@ -109,8 +109,7 @@ RelativisticBremInteractor::RelativisticBremInteractor(
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
     , allocate_(allocate)
-    , sample_photon_energy_(
-          shared, particle.energy(), cutoffs, material, elcomp_id)
+    , sample_photon_energy_(shared, particle, cutoffs, material, elcomp_id)
     , sample_costheta_(inc_energy_, particle.mass())
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron

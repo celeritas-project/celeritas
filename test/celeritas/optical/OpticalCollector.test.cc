@@ -26,7 +26,6 @@
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/detail/OffloadParams.hh"
-#include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
@@ -42,46 +41,6 @@ namespace test
 {
 // TODO: replace this with explicit namespace importing
 using namespace celeritas::optical;
-
-TEST(OpticalUtilsTest, find_distribution_index)
-{
-    using celeritas::detail::find_distribution_index;
-
-    size_type num_workers = 8;
-    std::vector<size_type> work = {1, 1, 5, 2, 5, 8, 1, 6, 7, 7};
-    std::vector<size_type> offsets(work.size());
-    std::partial_sum(work.begin(), work.end(), offsets.begin());
-
-    static unsigned int const expected_offsets[]
-        = {1u, 2u, 7u, 9u, 14u, 22u, 23u, 29u, 36u, 43u};
-    EXPECT_VEC_EQ(expected_offsets, offsets);
-
-    LocalWorkCalculator<size_type> calc_local_work{offsets.back(), num_workers};
-
-    std::vector<size_type> result(offsets.back());
-    for (auto i : range(num_workers))
-    {
-        size_type local_work = calc_local_work(i);
-        for (auto j : range(local_work))
-        {
-            size_type result_idx = j * num_workers + i;
-            size_type work_idx
-                = find_distribution_index(make_span(offsets), result_idx);
-            result[result_idx] = work_idx;
-        }
-    }
-    static unsigned int const expected_result[]
-        = {0u, 1u, 2u, 2u, 2u, 2u, 2u, 3u, 3u, 4u, 4u, 4u, 4u, 4u, 5u,
-           5u, 5u, 5u, 5u, 5u, 5u, 5u, 6u, 7u, 7u, 7u, 7u, 7u, 7u, 8u,
-           8u, 8u, 8u, 8u, 8u, 8u, 9u, 9u, 9u, 9u, 9u, 9u, 9u};
-    EXPECT_VEC_EQ(expected_result, result);
-
-    EXPECT_EQ(0, find_distribution_index(make_span(offsets), 0));
-    EXPECT_EQ(1, find_distribution_index(make_span(offsets), 1));
-    EXPECT_EQ(4, find_distribution_index(make_span(offsets), 13));
-    EXPECT_EQ(5, find_distribution_index(make_span(offsets), 14));
-    EXPECT_EQ(9, find_distribution_index(make_span(offsets), 42));
-}
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -305,31 +264,30 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         CELER_TRY_HANDLE(count = step(), log_context);
     }
 
-    auto get_result
-        = [&](OffloadResult& result, DistRef const& buffer, size_type size) {
-              auto host_buffer = copy_to_host(buffer);
-              std::set<real_type> charge;
-              for (auto const& dist :
-                   host_buffer[DistRange(DistId(0), DistId(size))])
-              {
-                  result.total_num_photons += dist.num_photons;
-                  result.num_photons.push_back(dist.num_photons);
-                  if (!dist)
-                  {
-                      continue;
-                  }
-                  charge.insert(dist.charge.value());
+    auto get_result = [&](OffloadResult& result,
+                          DistRef const& buffer,
+                          size_type size) {
+        auto host_buffer = copy_to_host(buffer);
+        std::set<real_type> charge;
+        for (auto const& dist : host_buffer[DistRange(DistId(0), DistId(size))])
+        {
+            result.total_num_photons += dist.num_photons;
+            result.num_photons.push_back(dist.num_photons);
+            if (!dist)
+            {
+                continue;
+            }
+            charge.insert(dist.charge.value());
 
-                  auto const& pre = dist.points[StepPoint::pre];
-                  auto const& post = dist.points[StepPoint::post];
-                  EXPECT_GT(pre.speed, zero_quantity());
-                  EXPECT_NE(post.pos, pre.pos);
-                  EXPECT_GT(dist.step_length, 0);
-                  EXPECT_EQ(0, dist.material.get());
-              }
-              result.charge.insert(
-                  result.charge.end(), charge.begin(), charge.end());
-          };
+            auto const& pre = dist.points[StepPoint::pre];
+            auto const& post = dist.points[StepPoint::post];
+            EXPECT_GT(pre.speed, zero_quantity());
+            EXPECT_NE(post.pos, pre.pos);
+            EXPECT_GT(dist.step_length, 0);
+            EXPECT_EQ(0, dist.material.get());
+        }
+        result.charge.insert(result.charge.end(), charge.begin(), charge.end());
+    };
 
     auto const& state = offload_state.store.ref();
     auto const& sizes = offload_state.buffer_size;
@@ -544,16 +502,14 @@ TEST_F(LArSphereOffloadTest, host_generate)
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        "Boundary action is not implemented",
-        "Boundary action is not implemented",
-        R"(Exceeded step count of 2: aborting optical transport loop with 0 tracks and 324193 queued)",
+        R"(Exceeded step count of 2: aborting optical transport loop with 512 active tracks, 512 alive tracks, 0 vacancies, and 323681 queued)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "error", "error", "error"};
+        = {"status", "status", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(2, result.optical_launch_step);
@@ -571,7 +527,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::device>(1, 1024, 16);
     static char const* const expected_log_levels[]
-        = {"status", "status", "error", "error", "error"};
+        = {"status", "status", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(7, result.optical_launch_step);

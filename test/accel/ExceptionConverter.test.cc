@@ -94,7 +94,7 @@ TEST_F(ExceptionConverterTest, debug)
               handler().desc);
 }
 
-TEST_F(ExceptionConverterTest, runtime)
+TEST_F(ExceptionConverterTest, validation)
 {
     ExceptionConverter call_g4e{"test002"};
     CELER_TRY_HANDLE(CELER_VALIDATE(2 + 2 == 5, << "math actually works"),
@@ -103,7 +103,35 @@ TEST_F(ExceptionConverterTest, runtime)
     EXPECT_EQ(0, handler().origin.find("accel/ExceptionConverter.test.cc"))
         << "actual path: '" << handler().origin << '\'';
     EXPECT_EQ("test002", handler().code);
-    EXPECT_EQ("math actually works", handler().desc);
+    EXPECT_EQ("Celeritas runtime error: math actually works", handler().desc);
+}
+
+TEST_F(ExceptionConverterTest, not_configured)
+{
+    ExceptionConverter call_g4e{"test003"};
+    CELER_TRY_HANDLE(CELER_NOT_CONFIGURED("VecGeom"), call_g4e);
+
+    EXPECT_EQ(0, handler().origin.find("accel/ExceptionConverter.test.cc"))
+        << "actual path: '" << handler().origin << '\'';
+    EXPECT_EQ("test003", handler().code);
+    EXPECT_EQ(
+        "Celeritas configuration error: required dependency is disabled in "
+        "this build: VecGeom",
+        handler().desc);
+}
+
+TEST_F(ExceptionConverterTest, not_implemented)
+{
+    ExceptionConverter call_g4e{"test004"};
+    CELER_TRY_HANDLE(CELER_NOT_IMPLEMENTED("tachyon decay"), call_g4e);
+
+    EXPECT_EQ(0, handler().origin.find("accel/ExceptionConverter.test.cc"))
+        << "actual path: '" << handler().origin << '\'';
+    EXPECT_EQ("test004", handler().code);
+    EXPECT_EQ(
+        "Celeritas implementation error: feature is not yet implemented: "
+        "tachyon decay",
+        handler().desc);
 }
 
 //---------------------------------------------------------------------------//

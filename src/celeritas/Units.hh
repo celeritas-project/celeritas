@@ -163,6 +163,8 @@ CELER_ICRT gauss = real_type(1e-4) * tesla;
 
 //!@{
 //! \name Other common units
+CELER_ICRT micrometer = real_type(1e-4) * centimeter;
+CELER_ICRT nanometer = real_type(1e-7) * centimeter;
 CELER_ICRT femtometer = real_type(1e-13) * centimeter;
 CELER_ICRT barn = real_type(1e-24) * centimeter * centimeter;
 //!@}

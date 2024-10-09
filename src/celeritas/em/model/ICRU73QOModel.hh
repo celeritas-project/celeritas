@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/em/data/BraggICRU73QOData.hh"
+#include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -22,7 +22,7 @@ class ICRU73QOModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data
-    ICRU73QOModel(ActionId id, ParticleParams const& particles);
+    ICRU73QOModel(ActionId, ParticleParams const&, SetApplicability);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -38,12 +38,15 @@ class ICRU73QOModel final : public Model, public StaticConcreteAction
 
     //!@{
     //! Access model data
-    BraggICRU73QOData const& host_ref() const { return data_; }
-    BraggICRU73QOData const& device_ref() const { return data_; }
+    MuHadIonizationData const& host_ref() const { return data_; }
+    MuHadIonizationData const& device_ref() const { return data_; }
     //!@}
 
   private:
-    BraggICRU73QOData data_;
+    // Particle types and energy ranges that this model applies to
+    SetApplicability applicability_;
+    // Model data
+    MuHadIonizationData data_;
 };
 
 //---------------------------------------------------------------------------//

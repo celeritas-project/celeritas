@@ -13,16 +13,33 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Share an MPI world communicator within the Celeritas process.
+ */
+MpiCommunicator& global_comm_world()
+{
+    static MpiCommunicator comm{MpiCommunicator::world_if_enabled()};
+    return comm;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a communicator with MPI_COMM_WORLD or null if disabled.
  */
-MpiCommunicator MpiCommunicator::comm_default()
+MpiCommunicator MpiCommunicator::world_if_enabled()
 {
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled)
         return {};
 
-    return comm_world();
+    return MpiCommunicator::world();
 }
 
 //---------------------------------------------------------------------------//
@@ -45,6 +62,15 @@ MpiCommunicator::MpiCommunicator(MpiComm comm) : comm_(comm)
     CELER_MPI_CALL(MPI_Comm_size(comm_, &size_));
 
     CELER_ENSURE(this->rank() >= 0 && this->rank() < this->size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Shared world Celeritas communicator.
+ */
+MpiCommunicator const& comm_world()
+{
+    return global_comm_world();
 }
 
 //---------------------------------------------------------------------------//

@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "BraggModel.hh"
 
-#include "celeritas/em/executor/BraggICRU73QOExecutor.hh"
+#include "celeritas/em/distribution/BraggICRU73QOEnergyDistribution.hh"
+#include "celeritas/em/executor/MuHadIonizationExecutor.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -26,9 +27,11 @@ void BraggModel::step(CoreParams const& params, CoreStateDevice& state) const
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{BraggICRU73QOExecutor{this->device_ref()}});
+        InteractionApplier{
+            MuHadIonizationExecutor<BraggICRU73QOEnergyDistribution>{
+                this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(params, state, *this, execute);
+    launch_kernel(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

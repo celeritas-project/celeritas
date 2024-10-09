@@ -23,24 +23,18 @@ template<class T>
 struct MpiType;
 
 #if CELERITAS_USE_MPI
-#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM) \
-        template<>                            \
-        struct MpiType<T>                     \
-        {                                     \
-            static MPI_Datatype get()         \
-            {                                 \
-                return MPI_ENUM;              \
-            }                                 \
+#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM)            \
+        template<>                                       \
+        struct MpiType<T>                                \
+        {                                                \
+            static inline MPI_Datatype value = MPI_ENUM; \
         }
 #else
-#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM) \
-        template<>                            \
-        struct MpiType<T>                     \
-        {                                     \
-            static const char* get()          \
-            {                                 \
-                return #MPI_ENUM;             \
-            }                                 \
+#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM)            \
+        template<>                                       \
+        struct MpiType<T>                                \
+        {                                                \
+            static inline const char* value = #MPI_ENUM; \
         }
 #endif
 

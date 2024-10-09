@@ -1,0 +1,339 @@
+.. Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+.. See the doc/COPYRIGHT file for details.
+.. SPDX-License-Identifier: CC-BY-4.0
+
+Series 0.5
+==========
+
+.. _release_v0.5.0:
+
+Version 0.5.0
+-------------
+
+*Released 2024/10/07*
+
+Version 0.5.0 is a major update to Celeritas featuring:
+
+- Numerous performance improvements
+- Automatic Geant4-to-ORANGE geometry translation
+- Single coulomb scattering process and improved MSC options
+- Rasterization using any navigation engine with ``celer-geo``
+
+Several major new capabilities are at an experimental, proof-of-concept
+level of readiness and reach prototype stage during the v0.5 series:
+
+- Optical photon generation and physics
+- Muon physics
+- High-energy neutron physics
+
+A few minor features are noteworthy:
+
+- Improved error detection and output
+- New diagnostic output for slots and steps
+- Support for native CLHEP or SI unit systems
+- CPU profiling available through Perfetto
+- Support for saving and loading offloaded primaries via ROOT
+
+Major infrastructure changes include:
+
+- Nlohmann JSON is now required (downloaded automatically if unavailable)
+- SWIG wrappers have been removed
+- More granular CMake options are available for threading model and debugging
+
+The release includes the following changes, plus all features and bug fixes
+from v0.4.4.
+
+
+New features
+------------
+
+* Add Cerenkov distribution and generator *(@amandalund, #1080)*
+* Add specialized "permutation" transform *(@sethrj, #1077)*
+* Add CSG unit and unit builder *(@sethrj, #1079)*
+* Define unit traits and support arbitrary RZ field map units *(@sethrj, #1088)*
+* Add ScintillationGenerator and related data structures *(@whokion, #1086)*
+* Add bounding box utilities for output and upcoming ORANGE work *(@sethrj, #1092)*
+* Support native CLHEP unit system *(@sethrj, #1085)*
+* Add bounding zone *(@sethrj, #1093)*
+* Support importing optical properties from Geant4 *(@amandalund, #1103)*
+* Reduce number of Geant4 libraries linked in G4VG and elsewhere *(@sethrj, #1109)*
+* Add deduplicating transform inserter *(@sethrj, #1112)*
+* Add Wentzel OK&VI transport cross section calculator *(@amandalund, #1116)*
+* Add convex surface builder *(@sethrj, #1113)*
+* Add Cerenkov pre-generator *(@stognini, #1108)*
+* Add infix string builder *(@sethrj, #1121)*
+* Implement convex regions *(@sethrj, #1119)*
+* Implement second-order convex regions *(@sethrj, #1125)*
+* Add shape and volume builder *(@sethrj, #1126)*
+* Add ORANGE, geocel, and file layout documentation  *(@sethrj, #1134)*
+* Add transformed object construction *(@sethrj, #1128)*
+* Add CSG operations on objects *(@sethrj, #1130)*
+* Add transform simplifier *(@sethrj, #1131)*
+* Add JSON output for CSG objects *(@sethrj, #1133)*
+* Add CSG wedge and helper functions *(@sethrj, #1142)*
+* Add neutron elastic scattering physics  *(@whokion, #1120)*
+* Add CSG solids *(@sethrj, #1137)*
+* Add a common macroscopic cross section calculator *(@whokion, #1145)*
+* Add "minimal" and "safety plus" Urban MSC step limit algorithms *(@amandalund, #1146)*
+* Import scintillation particle data *(@stognini, #1151)*
+* Add proto-universe and CSG Unit construction *(@sethrj, #1148)*
+* Add utilities for building ``UnitInput`` from ``CsgTree`` *(@sethrj, #1155)*
+* Import WLS data for optical photons *(@stognini, #1165)*
+* Add Parallelepiped shape *(@mrguilima, #1161)*
+* Add particle scintillation data to ``ScintillationParams``; Add ``ScintillationPreGenerator`` *(@stognini, #1153)*
+* Complete ORANGE construction from CSG objects *(@sethrj, #1166)*
+* Add minimal version of GenTrap (Arb8) shape *(@mrguilima, #1171)*
+* Add sense evaluator for testing *(@sethrj, #1168)*
+* Add additional ObjectInterface and orangeinp helpers *(@sethrj, #1174)*
+* Add conversion of Geant4 transforms and basic solids to ORANGE *(@sethrj, #1169)*
+* Implement G4Sphere conversion *(@sethrj, #1177)*
+* Convert Geant4 logical and physical volumes *(@sethrj, #1170)*
+* Add optical generator data and update pre-generators *(@amandalund, #1182)*
+* Construct proto-universe hierarchy from converted volumes *(@sethrj, #1179)*
+* Add actions and executors for generating optical distribution data *(@amandalund, #1184)*
+* Complete GDML-to-ORANGE geometry converter *(@sethrj, #1180)*
+* Add optical collector for generating scintillation and Cerenkov distribution data *(@amandalund, #1173)*
+* Parse log levels from Geant4 scoped logger *(@sethrj, #1189)*
+* Add neutron inelastic process *(@whokion, #1187)*
+* Add basic raytrace components *(@sethrj, #1194)*
+* Add Windows/Linux no-dependency builds *(@sethrj, #1196)*
+* Add optical track data classes *(@sethrj, #1163)*
+* Add generic CPU/GPU raytracer for rasterizing *(@sethrj, #1191)*
+* Add ORANGE converters for G4Trap and G4GenericTrap *(@mrguilima, #1213)*
+* Add celer-geo app for visualizing geometry *(@sethrj, #1201)*
+* Add ORANGE converter for G4Trd *(@mrguilima, #1218)*
+* Add configure-time ``CELERITAS_OPENMP`` switch to change threading *(@sethrj, #1222)*
+* Make accel "auto flush" threshold configurable *(@amandalund, #1231)*
+* Support twisted sides for the gentrap shape *(@mrguilima, #1232)*
+* Improve transport of single track on CPU *(@esseivaju, #1235)*
+* Add option to specify maximum number of substeps in field propagator *(@amandalund, #1236)*
+* Add custom FTFP BERT physics list with Celeritas EM physics constructor *(@amandalund, #1242)*
+* Add external bounding box to generic trapezoid *(@sethrj, #1244)*
+* Add RootPrimaryGenerator sampler to celer-sim *(@stognini, #1228)*
+* Support combined single and multiple Coulomb  scattering *(@amandalund, #1230)*
+* Add support for using the build directory as an installation *(@sethrj, #1249)*
+* Implement polycone *(@sethrj, #1247)*
+* Add polyprism (G4Polyhedra) *(@sethrj, #1251)*
+* Integrate Perfetto as backend for ScopedProfiling *(@esseivaju, #1238)*
+* Import and add nuclear binding energy to isotopes *(@whokion, #1258)*
+* Write converted object and CSG metadata for debugging *(@sethrj, #1259)*
+* Add nuclear zone data *(@whokion, #1269)*
+* Improve HGCal build performance by a factor of 10 using surface hashing *(@sethrj, #1183)*
+* Add auxiliary extensible params and state *(@sethrj, #1278)*
+* Check units in JSON input *(@sethrj, #1283)*
+* Add Wentzel macro xs calculator and fix ``a_sq_factor`` *(@amandalund, #1274)*
+* Implement infix evaluator *(@esseivaju, #1286)*
+* Differentiate "geometry" from "physics" materials in ImportData *(@sethrj, #1288)*
+* Add Bethe-Bloch muon ionization model *(@amandalund, #1291)*
+* Add new track status and support user "initialization" *(@sethrj, #1294)*
+* Add detailed error checking for action sequence behavior *(@sethrj, #1303)*
+* Add debug output for track states *(@sethrj, #1304)*
+* Add "tracking cut" to handle errors and kill tracks *(@sethrj, #1311)*
+* Add Bragg and ICRU73QO ionization models *(@amandalund, #1309)*
+* Detect and gracefully handle ORANGE geometry errors during tracking *(@sethrj, #1316)*
+* Add Regula Falsi root solver *(@VHLM2001, #1324)*
+* Add cascade collider *(@whokion, #1326)*
+* Support degenerate faces for "GenTrap" and rename to GenPrism *(@sethrj, #1271)*
+* Add more root finding algorithms *(@VHLM2001, #1333)*
+* Add color and PNG for future direct raytracing/rasterization *(@sethrj, #1336)*
+* Fix GenPrism surface shapes to match Geant4 *(@mrguilima, #1337)*
+* Add involute surface to support HFIR simulation *(@VHLM2001, #1295)*
+* Add optical collector to celer-sim *(@stognini, #1332)*
+* Add inverse helpers to generic calculator *(@sethrj, #1368)*
+* Improve sincospi availability and implementation *(@sethrj, #1364)*
+* Add oriented bounding zone class to be used for safety distance calculations *(@elliottbiondo, #1362)*
+* Add optical absorption and Rayleigh interactors *(@hhollenb, #1317)*
+* Replace SWIG with JSON (via ROOT export) for data exploration *(@sethrj, #1380)*
+* Optimize track vector data layout for particle types *(@amandalund, #1322)*
+* Add volume-to-material mapping and change import data *(@sethrj, #1378)*
+* Implement operation to simplify negated join on CsgTree *(@esseivaju, #1289)*
+* Add always-on celer-sim diagnostic to count total number of tracks *(@amandalund, #1383)*
+* Reduce default maximum substeps in field propagator *(@amandalund, #1384)*
+* Implement physics constructor for OpticalPhysics *(@drbenmorgan, #1348)*
+* Add skeleton optical core params and launch action *(@sethrj, #1386)*
+* Integrate involute surface into ORANGE construction *(@VHLM2001, #1342)*
+* Add separate configure option for on-device assertions *(@sethrj, #1394)*
+* Extend Mott coefficients to include positrons and higher Z elements *(@amandalund, #1395)*
+* Add action to generate optical primaries from Cerenkov distributions *(@amandalund, #1399)*
+* Store OBZ data during runtime *(@elliottbiondo, #1402)*
+* Add muon EM processes to Celeritas physics list and muon brems/ioni ``Process`` classes *(@amandalund, #1411)*
+* Add action for generating scintillation photons from distributions *(@amandalund, #1414)*
+* Add initial stepping loop to optical offload *(@sethrj, #1417)*
+* Import muon pair production sampling table from Geant4 *(@amandalund, #1419)*
+* Report and annotate test failures in CI *(@sethrj, #1421)*
+* Add optical core track view and launcher *(@sethrj, #1424)*
+* Add Bethe-Bloch model and refactor muon ionization *(@amandalund, #1425)*
+* Fix intermittent CI failures due to corrupt XML *(@sethrj, #1431)*
+* Add ``track_order`` option to celer-g4 and default to partitioning by charge on GPU *(@amandalund, #1433)*
+* Add slot particle diagnostic *(@sethrj, #1426)*
+* Separate ImportOpticalModels from ImportOpticalMaterials *(@hhollenb, #1439)*
+* Add optical track initialization action *(@amandalund, #1438)*
+
+Reviewers: @sethrj *(53)*, @elliottbiondo *(32)*, @amandalund *(25)*, @whokion *(12)*, @stognini *(8)*, @mrguilima *(7)*, @pcanal *(5)*, @esseivaju *(4)*, @drbenmorgan *(3)*, @hhollenb *(1)*
+
+Bug fixes
+---------
+
+* Change propagation fatal error to be recoverable *(@sethrj, #1090)*
+* Fix position check after propagating *(@amandalund, #1094)*
+* Workaround missing G4persistency target bug in Geant4 11.2 *(@drbenmorgan, #1122)*
+* Fix single-precision soft equivalence for plane *(@sethrj, #1139)*
+* Fix prism orientation in Geant4 ORANGE solid converter *(@sethrj, #1193)*
+* Fix no-JSON and Windows builds *(@sethrj, #1200)*
+* Fix Wentzel OK&VI transport cross section *(@amandalund, #1202)*
+* Fix gentrap orientation *(@sethrj, #1206)*
+* Fix polar angle sampling and Mott factor in Wentzel distribution *(@amandalund, #1212)*
+* Fix minor dependency issues *(@sethrj, #1219)*
+* Fix trapezoid construction for negative phi and older Geant4 *(@sethrj, #1227)*
+* Propagate parent bounding boxes to ensure objects have finite extents *(@sethrj, #1225)*
+* Regularize quadric surfaces to deduplicate opposing surfaces *(@sethrj, #1237)*
+* Fix windows test builds *(@sethrj, #1255)*
+* Fix Geant4-to-ORANGE transformation conversion *(@sethrj, #1257)*
+* Fix CSG tree simplification needed by tilecal *(@sethrj, #1256)*
+* Fix trapezoid construction *(@sethrj, #1265)*
+* Work around union/polysolid boundaries and fix transformation of explicit daughters *(@sethrj, #1264)*
+* Use pre-step optical material ID in optical pre-generators *(@amandalund, #1297)*
+* Fix muon bremsstrahlung energy limits and sampling  *(@amandalund, #1319)*
+* Fix downstream CMake when using CUDA and not included at top level *(@esseivaju, #1323)*
+* Properly clear state counters and data for reuse *(@amandalund, #1367)*
+* Fix initialization of geometry state when inserting multiple sets of primaries *(@amandalund, #1369)*
+* Clear along-step action when track is marked as errored *(@amandalund, #1377)*
+* Fix Geant4 setup when single Coulomb scattering is enabled *(@amandalund, #1392)*
+* Improve multithread GPU performance by removing subtle device sync *(@amandalund, #1405)*
+* Work around GCC 12.3 compiler bugs *(@whokion, #1407)*
+* Fix construction of single-volume Geant4 with ORANGE and activate examples *(@sethrj, #1409)*
+* Loosen numerically iffy test tolerance *(@esseivaju, #1435)*
+* Fix weak vtables causing dynamic_cast error in apple clang 16 *(@sethrj, #1436)*
+* Test and fix nuclear form factors *(@sethrj, #1398)*
+
+Reviewers: @sethrj *(14)*, @elliottbiondo *(8)*, @mrguilima *(5)*, @amandalund *(2)*, @pcanal *(2)*, @hhollenb *(1)*, @whokion *(1)*, @esseivaju *(1)*
+
+Documentation improvements
+--------------------------
+
+* Expand position check test and fix for other unit systems *(@amandalund, #1097)*
+* Prevent a PR with failed actions from being merged *(@sethrj, #1096)*
+* Fix unit tests when using SI *(@sethrj, #1100)*
+* Fix CTest names *(@sethrj, #1105)*
+* Disable ROCm builds because of constant failures *(@sethrj, #1118)*
+* Update CI images and workflow actions *(@sethrj, #1136)*
+* Fix warning about missing low-energy cross sections *(@amandalund, #1176)*
+* Set global execution timeout for automated testing on Jenkins *(@dalg24, #1186)*
+* Pin sphinx version to fix documentation build *(@sethrj, #1188)*
+* Define geometry traits *(@sethrj, #1190)*
+* Switch ORANGE unit tests to use GDML files *(@sethrj, #1181)*
+* Add test for assertion messages *(@sethrj, #1198)*
+* Improve gentrap documentation and fix typos *(@mrguilima, #1205)*
+* Improve ccache use on github workflows *(@sethrj, #1243)*
+* Add automatic external fetching for JSON and Googletest *(@sethrj, #1253)*
+* Refactor CMake test name generation to be based on path *(@sethrj, #1261)*
+* Add initial set of clang-tidy checks *(@esseivaju, #1267)*
+* Fix tests for Geant4 11.2 *(@sethrj, #1276)*
+* Tweak documentation in CoreState *(@sethrj, #1279)*
+* Update perlmutter build *(@esseivaju, #1285)*
+* Fix ORANGE docs and ccache-clearing cron job *(@sethrj, #1284)*
+* Regenerate ROOT files during CI testing *(@sethrj, #1287)*
+* Improve documentation for physics, RNG, stepping loop *(@sethrj, #1298)*
+* Fix device test failures *(@amandalund, #1307)*
+* Refactor muon bremsstrahlung differential cross section calculation and add documentation *(@amandalund, #1320)*
+* Add git pre-commit hook *(@esseivaju, #1329)*
+* Add CUDA build instructions *(@esseivaju, #1335)*
+* Add unit test function wrapper for diagnosing solver convergence *(@sethrj, #1331)*
+* Fix HepMC3 tests to work with 3.3.0 *(@sethrj, #1340)*
+* Use spack-based workflow for address sanitizer *(@sethrj, #1341)*
+* Automatically build and deploy github documentation *(@sethrj, #1350)*
+* Add optical physics documentation *(@sethrj, #1358)*
+* Automatically add Zotero publications to project site *(@sethrj, #1359)*
+* Add Mermaid CSG tree output *(@sethrj, #1361)*
+* Add documentation for config options, improve unit docs, and use doxygen todos *(@sethrj, #1360)*
+* Refactor user manual *(@sethrj, #1363)*
+* Add separate developer doc section to user manual *(@sethrj, #1365)*
+* Address minor documentation, contract fixes in CelerOpticalPhysics *(@drbenmorgan, #1388)*
+* Add clang 18 and gcc 14 builds to CI *(@sethrj, #1389)*
+* Fix documentation deployment *(@sethrj, #1408)*
+* Hotfix: untested CUDA code in #1424 *(@sethrj, #1429)*
+
+Reviewers: @amandalund *(19)*, @sethrj *(10)*, @pcanal *(5)*, @esseivaju *(5)*, @stognini *(4)*, @elliottbiondo *(1)*, @drbenmorgan *(1)*
+
+Minor internal changes
+----------------------
+
+* Remove unused data from ImportElement/Material *(@sethrj, #1089)*
+* Refactor Geant4 utilities in preparation for g4vg *(@sethrj, #1095)*
+* Reorganize geometry wrappers into a new "geocel" directory *(@sethrj, #1099)*
+* Rename ORANGE construction files *(@sethrj, #1106)*
+* Split CMake RDC utilities from Celeritas macros *(@pcanal, #1104)*
+* Fix ORANGE namespaces *(@sethrj, #1117)*
+* Fix missing explicit instantiations in ORANGE CSB *(@sethrj, #1124)*
+* Add compile-time consistency check for Celeritas and Geant4 versions *(@sethrj, #1123)*
+* Transform refactoring *(@sethrj, #1127)*
+* Use correct form of enable_if for functions *(@sethrj, #1135)*
+* Refactor MSC params and add Wentzel VI params and data *(@amandalund, #1129)*
+* Rename ``Wentzel`` model to ``CoulombScattering`` and add em/params subdirectory *(@amandalund, #1154)*
+* Add generic grid builder and refactor builder code that uses generic grids *(@sethrj, #1157)*
+* Split ExplicitActionInterface to support optical data *(@pcanal, #1160)*
+* Fix SWIG build *(@sethrj, #1159)*
+* Rename scale methods in g4vg *(@sethrj, #1175)*
+* Tweak ORANGE construction *(@sethrj, #1178)*
+* Add small utilities for rasterization work *(@sethrj, #1185)*
+* Update CMake user preset *(@esseivaju, #1195)*
+* Move unit enumeration to corecel and improve assertion flexibility  *(@sethrj, #1197)*
+* Make "output interface" streamable *(@sethrj, #1203)*
+* Refactor ``ActionSequence`` to be templated on Params *(@esseivaju, #1209)*
+* Use string view for interface labels and descriptions *(@sethrj, #1210)*
+* Fix library macro compatibility wrappers *(@sethrj, #1215)*
+* Split optical pre-generator action into separate Cerenkov and scintillation actions *(@amandalund, #1217)*
+* Write celer-sim results as 'null' when they're disabled *(@sethrj, #1223)*
+* Refactor trapezoid construction *(@sethrj, #1221)*
+* Add generic grid inserter to simplify construction *(@hhollenb, #1229)*
+* Split ORANGE test into subtests *(@sethrj, #1234)*
+* Update single and multiple Coulomb scattering configurations in ``GeantPhysicsList`` *(@amandalund, #1239)*
+* Rename ConvexRegion to IntersectRegion *(@sethrj, #1245)*
+* Minor refactoring/niceties for upcoming polycone work *(@sethrj, #1246)*
+* Add gdml-to-dot and improve celer-geo *(@sethrj, #1252)*
+* Set correct energy limits for Coulomb scattering *(@amandalund, #1266)*
+* Refactor nuclear zone builder to separate numerical integration *(@sethrj, #1275)*
+* Improve GenTrap regularization and construction *(@sethrj, #1262)*
+* Refactor optical data to use extensible params/states *(@sethrj, #1280)*
+* Require JSON *(@sethrj, #1254)*
+* Store model action IDs in model class instead of in data *(@amandalund, #1293)*
+* Add helper functions for sampling/calculating direction in interactors *(@amandalund, #1301)*
+* Add final state helper for ionization interactions *(@amandalund, #1306)*
+* Add a helper function to copy a "collection group" back to the host *(@sethrj, #1310)*
+* Skip indirection array for sorted track slots *(@sethrj, #1315)*
+* Remove celeritas include in corecel *(@esseivaju, #1328)*
+* Refactor types to reduce duplication and cyclic dependencies *(@sethrj, #1327)*
+* Update frontier toolchain and backward compatibility *(@sethrj, #1330)*
+* Consolidate header naming convention *(@esseivaju, #1325)*
+* Reduce string duplication from assertion messages *(@sethrj, #1338)*
+* Add optical sub-namespace *(@hhollenb, #1314)*
+* Fix minor compile error/warning with nvcc+clang *(@esseivaju, #1343)*
+* Fix clang-tidy checks, including some use-after-move *(@esseivaju, #1352)*
+* Refactor rejection sampling using a helper class *(@sethrj, #1354)*
+* Improve use of distributions and simplify interactions *(@sethrj, #1357)*
+* Accept single CsgTree from stdin  *(@esseivaju, #1366)*
+* Clang format develop with clang 18 *(@sethrj, #1372)*
+* Allow normal distribution to preserve spare value *(@sethrj, #1371)*
+* Define optical MaterialView and rename MaterialParams *(@sethrj, #1370)*
+* Sample cerenkov photons one at a time using rejection *(@sethrj, #1373)*
+* Sample scintillation photons individually *(@sethrj, #1376)*
+* Count number of optical primaries to be generated from distributions *(@amandalund, #1379)*
+* Fix warnings on updated Cray/ROCm toolchain *(@sethrj, #1381)*
+* Allow sim params without looping *(@sethrj, #1382)*
+* Rename ExplicitAction to StepAction and add templating *(@sethrj, #1387)*
+* Refactor primaries as ``aux`` data *(@sethrj, #1393)*
+* Change LocalTransporter deallocation semantics *(@sethrj, #1403)*
+* Refactor action sequence into action group plus extras *(@sethrj, #1410)*
+* Define "static" concrete action for those with unique name/description *(@sethrj, #1416)*
+* Improve PRINT_EXPECTED formatting for long strings and vectors *(@sethrj, #1420)*
+* Support aliased nodes during CsgTree simplification *(@esseivaju, #1418)*
+* Refactor action launcher components into kernel launcher *(@sethrj, #1423)*
+* Add ``total_energy`` accessor to ``ParticleTrackView`` *(@amandalund, #1432)*
+* Clang format develop with clang 18 *(@sethrj, #1437)*
+* Rename track slot enumerations *(@sethrj, #1434)*
+* Add a hack to override ORANGE max intersections/faces *(@sethrj, #1430)*
+* Add global MPI communicator and refactor some internals *(@sethrj, #1428)*
+
+Reviewers: @amandalund *(30)*, @sethrj *(21)*, @elliottbiondo *(7)*, @stognini *(5)*, @esseivaju *(5)*, @whokion *(4)*, @mrguilima *(4)*, @drbenmorgan *(3)*, @pcanal *(2)*, @tmdelellis *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.4.4...v0.5.0

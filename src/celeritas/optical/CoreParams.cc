@@ -20,6 +20,9 @@
 #include "MaterialParams.hh"
 #include "TrackInitParams.hh"
 #include "action/BoundaryAction.hh"
+#include "action/InitializeTracksAction.hh"
+#include "action/LocateVacanciesAction.hh"
+#include "action/PreStepAction.hh"
 
 namespace celeritas
 {
@@ -44,7 +47,6 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.material = get_ref<M>(*p.material);
     // TODO: ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
-    ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
@@ -63,11 +65,11 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     //// START ACTIONS ////
 
-#if 0
     reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
-#endif
 
     //// PRE-STEP ACTIONS ////
+
+    reg->insert(make_shared<PreStepAction>(reg->next_id()));
 
     //// POST-STEP ACTIONS ////
 
@@ -79,6 +81,8 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(make_shared<BoundaryAction>(scalars.boundary_action));
 
     //// END ACTIONS ////
+
+    reg->insert(make_shared<LocateVacanciesAction>(reg->next_id()));
 
     // TODO: extend from secondaries action
 
@@ -101,7 +105,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     // TODO: CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
-    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(max_streams);

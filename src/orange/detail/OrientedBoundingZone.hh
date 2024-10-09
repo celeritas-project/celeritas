@@ -31,10 +31,10 @@ namespace detail
  * the center of each bounding box is offset from the center of the OBZ
  * coordinate system.
  *
- * Consequently, points in the unit's corrdinate system must be first
- * transformed by <transform_id> into the OBZ coordinate system (resulting in
- * "trans_pos"), then offset, i.e. translated, by <inner_offset_id> or
- * <outer_offset_id> into the inner or outer bbox coordinate system (resulting
+ * Consequently, points in the unit's coordinate system must be first
+ * transformed by \c transform_id into the OBZ coordinate system (resulting in
+ * "trans_pos"), then offset, i.e. translated, by \c inner_offset_id or
+ * \c outer_offset_id into the inner or outer bbox coordinate system (resulting
  * in "offset_pos"). It is noted that these offset positions are always
  * automatically reflected into the first quadrant.
  *

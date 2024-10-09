@@ -98,7 +98,7 @@ class DeviceSkipper final : public ::testing::EmptyTestEventListener
 int test_main(int argc, char** argv)
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    MpiCommunicator comm = MpiCommunicator::comm_default();
+    auto const& comm = celeritas::comm_world();
 
     try
     {

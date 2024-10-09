@@ -24,7 +24,6 @@
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
-#include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "geocel/rasterize/Image.hh"
@@ -261,8 +260,7 @@ int main(int argc, char* argv[])
     using namespace celeritas;
 
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
-        && MpiCommunicator::comm_world().size() > 1)
+    if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
