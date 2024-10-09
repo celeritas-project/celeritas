@@ -153,7 +153,6 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         // extents. This will reduce the order of the interpolation
         // todo - instead of clipping the bounds, alter both the low and high
         // index to keep the range just shifted down
-        bool clipped = false;
         if (lower_idx >= order_steps - 1)
         {
             true_low_idx = lower_idx - order_steps + 1;
@@ -161,7 +160,6 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         else
         {
             true_low_idx = 0;
-            clipped = true;
         }
         if (lower_idx + order_steps < loge_grid_.size())
         {
@@ -169,8 +167,7 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         }
         else
         {
-            true_high_idx = loge_grid_.size();
-            clipped = true;
+            true_high_idx = loge_grid_.size() - 1;
         }
 
         // if the requested interpolation order is even, a direction must be
@@ -179,8 +176,8 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         {
             real_type low_dist = loge - loge_grid_[lower_idx];
             real_type high_dist = loge_grid_[lower_idx + 1] - loge;
-            CELER_ASSERT(low_dist > 0);
-            CELER_ASSERT(high_dist > 0);
+            CELER_ASSERT(low_dist >= 0);
+            CELER_ASSERT(high_dist >= 0);
             if (low_dist > high_dist)
             {
                 true_low_idx += 1;

@@ -57,6 +57,8 @@ TEST_F(SplineXsCalculatorTest, simple)
 
         // Test between grid points
         EXPECT_SOFT_EQ(5, calc(Energy{5}));
+        EXPECT_SOFT_EQ(5e2, calc(Energy{5e2}));
+        EXPECT_SOFT_EQ(5e4, calc(Energy{5e4}));
 
         // Test out-of-bounds
         EXPECT_SOFT_EQ(1.0, calc(Energy{0.0001}));
@@ -93,6 +95,7 @@ TEST_F(SplineXsCalculatorTest, scaled_lowest)
         // Test between grid points
         EXPECT_SOFT_EQ(1, calc(Energy{0.2}));
         EXPECT_SOFT_EQ(1, calc(Energy{5}));
+        EXPECT_SOFT_EQ(1, calc(Energy{5e3}));
 
         // Test out-of-bounds: cross section still scales according to 1/E
         // (TODO: this might not be the best behavior for the lower energy
@@ -139,6 +142,7 @@ TEST_F(SplineXsCalculatorTest, scaled_middle)
         // Test between grid points
         EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
         EXPECT_SOFT_EQ(3, calc(Energy{5}));
+        EXPECT_SOFT_EQ(3, calc(Energy{5e3}));
 
         // Test out-of-bounds: cross section still scales according to 1/E
         // (TODO: this might not be the right behavior for
