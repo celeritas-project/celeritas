@@ -27,7 +27,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
     {
         // Check incident quantities are valid
         this->check_direction_polarization(
-            this->direction(), this->photon_track().polarization());
+            this->direction(), this->particle_track().polarization());
     }
 
     void sanity_check(Interaction const& interaction) const
@@ -42,7 +42,7 @@ TEST_F(RayleighInteractorTest, basic)
 {
     int const num_samples = 4;
 
-    RayleighInteractor interact{this->photon_track(), this->direction()};
+    RayleighInteractor interact{this->particle_track(), this->direction()};
 
     auto& rng_engine = this->rng();
 
@@ -55,8 +55,8 @@ TEST_F(RayleighInteractorTest, basic)
         this->sanity_check(result);
 
         dir_angle.push_back(dot_product(result.direction, this->direction()));
-        pol_angle.push_back(dot_product(result.polarization,
-                                        this->photon_track().polarization()));
+        pol_angle.push_back(dot_product(
+            result.polarization, this->particle_track().polarization()));
     }
 
     static real_type const expected_dir_angle[] = {
@@ -81,7 +81,7 @@ TEST_F(RayleighInteractorTest, stress_test)
 {
     int const num_samples = 1'000;
 
-    RayleighInteractor interact{this->photon_track(), this->direction()};
+    RayleighInteractor interact{this->particle_track(), this->direction()};
 
     auto& rng_engine = this->rng();
 
@@ -97,8 +97,8 @@ TEST_F(RayleighInteractorTest, stress_test)
         dir_moment[0] += dir_angle;
         dir_moment[1] += ipow<2>(dir_angle);
 
-        real_type pol_angle = dot_product(result.polarization,
-                                          this->photon_track().polarization());
+        real_type pol_angle = dot_product(
+            result.polarization, this->particle_track().polarization());
         pol_moment[0] += pol_angle;
         pol_moment[1] += ipow<2>(pol_angle);
     }

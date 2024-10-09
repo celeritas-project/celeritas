@@ -3,16 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/detail/BoundaryExecutor.hh
+//! \file celeritas/optical/action/detail/PreStepExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
-#include "celeritas/optical/MaterialView.hh"
 #include "celeritas/optical/SimTrackView.hh"
 
 namespace celeritas
@@ -23,40 +21,33 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Cross a geometry boundary.
- *
- * \pre The track must have already been physically moved to the correct point
- * on the boundary.
+ * Set up the beginning of a physics step.
  */
-struct BoundaryExecutor
+struct PreStepExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView& track);
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void BoundaryExecutor::operator()(CoreTrackView& track)
+CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
 {
-    CELER_EXPECT([track] {
-        auto sim = track.sim();
-        return sim.post_step_action() == track.boundary_action()
-               && sim.status() == TrackStatus::alive;
-    }());
-
-    auto geo = track.geometry();
-    CELER_EXPECT(geo.is_on_boundary());
-
-    // Particle entered a new volume before reaching the interaction point
-    geo.cross_boundary();
-    if (CELER_UNLIKELY(geo.failed()))
+    auto sim = track.sim();
+    if (sim.status() == TrackStatus::inactive)
     {
-        track.apply_errored();
+        // Clear step limit and actions for an empty track slot
+        sim.reset_step_limit();
         return;
     }
-    else
+
+    if (CELER_UNLIKELY(sim.status() == TrackStatus::errored))
     {
-        auto sim = track.sim();
-        sim.status(TrackStatus::killed);
+        // Failed during initialization: don't calculate step limits
+        return;
     }
+
+    CELER_ASSERT(sim.status() == TrackStatus::initializing
+                 || sim.status() == TrackStatus::alive);
+    sim.status(TrackStatus::alive);
 }
 
 //---------------------------------------------------------------------------//
