@@ -79,11 +79,13 @@ TEST_F(AbsorptionModelTest, interaction_mfp)
     auto model = create_model();
     auto builder = this->create_mfp_builder();
 
-    model->build_mfps(builder);
+    for (auto mat : range(OpticalMaterialId(import_materials().size())))
+    {
+        model->build_mfps(mat, builder);
+    }
 
-    this->check_built_table(
-        this->import_models()[this->absorption_id().get()].mfps,
-        builder.grid_ids());
+    this->check_built_table(this->import_models()[absorption_id().get()].mfps,
+                            builder.grid_ids());
 }
 
 //---------------------------------------------------------------------------//

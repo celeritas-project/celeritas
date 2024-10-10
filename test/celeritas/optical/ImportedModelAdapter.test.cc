@@ -75,12 +75,7 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
     auto imported_models = this->create_imported_models();
 
     // Check built-in models match expected ones
-    EXPECT_EQ(expected_builtin_imcs.size(),
-              ImportedModels::builtin_model_classes().size());
-    for (auto imc : expected_builtin_imcs)
-    {
-        EXPECT_EQ(1, ImportedModels::builtin_model_classes().count(imc));
-    }
+    EXPECT_EQ(expected_builtin_imcs.size(), static_cast<size_type>(IMC::size_));
 
     // Check mapping is correct
     for (auto builtin_id : range(expected_builtin_imcs.size()))

@@ -34,7 +34,7 @@ TEST_F(MockValidationTest, validate)
     auto const& models = import_models();
     auto const& materials = import_materials();
 
-    EXPECT_EQ(4, models.size());
+    EXPECT_EQ(3, models.size());
     EXPECT_EQ(5, materials.size());
 
     // Check models

@@ -94,12 +94,6 @@ std::vector<ImportOpticalModel> const& MockImportedData::import_models()
           mock_vec(1, 1),
           mock_vec(2, 4),
           mock_vec(3, 4)}},
-        {IMC::other,
-         {mock_vec(0, 0),
-          mock_vec(1, 0),
-          mock_vec(2, 4),
-          mock_vec(3, 3),
-          mock_vec(1, 0)}},
     };
 
     return models;

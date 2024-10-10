@@ -13,7 +13,7 @@
 #include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
-#include "celeritas/optical/detail/MfpBuilder.hh"
+#include "celeritas/optical/MfpBuilder.hh"
 
 #include "Test.hh"
 
@@ -46,7 +46,6 @@ class MockImportedData : public ::celeritas::test::Test
 
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
-    using MfpBuilder = ::celeritas::optical::detail::MfpBuilder;
     //!@}
 
     //!@{

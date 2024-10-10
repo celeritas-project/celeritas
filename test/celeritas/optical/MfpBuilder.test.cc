@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/MfpBuilder.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/detail/MfpBuilder.hh"
+#include "celeritas/optical/MfpBuilder.hh"
 
 #include "MockImportedData.hh"
 #include "celeritas_test.hh"

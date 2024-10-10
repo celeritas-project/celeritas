@@ -21,35 +21,6 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Check imported model MFP tables all have the same number of optical
- * materials, and all their model classes are valid.
- */
-struct CheckImportModel
-{
-    std::size_t num_materials;
-
-    bool operator()(ImportOpticalModel const& model) const
-    {
-        return model.model_class != ImportModelClass::size_
-               && model.mfps.size() == num_materials;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Built-in imported model classes.
- *
- * This is a list of imported model classes which can be mapped to built-in
- * models in Celeritas.
- */
-auto ImportedModels::builtin_model_classes() -> std::set<IMC> const&
-{
-    static std::set<IMC> builtins{IMC::absorption, IMC::rayleigh, IMC::wls};
-    return builtins;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct list of imported model from imported data.
  */
 std::shared_ptr<ImportedModels>
@@ -65,38 +36,30 @@ ImportedModels::from_import(ImportData const& io)
 ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
     : models_(std::move(models))
 {
-    CELER_EXPECT(models_.empty()
-                 || std::all_of(models_.begin(),
-                                models_.end(),
-                                CheckImportModel{models_.front().mfps.size()}));
+    // Initialize built-in IMC map to invalid IDs
+    std::fill(
+        builtin_id_map_.begin(), builtin_id_map_.end(), ImportedModelId{});
 
     // Load all built-in IMCs into the map
-    for (IMC imc : ImportedModels::builtin_model_classes())
-    {
-        builtin_id_map_.insert({imc, ImportedModelId{}});
-    }
-
     for (auto model_id : range(models_.size()))
     {
-        IMC imc = models_[model_id].model_class;
+        auto const& model = models_[model_id];
 
-        // Check if IMC is built-in
-        auto iter = builtin_id_map_.find(imc);
-        if (iter != builtin_id_map_.end())
+        // Check imported data is consistent
+        CELER_EXPECT(model.model_class != IMC::size_);
+        CELER_EXPECT(model.mfps.size() == models_.front().mfps.size());
+
+        // Expect a 1-1 mapping for IMC to imported models
+        if (auto& mapped_id = builtin_id_map_[model.model_class])
         {
-            // Update imported model ID
-            ImportedModelId& mapped_id = iter->second;
-            if (!mapped_id)
-            {
-                mapped_id = ImportedModelId(model_id);
-            }
-            else
-            {
-                CELER_LOG(warning)
-                    << "Duplicate built-in optical model '" << to_cstring(imc)
-                    << "' data has been imported; will use first imported "
-                       "data";
-            }
+            CELER_LOG(warning)
+                << "Duplicate built-in optical model '"
+                << to_cstring(model.model_class)
+                << "' data has been imported; will use first imported data";
+        }
+        else
+        {
+            mapped_id = ImportedModelId(model_id);
         }
     }
 }
@@ -128,8 +91,8 @@ auto ImportedModels::num_models() const -> ImportedModelId::size_type
  */
 auto ImportedModels::builtin_model_id(IMC imc) const -> ImportedModelId
 {
-    CELER_EXPECT(ImportedModels::builtin_model_classes().count(imc) == 1);
-    return builtin_id_map_.at(imc);
+    CELER_EXPECT(imc != IMC::size_);
+    return builtin_id_map_[imc];
 }
 
 //---------------------------------------------------------------------------//

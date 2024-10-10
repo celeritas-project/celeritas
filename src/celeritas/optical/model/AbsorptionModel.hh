@@ -18,20 +18,20 @@ namespace optical
 /*!
  * Set up and launch the optical absorption model interaction.
  */
-class AbsorptionModel : public Model
+class AbsorptionModel final : public Model
 {
   public:
     // Construct with imported data
     AbsorptionModel(ActionId id, ImportedModelAdapter imported);
 
     // Build the mean free paths for this model
-    void build_mfps(detail::MfpBuilder&) const override final;
+    void build_mfps(OpticalMaterialId mat, MfpBuilder&) const final;
 
     // Execute the model with host data
-    void step(CoreParams const&, CoreStateHost&) const override final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Execute the model with device data
-    void step(CoreParams const&, CoreStateDevice&) const override final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
     ImportedModelAdapter imported_;

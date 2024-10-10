@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/MfpBuilder.hh
+//! \file celeritas/optical/MfpBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,8 +12,6 @@
 namespace celeritas
 {
 namespace optical
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -88,6 +86,5 @@ auto MfpBuilder::grid_ids() const -> GridIdRange
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas

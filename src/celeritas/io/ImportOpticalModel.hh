@@ -24,7 +24,6 @@ namespace optical
  */
 enum class ImportModelClass
 {
-    other,
     absorption,
     rayleigh,
     wls,

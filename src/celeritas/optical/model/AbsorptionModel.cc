@@ -9,7 +9,8 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/optical/detail/MfpBuilder.hh"
+
+#include "../MfpBuilder.hh"
 
 namespace celeritas
 {
@@ -29,12 +30,10 @@ AbsorptionModel::AbsorptionModel(ActionId id, ImportedModelAdapter imported)
 /*!
  * Build the mean free paths for the model.
  */
-void AbsorptionModel::build_mfps(detail::MfpBuilder& build) const
+void AbsorptionModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
 {
-    for (auto mat : range(OpticalMaterialId{imported_.num_materials()}))
-    {
-        build(imported_.mfp(mat));
-    }
+    CELER_EXPECT(mat < imported_.num_materials());
+    build(imported_.mfp(mat));
 }
 
 //---------------------------------------------------------------------------//
