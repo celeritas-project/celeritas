@@ -336,6 +336,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(max_step > 0);
 
     // Use the navigator to find internal distance
+    hit_surf_ = -1;
     next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
                                                      detail::to_vector(dir_),
                                                      max_step,
