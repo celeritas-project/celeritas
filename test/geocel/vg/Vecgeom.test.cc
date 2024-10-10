@@ -1037,18 +1037,20 @@ class CmseTest : public VecgeomVgdmlTestBase
   public:
     SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
 
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version(2))
+    /*
+        SpanStringView expected_log_levels() const final
         {
-            static std::string_view const levels[] = {"warning"};
-            return make_span(levels);
+            if (vecgeom_version >= Version(2))
+            {
+                static std::string_view const levels[] = {"warning"};
+                return make_span(levels);
+            }
+            else
+            {
+                return {};
+            }
         }
-        else
-        {
-            return {};
-        }
-    }
+    */
 };
 
 //---------------------------------------------------------------------------//
