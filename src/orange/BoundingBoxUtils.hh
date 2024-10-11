@@ -223,6 +223,68 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the distance to the inside of the bbox from a pos and dir.
+ *
+ * If there is no intersection, the result will be inf.
+ */
+template<class T, class U>
+inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
+                             Array<U, 3> const& pos,
+                             Array<U, 3> const& dir)
+{
+    if (is_inside(bbox, pos))
+    {
+        // Starting from inside the box, dist to intersection is zeo
+        return 0.;
+    }
+
+    // Loop over all 6 planes to find the minimum intersection
+    U min_dist = numeric_limits<U>::infinity();
+    for (auto bound : range(to_int(Bound::size_)))
+    {
+        for (auto ax : range(to_int(Axis::size_)))
+        {
+            if (dir[ax] == 0)
+            {
+                continue;
+            }
+
+            U dist = (bbox.point(Bound{bound})[ax] - pos[ax]) / dir[ax];
+
+            if (dist < 0)
+            {
+                continue;
+            }
+
+            // Find the intersection point
+            Array<U, 3> intersect = pos + dist * dir;
+
+            // Check that the intersection point occurs within region bounded
+            // by the planes of the other two axes
+            bool in_bounds = true;
+            for (auto other_ax : range(to_int(Axis::size_)))
+            {
+                if (other_ax != ax
+                    && (intersect[other_ax] < bbox.lower()[other_ax]
+                        || intersect[other_ax] > bbox.upper()[other_ax]))
+                {
+                    in_bounds = false;
+                    break;
+                }
+            }
+
+            if (in_bounds)
+            {
+                min_dist = celeritas::min(min_dist, dist);
+            }
+        }
+    }
+
+    return min_dist;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Bump a bounding box outward and possibly convert to another type.
  * \tparam T destination type
  * \tparam U source type
