@@ -234,7 +234,7 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
 {
     if (is_inside(bbox, pos))
     {
-        // Starting from inside the box, dist to intersection is zeo
+        // Starting from inside the bbox so the distance to inside is zero
         return 0.;
     }
 
@@ -246,6 +246,7 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
         {
             if (dir[ax] == 0)
             {
+                // Short circut if there is not movement in this dir
                 continue;
             }
 
@@ -253,14 +254,15 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
 
             if (dist < 0)
             {
+                // Short circut if the plane is behind us
                 continue;
             }
 
-            // Find the intersection point
+            // Calculate the actual intersection point
             Array<U, 3> intersect = pos + dist * dir;
 
-            // Check that the intersection point occurs within region bounded
-            // by the planes of the other two axes
+            // Check that the intersection point occurs within the region
+            // bounded by the planes of the other two axes
             bool in_bounds = true;
             for (auto other_ax : range(to_int(Axis::size_)))
             {
