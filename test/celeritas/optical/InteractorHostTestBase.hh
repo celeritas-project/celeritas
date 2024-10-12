@@ -10,9 +10,11 @@
 #include <memory>
 #include <random>
 
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/optical/Interaction.hh"
-#include "celeritas/optical/TrackView.hh"
+#include "celeritas/optical/ParticleData.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "Test.hh"
@@ -65,7 +67,7 @@ class InteractorHostTestBase : public Test
     Real3 const& direction() const;
 
     //! Get incident photon track view
-    TrackView const& photon_track() const;
+    ParticleTrackView const& particle_track() const;
 
     //!@{
     //! Check direction and polarizations are physical
@@ -74,9 +76,14 @@ class InteractorHostTestBase : public Test
     //!@}
 
   private:
+    template<template<Ownership, MemSpace> class S>
+    using StateStore = CollectionStateStore<S, MemSpace::host>;
+
+    StateStore<ParticleStateData> ps_;
+
     RandomEngine rng_;
     Real3 inc_direction_;
-    std::shared_ptr<TrackView> pt_view_;
+    std::shared_ptr<ParticleTrackView> pt_view_;
 };
 
 //---------------------------------------------------------------------------//

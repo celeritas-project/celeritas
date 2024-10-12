@@ -115,7 +115,7 @@ Imported data
 In addition to the core :ref:`api_importdata`, these import parameters are used
 to provide cross sections, setup options, and other data to the optical physics.
 
-.. doxygenstruct:: celeritas::ImportOpticalAbsorption
+.. doxygenstruct:: celeritas::ImportOpticalModel
 .. doxygenstruct:: celeritas::ImportOpticalMaterial
 .. doxygenstruct:: celeritas::ImportOpticalParameters
 .. doxygenstruct:: celeritas::ImportOpticalProperty

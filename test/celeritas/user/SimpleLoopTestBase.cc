@@ -17,6 +17,17 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Number primaries given number track slots.
+ *
+ * Default is passthrough.
+ */
+size_type SimpleLoopTestBase::initial_occupancy(size_type num_tracks) const
+{
+    return num_tracks;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Run a stepping loop with the core data.
  */
 template<MemSpace M>
@@ -30,11 +41,9 @@ void SimpleLoopTestBase::run_impl(size_type num_tracks, size_type num_steps)
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
-    double primary_frac = this->initial_occupancy();
-    CELER_VALIDATE(primary_frac >= 0, << "invalid initial occupancy");
+    size_type num_primaries = this->initial_occupancy(num_tracks);
     // Initial step
-    auto primaries = this->make_primaries(
-        static_cast<size_type>(num_tracks * primary_frac));
+    auto primaries = this->make_primaries(num_primaries);
     StepperResult count;
     CELER_TRY_HANDLE(count = step(make_span(primaries)), log_context);
 

@@ -13,6 +13,7 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/OffloadData.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 #include "OpticalUtils.hh"
 
@@ -36,6 +37,7 @@ struct CerenkovGeneratorExecutor
     NativeRef<OffloadStateData> const offload_state;
     RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
     OffloadBufferSize size;
+    CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
@@ -79,12 +81,11 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
 
     for (auto i : range(local_work))
     {
-        // Calculate the index in the primary buffer this thread will write to
-        size_type primary_idx = i * state->size() + track.thread_id().get();
-        CELER_ASSERT(primary_idx < optical_state->init.initializers.size());
+        // Calculate the index in the initializer buffer (minus the offset)
+        size_type idx = i * state->size() + track.thread_id().get();
 
         // Find the distribution this thread will generate from
-        size_type dist_idx = find_distribution_index(offsets, primary_idx);
+        size_type dist_idx = find_distribution_index(offsets, idx);
         CELER_ASSERT(dist_idx < size.cerenkov);
         auto const& dist = offload_state.cerenkov[DistId(dist_idx)];
         CELER_ASSERT(dist);
@@ -92,7 +93,9 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
         // Generate one primary from the distribution
         optical::MaterialView opt_mat{material, dist.material};
         celeritas::optical::CerenkovGenerator generate(opt_mat, cerenkov, dist);
-        optical_state->init.initializers[InitId(primary_idx)] = generate(rng);
+        size_type init_idx = counters.num_initializers + idx;
+        CELER_ASSERT(init_idx < optical_state->init.initializers.size());
+        optical_state->init.initializers[InitId(init_idx)] = generate(rng);
     }
 }
 

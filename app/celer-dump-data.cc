@@ -775,20 +775,6 @@ void print_atomic_relaxation_data(
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Print optical material properties map.
- */
-void print_optical_materials(std::vector<ImportOpticalMaterial> const& iom)
-{
-    if (iom.empty())
-    {
-        CELER_LOG(info) << "Optical material data not available";
-        return;
-    }
-
-    CELER_LOG(info) << "Loaded optical material data map with size "
-                    << iom.size();
-
 #define POM_STREAM_SCALAR_COMP(ID, STRUCT, NAME, UNITS, COMP)             \
     "| " << setw(11) << ID << " | " << setw(20) << #NAME << COMP << " | " \
          << setw(15) << to_cstring(UNITS) << " | " << setprecision(3)     \
@@ -805,6 +791,69 @@ void print_optical_materials(std::vector<ImportOpticalMaterial> const& iom)
          << ") -> (" << setprecision(3) << setw(10) << STRUCT.NAME.x.back()   \
          << ", " << setprecision(3) << setw(10) << STRUCT.NAME.y.back()       \
          << ") | " << setw(7) << STRUCT.NAME.x.size() << " |\n";
+
+/*!
+ * Helper class for printing imported optical models.
+ */
+class OpticalMfpHelper
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecModels = std::vector<ImportOpticalModel>;
+    //!@}
+
+    // MFP to print for the model
+    struct MfpPrinter
+    {
+        ImportPhysicsVector const& mfp;
+    };
+
+    //! Construct helper for given model class out of the models
+    OpticalMfpHelper(std::vector<ImportOpticalModel> const& models, optical::ImportModelClass imc)
+        : mfps_(nullptr)
+    {
+        auto iter = std::find_if(models.begin(), models.end(), [imc] (auto const& m) { return m.model_class == imc; });
+        if (iter != models.end())
+        {
+            mfps_ = &iter->mfps;
+        }
+    }
+
+    //! Print the MFP if the model exists and has the given material
+    void print_mfp(std::size_t mid) const
+    {
+        if (mfps_ && mid < mfps_->size())
+        {
+            MfpPrinter printer{(*mfps_)[mid]};
+            cout << POM_STREAM_VECTOR(mid, printer, mfp, ImportUnits::len);
+        }
+    }
+
+  private:
+    std::vector<ImportPhysicsVector> const* mfps_;
+};
+
+/*!
+ * Print optical material properties map.
+ */
+void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
+                             std::vector<ImportOpticalMaterial> const& io_mats)
+{
+    if (io_mats.empty())
+    {
+        CELER_LOG(info) << "Optical material data not available";
+        return;
+    }
+
+    if (io_models.empty())
+    {
+        CELER_LOG(info) << "Optical model data not available";
+    }
+
+    CELER_LOG(info) << "Loaded optical material data map with size "
+                    << io_mats.size();
+
     static char const header[] = R"gfm(
 
 | Material ID | Property                   | Units           | Scalar    | Vector endpoints (MeV, value)                        | Size    |
@@ -816,18 +865,18 @@ void print_optical_materials(std::vector<ImportOpticalMaterial> const& iom)
     cout << "\n# Optical properties\n";
     cout << "\n## Common properties";
     cout << header;
-    for (auto mid : range(iom.size()))
+    for (auto mid : range(io_mats.size()))
     {
-        auto const& prop = iom[mid].properties;
+        auto const& prop = io_mats[mid].properties;
         cout << POM_STREAM_VECTOR(mid, prop, refractive_index, IU::unitless);
     }
 
     cout << "\n## Scintillation";
     cout << header;
     static char const* comp_str[] = {"(fast)", " (mid)", "(slow)"};
-    for (auto mid : range(iom.size()))
+    for (auto mid : range(io_mats.size()))
     {
-        auto const& scint = iom[mid].scintillation;
+        auto const& scint = io_mats[mid].scintillation;
         if (!scint)
         {
             continue;
@@ -851,44 +900,64 @@ void print_optical_materials(std::vector<ImportOpticalMaterial> const& iom)
         }
     }
 
-    cout << "\n## Rayleigh";
-    cout << header;
-    for (auto mid : range(iom.size()))
     {
-        auto const& rayl = iom[mid].rayleigh;
-        if (!rayl)
+        OpticalMfpHelper rayleigh_model(io_models, optical::ImportModelClass::rayleigh);
+
+        cout << "\n## Rayleigh";
+        cout << header;
+        for (auto mid : range(io_mats.size()))
         {
-            continue;
+            rayleigh_model.print_mfp(mid);
+
+            auto const& rayl = io_mats[mid].rayleigh;
+            if (!rayl)
+            {
+                continue;
+            }
+
+            cout << POM_STREAM_SCALAR(mid, rayl, scale_factor, IU::unitless);
+            cout << POM_STREAM_SCALAR(
+                mid, rayl, compressibility, IU::len_time_sq_per_mass);
         }
-        cout << POM_STREAM_SCALAR(mid, rayl, scale_factor, IU::unitless);
-        cout << POM_STREAM_SCALAR(
-            mid, rayl, compressibility, IU::len_time_sq_per_mass);
-        cout << POM_STREAM_VECTOR(mid, rayl, mfp, IU::len);
     }
 
-    cout << "\n## Absorption";
-    cout << header;
-    for (auto mid : range(iom.size()))
     {
-        auto const& abs = iom[mid].absorption;
-        cout << POM_STREAM_VECTOR(mid, abs, absorption_length, IU::len);
-    }
-    cout << endl;
+        OpticalMfpHelper absorption_helper(io_models, optical::ImportModelClass::absorption);
 
-    cout << "\n## WLS";
-    cout << header;
-    for (auto mid : range(iom.size()))
-    {
-        auto const& wls = iom[mid].wls;
-        cout << POM_STREAM_SCALAR(mid, wls, mean_num_photons, IU::unitless);
-        cout << POM_STREAM_SCALAR(mid, wls, time_constant, IU::time);
-        cout << POM_STREAM_VECTOR(mid, wls, absorption_length, IU::len);
-        cout << POM_STREAM_VECTOR(mid, wls, component, IU::unitless);
+        cout << "\n## Absorption";
+        cout << header;
+        for (auto mid : range(io_mats.size()))
+        {
+            absorption_helper.print_mfp(mid);
+        }
+        cout << endl;
     }
-    cout << endl;
+
+    {
+        OpticalMfpHelper wls_helper(io_models, optical::ImportModelClass::wls);
+
+        cout << "\n## WLS";
+        cout << header;
+        for (auto mid : range(io_mats.size()))
+        {
+            wls_helper.print_mfp(mid);
+
+            auto const& wls = io_mats[mid].wls;
+            if (!wls)
+            {
+                continue;
+            }
+
+            cout << POM_STREAM_SCALAR(mid, wls, mean_num_photons, IU::unitless);
+            cout << POM_STREAM_SCALAR(mid, wls, time_constant, IU::time);
+            cout << POM_STREAM_VECTOR(mid, wls, component, IU::unitless);
+        }
+        cout << endl;
+    }
+}
+
 #undef PEP_STREAM_SCALAR
 #undef PEP_STREAM_VECTOR
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -946,7 +1015,7 @@ int main(int argc, char* argv[])
     print_geo_materials(data.geo_materials, data.elements);
     print_phys_materials(
         data.phys_materials, data.geo_materials, *particle_params);
-    print_optical_materials(data.optical_materials);
+    print_optical_materials(data.optical_models, data.optical_materials);
 
     print_regions(data.regions);
     print_volumes(data.volumes, data.geo_materials, data.regions);

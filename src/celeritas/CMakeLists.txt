@@ -60,6 +60,7 @@ list(APPEND SOURCES
   io/ImportData.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
+  io/ImportOpticalModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -84,6 +85,7 @@ list(APPEND SOURCES
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/action/ActionGroups.cc
+  optical/action/LocateVacanciesAction.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
@@ -140,6 +142,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
+    ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/MuHadEmStandardPhysics.cc
   )
@@ -281,6 +284,9 @@ celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/action/BoundaryAction)
+celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
+celeritas_polysource(optical/action/InitializeTracksAction)
+celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/detail/CerenkovGeneratorAction)
 celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)

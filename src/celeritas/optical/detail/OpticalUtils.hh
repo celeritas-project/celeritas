@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"

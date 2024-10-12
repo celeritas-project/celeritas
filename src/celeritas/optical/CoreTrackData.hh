@@ -12,10 +12,11 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/random/RngData.hh"
-#include "celeritas/track/SimData.hh"
 
 #include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"
+#include "ParticleData.hh"
+#include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
 
@@ -83,7 +84,6 @@ struct CoreParamsData
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
-    SimParamsData<W, M> sim;
     TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
@@ -91,7 +91,7 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && rng && sim && init && scalars;
+        return geometry && material && physics && rng && init && scalars;
     }
 
     //! Assign from another set of data
@@ -103,7 +103,6 @@ struct CoreParamsData
         material = other.material;
         physics = other.physics;
         rng = other.rng;
-        sim = other.sim;
         init = other.init;
         scalars = other.scalars;
         return *this;
@@ -122,9 +121,10 @@ struct CoreStateData
 
     GeoStateData<W, M> geometry;
     // TODO: should we cache the material ID?
+    ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
-    SimStateData<W, M> sim;  // TODO: has a few things we don't need
+    SimStateData<W, M> sim;
     TrackInitStateData<W, M> init;
 
     //! Unique identifier for "thread-local" data.
@@ -136,7 +136,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && physics && rng && sim && init && stream_id;
+        return geometry && particle && physics && rng && sim && init
+               && stream_id;
     }
 
     //! Assign from another set of data
@@ -145,6 +146,7 @@ struct CoreStateData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
+        particle = other.particle;
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;

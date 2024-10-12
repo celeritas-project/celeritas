@@ -16,6 +16,7 @@
 #include "ImportMaterial.hh"
 #include "ImportMuPairProductionTable.hh"
 #include "ImportOpticalMaterial.hh"
+#include "ImportOpticalModel.hh"
 #include "ImportParameters.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
@@ -69,7 +70,6 @@ struct ImportData
     std::vector<ImportElement> elements;
     std::vector<ImportGeoMaterial> geo_materials;
     std::vector<ImportPhysMaterial> phys_materials;
-    std::vector<ImportOpticalMaterial> optical_materials;
     //!@}
 
     //!@{
@@ -94,7 +94,13 @@ struct ImportData
     //! \name Physics configuration options
     ImportEmParameters em_params;
     ImportTransParameters trans_params;
+    //!@}
+
+    //!@{
+    //! \name Optical data
     ImportOpticalParameters optical_params;
+    std::vector<ImportOpticalModel> optical_models;
+    std::vector<ImportOpticalMaterial> optical_materials;
     //!@}
 
     //! Unit system of the stored data: "cgs", "clhep", or "si"

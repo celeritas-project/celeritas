@@ -12,8 +12,8 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/SimTrackView.hh"
 #include "celeritas/track/SimFunctors.hh"
-#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {

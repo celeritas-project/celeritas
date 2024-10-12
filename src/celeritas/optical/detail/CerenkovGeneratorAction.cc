@@ -147,7 +147,8 @@ void CerenkovGeneratorAction::generate(CoreParams const& core_params,
                                           cerenkov_->host_ref(),
                                           offload_state.store.ref(),
                                           optical_state.ptr(),
-                                          offload_state.buffer_size}};
+                                          offload_state.buffer_size,
+                                          optical_state.counters()}};
     launch_action(*this, core_params, core_state, execute);
 }
 
