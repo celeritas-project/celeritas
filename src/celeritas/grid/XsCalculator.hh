@@ -101,40 +101,42 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
 {
     real_type const loge = std::log(energy.value());
 
-    // Snap out-of-bounds values to closest grid points
-    size_type lower_idx;
-    real_type result;
+    auto calc_extrapolated = [this, &energy](size_type idx) {
+        real_type result = this->get(idx);
+        if (idx >= data_.prime_index)
+        {
+            result /= energy.value();
+        }
+        return result;
+    };
+
     if (loge <= loge_grid_.front())
     {
-        lower_idx = 0;
-        result = this->get(lower_idx);
+        return calc_extrapolated(0);
     }
-    else if (loge >= loge_grid_.back())
+    if (loge >= loge_grid_.back())
     {
-        lower_idx = loge_grid_.size() - 1;
-        result = this->get(lower_idx);
+        return calc_extrapolated(loge_grid_.size() - 1);
     }
-    else
+
+    // Locate the energy bin
+    size_type lower_idx = loge_grid_.find(loge);
+    CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
+
+    real_type const upper_energy = std::exp(loge_grid_[lower_idx + 1]);
+    real_type upper_xs = this->get(lower_idx + 1);
+    if (lower_idx + 1 == data_.prime_index)
     {
-        // Locate the energy bin
-        lower_idx = loge_grid_.find(loge);
-        CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
-
-        real_type const upper_energy = std::exp(loge_grid_[lower_idx + 1]);
-        real_type upper_xs = this->get(lower_idx + 1);
-        if (lower_idx + 1 == data_.prime_index)
-        {
-            // Cross section data for the upper point has *already* been scaled
-            // by E -- undo the scaling.
-            upper_xs /= upper_energy;
-        }
-
-        // Interpolate *linearly* on energy using the lower_idx data.
-        LinearInterpolator<real_type> interpolate_xs(
-            {std::exp(loge_grid_[lower_idx]), this->get(lower_idx)},
-            {upper_energy, upper_xs});
-        result = interpolate_xs(energy.value());
+        // Cross section data for the upper point has *already* been scaled
+        // by E -- undo the scaling.
+        upper_xs /= upper_energy;
     }
+
+    // Interpolate *linearly* on energy using the lower_idx data.
+    LinearInterpolator<real_type> interpolate_xs(
+        {std::exp(loge_grid_[lower_idx]), this->get(lower_idx)},
+        {upper_energy, upper_xs});
+    auto result = interpolate_xs(energy.value());
 
     if (lower_idx >= data_.prime_index)
     {
