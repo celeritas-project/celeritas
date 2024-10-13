@@ -383,9 +383,13 @@ each release.
     summary of highlights, and enumerate the pull requests (with PR numbers and
     authorship attribution) separated by features and bug requests. Use the
     `helper notebook`_ in the Celeritas documents repository to automate this.
+    Ensure that both the HTML and PDF versions of the documentation build
+    without errors.
 10. Submit a pull request with the newly added documentation and any
-    release-related tweaks, and wait until it's reviewed and merged. The unit
-    tests and documentation should all build and pass the CI.
+    release-related tweaks using the
+    :file:`.github/pull_request_template.release.md` template, and wait until
+    it's reviewed and merged. The unit tests and documentation should all build
+    and pass the CI.
 11. If releasing a backported version branch, cherry-pick this documentation
     commit into the backport branch.
 12. Use the GitHub interface to create a new release with the documentation
