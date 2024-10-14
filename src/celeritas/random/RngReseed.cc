@@ -24,9 +24,12 @@ namespace celeritas
  */
 void reseed_rng(HostCRef<RngParamsData> const& params,
                 HostRef<RngStateData> const& state,
-                size_type event_id)
+                UniqueEventId event_id)
 {
-    auto size = state.size();
+    CELER_EXPECT(event_id);
+    static_assert(sizeof(ull_int) == sizeof(UniqueEventId::size_type));
+
+    ull_int size = state.size();
 #if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
@@ -34,7 +37,7 @@ void reseed_rng(HostCRef<RngParamsData> const& params,
     {
         RngEngine::Initializer_t init;
         init.seed = params.seed;
-        init.subsequence = event_id * size + i;
+        init.subsequence = event_id.unchecked_get() * size + i;
         RngEngine engine(params, state, TrackSlotId{i});
         engine = init;
     }
