@@ -19,20 +19,27 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Find and interpolate cross sections on a uniform log grid.
+ * Find and interpolate scaled cross sections on a uniform log grid.
  *
- * \todo Currently this is hard-coded to use "cross section grid data"
- * which have energy coordinates uniform in log space. This should
- * be expanded to handle multiple parameterizations of the energy grid (e.g.,
- * arbitrary spacing needed for the Livermore sampling) and of the value
- * interpolation (e.g. log interpolation). It might also make sense to get rid
- * of the "prime energy" and just use log-log interpolation instead, or do a
- * piecewise change in the interpolation instead of storing the cross section
- * scaled by the energy.
+ * This cross section calculator uses the same representation and interpolation
+ * as Geant4's physics tables for EM physics:
+ * - The energy grid is uniformly spaced in log(E),
+ * - Values greater than or equal to an index i' are scaled by E,
+ * - Linear interpolation between energy points is used to calculate the final
+ *   value, and
+ * - If the energy is at or above the i' index, the final result is scaled by
+ *   1/E.
+ *
+ * This scaling and interpolation exactly reproduces functions
+ * \f$ f(E) \sim a E + b \f$ below the E' threshold and
+ * \f$ f(E) \sim \frac{a'}{E} + b' \f$ above that threshold.
+ *
+ * Note that linear interpolation is applied with energy points, not log-energy
+ * points.
  *
  * \code
     XsCalculator calc_xs(xs_grid, xs_params.reals);
-    real_type xs = calc_xs(particle);
+    real_type xs = calc_xs(particle.energy());
    \endcode
  */
 class XsCalculator
@@ -127,8 +134,8 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
     real_type upper_xs = this->get(lower_idx + 1);
     if (lower_idx + 1 == data_.prime_index)
     {
-        // Cross section data for the upper point has *already* been scaled
-        // by E -- undo the scaling.
+        // Cross section data for the upper point is scaled by E: calculate the
+        // unscaled value
         upper_xs /= upper_energy;
     }
 

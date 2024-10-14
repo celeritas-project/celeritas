@@ -123,9 +123,7 @@ calc_physics_step_limit(MaterialTrackView const& material,
 /*!
  * Calculate mean energy loss over the given "true" step length.
  *
- * See section 7.2.4 Run Time Energy Loss Computation of the Geant4 physics
- * manual. See also the longer discussions in section 8 of PHYS010 of the
- * Geant3 manual (1993). Stopping power is an integral over low-exiting-energy
+ * Stopping power is an integral over low-exiting-energy
  * secondaries. Above some threshold energy \em T_c we treat exiting
  * secondaries discretely; below it, we lump them into this continuous loss
  * term that varies based on the energy, the atomic number density, and the
@@ -164,6 +162,10 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * why they use spline interpolation. Investigate higher-order reconstruction
  * of energy loss curve, e.g. through spline-based interpolation or log-log
  * interpolation.
+ *
+ * \note See section 7.2.4 Run Time Energy Loss Computation of the Geant4
+ * physics manual. See also the longer discussions in section 8 of PHYS010 of
+ * the Geant3 manual (1993).
  *
  * Zero energy loss can occur in the following cases:
  * - The energy loss value at the given energy is zero (e.g. high energy
@@ -210,7 +212,7 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         real_type range = physics.dedx_range();
         if (step == range)
         {
-            // TODO: eloss should be pre_step_energy at this point only if the
+            // NOTE: eloss should be pre_step_energy at this point only if the
             // range was the step limiter (step == range), and if the
             // range-to-step conversion was 1.
             return pre_step_energy;
