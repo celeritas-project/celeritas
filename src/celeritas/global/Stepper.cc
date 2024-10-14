@@ -174,7 +174,10 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 template<MemSpace M>
 void Stepper<M>::reseed(UniqueEventId event_id)
 {
-    reseed_rng(get_ref<M>(*params_->rng()), state_->ref().rng, event_id);
+    reseed_rng(get_ref<M>(*params_->rng()),
+               state_->ref().rng,
+               state_->stream_id(),
+               event_id);
 }
 
 //---------------------------------------------------------------------------//

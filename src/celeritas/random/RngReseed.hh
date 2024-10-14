@@ -21,10 +21,12 @@ namespace celeritas
 // Reinitialize the RNG states on host/device at the start of an event
 void reseed_rng(DeviceCRef<RngParamsData> const&,
                 DeviceRef<RngStateData> const&,
+                StreamId,
                 UniqueEventId);
 
 void reseed_rng(HostCRef<RngParamsData> const&,
                 HostRef<RngStateData> const&,
+                StreamId,
                 UniqueEventId);
 
 #if !CELER_USE_DEVICE
@@ -34,6 +36,7 @@ void reseed_rng(HostCRef<RngParamsData> const&,
  */
 inline void reseed_rng(DeviceCRef<RngParamsData> const&,
                        DeviceRef<RngStateData> const&,
+                       StreamId,
                        UniqueEventId)
 {
     CELER_ASSERT_UNREACHABLE();
