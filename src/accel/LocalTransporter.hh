@@ -99,7 +99,7 @@ class LocalTransporter
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
 
-    EventId event_id_;
+    UniqueEventId event_id_;
     TrackId::size_type track_counter_{};
 
     size_type auto_flush_{};

@@ -146,7 +146,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
 
-    event_id_ = EventId(id);
+    event_id_ = UniqueEventId(id);
     track_counter_ = 0;
 
     if (!(G4Threading::IsMultithreadedApplication()
@@ -166,7 +166,6 @@ void LocalTransporter::InitializeEvent(int id)
 void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(event_id_);
 
     Primary track;
 
@@ -199,7 +198,7 @@ void LocalTransporter::Push(G4Track const& g4track)
      * back to Geant4.
      */
     track.track_id = TrackId{track_counter_++};
-    track.event_id = event_id_;
+    track.event_id = EventId{event_id_.get()};
 
     buffer_.push_back(track);
     if (buffer_.size() >= auto_flush_)

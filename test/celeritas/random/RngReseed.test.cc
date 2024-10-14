@@ -37,7 +37,7 @@ TEST_F(RngReseedTest, reseed)
     RngHostStore states(params->host_ref(), StreamId{0}, size);
 
     size_type id = 8;
-    reseed_rng(params->host_ref(), states.ref(), id);
+    reseed_rng(params->host_ref(), states.ref(), UniqueEventId{id});
 
     RngEngine::Initializer_t init;
     init.seed = params->host_ref().seed;
@@ -55,7 +55,7 @@ TEST_F(RngReseedTest, reseed)
         ASSERT_EQ(skip_rng(), rng());
     }
 
-    reseed_rng(params->host_ref(), states.ref(), id);
+    reseed_rng(params->host_ref(), states.ref(), UniqueEventId{id});
     std::vector<unsigned int> values;
     for (auto i : range(states.size()).step(128u))
     {
