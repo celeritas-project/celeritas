@@ -19,6 +19,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson, S. Tognini, T. Evans, *et al*. "Celeritas: the next generation of HEP simulation". *SciDAC PI Meeting*, 16 Jul 2024.
 - S. Tognini. "Muon-catalyzed fusion beamline optimization using Celeritas". *SciDAC PI Meeting*, 16 Jul 2024.
 - A. Lund. "Celeritas: Accelerating HEP Detector Simulation on GPUs". *PASC '24*, 03 Jun 2024.
+- E. Biondo, S. Johnson. "GPU-Based Monte Carlo Particle Transport Simulations for Nuclear Energy and High-Energy Physics Applications". *On the Trail to Exascale and Scalable AI Workshop*, 20 May 2024.
 - J. Esseiva. "Celeritas: Evaluating Performance of HEP Detector Simulation on GPUs". *ACAT 2024*, 14 Mar 2024. [poster](https://indico.cern.ch/event/1330797/contributions/5796653/attachments/2818102/4920368/acat24.pdf)
 - S. R. Johnson. "Celeritas for platform portable HEP comparison". 06 Mar 2024. [presentation](https://indico.cern.ch/event/1299569/)
 - J. Esseiva. "Celeritas: Efficient detector simulation on GPUs for Geant4". *LBNL ATLAS annual meeting*, 08 Jan 2024.

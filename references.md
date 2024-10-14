@@ -12,6 +12,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor. "CODATA Recommended Values of the Fundamental Physical Constants: 2018". *Journal of Physical and Chemical Reference Data*, Sep 2021. [10.1063/5.0064853](https://doi.org/10.1063/5.0064853)
 - W. R. Saunders, J. Grant, E. H. Müller. "A new algorithm for electrostatic interactions in Monte Carlo simulations of charged particles". *Journal of Computational Physics*, Apr 2021. [10.1016/j.jcp.2020.110099](https://doi.org/10.1016/j.jcp.2020.110099)
 - Bureau International des Poids et Mesures. "The International System of Units". Oct 2019.
+- M. D. Looper. "Adjoint Monte Carlo Simulations and Improved Sector Shielding Calculations with Geant4". Oct 2018.
 - M. Tanabashi, K. Hagiwara, K. Hikasa, K. Nakamura, Y. Sumino, *et al*. "Review of Particle Physics". *Physical Review D*, Aug 2018. [10.1103/PhysRevD.98.030001](https://doi.org/10.1103/PhysRevD.98.030001)
 - N. van Remortel. "The nature of natural units". *Nature Physics*, Nov 2016. [10.1038/nphys3950](https://doi.org/10.1038/nphys3950)
 - C. Leroy, P. Rancoita. "Principles of radiation interaction in matter and detection". World Scientific, New Jersey, Oct 2016. [www-worldscientific-com.ezproxy.cern.ch](https://www-worldscientific-com.ezproxy.cern.ch/worldscibooks/10.1142/9167)
