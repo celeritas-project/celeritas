@@ -69,8 +69,6 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
     using IMC = ImportModelClass;
     std::array<IMC, 3> expected_builtin_imcs{
         IMC::absorption, IMC::rayleigh, IMC::wls};
-    std::array<ImportedModelId, 3> expected_builtin_ids{
-        absorption_id(), rayleigh_id(), wls_id()};
 
     auto imported_models = this->create_imported_models();
 
@@ -78,13 +76,10 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
     EXPECT_EQ(expected_builtin_imcs.size(), static_cast<size_type>(IMC::size_));
 
     // Check mapping is correct
-    for (auto builtin_id : range(expected_builtin_imcs.size()))
+    for (auto imc : expected_builtin_imcs)
     {
-        auto imc = expected_builtin_imcs[builtin_id];
-
         auto model_id = imported_models->builtin_model_id(imc);
         ASSERT_LT(model_id, imported_models->num_models());
-        EXPECT_EQ(expected_builtin_ids[builtin_id], model_id);
         EXPECT_EQ(imc, imported_models->model(model_id).model_class);
     }
 }

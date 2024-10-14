@@ -52,10 +52,6 @@ class MockImportedData : public ::celeritas::test::Test
     //! \name Access mock data
     static std::vector<ImportOpticalModel> const& import_models();
     static std::vector<ImportOpticalMaterial> const& import_materials();
-
-    static ImportedModelId absorption_id();
-    static ImportedModelId rayleigh_id();
-    static ImportedModelId wls_id();
     //!@}
 
     //!@{

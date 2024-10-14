@@ -18,8 +18,7 @@ namespace optical
  * Helper class for optical models to build MFP tables.
  *
  * Tracks individual grid IDs that have been built, and returns them
- * as an ItemRange which may be used by model MFP tables. Can likely
- * be refactored into GenericGridInserter.
+ * as an ItemRange which may be used by model MFP tables.
  */
 class MfpBuilder
 {

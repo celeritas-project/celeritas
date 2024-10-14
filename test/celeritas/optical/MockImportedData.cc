@@ -115,33 +115,6 @@ std::vector<ImportOpticalMaterial> const& MockImportedData::import_materials()
 
 //---------------------------------------------------------------------------//
 /*!
- * Imported model ID for absorption.
- */
-auto MockImportedData::absorption_id() -> ImportedModelId
-{
-    return ImportedModelId{0};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Imported model ID for Rayleigh scattering.
- */
-auto MockImportedData::rayleigh_id() -> ImportedModelId
-{
-    return ImportedModelId{1};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Imported model ID for wavelength shifting.
- */
-auto MockImportedData::wls_id() -> ImportedModelId
-{
-    return ImportedModelId{2};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create ImportedModels all with empty MFP grids.
  *
  * Useful for testing optical models which build their MFPs from material data.

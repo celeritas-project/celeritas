@@ -46,8 +46,12 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
         auto const& model = models_[model_id];
 
         // Check imported data is consistent
-        CELER_EXPECT(model.model_class != IMC::size_);
-        CELER_EXPECT(model.mfps.size() == models_.front().mfps.size());
+        CELER_VALIDATE(model.model_class != IMC::size_,
+                       << "Invalid imported model class");
+        CELER_VALIDATE(model.mfps.size() == models_.front().mfps.size(),
+                       << "Imported model id '" << model_id
+                       << "' MFP table has differing number of optical "
+                          "materials than other imported models");
 
         // Expect a 1-1 mapping for IMC to imported models
         if (auto& mapped_id = builtin_id_map_[model.model_class])
@@ -105,6 +109,21 @@ ImportedModelAdapter::ImportedModelAdapter(ImportedModelId mid,
 {
     CELER_EXPECT(imported_);
     CELER_EXPECT(mid < imported_->num_models());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an adapter from imported models for the given model class.
+ */
+ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
+                                           SPConstImported imported)
+    : model_id_(), imported_(imported)
+{
+    CELER_EXPECT(imported_);
+    model_id_ = imported_->builtin_model_id(imc);
+    CELER_VALIDATE(model_id_,
+                   << "imported data for optical model '" << to_cstring(imc)
+                   << "' is missing");
 }
 
 //---------------------------------------------------------------------------//

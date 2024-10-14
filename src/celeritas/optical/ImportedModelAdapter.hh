@@ -76,6 +76,9 @@ class ImportedModelAdapter
     // Create an adapter for the given model identifier
     ImportedModelAdapter(ImportedModelId id, SPConstImported imported);
 
+    // Create an adapter for the given model class
+    ImportedModelAdapter(ImportModelClass imc, SPConstImported imported);
+
     // Get MFP grid for the optical material
     ImportPhysicsVector const& mfp(OpticalMaterialId id) const;
 
