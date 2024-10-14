@@ -198,7 +198,7 @@ void LocalTransporter::Push(G4Track const& g4track)
      * back to Geant4.
      */
     track.track_id = TrackId{track_counter_++};
-    track.event_id = EventId{event_id_.get()};
+    track.event_id = EventId{0};
 
     buffer_.push_back(track);
     if (buffer_.size() >= auto_flush_)
