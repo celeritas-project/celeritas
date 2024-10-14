@@ -26,7 +26,10 @@ void ExtendFromPrimariesAction::process_primaries(
 {
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute_thread{
-        state.ptr(), primaries, state.counters()};
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        state.counters(),
+        primaries};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     if (!primaries.empty())
     {

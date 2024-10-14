@@ -192,12 +192,8 @@ void LocalTransporter::Push(G4Track const& g4track)
     }
 
     /*!
-     * \todo Celeritas track IDs are independent from Geant4 track IDs, since
-     * they must be sequential from zero for a given event. We may need to save
-     * (and share with sensitive detectors!) a map of track IDs for calling
-     * back to Geant4.
+     * \todo Eliminate event ID from primary.
      */
-    track.track_id = TrackId{track_counter_++};
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
