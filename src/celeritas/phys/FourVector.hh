@@ -24,7 +24,7 @@ namespace celeritas
 struct FourVector
 {
     Real3 mom{0, 0, 0};  //!< Particle momentum
-    real_type energy{0};  //!< Particle energy
+    real_type energy{0};  //!< Particle total energy (\f$\sqrt{p^2 + m^2}\f$)
 
     // Assignment operator (+=)
     inline CELER_FUNCTION FourVector& operator+=(FourVector const& v)

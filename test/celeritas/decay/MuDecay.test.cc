@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/decay/MuDecay.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/decay/interactor/MuDecayInteractor.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
@@ -46,26 +47,19 @@ class MuDecayInteractorTest : public InteractorHostTestBase
 TEST_F(MuDecayInteractorTest, basic)
 {
     auto const& params = *this->particle_params();
-
-    // Muon params data
-    {
-        auto const& muon = params.get(data_.ids.mu_minus);
-        EXPECT_SOFT_EQ(105.6583745, muon.mass().value());
-        EXPECT_SOFT_EQ(1 / 2.1969811e-6, muon.decay_constant());
-    }
-
     this->set_inc_direction({0, 0, 1});
-    auto const one_mev = MevEnergy{1};
+    auto const at_rest = MevEnergy{0};
 
     // Anti-muon decay
     {
-        this->set_inc_particle(pdg::mu_plus(), one_mev);
+        this->set_inc_particle(pdg::mu_plus(), at_rest);
 
         MuDecayInteractor interact(data_,
                                    this->particle_track(),
                                    this->direction(),
                                    this->secondary_allocator());
         auto result = interact(this->rng());
+
         EXPECT_EQ(Interaction::Action::decay, result.action);
         EXPECT_EQ(pdg::positron(),
                   params.id_to_pdg(result.secondaries[0].particle_id));
@@ -77,13 +71,14 @@ TEST_F(MuDecayInteractorTest, basic)
 
     // Muon decay
     {
-        this->set_inc_particle(pdg::mu_minus(), one_mev);
+        this->set_inc_particle(pdg::mu_minus(), at_rest);
 
         MuDecayInteractor interact(data_,
                                    this->particle_track(),
                                    this->direction(),
                                    this->secondary_allocator());
         auto result = interact(this->rng());
+
         EXPECT_EQ(Interaction::Action::decay, result.action);
         auto const& sec = result.secondaries;
         EXPECT_EQ(3, sec.size());
@@ -91,15 +86,37 @@ TEST_F(MuDecayInteractorTest, basic)
         EXPECT_EQ(pdg::anti_electron_neutrino(),
                   params.id_to_pdg(sec[1].particle_id));
         EXPECT_EQ(pdg::mu_neutrino(), params.id_to_pdg(sec[2].particle_id));
+
+        double secondary_cm_energy{};
+        for (auto i : range(3))
+        {
+            secondary_cm_energy += sec[i].energy.value();
+        }
+
+        // Check energy and momentum conservation
+        EXPECT_SOFT_EQ(data_.muon_mass, secondary_cm_energy);
+
+        Real3 total_momentum{};
+        for (auto dir : range(3))
+        {
+            for (auto const& part : sec)
+            {
+                total_momentum[dir] += part.direction[dir]
+                                       * part.energy.value();
+            }
+        }
+
+        EXPECT_VEC_NEAR(Real3({0, 0, 0}), total_momentum, 1e-10);
     }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(MuDecayInteractorTest, stress_test)
 {
-    size_type const num_samples = 1000;
+    size_type const num_samples = 10000;
+    MevEnergy one_gev{1000};
     this->resize_secondaries(3 * num_samples);
-    this->set_inc_particle(pdg::mu_minus(), MevEnergy{1000});
+    this->set_inc_particle(pdg::mu_minus(), one_gev);
     this->set_inc_direction({0, 0, 1});
 
     MuDecayInteractor interact(data_,
@@ -107,38 +124,41 @@ TEST_F(MuDecayInteractorTest, stress_test)
                                this->direction(),
                                this->secondary_allocator());
 
-    real_type avg_tot_energy{0};  // Average energy per decay
-    real_type avg_sec_energies[3] = {};  // Average energy per secondary
-    real_type avg_sec_dirz[3] = {};  // Average z direction per secondary
+    real_type avg_sec_energies[3]{};  // Average energy per secondary
+    Real3 avg_total_momentum{};
 
-    for ([[maybe_unused]] auto i : range(num_samples))
+    for ([[maybe_unused]] auto sample : range(num_samples))
     {
         auto result = interact(this->rng());
         auto const& sec = result.secondaries;
 
-        for (auto j : range(3))
+        for (auto i : range(sec.size()))
         {
-            avg_sec_energies[j] += sec[j].energy.value();
-            avg_tot_energy += sec[j].energy.value();
-            avg_sec_dirz[j] += sec[j].direction[2];
+            avg_sec_energies[i] += sec[i].energy.value();
+            for (auto j : range(3))
+            {
+                avg_total_momentum[j] += sec[i].direction[j]
+                                         * sec[i].energy.value();
+            }
         }
     }
 
-    avg_tot_energy /= num_samples;
     for (auto j : range(3))
     {
         avg_sec_energies[j] /= num_samples;
-        avg_sec_dirz[j] /= num_samples;
+        avg_total_momentum[j] /= num_samples;
     }
 
+    // Average energies should add up to ~1 GeV
     static double const expected_avg_sec_energies[]
-        = {346.69889751678, 178.24258457901, 475.73040550737};
-    static double const expected_avg_sec_dirz[]
-        = {0.90003827924887, 0.81224792038635, 0.99099028265594};
+        = {352.696811082231, 139.77355878899, 517.40105579669};
 
-    EXPECT_SOFT_EQ(1000.6718876031533, avg_tot_energy);
+    // Average momentum should be close to the muon momentum
+    static double const expected_avg_total_momentum[]
+        = {0.0064349907147788, -0.002221504223801, 1004.2939140336};
+
     EXPECT_VEC_SOFT_EQ(expected_avg_sec_energies, avg_sec_energies);
-    EXPECT_VEC_SOFT_EQ(expected_avg_sec_dirz, avg_sec_dirz);
+    EXPECT_VEC_SOFT_EQ(expected_avg_total_momentum, avg_total_momentum);
 }
 
 //---------------------------------------------------------------------------//

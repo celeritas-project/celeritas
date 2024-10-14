@@ -124,10 +124,13 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     // Sampling constants
     sample_max_ = real_type{1}
                   + ipow<2>(shared_.electron_mass) / ipow<2>(shared_.muon_mass);
-    // Geant4 online physics manual defines E_{max} = m_\mu / 2, which differs
-    // from the v11.0.3 source code, used here. This difference changes
-    // E_{max} by ~1%.
-    max_energy_ = 0.5 * shared_.muon_mass - shared_.electron_mass;
+
+    // Geant4 online physics manual defines E_{max} = m_\mu / 2, while the
+    // source code (since v10.2.0 probably) defines E_{max} = m_\mu / 2 - m_e
+    // The source code implementation leads to a total CM energy of ~104.6 MeV
+    // instead of the expected 105.7 MeV (muon mass), achieved by the physics
+    // manual definition
+    max_energy_ = 0.5 * shared_.muon_mass;
 }
 
 //---------------------------------------------------------------------------//
@@ -142,9 +145,9 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
  * \f]
  * channel, with a branching ratio of 100%.
  *
- * The decay is sampled at the muon's reference frame and the resulting four
- * vector is boosted to the lab frame using the muon's incident energy and
- * direction.
+ * The decay is sampled at the muon's reference frame (based on
+ * \c G4MuonDecayChannel::DecayIt ) and the resulting four vector is boosted to
+ * the lab frame using the muon's incident energy and direction.
  *
  * \note Neutrinos are assumed to have zero mass.
  */
@@ -162,7 +165,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     real_type electron_energy_frac;
     real_type electron_nu_energy_frac;
 
-    size_type const max_iter = 1000;  // \todo Why?
+    size_type const max_iter{1000};  // \todo Why?
 
     for ([[maybe_unused]] auto i : range(max_iter))
     {
@@ -189,7 +192,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     real_type muon_nu_energy_frac = real_type{2} - electron_energy_frac
                                     - electron_nu_energy_frac;
 
-    // Energy of secondaries at rest frame (neutrino masses are ignored)
+    // Kinetic energy of secondaries at rest frame; neutrino masses are ignored
     auto charged_lep_energy
         = this->energy(electron_energy_frac, shared_.electron_mass);
     auto electron_nu_energy = this->energy(electron_nu_energy_frac, 0);
@@ -200,7 +203,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         = real_type{1} - 2 / electron_energy_frac - 2 / electron_nu_energy_frac
           + 2 / (electron_nu_energy_frac * electron_energy_frac);
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
-    real_type sin_theta = std::sqrt(1 - ipow<2>(cos_theta));
+    real_type sin_theta = std::sqrt(real_type{1} - ipow<2>(cos_theta));
 
     // Define initial arbitrary direction of secondaries at rest frame
     Real3 charged_lep_dir = {0, 0, 1};
@@ -232,16 +235,18 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     result.action = Interaction::Action::decay;
     result.secondaries = {secondaries, 3};
 
+    // Interaction stores kinetic energy; FourVector stores total energy
     result.secondaries[0].particle_id = secondary_id_[0];
-    result.secondaries[0].energy = Energy{charged_lep_4vec.energy};
+    result.secondaries[0].energy
+        = Energy{charged_lep_4vec.energy - shared_.electron_mass};
     result.secondaries[0].direction = make_unit_vector(charged_lep_4vec.mom);
 
     result.secondaries[1].particle_id = secondary_id_[1];
-    result.secondaries[1].energy = Energy{electron_nu_4vec.energy};
+    result.secondaries[1].energy = Energy{electron_nu_4vec.energy};  // no mass
     result.secondaries[1].direction = make_unit_vector(electron_nu_4vec.mom);
 
     result.secondaries[2].particle_id = secondary_id_[2];
-    result.secondaries[2].energy = Energy{muon_nu_4vec.energy};
+    result.secondaries[2].energy = Energy{muon_nu_4vec.energy};  // no mass
     result.secondaries[2].direction = make_unit_vector(muon_nu_4vec.mom);
 
     return result;
@@ -271,8 +276,9 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate final particle energy (or momentum) from the sampled fractional
- * energy with respect to the maximum possible energy ( \c max_energy_ ).
+ * Calculate final particle kinetic energy (or momentum) from the sampled
+ * fractional energy with respect to the maximum possible energy ( \c
+ * max_energy_ ).
  */
 CELER_FUNCTION units::MevEnergy
 MuDecayInteractor::energy(real_type const& energy_frac, real_type const& mass)
