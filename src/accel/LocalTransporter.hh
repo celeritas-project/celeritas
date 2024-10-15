@@ -100,7 +100,6 @@ class LocalTransporter
     std::shared_ptr<detail::HitProcessor> hit_processor_;
 
     UniqueEventId event_id_;
-    TrackId::size_type track_counter_{};
 
     size_type auto_flush_{};
     size_type max_steps_{};

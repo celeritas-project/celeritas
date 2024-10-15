@@ -443,11 +443,9 @@ TYPED_TEST(TrackInitTest, primaries)
     };
     auto result = RunResult::from_state(this->state());
     EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
-    PRINT_EXPECTED(result.track_ids);
     EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
-    PRINT_EXPECTED(result.init_ids);
 }
 
 TYPED_TEST(TrackInitTest, extend_from_secondaries)

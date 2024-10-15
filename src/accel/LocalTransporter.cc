@@ -147,7 +147,6 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = UniqueEventId(id);
-    track_counter_ = 0;
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
