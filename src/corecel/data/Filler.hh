@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/detail/Filler.hh
+//! \file corecel/data/Filler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,43 +17,54 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-
-//! Assign on host or mapped / managed memory
+/*!
+ * Fill contiguous data with copies of a scalar value.
+ */
 template<class T, MemSpace M>
-struct Filler
-{
-    T const& value;
-
-    void operator()(Span<T> data) const
-    {
-        std::fill(data.begin(), data.end(), value);
-    }
-};
-
-//! Assign on device
-template<class T>
-struct Filler<T, MemSpace::device>
+class Filler
 {
   public:
-    explicit Filler(T const& value) : value_{value} {};
-    Filler(T const& value, StreamId stream)
-        : value_{value}, stream_{stream} {};
+    //! Construct with target value and default stream
+    explicit Filler(T value) : value_{value} {}
 
-    void operator()(Span<T>) const;
+    //! Construct with target value and specific stream
+    Filler(T value, StreamId stream) : value_{value}, stream_{stream} {}
+
+    // Fill the span with the stored value
+    inline void operator()(Span<T> data) const;
 
   private:
-    T const& value_;
+    T value_;
     StreamId stream_;
+
+    void fill_device_impl(Span<T> data) const;
 };
 
-#if !CELER_USE_DEVICE
-template<class T>
-void Filler<T, MemSpace::device>::operator()(Span<T>) const
+//---------------------------------------------------------------------------//
+/*!
+ * Fill the span with the stored value.
+ */
+template<class T, MemSpace M>
+void Filler<T, M>::operator()(Span<T> data) const
 {
-    CELER_NOT_CONFIGURED("CUDA or HIP");
+    if constexpr (M == MemSpace::device)
+    {
+        this->fill_device_impl(data);
+    }
+    else
+    {
+        std::fill(data.begin(), data.end(), value_);
+    }
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+template<class T, MemSpace M>
+CELER_FORCEINLINE void Filler<T, M>::fill_device_impl(Span<T>) const
+{
+    CELER_DISCARD(stream_);
+    CELER_ASSERT_UNREACHABLE();
 }
 #else
 extern template struct Filler<real_type, MemSpace::device>;
@@ -63,5 +74,4 @@ extern template struct Filler<TrackSlotId, MemSpace::device>;
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
