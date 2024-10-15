@@ -39,7 +39,7 @@ class CalculatorTestBase : public Test
 
   public:
     //!@{
-    //! Deprecated: use the "build" and
+    //! Deprecated: use the "build" (with function) and "convert_to_prime"
     // Construct linear cross sections
     void build(real_type emin, real_type emax, size_type count);
     void set_prime_index(size_type i);

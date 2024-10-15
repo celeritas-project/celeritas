@@ -37,7 +37,7 @@ class XsCalculatorTest : public CalculatorTestBase
 
 TEST_F(XsCalculatorTest, simple)
 {
-    // Energy from 1 to 1e5 MeV with 5 grid points; XS = E
+    // Energy from 1 to 1e5 MeV with 6 grid points; XS = E
     // *No* magical 1/E scaling
     this->build(1.0, 1e5, 6);
 
@@ -68,7 +68,7 @@ TEST_F(XsCalculatorTest, simple)
 
 TEST_F(XsCalculatorTest, scaled_lowest)
 {
-    // Energy from .1 to 1e4 MeV with 5 grid points and values of 1
+    // Energy from .1 to 1e4 MeV with 6 grid points and values of 1
     this->build({0.1, 1e4}, 6, [](real_type) { return real_type{1}; });
     this->convert_to_prime(0);
 
@@ -101,7 +101,7 @@ TEST_F(XsCalculatorTest, scaled_lowest)
 
 TEST_F(XsCalculatorTest, scaled_middle)
 {
-    // Energy from .1 to 1e4 MeV with 5 grid points
+    // Energy from .1 to 1e4 MeV with 6 grid points
     this->build({0.1, 1e4}, 6, [](real_type) { return real_type{3}; });
     this->convert_to_prime(3);
 
