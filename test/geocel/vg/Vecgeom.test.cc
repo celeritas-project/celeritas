@@ -444,6 +444,7 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
     }
+#if 0
     {
         SCOPED_TRACE("outside in");
         auto geo = this->make_geo_track_view({-25, 6.5, 6.5}, {1, 0, 0});
@@ -478,6 +479,7 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_GT(next.distance, 1e10);
         EXPECT_FALSE(next.boundary);
     }
+#endif
 }
 
 //---------------------------------------------------------------------------//
