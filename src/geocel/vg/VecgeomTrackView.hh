@@ -479,7 +479,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(dist > 0 && dist < next_step_);
+    CELER_EXPECT(dist > 0 && dist <= next_step_);
     CELER_EXPECT(dist != next_step_ || !this->is_next_boundary());
 
     // Move and update next_step_
