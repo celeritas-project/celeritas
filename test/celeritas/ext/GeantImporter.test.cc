@@ -342,6 +342,24 @@ class LarSphere : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class LarSphereExtramat : public GeantImporterTest
+{
+  protected:
+    std::string_view geometry_basename() const override
+    {
+        return "lar-sphere-extramat"sv;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = GeantImporterTest::build_geant_options();
+        opts.optical.absorption = true;
+        opts.optical.rayleigh_scattering = true;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class Solids : public GeantImporterTest
 {
   protected:
@@ -1780,6 +1798,53 @@ TEST_F(LarSphere, optical)
     EXPECT_DOUBLE_EQ(1.0597e-05, properties.refractive_index.x.back());
     EXPECT_DOUBLE_EQ(1.2221243542166, properties.refractive_index.y.front());
     EXPECT_DOUBLE_EQ(1.6167515615703, properties.refractive_index.y.back());
+}
+
+TEST_F(LarSphereExtramat, optical)
+{
+    auto&& imported = this->imported_data();
+    ASSERT_EQ(3, imported.optical_models.size());
+    ASSERT_EQ(1, imported.optical_materials.size());
+    ASSERT_EQ(3, imported.geo_materials.size());
+    ASSERT_EQ(2, imported.phys_materials.size());
+
+    // First material is vacuum, no optical properties
+    ASSERT_EQ(0, imported.phys_materials[0].geo_material_id);
+    EXPECT_EQ("vacuum", imported.geo_materials[0].name);
+    EXPECT_EQ(ImportPhysMaterial::unspecified,
+              imported.phys_materials[0].optical_material_id);
+
+    // Second material is liquid argon
+    ASSERT_EQ(1, imported.phys_materials[1].geo_material_id);
+    EXPECT_EQ("lAr", imported.geo_materials[1].name);
+    ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
+
+    // Check scintillation optical properties
+    auto const& optical = imported.optical_materials[0];
+    EXPECT_FALSE(optical.scintillation);
+
+    // Check Rayleigh optical properties
+    auto const& rayleigh_model = imported.optical_models[1];
+    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
+    ASSERT_EQ(1, rayleigh_model.mfps.size());
+
+    auto const& rayleigh_mfp = rayleigh_model.mfps.front();
+    EXPECT_EQ(2, rayleigh_mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
+    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh_mfp.y.front()));
+    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh_mfp.y.back()));
+
+    // Check common optical properties
+    // Refractive index data in the geometry comes from the refractive index
+    // database https://refractiveindex.info and was calculating using the
+    // methods described in: E. Grace, A. Butcher, J.  Monroe, J. A. Nikkel.
+    // Index of refraction, Rayleigh scattering length, and Sellmeier
+    // coefficients in solid and liquid argon and xenon, Nucl.  Instr. Meth.
+    // Phys. Res. A 867, 204-208 (2017)
+    auto const& properties = optical.properties;
+    EXPECT_TRUE(properties);
+    EXPECT_EQ(2, properties.refractive_index.x.size());
 }
 
 //---------------------------------------------------------------------------//
