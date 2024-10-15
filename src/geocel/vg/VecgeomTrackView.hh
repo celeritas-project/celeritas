@@ -15,6 +15,8 @@
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -25,7 +27,7 @@
 
 #include "detail/VecgeomCompatibility.hh"
 
-#if defined(VECGEOM_USE_SURF)
+#if CELERITAS_VECGEOM_SURFACE
 #    include "geocel/vg/detail/SurfNavigator.hh"
 #else
 #    include "geocel/vg/detail/BVHNavigator.hh"
@@ -55,7 +57,7 @@ class VecgeomTrackView
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;
-#if defined(VECGEOM_USE_SURF)
+#if CELERITAS_VECGEOM_SURFACE
     using Navigator = celeritas::detail::SurfNavigator;
 #else
     using Navigator = celeritas::detail::BVHNavigator;
@@ -161,7 +163,7 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     long hit_surf_{-1};
 #endif
 
@@ -215,7 +217,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
     constexpr bool contains_point = true;
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     auto world = vecgeom::NavigationState::WorldId();
 #else
     vecgeom::VPlacedVolume const* world = params_.world_volume;
@@ -342,10 +344,11 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      max_step,
                                                      vgstate_,
                                                      vgnext_
-#ifdef VECGEOM_USE_SURF
-                                                     , hit_surf_
+#if CELERITAS_VECGEOM_SURFACE
+                                                     ,
+                                                     hit_surf_
 #endif
-                                                     );
+    );
     next_step_ = max(next_step_, this->extra_push());
 
     if (!this->is_next_boundary())
@@ -431,10 +434,10 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-    #ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
         Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
             detail::to_vector(this->dir_), hit_surf_, vgnext_);
-    #else
+#else
         // Some navigators require an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
         Navigator::RelocateToNextVolume(

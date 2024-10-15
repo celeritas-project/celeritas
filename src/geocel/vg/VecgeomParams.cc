@@ -22,7 +22,7 @@
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
 #endif
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 #ifdef VECGEOM_GDML
@@ -51,7 +51,7 @@
 
 #include "detail/VecgeomCompatibility.hh"
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include "VecgeomParams.surface.hh"
 #endif
 
@@ -74,7 +74,7 @@ namespace
 #    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
 #endif
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    define VG_SURF_CALL(CODE) CODE
 #else
 #    define VG_SURF_CALL(CODE) \
@@ -117,11 +117,7 @@ int vecgeom_verbosity()
  */
 bool VecgeomParams::use_surface_tracking()
 {
-#ifdef VECGEOM_USE_SURF
-    return true;
-#else
-    return false;
-#endif
+    return CELERITAS_VECGEOM_SURFACE;
 }
 
 //---------------------------------------------------------------------------//
@@ -414,7 +410,8 @@ void VecgeomParams::build_volume_tracking()
 #if VECGEOM_VERSION < 0x020000
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
 #else
-        vecgeom::ABBoxManager<real_type>::Instance().InitABBoxesForCompleteGeometry();
+        vecgeom::ABBoxManager<real_type>::Instance()
+            .InitABBoxesForCompleteGeometry();
 #endif
     }
 
