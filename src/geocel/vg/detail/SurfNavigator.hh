@@ -117,6 +117,20 @@ class SurfNavigator
                          long hitsurf_index,
                          vecgeom::NavigationState& out_state)
     {
+        // in case hit_surf=-1, recalculate hit_surf
+        // this is needed in some celeritas use-cases (rasterizing
+        // out-of-world)
+        if (hitsurf_index < 0)
+        {
+            vecgeom::NavigationState& in_state = out_state;
+            ComputeStepAndNextVolume(globalpoint,
+                                     globaldir,
+                                     kBoundaryPush,
+                                     in_state,
+                                     out_state,
+                                     hitsurf_index);
+        }
+
         vgbrep::CrossedSurface crossed_surf;
         vgbrep::protonav::BVHSurfNavigator<Precision>::RelocateToNextVolume(
 	          globalpoint,
