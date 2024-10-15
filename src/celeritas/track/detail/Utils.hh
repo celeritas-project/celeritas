@@ -11,9 +11,11 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/Atomics.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleView.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 namespace celeritas
 {
@@ -93,6 +95,24 @@ CELER_FORCEINLINE_FUNCTION size_type index_partitioned(size_type num_new_tracks,
 
     return get_from_front ? index_before(num_new_tracks, tid)
                           : index_before(num_vacancies, tid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a unique track ID for the given event.
+ *
+ * \todo This is nondeterministic; we need to calculate the track ID in a
+ * reproducible way.
+ */
+inline CELER_FUNCTION TrackId
+make_track_id(NativeCRef<TrackInitParamsData> const&,
+              NativeRef<TrackInitStateData>& state,
+              EventId event)
+{
+    CELER_EXPECT(event < state.track_counters.size());
+    auto result
+        = atomic_add(&state.track_counters[event], TrackId::size_type{1});
+    return TrackId{result};
 }
 
 //---------------------------------------------------------------------------//

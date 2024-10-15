@@ -98,8 +98,6 @@ TEST_P(EventIOTest, variety_rwr)
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
     static int const expected_event[] = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     EXPECT_VEC_EQ(expected_event, result.event);
-    static int const expected_track[] = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    EXPECT_VEC_EQ(expected_track, result.track);
     // clang-format on
 
     // Event reader should keep returning an empty vector
@@ -160,9 +158,6 @@ TEST_P(EventIOTest, no_vertex_rwr)
     static int const expected_event[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2,
         2, 2};
     EXPECT_VEC_EQ(expected_event, result.event);
-    static int const expected_track[] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2,
-        3, 4};
-    EXPECT_VEC_EQ(expected_track, result.track);
     // clang-format on
 }
 
@@ -213,7 +208,6 @@ TEST_P(EventIOTest, edge_case)
         p.energy = units::MevEnergy{1};
         p.position = {0, 0, 0};
         p.direction = {1, 0, 0};
-        p.track_id = TrackId{0};
         p.event_id = EventId{0};
         std::vector<Primary> event(4, p);
         EventWriter write_event(filename, this->particles());

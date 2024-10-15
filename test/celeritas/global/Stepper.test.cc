@@ -52,7 +52,6 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         p.particle_id = this->particle()->find(pdg::gamma());
         CELER_ASSERT(p.particle_id);
         p.energy = units::MevEnergy{100};
-        p.track_id = TrackId{0};
         p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
@@ -114,7 +113,6 @@ class BadGeometryTest : public InvalidOrangeTestBase
         CELER_ASSERT(p.particle_id);
         p.energy = units::MevEnergy{100};
         p.event_id = EventId{0};
-        p.track_id = TrackId{0};
         p.position = pos;
         p.direction = {1, 0, 0};
         p.time = 0;
