@@ -144,6 +144,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeoOpticalIdMap.cc
     ext/detail/MuHadEmStandardPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs
