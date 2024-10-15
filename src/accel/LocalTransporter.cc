@@ -147,7 +147,6 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = UniqueEventId(id);
-    track_counter_ = 0;
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -192,12 +191,8 @@ void LocalTransporter::Push(G4Track const& g4track)
     }
 
     /*!
-     * \todo Celeritas track IDs are independent from Geant4 track IDs, since
-     * they must be sequential from zero for a given event. We may need to save
-     * (and share with sensitive detectors!) a map of track IDs for calling
-     * back to Geant4.
+     * \todo Eliminate event ID from primary.
      */
-    track.track_id = TrackId{track_counter_++};
     track.event_id = EventId{0};
 
     buffer_.push_back(track);

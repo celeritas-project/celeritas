@@ -112,7 +112,6 @@ auto EventReader::operator()() -> result_type
     std::set<int> missing_pdg;
 
     result_type result;
-    int track_id = 0;
     for (auto const& par : evt.particles())
     {
         if (par->data().status != 1 || par->end_vertex())
@@ -139,7 +138,6 @@ auto EventReader::operator()() -> result_type
 
         // Set the event and track number
         primary.event_id = event_id;
-        primary.track_id = TrackId(track_id++);
 
         // Get the position of the vertex
         auto pos = par->production_vertex()->position();
