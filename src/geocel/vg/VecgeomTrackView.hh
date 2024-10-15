@@ -159,13 +159,13 @@ class VecgeomTrackView
     NavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
+#if CELERITAS_VECGEOM_SURFACE
+    long& next_surface_;
+#endif
     //!@}
 
     // Temporary data
     real_type next_step_{0};
-#if CELERITAS_VECGEOM_SURFACE
-    long hit_surf_{-1};
-#endif
 
     //// HELPER FUNCTIONS ////
 
@@ -177,6 +177,10 @@ class VecgeomTrackView
 
     //! Get a reference to the current volume
     inline CELER_FUNCTION Volume const& volume() const;
+
+#if CELERITAS_VECGEOM_SURFACE
+    static CELER_CONSTEXPR_FUNCTION long null_surface() { return -1; }
+#endif
 };
 
 //---------------------------------------------------------------------------//
@@ -194,6 +198,9 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     , vgnext_(states.vgnext.at(params_.max_depth, tid))
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
+#if CELERITAS_VECGEOM_SURFACE
+    , next_surface_{states.next_surface[tid]}
+#endif
 {
 }
 
@@ -213,6 +220,9 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // Initialize position/direction
     pos_ = init.pos;
     dir_ = init.dir;
+#if CELERITAS_VECGEOM_SURFACE
+    next_surface_ = null_surface();
+#endif
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
@@ -304,6 +314,12 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
 {
     if (this->is_outside())
     {
+        if constexpr (CELERITAS_VECGEOM_SURFACE)
+        {
+            CELER_NOT_IMPLEMENTED(
+                "initialization outside with surface vecgeom");
+        }
+
         // Find distance to interior from outside world volume
         auto* pplvol = params_.world_volume;
         next_step_ = pplvol->DistanceToIn(detail::to_vector(pos_),
@@ -338,7 +354,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(max_step > 0);
 
     // Use the navigator to find internal distance
-    hit_surf_ = -1;
+    next_surface_ = null_surface();
+    // TODO: vgnext is simply copied and the boundary flag optionally set
     next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
                                                      detail::to_vector(dir_),
                                                      max_step,
@@ -346,7 +363,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      vgnext_
 #if CELERITAS_VECGEOM_SURFACE
                                                      ,
-                                                     hit_surf_
+                                                     next_surface_
 #endif
     );
     next_step_ = max(next_step_, this->extra_push());
@@ -436,7 +453,9 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     {
 #if CELERITAS_VECGEOM_SURFACE
         Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
-            detail::to_vector(this->dir_), hit_surf_, vgnext_);
+                                        detail::to_vector(this->dir_),
+                                        next_surface_,
+                                        vgnext_);
 #else
         // Some navigators require an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
