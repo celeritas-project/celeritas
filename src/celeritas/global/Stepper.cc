@@ -165,7 +165,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Reseed the RNGs at the start of an event for "strong" reproducibility.
+ * Reseed RNGs and counters the start of an event for "strong" reproducibility.
  *
  * This reinitializes the RNG states using a single seed and unique subsequence
  * for each thread. It ensures that given an event number, that event can be
@@ -178,6 +178,7 @@ void Stepper<M>::reseed(UniqueEventId event_id)
                state_->ref().rng,
                state_->stream_id(),
                event_id);
+    params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
 }
 
 //---------------------------------------------------------------------------//
