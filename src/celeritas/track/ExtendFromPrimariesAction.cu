@@ -20,7 +20,7 @@ namespace celeritas
  * Launch a kernel to create track initializers from primary particles.
  */
 void ExtendFromPrimariesAction::process_primaries(
-    CoreParams const&,
+    CoreParams const& params,
     CoreStateDevice& state,
     PrimaryStateData<MemSpace::device> const& pstate) const
 {
