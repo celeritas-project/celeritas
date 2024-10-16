@@ -64,6 +64,8 @@ TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device))
     // Assigning a device pointer on host is prohibited
     *src = 2;
 #endif
+    // Pointer cast can be used to access without memspace checking
+    EXPECT_NE(nullptr, static_cast<int*>(src));
 
     // Test device pointer with manual kernel
     inp_dv.copy_to_device(make_span(test_data));
