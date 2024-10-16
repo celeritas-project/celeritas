@@ -145,14 +145,12 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         // checked in both directions
         size_type order_steps = order_ / 2 + 1;
 
-        // true bounding indices of the grid that will be checked
-        size_type true_low_idx;
-        size_type true_high_idx;
-
+        // True bounding indices of the grid that will be checked.
         // If the interpolation requests out-of-bounds indices, clip the
         // extents. This will reduce the order of the interpolation
         // todo - instead of clipping the bounds, alter both the low and high
         // index to keep the range just shifted down
+        size_type true_low_idx;
         if (lower_idx >= order_steps - 1)
         {
             true_low_idx = lower_idx - order_steps + 1;
@@ -161,14 +159,7 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         {
             true_low_idx = 0;
         }
-        if (lower_idx + order_steps < loge_grid_.size())
-        {
-            true_high_idx = lower_idx + order_steps;
-        }
-        else
-        {
-            true_high_idx = loge_grid_.size() - 1;
-        }
+        size_type true_high_idx = min(lower_idx + order_steps + 1, loge_grid_.size());
 
         // if the requested interpolation order is even, a direction must be
         // selected to interpolate to
@@ -226,18 +217,18 @@ CELER_FUNCTION real_type SplineXsCalculator::get(size_type index) const
 CELER_FUNCTION real_type SplineXsCalculator::interpolate(
     real_type energy, size_type low_idx, size_type high_idx) const
 {
-    CELER_EXPECT(high_idx < loge_grid_.size());
+    CELER_EXPECT(high_idx <= loge_grid_.size());
     real_type result = 0.0;
 
     // Outer loop over indices for contributing to the result
-    for (size_type outer_idx = low_idx; outer_idx < high_idx + 1; ++outer_idx)
+    for (size_type outer_idx = low_idx; outer_idx < high_idx; ++outer_idx)
     {
         real_type outer_e = std::exp(loge_grid_[outer_idx]);
         real_type num = 1.0;
         real_type denom = 1.0;
 
         // Inner loop over indices for determining the weight
-        for (size_type inner_idx = low_idx; inner_idx < high_idx + 1;
+        for (size_type inner_idx = low_idx; inner_idx < high_idx;
              ++inner_idx)
         {
             // don't contribute for inner and outer index the same
