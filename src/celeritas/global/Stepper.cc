@@ -165,10 +165,11 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Reseed RNGs and counters the start of an event for "strong" reproducibility.
+ * Reseed RNGs and counters at the start of an event for reproducibility.
  *
  * This reinitializes the RNG states using a single seed and unique subsequence
- * for each thread. It ensures that given an event number, that event can be
+ * for each thread. It ensures that given an event identification, the random
+ * number sequence for the event (and thus the event's behavior) can be
  * reproduced.
  */
 template<MemSpace M>
