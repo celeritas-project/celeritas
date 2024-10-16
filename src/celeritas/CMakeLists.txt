@@ -125,7 +125,7 @@ endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
-    track/Filler.cu
+    track/detail/Filler.cu
     global/alongstep/detail/AlongStepKernels.cu
   )
 endif()

@@ -39,17 +39,18 @@ TEST(FillerTest, TEST_IF_CELER_DEVICE(device))
 
     DeviceVector<int> device_vec(128);
     std::size_t offset{0};
+    std::size_t const subspan_size{32};
     for (auto s : {StreamId{}, StreamId{0}, StreamId{1}})
     {
         Filler<int, MemSpace::device> fill{987, s};
-        fill(device_vec.device_ref().subspan(offset, 64));
-        offset += 64;
+        fill(device_vec.device_ref().subspan(offset, subspan_size));
+        offset += subspan_size;
     }
 
     {
         // GPU fill with default stream
         Filler<int, MemSpace::device> fill{987};
-        fill(device_vec.device_ref().subspan(offset, 64));
+        fill(device_vec.device_ref().subspan(offset, subspan_size));
     }
 
     // Copy device --> host to check

@@ -8,6 +8,7 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
+#include "corecel/data/Filler.device.t.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 

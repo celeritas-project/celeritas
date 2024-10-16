@@ -22,7 +22,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template<class T, MemSpace M>
-void Filler<T, M>::fill_device_impl(Span<T>) const
+void Filler<T, M>::fill_device_impl(Span<T> data) const
 {
     if (stream_)
     {
