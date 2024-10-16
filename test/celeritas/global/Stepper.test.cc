@@ -287,7 +287,7 @@ TEST_F(SimpleComptonTest, kill_active)
     step.kill_active();
     counters = step();
     EXPECT_EQ(0, counters.alive);
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS && CELERITAS_USE_GEANT4)
     {
         static char const* const expected_log_messages[] = {
             "Killing 2 active tracks",
