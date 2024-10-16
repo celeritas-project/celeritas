@@ -67,10 +67,10 @@ CELER_FORCEINLINE void Filler<T, M>::fill_device_impl(Span<T>) const
     CELER_ASSERT_UNREACHABLE();
 }
 #else
-extern template struct Filler<real_type, MemSpace::device>;
-extern template struct Filler<size_type, MemSpace::device>;
-extern template struct Filler<int, MemSpace::device>;
-extern template struct Filler<TrackSlotId, MemSpace::device>;
+extern template class Filler<real_type, MemSpace::device>;
+extern template class Filler<size_type, MemSpace::device>;
+extern template class Filler<int, MemSpace::device>;
+extern template class Filler<TrackSlotId, MemSpace::device>;
 #endif
 
 //---------------------------------------------------------------------------//

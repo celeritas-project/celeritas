@@ -10,9 +10,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template struct Filler<real_type, MemSpace::device>;
-template struct Filler<size_type, MemSpace::device>;
-template struct Filler<int, MemSpace::device>;
-template struct Filler<TrackSlotId, MemSpace::device>;
+template class Filler<real_type, MemSpace::device>;
+template class Filler<size_type, MemSpace::device>;
+template class Filler<int, MemSpace::device>;
+template class Filler<TrackSlotId, MemSpace::device>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

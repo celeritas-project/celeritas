@@ -11,6 +11,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template struct Filler<TrackStatus, MemSpace::device>;
+template class Filler<TrackStatus, MemSpace::device>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
