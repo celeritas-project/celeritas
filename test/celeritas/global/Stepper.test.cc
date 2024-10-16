@@ -24,6 +24,7 @@
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/random/RngEngine.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "DummyAction.hh"
@@ -288,6 +289,46 @@ TEST_F(StepperOrderTest, step)
     static char const* const expected_action_order[]
         = {"user_start", "user_pre", "user_post"};
     EXPECT_VEC_EQ(expected_action_order, state.action_order);
+}
+
+TEST_F(StepperOrderTest, reseed)
+{
+    constexpr auto M = MemSpace::host;
+    size_type num_primaries = 1;
+    size_type num_tracks = 1;
+
+    Stepper<M> step(this->make_stepper_input(num_tracks));
+    auto const primaries = this->make_primaries(num_primaries);
+    auto const& params_ref = this->core()->ref<M>();
+    auto const& state_ref
+        = dynamic_cast<CoreState<M> const&>(step.state()).ref();
+    SimTrackView sim{params_ref.sim, state_ref.sim, TrackSlotId{0}};
+    RngEngine engine{params_ref.rng, state_ref.rng, TrackSlotId{0}};
+
+    // First step: save next random number
+    step.reseed(UniqueEventId{123});
+    step(make_span(primaries));
+    EXPECT_EQ(TrackStatus::alive, sim.status());
+    EXPECT_EQ(TrackId{0}, sim.track_id());
+    auto orig_next_random = engine();
+    sim.status(TrackStatus::inactive);
+    step();
+
+    // Next event should be a different random number and zero track ID
+    step.reseed(UniqueEventId{3456});
+    step(make_span(primaries));
+    EXPECT_EQ(TrackStatus::alive, sim.status());
+    EXPECT_EQ(TrackId{0}, sim.track_id());
+    EXPECT_NE(orig_next_random, engine());
+    sim.status(TrackStatus::inactive);
+    step();
+
+    // Original event should have the same RNG sequence
+    step.reseed(UniqueEventId{123});
+    step(make_span(primaries));
+    EXPECT_EQ(TrackStatus::alive, sim.status());
+    EXPECT_EQ(TrackId{0}, sim.track_id());
+    EXPECT_EQ(orig_next_random, engine());
 }
 
 //---------------------------------------------------------------------------//

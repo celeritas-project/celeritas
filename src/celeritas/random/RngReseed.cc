@@ -14,6 +14,7 @@
 
 namespace celeritas
 {
+#if !defined(__DOXYGEN__) || __DOXYGEN__ > 0x010908
 //---------------------------------------------------------------------------//
 /*!
  * Reinitialize the RNG states on host at the start of an event.
@@ -24,6 +25,7 @@ namespace celeritas
  */
 void reseed_rng(HostCRef<RngParamsData> const& params,
                 HostRef<RngStateData> const& state,
+                StreamId,
                 UniqueEventId event_id)
 {
     CELER_EXPECT(event_id);
@@ -44,4 +46,5 @@ void reseed_rng(HostCRef<RngParamsData> const& params,
 }
 
 //---------------------------------------------------------------------------//
+#endif
 }  // namespace celeritas
