@@ -193,8 +193,9 @@ can call a global function to print the full state of the current track::
     },
     ...
 
-When unit testing, a "status checker" class is inserted into the stepping loop,
-which enables more verbose/useful debug output. (Instead of printing an ID, it
-will reference the actual value.)
+If the stepping loop "hangs" (i.e., the number of steps seems unbounded) and
+you have access to a debugger, you can call the ``Stepper::kill_active`` method
+to kill all active tracks and (on CPU) print detailed debug information about
+them.
 
 .. _debug_print: https://github.com/celeritas-project/celeritas/pull/1304

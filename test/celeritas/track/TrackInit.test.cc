@@ -248,7 +248,7 @@ TYPED_TEST(TrackInitTest, extend_primaries)
         // Don't initialize
         auto primaries = this->make_primaries(2);
         this->insert_primaries(this->state(), make_span(primaries));
-        auto result = RunResult::from_state(this->state());
+        RunResult::from_state(this->state());
 
         EXPECT_EQ(0, this->state().counters().num_initializers);
     }

@@ -23,6 +23,8 @@
 #include "ActionSequence.hh"
 #include "CoreParams.hh"
 
+#include "detail/KillActive.hh"
+
 namespace celeritas
 {
 namespace
@@ -154,6 +156,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                            [](Primary const& left, Primary const& right) {
                                return left.event_id < right.event_id;
                            });
+    CELER_ASSERT(max_id->event_id);
     CELER_VALIDATE(max_id->event_id < params_->init()->max_events(),
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
@@ -161,6 +164,21 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     primaries_action_->insert(*params_, *state_, primaries);
 
     return (*this)();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Kill all tracks in flight to debug "stuck" tracks.
+ *
+ * The next "step" will apply the tracking cut and (if CPU) print diagnostic
+ * output about the failed tracks.
+ */
+template<MemSpace M>
+void Stepper<M>::kill_active()
+{
+    CELER_LOG_LOCAL(error) << "Killing " << state_->counters().num_active
+                           << " active tracks";
+    detail::kill_active(*params_, *state_);
 }
 
 //---------------------------------------------------------------------------//
