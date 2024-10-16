@@ -68,6 +68,10 @@ G4VPhysicalVolume* load_geant_geometry(std::string const& gdml_filename);
 // Load a GDML file, stripping pointers
 G4VPhysicalVolume* load_geant_geometry_native(std::string const& gdml_filename);
 
+// Write a GDML file to the given filename
+void write_geant_geometry(G4VPhysicalVolume const* world,
+                          std::string const& out_filename);
+
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();

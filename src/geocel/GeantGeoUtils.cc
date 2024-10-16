@@ -194,6 +194,28 @@ G4VPhysicalVolume* load_geant_geometry_native(std::string const& filename)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Write a GDML file to the given filename.
+ */
+void write_geant_geometry(G4VPhysicalVolume const* world,
+                          std::string const& out_filename)
+{
+    CELER_EXPECT(world);
+
+    G4GDMLParser parser;
+    parser.SetEnergyCutsExport(true);
+    parser.SetSDExport(true);
+    parser.SetOverlapCheck(false);
+    parser.SetRegionExport(true);
+    parser.SetStripFlag(false);
+#if G4VERSION_NUMBER >= 1070
+    parser.SetOutputFileOverwrite(true);
+#endif
+
+    parser.Write(out_filename, world, /* append_pointers = */ true);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset all Geant4 geometry stores if *not* using RunManager.
  *
  * Use this function if reading geometry and cleaning up *without* doing any

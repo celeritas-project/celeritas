@@ -454,6 +454,17 @@ void SharedParams::initialize_core(SetupOptions const& options)
         export_root(*imported);
     }
 
+    if (!options.geometry_output_file.empty())
+    {
+        CELER_VALIDATE(options.geometry_file.empty(),
+                       << "the 'geometry_output_file' option cannot be used "
+                          "when manually loading a geometry (the "
+                          "'geometry_file' option is also set)");
+
+        write_geant_geometry(GeantImporter::get_world_volume(),
+                             options.geometry_output_file);
+    }
+
     CoreParams::Input params;
 
     // Create registries
