@@ -25,6 +25,7 @@ namespace celeritas
  */
 void reseed_rng(HostCRef<RngParamsData> const& params,
                 HostRef<RngStateData> const& state,
+                StreamId,
                 UniqueEventId event_id)
 {
     CELER_EXPECT(event_id);

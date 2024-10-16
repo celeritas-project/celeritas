@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/detail/Filler.device.t.hh
+//! \file corecel/data/Filler.device.t.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,11 +20,9 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-template<class T>
-void Filler<T, MemSpace::device>::operator()(Span<T> data) const
+template<class T, MemSpace M>
+void Filler<T, M>::fill_device_impl(Span<T> data) const
 {
     if (stream_)
     {
@@ -44,5 +42,4 @@ void Filler<T, MemSpace::device>::operator()(Span<T> data) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -119,7 +119,7 @@ struct SetupOptions
     //! \name Celeritas stepper options
     //! Number of track "slots" to be transported simultaneously
     size_type max_num_tracks{};
-    //! Maximum number of events in use
+    //! Maximum number of events in use (DEPRECATED: remove in v0.6)
     size_type max_num_events{};
     //! Limit on number of step iterations before aborting
     size_type max_steps = no_max_steps();

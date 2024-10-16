@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Stream.hh"
 
 #include "RngEngine.hh"
 
@@ -57,12 +58,19 @@ __global__ void reseed_rng_kernel(DeviceCRef<RngParamsData> const params,
  */
 void reseed_rng(DeviceCRef<RngParamsData> const& params,
                 DeviceRef<RngStateData> const& state,
+                StreamId stream,
                 UniqueEventId event_id)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(params);
-    CELER_LAUNCH_KERNEL(
-        reseed_rng, state.size(), 0, params, state, event_id.get());
+    CELER_EXPECT(stream);
+
+    CELER_LAUNCH_KERNEL(reseed_rng,
+                        state.size(),
+                        celeritas::device().stream(stream).get(),
+                        params,
+                        state,
+                        event_id.get());
 }
 
 //---------------------------------------------------------------------------//

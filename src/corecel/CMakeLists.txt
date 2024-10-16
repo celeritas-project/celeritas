@@ -158,7 +158,7 @@ list(APPEND PRIVATE_DEPS Celeritas::DeviceToolkit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
-    data/detail/Filler.cu
+    data/Filler.cu
     sys/KernelParamCalculator.device.cc
   )
 endif()
