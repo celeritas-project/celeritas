@@ -174,7 +174,10 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "Filename for ROOT dump of physics data");
     add_cmd(&options->offload_output_file,
             "offloadOutputFile",
-            "Filename for copy of offloaded tracks as events");
+            "Filename for HepMC3/ROOT dump of offloaded tracks");
+    add_cmd(&options->geometry_output_file,
+            "geometryOutputFile",
+            "Filename for GDML export");
     add_cmd(&options->max_num_tracks,
             "maxNumTracks",
             "Number of track \"slots\" to be transported simultaneously");
