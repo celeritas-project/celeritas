@@ -281,11 +281,15 @@ TEST_F(SimpleComptonTest, kill_active)
     step.kill_active();
     counters = step();
     EXPECT_EQ(0, counters.alive);
-    static char const* const expected_log_messages[] = {
-        "Killing 2 active tracks",
-        R"(Killing track 0 of event 0 (in track slot 6) at {-5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 1)",
-        R"(Killing track 1 of event 0 (in track slot 7) at {-5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 1)"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        static char const* const expected_log_messages[] = {
+            "Killing 2 active tracks",
+            R"(Killing track 0 of event 0 (in track slot 6) at {-5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 1)",
+            R"(Killing track 1 of event 0 (in track slot 7) at {-5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 1)"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+    }
     static char const* const expected_log_levels[]
         = {"error", "error", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
