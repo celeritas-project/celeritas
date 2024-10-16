@@ -13,6 +13,7 @@
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/EulerRotation.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/decay/data/MuDecayData.hh"
 #include "celeritas/phys/FourVector.hh"
@@ -36,6 +37,9 @@ namespace celeritas
  * \f[
  * \mu^+ \longrightarrow e^+ \nu_e \overline{\nu}_\mu
  * \f].
+ *
+ * This interactor follows \c G4MuonDecayChannel and the Physics Reference
+ * Manual, Release 11.2, section 4.2.3.
  */
 class MuDecayInteractor
 {
@@ -83,9 +87,9 @@ class MuDecayInteractor
                                                   Energy const& energy,
                                                   real_type const& mass);
 
-    // Calculate particle energy in the center of mass
-    inline CELER_FUNCTION Energy energy(real_type const& energy_frac,
-                                        real_type const& mass);
+    // Calculate particle momentum (or kinetic energy) in the center of mass
+    inline CELER_FUNCTION Energy momentum(real_type const& energy_frac,
+                                          real_type const& mass);
 };
 
 //---------------------------------------------------------------------------//
@@ -126,7 +130,7 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
                   + ipow<2>(shared_.electron_mass) / ipow<2>(shared_.muon_mass);
 
     // Geant4 online physics manual defines E_{max} = m_\mu / 2, while the
-    // source code (since v10.2.0 probably) defines E_{max} = m_\mu / 2 - m_e
+    // source code (since v10.2.0 at least) defines E_{max} = m_\mu / 2 - m_e
     // The source code implementation leads to a total CM energy of ~104.6 MeV
     // instead of the expected 105.7 MeV (muon mass), achieved by the physics
     // manual definition
@@ -164,7 +168,6 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
     real_type electron_energy_frac;
     real_type electron_nu_energy_frac;
-
     size_type const max_iter{1000};  // \todo Why?
 
     for ([[maybe_unused]] auto i : range(max_iter))
@@ -188,15 +191,14 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         }
         electron_nu_energy_frac = real_type{1} - electron_energy_frac;
     }
-
     real_type muon_nu_energy_frac = real_type{2} - electron_energy_frac
                                     - electron_nu_energy_frac;
 
-    // Kinetic energy of secondaries at rest frame; neutrino masses are ignored
+    // Momentum of secondaries at rest frame; neutrino masses are ignored
     auto charged_lep_energy
-        = this->energy(electron_energy_frac, shared_.electron_mass);
-    auto electron_nu_energy = this->energy(electron_nu_energy_frac, 0);
-    auto muon_nu_energy = this->energy(muon_nu_energy_frac, 0);
+        = this->momentum(electron_energy_frac, shared_.electron_mass);
+    auto electron_nu_energy = this->momentum(electron_nu_energy_frac, 0);
+    auto muon_nu_energy = this->momentum(muon_nu_energy_frac, 0);
 
     // Angle between charged lepton and electron neutrino
     real_type cos_theta
@@ -215,13 +217,16 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
                - (electron_nu_energy_frac / muon_nu_energy_frac) * cos_theta};
 
     // Apply a spherically uniform rotation to the decay
-    real_type rotate_costheta = 2 * generate_canonical(rng) - 1;
-    real_type rotate_phi = 2 * constants::pi * generate_canonical(rng);
-    auto rotate_dir = from_spherical(rotate_costheta, rotate_phi);
+    real_type euler_phi
+        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
+    real_type euler_theta = std::acos(2 * generate_canonical(rng) - 1);
+    real_type euler_psi
+        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
 
-    charged_lep_dir = rotate(charged_lep_dir, rotate_dir);
-    electron_nu_dir = rotate(electron_nu_dir, rotate_dir);
-    muon_nu_dir = rotate(muon_nu_dir, rotate_dir);
+    EulerRotation rotate(euler_phi, euler_theta, euler_psi);
+    charged_lep_dir = rotate(charged_lep_dir);
+    electron_nu_dir = rotate(electron_nu_dir);
+    muon_nu_dir = rotate(muon_nu_dir);
 
     // Boost secondaries to the lab frame
     auto charged_lep_4vec = this->to_lab_frame(
@@ -276,12 +281,11 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate final particle kinetic energy (or momentum) from the sampled
- * fractional energy with respect to the maximum possible energy ( \c
- * max_energy_ ).
+ * Calculate final particle momentum (or kinetic energy) from its sampled
+ * fractional energy.
  */
 CELER_FUNCTION units::MevEnergy
-MuDecayInteractor::energy(real_type const& energy_frac, real_type const& mass)
+MuDecayInteractor::momentum(real_type const& energy_frac, real_type const& mass)
 {
     return Energy{std::sqrt(ipow<2>(energy_frac) * ipow<2>(max_energy_)
                             + 2 * energy_frac * max_energy_ * mass)};
