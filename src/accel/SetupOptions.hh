@@ -152,24 +152,24 @@ struct SetupOptions
     short int max_field_substeps{100};
     //!@}
 
-    //!@{
-    //! \name Sensitive detector options
+    //! Sensitive detector options
     SDSetupOptions sd;
-    //!@}
 
     //!@{
     //! \name Physics options
-    //! Ignore the following EM process names
+    //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
     //!@}
 
     //!@{
     //! \name CUDA options
+    //! Per-thread stack size (may be needed for VecGeom) [B]
     size_type cuda_stack_size{};
+    //! Dynamic heap size (may be needed for VecGeom) [B]
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
     bool action_times{false};
-    //! Launch all kernels on the default stream
+    //! Launch all kernels on the default stream for debugging
     bool default_stream{false};
     //!@}
 
