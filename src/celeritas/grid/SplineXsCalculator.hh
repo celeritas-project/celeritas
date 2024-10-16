@@ -114,74 +114,68 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
 {
     real_type const loge = std::log(energy.value());
 
+    auto calc_extrapolated = [this, &energy](size_type idx) {
+        real_type result = this->get(idx);
+        if (idx >= data_.prime_index)
+        {
+            result /= energy.value();
+        }
+        return result;
+    };
+
     // Snap out-of-bounds values to closest grid points
-    size_type lower_idx;
-    real_type result;
     if (loge <= loge_grid_.front())
     {
-        lower_idx = 0;
-        result = this->get(lower_idx);
-        if (lower_idx >= data_.prime_index)
-        {
-            result /= energy.value();
-        }
+        return calc_extrapolated(0);
     }
-    else if (loge >= loge_grid_.back())
+    if (loge >= loge_grid_.back())
     {
-        lower_idx = loge_grid_.size() - 1;
-        result = this->get(lower_idx);
-        if (lower_idx >= data_.prime_index)
-        {
-            result /= energy.value();
-        }
+        return calc_extrapolated(loge_grid_.size() - 1);
+    }
+
+    // Locate the energy bin
+    size_type lower_idx = loge_grid_.find(loge);
+    CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
+
+    // number of grid indexs away from the specified energy that need to be
+    // checked in both directions
+    size_type order_steps = order_ / 2 + 1;
+
+    // True bounding indices of the grid that will be checked.
+    // If the interpolation requests out-of-bounds indices, clip the
+    // extents. This will reduce the order of the interpolation
+    // todo - instead of clipping the bounds, alter both the low and high
+    // index to keep the range just shifted down
+    size_type true_low_idx;
+    if (lower_idx >= order_steps - 1)
+    {
+        true_low_idx = lower_idx - order_steps + 1;
     }
     else
     {
-        // Locate the energy bin
-        lower_idx = loge_grid_.find(loge);
-        CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
+        true_low_idx = 0;
+    }
+    size_type true_high_idx
+        = min(lower_idx + order_steps + 1, loge_grid_.size());
 
-        // number of grid indexs away from the specified energy that need to be
-        // checked in both directions
-        size_type order_steps = order_ / 2 + 1;
-
-        // True bounding indices of the grid that will be checked.
-        // If the interpolation requests out-of-bounds indices, clip the
-        // extents. This will reduce the order of the interpolation
-        // todo - instead of clipping the bounds, alter both the low and high
-        // index to keep the range just shifted down
-        size_type true_low_idx;
-        if (lower_idx >= order_steps - 1)
+    // if the requested interpolation order is even, a direction must be
+    // selected to interpolate to
+    if (order_ % 2 == 0)
+    {
+        real_type low_dist = loge - loge_grid_[lower_idx];
+        real_type high_dist = loge_grid_[lower_idx + 1] - loge;
+        CELER_ASSERT(low_dist >= 0);
+        CELER_ASSERT(high_dist >= 0);
+        if (low_dist > high_dist)
         {
-            true_low_idx = lower_idx - order_steps + 1;
+            true_low_idx += 1;
         }
         else
         {
-            true_low_idx = 0;
+            true_high_idx -= 1;
         }
-        size_type true_high_idx = min(lower_idx + order_steps + 1, loge_grid_.size());
-
-        // if the requested interpolation order is even, a direction must be
-        // selected to interpolate to
-        if (order_ % 2 == 0)
-        {
-            real_type low_dist = loge - loge_grid_[lower_idx];
-            real_type high_dist = loge_grid_[lower_idx + 1] - loge;
-            CELER_ASSERT(low_dist >= 0);
-            CELER_ASSERT(high_dist >= 0);
-            if (low_dist > high_dist)
-            {
-                true_low_idx += 1;
-            }
-            else
-            {
-                true_high_idx -= 1;
-            }
-        }
-        result = this->interpolate(energy.value(), true_low_idx, true_high_idx);
     }
-
-    return result;
+    return this->interpolate(energy.value(), true_low_idx, true_high_idx);
 }
 
 //---------------------------------------------------------------------------//
@@ -228,8 +222,7 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(
         real_type denom = 1.0;
 
         // Inner loop over indices for determining the weight
-        for (size_type inner_idx = low_idx; inner_idx < high_idx;
-             ++inner_idx)
+        for (size_type inner_idx = low_idx; inner_idx < high_idx; ++inner_idx)
         {
             // don't contribute for inner and outer index the same
             if (inner_idx != outer_idx)
