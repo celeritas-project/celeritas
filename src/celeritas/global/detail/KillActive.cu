@@ -26,11 +26,6 @@ void kill_active(CoreParams const& params, CoreState<MemSpace::device>& state)
 {
     TrackExecutor execute_thread{
         params.ptr<MemSpace::native>(), state.ptr(), KillActiveExecutor{}};
-
-    detail::InitTracksExecutor execute_thread{params.ptr<MemSpace::native>(),
-                                              state.ptr(),
-                                              num_new_tracks,
-                                              state.counters()};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         "kill-active");
     return launch_kernel(state, execute_thread);
