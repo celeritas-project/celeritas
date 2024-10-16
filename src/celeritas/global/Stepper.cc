@@ -156,6 +156,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                            [](Primary const& left, Primary const& right) {
                                return left.event_id < right.event_id;
                            });
+    CELER_ASSERT(max_id->event_id);
     CELER_VALIDATE(max_id->event_id < params_->init()->max_events(),
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
@@ -168,6 +169,9 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 //---------------------------------------------------------------------------//
 /*!
  * Kill all tracks in flight to debug "stuck" tracks.
+ *
+ * The next "step" will apply the tracking cut and (if CPU) print diagnostic
+ * output about the failed tracks.
  */
 template<MemSpace M>
 void Stepper<M>::kill_active()

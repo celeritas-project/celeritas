@@ -56,12 +56,9 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
+        p.event_id = EventId{0};
 
         std::vector<Primary> result(count, p);
-        for (auto i : range(count))
-        {
-            result[i].event_id = EventId{i};
-        }
         return result;
     }
 
@@ -177,7 +174,7 @@ TEST_F(SimpleComptonTest, fail_initialize)
         // clang-format off
         static char const* const expected_log_messages[] = {
             "Track started outside the geometry",
-            "Killing track 0 of event 15 (in track slot 31) at {1001, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
+            "Killing track 15 of event 0 (in track slot 31) at {1001, 0, 0} cm along {1, 0, 0}: lost 100 MeV energy",
         };
         // clang-format on
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
@@ -287,11 +284,11 @@ TEST_F(SimpleComptonTest, kill_active)
     static char const* const expected_log_messages[] = {
         "Killing 2 active tracks",
         R"(Killing track 0 of event 0 (in track slot 6) at {-5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 1)",
-        R"(Killing track 0 of event 1 (in track slot 7) at {-5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 1)"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        R"(Killing track 1 of event 0 (in track slot 7) at {-5, 0, 0} cm along {1, 0, 0}: depositing 100 MeV in volume 1)"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
     static char const* const expected_log_levels[]
         = {"error", "error", "error"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
 }
 
 //---------------------------------------------------------------------------//
