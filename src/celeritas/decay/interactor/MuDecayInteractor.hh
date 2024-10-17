@@ -207,7 +207,11 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
     real_type sin_theta = std::sqrt(real_type{1} - ipow<2>(cos_theta));
 
-    // Define initial arbitrary direction of secondaries at rest frame
+    // Use an initial arbitrary direction for secondaries.
+    // Placing the electron on one axis (e.g. +z), simplifies the calculation
+    // for the other two secondaries. The direction of the electron neutrino
+    // is defined by the sampled theta, and the muon neutrino direction is
+    // calculated via conservation of momentum
     Real3 charged_lep_dir = {0, 0, 1};
     Real3 electron_nu_dir = {sin_theta, 0, cos_theta};
     Real3 muon_nu_dir

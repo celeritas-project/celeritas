@@ -17,10 +17,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform a vector rotation in eucledian space from given Euler angles.
+ * Perform a vector rotation in eucledian space using Euler angles.
  *
  * Constructor takes the three Euler angles \em phi , \em theta , and \em psi ,
- * which are used for 3 axis rotations, denoted as B, C, and D . The final
+ * which are used for 3 axis rotations, denoted as B, C, and D. The final
  * general rotation, \f$ A = B \times C \times D \f$, is applied via the
  * \c operator() .
  *
@@ -59,13 +59,12 @@ class EulerRotation
 CELER_FUNCTION
 EulerRotation::EulerRotation(real_type phi, real_type theta, real_type psi)
 {
-    using constants::pi;
     using std::cos;
     using std::sin;
 
-    CELER_EXPECT(phi >= 0 && phi <= 2 * pi);
-    CELER_EXPECT(theta >= 0 && theta <= pi);
-    CELER_EXPECT(psi >= 0 && psi <= 2 * pi);
+    CELER_EXPECT(phi >= 0 && phi <= 2 * constants::pi);
+    CELER_EXPECT(theta >= 0 && theta <= constants::pi);
+    CELER_EXPECT(psi >= 0 && psi <= 2 * constants::pi);
 
     real_type const sin_phi = sin(phi);
     real_type const cos_phi = cos(phi);
