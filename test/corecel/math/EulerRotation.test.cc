@@ -24,7 +24,10 @@ class EulerRotationTest : public ::celeritas::test::Test
 //---------------------------------------------------------------------------//
 TEST_F(EulerRotationTest, rotate_pi)
 {
+    // Vector at +x
     Real3 init_dirx{1, 0, 0};
+
+    // Rotate it around the z-axis by pi: expect -x
     EulerRotation rotate_x(constants::pi, 0, 0);
     auto result_x = rotate_x(init_dirx);
 
@@ -34,10 +37,12 @@ TEST_F(EulerRotationTest, rotate_pi)
 
 TEST_F(EulerRotationTest, rotate_full)
 {
-    auto const twopi = 2 * constants::pi;
+    // Vector is at +x
+    Real3 init_dir{1, 0, 0};
 
-    Real3 init_dir{1, 1, 1};
-    EulerRotation rotate_full(twopi, twopi, twopi);
+    // Rotate by pi in all Euler angles: result must be unchanged
+    using constants::pi;
+    EulerRotation rotate_full(pi, pi, pi);
     auto result_unchanged = rotate_full(init_dir);
 
     EXPECT_VEC_SOFT_EQ(result_unchanged, init_dir);

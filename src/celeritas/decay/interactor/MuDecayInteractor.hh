@@ -129,11 +129,11 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     sample_max_ = real_type{1}
                   + ipow<2>(shared_.electron_mass) / ipow<2>(shared_.muon_mass);
 
-    // Geant4 online physics manual defines E_{max} = m_\mu / 2, while the
-    // source code (since v10.2.0 at least) defines E_{max} = m_\mu / 2 - m_e
-    // The source code implementation leads to a total CM energy of ~104.6 MeV
-    // instead of the expected 105.7 MeV (muon mass), achieved by the physics
-    // manual definition
+    // Geant4 physics manual defines E_{max} = m_\mu / 2, while the source code
+    // (since v10.2.0 at least) defines E_{max} = m_\mu / 2 - m_e . The source
+    // code implementation leads to a total CM energy of ~104.6 MeV instead of
+    // the expected 105.7 MeV (muon mass), which is achieved by using the
+    // physics manual definition
     max_energy_ = 0.5 * shared_.muon_mass;
 }
 
