@@ -76,7 +76,7 @@ class SplineXsCalculator
     UniformGrid loge_grid_;
     size_type order_;
 
-    CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
+    inline CELER_FUNCTION real_type get(size_type index) const;
     CELER_FORCEINLINE_FUNCTION real_type interpolate(real_type energy,
                                                      size_type low_idx,
                                                      size_type high_idx) const;
