@@ -201,11 +201,28 @@ void write_geant_geometry(G4VPhysicalVolume const* world,
 {
     CELER_EXPECT(world);
 
+    CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
+    ScopedMem record_mem("write_geant_geometry");
+    ScopedTimeLog scoped_time;
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
+
     G4GDMLParser parser;
-    parser.SetEnergyCutsExport(true);
-    parser.SetSDExport(true);
     parser.SetOverlapCheck(false);
-    parser.SetRegionExport(true);
+
+    if (!world->GetLogicalVolume()->GetRegion())
+    {
+        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping "
+                              "export of energy cuts and regions";
+    }
+    else
+    {
+        parser.SetEnergyCutsExport(true);
+        parser.SetRegionExport(true);
+    }
+
+    parser.SetSDExport(true);
     parser.SetStripFlag(false);
 #if G4VERSION_NUMBER >= 1070
     parser.SetOutputFileOverwrite(true);
