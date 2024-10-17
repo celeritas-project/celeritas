@@ -21,8 +21,14 @@ namespace optical
 class AbsorptionModel final : public Model
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPConstImported = std::shared_ptr<ImportedModels const>;
+    //!@}
+
+  public:
     // Construct with imported data
-    AbsorptionModel(ActionId id, ImportedModelAdapter imported);
+    AbsorptionModel(ActionId id, SPConstImported imported);
 
     // Build the mean free paths for this model
     void build_mfps(OpticalMaterialId mat, MfpBuilder&) const final;

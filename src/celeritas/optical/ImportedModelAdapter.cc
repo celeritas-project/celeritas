@@ -47,24 +47,30 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
 
         // Check imported data is consistent
         CELER_VALIDATE(model.model_class != IMC::size_,
-                       << "Invalid imported model class");
+                       << "Invalid imported model class for optical model id '"
+                       << model_id << "'");
+        CELER_VALIDATE(
+            std::all_of(model.mfps.begin(),
+                        model.mfps.end(),
+                        [](auto const& v) { return static_cast<bool>(v); }),
+            << "Import optical model id '" << model_id << "' ("
+            << to_cstring(model.model_class) << ") has invalid MFP vectors");
         CELER_VALIDATE(model.mfps.size() == models_.front().mfps.size(),
-                       << "Imported model id '" << model_id
-                       << "' MFP table has differing number of optical "
+                       << "Imported optical model id '" << model_id << "' ("
+                       << to_cstring(model.model_class)
+                       << ") MFP table has differing number of optical "
                           "materials than other imported models");
 
         // Expect a 1-1 mapping for IMC to imported models
-        if (auto& mapped_id = builtin_id_map_[model.model_class])
-        {
-            CELER_LOG(warning)
-                << "Duplicate built-in optical model '"
-                << to_cstring(model.model_class)
-                << "' data has been imported; will use first imported data";
-        }
-        else
-        {
-            mapped_id = ImportedModelId(model_id);
-        }
+        auto& mapped_id = builtin_id_map_[model.model_class];
+        CELER_VALIDATE(!mapped_id,
+                       << "Duplicate imported data for built-in optical model "
+                          "'"
+                       << to_cstring(model.model_class)
+                       << "' (at most one built-in optical model of a given "
+                          "type should be imported)");
+
+        mapped_id = ImportedModelId(model_id);
     }
 }
 
@@ -117,7 +123,7 @@ ImportedModelAdapter::ImportedModelAdapter(ImportedModelId mid,
  */
 ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
                                            SPConstImported imported)
-    : model_id_(), imported_(imported)
+    : imported_(imported)
 {
     CELER_EXPECT(imported_);
     model_id_ = imported_->builtin_model_id(imc);

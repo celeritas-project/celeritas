@@ -20,9 +20,9 @@ namespace optical
 /*!
  * Construct the model from imported data.
  */
-AbsorptionModel::AbsorptionModel(ActionId id, ImportedModelAdapter imported)
+AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
     : Model(id, "absorption", "interact by optical absorption")
-    , imported_(std::move(imported))
+    , imported_(ImportModelClass::absorption, imported)
 {
 }
 

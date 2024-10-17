@@ -41,9 +41,7 @@ class AbsorptionModelTest : public MockImportedData
         import_model_id_
             = models->builtin_model_id(ImportModelClass::absorption);
 
-        return std::make_shared<AbsorptionModel const>(
-            ActionId{0},
-            ImportedModelAdapter{ImportModelClass::absorption, models});
+        return std::make_shared<AbsorptionModel const>(ActionId{0}, models);
     }
 
     ImportedModels::ImportedModelId import_model_id_;
