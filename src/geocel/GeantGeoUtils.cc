@@ -201,6 +201,13 @@ void write_geant_geometry(G4VPhysicalVolume const* world,
 {
     CELER_EXPECT(world);
 
+    CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
+    ScopedMem record_mem("write_geant_geometry");
+    ScopedTimeLog scoped_time;
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
+
     G4GDMLParser parser;
     parser.SetEnergyCutsExport(true);
     parser.SetSDExport(true);
