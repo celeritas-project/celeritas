@@ -15,7 +15,7 @@ Commands
 .. command:: celeritas_setup_tests
 
   Set dependencies for the python tests in the current CMakeLists file,
-  always resetting the num_process and harness options (see the Variables
+  always resetting the num_process option (see the Variables
   section below) but leaving the link/dependency options in place.
 
     celeritas_setup_tests(
@@ -59,7 +59,6 @@ Add a CUDA/HIP/C++ GoogleTest test::
       [INPUTS file1 [file2 ...]]
       [SOURCES file1 [...]]
       [DISABLE]
-      [DRIVER]
       [REUSE_EXE]
       [GPU]
       )
@@ -81,7 +80,7 @@ Add a CUDA/HIP/C++ GoogleTest test::
       package's current library.
 
     ``ADD_DEPENDENCIES``
-      Extra dependencies for building the execuatable, e.g.  preprocessing data
+      Extra dependencies for building the executable, e.g.  preprocessing data
       or copying files.
 
     ``DEPTEST``
@@ -102,12 +101,6 @@ Add a CUDA/HIP/C++ GoogleTest test::
     ``DISABLE``
       Omit this test from the list of tests to run through CTest, but still
       build it to reduce the chance of code rot.
-
-    ``DRIVER``
-      Assume the file acts as a "driver" that launches an underlying
-      process in parallel. The CELERITASTEST_NP environment variable is set for
-      that test and can be used to determine the number of processors to use.
-      The test itself is *not* called with MPI.
 
     ``REUSE_EXE``
       Assume the executable was already built from a previous celeritas_add_test
@@ -136,11 +129,6 @@ variables set default values for target property ``<VAR>``:
 
 ``CELERITASTEST_ADD_DEPENDENCIES`` : list
   Require that these targets be built before the test is built.
-
-``CELERITASTEST_HARNESS`` : string
-  One of "none", "gtest", or "python". Defaults to "gtest" (use the Nemesis gtest
-  harness and main function); the "python" option uses the exnihilotools unit
-  test harness.
 
 ``CELERITASTEST_PYTHONPATH`` : list
   Default entries for the PYTHONPATH environment variable. This should have the
@@ -171,7 +159,7 @@ set(CELERITASTEST_NP_DEFAULT "${_procs}" CACHE INTERNAL
 set(_procs)
 
 if(NOT CELERITAS_USE_MPI)
-  # Construct test name with MPI enabled, or empty if not applicable
+  # Skip tests that require greater than 1 process
   function(_celeritasaddtest_test_name outvar test_name np suffix)
     set(_name "${test_name}${suffix}")
     if(np GREATER 1)
@@ -180,13 +168,13 @@ if(NOT CELERITAS_USE_MPI)
     set(${outvar} "${_name}" PARENT_SCOPE)
   endfunction()
 
-  # Construct MPI command, or empty if not applicable
+  # Construct execution command
   function(_celeritasaddtest_mpi_cmd outvar np test_exe)
     set(_cmd "${test_exe}" ${ARGN})
     set(${outvar} "${_cmd}" PARENT_SCOPE)
   endfunction()
 else()
-  # Construct test name with MPI enabled but not tribits
+  # Construct test name with number of processors
   function(_celeritasaddtest_test_name outvar test_name np suffix)
     if(np GREATER CELERITAS_MAX_NUMPROCS)
       set(_name)
@@ -198,6 +186,7 @@ else()
     set(${outvar} "${_name}" PARENT_SCOPE)
   endfunction()
 
+  # Construct MPI command
   function(_celeritasaddtest_mpi_cmd outvar np test_exe)
     if(np GREATER 1)
       set(_cmd "${MPIEXEC_EXECUTABLE}" ${MPIEXEC_NUMPROC_FLAG} "${np}"
@@ -236,12 +225,6 @@ function(celeritas_setup_tests)
     set(CELERITASTEST_NP 1)
   endif()
   set(CELERITASTEST_NP "${CELERITASTEST_NP}" PARENT_SCOPE)
-
-  set(CELERITASTEST_HARNESS "gtest")
-  if(PARSE_PYTHON)
-    set(CELERITASTEST_HARNESS "python")
-  endif()
-  set(CELERITASTEST_HARNESS "${CELERITASTEST_HARNESS}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#
@@ -250,7 +233,7 @@ endfunction()
 
 function(celeritas_add_test SOURCE_FILE)
   cmake_parse_arguments(PARSE
-    "DISABLE;DRIVER;REUSE_EXE;GPU"
+    "DISABLE;REUSE_EXE;GPU"
     "TIMEOUT;DEPTEST;SUFFIX;ADDED_TESTS;NT"
     "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
@@ -258,14 +241,6 @@ function(celeritas_add_test SOURCE_FILE)
   if(PARSE_UNPARSED_ARGUMENTS)
     message(SEND_ERROR "Unknown keywords given to celeritas_add_test(): "
             "\"${PARSE_UNPARSED_ARGUMENTS}\"")
-  endif()
-
-  if(NOT CELERITASTEST_HARNESS OR CELERITASTEST_HARNESS STREQUAL "gtest")
-    set(_CELERITASTEST_IS_GTEST TRUE)
-  elseif(CELERITASTEST_HARNESS STREQUAL "python")
-    set(_CELERITASTEST_IS_PYTHON TRUE)
-  elseif(SOURCE_FILE MATCHES "\.py$")
-    set(_CELERITASTEST_IS_PYTHON TRUE)
   endif()
 
   if(PARSE_INPUTS)
@@ -314,18 +289,7 @@ function(celeritas_add_test SOURCE_FILE)
   string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" _TARGET "${_TARGET}")
   string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" _OUTPUT_NAME "${_OUTPUT_NAME}")
 
-  if(_CELERITASTEST_IS_PYTHON)
-    get_filename_component(SOURCE_FILE "${SOURCE_FILE}" ABSOLUTE)
-    set(_EXE_NAME "${PYTHON_EXECUTABLE}")
-    set(_EXE_ARGS -W once "${SOURCE_FILE}" -v)
-    if(NOT EXISTS "${SOURCE_FILE}")
-      message(SEND_ERROR "Python test file '${SOURCE_FILE}' does not exist")
-    endif()
-    if(PARSE_SOURCES)
-      message(FATAL_ERROR "The SOURCE argument cannot be used "
-        "with Python tests")
-    endif()
-  elseif(PARSE_REUSE_EXE)
+  if(PARSE_REUSE_EXE)
     set(_EXE_NAME "$<TARGET_FILE:${_TARGET}>")
     if(NOT TARGET "${_TARGET}")
       message(WARNING "Target ${_TARGET} has not yet been created")
@@ -371,7 +335,10 @@ function(celeritas_add_test SOURCE_FILE)
     )
   endif()
 
-  set(_COMMON_PROPS)
+  set(_COMMON_PROPS
+    PASS_REGULAR_EXPRESSION "tests PASSED"
+    FAIL_REGULAR_EXPRESSION "tests FAILED"
+  )
   set(_LABELS)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     if(NOT PARSE_GPU)
@@ -405,17 +372,7 @@ function(celeritas_add_test SOURCE_FILE)
   if(PARSE_DISABLE)
     list(APPEND _COMMON_PROPS DISABLED TRUE)
   endif()
-  if(_CELERITASTEST_IS_GTEST OR _CELERITASTEST_IS_PYTHON)
-    list(APPEND _COMMON_PROPS
-      PASS_REGULAR_EXPRESSION "tests PASSED"
-      FAIL_REGULAR_EXPRESSION "tests FAILED"
-    )
-  endif()
-  if(PARSE_DRIVER)
-    list(APPEND _LABELS nomemcheck)
-  else()
-    list(APPEND _LABELS unit)
-  endif()
+  list(APPEND _LABELS unit)
 
   if(CELERITAS_USE_MPI AND PARSE_NP STREQUAL "1")
     list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_PARALLEL=1")
@@ -447,22 +404,20 @@ function(celeritas_add_test SOURCE_FILE)
       endif()
 
       set(_test_env ${PARSE_ENVIRONMENT})
-      if(NOT PARSE_DRIVER)
-        # Launch with MPI directly
-        _celeritasaddtest_mpi_cmd(_test_cmd "${_np}" "${_EXE_NAME}")
-      else()
-        # Just allow the test to determine the number of procs
-        set(_test_cmd "${_EXE_NAME}")
-        list(APPEND _test_env "CELERITASTEST_NUMPROCS=${_np}")
-      endif()
 
-      set(_test_args "${_EXE_ARGS}")
+      # Launch with MPI directly
+      _celeritasaddtest_mpi_cmd(_test_cmd "${_np}" "${_EXE_NAME}")
+
+      set(_test_args)
       if(_filter)
-        if(_CELERITASTEST_IS_GTEST)
-          list(APPEND _test_args "--gtest_filter=${_filter}")
-        elseif(_CELERITASTEST_IS_PYTHON)
-          list(APPEND _test_args "${_filter}")
-        endif()
+        list(APPEND _test_args "--gtest_filter=${_filter}")
+      endif()
+      if(CELERITAS_TEST_XML)
+        string(REGEX REPLACE "\\*" "ALL" _xml_name "${_TEST_NAME}")
+        string(REGEX REPLACE "[^a-zA-Z0-9_.-]+" "_" _xml_name "${_xml_name}")
+        list(APPEND _test_args
+          "--gtest_output=xml:${CELERITAS_TEST_XML}/${_xml_name}.xml"
+        )
       endif()
 
       add_test(NAME "${_TEST_NAME}" COMMAND ${_test_cmd} ${_test_args})

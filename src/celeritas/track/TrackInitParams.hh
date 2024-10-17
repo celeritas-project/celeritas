@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/Filler.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
 #include "TrackInitData.hh"
@@ -26,13 +27,16 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     struct Input
     {
         size_type capacity{};  //!< Max number of initializers
-        size_type max_events{};  //!< Max number of events that can be run
-        TrackOrder track_order{TrackOrder::unsorted};  //!< How to sort tracks
+        size_type max_events{};  //!< Max simultaneous events
+        TrackOrder track_order{TrackOrder::none};  //!< How to sort tracks
     };
 
   public:
     // Construct with capacity and number of events
     explicit TrackInitParams(Input const&);
+
+    //! Maximum number of initializers
+    size_type capacity() const { return host_ref().capacity; }
 
     //! Event number cannot exceed this value
     size_type max_events() const { return host_ref().max_events; }
@@ -46,10 +50,30 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     //! Access data on device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
+    // Reset track counters in single-event mode
+    template<MemSpace M>
+    inline void
+    reset_track_ids(StreamId stream,
+                    TrackInitStateData<Ownership::reference, M>* state) const;
+
   private:
     // Host/device storage and reference
     CollectionMirror<TrackInitParamsData> data_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset track counters in single-event mode.
+ */
+template<MemSpace M>
+void TrackInitParams::reset_track_ids(
+    StreamId stream, TrackInitStateData<Ownership::reference, M>* state) const
+{
+    CELER_EXPECT(state);
+
+    Filler<size_type, M> fill_zero{0, stream};
+    fill_zero(state->track_counters[AllItems<size_type, M>{}]);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

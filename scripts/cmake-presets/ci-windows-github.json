@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
   "configurePresets": [
     {
@@ -25,6 +25,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_HOSTNAME": "windows-github",
+        "CELERITAS_TEST_XML": "$env{GITHUB_WORKSPACE}/test-output/google/",
         "CMAKE_BUILD_TYPE":      "Release",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
@@ -70,16 +71,28 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
-        "jobs": 16,
+        "jobs": 4,
         "timeout": 180
       },
       "output": {
         "maxFailedTestOutputSize": 1048576,
-        "maxPassedTestOutputSize": 65536,
+        "maxPassedTestOutputSize": 2048,
         "outputOnFailure": true
       }
     },
-    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {
+      "name": "fast-unit",
+      "configurePreset": "fast",
+      "inherits": "base"
+    },
+    {
+      "name": "fast-app",
+      "configurePreset": "fast",
+      "inherits": "base",
+      "output": {
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
+      }
+    },
     {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ]
 }

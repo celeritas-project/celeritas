@@ -25,31 +25,17 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Checks whether the TrackOrder defines a sorting strategy.
- */
-bool is_sort_trackorder(TrackOrder to)
-{
-    static TrackOrder const allowed[] = {
-        TrackOrder::partition_status,
-        TrackOrder::sort_step_limit_action,
-        TrackOrder::sort_along_step_action,
-        TrackOrder::sort_action,
-        TrackOrder::sort_particle_type,
-    };
-    return std::find(std::begin(allowed), std::end(allowed), to)
-           != std::end(allowed);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Checks whether the TrackOrder sort tracks using an ActionId.
  */
-inline bool is_sort_by_action(TrackOrder to)
+bool is_sort_by_action(TrackOrder torder)
 {
-    return to == TrackOrder::sort_along_step_action
-           || to == TrackOrder::sort_step_limit_action
-           || to == TrackOrder::sort_action;
+    auto to_int = [](TrackOrder v) {
+        return static_cast<std::underlying_type_t<TrackOrder>>(v);
+    };
+    return to_int(torder) >= to_int(TrackOrder::begin_reindex_action_)
+           && to_int(torder) < to_int(TrackOrder::end_reindex_action_);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -61,25 +47,27 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
     : id_(id), track_order_(track_order)
 {
     CELER_EXPECT(id_);
-    CELER_VALIDATE(is_sort_trackorder(track_order_),
+    CELER_VALIDATE(is_action_sorted(track_order_),
                    << "track ordering policy '" << to_cstring(track_order)
                    << "' should not sort tracks");
-    CELER_EXPECT(track_order != TrackOrder::sort_action);
-    action_order_ = [track_order = track_order_] {
+    CELER_EXPECT(track_order != TrackOrder::reindex_both_action);
+
+    // CAUTION: check that this matches \c is_action_sorted
+    action_order_ = [track_order] {
         switch (track_order)
         {
-            case TrackOrder::partition_status:
-                // Sort *after* setting status
+            case TrackOrder::reindex_status:
+                // Partition *after* setting status
                 return StepActionOrder::sort_start;
-            case TrackOrder::sort_along_step_action:
+            case TrackOrder::reindex_along_step_action:
                 // Sort *before* along-step action, i.e. *after* pre-step
                 return StepActionOrder::sort_pre;
-            case TrackOrder::sort_step_limit_action:
+            case TrackOrder::reindex_step_limit_action:
                 // Sort *before* post-step action, i.e. *after* pre-post and
                 // along-step
                 return StepActionOrder::sort_pre_post;
-            case TrackOrder::sort_particle_type:
-                // Sorth at the beginning of the step
+            case TrackOrder::reindex_particle_type:
+                // Sort at the beginning of the step
                 return StepActionOrder::sort_start;
             default:
                 CELER_ASSERT_UNREACHABLE();
@@ -95,13 +83,13 @@ std::string_view SortTracksAction::label() const
 {
     switch (track_order_)
     {
-        case TrackOrder::partition_status:
-            return "sort-tracks-partition-status";
-        case TrackOrder::sort_along_step_action:
+        case TrackOrder::reindex_status:
+            return "sort-tracks-status";
+        case TrackOrder::reindex_along_step_action:
             return "sort-tracks-along-step";
-        case TrackOrder::sort_step_limit_action:
+        case TrackOrder::reindex_step_limit_action:
             return "sort-tracks-post-step";
-        case TrackOrder::sort_particle_type:
+        case TrackOrder::reindex_particle_type:
             return "sort-tracks-start";
         default:
             CELER_ASSERT_UNREACHABLE();
@@ -151,8 +139,7 @@ void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
     CELER_VALIDATE(state.action_thread_offsets().size()
                        == params.action_reg()->num_actions() + 1,
                    << "state action size is incorrect: actions might have "
-                      "been added "
-                      "after creating states");
+                      "been added after creating states");
 }
 
 //---------------------------------------------------------------------------//
@@ -165,8 +152,7 @@ void SortTracksAction::begin_run(CoreParams const& params,
     CELER_VALIDATE(state.action_thread_offsets().size()
                        == params.action_reg()->num_actions() + 1,
                    << "state action size is incorrect: actions might have "
-                      "been added "
-                      "after creating states");
+                      "been added after creating states");
 }
 
 //---------------------------------------------------------------------------//

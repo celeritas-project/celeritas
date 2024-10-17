@@ -57,6 +57,9 @@ using FastBBox = BoundingBox<fast_real_type>;
 //! Identifier for a bounding box used for acceleration
 using FastBBoxId = OpaqueId<FastBBox>;
 
+//! Identifier for an array of length three of floating point values
+using FastReal3 = Array<float, 3>;
+
 //! Identifier for the current "level", i.e., depth of embedded universe
 using LevelId = OpaqueId<struct Level_>;
 
@@ -65,6 +68,9 @@ using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 
 //! Local identifier for a geometry volume within a universe
 using LocalVolumeId = OpaqueId<struct LocalVolume_>;
+
+//! Identifier for an OrientedBoundingZone
+using OrientedBoundingZoneId = OpaqueId<struct OrientedBoundingZoneRecord>;
 
 //! Opaque index for "simple unit" data
 using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;

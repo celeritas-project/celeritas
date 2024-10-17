@@ -190,6 +190,12 @@ void UnitProto::build(ProtoBuilder& input) const
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
         vi.bbox = get_exterior_bbox(region_iter->second.bounds);
+
+        // Set bounding zone
+        vi.obz.inner = region_iter->second.bounds.interior;
+        vi.obz.outer = region_iter->second.bounds.exterior;
+        vi.obz.transform_id = region_iter->second.transform_id;
+
         /*!
          * \todo "simple safety" flag is set inside "unit inserter": move here
          * once we stop importing from SCALE via OrangeInput.

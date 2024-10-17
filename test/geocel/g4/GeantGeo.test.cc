@@ -553,22 +553,31 @@ TEST_F(SolidsTest, trace)
                                                        40,
                                                        205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {19.9007438042,
-                                                       22.388336779725,
-                                                       38.858788181402,
-                                                       32.644989013003,
-                                                       15.746700605861,
-                                                       26.836732015088,
-                                                       2.7598369213007,
-                                                       4.6355704644931,
-                                                       40,
-                                                       19.9007438042,
-                                                       7.1836971391586,
-                                                       29.417420270728,
-                                                       0,
-                                                       29.8511157063,
-                                                       20,
-                                                       75};
+        std::vector<real_type> expected_hw_safety = {
+            19.9007438042,
+            22.388336779725,
+            33.1715371545092,
+            32.644989013003,
+            15.746700605861,
+            26.836732015088,
+            2.7598369213007,
+            4.6355704644931,
+            40,
+            19.9007438042,
+            7.1836971391586,
+            29.417420270728,
+            0,
+            29.8511157063,
+            20,
+            75,
+        };
+        if (geant4_version < Version{11, 3})
+        {
+            // Older versions of Geant4 have a bug in Arb8 that overestimates
+            // safety distance to twisted surfaces
+            expected_hw_safety[2] = 38.858788181402;
+        }
+
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {

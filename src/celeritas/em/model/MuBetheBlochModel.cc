@@ -8,8 +8,9 @@
 #include "MuBetheBlochModel.hh"
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/data/MuBetheBlochData.hh"
-#include "celeritas/em/executor/MuBetheBlochExecutor.hh"
+#include "celeritas/em/data/MuHadIonizationData.hh"
+#include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
+#include "celeritas/em/executor/MuHadIonizationExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -20,6 +21,8 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
+#include "detail/MuHadIonizationBuilder.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -27,22 +30,16 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 MuBetheBlochModel::MuBetheBlochModel(ActionId id,
-                                     ParticleParams const& particles)
-    : ConcreteAction(id,
-                     "ioni-mu-bethe-bloch",
-                     "interact by muon ionization (Bethe-Bloch)")
+                                     ParticleParams const& particles,
+                                     SetApplicability applicability)
+    : StaticConcreteAction(id,
+                           "ioni-mu-bethe-bloch",
+                           "interact by muon ionization (Bethe-Bloch)")
+    , applicability_(applicability)
+    , data_(detail::MuHadIonizationBuilder(particles,
+                                           this->label())(applicability_))
 {
     CELER_EXPECT(id);
-    data_.electron = particles.find(pdg::electron());
-    data_.mu_minus = particles.find(pdg::mu_minus());
-    data_.mu_plus = particles.find(pdg::mu_plus());
-
-    CELER_VALIDATE(data_.electron && data_.mu_minus && data_.mu_plus,
-                   << "missing electron and/or muon particles (required for "
-                   << this->description() << ")");
-
-    data_.electron_mass = particles.get(data_.electron).mass();
-
     CELER_ENSURE(data_);
 }
 
@@ -52,15 +49,7 @@ MuBetheBlochModel::MuBetheBlochModel(ActionId id,
  */
 auto MuBetheBlochModel::applicability() const -> SetApplicability
 {
-    Applicability mu_minus_applic;
-    mu_minus_applic.particle = data_.mu_minus;
-    mu_minus_applic.lower = detail::mu_bethe_bloch_lower_limit();
-    mu_minus_applic.upper = detail::high_energy_limit();
-
-    Applicability mu_plus_applic = mu_minus_applic;
-    mu_plus_applic.particle = data_.mu_plus;
-
-    return {mu_minus_applic, mu_plus_applic};
+    return applicability_;
 }
 
 //---------------------------------------------------------------------------//
@@ -85,7 +74,8 @@ void MuBetheBlochModel::step(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{MuBetheBlochExecutor{this->host_ref()}});
+        InteractionApplier{MuHadIonizationExecutor<MuBBEnergyDistribution>{
+            this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 

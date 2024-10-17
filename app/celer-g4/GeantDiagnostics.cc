@@ -29,12 +29,43 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Add outputs to a queue *only from the main thread*.
+ *
+ * This is not thread-safe.
+ */
+void GeantDiagnostics::register_output(VecOutputInterface&& output)
+{
+    CELER_LOG_LOCAL(debug) << "Registering " << output.size()
+                           << " output interfaces";
+
+    auto& q = queued_output();
+    if (q.empty())
+    {
+        q = std::move(output);
+    }
+    else
+    {
+        q.insert(q.end(),
+                 std::make_move_iterator(output.begin()),
+                 std::make_move_iterator(output.end()));
+        output.clear();
+    }
+}
+
+//---------------------------------------------------------------------------//
+auto GeantDiagnostics::queued_output() -> VecOutputInterface&
+{
+    static VecOutputInterface output;
+    return output;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from shared Celeritas params on the master thread.
  *
  * The shared params will be uninitialized if Celeritas offloading is disabled.
  * In this case, a new output registry will be created for the Geant4
- * diagnostics. If Celeritas offloading is enabled, diagnostics will be added
- * to the output registry in the \c SharedParams.
+ * diagnostics.
  */
 GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
@@ -43,8 +74,9 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
-    // Get (lazily creating)
-    SPOutputRegistry output_reg = params.output_reg();
+    // Get output registry
+    auto output_reg = params.output_reg();
+    CELER_ASSERT(output_reg);
     size_type num_threads = params.num_streams();
 
     // Create the timer output and add to output registry
@@ -63,20 +95,14 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         // Add the Celeritas step diagnostic if Celeritas offloading is enabled
         if (params)
         {
-            auto step_diagnostic = std::make_shared<celeritas::StepDiagnostic>(
-                params.Params()->action_reg()->next_id(),
-                params.Params()->particle(),
-                num_bins,
-                num_threads);
-            params.Params()->action_reg()->insert(step_diagnostic);
-            output_reg->insert(step_diagnostic);
+            StepDiagnostic::make_and_insert(*params.Params(), num_bins);
         }
     }
 
     if (!params)
     {
         // Celeritas core params didn't add system metadata: do it ourselves
-        // Save system diagnostic information
+        // to save system diagnostic information
         output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
             OutputInterface::Category::system,
             "memory",
@@ -86,11 +112,14 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
             "environ",
             celeritas::environment()));
         output_reg->insert(std::make_shared<BuildOutput>());
-
-        // Save filename from global options (TODO: remove this hack)
-        const_cast<SharedParams&>(params).set_output_filename(
-            global_setup.setup_options().output_file);
     }
+
+    // Save detectors
+    for (auto&& output : queued_output())
+    {
+        output_reg->insert(std::move(output));
+    }
+    queued_output().clear();
 
     // Save input options
     output_reg->insert(OutputInterfaceAdapter<RunInput>::from_const_ref(
@@ -111,6 +140,12 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
  */
 void GeantDiagnostics::Finalize()
 {
+    if (CELER_UNLIKELY(!queued_output().empty()))
+    {
+        CELER_LOG(warning) << "Output interfaces were added after the run "
+                              "began: output will be missing";
+    }
+
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
     if (meh_)

@@ -30,6 +30,7 @@
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MemRegistry.hh"
 #include "corecel/sys/MemRegistryIO.json.hh"
+#include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
@@ -119,14 +120,14 @@ ActionId find_along_step_id(ActionRegistry const& reg)
 }
 
 //---------------------------------------------------------------------------//
-class PropagationLimitAction final : public ConcreteAction
+class PropagationLimitAction final : public StaticConcreteAction
 {
   public:
     //! Construct with ID
     explicit PropagationLimitAction(ActionId id)
-        : ConcreteAction(id,
-                         "geo-propagation-limit",
-                         "pause due to propagation misbehavior")
+        : StaticConcreteAction(id,
+                               "geo-propagation-limit",
+                               "pause due to propagation misbehavior")
     {
     }
 };
@@ -143,9 +144,6 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     //// START ACTIONS ////
 
-    // NOTE: due to ordering by {start, ID}, ExtendFromPrimariesAction *must*
-    // precede InitializeTracksAction
-    reg->insert(make_shared<ExtendFromPrimariesAction>(reg->next_id()));
     reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
 
     //// PRE-STEP ACTIONS ////
@@ -240,8 +238,20 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     {
         input_.aux_reg = std::make_shared<AuxParamsRegistry>();
     }
+    if (!input_.mpi_comm)
+    {
+        // Create with a non-owning reference to the world communicator. This
+        // is safe since the world comm is a static variable whose lifetime
+        // should extend beyond anything that uses shared params.
+        input_.mpi_comm.reset(&celeritas::comm_world(),
+                              [](MpiCommunicator const*) {});
+    }
 
     ScopedMem record_mem("CoreParams.construct");
+
+    // Add track initializer generators (TODO: user does this externally)
+    auto primaries = ExtendFromPrimariesAction::make_and_insert(*this);
+    CELER_ASSERT(primaries);
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
@@ -253,21 +263,21 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     };
     switch (TrackOrder track_order = input_.init->track_order())
     {
-        case TrackOrder::unsorted:
-        case TrackOrder::partition_charge:
-        case TrackOrder::shuffled:
+        case TrackOrder::none:
+        case TrackOrder::init_charge:
+        case TrackOrder::reindex_shuffle:
             break;
-        case TrackOrder::partition_status:
-        case TrackOrder::sort_step_limit_action:
-        case TrackOrder::sort_along_step_action:
-        case TrackOrder::sort_particle_type:
+        case TrackOrder::reindex_status:
+        case TrackOrder::reindex_step_limit_action:
+        case TrackOrder::reindex_along_step_action:
+        case TrackOrder::reindex_particle_type:
             // Sort with just the given track order
             insert_sort_tracks_action(track_order);
             break;
-        case TrackOrder::sort_action:
+        case TrackOrder::reindex_both_action:
             // Sort twice
-            insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
-            insert_sort_tracks_action(TrackOrder::sort_along_step_action);
+            insert_sort_tracks_action(TrackOrder::reindex_step_limit_action);
+            insert_sort_tracks_action(TrackOrder::reindex_along_step_action);
             break;
         case TrackOrder::size_:
             CELER_ASSERT_UNREACHABLE();
@@ -275,6 +285,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
+
+    // Save non-owning pointer to core params for host diagnostics
+    scalars.host_core_params = ObserverPtr{this};
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);

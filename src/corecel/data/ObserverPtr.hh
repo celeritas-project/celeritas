@@ -25,7 +25,8 @@ namespace celeritas
  * i.e., host data can be accessed from a .cc file, and device data from a .cu
  * file.
  *
- * The get() function accesses the pointer with no memspace checking.
+ * A manual pointer cast function can be used to access the pointer with no
+ * memspace checking.
  */
 template<class T, MemSpace M = MemSpace::native>
 class ObserverPtr
@@ -57,18 +58,22 @@ class ObserverPtr
 
     //!@{
     //! Access the pointer
-    CELER_CONSTEXPR_FUNCTION pointer get() const noexcept { return ptr_; }
+    CELER_CONSTEXPR_FUNCTION pointer get() const noexcept
+    {
+        static_assert(M == MemSpace::native, "accessing from invalid memspace");
+        return ptr_;
+    }
     CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
     {
-        return *this->checked_get();
+        return *this->get();
     }
     CELER_CONSTEXPR_FUNCTION pointer operator->() const noexcept
     {
-        return this->checked_get();
+        return this->get();
     }
     CELER_CONSTEXPR_FUNCTION explicit operator pointer() const noexcept
     {
-        return this->checked_get();
+        return ptr_;
     }
     CELER_CONSTEXPR_FUNCTION explicit operator bool() const noexcept
     {
@@ -104,6 +109,12 @@ class ObserverPtr
     template<class, MemSpace>
     friend class ObserverPtr;
 };
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class T>
+CELER_FUNCTION ObserverPtr(T*) -> ObserverPtr<T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

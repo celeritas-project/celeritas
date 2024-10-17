@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <regex>
 #include <set>
 #include <vector>
 
@@ -19,10 +20,11 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/Environment.hh"
 
 #include "UniverseInserter.hh"
-#include "../BoundingBoxUtils.hh"
 #include "../OrangeInput.hh"
 #include "../surf/LocalSurfaceVisitor.hh"
 
@@ -160,6 +162,75 @@ std::vector<Label> make_volume_labels(UnitInput& inp)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create a bounding box bumper for a given tolerance.
+ *
+ * This bumper will convert *to* fast real type *from* regular
+ * real type. It conservatively expand to twice the potential bump distance
+ * from a boundary so that the bbox will enclose the point even after a
+ * potential bump.
+ */
+BoundingBoxBumper<fast_real_type, real_type> make_bumper(Tolerance<> const& tol)
+{
+    Tolerance<real_type> bbox_tol;
+    bbox_tol.rel = 2 * tol.rel;
+    bbox_tol.abs = 2 * tol.abs;
+    CELER_ENSURE(bbox_tol);
+    return BoundingBoxBumper<fast_real_type, real_type>(std::move(bbox_tol));
+}
+
+struct ForceMax
+{
+    size_type faces = std::numeric_limits<size_type>::max();
+    size_type intersections = std::numeric_limits<size_type>::max();
+};
+
+static char const mfi_hack_envname[] = "ORANGE_MAX_FACE_INTERSECT";
+
+//---------------------------------------------------------------------------//
+/*!
+ * Force maximum faces/intersections.
+ *
+ * This is if we know the "automatic" value is wrong, specifically if all
+ * complicated/background cells are unreachable.
+ *
+ * See https://github.com/celeritas-project/celeritas/issues/1334 .
+ */
+ForceMax const& forced_scalar_max()
+{
+    static ForceMax const result = [] {
+        std::string mfi = celeritas::getenv(mfi_hack_envname);
+        if (mfi.empty())
+        {
+            return ForceMax{};
+        }
+        CELER_LOG(warning)
+            << "Using a temporary, unsupported, and dangerous hack to "
+               "override maximum faces and intersections in ORANGE: "
+            << mfi_hack_envname << "='" << mfi << "'";
+
+        ForceMax result;
+        static std::regex const mfi_regex{R"re(^(\d+),(\d+)$)re"};
+        std::smatch mfi_match;
+        CELER_VALIDATE(std::regex_match(mfi, mfi_match, mfi_regex),
+                       << "invalid pattern for " << mfi_hack_envname);
+        auto get = [](char const* type, auto const& submatch) {
+            auto&& s = submatch.str();
+            auto updated = std::stoi(s);
+            CELER_VALIDATE(updated > 0,
+                           << "invalid maximum " << type << ": " << updated);
+            CELER_LOG(warning)
+                << "Forcing maximum " << type << " to " << updated;
+            return static_cast<size_type>(updated);
+        };
+        result.faces = get("faces", mfi_match[0]);
+        result.intersections = get("intersections", mfi_match[1]);
+        return result;
+    }();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -183,7 +254,9 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , surface_types_{&orange_data_->surface_types}
     , connectivity_records_{&orange_data_->connectivity_records}
     , volume_records_{&orange_data_->volume_records}
+    , obz_records_{&orange_data_->obz_records}
     , daughters_{&orange_data_->daughters}
+    , calc_bumped_(make_bumper(orange_data_->scalars.tol))
 {
     CELER_EXPECT(orange_data);
     CELER_EXPECT(orange_data->scalars.tol);
@@ -208,19 +281,6 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     // Insert surfaces
     unit.surfaces = this->build_surfaces_(inp.surfaces);
 
-    // Bounding box bumper and converter *to* fast real type *from* regular
-    // real type: conservatively expand to twice the potential bump distance
-    // from a boundary so that the bbox will enclose the point even after a
-    // potential bump
-    BoundingBoxBumper<fast_real_type, real_type> calc_bumped{
-        [&tol = orange_data_->scalars.tol] {
-            Tolerance<real_type> bbox_tol;
-            bbox_tol.rel = 2 * tol.rel;
-            bbox_tol.abs = 2 * tol.abs;
-            CELER_ENSURE(bbox_tol);
-            return bbox_tol;
-        }()};
-
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
@@ -233,18 +293,24 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
-            bboxes.push_back(calc_bumped(inp.volumes[i].bbox));
+            bboxes.push_back(calc_bumped_(inp.volumes[i].bbox));
         }
         else
         {
             bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
         }
 
+        // Add oriented bounding zone record
+        if (inp.volumes[i].obz)
+        {
+            this->process_obz_record(&(vol_records[i]), inp.volumes[i].obz);
+        }
+
         // Add embedded universes
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
         {
-            process_daughter(&(vol_records[i]),
-                             inp.daughter_map.at(LocalVolumeId(i)));
+            this->process_daughter(&(vol_records[i]),
+                                   inp.daughter_map.at(LocalVolumeId(i)));
         }
 
         // Add connectivity for explicitly connected volumes
@@ -330,17 +396,19 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         max_intersections += visit_surface(NumIntersectionGetter{}, sid);
     }
 
+    static logic_int const nowhere_logic[] = {logic::ltrue, logic::lnot};
+
     auto input_logic = make_span(v.logic);
     if (v.zorder == ZOrder::background)
     {
         // "Background" volumes should not be explicitly reachable by logic or
         // BIH
-        static logic_int const nowhere_logic[] = {logic::ltrue, logic::lnot};
         CELER_EXPECT(std::equal(input_logic.begin(),
                                 input_logic.end(),
                                 std::begin(nowhere_logic),
                                 std::end(nowhere_logic)));
         CELER_EXPECT(!v.bbox);
+        CELER_EXPECT(!v.obz);
         CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
         // Rely on incoming flags for "simple_safety": false from .org.json,
         // maybe true if built from GDML
@@ -358,6 +426,23 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         output.flags |= VolumeRecord::Flags::simple_safety;
     }
 
+    if (output.max_intersections > forced_scalar_max().intersections
+        || output.faces.size() > forced_scalar_max().faces)
+    {
+        CELER_LOG(warning) << "Max intersections (" << output.max_intersections
+                           << ") and/or faces (" << output.faces.size()
+                           << ") exceed limits of '" << mfi_hack_envname
+                           << " in volume '" << v.label
+                           << "': replacing with unreachable volume";
+
+        output.faces = {};
+        output.logic = logic_ints_.insert_back(std::begin(nowhere_logic),
+                                               std::end(nowhere_logic));
+        output.max_intersections = 0;
+        output.flags = VolumeRecord::implicit_vol
+                       | VolumeRecord::Flags::simple_safety;
+    }
+
     // Calculate the maximum stack depth of the volume definition
     int max_depth = calc_max_depth(input_logic);
     CELER_VALIDATE(max_depth > 0,
@@ -371,6 +456,36 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
 
     return output;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process a single oriented bounding zone record.
+ */
+void UnitInserter::process_obz_record(VolumeRecord* vol_record,
+                                      OrientedBoundingZoneInput const& obz_input)
+{
+    CELER_EXPECT(obz_input);
+
+    OrientedBoundingZoneRecord obz_record;
+
+    // Set half widths
+    auto inner_hw = calc_half_widths(calc_bumped_(obz_input.inner));
+    auto outer_hw = calc_half_widths(calc_bumped_(obz_input.outer));
+    obz_record.half_widths = {inner_hw, outer_hw};
+
+    // Set offsets
+    auto inner_offset_id = insert_transform_(VariantTransform{
+        std::in_place_type<Translation>, calc_center(obz_input.inner)});
+    auto outer_offset_id = insert_transform_(VariantTransform{
+        std::in_place_type<Translation>, calc_center(obz_input.outer)});
+    obz_record.offset_ids = {inner_offset_id, outer_offset_id};
+
+    // Set transformation
+    obz_record.transform_id = obz_input.transform_id;
+
+    // Save the OBZ record to the volume record
+    vol_record->obz_id = obz_records_.push_back(obz_record);
 }
 
 //---------------------------------------------------------------------------//

@@ -16,6 +16,9 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Construct EM standard physics not implemented in Celeritas.
+ *
+ * \todo Remove muon physics from this constructor once it is fully supported
+ * in Celeritas.
  */
 class MuHadEmStandardPhysics : public G4VPhysicsConstructor
 {

@@ -37,8 +37,11 @@ class Copier
                   "Data is not trivially copyable");
 
   public:
-    explicit Copier(Span<T> dst) : dst_{dst} {};
-    Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {};
+    //! Construct with the destination and the class's memspace
+    explicit Copier(Span<T> dst) : dst_{dst} {}
+
+    //! Also construct with a stream ID to use for async copy
+    Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {}
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;
 
@@ -46,6 +49,31 @@ class Copier
     Span<T> dst_;
     StreamId stream_;
     static constexpr auto dstmem = M;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy a single value from device to host.
+ *
+ * The source of the data to copy is the function argument.
+ */
+template<class T>
+class ItemCopier
+{
+    static_assert(std::is_trivially_copyable<T>::value,
+                  "Data is not trivially copyable");
+
+  public:
+    //! Default constructor
+    ItemCopier() = default;
+
+    //! Also construct with a stream ID to use for async copy
+    explicit ItemCopier(StreamId stream) : stream_{stream} {}
+
+    inline T operator()(T const* src) const;
+
+  private:
+    StreamId stream_;
 };
 
 //---------------------------------------------------------------------------//
@@ -86,6 +114,26 @@ void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
         copy_bytes(
             dstmem, dst_.data(), srcmem, src.data(), src.size() * sizeof(T));
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy a value from device to host.
+ */
+template<class T>
+T ItemCopier<T>::operator()(T const* src) const
+{
+    T dst;
+    if (stream_)
+    {
+        copy_bytes(
+            MemSpace::host, &dst, MemSpace::device, src, sizeof(T), stream_);
+    }
+    else
+    {
+        copy_bytes(MemSpace::host, &dst, MemSpace::device, src, sizeof(T));
+    }
+    return dst;
 }
 
 //---------------------------------------------------------------------------//

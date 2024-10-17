@@ -169,42 +169,38 @@ CELER_DEFINE_QUANTITY_CMP(>=)
 //! Math operator for Quantity
 template<class U, class T, class T2>
 CELER_CONSTEXPR_FUNCTION auto
-operator+(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept -> decltype(auto)
+operator+(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() + rhs.value()};
 }
 
 template<class U, class T, class T2>
 CELER_CONSTEXPR_FUNCTION auto
-operator-(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept -> decltype(auto)
+operator-(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() - rhs.value()};
 }
 
 template<class U, class T>
-CELER_CONSTEXPR_FUNCTION auto
-operator-(Quantity<U, T> q) noexcept -> Quantity<U, T>
+CELER_CONSTEXPR_FUNCTION auto operator-(Quantity<U, T> q) noexcept
 {
     return Quantity<U, T>{-q.value()};
 }
 
 template<class U, class T, class T2>
-CELER_CONSTEXPR_FUNCTION auto
-operator*(Quantity<U, T> lhs, T2 rhs) noexcept -> decltype(auto)
+CELER_CONSTEXPR_FUNCTION auto operator*(Quantity<U, T> lhs, T2 rhs) noexcept
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() * rhs};
 }
 
 template<class T, class U, class T2>
-CELER_CONSTEXPR_FUNCTION auto
-operator*(T rhs, Quantity<U, T2> lhs) noexcept -> decltype(auto)
+CELER_CONSTEXPR_FUNCTION auto operator*(T rhs, Quantity<U, T2> lhs) noexcept
 {
     return Quantity<U, std::common_type_t<T, T2>>{rhs * lhs.value()};
 }
 
 template<class U, class T, class T2>
-CELER_CONSTEXPR_FUNCTION auto
-operator/(Quantity<U, T> lhs, T2 rhs) noexcept -> decltype(auto)
+CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs) noexcept
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() / rhs};
 }
@@ -264,7 +260,7 @@ swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
  */
 template<class UnitT, class ValueT>
 CELER_CONSTEXPR_FUNCTION auto
-native_value_from(Quantity<UnitT, ValueT> quant) noexcept -> decltype(auto)
+native_value_from(Quantity<UnitT, ValueT> quant) noexcept
 {
     return quant.value() * UnitT::value();
 }
@@ -313,7 +309,7 @@ value_as(Quantity<SrcUnitT, ValueT> quant) noexcept -> ValueT
  *
  * Example:
  * \code
-   cout << accessor_unit_label<&ParticleView::mass>() << endl;
+   cout << accessor_unit_label<decltype(&ParticleView::mass)>() << endl;
    \endcode
  */
 template<class T>

@@ -17,6 +17,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/ExceptionConverter.hh"
@@ -48,6 +49,9 @@ GlobalSetup* GlobalSetup::Instance()
 //---------------------------------------------------------------------------//
 /*!
  * Set configurable properties from the UI.
+ *
+ * \deprecated Macro support for celer-g4 is deprecated: it will only take JSON
+ * in the future.
  */
 GlobalSetup::GlobalSetup()
 {
@@ -129,6 +133,30 @@ void GlobalSetup::ReadInput(std::string const& filename)
         CELER_ASSERT(instream);
         nlohmann::json::parse(*instream).get_to(input_);
 
+        if (input_.cuda_stack_size != RunInput::unspecified)
+        {
+            options_->cuda_stack_size = input_.cuda_stack_size;
+        }
+        if (input_.cuda_heap_size != RunInput::unspecified)
+        {
+            options_->cuda_heap_size = input_.cuda_heap_size;
+        }
+        celeritas::environment().merge(input_.environ);
+
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
+            auto const& filename = celeritas::getenv(fi_hack_envname);
+            if (!filename.empty())
+            {
+                CELER_LOG(warning)
+                    << "Using a temporary, unsupported, and dangerous hack to "
+                       "override the ORANGE geometry file: "
+                    << fi_hack_envname << "='" << filename << "'";
+                options_->geometry_file = filename;
+            }
+        }
+
         // Output options
         options_->output_file = input_.output_file;
         options_->physics_output_file = input_.physics_output_file;
@@ -154,13 +182,16 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->max_steps = input_.max_steps;
         options_->initializer_capacity = input_.initializer_capacity;
         options_->secondary_stack_factor = input_.secondary_stack_factor;
+        options_->auto_flush = input_.auto_flush;
+
+        options_->max_field_substeps = input_.field_options.max_substeps;
+
         options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
-        options_->cuda_stack_size = input_.cuda_stack_size;
-        options_->cuda_heap_size = input_.cuda_heap_size;
+        options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
+
         options_->action_times = input_.action_times;
         options_->default_stream = input_.default_stream;
-        options_->auto_flush = input_.auto_flush;
-        options_->max_field_substeps = input_.field_options.max_substeps;
+        options_->track_order = input_.track_order;
     }
     else if (ends_with(filename, ".mac"))
     {

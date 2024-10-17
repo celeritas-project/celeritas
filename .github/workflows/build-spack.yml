@@ -132,6 +132,7 @@ jobs:
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
       - name: Build all
+        id: build
         working-directory: build
         continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
@@ -141,27 +142,38 @@ jobs:
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
-      - name: Run tests
-        id: test
-        working-directory: build
-        continue-on-error: ${{fromJSON(matrix.geant) < 11}} # TODO: fix failing tests
+      - name: Run unit tests
+        id: unittest
+        if: ${{matrix.special != 'clang-tidy'}}
+        continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
             # Note this is ignored for geant4, float, clhep
             export CELER_TEST_STRICT=1
           fi
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure
-      - name: Upload failed tests
-        if: ${{steps.test.outcome == 'failure'}}
+          ctest -LE app --preset=spack-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled()
+            && matrix.special != 'clang-tidy'
+            && steps.build.outcome == 'success'}}
+        continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
+        run: |
+          ctest -L app --preset=spack-app
+      - name: Upload test results
         uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+            && (!matrix.geant || fromJSON(matrix.geant) >= 11)
+          }}
         with:
-          name: failed-${{github.job}}-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          if-no-files-found: warn
-          retention-days: 3
-          path: |
-            build/**/*.out.json
-            build/Testing/Temporary/LastTest.log
-            build/Testing/Temporary/LastTestsFailed.log
+          name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
       - name: Check using build directory as install
         # TODO: ASAN requires flags downstream
         if: >-
@@ -172,10 +184,13 @@ jobs:
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
+        id: install
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
         working-directory: build
         run: |
           ninja install
       - name: Check installation
+        if: ${{steps.install.outcome == 'success'}}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant celer-dump-data \
@@ -185,9 +200,17 @@ jobs:
           ./bin/celer-sim --version
       - name: Build examples
         # TODO: ASAN requires flags downstream
+        env: 
+          CELER_DISABLE_ACCEL_EXAMPLES: >-
+            ${{
+              (   (matrix.special == 'minimal')
+               || (matrix.special == 'float')
+              ) && '1' || ''
+            }}
         if: >-
           ${{
             (matrix.special != 'asanlite')
+            && (matrix.special != 'clang-tidy')
           }}
         run: |
           . ${SPACK_VIEW}/rc

@@ -20,6 +20,7 @@
 #include "celeritas/phys/Primary.hh"
 
 #include "DiagnosticTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm3Base.hh"
@@ -37,7 +38,7 @@ namespace test
 class SimpleComptonDiagnosticTest : public SimpleTestBase,
                                     public DiagnosticTestBase
 {
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = MevEnergy{10.0};
@@ -52,7 +53,6 @@ class SimpleComptonDiagnosticTest : public SimpleTestBase,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
-            result[i].track_id = TrackId{i};
             result[i].particle_id = gamma;
         }
         return result;
@@ -80,7 +80,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         return result;
     }
 
-    VecPrimary make_primaries(size_type count) override
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = MevEnergy{10.0};
@@ -97,7 +97,6 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
-            result[i].track_id = TrackId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
@@ -154,55 +153,44 @@ TEST_F(TestEm3DiagnosticTest, host)
     if (this->is_ci_build()
         && std::string(celeritas_geant4_version) == "11.0.4")
     {
-        static char const* const expected_nonzero_action_keys[]
-            = {"annihil-2-gamma e+",
-               "brems-combined e+",
-               "brems-combined e-",
-               "conv-bethe-heitler gamma",
-               "eloss-range e+",
-               "eloss-range e-",
-               "geo-boundary e+",
-               "geo-boundary e-",
-               "geo-boundary gamma",
-               "ioni-moller-bhabha e+",
-               "ioni-moller-bhabha e-",
-               "msc-range e+",
-               "msc-range e-",
-               "photoel-livermore gamma",
-               "physics-integral-rejected e+",
-               "physics-integral-rejected e-",
-               "scat-klein-nishina gamma"};
+        static char const* const expected_nonzero_action_keys[] = {
+            "annihil-2-gamma e+",
+            "brems-combined e+",
+            "brems-combined e-",
+            "conv-bethe-heitler gamma",
+            "eloss-range e+",
+            "eloss-range e-",
+            "geo-boundary e+",
+            "geo-boundary e-",
+            "geo-boundary gamma",
+            "geo-propagation-limit e+",
+            "geo-propagation-limit e-",
+            "ioni-moller-bhabha e+",
+            "ioni-moller-bhabha e-",
+            "msc-range e+",
+            "msc-range e-",
+            "photoel-livermore gamma",
+            "physics-integral-rejected e+",
+            "physics-integral-rejected e-",
+            "scat-klein-nishina gamma",
+        };
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
         static size_type const expected_nonzero_action_counts[] = {
-            119u,
-            398u,
-            462u,
-            14u,
-            59u,
-            1002u,
-            277u,
-            294u,
-            1713u,
-            15u,
-            19u,
-            1204u,
-            1645u,
-            567u,
-            81u,
-            24u,
-            299u,
+            123u, 396u, 466u, 19u,   59u,   999u, 274u, 288u, 1751u, 21u,
+            12u,  15u,  20u,  1193u, 1597u, 562u, 82u,  21u,  294u,
         };
+
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
         static size_type const expected_steps[]
-            = {0u, 312u, 213u, 78u, 45u, 33u, 20u, 16u, 7u, 9u, 8u,
-               2u, 7u,   5u,   1u,  1u,  0u,  0u,  0u,  0u, 0u, 2u,
-               0u, 736u, 51u,  10u, 6u,  10u, 5u,  9u,  9u, 3u, 3u,
-               7u, 12u,  6u,   11u, 15u, 3u,  5u,  5u,  4u, 3u, 22u,
-               0u, 2u,   2u,   1u,  0u,  4u,  5u,  8u,  5u, 6u, 6u,
-               9u, 6u,   12u,  9u,  5u,  3u,  2u,  5u,  6u, 2u, 23u};
+            = {0u, 319u, 207u, 80u, 46u, 26u, 22u, 13u, 6u, 9u, 13u,
+               1u, 3u,   4u,   1u,  0u,  0u,  0u,  0u,  1u, 0u, 2u,
+               0u, 745u, 34u,  14u, 6u,  9u,  7u,  6u,  8u, 3u, 4u,
+               9u, 12u,  6u,   10u, 14u, 5u,  5u,  4u,  4u, 3u, 21u,
+               0u, 3u,   2u,   1u,  0u,  6u,  5u,  8u,  6u, 6u, 6u,
+               9u, 6u,   12u,  9u,  4u,  4u,  2u,  4u,  5u, 4u, 23u};
         EXPECT_VEC_EQ(expected_steps, result.steps);
     }
     else
@@ -220,20 +208,21 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     if (this->is_ci_build())
     {
         // Check action diagnostic results
-        static char const* const expected_nonzero_action_keys[]
-            = {"annihil-2-gamma e+",
-               "brems-combined e+",
-               "brems-combined e-",
-               "geo-boundary e+",
-               "geo-boundary e-",
-               "geo-boundary gamma",
-               "ioni-moller-bhabha e+",
-               "ioni-moller-bhabha e-",
-               "msc-range e+",
-               "msc-range e-",
-               "physics-integral-rejected e+",
-               "physics-integral-rejected e-",
-               "scat-klein-nishina gamma"};
+        static char const* const expected_nonzero_action_keys[] = {
+            "annihil-2-gamma e+",
+            "brems-combined e+",
+            "brems-combined e-",
+            "geo-boundary e+",
+            "geo-boundary e-",
+            "geo-boundary gamma",
+            "ioni-moller-bhabha e+",
+            "ioni-moller-bhabha e-",
+            "msc-range e+",
+            "msc-range e-",
+            "physics-integral-rejected e+",
+            "physics-integral-rejected e-",
+            "scat-klein-nishina gamma",
+        };
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
         static unsigned int const expected_nonzero_action_counts[] = {
@@ -249,7 +238,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0],[0,0,0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0],[0,0,0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0,0]]})json",
+            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0,0,0],[0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0,0,0,0]]})json",
             this->action_output());
         EXPECT_JSON_EQ(
             R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",

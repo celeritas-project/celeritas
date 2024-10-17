@@ -37,6 +37,7 @@ enum class Operation
     max,
     sum,
     prod,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -79,9 +80,9 @@ inline MPI_Op to_mpi(Operation op)
         case Operation::max:  return MPI_MAX;
         case Operation::sum:  return MPI_SUM;
         case Operation::prod: return MPI_PROD;
+        default: CELER_ASSERT_UNREACHABLE();
             // clang-format on
     }
-    CELER_ASSERT_UNREACHABLE();
 }
 #endif
 }  // namespace
@@ -119,7 +120,7 @@ void allreduce(MpiCommunicator const& comm,
     CELER_MPI_CALL(MPI_Allreduce(src.data(),
                                  dst.data(),
                                  dst.size(),
-                                 detail::MpiType<T>::get(),
+                                 detail::MpiType<T>::value,
                                  to_mpi(op),
                                  comm.mpi_comm()));
 }
@@ -139,7 +140,7 @@ void allreduce(MpiCommunicator const& comm,
     CELER_MPI_CALL(MPI_Allreduce(MPI_IN_PLACE,
                                  data.data(),
                                  data.size(),
-                                 detail::MpiType<T>::get(),
+                                 detail::MpiType<T>::value,
                                  to_mpi(op),
                                  comm.mpi_comm()));
 }

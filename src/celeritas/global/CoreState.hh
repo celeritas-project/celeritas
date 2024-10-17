@@ -18,7 +18,6 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/phys/Primary.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "CoreTrackData.hh"
@@ -38,7 +37,6 @@ class CoreStateInterface
     //!@{
     //! \name Type aliases
     using size_type = TrackSlotId::size_type;
-    using PrimaryRange = ItemRange<Primary>;
     //!@}
 
   public:
@@ -56,9 +54,6 @@ class CoreStateInterface
 
     //! Access auxiliary state data
     virtual AuxStateVec const& aux() const = 0;
-
-    // Inject primaries to be turned into TrackInitializers
-    virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
 
   protected:
     CoreStateInterface() = default;
@@ -86,7 +81,6 @@ class CoreState final : public CoreStateInterface
 
     using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
-    using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
     //!@}
 
   public:
@@ -95,14 +89,23 @@ class CoreState final : public CoreStateInterface
               StreamId stream_id,
               size_type num_track_slots);
 
+    // Default destructor
+    ~CoreState();
+
+    // Prevent move/copy
+    CELER_DELETE_COPY_MOVE(CoreState);
+
     //! Thread/stream ID
     StreamId stream_id() const final { return this->ref().stream_id; }
 
     //! Number of track slots
     size_type size() const final { return states_.size(); }
 
-    // Whether the state is being transported with no active particles
-    inline bool warming_up() const;
+    // Set a warmup flag
+    void warming_up(bool);
+
+    //! Whether the state is being transported with no active particles
+    bool warming_up() const { return warming_up_; }
 
     //// CORE DATA ////
 
@@ -126,20 +129,6 @@ class CoreState final : public CoreStateInterface
     //! Track initialization counters
     CoreStateCounters const& counters() const final { return counters_; }
 
-    //// PRIMARY STORAGE ////
-
-    // Inject primaries to be turned into TrackInitializers
-    void insert_primaries(Span<Primary const> host_primaries) final;
-
-    // Get the range of valid primaries
-    inline PrimaryRange primary_range() const;
-
-    // Get the storage for primaries
-    inline PrimaryCRef primary_storage() const;
-
-    //! Clear primaries after constructing initializers from them
-    void clear_primaries() { counters_.num_primaries = 0; }
-
     //// USER DATA ////
 
     //! Access auxiliary state data
@@ -153,6 +142,9 @@ class CoreState final : public CoreStateInterface
     inline StateRef<S>& aux_data(AuxId auxid);
 
     //// TRACK SORTING ////
+
+    //! Return whether tracks can be sorted by action
+    bool has_action_range() const { return !offsets_.empty(); }
 
     // Get a range of sorted track slots about to undergo a given action
     Range<ThreadId> get_action_range(ActionId action_id) const;
@@ -173,57 +165,21 @@ class CoreState final : public CoreStateInterface
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
 
-    // Native pointer to ref or
+    // Native pointer to ref data
     Ptr ptr_;
 
     // Counters for track initialization and activity
     CoreStateCounters counters_;
-
-    // Primaries to be added
-    Collection<Primary, Ownership::value, M> primaries_;
 
     // User-added data associated with params
     AuxStateVec aux_state_;
 
     // Indices of first thread assigned to a given action
     detail::CoreStateThreadOffsets<M> offsets_;
+
+    // Whether no primaries should be generated
+    bool warming_up_{false};
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the state is being transported with no active particles.
- *
- * The warmup stage is useful for profiling and debugging since the first
- * step iteration can do the following:
- * - Initialize asynchronous memory pools
- * - Interrogate kernel functions for properties to be output later
- * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
- */
-template<MemSpace M>
-bool CoreState<M>::warming_up() const
-{
-    return counters_.num_active == 0 && counters_.num_primaries == 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the range of valid primaries.
- */
-template<MemSpace M>
-auto CoreState<M>::primary_range() const -> PrimaryRange
-{
-    return {ItemId<Primary>(counters_.num_primaries)};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the range of valid primaries.
- */
-template<MemSpace M>
-auto CoreState<M>::primary_storage() const -> PrimaryCRef
-{
-    return PrimaryCRef{primaries_};
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -272,6 +228,13 @@ auto& CoreState<M>::native_action_thread_offsets()
 {
     return offsets_.native_action_thread_offsets();
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class CoreState<MemSpace::host>;
+extern template class CoreState<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

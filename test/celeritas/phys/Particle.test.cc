@@ -140,8 +140,9 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
         loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
     }
 
-    std::string const expected_loaded_names[] = {"gamma", "e-", "e+"};
-    int const expected_loaded_pdgs[] = {22, 11, -11};
+    std::string const expected_loaded_names[]
+        = {"gamma", "e-", "e+", "mu-", "mu+"};
+    int const expected_loaded_pdgs[] = {22, 11, -11, 13, -13};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
     EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);
@@ -182,6 +183,7 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_REAL_EQ(0.0, particle.decay_constant());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
+    EXPECT_REAL_EQ(1.0109989461, particle.total_energy().value());
     EXPECT_SOFT_EQ(0.74453076757415848, particle.beta_sq());
     EXPECT_SOFT_EQ(0.86286196322132447,
                    value_as<units::LightSpeed>(particle.speed()));
@@ -222,6 +224,7 @@ TEST_F(ParticleTestHost, gamma)
     EXPECT_REAL_EQ(10, particle.energy().value());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
+    EXPECT_REAL_EQ(10, particle.total_energy().value());
     EXPECT_REAL_EQ(1.0, particle.beta_sq());
     EXPECT_REAL_EQ(1.0, particle.speed().value());
     EXPECT_REAL_EQ(10, particle.momentum().value());

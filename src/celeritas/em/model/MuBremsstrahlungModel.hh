@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Set up and launch the Muon Bremsstrahlung model interaction.
  */
-class MuBremsstrahlungModel final : public Model, public ConcreteAction
+class MuBremsstrahlungModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{

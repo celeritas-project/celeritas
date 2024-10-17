@@ -11,7 +11,6 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/MpiCommunicator.hh"
 
 #include "celeritas_test.hh"
 

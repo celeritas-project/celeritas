@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -19,9 +20,14 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class MultiExceptionHandler;
+class OutputInterface;
+
 namespace app
 {
+class DetectorConstruction;
+
 //---------------------------------------------------------------------------//
 /*!
  * Diagnostics for Geant4 (i.e., for tracks not offloaded to Celeritas).
@@ -34,18 +40,23 @@ class GeantDiagnostics
   public:
     //!@{
     //! \name Type aliases
+    using SPConstOutput = std::shared_ptr<OutputInterface const>;
     using SPConstParams = std::shared_ptr<SharedParams const>;
+    using SPMultiExceptionHandler = std::shared_ptr<MultiExceptionHandler>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPStepDiagnostic = std::shared_ptr<GeantStepDiagnostic>;
     using SPTimerOutput = std::shared_ptr<TimerOutput>;
-    using SPMultiExceptionHandler = std::shared_ptr<MultiExceptionHandler>;
+    using VecOutputInterface = std::vector<SPConstOutput>;
     //!@}
 
   public:
+    // Add outputs to a queue *only from the main thread*
+    static void register_output(VecOutputInterface&&);
+
     // Construct in an uninitialized state
     GeantDiagnostics() = default;
 
-    // Construct from shared Celeritas params on the master thread
+    // Construct from shared Celeritas params and detectors
     explicit GeantDiagnostics(SharedParams const& params);
 
     // Initialize diagnostics on the master thread
@@ -73,6 +84,8 @@ class GeantDiagnostics
     SPStepDiagnostic step_diagnostic_;
     SPTimerOutput timer_output_;
     SPMultiExceptionHandler meh_;
+
+    static VecOutputInterface& queued_output();
 };
 
 //---------------------------------------------------------------------------//

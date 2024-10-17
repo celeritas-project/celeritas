@@ -99,7 +99,7 @@ class GlobalSetup
     bool root_sd_io() const { return root_sd_io_; }
 
     //! Get HepMC3 primary generator
-    SPPrimaryGenerator hepmc_gen() const { return hepmc_gen_; }
+    SPPrimaryGenerator const& hepmc_gen() const { return hepmc_gen_; }
 
   private:
     // Private constructor since we're a singleton
@@ -108,7 +108,7 @@ class GlobalSetup
 
     // Data
     std::shared_ptr<SetupOptions> options_;
-    std::shared_ptr<HepMC3PrimaryGenerator> hepmc_gen_;
+    SPPrimaryGenerator hepmc_gen_;
     RunInput input_;
     Stopwatch get_setup_time_;
     bool root_sd_io_{false};

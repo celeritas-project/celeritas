@@ -48,7 +48,7 @@ endif()
 celeritas_get_g4libs(_g4_private digits_hits run)
 list(APPEND PRIVATE_DEPS ${_g4_private})
 
-celeritas_get_g4libs(_g4_public event global track tracking intercoms geometry)
+celeritas_get_g4libs(_g4_public event intercoms geometry global track tracking)
 list(APPEND PUBLIC_DEPS ${_g4_public})
 
 #-----------------------------------------------------------------------------#

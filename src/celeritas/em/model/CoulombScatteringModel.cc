@@ -37,7 +37,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                                                ParticleParams const& particles,
                                                MaterialParams const& materials,
                                                SPConstImported data)
-    : ConcreteAction(
+    : StaticConcreteAction(
           id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
     , imported_(data,
                 particles,
@@ -50,16 +50,20 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.positron = particles.find(pdg::positron());
 
-    CELER_VALIDATE(data_.ids,
-                   << "missing electron and/or positron particles (required "
-                      "for "
-                   << this->description() << ")");
+    CELER_VALIDATE(
+        data_.ids,
+        << R"(missing electron and/or positron particles (required for )"
+        << this->description() << ")");
 
     // Get high/low energy limits
     energy_limit_
         = imported_.energy_grid_bounds(data_.ids.electron, MaterialId{0});
 
     // Check that the bounds are the same for all particles/materials
+    // TODO: This is only expected when using Coulomb scattering with the
+    // Wentzel VI model above the MSC energy limit. When the MSC energy limit
+    // is not set, the model energy grid bounds are material dependent and
+    // require material-dependent applicability
     for (auto pid : {data_.ids.electron, data_.ids.positron})
     {
         for (auto mid : range(MaterialId{materials.num_materials()}))

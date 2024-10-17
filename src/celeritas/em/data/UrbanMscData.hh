@@ -39,13 +39,13 @@ struct UrbanMscParameters
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 
-    //! A scale factor for the range
-    static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
+    //! Fraction of the range below which a step is assumed constant xs
+    static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 0.05; }
 
     //! The minimum value of the true path length limit: 0.01 nm
     static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
     {
-        return 1e-9 * units::centimeter;
+        return real_type(0.01) * units::nanometer;
     }
 
     //! Minimum true path when not calculated in the step limiting
@@ -57,7 +57,7 @@ struct UrbanMscParameters
     //! For steps below this value, true = geometrical (no MSC to be applied)
     static CELER_CONSTEXPR_FUNCTION real_type min_step()
     {
-        return 100 * limit_min_fix();
+        return 1 * units::nanometer;
     }
 
     //! Below this endpoint energy, don't sample scattering: 1 eV

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <matrix name="RI" coldim="2" values="1.8785e-06 1.2221243542166 1.0597e-05 1.6167515615703"/>
+    <matrix name="RAY" coldim="2" values="1.55e-06 321429 1.55e-05 546.429"/>
+    <matrix name="ABS" coldim="2" values="1.3778e-06 864.473 1.55e-05 0.00296154"/>
+  </define>
+
+  <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H"/>
+    </material>
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <material name="lAr" state="liquid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="188"/>
+      <D unit="g/cm3" value="1.396"/>
+      <fraction n="1" ref="Ar"/>
+      <property name="RINDEX" ref="RI"/>
+      <property name="RAYLEIGH" ref="RAY"/>
+      <property name="ABSLENGTH" ref="ABS"/>
+    </material>
+    <material name="lAr_unused" state="liquid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="188"/>
+      <D unit="g/cm3" value="1.396"/>
+      <fraction n="1" ref="Ar"/>
+    </material>
+  </materials>
+
+  <solids>
+    <sphere lunit="cm" name="sphere" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="world_sphere" rmin="0.0" rmax="1000.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+  </solids>
+
+  <structure>
+    <volume name="sphere">
+      <solidref ref="sphere"/>
+      <materialref ref="lAr"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="world_sphere"/>
+      <materialref ref="vacuum"/>
+      <physvol>
+        <volumeref ref="sphere"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

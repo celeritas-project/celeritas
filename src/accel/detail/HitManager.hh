@@ -24,9 +24,9 @@ class ParticleParams;
 
 namespace detail
 {
-class HitProcessor;
 //---------------------------------------------------------------------------//
 
+class HitProcessor;
 //---------------------------------------------------------------------------//
 /*!
  * Manage the conversion of hits from Celeritas to Geant4.
@@ -52,6 +52,7 @@ class HitManager final : public StepInterface
     using StepStateDeviceRef = DeviceRef<StepStateData>;
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
+    using SPProcessor = std::shared_ptr<HitProcessor>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}
@@ -62,6 +63,9 @@ class HitManager final : public StepInterface
                ParticleParams const& par,
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
+
+    // Create local hit processor
+    SPProcessor make_local_processor(StreamId sid);
 
     // Default destructor
     ~HitManager();
@@ -77,9 +81,6 @@ class HitManager final : public StepInterface
 
     // Process device-generated hits
     void process_steps(DeviceStepState) final;
-
-    // Destroy local data to avoid Geant4 crashes
-    void finalize(StreamId sid);
 
     //// ACCESSORS ////
 
@@ -104,7 +105,8 @@ class HitManager final : public StepInterface
     StepSelection selection_;
     bool locate_touchable_{};
 
-    std::vector<std::unique_ptr<HitProcessor>> processors_;
+    std::vector<std::weak_ptr<HitProcessor>> processor_weakptrs_;
+    std::vector<HitProcessor*> processors_;
 
     // Construct vecgeom/geant volumes
     void setup_volumes(GeoParams const& geo, SDSetupOptions const& setup);

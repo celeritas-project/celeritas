@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/InitializedValue.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -24,9 +23,10 @@ class G4Track;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 namespace detail
 {
-class HitManager;
+class HitProcessor;
 class OffloadWriter;
 }  // namespace detail
 
@@ -37,12 +37,17 @@ class SharedParams;
 /*!
  * Manage offloading of tracks to Celeritas.
  *
- * This class must be constructed locally on each worker thread/task/stream,
- * usually as a shared pointer that's accessible to:
+ * This class \em must be constructed locally on each worker
+ * thread/task/stream, usually as a shared pointer that's accessible to:
  * - a run action (for initialization),
  * - an event action (to set the event ID and flush offloaded tracks at the end
  *   of the event)
  * - a tracking action (to try offloading every track)
+ *
+ * \warning Due to Geant4 thread-local allocators, this class \em must be
+ * finalized or destroyed on the same CPU thread in which is created and used!
+ *
+ * \todo Rename \c LocalOffload or something?
  */
 class LocalTransporter
 {
@@ -57,11 +62,10 @@ class LocalTransporter
     LocalTransporter() = default;
 
     // Initialized with shared (across threads) params
-    LocalTransporter(SetupOptions const& options, SharedParams const& params);
+    LocalTransporter(SetupOptions const& options, SharedParams& params);
 
     // Alternative to construction + move assignment
-    inline void
-    Initialize(SetupOptions const& options, SharedParams const& params);
+    inline void Initialize(SetupOptions const& options, SharedParams& params);
 
     // Set the event ID and reseed the Celeritas RNG (remove in v1.0)
     [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
@@ -88,29 +92,20 @@ class LocalTransporter
     explicit operator bool() const { return static_cast<bool>(step_); }
 
   private:
-    using SPHitManger = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
-
-    struct HMFinalizer
-    {
-        StreamId sid;
-        void operator()(SPHitManger& hm) const;
-    };
 
     std::shared_ptr<ParticleParams const> particles_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
+    std::shared_ptr<detail::HitProcessor> hit_processor_;
 
-    EventId event_id_;
-    TrackId::size_type track_counter_{};
+    UniqueEventId event_id_;
 
     size_type auto_flush_{};
     size_type max_steps_{};
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
-    // Shared pointer across threads, "finalize" called when clearing
-    InitializedValue<SPHitManger, HMFinalizer> hit_manager_;
 };
 
 //---------------------------------------------------------------------------//
@@ -121,7 +116,7 @@ class LocalTransporter
  * exception-friendly destructor.
  */
 void LocalTransporter::Initialize(SetupOptions const& options,
-                                  SharedParams const& params)
+                                  SharedParams& params)
 {
     *this = LocalTransporter(options, params);
 }

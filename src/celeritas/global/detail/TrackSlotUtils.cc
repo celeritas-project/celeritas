@@ -24,8 +24,7 @@ void shuffle_track_slots(
     StreamId)
 {
     CELER_EXPECT(track_slots);
-    auto* start
-        = static_cast<TrackSlotId::size_type*>(track_slots->data().get());
+    auto* start = track_slots->data().get();
     auto seed = static_cast<unsigned int>(track_slots->size());
     std::mt19937 g{seed};
     std::shuffle(start, start + track_slots->size(), g);

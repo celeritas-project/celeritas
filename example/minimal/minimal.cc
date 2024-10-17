@@ -12,7 +12,6 @@
 #include <corecel/io/Logger.hh>
 #include <corecel/math/Quantity.hh>
 #include <corecel/sys/Device.hh>
-#include <corecel/sys/MpiCommunicator.hh>
 #include <corecel/sys/ScopedMpiInit.hh>
 
 using celeritas::ParticleParams;
@@ -50,18 +49,11 @@ std::shared_ptr<ParticleParams> make_particles()
 
 int main(int argc, char* argv[])
 {
-    using celeritas::MpiCommunicator;
-    using celeritas::ScopedMpiInit;
-
     // Initialize MPI
-    ScopedMpiInit scoped_mpi(&argc, &argv);
-    MpiCommunicator comm
-        = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-               ? MpiCommunicator{}
-               : MpiCommunicator::comm_world());
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
 
     // Initialize GPU
-    celeritas::activate_device(comm);
+    celeritas::activate_device();
 
     // Create particle definitions (copies to GPU if available)
     auto particles = make_particles();
@@ -69,6 +61,7 @@ int main(int argc, char* argv[])
     // Find the identifier for a neutron and make sure it exists
     celeritas::ParticleId pid = particles->find(PDGNumber{2112});
     CELER_ASSERT(pid);
+
     // Get a particle "view" with properties about the neutron
     auto neutron = particles->get(pid);
     CELER_LOG(info) << "Neutron has a mass of "
@@ -77,5 +70,6 @@ int main(int argc, char* argv[])
     CELER_LOG(info) << "Its decay constant is " << neutron.decay_constant()
                     << " /s";
     CELER_LOG(info) << "This example doesn't do anything useful! Sorry!";
+
     return 0;
 }

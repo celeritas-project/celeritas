@@ -55,7 +55,6 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         for (auto i : range(num_tracks))
         {
             primaries[i].event_id = EventId{i};
-            primaries[i].track_id = TrackId{i};
         }
 
         // Construct track initializers
@@ -186,20 +185,35 @@ void AlongStepTestBase::execute_action(std::string const& label,
 
     auto action_id = areg.find_action(label);
     CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-    auto const* expl_action = dynamic_cast<CoreStepActionInterface const*>(
+    auto const* step_action = dynamic_cast<CoreStepActionInterface const*>(
         areg.action(action_id).get());
-    CELER_VALIDATE(expl_action, << "action '" << label << "' cannot execute");
-    CELER_TRY_HANDLE(expl_action->step(*this->core(), *state),
+    CELER_VALIDATE(step_action, << "action '" << label << "' cannot execute");
+    return this->execute_action(*step_action, state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Look up the given action and apply it to the state.
+ */
+void AlongStepTestBase::execute_action(CoreStepActionInterface const& action,
+                                       CoreState<MemSpace::host>* state) const
+{
+    CELER_EXPECT(state);
+    CELER_TRY_HANDLE(action.step(*this->core(), *state),
                      LogContextException{this->output_reg().get()});
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Inject primaries into the state.
+ */
 void AlongStepTestBase::extend_from_primaries(Span<Primary const> primaries,
                                               CoreState<MemSpace::host>* state)
 {
     CELER_EXPECT(state);
-    state->insert_primaries(primaries);
-    this->execute_action("extend-from-primaries", state);
+
+    this->insert_primaries(*state, primaries);
+    this->execute_action(*this->primaries_action(), state);
 }
 
 //---------------------------------------------------------------------------//

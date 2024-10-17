@@ -14,6 +14,8 @@
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/process/MuBremsstrahlungProcess.hh"
+#include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -565,6 +567,101 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
+        }
+    }
+}
+
+TEST_F(ProcessBuilderTest, mu_ionization)
+{
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+
+    // Create process
+    auto process = build_process(IPC::mu_ioni);
+    EXPECT_PROCESS_TYPE(MuIonizationProcess, process.get());
+
+    // Test model
+    auto models = process->build_models(ActionIdIter{});
+    // Note that newer versions of Geant4 use the \c G4MuBetheBloch model for
+    // all energies above 200 so will only have three models
+    ASSERT_EQ(4, models.size());
+    ASSERT_TRUE(models[0]);
+    EXPECT_EQ("ioni-icru73qo", models[0]->label());
+    EXPECT_EQ(1, models[0]->applicability().size());
+    ASSERT_TRUE(models[1]);
+    EXPECT_EQ("ioni-bragg", models[1]->label());
+    EXPECT_EQ(1, models[1]->applicability().size());
+    ASSERT_TRUE(models[2]);
+    EXPECT_EQ("ioni-bethe-bloch", models[2]->label());
+    EXPECT_EQ(2, models[2]->applicability().size());
+    ASSERT_TRUE(models[3]);
+    EXPECT_EQ("ioni-mu-bethe-bloch", models[3]->label());
+    auto all_applic = models[3]->applicability();
+    ASSERT_EQ(2, all_applic.size());
+
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    {
+        for (auto applic : all_applic)
+        {
+            // Test step limits
+            {
+                applic.material = mat_id;
+                auto builders = process->step_limits(applic);
+                EXPECT_TRUE(builders[VGT::macro_xs]);
+                EXPECT_TRUE(builders[VGT::energy_loss]);
+                EXPECT_TRUE(builders[VGT::range]);
+            }
+
+            // Test micro xs
+            for (auto const& model : models)
+            {
+                auto builders = model->micro_xs(applic);
+                EXPECT_TRUE(builders.empty());
+            }
+        }
+    }
+}
+
+TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
+{
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+
+    // Create process
+    auto process = build_process(IPC::mu_brems);
+    EXPECT_PROCESS_TYPE(MuBremsstrahlungProcess, process.get());
+
+    // Test model
+    auto models = process->build_models(ActionIdIter{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("brems-muon", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(2, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    {
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            // Only the ionization process has energy loss and range tables.
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (auto const& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            auto material = this->material()->get(mat_id);
+            EXPECT_EQ(material.num_elements(), builders.size());
+            for (auto elcomp_idx : range(material.num_elements()))
+            {
+                EXPECT_TRUE(builders[elcomp_idx]);
+            }
         }
     }
 }

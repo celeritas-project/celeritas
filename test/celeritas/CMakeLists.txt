@@ -88,7 +88,7 @@ celeritas_add_test_library(testcel_celeritas
   user/DiagnosticTestBase.cc
   user/ExampleMctruth.cc
   user/MctruthTestBase.cc
-  user/StepCollectorTestBase.cc
+  user/SimpleLoopTestBase.cc
 )
 
 celeritas_target_link_libraries(testcel_celeritas
@@ -123,11 +123,17 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 #-----------------------------------------------------------------------------#
 # EM
-celeritas_add_test(em/Fluctuation.test.cc ${_fixme_single})
-celeritas_add_test(em/TsaiUrbanDistribution.test.cc ${_needs_double})
+
+# Distributions
+celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
+celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
+
+# Cross section calculation
+celeritas_add_test(em/xs/NuclearFormFactors.test.cc)
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
+celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
 celeritas_add_test(em/CombinedBrem.test.cc ${_needs_double})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
@@ -154,6 +160,7 @@ set(_import_filter
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "LarSphere.*"
+  "LarSphereExtramat.*"
   "Solids.*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
@@ -293,6 +300,7 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Optical
 celeritas_add_test(optical/Cerenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
+celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
@@ -390,6 +398,10 @@ celeritas_add_test(user/Diagnostic.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}
   FILTER ${_diagnostic_filter}
 )
+celeritas_add_test(user/SlotDiagnostic.test.cc
+  GPU NT 1 ${_needs_geant4} ${_needs_double}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
+)
 celeritas_add_test(user/StepCollector.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fixme_single}
 )
@@ -400,7 +412,7 @@ celeritas_add_test(user/StepCollector.test.cc
 
 set(_root_data)
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
-  foreach(_filename "four-steel-slabs" "simple-cms")
+  foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")
@@ -417,6 +429,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "${_gdml}"
         "${_basename}.geant.json"
         "${_output}"
+        "--gen-test"
       VERBATIM
     )
     list(APPEND _root_data "${_output}")

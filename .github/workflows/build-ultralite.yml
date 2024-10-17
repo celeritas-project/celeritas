@@ -8,10 +8,6 @@ concurrency:
   group: build-ultralite-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
-# env:
-#   CCACHE_DEBUG: 1
-#   CCACHE_DEBUGDIR: ${{github.workspace}}/ccache-debug
-
 jobs:
   linux:
     name: ultralite-ubuntu
@@ -45,14 +41,15 @@ jobs:
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
-      - name: Build all
+      - name: Build
+        id: build
         working-directory: build
         run: |
           ninja
       - name: Run tests
-        working-directory: build
+        id: test
         run: |
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure 
+          ctest --preset=${CMAKE_PRESET} 
       - name: Install
         working-directory: build
         run: |
@@ -73,6 +70,19 @@ jobs:
           name: ccache-debug-${{github.job}}
           overwrite: true
           retention-days: 7
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
+        with:
+          name: test-results-ultralite-ubuntu
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
   windows:
     name: ultralite-windows
     env:
@@ -110,9 +120,9 @@ jobs:
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
       - name: Test all
-        continue-on-error: true
+        id: test
         run: |
-          ctest --preset=$Env:CMAKE_PRESET 
+          ctest --preset=$Env:CMAKE_PRESET
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |
@@ -125,5 +135,18 @@ jobs:
           name: ccache-debug-${{github.job}}
           overwrite: true
           retention-days: 7
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
+        with:
+          name: test-results-ultralite-windows
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
 
 # vim: set nowrap tw=100:

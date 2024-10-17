@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include "corecel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -20,6 +23,7 @@ namespace celeritas
 template<MemSpace>
 class CoreState;
 struct Primary;
+class ExtendFromPrimariesAction;
 
 namespace test
 {
@@ -77,6 +81,12 @@ class AlongStepTestBase : virtual public GlobalTestBase
 
     void
     execute_action(std::string const& label, CoreState<MemSpace::host>* state);
+
+    void execute_action(CoreStepActionInterface const& action,
+                        CoreState<MemSpace::host>* state) const;
+
+    // Primary initialization
+    std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
 };
 
 //---------------------------------------------------------------------------//

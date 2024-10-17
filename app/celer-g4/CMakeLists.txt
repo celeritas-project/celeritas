@@ -89,7 +89,7 @@ if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   set(_props DISABLED true)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  # FIXME: geant4 navigator doesn't work at scale
+  # FIXME: geant4 navigator doesn't work at scale, nor through accel
   set(_props DISABLED true)
 endif()
 if(CELERITAS_REAL_TYPE STREQUAL "float")
@@ -108,7 +108,7 @@ function(celer_app_test ext)
     if(CELER_DISABLE_DEVICE)
       list(APPEND _extra_props DISABLED true)
     endif()
-  elseif(ext STREQUAL "cpu")
+  elseif(ext MATCHES "^cpu")
     list(APPEND _extra_env "CELER_DISABLE_DEVICE=1")
   else()
     list(APPEND _extra_env "CELER_DISABLE=1")
@@ -130,6 +130,7 @@ endfunction()
 
 celer_app_test("gpu")
 celer_app_test("cpu")
+celer_app_test("cpu-nonfatal")
 celer_app_test("none")
 
 #-----------------------------------------------------------------------------#

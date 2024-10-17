@@ -11,42 +11,108 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/random/RngReseed.hh"
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "ActionSequence.hh"
 #include "CoreParams.hh"
 
-#include "detail/ActionSequence.hh"
+#include "detail/KillActive.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Call a function when this object is destroyed (at end of scope).
+ */
+template<class F>
+class ScopeExit
+{
+  public:
+    //! Construct with functor
+    ScopeExit(F func) : func_{std::forward<F>(func)} {}
+
+    //! Call functor on destruction
+    ~ScopeExit() { func_(); }
+
+    CELER_DELETE_COPY_MOVE(ScopeExit);
+
+  private:
+    F func_;
+};
+
+template<class F>
+ScopeExit(F&& func) -> ScopeExit<F>;
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+StepperInterface::~StepperInterface() = default;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with problem parameters and setup options.
  */
 template<MemSpace M>
 Stepper<M>::Stepper(Input input)
-    : params_(std::move(input.params))
-    , state_(*params_, input.stream_id, input.num_track_slots)
-    , actions_{[&] {
-        ActionSequence::Options opts;
+    : params_(std::move(input.params)), actions_{[&] {
+        ActionSequenceT::Options opts;
         opts.action_times = input.action_times;
-        return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
+        return std::make_shared<ActionSequenceT>(*params_->action_reg(), opts);
     }()}
 {
+    // Save primary action: TODO this is a hack and should be refactored so
+    // that we pass generators into the stepper and eliminate the call
+    // signature with primaries
+    primaries_action_ = ExtendFromPrimariesAction::find_action(*params_);
+    CELER_VALIDATE(primaries_action_,
+                   << "primary generator was not added to the stepping loop");
+
+    // Create state, including aux data
+    state_ = std::make_shared<CoreState<M>>(
+        *params_, input.stream_id, input.num_track_slots);
+
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
-    actions_->begin_run(*params_, state_);
+    actions_->begin_run(*params_, *state_);
 }
 
 //---------------------------------------------------------------------------//
 //! Default destructor
 template<MemSpace M>
 Stepper<M>::~Stepper() = default;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Run all step actions with no active particles.
+ *
+ * The warmup stage is useful for profiling and debugging since the first
+ * step iteration can do the following:
+ * - Initialize asynchronous memory pools
+ * - Interrogate kernel functions for properties to be output later
+ * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
+ */
+template<MemSpace M>
+void Stepper<M>::warm_up()
+{
+    CELER_VALIDATE(state_->counters().num_active == 0,
+                   << "cannot warm up when state has active tracks");
+
+    ScopedProfiling profile_this{"warmup"};
+    state_->warming_up(true);
+    ScopeExit on_exit_{[this] { state_->warming_up(false); }};
+    actions_->step(*params_, *state_);
+    CELER_ENSURE(state_->counters().num_active == 0);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -59,13 +125,16 @@ template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
     ScopedProfiling profile_this{"step"};
-    actions_->step(*params_, state_);
+    auto& counters = state_->counters();
+    counters.num_generated = 0;
+    actions_->step(*params_, *state_);
 
     // Get the number of track initializers and active tracks
     result_type result;
-    result.active = state_.counters().num_active;
-    result.alive = state_.counters().num_alive;
-    result.queued = state_.counters().num_initializers;
+    result.generated = counters.num_generated;
+    result.active = counters.num_active;
+    result.alive = counters.num_alive;
+    result.queued = counters.num_initializers;
 
     return result;
 }
@@ -78,14 +147,7 @@ template<MemSpace M>
 auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 {
     CELER_EXPECT(!primaries.empty());
-
-    // Check initializer capacity
-    size_type num_initializers = state_.counters().num_initializers;
-    size_type init_capacity = this->state_ref().init.initializers.size();
-    CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
-                   << "insufficient initializer capacity (" << init_capacity
-                   << ") with size (" << num_initializers
-                   << ") for primaries (" << primaries.size() << ")");
+    CELER_EXPECT(primaries_action_);
 
     // Check that events are consistent with our 'max events'
     auto max_id
@@ -94,28 +156,48 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                            [](Primary const& left, Primary const& right) {
                                return left.event_id < right.event_id;
                            });
+    CELER_ASSERT(max_id->event_id);
     CELER_VALIDATE(max_id->event_id < params_->init()->max_events(),
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    CELER_ASSERT(state_.primary_range().empty());
-    state_.insert_primaries(primaries);
+    primaries_action_->insert(*params_, *state_, primaries);
 
     return (*this)();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Reseed the RNGs at the start of an event for "strong" reproducibility.
+ * Kill all tracks in flight to debug "stuck" tracks.
+ *
+ * The next "step" will apply the tracking cut and (if CPU) print diagnostic
+ * output about the failed tracks.
+ */
+template<MemSpace M>
+void Stepper<M>::kill_active()
+{
+    CELER_LOG_LOCAL(error) << "Killing " << state_->counters().num_active
+                           << " active tracks";
+    detail::kill_active(*params_, *state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reseed RNGs and counters at the start of an event for reproducibility.
  *
  * This reinitializes the RNG states using a single seed and unique subsequence
- * for each thread. It ensures that given an event number, that event can be
+ * for each thread. It ensures that given an event identification, the random
+ * number sequence for the event (and thus the event's behavior) can be
  * reproduced.
  */
 template<MemSpace M>
-void Stepper<M>::reseed(EventId event_id)
+void Stepper<M>::reseed(UniqueEventId event_id)
 {
-    reseed_rng(get_ref<M>(*params_->rng()), state_.ref().rng, event_id.get());
+    reseed_rng(get_ref<M>(*params_->rng()),
+               state_->ref().rng,
+               state_->stream_id(),
+               event_id);
+    params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
 }
 
 //---------------------------------------------------------------------------//

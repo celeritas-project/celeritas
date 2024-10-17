@@ -9,20 +9,25 @@
 
 #include "MpiCommunicator.hh"
 
-#include "detail/MpiCommunicatorImpl.hh"
 #include "detail/MpiCommunicatorImpl.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Abstraction of an MPI communicator.
+ * Wrap an MPI communicator.
+ *
+ * This class uses \c ScopedMpiInit to determine whether MPI is available
+ * and enabled. As many instances as desired can be created, but Celeritas by
+ * default will share the instance returned by \c comm_world , which defaults
+ * to \c MPI_COMM_WORLD if MPI has been initialized, or a "self" comm if it has
+ * not.
  *
  * A "null" communicator (the default) does not use MPI calls and can be
  * constructed without calling \c MPI_Init or having MPI compiled. It will act
  * like \c MPI_Comm_Self but will not actually use MPI calls.
  *
- * TODO: drop \c comm_ prefix from static helpers
+ * \note This does not perform any copying or freeing of MPI communiators.
  */
 class MpiCommunicator
 {
@@ -34,13 +39,13 @@ class MpiCommunicator
 
   public:
     // Construct a communicator with MPI_COMM_SELF
-    inline static MpiCommunicator comm_self();
+    inline static MpiCommunicator self();
 
     // Construct a communicator with MPI_COMM_WORLD
-    inline static MpiCommunicator comm_world();
+    inline static MpiCommunicator world();
 
     // Construct a communicator with MPI_COMM_WORLD or null if disabled
-    static MpiCommunicator comm_default();
+    static MpiCommunicator world_if_enabled();
 
     //// CONSTRUCTORS ////
 
@@ -71,17 +76,34 @@ class MpiCommunicator
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Shared "world" Celeritas communicator
+MpiCommunicator const& comm_world();
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-//! Construct a communicator with MPI_COMM_SELF
-MpiCommunicator MpiCommunicator::comm_self()
+/*!
+ * Construct a communicator with MPI_COMM_SELF.
+ *
+ * Each process sees itself as rank zero in size zero, thus operating
+ * independently.
+ */
+MpiCommunicator MpiCommunicator::self()
 {
     return MpiCommunicator{detail::mpi_comm_self()};
 }
 
 //---------------------------------------------------------------------------//
-//! Construct a communicator with MPI_COMM_WORLD
-MpiCommunicator MpiCommunicator::comm_world()
+/*!
+ * Construct a communicator with MPI_COMM_WORLD.
+ *
+ * Each process sees every other process in MPI's domain, operating at the
+ * maximum level of interprocess cooperation.
+ */
+MpiCommunicator MpiCommunicator::world()
 {
     return MpiCommunicator{detail::mpi_comm_world()};
 }

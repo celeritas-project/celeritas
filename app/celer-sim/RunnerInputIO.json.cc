@@ -14,33 +14,15 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/TypesIO.json.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/user/RootStepWriterIO.json.hh"
-
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, TrackOrder& value)
-{
-    static auto const from_string
-        = StringEnumMapper<TrackOrder>::from_cstring_func(to_cstring,
-                                                          "track order");
-    value = from_string(j.get<std::string>());
-}
-
-void to_json(nlohmann::json& j, TrackOrder const& value)
-{
-    j = std::string{to_cstring(value)};
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
 
 namespace celeritas
 {
@@ -94,6 +76,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(action_diagnostic);
     LDIO_LOAD_OPTION(step_diagnostic);
     LDIO_LOAD_OPTION(step_diagnostic_bins);
+    LDIO_LOAD_OPTION(slot_diagnostic_prefix);
     LDIO_LOAD_OPTION(write_track_counts);
     LDIO_LOAD_OPTION(write_step_times);
 
@@ -102,7 +85,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(num_track_slots);
-    LDIO_LOAD_OPTION(optical_buffer_capacity);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
@@ -110,7 +92,14 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
     LDIO_LOAD_OPTION(default_stream);
-    LDIO_LOAD_OPTION(warm_up);
+    if (auto iter = j.find("warm_up"); iter != j.end())
+    {
+        iter->get_to(v.warm_up);
+    }
+    else if (v.use_device)
+    {
+        v.warm_up = true;
+    }
 
     LDIO_LOAD_DEPRECATED(mag_field, field);
 
@@ -121,8 +110,17 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(step_limiter);
     LDIO_LOAD_OPTION(brem_combined);
-    LDIO_LOAD_OPTION(track_order);
+    if (auto iter = j.find("track_order"); iter != j.end())
+    {
+        iter->get_to(v.track_order);
+    }
+    else if (v.use_device)
+    {
+        v.track_order = TrackOrder::init_charge;
+    }
     LDIO_LOAD_OPTION(physics_options);
+
+    LDIO_LOAD_OPTION(optical);
 
 #undef LDIO_LOAD_DEPRECATED
 #undef LDIO_LOAD_OPTION
@@ -176,12 +174,12 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(action_diagnostic);
     LDIO_SAVE(step_diagnostic);
     LDIO_SAVE_OPTION(step_diagnostic_bins);
+    LDIO_SAVE_OPTION(slot_diagnostic_prefix);
     LDIO_SAVE(write_track_counts);
     LDIO_SAVE(write_step_times);
 
     LDIO_SAVE(seed);
     LDIO_SAVE(num_track_slots);
-    LDIO_SAVE(optical_buffer_capacity);
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(secondary_stack_factor);
@@ -202,6 +200,8 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
                    v.physics_file.empty()
                        || !ends_with(v.physics_file, ".root"));
 
+    LDIO_SAVE(optical);
+
 #undef LDIO_SAVE_OPTION
 #undef LDIO_SAVE_WHEN
 #undef LDIO_SAVE
@@ -220,6 +220,22 @@ void to_json(nlohmann::json& j, app::RunnerInput::EventFileSampling const& efs)
     j = nlohmann::json{
         CELER_JSON_PAIR(efs, num_events),
         CELER_JSON_PAIR(efs, num_merged),
+    };
+}
+
+void from_json(nlohmann::json const& j, app::RunnerInput::OpticalOptions& oo)
+{
+    CELER_JSON_LOAD_REQUIRED(j, oo, buffer_capacity);
+    CELER_JSON_LOAD_REQUIRED(j, oo, primary_capacity);
+    CELER_JSON_LOAD_REQUIRED(j, oo, auto_flush);
+}
+
+void to_json(nlohmann::json& j, app::RunnerInput::OpticalOptions const& oo)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(oo, buffer_capacity),
+        CELER_JSON_PAIR(oo, primary_capacity),
+        CELER_JSON_PAIR(oo, auto_flush),
     };
 }
 

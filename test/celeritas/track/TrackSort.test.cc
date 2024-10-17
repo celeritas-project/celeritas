@@ -36,7 +36,53 @@ namespace test
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
-class TestEm3NoMsc : public TestEm3Base
+class TrackSortTestBase : virtual public GlobalTestBase
+{
+  public:
+    using VecPrimary = std::vector<Primary>;
+
+    //! Create a stepper
+    template<MemSpace M>
+    Stepper<M> make_stepper(size_type tracks)
+    {
+        CELER_EXPECT(tracks > 0);
+
+        StepperInput result;
+        result.params = this->core();
+        result.stream_id = StreamId{0};
+        result.num_track_slots = tracks;
+        return Stepper<M>{std::move(result)};
+    }
+
+    virtual VecPrimary make_primaries(size_type count) const = 0;
+
+    template<MemSpace M>
+    void step_action(std::string const& label, CoreState<M>& state)
+    {
+        ActionId action_id = this->action_reg()->find_action(label);
+        CELER_VALIDATE(action_id, << "no '" << label << "' action found");
+        auto action = dynamic_cast<CoreStepActionInterface const*>(
+            this->action_reg()->action(action_id).get());
+        CELER_VALIDATE(action, << "action '" << label << "' cannot execute");
+        CELER_TRY_HANDLE(action->step(*this->core(), state),
+                         LogContextException{this->output_reg().get()});
+    }
+
+    template<MemSpace M>
+    void init_from_primaries(CoreState<M>& state, size_type num_primaries)
+    {
+        auto primaries = this->make_primaries(num_primaries);
+        this->insert_primaries(state, make_span(primaries));
+        this->step_action("extend-from-primaries", state);
+        this->step_action("initialize-tracks", state);
+    }
+
+  private:
+    // Primary initialization
+    std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
+};
+
+class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
 {
   public:
     GeantPhysicsOptions build_geant_options() const override
@@ -47,11 +93,10 @@ class TestEm3NoMsc : public TestEm3Base
     }
 
     //! Make a mix of 1 GeV electrons, positrons, and photons along +x
-    std::vector<Primary> make_primaries(size_type count) const
+    VecPrimary make_primaries(size_type count) const override
     {
         Primary p;
         p.energy = units::MevEnergy{1000};
-        p.track_id = TrackId{0};
         p.position = from_cm({-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
@@ -78,32 +123,14 @@ class TestEm3NoMsc : public TestEm3Base
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::sort_step_limit_action;
+        input.track_order = TrackOrder::reindex_step_limit_action;
         return std::make_shared<TrackInitParams>(input);
-    }
-};
-
-class TrackSortTestBase : virtual public GlobalTestBase
-{
-  public:
-    //! Create a stepper
-    template<MemSpace M>
-    Stepper<M> make_stepper(size_type tracks)
-    {
-        CELER_EXPECT(tracks > 0);
-
-        StepperInput result;
-        result.params = this->core();
-        result.stream_id = StreamId{0};
-        result.num_track_slots = tracks;
-        return Stepper<M>{std::move(result)};
     }
 };
 
 #define TestTrackPartitionEm3Stepper \
     TEST_IF_CELERITAS_GEANT(TestTrackPartitionEm3Stepper)
-class TestTrackPartitionEm3Stepper : public TestEm3NoMsc,
-                                     public TrackSortTestBase
+class TestTrackPartitionEm3Stepper : public TestEm3NoMsc
 {
   protected:
     auto build_init() -> SPConstTrackInit override
@@ -111,15 +138,14 @@ class TestTrackPartitionEm3Stepper : public TestEm3NoMsc,
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::partition_status;
+        input.track_order = TrackOrder::reindex_status;
         return std::make_shared<TrackInitParams>(input);
     }
 };
 
 #define TestTrackSortActionIdEm3Stepper \
     TEST_IF_CELERITAS_GEANT(TestTrackSortActionIdEm3Stepper)
-class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc,
-                                        public TrackSortTestBase
+class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc
 {
   protected:
     auto build_init() -> SPConstTrackInit override
@@ -127,7 +153,7 @@ class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc,
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::sort_step_limit_action;
+        input.track_order = TrackOrder::reindex_step_limit_action;
         return std::make_shared<TrackInitParams>(input);
     }
 };
@@ -135,7 +161,7 @@ class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc,
 #define TestActionCountEm3Stepper \
     TEST_IF_CELERITAS_GEANT(TestActionCountEm3Stepper)
 template<MemSpace M>
-class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
+class TestActionCountEm3Stepper : public TestEm3NoMsc
 {
   protected:
     using HostActionThreads =
@@ -149,7 +175,7 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 4096;
-        input.track_order = TrackOrder::sort_step_limit_action;
+        input.track_order = TrackOrder::reindex_step_limit_action;
         return std::make_shared<TrackInitParams>(input);
     }
 
@@ -170,7 +196,7 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
 };
 
 #define PartitionDataTest TEST_IF_CELERITAS_GEANT(PartitionDataTest)
-class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
+class PartitionDataTest : public TestEm3NoMsc
 {
   protected:
     auto build_init() -> SPConstTrackInit override
@@ -178,28 +204,8 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 128;
-        input.track_order = TrackOrder::partition_charge;
+        input.track_order = TrackOrder::init_charge;
         return std::make_shared<TrackInitParams>(input);
-    }
-
-    template<MemSpace M>
-    void init_from_primaries(CoreState<M>& state, size_type num_primaries)
-    {
-        auto execute = [&](std::string const& label) {
-            ActionId action_id = this->action_reg()->find_action(label);
-            CELER_ASSERT(action_id);
-
-            auto action = dynamic_cast<CoreStepActionInterface const*>(
-                this->action_reg()->action(action_id).get());
-            CELER_ASSERT(action);
-
-            action->step(*this->core(), state);
-        };
-
-        auto primaries = this->make_primaries(num_primaries);
-        state.insert_primaries(make_span(primaries));
-        execute("extend-from-primaries");
-        execute("initialize-tracks");
     }
 
     template<MemSpace M>
@@ -242,22 +248,10 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
 TEST_F(TestEm3NoMsc, host_is_sorting)
 {
     CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 128};
-    auto execute = [&](std::string const& label) {
-        ActionId action_id = this->action_reg()->find_action(label);
-        CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-        auto action = dynamic_cast<CoreStepActionInterface const*>(
-            this->action_reg()->action(action_id).get());
-        CELER_VALIDATE(action, << "action '" << label << "' cannot execute");
-        CELER_TRY_HANDLE(action->step(*this->core(), state),
-                         LogContextException{this->output_reg().get()});
-    };
 
-    auto primaries = this->make_primaries(state.size());
-    state.insert_primaries(make_span(primaries));
-    execute("extend-from-primaries");
-    execute("initialize-tracks");
-    execute("pre-step");
-    execute("sort-tracks-post-step");
+    this->init_from_primaries(state, state.size());
+    this->step_action("pre-step", state);
+    this->step_action("sort-tracks-post-step", state);
     auto track_slots = state.ref().track_slots.data();
     auto actions = detail::get_action_ptr(state.ref(),
                                           this->core()->init()->track_order());
@@ -292,7 +286,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -300,7 +294,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -336,7 +330,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -344,7 +338,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
+        detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -377,7 +371,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -385,7 +379,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -424,7 +418,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -432,7 +426,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -456,11 +450,11 @@ TEST_F(TestActionCountEm3StepperH, host_count_actions)
 
     auto loop = [&] {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         detail::count_tracks_per_action(step.state_ref(),
                                         buffer[AllActionThreads{}],
                                         buffer,
-                                        TrackOrder::sort_step_limit_action);
+                                        TrackOrder::reindex_step_limit_action);
 
         check_action_count(buffer, step.state().size());
         step();
@@ -499,12 +493,12 @@ TEST_F(TestActionCountEm3StepperD, TEST_IF_CELER_DEVICE(device_count_actions))
 
     auto loop = [&] {
         detail::sort_tracks(step.state_ref(),
-                            TrackOrder::sort_step_limit_action);
+                            TrackOrder::reindex_step_limit_action);
         detail::count_tracks_per_action(
             step.state_ref(),
             buffer_d[NativeActionThreads::AllItemsT{}],
             buffer_h,
-            TrackOrder::sort_step_limit_action);
+            TrackOrder::reindex_step_limit_action);
 
         check_action_count(buffer_h, step.state().size());
         step();

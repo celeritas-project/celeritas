@@ -1,16 +1,17 @@
 <!--
 Title: "Release vX.Y.Z"
-Target: upstream/develop (always!)
+Target: upstream/develop (always, even if backporting!)
 -->
 
 **Release branches must be named `release-vX.Y.Z`**
 
 ## Pre-merge checklist
 
-- [ ] Ensure all CI jobs on the branch to be released (develop or backports/vX.Y) pass
+- [ ] Ensure all CI jobs on the branch to be released (develop or backports/vX.Y) pass.
 - [ ] If releasing from develop, tag the develop branch with ``vX.Y.Z-rc.N`` where N starts with 1, and increment for every time you return to this step due to new pull requests.
 - [ ] Run performance regression tests on Perlmutter, Frontier, and an additional machine with debug assertions enabled (e.g., Wildstyle).
 - [ ] Update documentation with release notes from all pull requests newly included in the release.
+- [ ] Ensure PDF documentation builds without error.
 - [ ] For a major release, check for (and delete if found) code marked as "deprecated: to be removed in vX".
 
 ## Post-merge checklist

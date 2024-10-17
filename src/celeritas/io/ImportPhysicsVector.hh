@@ -47,6 +47,27 @@ struct ImportPhysicsVector
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Store imported 2D physics vector data (see Geant4's G4Physics2DVector.hh).
+ *
+ * This stores a 2D grid of generic data with linear interpolation.
+ */
+struct ImportPhysics2DVector
+{
+    std::vector<double> x;  //!< x grid
+    std::vector<double> y;  //!< y grid
+    std::vector<double> value;  //!< [x][y]
+
+    explicit operator bool() const
+    {
+        return !x.empty() && !y.empty() && value.size() == x.size() * y.size();
+    }
+};
+
+// Equality operator, mainly for debugging
+bool operator==(ImportPhysics2DVector const& a, ImportPhysics2DVector const& b);
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 

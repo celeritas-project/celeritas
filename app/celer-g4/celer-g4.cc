@@ -42,7 +42,6 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -139,7 +138,7 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     ScopedGeantExceptionHandler scoped_exceptions;
 
     self_logger() = [&params] {
-        Logger log(MpiCommunicator{}, LocalLogger{params->num_streams()});
+        Logger log{LocalLogger{params->num_streams()}};
         log.level(log_level_from_env("CELER_LOG_LOCAL"));
         return log;
     }();
@@ -236,18 +235,11 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
  */
 int main(int argc, char* argv[])
 {
-    using celeritas::MpiCommunicator;
     using celeritas::ScopedMpiInit;
 
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    MpiCommunicator comm = [] {
-        if (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled)
-            return MpiCommunicator{};
 
-        return MpiCommunicator::comm_world();
-    }();
-
-    if (comm.size() > 1)
+    if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run with MPI parallelism.";
         return EXIT_FAILURE;
@@ -272,7 +264,7 @@ int main(int argc, char* argv[])
     }
     if (filename == "--dump-default"sv)
     {
-        std::cout << nlohmann::json(celeritas::app::RunInput{}).dump(1)
+        std::cout << nlohmann::json(celeritas::app::RunInput()).dump(1)
                   << std::endl;
         return EXIT_SUCCESS;
     }

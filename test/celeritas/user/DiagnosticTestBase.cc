@@ -31,23 +31,11 @@ DiagnosticTestBase::~DiagnosticTestBase() = default;
  */
 void DiagnosticTestBase::SetUp()
 {
-    size_type num_streams = 1;
-
     // Create action diagnostic
-    action_diagnostic_
-        = std::make_shared<ActionDiagnostic>(this->action_reg()->next_id());
-    // Add to action registry
-    this->action_reg()->insert(action_diagnostic_);
-    // Add to output interface
-    this->output_reg()->insert(action_diagnostic_);
+    action_diagnostic_ = ActionDiagnostic::make_and_insert(*this->core());
 
     // Create step diagnostic
-    step_diagnostic_ = std::make_shared<StepDiagnostic>(
-        this->action_reg()->next_id(), this->particle(), 20, num_streams);
-    // Add to action registry
-    this->action_reg()->insert(step_diagnostic_);
-    // Add to output interface
-    this->output_reg()->insert(step_diagnostic_);
+    step_diagnostic_ = StepDiagnostic::make_and_insert(*this->core(), 20);
 }
 
 //---------------------------------------------------------------------------//

@@ -32,7 +32,7 @@
 #include "geocel/g4/Convert.geant.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -46,17 +46,50 @@
 
 namespace celeritas
 {
+namespace
+{
+bool nonfatal_flush()
+{
+    static bool const result = [] {
+        auto result = getenv_flag("CELER_NONFATAL_FLUSH", false);
+        return result.value;
+    }();
+    return result;
+}
+
+#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
+    do                                                              \
+    {                                                               \
+        if (CELER_UNLIKELY(!(COND)))                                \
+        {                                                           \
+            std::ostringstream celer_runtime_msg_;                  \
+            celer_runtime_msg_ MSG;                                 \
+            if (nonfatal_flush())                                   \
+            {                                                       \
+                CELER_LOG_LOCAL(error) << celer_runtime_msg_.str(); \
+                (STEPPER).kill_active();                            \
+            }                                                       \
+            else                                                    \
+            {                                                       \
+                CELER_RUNTIME_THROW(                                \
+                    ::celeritas::RuntimeError::validate_err_str,    \
+                    celer_runtime_msg_.str(),                       \
+                    #COND);                                         \
+            }                                                       \
+        }                                                           \
+    } while (0)
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
-                                   SharedParams const& params)
+                                   SharedParams& params)
     : auto_flush_(options.auto_flush ? options.auto_flush
                                      : options.max_num_tracks)
     , max_steps_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
-    , hit_manager_{params.hit_manager()}
 {
     CELER_VALIDATE(params,
                    << "Celeritas SharedParams was not initialized before "
@@ -99,14 +132,31 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         }
     }
 
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        /*!
+         * \todo Add support for Geant4 navigation wrapper, which requires
+         * calling \c state.ref().geometry.reset() on the local transporter
+         * thread due to thread-allocated navigator data.
+         */
+        CELER_NOT_IMPLEMENTED(
+            "offloading when using Celeritas Geant4 navigation wrapper");
+    }
+
+    // Create hit processor on the local thread so that it's deallocated when
+    // this object is destroyed
+    StreamId stream_id{static_cast<size_type>(thread_id)};
+    if (auto const& hit_manager = params.hit_manager())
+    {
+        hit_processor_ = hit_manager->make_local_processor(stream_id);
+    }
+
+    // Create stepper
     StepperInput inp;
     inp.params = params.Params();
-    inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
+    inp.stream_id = stream_id;
     inp.num_track_slots = options.max_num_tracks;
     inp.action_times = options.action_times;
-
-    // Set stream ID for finalizing
-    hit_manager_.finalizer(HMFinalizer{inp.stream_id});
 
     if (celeritas::device())
     {
@@ -116,6 +166,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     {
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
+
+    // Save state for reductions at the end
+    params.set_state(stream_id.get(), step_->sp_state());
 }
 
 //---------------------------------------------------------------------------//
@@ -127,8 +180,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
 
-    event_id_ = EventId(id);
-    track_counter_ = 0;
+    event_id_ = UniqueEventId(id);
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -147,7 +199,6 @@ void LocalTransporter::InitializeEvent(int id)
 void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(event_id_);
 
     Primary track;
 
@@ -174,13 +225,9 @@ void LocalTransporter::Push(G4Track const& g4track)
     }
 
     /*!
-     * \todo Celeritas track IDs are independent from Geant4 track IDs, since
-     * they must be sequential from zero for a given event. We may need to save
-     * (and share with sensitive detectors!) a map of track IDs for calling
-     * back to Geant4.
+     * \todo Eliminate event ID from primary.
      */
-    track.track_id = TrackId{track_counter_++};
-    track.event_id = event_id_;
+    track.event_id = EventId{0};
 
     buffer_.push_back(track);
     if (buffer_.size() >= auto_flush_)
@@ -217,7 +264,13 @@ void LocalTransporter::Flush()
         (*dump_primaries_)(buffer_);
     }
 
-    // Abort cleanly for interrupt and user-defined signals
+    /*!
+     * Abort cleanly for interrupt and user-defined (i.e., job manager)
+     * signals.
+     *
+     * \todo The signal handler is \em not thread safe. We may need to set an
+     * atomic/volatile bit so all local transporters abort.
+     */
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
     // Copy buffered tracks to device and transport the first step
@@ -228,15 +281,17 @@ void LocalTransporter::Flush()
 
     while (track_counts)
     {
-        CELER_VALIDATE(step_iters < max_steps_,
-                       << "number of step iterations exceeded the allowed "
-                          "maximum ("
-                       << max_steps_ << ")");
+        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_steps_,
+                                      << "number of step iterations exceeded "
+                                         "the allowed maximum ("
+                                      << max_steps_ << ")",
+                                      *step_);
 
         track_counts = (*step_)();
         ++step_iters;
 
-        CELER_VALIDATE(!interrupted(), << "caught interrupt signal");
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            !interrupted(), << "caught interrupt signal", *step_);
     }
 }
 
@@ -251,7 +306,8 @@ void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
     CELER_VALIDATE(buffer_.empty(),
-                   << "some offloaded tracks were not flushed");
+                   << "offloaded tracks (" << buffer_.size()
+                   << " in buffer) were not flushed");
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";
@@ -273,7 +329,7 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
     if (action_seq.action_times())
     {
         // Save kernel timing if synchronization is enabled
-        auto const& action_ptrs = action_seq.actions();
+        auto const& action_ptrs = action_seq.actions().step();
         auto const& time = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == time.size());
@@ -283,26 +339,6 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
         }
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear thread-local hit manager on destruction.
- */
-void LocalTransporter::HMFinalizer::operator()(SPHitManger& hm) const
-{
-    if (hm)
-    {
-        if (this->sid)
-        {
-            hm->finalize(this->sid);
-        }
-        else
-        {
-            CELER_LOG_LOCAL(warning) << "Not finalizing hit manager because "
-                                        "stream ID is unset";
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//

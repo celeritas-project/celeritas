@@ -52,6 +52,9 @@ class CoreStateThreadOffsets<MemSpace::host>
     //! Initialize using the number of actions
     void resize(size_type n) { celeritas::resize(&thread_offsets_, n); }
 
+    //! Whether any offsets are present
+    bool empty() const { return thread_offsets_.empty(); }
+
   private:
     NativeActionThreads thread_offsets_;
 };
@@ -92,6 +95,9 @@ class CoreStateThreadOffsets<MemSpace::device>
         celeritas::resize(&thread_offsets_, n);
         celeritas::resize(&host_thread_offsets_, n);
     }
+
+    //! Whether any offsets are present
+    bool empty() const { return thread_offsets_.empty(); }
 
   private:
     NativeActionThreads thread_offsets_;

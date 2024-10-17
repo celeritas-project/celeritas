@@ -84,7 +84,6 @@ auto PrimaryGenerator::operator()() -> result_type
         p.direction = sample_dir_(rng_);
         p.time = 0;
         p.event_id = EventId{event_count_};
-        p.track_id = TrackId{i};
     }
     ++event_count_;
     return result;

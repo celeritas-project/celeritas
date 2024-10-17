@@ -158,7 +158,7 @@ list(APPEND PRIVATE_DEPS Celeritas::DeviceToolkit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
-    data/detail/Filler.cu
+    data/Filler.cu
     sys/KernelParamCalculator.device.cc
   )
 endif()
@@ -177,7 +177,7 @@ if(CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_MPI)
-  list(APPEND PUBLIC_DEPS MPI::MPI_CXX)
+  list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
 endif()
 
 if(CELERITAS_USE_OpenMP)

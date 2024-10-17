@@ -82,13 +82,18 @@ inp = {
      "delta_intersection": 0.00001,
      "epsilon_step": 0.00001
     },
-    "sd_type": "event_hit" if use_root else "simple_calo",
+    "sd_type": "simple_calo",
     "step_diagnostic": ext == "none",
     "step_diagnostic_bins": 8,
 }
 
-with open(inp_file, "w") as f:
-    json.dump(inp, f, indent=1)
+if ext == "cpu-nonfatal":
+    inp.update({
+        "max_steps": 30,
+        "environ": {
+            "CELER_NONFATAL_FLUSH": "1",
+        }
+    })
 
 kwargs = {}
 if use_celeritas:
@@ -96,6 +101,8 @@ if use_celeritas:
     # do it here as an example
     inp_file = "-"
     inp["output_file"] = "-"
+    inp["slot_diagnostic_prefix"] = f"slot-diag-{ext}-"
+
     env = dict(environ)
     kwargs = dict(
         input=json.dumps(inp).encode(),
@@ -103,6 +110,10 @@ if use_celeritas:
         env=env,
     )
 
+print(inp)
+
+with open(f"{problem_name}.inp.json", "w") as f:
+    json.dump(inp, f, indent=1)
 
 print("Running", exe, inp_file, file=stderr)
 result = subprocess.run([exe, inp_file], **kwargs)

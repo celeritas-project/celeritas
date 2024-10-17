@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"

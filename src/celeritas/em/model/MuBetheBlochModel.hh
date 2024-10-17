@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/em/data/MuBetheBlochData.hh"
+#include "celeritas/em/data/MuHadIonizationData.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -18,11 +18,11 @@ class ParticleParams;
 /*!
  * Set up and launch the Bethe-Bloch muon ionization model interaction.
  */
-class MuBetheBlochModel final : public Model, public ConcreteAction
+class MuBetheBlochModel final : public Model, public StaticConcreteAction
 {
   public:
     // Construct from model ID and other necessary data
-    MuBetheBlochModel(ActionId id, ParticleParams const& particles);
+    MuBetheBlochModel(ActionId, ParticleParams const&, SetApplicability);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -38,12 +38,15 @@ class MuBetheBlochModel final : public Model, public ConcreteAction
 
     //!@{
     //! Access model data
-    MuBetheBlochData const& host_ref() const { return data_; }
-    MuBetheBlochData const& device_ref() const { return data_; }
+    MuHadIonizationData const& host_ref() const { return data_; }
+    MuHadIonizationData const& device_ref() const { return data_; }
     //!@}
 
   private:
-    MuBetheBlochData data_;
+    // Particle types and energy ranges that this model applies to
+    SetApplicability applicability_;
+    // Model data
+    MuHadIonizationData data_;
 };
 
 //---------------------------------------------------------------------------//

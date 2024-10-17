@@ -19,6 +19,7 @@ class G4MagneticField;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class SharedParams;
 class GeantSimpleCalo;
 

@@ -14,6 +14,9 @@ celeritas_target_link_libraries(testcel_core
 celeritas_setup_tests(SERIAL
   LINK_LIBRARIES testcel_core Celeritas::corecel
 )
+if(CELERITAS_USE_MPI)
+  set(_mpi_optional LINK_LIBRARIES MPI::MPI_CXX)
+endif()
 
 #-----------------------------------------------------------------------------#
 # TESTS
@@ -36,6 +39,7 @@ celeritas_add_device_test(data/Collection)
 celeritas_add_test(data/Copier.test.cc GPU)
 celeritas_add_test(data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(data/DeviceVector.test.cc GPU)
+celeritas_add_test(data/Filler.test.cc GPU)
 celeritas_add_device_test(data/ObserverPtr)
 celeritas_add_test(data/LdgIterator.test.cc)
 celeritas_add_test(data/HyperslabIndexer.test.cc)
@@ -54,7 +58,9 @@ celeritas_add_test(grid/VectorUtils.test.cc)
 celeritas_add_test(io/EnumStringMapper.test.cc)
 celeritas_add_test(io/Label.test.cc)
 celeritas_add_test(io/Join.test.cc)
-celeritas_add_test(io/Logger.test.cc)
+celeritas_add_test(io/Logger.test.cc
+  ${_mpi_optional}
+)
 celeritas_add_test(io/OutputRegistry.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(io/Repr.test.cc)
@@ -83,6 +89,7 @@ celeritas_add_test(sys/Environment.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(sys/MpiCommunicator.test.cc
+  ${_mpi_optional}
   NP ${CELERITASTEST_NP_DEFAULT})
 celeritas_add_test(sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(sys/TypeDemangler.test.cc)

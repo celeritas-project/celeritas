@@ -87,6 +87,28 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
     j = std::string{to_cstring(value)};
 }
 
+void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
+{
+#define GMPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
+    GMPO_LOAD_OPTION(pair_production);
+    GMPO_LOAD_OPTION(ionization);
+    GMPO_LOAD_OPTION(bremsstrahlung);
+    GMPO_LOAD_OPTION(coulomb);
+    GMPO_LOAD_OPTION(msc);
+#undef GMPO_LOAD_OPTION
+}
+
+void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
+{
+    j = {
+        CELER_JSON_PAIR(inp, pair_production),
+        CELER_JSON_PAIR(inp, ionization),
+        CELER_JSON_PAIR(inp, bremsstrahlung),
+        CELER_JSON_PAIR(inp, coulomb),
+        CELER_JSON_PAIR(inp, msc),
+    };
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
@@ -97,18 +119,20 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     check_format(j, format_str);
     check_units(j, format_str);
 
-    GPO_LOAD_OPTION(coulomb_scattering);
     GPO_LOAD_OPTION(compton_scattering);
     GPO_LOAD_OPTION(photoelectric);
     GPO_LOAD_OPTION(rayleigh_scattering);
     GPO_LOAD_OPTION(gamma_conversion);
     GPO_LOAD_OPTION(gamma_general);
 
+    GPO_LOAD_OPTION(coulomb_scattering);
     GPO_LOAD_OPTION(ionization);
     GPO_LOAD_OPTION(annihilation);
     GPO_LOAD_OPTION(brems);
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
+
+    GPO_LOAD_OPTION(muon);
 
     GPO_LOAD_OPTION(em_bins_per_decade);
     GPO_LOAD_OPTION(eloss_fluctuation);
@@ -143,18 +167,20 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
 {
     j = {
-        CELER_JSON_PAIR(inp, coulomb_scattering),
         CELER_JSON_PAIR(inp, compton_scattering),
         CELER_JSON_PAIR(inp, photoelectric),
         CELER_JSON_PAIR(inp, rayleigh_scattering),
         CELER_JSON_PAIR(inp, gamma_conversion),
         CELER_JSON_PAIR(inp, gamma_general),
 
+        CELER_JSON_PAIR(inp, coulomb_scattering),
         CELER_JSON_PAIR(inp, ionization),
         CELER_JSON_PAIR(inp, annihilation),
         CELER_JSON_PAIR(inp, brems),
         CELER_JSON_PAIR(inp, msc),
         CELER_JSON_PAIR(inp, relaxation),
+
+        CELER_JSON_PAIR(inp, muon),
 
         CELER_JSON_PAIR(inp, em_bins_per_decade),
         CELER_JSON_PAIR(inp, eloss_fluctuation),

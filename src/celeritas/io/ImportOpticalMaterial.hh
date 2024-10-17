@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "ImportPhysicsVector.hh"
@@ -113,28 +114,11 @@ struct ImportOpticalRayleigh
 {
     double scale_factor{1};  //!< Scale the scattering length (optional)
     double compressibility{};  //!< Isothermal compressibility
-    ImportPhysicsVector mfp;  //!< Rayleigh mean free path
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return scale_factor >= 0
-               && (compressibility > 0 || static_cast<bool>(mfp));
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Store optical material properties for absorption.
- */
-struct ImportOpticalAbsorption
-{
-    ImportPhysicsVector absorption_length;
-
-    //! Whether all data are assigned and valid
-    explicit operator bool() const
-    {
-        return static_cast<bool>(absorption_length);
+        return scale_factor >= 0 && compressibility >= 0;
     }
 };
 
@@ -165,17 +149,13 @@ struct ImportWavelengthShift
 {
     double mean_num_photons{};  //!< Mean number of re-emitted photons
     double time_constant{};  //!< Time delay between absorption and re-emission
-    ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
     ImportPhysicsVector component;  //!< Re-emission population [MeV, unitless]
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return mean_num_photons > 0 && time_constant > 0
-               && static_cast<bool>(absorption_length)
-               && static_cast<bool>(component)
-               && absorption_length.vector_type == ImportPhysicsVectorType::free
-               && component.vector_type == absorption_length.vector_type;
+               && static_cast<bool>(component);
     }
 };
 
@@ -193,7 +173,6 @@ struct ImportOpticalMaterial
     //!@{
     //! \name Optical process data
     ImportOpticalRayleigh rayleigh;
-    ImportOpticalAbsorption absorption;
     ImportWavelengthShift wls;
     //!@}
 

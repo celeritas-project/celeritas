@@ -17,10 +17,15 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<class P, template<MemSpace M> class S>
+class ActionGroups;
 class CoreParams;
+
 namespace optical
 {
 class CoreParams;
+template<MemSpace M>
+class CoreState;
 class MaterialParams;
 }  // namespace optical
 
@@ -54,14 +59,16 @@ class OpticalLaunchAction : public AuxParamsInterface,
     static std::shared_ptr<OpticalLaunchAction>
     make_and_insert(CoreParams const& core,
                     SPConstMaterial material,
-                    SPOffloadParams offload);
+                    SPOffloadParams offload,
+                    size_type primary_capacity);
 
     // Construct with IDs, core for copying params, offload gen data
     OpticalLaunchAction(ActionId id,
                         AuxId data_id,
                         CoreParams const& core,
                         SPConstMaterial material,
-                        SPOffloadParams offload);
+                        SPOffloadParams offload,
+                        size_type primary_capacity);
 
     //!@{
     //! \name Aux/action metadata interface
@@ -91,8 +98,12 @@ class OpticalLaunchAction : public AuxParamsInterface,
     void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
+    // TODO: local end run to flush initializers??
+
   private:
+    using ActionGroupsT = ActionGroups<optical::CoreParams, optical::CoreState>;
     using SPOpticalParams = std::shared_ptr<optical::CoreParams>;
+    using SPActionGroups = std::shared_ptr<ActionGroupsT>;
 
     //// DATA ////
 
@@ -100,6 +111,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     AuxId aux_id_;
     SPOffloadParams offload_params_;
     SPOpticalParams optical_params_;
+    SPActionGroups optical_actions_;
 
     //// HELPERS ////
 

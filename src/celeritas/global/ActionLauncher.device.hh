@@ -15,138 +15,127 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/Stream.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
 #include "CoreParams.hh"
 #include "CoreState.hh"
-#include "KernelContextException.hh"
-
-#include "detail/ActionLauncherKernel.device.hh"
-#include "detail/ApplierTraits.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Profile and launch Celeritas kernels.
+ * Profile and launch core stepping loop kernels.
  *
- * The template argument \c F may define a member type named \c Applier.
- * \c F::Applier should have up to two static constexpr int variables named
- * \c max_block_size and/or \c min_warps_per_eu.
- * If present, the kernel will use appropriate \c __launch_bounds__.
- * If \c F::Applier::min_warps_per_eu exists then \c F::Applier::max_block_size
- * must also be present or we get a compile error.
- *
- * The semantics of the second \c __launch_bounds__ argument differs between
- * CUDA and HIP.  \c ActionLauncher expects HIP semantics. If Celeritas is
- * built targeting CUDA, it will automatically convert that argument to match
- * CUDA semantics.
- *
- * The CUDA-specific 3rd argument \c maxBlocksPerCluster is not supported.
+ * This is an extension to \c KernelLauncher which uses an action's label and
+ * takes core params/state to determine the launch size and/or action range.
  *
  * Example:
  * \code
  void FooAction::step(CoreParams const& params,
-                         CoreStateDevice& state) const
+                      CoreStateDevice& state) const
  {
-    auto execute_thread = make_blah_executor(blah);
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
-    launch_kernel(state, execute_thread);
+   auto execute_thread = make_blah_executor(blah);
+   static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
+   launch_kernel(state, execute_thread);
  }
  * \endcode
  */
 template<class F>
-class ActionLauncher
+class ActionLauncher : public KernelLauncher<F>
 {
     static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
                    || CELER_COMPILER == CELER_COMPILER_CLANG)
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
-    using ActionInterfaceT = CoreStepActionInterface;
+    using StepActionT = CoreStepActionInterface;
 
   public:
-    //! Create a launcher from a label
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F>}
-    {
-    }
+    // Create a launcher from a string
+    using KernelLauncher<F>::KernelLauncher;
 
-    //! Create a launcher from an action
-    explicit ActionLauncher(ActionInterfaceT const& action)
-        : ActionLauncher{action.label()}
-    {
-    }
+    // Create a launcher from an action
+    explicit ActionLauncher(StepActionT const& action);
 
-    //! Create a launcher with a string extension
-    ActionLauncher(ActionInterfaceT const& action, std::string_view ext)
-        : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
-    {
-    }
+    // Create a launcher with a string extension
+    ActionLauncher(StepActionT const& action, std::string_view ext);
 
-    //! Launch a kernel for a thread range
-    void operator()(Range<ThreadId> threads,
-                    StreamId stream_id,
-                    F const& call_thread) const
-    {
-        if (!threads.empty())
-        {
-            using StreamT = CELER_DEVICE_PREFIX(Stream_t);
-            StreamT stream = celeritas::device().stream(stream_id).get();
-            auto config = calc_launch_params_(threads.size());
-            detail::launch_action_impl<F>
-                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                    threads, call_thread);
-        }
-    }
+    // Launch a kernel for a thread range or number of threads
+    using KernelLauncher<F>::operator();
 
-    //! Launch a kernel for the wrapped executor
+    // Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
-                    F const& call_thread) const
-    {
-        return (*this)(
-            range(ThreadId{state.size()}), state.stream_id(), call_thread);
-    }
+                    F const& execute_thread) const;
 
-    //! Launch a kernel with a custom number of threads
-    void operator()(size_type num_threads,
-                    StreamId stream_id,
-                    F const& call_thread) const
-    {
-        CELER_EXPECT(num_threads > 0);
-        CELER_EXPECT(stream_id);
-        (*this)(range(ThreadId{num_threads}), stream_id, call_thread);
-    }
-
-    //! Launch with reduced grid size for when tracks are sorted
-    void operator()(CoreParams const& params,
+    // Launch with reduced grid size for when tracks are sorted
+    void operator()(StepActionT const& action,
+                    CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
-                    ActionInterfaceT const& action,
-                    F const& call_thread) const
-    {
-        CELER_EXPECT(state.stream_id());
-        if (is_action_sorted(action.order(), params.init()->track_order()))
-        {
-            return (*this)(state.get_action_range(action.action_id()),
-                           state.stream_id(),
-                           call_thread);
-        }
-        else
-        {
-            return (*this)(
-                range(ThreadId{state.size()}), state.stream_id(), call_thread);
-        }
-    }
-
-  private:
-    KernelParamCalculator calc_launch_params_;
+                    F const& execute_thread) const;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a launcher from an action.
+ */
+template<class F>
+ActionLauncher<F>::ActionLauncher(StepActionT const& action)
+    : ActionLauncher{action.label()}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a launcher with a string extension.
+ */
+template<class F>
+ActionLauncher<F>::ActionLauncher(StepActionT const& action,
+                                  std::string_view ext)
+    : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a kernel for the wrapped executor.
+ */
+template<class F>
+void ActionLauncher<F>::operator()(CoreState<MemSpace::device> const& state,
+                                   F const& execute_thread) const
+{
+    return (*this)(
+        range(ThreadId{state.size()}), state.stream_id(), execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch with reduced grid size for when tracks are sorted.
+ *
+ * These argument should be consistent with those in \c ActionLauncher.hh .
+ */
+template<class F>
+void ActionLauncher<F>::operator()(StepActionT const& action,
+                                   CoreParams const& params,
+                                   CoreState<MemSpace::device> const& state,
+                                   F const& execute_thread) const
+{
+    if (state.has_action_range()
+        && is_action_sorted(action.order(), params.init()->track_order()))
+    {
+        // Launch on a subset of threads
+        return (*this)(state.get_action_range(action.action_id()),
+                       state.stream_id(),
+                       execute_thread);
+    }
+    else
+    {
+        // Not partitioned by action: launch on all threads
+        return (*this)(state, execute_thread);
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

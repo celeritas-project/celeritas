@@ -25,6 +25,10 @@ class ParticleParams;
 //---------------------------------------------------------------------------//
 /*!
  * Tally post-step actions for each particle type.
+ *
+ * This adds an \c step-diagnostic entry to the \c result category of the
+ * main Celeritas output that bins the total number of steps taken by a track,
+ * grouped by particle type. The result is an integral over all events.
  */
 class StepDiagnostic final : public CoreStepActionInterface,
                              public OutputInterface
@@ -37,6 +41,10 @@ class StepDiagnostic final : public CoreStepActionInterface,
     //!@}
 
   public:
+    // Construct and add to core params
+    static std::shared_ptr<StepDiagnostic>
+    make_and_insert(CoreParams const& core, size_type max_bins);
+
     //! Construct with particle data
     StepDiagnostic(ActionId id,
                    SPConstParticle particle,

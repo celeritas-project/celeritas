@@ -34,9 +34,9 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
                                              MaterialParams const& materials,
                                              CascadeOptions const& options,
                                              ReadData load_data)
-    : ConcreteAction(id,
-                     "neutron-inelastic-bertini",
-                     "interact by neutron inelastic (Bertini)")
+    : StaticConcreteAction(id,
+                           "neutron-inelastic-bertini",
+                           "interact by neutron inelastic (Bertini)")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);

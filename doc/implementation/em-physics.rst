@@ -54,15 +54,19 @@ The following table summarizes the EM processes and models in Celeritas.
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Rayleigh scattering |  Livermore                  | :cpp:class:`celeritas::RayleighInteractor`          |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`\mu^-`  | Ionization          |  ICRU73QO                   | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      | :math:`\mu^-`  | Ionization          |  ICRU73QO                   | :cpp:class:`celeritas::MuHadIonizationInteractor`   |       0--200 keV         |
       |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
-      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--1 GeV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Mu Bethe--Bloch            | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--100 TeV       |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::MuHadIonizationInteractor`   |       0--200 keV         |
       |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
-      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--1 GeV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Mu Bethe--Bloch            | :cpp:class:`celeritas::MuHadIonizationInteractor`   |   200 keV--100 TeV       |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
@@ -109,15 +113,19 @@ The following table summarizes the EM processes and models in Celeritas.
                                     \cline{2-5}
                                     & Rayleigh scattering                 & Livermore            & \texttt{\scriptsize celeritas::RayleighInteractor}          & 0--100 TeV \\
           \hline
-          \multirow{3}{*}{$\mu^-$}  & \multirow{2}{*}{Ionization}         & ICRU73QO             & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+          \multirow{3}{*}{$\mu^-$}  & \multirow{2}{*}{Ionization}         & ICRU73QO             & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 0--200 keV \\
                                                                           \cline{3-5}
-                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 1 GeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Mu Bethe--Bloch      & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 100 TeV \\
                                     \cline{2-5}
                                     & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
           \hline
-          \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+          \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 0--200 keV \\
                                                                           \cline{3-5}
-                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 1 GeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Mu Bethe--Bloch      & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 100 TeV \\
                                     \cline{2-5}
                                     & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
           \hline
@@ -154,13 +162,14 @@ as properties of any secondary particles produced.
 Ionization
 ----------
 
-.. doxygenclass:: celeritas::BraggICRU73QOInteractor
 .. doxygenclass:: celeritas::MollerBhabhaInteractor
-.. doxygenclass:: celeritas::MuBetheBlochInteractor
+.. doxygenclass:: celeritas::MuHadIonizationInteractor
 
 The exiting energy distribution from most of these ionization models
 are sampled using external helper distributions.
 
+.. doxygenclass:: celeritas::BetheBlochEnergyDistribution
+.. doxygenclass:: celeritas::BraggICRU73QOEnergyDistribution
 .. doxygenclass:: celeritas::BhabhaEnergyDistribution
 .. doxygenclass:: celeritas::MollerEnergyDistribution
 .. doxygenclass:: celeritas::MuBBEnergyDistribution
@@ -195,10 +204,31 @@ rejection sampling.
 
 .. doxygenclass:: celeritas::MuBremsDiffXsCalculator
 
-Scattering
-----------
+Photon scattering
+-----------------
 
-Elastic scattering of charged particles can be simulated in three ways:
+.. doxygenclass:: celeritas::KleinNishinaInteractor
+.. doxygenclass:: celeritas::RayleighInteractor
+
+Conversion/annihilation/photoelectric
+-------------------------------------
+
+.. doxygenclass:: celeritas::BetheHeitlerInteractor
+.. doxygenclass:: celeritas::EPlusGGInteractor
+.. doxygenclass:: celeritas::LivermorePEInteractor
+
+.. doxygenclass:: celeritas::AtomicRelaxation
+
+Positron annihilation and Livermore photoelectric cross sections are calculated
+on the fly (as opposed to pre-tabulated cross sections).
+
+.. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
+.. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
+
+Coulomb scattering
+------------------
+
+Elastic scattering of charged particles off atoms can be simulated in three ways:
 
 * A detailed single scattering model in which each scattering interaction is
   sampled
@@ -220,32 +250,34 @@ simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
 
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
-.. doxygenclass:: celeritas::KleinNishinaInteractor
-.. doxygenclass:: celeritas::RayleighInteractor
-
 .. doxygenclass:: celeritas::WentzelDistribution
 .. doxygenclass:: celeritas::MottRatioCalculator
 
-Conversion/annihilation/photoelectric
--------------------------------------
-
-.. doxygenclass:: celeritas::BetheHeitlerInteractor
-.. doxygenclass:: celeritas::EPlusGGInteractor
-.. doxygenclass:: celeritas::LivermorePEInteractor
-
-.. doxygenclass:: celeritas::AtomicRelaxation
-
-Positron annihilation and Livermore photoelectric cross sections are calculated
-on the fly (as opposed to pretabulated cross sections).
-
-.. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
-.. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
-
-Multiple scattering
--------------------
+.. doxygenclass:: celeritas::ExpNuclearFormFactor
+.. doxygenclass:: celeritas::GaussianNuclearFormFactor
+.. doxygenclass:: celeritas::UUNuclearFormFactor
 
 .. doxygenclass:: celeritas::detail::UrbanMscSafetyStepLimit
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
+
+Discrete cross sections
+=======================
+
+Most physics processes use pre-calculated cross sections that are tabulated and
+interpolated.
+
+.. doxygenclass:: celeritas::XsCalculator
+
+Cross sections for each process are evaluated at the beginning of the step
+along with range limiters.
+
+.. doxygenfunction:: celeritas::calc_physics_step_limit
+
+If undergoing an interaction, the process is sampled from the stored
+beginning-of-step cross sections.
+
+.. doxygenfunction:: celeritas::select_discrete_interaction
+
 
 Continuous slowing down
 =======================
@@ -254,16 +286,18 @@ Most charged interactions emit one or more low-energy particles during their
 interaction. Instead of creating explicit daughter tracks that are
 immediately killed due to low energy, part of the interaction cross section is
 lumped into a "slowing down" term that continuously deposits energy locally
-over the step. This mean energy loss term is an approximation; additional
+over the step.
+
+.. doxygenfunction:: celeritas::calc_mean_energy_loss
+
+Since true energy loss is a stochastic function of many small collisions, the
+*mean* energy loss term is an approximation. Additional
 models are implemented to adjust the loss per step with stochastic sampling for
 improved accuracy.
 
 .. doxygenclass:: celeritas::EnergyLossHelper
-
 .. doxygenclass:: celeritas::EnergyLossGammaDistribution
-
 .. doxygenclass:: celeritas::EnergyLossGaussianDistribution
-
 .. doxygenclass:: celeritas::EnergyLossUrbanDistribution
 
 Imported data
@@ -280,4 +314,5 @@ to provide cross sections, setup options, and other data to the EM physics.
 .. doxygenstruct:: celeritas::ImportLivermoreSubshell
 .. doxygenstruct:: celeritas::ImportLivermorePE
 
-.. doxygenstruct:: celeritas::ImportSBTable
+.. doxygenstruct:: celeritas::ImportMuPairProductionTable
+.. doxygentypedef:: celeritas::ImportSBTable

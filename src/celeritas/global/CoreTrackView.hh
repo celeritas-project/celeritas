@@ -27,6 +27,8 @@ namespace celeritas
  * Helper class to create views from core track data.
  *
  * TODO: const correctness? (Maybe have to wait till C++23's "deducing this"?)
+ *
+ * \todo Rename make_sim_view -> sim, etc.
  */
 class CoreTrackView
 {

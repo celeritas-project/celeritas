@@ -263,6 +263,7 @@ TEST_F(RootJsonDumperTest, all)
     "range" : 0.1
   }}]
 }],
+"optical_models" : [],
 "optical_materials" : [],
 "regions" : [{
   "_typename" : "celeritas::ImportRegion",
@@ -303,13 +304,13 @@ TEST_F(RootJsonDumperTest, all)
   "is_stable" : true
 }, {
   "_typename" : "celeritas::ImportParticle",
-  "name" : "gamma",
-  "pdg" : 22,
-  "mass" : 0,
-  "charge" : 0,
-  "spin" : 1,
-  "lifetime" : -1,
-  "is_stable" : true
+  "name" : "mu-",
+  "pdg" : 13,
+  "mass" : 105.6583715,
+  "charge" : -1,
+  "spin" : 0.5,
+  "lifetime" : 2.19698e-6,
+  "is_stable" : false
 }],
 "processes" : [{
   "_typename" : "celeritas::ImportProcess",
@@ -333,21 +334,21 @@ TEST_F(RootJsonDumperTest, all)
   "tables" : []
 }, {
   "_typename" : "celeritas::ImportProcess",
-  "particle_pdg" : 22,
-  "secondary_pdg" : 11,
+  "particle_pdg" : 13,
+  "secondary_pdg" : 22,
   "process_type" : 2,
-  "process_class" : 11,
+  "process_class" : 15,
   "models" : [{
     "_typename" : "celeritas::ImportModel",
-    "model_class" : 17,
+    "model_class" : 20,
     "materials" : [{
       "_typename" : "celeritas::ImportModelMaterial",
-      "energy" : [1.02199782, 100000000],
-      "micro_xs" : [[3.28384209835604e-27, 1.97480543237075e-26]]
+      "energy" : [1000, 100000000],
+      "micro_xs" : [[2.06274734475354e-29, 3.86346553888676e-29]]
     }, {
       "_typename" : "celeritas::ImportModelMaterial",
-      "energy" : [1.02199782, 100000000],
-      "micro_xs" : [[1.46036662856124e-24, 4.49766099467943e-24], [1.68569883858246e-24, 5.16172575529773e-24]]
+      "energy" : [1000, 100000000],
+      "micro_xs" : [[4.49737396284378e-27, 8.88833778887632e-27], [5.17552797162603e-27, 1.0219747115308e-26]]
     }]
   }],
   "tables" : [{
@@ -358,13 +359,13 @@ TEST_F(RootJsonDumperTest, all)
     "physics_vectors" : [{
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
-      "x" : [1.02199782, 100000000],
-      "y" : [0, 1.17988644232349e-27]
+      "x" : [1000, 100000000],
+      "y" : [0, 2.30830366120884e-30]
     }, {
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
-      "x" : [1.02199782, 100000000],
-      "y" : [0, 0.386154813172089]
+      "x" : [1000, 100000000],
+      "y" : [0, 7.63113707977686e-4]
     }]
   }]
 }],
@@ -415,6 +416,11 @@ TEST_F(RootJsonDumperTest, all)
 "livermore_pe_data" : [],
 "neutron_elastic_data" : [],
 "atomic_relaxation_data" : [],
+"mu_pair_production_data" : {
+  "_typename" : "celeritas::ImportMuPairProductionTable",
+  "atomic_number" : [],
+  "physics_vectors" : []
+},
 "em_params" : {
   "_typename" : "celeritas::ImportEmParameters",
   "energy_loss_fluct" : true,
@@ -435,11 +441,19 @@ TEST_F(RootJsonDumperTest, all)
 },
 "trans_params" : {
   "_typename" : "celeritas::ImportTransParameters",
-  "looping" : [{"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : -11, "second" : {
+  "looping" : [{"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : -13, "second" : {
+    "_typename" : "celeritas::ImportLoopingThreshold",
+    "threshold_trials" : 10,
+    "important_energy" : 250
+  }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : -11, "second" : {
     "_typename" : "celeritas::ImportLoopingThreshold",
     "threshold_trials" : 10,
     "important_energy" : 250
   }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : 11, "second" : {
+    "_typename" : "celeritas::ImportLoopingThreshold",
+    "threshold_trials" : 10,
+    "important_energy" : 250
+  }}, {"$pair" : "pair<int,celeritas::ImportLoopingThreshold>", "first" : 13, "second" : {
     "_typename" : "celeritas::ImportLoopingThreshold",
     "threshold_trials" : 10,
     "important_energy" : 250

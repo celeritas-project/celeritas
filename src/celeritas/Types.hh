@@ -29,8 +29,11 @@ namespace celeritas
 //! Opaque index to ElementRecord in the global vector of elements
 using ElementId = OpaqueId<struct ElementRecord>;
 
-//! Counter for the initiating event for a track
+//! Zero-indexed counter for the initiating event for a track
 using EventId = OpaqueId<struct Event_>;
+
+//! Unique identifier for an event used by external applications
+using UniqueEventId = OpaqueId<struct Event_, std::uint64_t>;
 
 //! Opaque index to IsotopeRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
@@ -128,20 +131,43 @@ enum class StepPoint
 };
 
 //---------------------------------------------------------------------------//
-//! Ordering / sorting of tracks on GPU
+/*!
+ * Change the ordering or thread mapping of track slots.
+ *
+ * There are three categories of track sorting:
+ * 1. No sorting is performed and new tracks are inserted in the nearest empty
+ *    track slot. (\c none )
+ * 2. The location of new track slots is biased during track initialization:
+ *    charged and neutral tracks are inserted at opposite sides of the track
+ *    slot vacancies. (\c init_charge )
+ * 3. Tracks are \em reindexed one or more times per step so that the layout
+ *    in memory is unchanged but an additional indirection maps threads onto
+ *    different track slots based on particle attributes (\c reindex_status,
+ *    \c reindex_particle_type ), actions (\c reindex_along_step_action,
+ *    \c reindex_step_limit_action, \c reindex_both_action ).
+ * 4. As a control to measure the cost of indirection, the track slots can be
+ *    reindexed randomly at the beginning of execution (\c reindex_shuffle ).
+ */
 enum class TrackOrder
 {
-    unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
-    // Reorder track data layout
-    partition_charge,  //!< Partition data layout of tracks by charged/neutral
-    // Reorder track slot indices
-    shuffled,  //!< Shuffle at the start of the simulation
-    partition_status,  //!< Partition by status at the start of each step
-    sort_along_step_action,  //!< Sort only by the along-step action id
-    sort_step_limit_action,  //!< Sort only by the step limit action id
-    sort_action,  //!< Sort by along-step id, then post-step ID
-    sort_particle_type,  //!< Sort by particle type
-    size_
+    none,  //!< Don't do any sorting: tracks are in an arbitrary order
+    begin_layout_,
+    //! Partition data layout of new tracks by charged vs neutral
+    init_charge = begin_layout_,
+    end_layout_,
+    begin_reindex_ = end_layout_,
+    //!< Shuffle at the start of the simulation
+    reindex_shuffle = begin_reindex_,
+    reindex_status,  //!< Partition by active/inactive status
+    reindex_particle_type,  //!< Sort by particle type
+    begin_reindex_action_,
+    //! Sort only by the along-step action id
+    reindex_along_step_action = begin_reindex_action_,
+    reindex_step_limit_action,  //!< Sort only by the step limit action id
+    reindex_both_action,  //!< Sort by along-step id, then post-step ID
+    end_reindex_action_,
+    end_reindex_ = end_reindex_action_,
+    size_ = end_reindex_
 };
 
 //---------------------------------------------------------------------------//

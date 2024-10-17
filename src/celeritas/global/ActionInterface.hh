@@ -20,7 +20,7 @@ class CoreState;
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
-//! Action interface for core stepping loop
+//! Interface called at beginning of the core stepping loop
 using CoreBeginRunActionInterface
     = BeginRunActionInterface<CoreParams, CoreState>;
 
@@ -54,55 +54,35 @@ class [[deprecated]] ExplicitCoreActionInterface
 };
 
 //---------------------------------------------------------------------------//
-// HELPER STRUCTS
-//---------------------------------------------------------------------------//
-//! Action order/ID tuple for comparison in sorting
-struct OrderedAction
-{
-    StepActionOrder order;
-    ActionId id;
-
-    //! Ordering comparison for an action/ID
-    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
-    {
-        if (this->order < other.order)
-            return true;
-        if (this->order > other.order)
-            return false;
-        return this->id < other.id;
-    }
-};
-
-//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Checks that the TrackOrder will sort tracks by actions applied at the given
- * StepActionOrder.
- *
- * This should match the mapping in the \c SortTracksAction constructor.
- *
- * \todo Have a single source of truth for mapping TrackOrder to
- * StepActionOrder.
+ * Whether the TrackOrder will sort tracks by actions at the given step order.
  */
-inline bool is_action_sorted(StepActionOrder action, TrackOrder track)
+inline constexpr bool
+is_action_sorted(StepActionOrder aorder, TrackOrder torder)
 {
-    return (action == StepActionOrder::post
-            && track == TrackOrder::sort_step_limit_action)
-           || (action == StepActionOrder::along
-               && track == TrackOrder::sort_along_step_action)
-           || (track == TrackOrder::sort_action
-               && (action == StepActionOrder::post
-                   || action == StepActionOrder::along));
+    // CAUTION: check that this matches \c SortTracksAction::SortTracksAction
+    return (aorder == StepActionOrder::post
+            && torder == TrackOrder::reindex_step_limit_action)
+           || (aorder == StepActionOrder::along
+               && torder == TrackOrder::reindex_along_step_action)
+           || (torder == TrackOrder::reindex_both_action
+               && (aorder == StepActionOrder::post
+                   || aorder == StepActionOrder::along));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether track sorting is enabled.
+ * Whether track sorting (reindexing) is enabled.
  */
-inline constexpr bool is_action_sorted(TrackOrder track)
+inline constexpr bool is_action_sorted(TrackOrder torder)
 {
-    return static_cast<int>(track) > static_cast<int>(TrackOrder::shuffled);
+    auto to_int = [](TrackOrder v) {
+        return static_cast<std::underlying_type_t<TrackOrder>>(v);
+    };
+    return to_int(torder) >= to_int(TrackOrder::begin_reindex_)
+           && to_int(torder) < to_int(TrackOrder::end_reindex_);
 }
 
 //---------------------------------------------------------------------------//

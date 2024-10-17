@@ -27,9 +27,14 @@
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4MscStepLimitType.hh>
+#include <G4MuPairProduction.hh>
+#include <G4MuPairProductionModel.hh>
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
+#include <G4OpAbsorption.hh>
+#include <G4OpRayleigh.hh>
+#include <G4OpWLS.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
@@ -78,6 +83,8 @@
 #include "GeantSetup.hh"
 
 #include "detail/AllElementReader.hh"
+#include "detail/GeantMaterialPropertyGetter.hh"
+#include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
@@ -164,46 +171,6 @@ struct ProcessFilter
 };
 
 //---------------------------------------------------------------------------//
-//! Retrieve and store optical material properties, if present.
-struct MatPropGetter
-{
-    using MPT = G4MaterialPropertiesTable;
-
-    MPT const& mpt;
-
-    bool operator()(double* dst, char const* name, ImportUnits q)
-    {
-        if (!mpt.ConstPropertyExists(name))
-        {
-            return false;
-        }
-        *dst = mpt.GetConstProperty(name) * native_value_from_clhep(q);
-        return true;
-    }
-
-    bool operator()(double* dst, std::string name, int comp, ImportUnits q)
-    {
-        // Geant4 10.6 and earlier require a const char* argument
-        name += std::to_string(comp);
-        return (*this)(dst, name.c_str(), q);
-    }
-
-    bool
-    operator()(ImportPhysicsVector* dst, std::string const& name, ImportUnits q)
-    {
-        // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
-        // and <=10.6 require const char*
-        auto const* g4vector = const_cast<MPT&>(mpt).GetProperty(name.c_str());
-        if (!g4vector)
-        {
-            return false;
-        }
-        *dst = detail::import_physics_vector(*g4vector, {ImportUnits::mev, q});
-        return true;
-    }
-};
-
-//---------------------------------------------------------------------------//
 //! Map particles defined in \c G4MaterialConstPropertyIndex .
 auto& optical_particles_map()
 {
@@ -223,11 +190,10 @@ auto& optical_particles_map()
  * To retrieve a material-only component simply do not use particle name.
  */
 std::vector<ImportScintComponent>
-fill_vec_import_scint_comp(MatPropGetter& get_property,
+fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                            std::string prefix = {})
 {
-    CELER_EXPECT(prefix.empty()
-                 || optical_particles_map().count(prefix));
+    CELER_EXPECT(prefix.empty() || optical_particles_map().count(prefix));
 
     // All the components below are "SCINTILLATIONYIELD",
     // "ELECTRONSCINTILLATIONYIELD", etc.
@@ -515,47 +481,54 @@ std::vector<ImportElement> import_elements()
 /*!
  * Store material-dependent optical properties.
  *
- * This returns:
- * - A vector of optical materials corresponding to an "optical material ID",
- *   and
- * - A "map" (indirection vector) of the optical material ID for each "geometry
- *   material"
+ * This returns a vector of optical materials corresponding to an "optical
+ * material ID".
  */
-std::pair<std::vector<ImportOpticalMaterial>, std::vector<OpticalMaterialId>>
-import_optical()
+std::vector<ImportOpticalMaterial>
+import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
 {
-    auto const& mt = *G4Material::GetMaterialTable();
-    CELER_ASSERT(mt.size() > 0);
+    if (geo_to_opt.empty())
+    {
+        CELER_LOG(warning)
+            << R"(Optical materials were requested but none are present)";
+        // No optical materials
+        return {};
+    }
 
-    std::vector<OpticalMaterialId> geo_to_opt(mt.size());
-    std::vector<ImportOpticalMaterial> result;
+    auto const& mt = *G4Material::GetMaterialTable();
+    CELER_ASSERT(mt.size() == geo_to_opt.num_geo());
+
+    std::vector<ImportOpticalMaterial> result(geo_to_opt.num_optical());
 
     // Loop over optical materials
-    for (auto mat_idx : range(mt.size()))
+    for (auto geo_mat_id : range(GeoMaterialId{geo_to_opt.num_geo()}))
     {
-        G4Material const* material = mt[mat_idx];
-        CELER_ASSERT(material);
-        CELER_ASSERT(mat_idx == static_cast<std::size_t>(material->GetIndex()));
-
-        // Add optical material properties, if any are present
-        auto const* mpt = material->GetMaterialPropertiesTable();
-        if (!mpt)
+        auto opt_mat_id = geo_to_opt[geo_mat_id];
+        if (!opt_mat_id)
         {
             continue;
         }
+        // Get Geant4 material properties
+        G4Material const* material = mt[geo_mat_id.get()];
+        CELER_ASSERT(material);
+        CELER_ASSERT(geo_mat_id.get()
+                     == static_cast<std::size_t>(material->GetIndex()));
+        auto const* mpt = material->GetMaterialPropertiesTable();
+        CELER_ASSERT(mpt);
 
-        ImportOpticalMaterial optical;
-        MatPropGetter get_property{*mpt};
+        detail::GeantMaterialPropertyGetter get_property{*mpt};
+
+        // Optical materials should map uniquely
+        ImportOpticalMaterial& optical = result[opt_mat_id.get()];
+        CELER_ASSERT(!optical);
 
         // Save common properties
         bool has_rindex = get_property(&optical.properties.refractive_index,
                                        "RINDEX",
                                        ImportUnits::unitless);
-        if (!has_rindex)
-        {
-            // Refractive index is required: assume the material isn't optical
-            continue;
-        }
+        // Existence of RINDEX should correspond to GeoOpticalIdMap
+        // construction
+        CELER_ASSERT(has_rindex);
 
         // Save scintillation properties
         get_property(&optical.scintillation.material.yield_per_energy,
@@ -585,18 +558,12 @@ import_optical()
         }
 
         // Save Rayleigh properties
-        get_property(&optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
         get_property(&optical.rayleigh.scale_factor,
                      "RS_SCALE_FACTOR",
                      ImportUnits::unitless);
         get_property(&optical.rayleigh.compressibility,
                      "ISOTHERMAL_COMPRESSIBILITY",
                      ImportUnits::len_time_sq_per_mass);
-
-        // Save absorption properties
-        get_property(&optical.absorption.absorption_length,
-                     "ABSLENGTH",
-                     ImportUnits::len);
 
         // Save WLS properties
         get_property(&optical.wls.mean_num_photons,
@@ -605,17 +572,13 @@ import_optical()
         get_property(
             &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
         get_property(
-            &optical.wls.absorption_length, "WLSABSLENGTH", ImportUnits::len);
-        get_property(
             &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
 
-        // Save optical material ID and data
-        geo_to_opt[mat_idx] = OpticalMaterialId(result.size());
-        result.push_back(std::move(optical));
+        CELER_ASSERT(optical);
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
-    return {std::move(result), std::move(geo_to_opt)};
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -694,7 +657,7 @@ std::vector<ImportGeoMaterial> import_geo_materials()
  */
 std::vector<ImportPhysMaterial>
 import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
-                      std::vector<OpticalMaterialId> const& geo_to_opt)
+                      detail::GeoOpticalIdMap const& geo_to_opt)
 {
     ParticleFilter include_particle{particle_flags};
     auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
@@ -756,8 +719,8 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
         material.geo_material_id = g4material->GetIndex();
         if (!geo_to_opt.empty())
         {
-            CELER_ASSERT(material.geo_material_id < geo_to_opt.size());
-            if (auto opt_id = geo_to_opt[material.geo_material_id])
+            if (auto opt_id
+                = geo_to_opt[GeoMaterialId{material.geo_material_id}])
             {
                 // Assign the optical material corresponding to the geometry
                 // material
@@ -831,19 +794,23 @@ std::vector<ImportRegion> import_regions()
 auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
-                      std::vector<ImportPhysMaterial> const& materials)
-    -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
+                      std::vector<ImportPhysMaterial> const& materials,
+                      detail::GeoOpticalIdMap const& geo_to_opt)
+    -> std::tuple<std::vector<ImportProcess>,
+                  std::vector<ImportMscModel>,
+                  std::vector<ImportOpticalModel>>
 {
     ParticleFilter include_particle{process_flags};
     ProcessFilter include_process{process_flags};
 
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
+    std::vector<ImportOpticalModel> optical_models;
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
-    detail::GeantProcessImporter import_process(
-        detail::TableSelection::minimal, materials, elements);
+    detail::GeantProcessImporter import_process(materials, elements);
+    detail::GeantOpticalModelImporter import_optical_model(geo_to_opt);
 
     auto append_process = [&](G4ParticleDefinition const& particle,
                               G4VProcess const& process) -> void {
@@ -901,6 +868,24 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
+        else if (import_optical_model)
+        {
+            if (dynamic_cast<G4OpAbsorption const*>(&process))
+            {
+                optical_models.push_back(import_optical_model(
+                    optical::ImportModelClass::absorption));
+            }
+            else if (dynamic_cast<G4OpRayleigh const*>(&process))
+            {
+                optical_models.push_back(
+                    import_optical_model(optical::ImportModelClass::rayleigh));
+            }
+            else if (dynamic_cast<G4OpWLS const*>(&process))
+            {
+                optical_models.push_back(
+                    import_optical_model(optical::ImportModelClass::wls));
+            }
+        }
         else
         {
             CELER_LOG(error)
@@ -940,7 +925,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
-    return {std::move(processes), std::move(msc_models)};
+    return {
+        std::move(processes), std::move(msc_models), std::move(optical_models)};
 }
 
 //---------------------------------------------------------------------------//
@@ -1049,6 +1035,65 @@ ImportEmParameters import_em_parameters()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the sampling table for electron-positron pair production by muons.
+ */
+ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
+{
+    CELER_EXPECT(pdg == pdg::mu_minus() || pdg == pdg::mu_plus());
+
+    using IU = ImportUnits;
+
+    G4ParticleDefinition const* pdef
+        = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
+    CELER_ASSERT(pdef);
+
+    auto const* process = dynamic_cast<G4MuPairProduction const*>(
+        pdef->GetProcessManager()->GetProcess(
+            to_geant_name(ImportProcessClass::mu_pair_prod)));
+    CELER_ASSERT(process);
+    CELER_ASSERT(process->NumberOfModels() == 1);
+
+    auto* model = dynamic_cast<G4MuPairProductionModel*>(process->EmModel());
+    CELER_ASSERT(model);
+
+    G4ElementData* el_data = model->GetElementData();
+    CELER_ASSERT(el_data);
+
+    ImportMuPairProductionTable result;
+    if (G4VERSION_NUMBER < 1120)
+    {
+        constexpr int element_data_size = 99;
+        for (int z = 1; z < element_data_size; ++z)
+        {
+            if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
+            {
+                result.atomic_number.push_back(z);
+                result.physics_vectors.push_back(
+                    detail::import_physics_2dvector(
+                        *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+            }
+        }
+    }
+    else
+    {
+        // The muon pair production model in newer Geant4 versions initializes
+        // and accesses the element data by Z index rather than Z number
+        result.atomic_number = {1, 4, 13, 29, 92};
+        for (int i : range(result.atomic_number.size()))
+        {
+            G4Physics2DVector const* pv = el_data->GetElement2DData(i);
+            CELER_ASSERT(pv);
+            result.physics_vectors.push_back(detail::import_physics_2dvector(
+                *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+        }
+    }
+
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -1104,10 +1149,20 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
     ScopedProfiling profile_this{"import-geant"};
     ImportData imported;
 
+    auto have_process = [&imported](ImportProcessClass ipc) {
+        return std::any_of(imported.processes.begin(),
+                           imported.processes.end(),
+                           [ipc](ImportProcess const& ip) {
+                               return ip.process_class == ipc;
+                           });
+    };
+
     {
         CELER_LOG(status) << "Transferring data from Geant4";
         ScopedGeantExceptionHandler scoped_exceptions;
         ScopedTimeLog scoped_time;
+
+        detail::GeoOpticalIdMap geo_to_opt;
 
         if (selected.particles != DataSelection::none)
         {
@@ -1115,11 +1170,11 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (selected.materials)
         {
-            std::vector<OpticalMaterialId> geo_to_opt;
             if (selected.processes & DataSelection::optical)
             {
-                std::tie(imported.optical_materials, geo_to_opt)
-                    = import_optical();
+                geo_to_opt
+                    = detail::GeoOpticalIdMap(*G4Material::GetMaterialTable());
+                imported.optical_materials = import_optical(geo_to_opt);
             }
 
             imported.isotopes = import_isotopes();
@@ -1130,11 +1185,26 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (selected.processes != DataSelection::none)
         {
-            std::tie(imported.processes, imported.msc_models)
+            std::tie(imported.processes,
+                     imported.msc_models,
+                     imported.optical_models)
                 = import_processes(selected.processes,
                                    imported.particles,
                                    imported.elements,
-                                   imported.phys_materials);
+                                   imported.phys_materials,
+                                   geo_to_opt);
+
+            if (have_process(ImportProcessClass::mu_pair_prod))
+            {
+                auto mu_minus = import_mupp_table(pdg::mu_minus());
+                auto mu_plus = import_mupp_table(pdg::mu_plus());
+                CELER_VALIDATE(
+                    mu_minus.atomic_number == mu_plus.atomic_number
+                        && mu_minus.physics_vectors == mu_plus.physics_vectors,
+                    << "muon pair production sampling tables for "
+                       "mu- and mu+ differ");
+                imported.mu_pair_production_data = std::move(mu_minus);
+            }
         }
         imported.regions = import_regions();
         imported.volumes = this->import_volumes(selected.unique_volumes);
@@ -1154,14 +1224,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         ScopedTimeLog scoped_time;
 
         detail::AllElementReader load_data{imported.elements};
-
-        auto have_process = [&imported](ImportProcessClass ipc) {
-            return std::any_of(imported.processes.begin(),
-                               imported.processes.end(),
-                               [ipc](ImportProcess const& ip) {
-                                   return ip.process_class == ipc;
-                               });
-        };
 
         if (have_process(ImportProcessClass::e_brems))
         {

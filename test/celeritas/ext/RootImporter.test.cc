@@ -79,7 +79,7 @@ auto RootImporterTest::imported_data() const -> ImportData const&
 TEST_F(RootImporterTest, particles)
 {
     auto const& particles = this->imported_data().particles;
-    EXPECT_EQ(3, particles.size());
+    EXPECT_EQ(5, particles.size());
 
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
@@ -91,11 +91,9 @@ TEST_F(RootImporterTest, particles)
     }
 
     // Particle ordering is the same as in the ROOT file
-    // clang-format off
-    static const char* expected_loaded_names[] = {"e+", "e-", "gamma"};
-
-    static const int expected_loaded_pdgs[] = {-11, 11, 22};
-    // clang-format on
+    static char const* expected_loaded_names[]
+        = {"e+", "e-", "gamma", "mu+", "mu-"};
+    static int const expected_loaded_pdgs[] = {-11, 11, 22, -13, 13};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
     EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);
@@ -153,7 +151,7 @@ TEST_F(RootImporterTest, phys_materials)
 TEST_F(RootImporterTest, processes)
 {
     auto const& processes = this->imported_data().processes;
-    EXPECT_EQ(11, processes.size());
+    EXPECT_EQ(15, processes.size());
 
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),

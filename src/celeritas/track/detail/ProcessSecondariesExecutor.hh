@@ -10,7 +10,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/math/Atomics.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -80,7 +79,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
     }
 
     // Offset in the vector of track initializers
-    auto const& data = state->init;
+    auto& data = state->init;
     CELER_ASSERT(data.secondary_counts[tid] <= counters.num_secondaries);
     size_type offset = counters.num_secondaries - data.secondary_counts[tid];
 
@@ -104,20 +103,9 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             GeoTrackView geo(params->geometry, state->geometry, tid);
             CELER_ASSERT(!geo.is_on_boundary());
 
-            /*!
-             * Increment the total number of tracks created for this event and
-             * calculate the track ID of the secondary.
-             *
-             * \todo This is nondeterministic; we need to calculate the track
-             * ID in a reproducible way.
-             */
-            CELER_ASSERT(sim.event_id() < data.track_counters.size());
-            TrackId::size_type track_id = atomic_add(
-                &data.track_counters[sim.event_id()], size_type{1});
-
             // Create a track initializer from the secondary
             TrackInitializer ti;
-            ti.sim.track_id = TrackId{track_id};
+            ti.sim.track_id = make_track_id(params->init, data, sim.event_id());
             ti.sim.parent_id = parent_id;
             ti.sim.event_id = sim.event_id();
             ti.sim.time = sim.time();
@@ -128,7 +116,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             CELER_ASSERT(ti);
 
             if (!initialized && sim.status() != TrackStatus::alive
-                && params->init.track_order != TrackOrder::partition_charge)
+                && params->init.track_order != TrackOrder::init_charge)
             {
                 /*!
                  * Skip in-place initialization when tracks are partitioned by
@@ -169,7 +157,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     = ti;
 
                 if (offset <= data.parents.size()
-                    && (params->init.track_order != TrackOrder::partition_charge
+                    && (params->init.track_order != TrackOrder::init_charge
                         || sim.status() == TrackStatus::alive))
                 {
                     // Store the thread ID of the secondary's parent if the

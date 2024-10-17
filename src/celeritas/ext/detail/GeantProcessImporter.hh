@@ -26,19 +26,12 @@ class G4VMultipleScattering;
 class G4ParticleDefinition;
 class G4PhysicsTable;
 class G4PhysicsVector;
+class G4Physics2DVector;
 
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-// DEPRECATED: remove in v0.5
-enum class TableSelection
-{
-    minimal,  //!< Store only lambda, dedx, and range
-    all
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Simplify the convoluted mechanism to store Geant4 process, model, and XS
@@ -53,7 +46,7 @@ enum class TableSelection
  *
  * \code
  *  std::vector<ImportProcess> processes;
- *  GeantProcessImporter import(TableSelection::all, materials, elements);
+ *  GeantProcessImporter import(materials, elements);
  *
  *  G4ParticleTable::G4PTblDicIterator& particle_iterator
  *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -81,8 +74,7 @@ class GeantProcessImporter
 {
   public:
     // Construct with selected list of tables
-    GeantProcessImporter(TableSelection which_tables,
-                         std::vector<ImportPhysMaterial> const& materials,
+    GeantProcessImporter(std::vector<ImportPhysMaterial> const& materials,
                          std::vector<ImportElement> const& elements);
 
     // Import processes
@@ -117,6 +109,10 @@ class GeantProcessImporter
 // Import a physics vector with the given x, y units
 ImportPhysicsVector
 import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units);
+
+// Import a 2D physics vector
+ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
+                                              Array<ImportUnits, 3> units);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

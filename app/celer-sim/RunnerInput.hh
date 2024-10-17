@@ -51,6 +51,19 @@ struct RunnerInput
         };
     };
 
+    struct OpticalOptions
+    {
+        size_type buffer_capacity{};  //!< Number of steps that created photons
+        size_type primary_capacity{};  //!< Maximum number of pending primaries
+        size_type auto_flush{};  //!< Threshold number of primaries for
+                                 //!< launching optical tracking loop
+
+        explicit operator bool() const
+        {
+            return buffer_capacity > 0 && primary_capacity > 0
+                   && auto_flush > 0;
+        };
+    };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{0};
 
@@ -79,14 +92,13 @@ struct RunnerInput
     bool action_diagnostic{};
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
+    std::string slot_diagnostic_prefix;  //!< Base name for slot diagnostic
     bool write_track_counts{true};  //!< Output track counts for each step
     bool write_step_times{true};  //!< Output elapsed times for each step
 
     // Control
     unsigned int seed{};
     size_type num_track_slots{};  //!< Divided among streams
-    size_type optical_buffer_capacity{};  //!< Number of steps that created
-                                          //!< optical photons
     size_type max_steps = static_cast<size_type>(-1);
     size_type initializer_capacity{};  //!< Divided among streams
     real_type secondary_stack_factor{};
@@ -94,7 +106,7 @@ struct RunnerInput
     bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream
     bool default_stream{false};  //!< Launch all kernels on the default stream
-    bool warm_up{CELER_USE_DEVICE};  //!< Run a nullop step first
+    bool warm_up{false};  //!< Run a nullop step first
 
     // Magnetic field vector [* 1/Tesla] and associated field options
     Real3 field{no_field()};
@@ -107,11 +119,14 @@ struct RunnerInput
     // Options for physics
     bool brem_combined{false};
 
-    // Track init options
-    TrackOrder track_order{TrackOrder::unsorted};
+    // Track reordering options
+    TrackOrder track_order{TrackOrder::none};
 
     // Optional setup options if loading directly from Geant4
     GeantPhysicsOptions physics_options;
+
+    // Options when optical physics is enabled
+    OpticalOptions optical;
 
     //! Whether the run arguments are valid
     explicit operator bool() const

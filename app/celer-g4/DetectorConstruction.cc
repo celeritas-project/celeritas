@@ -34,6 +34,7 @@
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
 
+#include "GeantDiagnostics.hh"
 #include "GlobalSetup.hh"
 #include "RootIO.hh"
 #include "SensitiveDetector.hh"
@@ -68,6 +69,9 @@ DetectorConstruction::DetectorConstruction(SPParams params)
 //---------------------------------------------------------------------------//
 /*!
  * Load geometry and sensitive detector volumes.
+ *
+ * This should only be called once from the master thread, toward the very
+ * beginning of the program.
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
@@ -96,11 +100,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             // Create calo manager
             simple_calos_.push_back(std::make_shared<GeantSimpleCalo>(
                 std::move(name), params_, std::move(volumes)));
-
-            // Add to output
-            params_->output_reg()->insert(simple_calos_.back());
         });
     }
+
+    // Add outputs to the Geant diagnostics
+    GeantDiagnostics::register_output(
+        {simple_calos_.begin(), simple_calos_.end()});
 
     auto field = this->construct_field();
     CELER_ASSERT(field.along_step);

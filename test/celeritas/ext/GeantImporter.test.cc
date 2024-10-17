@@ -247,13 +247,16 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     {
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
+        opts.muon.ionization = true;
+        opts.muon.bremsstrahlung = true;
+        opts.muon.pair_production = true;
         opts.verbose = true;
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":false,"pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -327,6 +330,33 @@ class LarSphere : public GeantImporterTest
     {
         return "lar-sphere"sv;
     }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = GeantImporterTest::build_geant_options();
+        opts.optical.absorption = true;
+        opts.optical.rayleigh_scattering = true;
+        opts.optical.wavelength_shifting = WLSTimeProfileSelection::delta;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+class LarSphereExtramat : public GeantImporterTest
+{
+  protected:
+    std::string_view geometry_basename() const override
+    {
+        return "lar-sphere-extramat"sv;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = GeantImporterTest::build_geant_options();
+        opts.optical.absorption = true;
+        opts.optical.rayleigh_scattering = true;
+        return opts;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -366,25 +396,47 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"e_ioni",
-                                               "e_brems",
-                                               "photoelectric",
-                                               "compton",
-                                               "conversion",
-                                               "rayleigh",
-                                               "annihilation"};
+    static char const* expected_processes[] = {
+        "e_ioni",
+        "e_brems",
+        "photoelectric",
+        "compton",
+        "conversion",
+        "rayleigh",
+        "annihilation",
+        "mu_ioni",
+        "mu_brems",
+        "mu_pair_prod",
+    };
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"urban_msc",
-                                            "moller_bhabha",
-                                            "e_brems_sb",
-                                            "e_brems_lpm",
-                                            "e_plus_to_gg",
-                                            "livermore_photoelectric",
-                                            "klein_nishina",
-                                            "bethe_heitler_lpm",
-                                            "livermore_rayleigh"};
+    static char const* expected_models[] = {
+        "urban_msc",
+        "icru_73_qo",
+        "bragg",
+        "moller_bhabha",
+        "e_brems_sb",
+        "e_brems_lpm",
+        "e_plus_to_gg",
+        "livermore_photoelectric",
+        "klein_nishina",
+        "bethe_heitler_lpm",
+        "livermore_rayleigh",
+        "mu_bethe_bloch",
+        "mu_brems",
+        "mu_pair_prod",
+    };
+    if (geant4_version < Version(11, 1, 0))
+    {
+        // Older versions of Geant4 use the Bethe-Bloch model for muon
+        // ionization at intermediate energies
+        auto iter = std::find(
+            summary.models.begin(), summary.models.end(), "bethe_bloch");
+        EXPECT_TRUE(iter != summary.models.end());
+        summary.models.erase(iter, iter + 1);
+    }
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
@@ -397,25 +449,47 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma", "proton"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"e_ioni",
-                                               "e_brems",
-                                               "photoelectric",
-                                               "compton",
-                                               "conversion",
-                                               "rayleigh",
-                                               "annihilation"};
+    static char const* expected_processes[] = {
+        "e_ioni",
+        "e_brems",
+        "photoelectric",
+        "compton",
+        "conversion",
+        "rayleigh",
+        "annihilation",
+        "mu_ioni",
+        "mu_brems",
+        "mu_pair_prod",
+    };
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"urban_msc",
-                                            "moller_bhabha",
-                                            "e_brems_sb",
-                                            "e_brems_lpm",
-                                            "e_plus_to_gg",
-                                            "livermore_photoelectric",
-                                            "klein_nishina",
-                                            "bethe_heitler_lpm",
-                                            "livermore_rayleigh"};
+    static char const* expected_models[] = {
+        "urban_msc",
+        "icru_73_qo",
+        "bragg",
+        "moller_bhabha",
+        "e_brems_sb",
+        "e_brems_lpm",
+        "e_plus_to_gg",
+        "livermore_photoelectric",
+        "klein_nishina",
+        "bethe_heitler_lpm",
+        "livermore_rayleigh",
+        "mu_bethe_bloch",
+        "mu_brems",
+        "mu_pair_prod",
+    };
+    if (geant4_version < Version(11, 1, 0))
+    {
+        // Older versions of Geant4 use the Bethe-Bloch model for muon
+        // ionization at intermediate energies
+        auto iter = std::find(
+            summary.models.begin(), summary.models.end(), "bethe_bloch");
+        EXPECT_TRUE(iter != summary.models.end());
+        summary.models.erase(iter, iter + 1);
+    }
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
@@ -521,8 +595,7 @@ TEST_F(FourSteelSlabsEmStandard, isotopes)
     EXPECT_VEC_EQ(expected_isotope_atomic_number, isotope_atomic_number);
     EXPECT_VEC_EQ(expected_isotope_atomic_mass_number,
                   isotope_atomic_mass_number);
-    EXPECT_VEC_SOFT_EQ(expected_isotope_nuclear_mass,
-                       expected_isotope_nuclear_mass);
+    EXPECT_VEC_SOFT_EQ(expected_isotope_nuclear_mass, isotope_nuclear_mass);
 }
 
 //---------------------------------------------------------------------------//
@@ -778,6 +851,131 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, muioni)
+{
+    real_type const tol = this->comparison_tolerance();
+
+    ImportProcess const& mu_minus = this->find_process(
+        celeritas::pdg::mu_minus(), ImportProcessClass::mu_ioni);
+    EXPECT_EQ(ImportProcessType::electromagnetic, mu_minus.process_type);
+    EXPECT_EQ(celeritas::pdg::electron().get(), mu_minus.secondary_pdg);
+
+    // Test model
+    ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2,
+              mu_minus.models.size());
+    {
+        auto const& model = mu_minus.models.front();
+        EXPECT_EQ(ImportModelClass::icru_73_qo, model.model_class);
+
+        auto result = summarize(model.materials);
+        EXPECT_TRUE(result.xs.empty());
+        static unsigned int const expected_size[] = {2u, 2u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static double const expected_energy[] = {0.0001, 0.2, 0.0001, 0.2};
+        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    }
+    if (geant4_version < Version(11, 1, 0))
+    {
+        auto const& model = mu_minus.models[1];
+        EXPECT_EQ(ImportModelClass::bethe_bloch, model.model_class);
+
+        auto result = summarize(model.materials);
+        EXPECT_TRUE(result.xs.empty());
+        static unsigned int const expected_size[] = {2u, 2u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static double const expected_energy[] = {0.2, 1000, 0.2, 1000};
+        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    }
+    {
+        auto const& model = mu_minus.models.back();
+        EXPECT_EQ(ImportModelClass::mu_bethe_bloch, model.model_class);
+
+        auto result = summarize(model.materials);
+        EXPECT_TRUE(result.xs.empty());
+        static unsigned int const expected_size[] = {2u, 2u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        if (geant4_version < Version(11, 1, 0))
+        {
+            static double const expected_energy[]
+                = {1000, 100000000, 1000, 100000000};
+            EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+        }
+        else
+        {
+            static double const expected_energy[]
+                = {0.2, 100000000, 0.2, 100000000};
+            EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+        }
+    }
+
+    auto const& tables = mu_minus.tables;
+    ASSERT_EQ(3, tables.size());
+    {
+        // Test energy loss table
+        ImportPhysicsTable const& dedx = tables[0];
+        ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
+        EXPECT_EQ(ImportUnits::mev, dedx.x_units);
+        EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
+        ASSERT_EQ(2, dedx.physics_vectors.size());
+
+        ImportPhysicsVector const& steel = dedx.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(85, steel.x.size());
+        EXPECT_SOFT_EQ(1e-4, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_NEAR(83.221648535690946, to_inv_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(11.40198961519433, to_inv_cm(steel.y.back()), tol);
+    }
+    {
+        // Test range table
+        ImportPhysicsTable const& range = tables[1];
+        ASSERT_EQ(ImportTableType::range, range.table_type);
+        EXPECT_EQ(ImportUnits::mev, range.x_units);
+        EXPECT_EQ(ImportUnits::cm, range.y_units);
+        ASSERT_EQ(2, range.physics_vectors.size());
+
+        ImportPhysicsVector const& steel = range.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(85, steel.x.size());
+        EXPECT_SOFT_EQ(1e-4, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_NEAR(2.4032208387968519e-06, to_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(8772935.4124113899, to_cm(steel.y.back()), tol);
+    }
+    {
+        // Test cross-section table
+        ImportPhysicsTable const& xs = tables[2];
+        ASSERT_EQ(ImportTableType::lambda, xs.table_type);
+        EXPECT_EQ(ImportUnits::mev, xs.x_units);
+        EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
+        ASSERT_EQ(2, xs.physics_vectors.size());
+
+        ImportPhysicsVector const& steel = xs.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(45, steel.x.size());
+        EXPECT_SOFT_NEAR(54.542938808612199, steel.x.front(), tol);
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(0, steel.y.front());
+        EXPECT_SOFT_NEAR(0.10167398809855273, to_inv_cm(steel.y[1]), tol);
+        EXPECT_SOFT_NEAR(0.47315182268065914, to_inv_cm(steel.y.back()), tol);
+    }
+
+    // Check mu+
+    ImportProcess const& mu_plus = this->find_process(
+        celeritas::pdg::mu_plus(), ImportProcessClass::mu_ioni);
+    EXPECT_EQ(ImportProcessType::electromagnetic, mu_plus.process_type);
+    EXPECT_EQ(celeritas::pdg::electron().get(), mu_plus.secondary_pdg);
+
+    auto const& models = mu_plus.models;
+    ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2, models.size());
+    EXPECT_EQ(ImportModelClass::bragg, models.front().model_class);
+    EXPECT_EQ(ImportModelClass::mu_bethe_bloch, models.back().model_class);
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, volumes)
 {
     auto&& import_data = this->imported_data();
@@ -842,7 +1040,7 @@ TEST_F(FourSteelSlabsEmStandard, trans_parameters)
     auto&& import_data = this->imported_data();
 
     EXPECT_EQ(1000, import_data.trans_params.max_substeps);
-    EXPECT_EQ(3, import_data.trans_params.looping.size());
+    EXPECT_EQ(5, import_data.trans_params.looping.size());
     for (auto const& kv : import_data.trans_params.looping)
     {
         EXPECT_EQ(10, kv.second.threshold_trials);
@@ -894,6 +1092,76 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
     EXPECT_VEC_EQ(expected_sb_table_x, sb_table_x);
     EXPECT_VEC_EQ(expected_sb_table_y, sb_table_y);
     EXPECT_VEC_EQ(expected_sb_table_value, sb_table_value);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
+{
+    auto&& import_data = this->imported_data();
+
+    auto const& data = import_data.mu_pair_production_data;
+
+    int const expected_atomic_number[] = {1, 4, 13, 29, 92};
+    EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);
+
+    EXPECT_EQ(5, data.physics_vectors.size());
+
+    std::vector<double> table_x;
+    std::vector<double> table_y;
+    std::vector<double> table_value;
+
+    for (auto const& pv : data.physics_vectors)
+    {
+        table_x.push_back(pv.x.front());
+        table_y.push_back(pv.y.front());
+        table_value.push_back(pv.value.front() / barn);
+        table_x.push_back(pv.x.back());
+        table_y.push_back(pv.y.back());
+        table_value.push_back(pv.value.back() / barn);
+    }
+
+    real_type const tol = geant4_version < Version(11, 1, 0) ? 1e-12 : 0.03;
+
+    static double const expected_table_x[] = {
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+        -6.1928487397154,
+        0,
+    };
+    static double const expected_table_y[] = {
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+        6.9077552789821,
+        18.420680743952,
+    };
+    static double const expected_table_value[] = {
+        0,
+        0.24363843626056,
+        0,
+        2.257683855817,
+        0,
+        18.983775898741,
+        0,
+        86.585529175975,
+        0,
+        793.41396760823,
+    };
+    EXPECT_VEC_NEAR(expected_table_x, table_x, tol);
+    EXPECT_VEC_NEAR(expected_table_y, table_y, tol);
+    EXPECT_VEC_NEAR(
+        expected_table_value, table_value, this->comparison_tolerance());
 }
 
 //---------------------------------------------------------------------------//
@@ -1352,6 +1620,7 @@ TEST_F(OneSteelSphereGG, physics)
 TEST_F(LarSphere, optical)
 {
     auto&& imported = this->imported_data();
+    ASSERT_EQ(3, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1454,43 +1723,59 @@ TEST_F(LarSphere, optical)
     EXPECT_VEC_EQ(expected_comp_ft, expected_comp_ft);
 
     // Check Rayleigh optical properties
-    auto const& rayleigh = optical.rayleigh;
-    EXPECT_TRUE(rayleigh);
-    EXPECT_EQ(1, rayleigh.scale_factor);
+    auto const& rayleigh_model = imported.optical_models[1];
+    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
+    ASSERT_EQ(1, rayleigh_model.mfps.size());
+
+    auto const& rayleigh_mfp = rayleigh_model.mfps.front();
+    EXPECT_EQ(11, rayleigh_mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
+    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh_mfp.y.front()));
+    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh_mfp.y.back()));
+
+    auto const& rayleigh_mat = optical.rayleigh;
+    EXPECT_TRUE(rayleigh_mat);
+    EXPECT_EQ(1, rayleigh_mat.scale_factor);
     EXPECT_REAL_EQ(0.024673059861887867 * centimeter * ipow<2>(second) / gram,
-                   rayleigh.compressibility);
-    EXPECT_EQ(11, rayleigh.mfp.x.size());
-    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh.mfp.x.front());
-    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh.mfp.x.back());
-    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh.mfp.y.front()));
-    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh.mfp.y.back()));
+                   rayleigh_mat.compressibility);
 
     // Check absorption optical properties
-    auto const& abs = optical.absorption;
-    EXPECT_TRUE(abs);
-    EXPECT_EQ(2, abs.absorption_length.x.size());
-    EXPECT_DOUBLE_EQ(1.3778e-06, abs.absorption_length.x.front());
-    EXPECT_DOUBLE_EQ(1.55e-05, abs.absorption_length.x.back());
-    EXPECT_REAL_EQ(86.4473, to_cm(abs.absorption_length.y.front()));
-    EXPECT_REAL_EQ(0.000296154, to_cm(abs.absorption_length.y.back()));
+    auto const& absorption_model = imported.optical_models[0];
+    EXPECT_EQ(optical::ImportModelClass::absorption,
+              absorption_model.model_class);
+    ASSERT_EQ(1, absorption_model.mfps.size());
+
+    auto const& absorption_mfp = absorption_model.mfps.front();
+    EXPECT_EQ(2, absorption_mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.3778e-06, absorption_mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, absorption_mfp.x.back());
+    EXPECT_REAL_EQ(86.4473, to_cm(absorption_mfp.y.front()));
+    EXPECT_REAL_EQ(0.000296154, to_cm(absorption_mfp.y.back()));
 
     // Check WLS optical properties
-    auto const& wls = optical.wls;
-    EXPECT_TRUE(wls);
-    EXPECT_REAL_EQ(3, wls.mean_num_photons);
-    EXPECT_REAL_EQ(6 * nanosecond, wls.time_constant);
-    EXPECT_EQ(2, wls.absorption_length.x.size());
-    EXPECT_EQ(wls.absorption_length.x.size(), wls.absorption_length.y.size());
-    EXPECT_EQ(ImportPhysicsVectorType::free, wls.absorption_length.vector_type);
-    EXPECT_EQ(wls.component.vector_type, wls.absorption_length.vector_type);
+    auto const& wls_model = imported.optical_models[2];
+    EXPECT_EQ(optical::ImportModelClass::wls, wls_model.model_class);
+    ASSERT_EQ(1, wls_model.mfps.size());
+
+    auto const& wls_mfp = wls_model.mfps.front();
+    EXPECT_EQ(2, wls_mfp.x.size());
+    EXPECT_EQ(wls_mfp.x.size(), wls_mfp.y.size());
+    EXPECT_EQ(ImportPhysicsVectorType::free, wls_mfp.vector_type);
+
+    auto const& wls_mat = optical.wls;
+    EXPECT_TRUE(wls_mat);
+    EXPECT_REAL_EQ(3, wls_mat.mean_num_photons);
+    EXPECT_REAL_EQ(6 * nanosecond, wls_mat.time_constant);
+    EXPECT_EQ(wls_mat.component.vector_type, wls_mfp.vector_type);
 
     std::vector<double> abslen_grid, comp_grid;
-    for (auto i : range(wls.absorption_length.x.size()))
+    for (auto i : range(wls_mfp.x.size()))
     {
-        abslen_grid.push_back(wls.absorption_length.x[i]);
-        abslen_grid.push_back(to_cm(wls.absorption_length.y[i]));
-        comp_grid.push_back(wls.component.x[i]);
-        comp_grid.push_back(wls.component.y[i]);
+        abslen_grid.push_back(wls_mfp.x[i]);
+        abslen_grid.push_back(to_cm(wls_mfp.y[i]));
+        comp_grid.push_back(wls_mat.component.x[i]);
+        comp_grid.push_back(wls_mat.component.y[i]);
     }
 
     static real_type const expected_abslen_grid[]
@@ -1513,6 +1798,53 @@ TEST_F(LarSphere, optical)
     EXPECT_DOUBLE_EQ(1.0597e-05, properties.refractive_index.x.back());
     EXPECT_DOUBLE_EQ(1.2221243542166, properties.refractive_index.y.front());
     EXPECT_DOUBLE_EQ(1.6167515615703, properties.refractive_index.y.back());
+}
+
+TEST_F(LarSphereExtramat, optical)
+{
+    auto&& imported = this->imported_data();
+    ASSERT_EQ(2, imported.optical_models.size());
+    ASSERT_EQ(1, imported.optical_materials.size());
+    ASSERT_EQ(3, imported.geo_materials.size());
+    ASSERT_EQ(2, imported.phys_materials.size());
+
+    // First material is vacuum, no optical properties
+    ASSERT_EQ(0, imported.phys_materials[0].geo_material_id);
+    EXPECT_EQ("vacuum", imported.geo_materials[0].name);
+    EXPECT_EQ(ImportPhysMaterial::unspecified,
+              imported.phys_materials[0].optical_material_id);
+
+    // Second material is liquid argon
+    ASSERT_EQ(1, imported.phys_materials[1].geo_material_id);
+    EXPECT_EQ("lAr", imported.geo_materials[1].name);
+    ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
+
+    // Check scintillation optical properties
+    auto const& optical = imported.optical_materials[0];
+    EXPECT_FALSE(optical.scintillation);
+
+    // Check Rayleigh optical properties
+    auto const& rayleigh_model = imported.optical_models[1];
+    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
+    ASSERT_EQ(1, rayleigh_model.mfps.size());
+
+    auto const& rayleigh_mfp = rayleigh_model.mfps.front();
+    EXPECT_EQ(2, rayleigh_mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
+    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh_mfp.y.front()));
+    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh_mfp.y.back()));
+
+    // Check common optical properties
+    // Refractive index data in the geometry comes from the refractive index
+    // database https://refractiveindex.info and was calculating using the
+    // methods described in: E. Grace, A. Butcher, J.  Monroe, J. A. Nikkel.
+    // Index of refraction, Rayleigh scattering length, and Sellmeier
+    // coefficients in solid and liquid argon and xenon, Nucl.  Instr. Meth.
+    // Phys. Res. A 867, 204-208 (2017)
+    auto const& properties = optical.properties;
+    EXPECT_TRUE(properties);
+    EXPECT_EQ(2, properties.refractive_index.x.size());
 }
 
 //---------------------------------------------------------------------------//
