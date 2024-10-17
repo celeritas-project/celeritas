@@ -121,7 +121,7 @@ TEST_F(MuDecayInteractorTest, stress_test)
                                this->direction(),
                                this->secondary_allocator());
 
-    real_type avg_sec_energies[3]{};  // Average energy per secondary
+    double avg_sec_energies[3]{};  // Average energy per secondary
     Real3 avg_total_momentum{};  // Average total momentum per decay
 
     for ([[maybe_unused]] auto sample : range(num_samples))
