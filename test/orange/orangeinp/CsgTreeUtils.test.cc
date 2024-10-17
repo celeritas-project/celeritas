@@ -392,7 +392,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     auto s1 = this->insert(Surface{S{1}});
     auto n0 = this->insert(Negated{s1});
     auto j0 = this->insert(Joined{op_and, {s0, n0}});
-    auto simplified = transform_negated_joins(tree_);
+    auto simplified = transform_negated_joins(tree_).tree;
 
     // Check a well-formed tree
     EXPECT_EQ(
@@ -415,7 +415,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Check an easy case with just a single negated operand
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, }",
@@ -430,7 +430,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Check that the non-negated operand maps to correct new node_ids and
     // that not{2} is not deleted
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: any{3,4}, 7: any{2,5}, }",
@@ -444,7 +444,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Check that the two operands are transformed, removing dangling operators
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, 6: all{3,4}, }",
@@ -460,7 +460,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Check that disjoint trees are correctly handled
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, }",
@@ -475,7 +475,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Add a non-transformed operand with suboperands
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
@@ -492,7 +492,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Top-level operand is negated and should be simplified, no need to
     // duplicate intermediary Joined nodes
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, }",
@@ -507,7 +507,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Top-level joined has Negated{Joined{}} chldrens
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, 10: "
@@ -523,7 +523,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Complex case with a negated join with negated join as children
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
@@ -550,7 +550,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Complex case with a negated join with negated children
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: all{2,3}, 5: "
         "surface 2, 6: not{5}, 7: all{4,6}, }",
@@ -568,7 +568,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
         "not{3}, 6: all{4,5}, 7: any{4,5}, 8: not{7}, }",
         to_string(tree_));
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
         "not{3}, 6: all{4,5}, 7: all{2,3}, }",
@@ -597,7 +597,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         to_string(tree_));
 
     // Complex case with a negated join with negated children
-    auto simplified = transform_negated_joins(tree_);
+    auto simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
         "not{3}, 6: all{2,3}, 7: any{4,5}, 8: surface 2, 9: not{8}, 10: "
@@ -626,7 +626,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
     this->insert(Joined{op_and, {mz, below_pz}});
     tree_.insert_volume(inner_cyl);
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, 10: "
@@ -688,7 +688,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         to_string(tree_));
 
     tree_.insert_volume(N{16});
-    simplified = transform_negated_joins(tree_);
+    simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, 10: "
@@ -716,7 +716,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: ->{5}, 7: not{5}, }",
         to_string(tree_));
-    auto simplified = transform_negated_joins(tree_);
+    auto simplified = transform_negated_joins(tree_).tree;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: any{3,4}, 7: all{2,5}, }",
