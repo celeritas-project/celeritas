@@ -111,15 +111,17 @@ struct SetupOptions
     std::string output_file;
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
-    //! Filename to dump a HepMC3 copy of offloaded tracks as events
+    //! Filename to dump a ROOT/HepMC3 copy of offloaded tracks as events
     std::string offload_output_file;
+    //! Filename to dump a GDML file for debugging inside frameworks
+    std::string geometry_output_file;
     //!@}
 
     //!@{
     //! \name Celeritas stepper options
     //! Number of track "slots" to be transported simultaneously
     size_type max_num_tracks{};
-    //! Maximum number of events in use
+    //! Maximum number of events in use (DEPRECATED: remove in v0.6)
     size_type max_num_events{};
     //! Limit on number of step iterations before aborting
     size_type max_steps = no_max_steps();
@@ -150,24 +152,24 @@ struct SetupOptions
     short int max_field_substeps{100};
     //!@}
 
-    //!@{
-    //! \name Sensitive detector options
+    //! Sensitive detector options
     SDSetupOptions sd;
-    //!@}
 
     //!@{
     //! \name Physics options
-    //! Ignore the following EM process names
+    //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
     //!@}
 
     //!@{
     //! \name CUDA options
+    //! Per-thread stack size (may be needed for VecGeom) [B]
     size_type cuda_stack_size{};
+    //! Dynamic heap size (may be needed for VecGeom) [B]
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
     bool action_times{false};
-    //! Launch all kernels on the default stream
+    //! Launch all kernels on the default stream for debugging
     bool default_stream{false};
     //!@}
 

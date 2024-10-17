@@ -55,7 +55,6 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         for (auto i : range(num_tracks))
         {
             primaries[i].event_id = EventId{i};
-            primaries[i].track_id = TrackId{i};
         }
 
         // Construct track initializers

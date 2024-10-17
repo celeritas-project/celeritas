@@ -39,7 +39,7 @@ namespace celeritas
  * The contribution to the cross section from the nucleus is given by
  * \f[
    \Phi_n = \ln \frac{B Z^{-1/3} (\mu + \delta(D'_n \sqrt{e} - 2))}{D'_n (m +
-   \delta \sqrt{e} B Z^{-1/3})} \f$,
+   \delta \sqrt{e} B Z^{-1/3})} \ ,
  * \f]
  * where \f$ \delta = \frac{\mu^2 v}{2(E - \epsilon)}\f$ is the minimum
  * momentum transfer and \f$ D'_n \f$ is the correction to the nuclear form
@@ -48,7 +48,7 @@ namespace celeritas
  * The contribution to the cross section from electrons is given by
  * \f[
    \Phi_e = \ln \frac{B' Z^{-2/3} \mu}{\left(1 + \frac{\delta \mu}{m^2
-   \sqrt{e}}\right)(m + \delta \sqrt{e} B' Z^{-2/3})} \f$.
+   \sqrt{e}}\right)(m + \delta \sqrt{e} B' Z^{-2/3})} \ .
  * \f]
  *
  * The constants \f$ B \f$ and \f$ B' \f$ were calculated using the

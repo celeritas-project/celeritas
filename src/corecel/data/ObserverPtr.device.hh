@@ -27,7 +27,7 @@ ObserverPtr<T, MemSpace::device> make_observer(thrust::device_ptr<T> ptr)
 template<class T>
 thrust::device_ptr<T> device_pointer_cast(ObserverPtr<T, MemSpace::device> ptr)
 {
-    return thrust::device_ptr<T>{ptr.get()};
+    return thrust::device_ptr<T>{static_cast<T*>(ptr)};
 }
 
 //---------------------------------------------------------------------------//

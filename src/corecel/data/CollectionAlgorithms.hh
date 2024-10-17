@@ -12,14 +12,16 @@
 
 #include "Collection.hh"
 #include "Copier.hh"
-
-#include "detail/Filler.hh"
+#include "Filler.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Fill the collection with the given value.
+ *
+ * This should only be used during initialization when stream synchronization
+ * is OK. Use the \c Filler directly during runtime since it supports streams.
  */
 template<class T, Ownership W, MemSpace M, class I>
 void fill(T&& value, Collection<T, W, M, I>* col)
@@ -27,7 +29,7 @@ void fill(T&& value, Collection<T, W, M, I>* col)
     static_assert(W != Ownership::const_reference,
                   "const references cannot be filled");
     CELER_EXPECT(col);
-    detail::Filler<T, M> fill_impl{value};
+    Filler<T, M> fill_impl{value};
     fill_impl((*col)[AllItems<T, M>{}]);
 }
 

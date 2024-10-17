@@ -220,7 +220,7 @@ Conversion/annihilation/photoelectric
 .. doxygenclass:: celeritas::AtomicRelaxation
 
 Positron annihilation and Livermore photoelectric cross sections are calculated
-on the fly (as opposed to pretabulated cross sections).
+on the fly (as opposed to pre-tabulated cross sections).
 
 .. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
 .. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
@@ -260,6 +260,25 @@ currently under development in Celeritas.
 .. doxygenclass:: celeritas::detail::UrbanMscSafetyStepLimit
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
 
+Discrete cross sections
+=======================
+
+Most physics processes use pre-calculated cross sections that are tabulated and
+interpolated.
+
+.. doxygenclass:: celeritas::XsCalculator
+
+Cross sections for each process are evaluated at the beginning of the step
+along with range limiters.
+
+.. doxygenfunction:: celeritas::calc_physics_step_limit
+
+If undergoing an interaction, the process is sampled from the stored
+beginning-of-step cross sections.
+
+.. doxygenfunction:: celeritas::select_discrete_interaction
+
+
 Continuous slowing down
 =======================
 
@@ -267,16 +286,18 @@ Most charged interactions emit one or more low-energy particles during their
 interaction. Instead of creating explicit daughter tracks that are
 immediately killed due to low energy, part of the interaction cross section is
 lumped into a "slowing down" term that continuously deposits energy locally
-over the step. This mean energy loss term is an approximation; additional
+over the step.
+
+.. doxygenfunction:: celeritas::calc_mean_energy_loss
+
+Since true energy loss is a stochastic function of many small collisions, the
+*mean* energy loss term is an approximation. Additional
 models are implemented to adjust the loss per step with stochastic sampling for
 improved accuracy.
 
 .. doxygenclass:: celeritas::EnergyLossHelper
-
 .. doxygenclass:: celeritas::EnergyLossGammaDistribution
-
 .. doxygenclass:: celeritas::EnergyLossGaussianDistribution
-
 .. doxygenclass:: celeritas::EnergyLossUrbanDistribution
 
 Imported data
