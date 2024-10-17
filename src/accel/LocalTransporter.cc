@@ -46,6 +46,40 @@
 
 namespace celeritas
 {
+namespace
+{
+bool nonfatal_flush()
+{
+    static bool const result = [] {
+        auto result = getenv_flag("CELER_NONFATAL_FLUSH", false);
+        return result.value;
+    }();
+    return result;
+}
+
+#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
+    do                                                              \
+    {                                                               \
+        if (CELER_UNLIKELY(!(COND)))                                \
+        {                                                           \
+            std::ostringstream celer_runtime_msg_;                  \
+            celer_runtime_msg_ MSG;                                 \
+            if (nonfatal_flush())                                   \
+            {                                                       \
+                CELER_LOG_LOCAL(error) << celer_runtime_msg_.str(); \
+                (STEPPER).kill_active();                            \
+            }                                                       \
+            else                                                    \
+            {                                                       \
+                CELER_RUNTIME_THROW(                                \
+                    ::celeritas::RuntimeError::validate_err_str,    \
+                    celer_runtime_msg_.str(),                       \
+                    #COND);                                         \
+            }                                                       \
+        }                                                           \
+    } while (0)
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
@@ -247,15 +281,17 @@ void LocalTransporter::Flush()
 
     while (track_counts)
     {
-        CELER_VALIDATE(step_iters < max_steps_,
-                       << "number of step iterations exceeded the allowed "
-                          "maximum ("
-                       << max_steps_ << ")");
+        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_steps_,
+                                      << "number of step iterations exceeded "
+                                         "the allowed maximum ("
+                                      << max_steps_ << ")",
+                                      *step_);
 
         track_counts = (*step_)();
         ++step_iters;
 
-        CELER_VALIDATE(!interrupted(), << "caught interrupt signal");
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            !interrupted(), << "caught interrupt signal", *step_);
     }
 }
 
