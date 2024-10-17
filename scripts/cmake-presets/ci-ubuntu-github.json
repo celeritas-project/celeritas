@@ -107,6 +107,14 @@
       }
     },
     {
+      "name": "reldeb-vecgeom-vgsurf",
+      "description": "Build with release, assertions, VecGeom",
+      "inherits": ["reldeb-vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "ndebug-vecgeom",
       "description": "Build release with vecgeom for testing *only* demos",
       "inherits": [".ndebug", ".vecgeom", "spack"],

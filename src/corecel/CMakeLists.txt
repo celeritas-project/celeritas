@@ -93,6 +93,19 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
 
+# Save
+if(CELERITAS_USE_VecGeom)
+  if(VecGeom_USE_SURF)
+    set(_surf_geo 1)
+  else()
+    set(_surf_geo 0)
+  endif()
+  set(CELERITAS_VECGEOM_SURFACE_DEF
+    "#define CELERITAS_VECGEOM_SURFACE ${_surf_geo}"
+  )
+else()
+  set(CELERITAS_VECGEOM_SURFACE_DEF "/* #undef CELERITAS_VECGEOM_SURFACE */")
+endif()
 #-----------------------------------------------------------------------------#
 
 celeritas_configure_file("Version.hh.in" "corecel/Version.hh" @ONLY)

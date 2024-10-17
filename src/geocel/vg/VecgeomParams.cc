@@ -11,6 +11,7 @@
 #include <vector>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
+#include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
@@ -21,7 +22,7 @@
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
 #endif
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 #ifdef VECGEOM_GDML
@@ -50,7 +51,7 @@
 
 #include "detail/VecgeomCompatibility.hh"
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include "VecgeomParams.surface.hh"
 #endif
 
@@ -73,7 +74,7 @@ namespace
 #    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
 #endif
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    define VG_SURF_CALL(CODE) CODE
 #else
 #    define VG_SURF_CALL(CODE) \
@@ -116,11 +117,7 @@ int vecgeom_verbosity()
  */
 bool VecgeomParams::use_surface_tracking()
 {
-#ifdef VECGEOM_USE_SURF
-    return true;
-#else
-    return false;
-#endif
+    return CELERITAS_VECGEOM_SURFACE;
 }
 
 //---------------------------------------------------------------------------//
@@ -410,7 +407,12 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
+#if VECGEOM_VERSION < 0x020000
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+#else
+        vecgeom::ABBoxManager<real_type>::Instance()
+            .InitABBoxesForCompleteGeometry();
+#endif
     }
 
     // Init the bounding volume hierarchy structure
@@ -570,9 +572,13 @@ void VecgeomParams::build_metadata()
         VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
 
         // Calculate bounding box
+#if VECGEOM_VERSION < 0x020000
+        auto bbox_mgr = ABBoxManager::Instance();
+#else
+        auto bbox_mgr = ABBoxManager<real_type>::Instance();
+#endif
         Vector3D<real_type> lower, upper;
-        ABBoxManager::Instance().ComputeABBox(pv, &lower, &upper);
-
+        bbox_mgr.ComputeABBox(pv, &lower, &upper);
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }

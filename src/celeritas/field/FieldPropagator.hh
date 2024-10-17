@@ -190,6 +190,8 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
         }
         auto linear_step
             = geo_.find_next_step(chord.length + this->delta_intersection());
+        CELER_ASSERT(linear_step.distance
+                     <= chord.length + this->delta_intersection());
 
         // Scale the effective substep length to travel by the fraction along
         // the chord to the boundary. This value can be slightly larger than 1
@@ -268,6 +270,13 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
             // The straight-line intercept is too far from substep's end state.
             // Decrease the allowed substep (curved path distance) by the
             // fraction along the chord, and retry the driver step.
+            if (CELER_UNLIKELY(update_length > chord.length))
+            {
+                // We should be converging to the endpoint, but if the
+                // navigator is misbehaving then it could get into an infinite
+                // loop if the update length increases.
+                --remaining_substeps;
+            }
             remaining = update_length;
         }
     } while (remaining > this->minimum_substep() && remaining_substeps > 0);

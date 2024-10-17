@@ -177,17 +177,25 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         VGSC_TYPE_FUNC(Box              , box),
         VGSC_TYPE_FUNC(Cons             , cons),
         VGSC_TYPE_FUNC(CutTubs          , cuttubs),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(Ellipsoid        , ellipsoid),
         VGSC_TYPE_FUNC(EllipticalCone   , ellipticalcone),
         VGSC_TYPE_FUNC(EllipticalTube   , ellipticaltube),
+#endif
         VGSC_TYPE_FUNC(ExtrudedSolid    , extrudedsolid),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(GenericPolycone  , genericpolycone),
+#endif
         VGSC_TYPE_FUNC(GenericTrap      , generictrap),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(Hype             , hype),
+#endif
         VGSC_TYPE_FUNC(IntersectionSolid, intersectionsolid),
         VGSC_TYPE_FUNC(Orb              , orb),
         VGSC_TYPE_FUNC(Para             , para),
+#ifndef VECGEOM_USE_SURF
         VGSC_TYPE_FUNC(Paraboloid       , paraboloid),
+#endif
         VGSC_TYPE_FUNC(Polycone         , polycone),
         VGSC_TYPE_FUNC(Polyhedra        , polyhedra),
         VGSC_TYPE_FUNC(ReflectedSolid   , reflectedsolid),

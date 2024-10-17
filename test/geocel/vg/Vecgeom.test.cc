@@ -131,6 +131,89 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 
 //---------------------------------------------------------------------------//
+// TWO BOXES
+//---------------------------------------------------------------------------//
+
+class TwoBoxesTest : public VecgeomVgdmlTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_vgdml("two-boxes.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TwoBoxesTest, accessors)
+{
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(2, geom.num_volumes());
+
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-500.001, -500.001, -500.001}),
+                       to_cm(bbox.lower()));
+    EXPECT_VEC_SOFT_EQ((Real3{500.001, 500.001, 500.001}),
+                       to_cm(bbox.upper()));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TwoBoxesTest, track)
+{
+    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", this->volume_name(geo));
+
+    // Shouldn't hit boundary
+    auto next = geo.find_next_step(from_cm(1.25));
+    EXPECT_SOFT_EQ(1.25, to_cm(next.distance));
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(from_cm(1.25));
+    EXPECT_SOFT_EQ(5 - 1.25, to_cm(geo.find_safety()));
+
+    // Change direction and try again (hit)
+    geo.set_dir({1, 0, 0});
+    next = geo.find_next_step(from_cm(50));
+    EXPECT_SOFT_EQ(5, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_FALSE(geo.is_outside());
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("world", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
+    if (geo.is_on_boundary() && CELERITAS_DEBUG)
+    {
+        // Don't check the safety distance on the boundary; we know by
+        // definition it's zero
+        EXPECT_THROW(geo.find_safety(), DebugError);
+    }
+
+    // Scatter to tangent along boundary
+    geo.set_dir({1e-8, 1, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(500, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    geo.move_internal(from_cm(2));
+
+    // Scatter back inside
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_NEAR(2e-8, to_cm(next.distance), 1e-4);
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.cross_boundary();
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+}
+
+//---------------------------------------------------------------------------//
 // SIMPLE CMS TEST
 //---------------------------------------------------------------------------//
 
@@ -280,19 +363,6 @@ class FourLevelsTest : public VecgeomVgdmlTestBase
     SPConstGeo build_geometry() final
     {
         return this->load_vgdml("four-levels.gdml");
-    }
-
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version{2})
-        {
-            static std::string_view const levels[] = {"warning"};
-            return make_span(levels);
-        }
-        else
-        {
-            return {};
-        }
     }
 };
 
@@ -952,19 +1022,6 @@ class CmseTest : public VecgeomVgdmlTestBase
 {
   public:
     SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
-
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version(2))
-        {
-            static std::string_view const levels[] = {"warning"};
-            return make_span(levels);
-        }
-        else
-        {
-            return {};
-        }
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -984,8 +1041,8 @@ TEST_F(CmseTest, trace)
             180, 910, 24000, 6000};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {100, 2.1499999999997,
-            0.52499999999986, 13.023518051922, 6.95, 6.95, 13.023518051922,
-            0.52499999999986, 2.15, 100, 5, 8, 100, 100, 100};
+            10.3027302206745, 13.023518051922, 6.95, 6.95, 13.023518051922,
+            10.3027302206745, 2.15, 100, 5, 8, 100, 100, 100};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -1021,8 +1078,8 @@ TEST_F(CmseTest, trace)
             535, 920};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
-            58.4195, 0.078366388350241, 2.343262600759, 0.078366388350241,
-            58.4195, 85.85, 267.5, 460};
+            60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
+            60.4, 85.85, 267.5, 460};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -1034,7 +1091,8 @@ TEST_F(CmseTest, trace)
         static real_type const expected_distances[] = {12.495, 287.505, 530,
             920};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {1, 1, 242, 460};
+        static real_type const expected_hw_safety[] = {6.2475, 47.9499999999998,
+            242, 460};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     // clang-format on
