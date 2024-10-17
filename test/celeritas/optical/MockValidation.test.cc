@@ -42,9 +42,9 @@ TEST_F(MockValidationTest, validate)
     for (auto const& model : models)
     {
         EXPECT_NE(ImportModelClass::size_, model.model_class);
-        EXPECT_EQ(materials.size(), model.mfps.size());
+        EXPECT_EQ(materials.size(), model.mfp_table.size());
 
-        for (auto const& mfp : model.mfps)
+        for (auto const& mfp : model.mfp_table)
         {
             EXPECT_EQ(ImportPhysicsVectorType::free, mfp.vector_type);
             EXPECT_TRUE(mfp);

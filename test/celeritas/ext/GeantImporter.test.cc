@@ -1707,9 +1707,9 @@ TEST_F(LarSphere, optical)
     // Check Rayleigh optical properties
     auto const& rayleigh_model = imported.optical_models[1];
     EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
-    ASSERT_EQ(1, rayleigh_model.mfps.size());
+    ASSERT_EQ(1, rayleigh_model.mfp_table.size());
 
-    auto const& rayleigh_mfp = rayleigh_model.mfps.front();
+    auto const& rayleigh_mfp = rayleigh_model.mfp_table.front();
     EXPECT_EQ(11, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
@@ -1726,9 +1726,9 @@ TEST_F(LarSphere, optical)
     auto const& absorption_model = imported.optical_models[0];
     EXPECT_EQ(optical::ImportModelClass::absorption,
               absorption_model.model_class);
-    ASSERT_EQ(1, absorption_model.mfps.size());
+    ASSERT_EQ(1, absorption_model.mfp_table.size());
 
-    auto const& absorption_mfp = absorption_model.mfps.front();
+    auto const& absorption_mfp = absorption_model.mfp_table.front();
     EXPECT_EQ(2, absorption_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.3778e-06, absorption_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, absorption_mfp.x.back());
@@ -1738,9 +1738,9 @@ TEST_F(LarSphere, optical)
     // Check WLS optical properties
     auto const& wls_model = imported.optical_models[2];
     EXPECT_EQ(optical::ImportModelClass::wls, wls_model.model_class);
-    ASSERT_EQ(1, wls_model.mfps.size());
+    ASSERT_EQ(1, wls_model.mfp_table.size());
 
-    auto const& wls_mfp = wls_model.mfps.front();
+    auto const& wls_mfp = wls_model.mfp_table.front();
     EXPECT_EQ(2, wls_mfp.x.size());
     EXPECT_EQ(wls_mfp.x.size(), wls_mfp.y.size());
     EXPECT_EQ(ImportPhysicsVectorType::free, wls_mfp.vector_type);

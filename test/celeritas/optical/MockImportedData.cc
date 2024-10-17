@@ -127,7 +127,8 @@ auto MockImportedData::create_empty_imported_models() const -> SPConstImported
     for (auto const& model : this->import_models())
     {
         empty_models.push_back(
-            {model.model_class, ImportedMfpTable(model.mfps.size(), empty_vec)});
+            {model.model_class,
+             ImportedMfpTable(model.mfp_table.size(), empty_vec)});
     }
 
     return std::make_shared<ImportedModels const>(std::move(empty_models));

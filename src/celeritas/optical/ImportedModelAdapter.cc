@@ -50,16 +50,17 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
                        << "Invalid imported model class for optical model id '"
                        << model_id << "'");
         CELER_VALIDATE(
-            std::all_of(model.mfps.begin(),
-                        model.mfps.end(),
+            std::all_of(model.mfp_table.begin(),
+                        model.mfp_table.end(),
                         [](auto const& v) { return static_cast<bool>(v); }),
             << "Import optical model id '" << model_id << "' ("
             << to_cstring(model.model_class) << ") has invalid MFP vectors");
-        CELER_VALIDATE(model.mfps.size() == models_.front().mfps.size(),
-                       << "Imported optical model id '" << model_id << "' ("
-                       << to_cstring(model.model_class)
-                       << ") MFP table has differing number of optical "
-                          "materials than other imported models");
+        CELER_VALIDATE(
+            model.mfp_table.size() == models_.front().mfp_table.size(),
+            << "Imported optical model id '" << model_id << "' ("
+            << to_cstring(model.model_class)
+            << ") MFP table has differing number of optical "
+               "materials than other imported models");
 
         // Expect a 1-1 mapping for IMC to imported models
         auto& mapped_id = builtin_id_map_[model.model_class];
@@ -138,8 +139,8 @@ ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
  */
 ImportPhysicsVector const& ImportedModelAdapter::mfp(OpticalMaterialId id) const
 {
-    CELER_EXPECT(id < this->model().mfps.size());
-    return this->model().mfps[id.get()];
+    CELER_EXPECT(id < this->model().mfp_table.size());
+    return this->model().mfp_table[id.get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -148,7 +149,7 @@ ImportPhysicsVector const& ImportedModelAdapter::mfp(OpticalMaterialId id) const
  */
 OpticalMaterialId::size_type ImportedModelAdapter::num_materials() const
 {
-    return this->model().mfps.size();
+    return this->model().mfp_table.size();
 }
 
 //---------------------------------------------------------------------------//

@@ -47,7 +47,7 @@ char const* to_cstring(ImportModelClass imc);
 struct ImportOpticalModel
 {
     optical::ImportModelClass model_class;
-    std::vector<ImportPhysicsVector> mfps;  //!< per optical material MFPs
+    std::vector<ImportPhysicsVector> mfp_table;  //!< per optical material MFPs
 };
 
 //---------------------------------------------------------------------------//
