@@ -20,6 +20,7 @@
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
+#include "geocel/rasterize/SafetyImager.hh"
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
@@ -86,7 +87,7 @@ TEST_F(FourLevelsTest, consecutive_compute)
 {
     auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ("Shape2", this->volume_name(geo));
     EXPECT_FALSE(geo.is_on_boundary());
 
     auto next = geo.find_next_step(from_cm(10.0));
@@ -95,6 +96,10 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
     EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
 }
 
@@ -106,7 +111,7 @@ TEST_F(FourLevelsTest, detailed_track)
         SCOPED_TRACE("rightward along corner");
         auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ("Shape2", this->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Check for surfaces up to a distance of 4 units away
@@ -124,9 +129,10 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ("Shape2", this->volume_name(geo));
+
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ("Shape1", this->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
         // Find the next boundary and make sure that nearer distances aren't
@@ -143,7 +149,7 @@ TEST_F(FourLevelsTest, detailed_track)
         SCOPED_TRACE("inside out");
         auto geo = this->make_geo_track_view({-23.5, 6.5, 6.5}, {-1, 0, 0});
         EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
+        EXPECT_EQ("World", this->volume_name(geo));
 
         auto next = geo.find_next_step(from_cm(2));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
@@ -890,6 +896,32 @@ TEST_F(ZnenvTest, trace)
         EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
         EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
     }
+}
+
+//---------------------------------------------------------------------------//
+class PincellTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override { return "pincell"; }
+};
+
+TEST_F(PincellTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-12, -12, 0});
+    inp.upper_right = from_cm({12, 12, 0});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 255;
+
+    write_image(ImageParams{inp}, "g4-pincell-xy-mid.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5.5);
+    write_image(ImageParams{inp}, "g4-pincell-xy-lo.jsonl");
+
+    inp.lower_left = from_cm({-12, 0, -12});
+    inp.upper_right = from_cm({12, 0, 12});
+    write_image(ImageParams{inp}, "g4-pincell-xz-mid.jsonl");
 }
 
 //---------------------------------------------------------------------------//
