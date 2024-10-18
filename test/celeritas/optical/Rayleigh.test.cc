@@ -47,23 +47,28 @@ class RayleighModelTest : public MockImportedData
     void SetUp() override {}
 
     //! Construct Rayleigh model from mock data
-    std::shared_ptr<RayleighModel const> create_model() const
+    std::shared_ptr<RayleighModel const> create_model()
     {
+        auto models = MockImportedData::create_imported_models();
+
+        import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
+
         return std::make_shared<RayleighModel const>(
             ActionId{0},
-            ImportedModelAdapter{MockImportedData::rayleigh_id(),
-                                 MockImportedData::create_imported_models()},
+            ImportedModelAdapter{ImportModelClass::rayleigh, models},
             this->create_input());
     }
 
     //! Construct Rayleigh model with only mock material data
-    std::shared_ptr<RayleighModel const> create_empty_model() const
+    std::shared_ptr<RayleighModel const> create_empty_model()
     {
+        auto models = MockImportedData::create_empty_imported_models();
+
+        import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
+
         return std::make_shared<RayleighModel const>(
             ActionId{0},
-            ImportedModelAdapter{
-                MockImportedData::rayleigh_id(),
-                MockImportedData::create_empty_imported_models()},
+            ImportedModelAdapter{ImportModelClass::rayleigh, models},
             this->create_input());
     }
 
@@ -78,6 +83,8 @@ class RayleighModelTest : public MockImportedData
         }
         return input;
     }
+
+    ImportedModels::ImportedModelId import_model_id_;
 };
 
 //---------------------------------------------------------------------------//
@@ -182,10 +189,13 @@ TEST_F(RayleighModelTest, interaction_mfp)
     auto model = create_model();
     auto builder = this->create_mfp_builder();
 
-    model->build_mfps(builder);
+    for (auto mat : range(OpticalMaterialId(import_materials().size())))
+    {
+        model->build_mfps(mat, builder);
+    }
 
     this->check_built_table_exact(
-        this->import_models()[this->rayleigh_id().get()].mfps,
+        this->import_models()[import_model_id_.get()].mfp_table,
         builder.grid_ids());
 }
 
@@ -216,7 +226,10 @@ TEST_F(RayleighModelTest, material_mfp)
     auto model = create_empty_model();
     auto builder = this->create_mfp_builder();
 
-    model->build_mfps(builder);
+    for (auto mat : range(OpticalMaterialId(import_materials().size())))
+    {
+        model->build_mfps(mat, builder);
+    }
 
     this->check_built_table_soft(expected_mfp_tables, builder.grid_ids());
 }

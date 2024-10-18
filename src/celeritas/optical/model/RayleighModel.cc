@@ -13,7 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/optical/detail/MfpBuilder.hh"
+#include "celeritas/optical/MfpBuilder.hh"
 
 #include "../MaterialParams.hh"
 
@@ -41,61 +41,58 @@ RayleighModel::RayleighModel(ActionId id,
 /*!
  * Build the mean free paths for the model.
  */
-void RayleighModel::build_mfps(detail::MfpBuilder& build) const
+void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
 {
     using namespace celeritas::constants;
 
-    for (auto mat : range(OpticalMaterialId{imported_.num_materials()}))
+    if (auto const& mfp = imported_.mfp(mat))
     {
-        if (auto const& mfp = imported_.mfp(mat))
+        build(mfp);
+    }
+    else if (auto const& rayl = rayleigh_[mat.get()])
+    {
+        ImportPhysicsVector const& r_index
+            = properties_[mat.get()].refractive_index;
+
+        constexpr real_type hbarc = hbar_planck * c_light;
+
+        // Einstein-Smoluchowski formula
+        real_type scale_factor = rayl.scale_factor;
+        real_type beta_t = rayl.compressibility;
+        real_type temperature = rayl.temperature;
+
+        real_type c1 = scale_factor * beta_t * temperature * k_boltzmann
+                       / (6 * pi);
+
+        ImportPhysicsVector calculated_mfp{
+            ImportPhysicsVectorType::free,
+            r_index.x,
+            std::vector<double>(r_index.y.size(), 0)};
+        for (auto i : range(r_index.x.size()))
         {
-            build(mfp);
+            real_type energy = r_index.x[i];
+            real_type n = r_index.y[i];
+
+            CELER_ASSERT(n > 1);
+
+            real_type c2 = ipow<4>(energy / hbarc);
+            real_type c3 = ipow<2>((ipow<2>(n) - 1) * (ipow<2>(n) + 2) / 3);
+
+            CELER_ASSERT(c2 > 0);
+            CELER_ASSERT(c3 > 0);
+
+            calculated_mfp.y[i] = 1 / (c1 * c2 * c3);
         }
-        else if (auto const& rayl = rayleigh_[mat.get()])
-        {
-            ImportPhysicsVector const& r_index
-                = properties_[mat.get()].refractive_index;
 
-            constexpr real_type hbarc = hbar_planck * c_light;
-
-            // Einstein-Smoluchowski formula
-            real_type scale_factor = rayl.scale_factor;
-            real_type beta_t = rayl.compressibility;
-            real_type temperature = rayl.temperature;
-
-            real_type c1 = scale_factor * beta_t * temperature * k_boltzmann
-                           / (6 * pi);
-
-            ImportPhysicsVector calculated_mfp{
-                ImportPhysicsVectorType::free,
-                r_index.x,
-                std::vector<double>(r_index.y.size(), 0)};
-            for (auto i : range(r_index.x.size()))
-            {
-                real_type energy = r_index.x[i];
-                real_type n = r_index.y[i];
-
-                CELER_ASSERT(n > 1);
-
-                real_type c2 = ipow<4>(energy / hbarc);
-                real_type c3 = ipow<2>((ipow<2>(n) - 1) * (ipow<2>(n) + 2) / 3);
-
-                CELER_ASSERT(c2 > 0);
-                CELER_ASSERT(c3 > 0);
-
-                calculated_mfp.y[i] = 1 / (c1 * c2 * c3);
-            }
-
-            build(calculated_mfp);
-        }
-        else
-        {
-            CELER_LOG(warning)
-                << "Could not construct optical Rayleigh MFP table for "
-                   "optical material "
-                << mat.get() << " since its imported data was invalid";
-            build();
-        }
+        build(calculated_mfp);
+    }
+    else
+    {
+        CELER_LOG(warning)
+            << "Could not construct optical Rayleigh MFP table for "
+               "optical material "
+            << mat.get() << " since its imported data was invalid";
+        build();
     }
 }
 
