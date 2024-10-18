@@ -1,25 +1,25 @@
-//----------------------------------*-C++-*----------------------------------//
+//---------------------------------*-CUDA-*----------------------------------//
 // Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/ImportOpticalModel.cc
+//! \file celeritas/optical/model/AbsorptionModel.cu
 //---------------------------------------------------------------------------//
-#include "ImportOpticalModel.hh"
+#include "AbsorptionModel.hh"
 
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 //---------------------------------------------------------------------------//
-
-char const* to_cstring(ImportModelClass imc)
+/*!
+ * Interact with device data.
+ */
+void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const
 {
-    static EnumStringMapper<ImportModelClass> const to_cstring_impl{
-        "absorption", "rayleigh", "wls"};
-    return to_cstring_impl(imc);
+    CELER_NOT_IMPLEMENTED("optical core physics");
 }
 
 //---------------------------------------------------------------------------//

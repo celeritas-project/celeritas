@@ -131,7 +131,7 @@ void ImportDataConverter::operator()(ImportOpticalModel* data)
 {
     CELER_EXPECT(data);
 
-    for (auto& mfp_grid : data->mfps)
+    for (auto& mfp_grid : data->mfp_table)
     {
         for (auto& mfp : mfp_grid.y)
         {

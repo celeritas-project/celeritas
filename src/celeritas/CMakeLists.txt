@@ -80,6 +80,7 @@ list(APPEND SOURCES
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+  optical/ImportedModelAdapter.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/TrackInitParams.cc
@@ -285,6 +286,7 @@ celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/action/InitializeTracksAction)
