@@ -1826,9 +1826,9 @@ TEST_F(LarSphereExtramat, optical)
     // Check Rayleigh optical properties
     auto const& rayleigh_model = imported.optical_models[1];
     EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
-    ASSERT_EQ(1, rayleigh_model.mfps.size());
+    ASSERT_EQ(1, rayleigh_model.mfp_table.size());
 
-    auto const& rayleigh_mfp = rayleigh_model.mfps.front();
+    auto const& rayleigh_mfp = rayleigh_model.mfp_table.front();
     EXPECT_EQ(2, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
