@@ -164,33 +164,6 @@ std::vector<ImportOpticalMaterial> const& MockImportedData::import_materials()
 
 //---------------------------------------------------------------------------//
 /*!
- * Imported model ID for absorption.
- */
-auto MockImportedData::absorption_id() -> ImportedModelId
-{
-    return ImportedModelId{0};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Imported model ID for Rayleigh scattering.
- */
-auto MockImportedData::rayleigh_id() -> ImportedModelId
-{
-    return ImportedModelId{1};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Imported model ID for wavelength shifting.
- */
-auto MockImportedData::wls_id() -> ImportedModelId
-{
-    return ImportedModelId{2};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create ImportedModels all with empty MFP grids.
  *
  * Useful for testing optical models which build their MFPs from material data.
@@ -203,7 +176,8 @@ auto MockImportedData::create_empty_imported_models() const -> SPConstImported
     for (auto const& model : this->import_models())
     {
         empty_models.push_back(
-            {model.model_class, ImportedMfpTable(model.mfps.size(), empty_vec)});
+            {model.model_class,
+             ImportedMfpTable(model.mfp_table.size(), empty_vec)});
     }
 
     return std::make_shared<ImportedModels const>(std::move(empty_models));

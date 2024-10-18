@@ -15,13 +15,13 @@
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 
+#include "GeoOpticalIdMap.hh"
+
 class G4VProcess;
 class G4MaterialPropertiesTable;
 
 namespace celeritas
 {
-struct ImportPhysMaterial;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -38,17 +38,20 @@ class GeantOpticalModelImporter
 
   public:
     // Construct model importer with given optical material mapping
-    GeantOpticalModelImporter(std::vector<ImportPhysMaterial> const& materials);
+    GeantOpticalModelImporter(GeoOpticalIdMap const& geo_to_opt);
 
     // Import model MFP table for given model class
     ImportOpticalModel operator()(IMC imc) const;
 
+    //! True if any optical materials are present
+    explicit operator bool() const { return !opt_to_mat_.empty(); }
+
   private:
+    std::vector<G4MaterialPropertiesTable const*> opt_to_mat_;
+
     // Import MFP table for the given property name
     std::vector<ImportPhysicsVector>
     import_mfps(std::string const& mfp_property_name) const;
-
-    std::vector<G4MaterialPropertiesTable const*> opt_to_mat_;
 };
 
 //---------------------------------------------------------------------------//

@@ -9,11 +9,16 @@
 
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
-#include "celeritas/track/SimTrackView.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
-#include "TrackView.hh"
+#include "ParticleTrackView.hh"
+#include "SimTrackView.hh"
+#include "TrackInitializer.hh"
+
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#endif
 
 namespace celeritas
 {
@@ -38,6 +43,9 @@ class CoreTrackView
                                         StateRef const& states,
                                         TrackSlotId slot);
 
+    // Initialize the track states
+    inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
+
     // Return a geometry view
     inline CELER_FUNCTION GeoTrackView geometry() const;
 
@@ -50,8 +58,8 @@ class CoreTrackView
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
 
-    // Return a physics view
-    inline CELER_FUNCTION TrackView physics() const;
+    // Return a particle view
+    inline CELER_FUNCTION ParticleTrackView particle() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -90,6 +98,42 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize the track states.
+ */
+CELER_FUNCTION CoreTrackView&
+CoreTrackView::operator=(TrackInitializer const& init)
+{
+    // Initialiize the sim state
+    this->sim() = SimTrackView::Initializer{init.time};
+
+    // Initialize the geometry state
+    auto geo = this->geometry();
+    geo = GeoTrackInitializer{init.position, init.direction};
+    if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
+    {
+#if !CELER_DEVICE_COMPILE
+        if (geo.is_outside())
+        {
+            // Print an error message if initialization was "successful" but
+            // track is outside
+            CELER_LOG_LOCAL(error) << "Track started outside the geometry";
+        }
+#endif
+        this->apply_errored();
+        return *this;
+    }
+
+    // Initialize the particle state
+    this->particle()
+        = ParticleTrackView::Initializer{init.energy, init.polarization};
+
+    //! \todo Add physics view and clear physics state
+
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a geometry view.
  */
 CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
@@ -120,11 +164,11 @@ CoreTrackView::material(GeoTrackView const& geo) const -> MaterialView
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a physics view.
+ * Return a particle view.
  */
-CELER_FUNCTION auto CoreTrackView::physics() const -> TrackView
+CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 {
-    CELER_NOT_IMPLEMENTED("physics track view");
+    return ParticleTrackView{states_.particle, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -142,7 +186,7 @@ CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
  */
 CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 {
-    return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
+    return SimTrackView{states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

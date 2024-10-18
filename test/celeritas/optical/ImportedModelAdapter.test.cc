@@ -36,11 +36,12 @@ class ImportedModelAdapterTest : public MockImportedData
                      ImportOpticalModel const& imported_model) const
     {
         EXPECT_EQ(expected_model.model_class, imported_model.model_class);
-        ASSERT_EQ(expected_model.mfps.size(), imported_model.mfps.size());
-        for (auto mat_id : range(imported_model.mfps.size()))
+        ASSERT_EQ(expected_model.mfp_table.size(),
+                  imported_model.mfp_table.size());
+        for (auto mat_id : range(imported_model.mfp_table.size()))
         {
-            this->check_mfp(expected_model.mfps[mat_id],
-                            imported_model.mfps[mat_id]);
+            this->check_mfp(expected_model.mfp_table[mat_id],
+                            imported_model.mfp_table[mat_id]);
         }
     }
 };
@@ -69,27 +70,17 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
     using IMC = ImportModelClass;
     std::array<IMC, 3> expected_builtin_imcs{
         IMC::absorption, IMC::rayleigh, IMC::wls};
-    std::array<ImportedModelId, 3> expected_builtin_ids{
-        absorption_id(), rayleigh_id(), wls_id()};
 
     auto imported_models = this->create_imported_models();
 
     // Check built-in models match expected ones
-    EXPECT_EQ(expected_builtin_imcs.size(),
-              ImportedModels::builtin_model_classes().size());
-    for (auto imc : expected_builtin_imcs)
-    {
-        EXPECT_EQ(1, ImportedModels::builtin_model_classes().count(imc));
-    }
+    EXPECT_EQ(expected_builtin_imcs.size(), static_cast<size_type>(IMC::size_));
 
     // Check mapping is correct
-    for (auto builtin_id : range(expected_builtin_imcs.size()))
+    for (auto imc : expected_builtin_imcs)
     {
-        auto imc = expected_builtin_imcs[builtin_id];
-
         auto model_id = imported_models->builtin_model_id(imc);
         ASSERT_LT(model_id, imported_models->num_models());
-        EXPECT_EQ(expected_builtin_ids[builtin_id], model_id);
         EXPECT_EQ(imc, imported_models->model(model_id).model_class);
     }
 }
@@ -107,10 +98,10 @@ TEST_F(ImportedModelAdapterTest, adapter_mfps)
         ImportedModelAdapter adapter(model_id, imported_models);
         auto const& expected_model = expected_models[model_id.get()];
 
-        ASSERT_EQ(expected_model.mfps.size(), adapter.num_materials());
+        ASSERT_EQ(expected_model.mfp_table.size(), adapter.num_materials());
         for (auto mat_id : range(OpticalMaterialId{adapter.num_materials()}))
         {
-            this->check_mfp(expected_model.mfps[mat_id.get()],
+            this->check_mfp(expected_model.mfp_table[mat_id.get()],
                             adapter.mfp(mat_id));
         }
     }

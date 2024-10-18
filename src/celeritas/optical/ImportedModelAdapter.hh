@@ -9,10 +9,10 @@
 
 #include <memory>
 #include <set>
-#include <unordered_map>
 #include <vector>
 
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 
@@ -39,9 +39,6 @@ class ImportedModels
     //!@}
 
   public:
-    // Built-in imported model classes
-    static std::set<IMC> const& builtin_model_classes();
-
     // Construct from imported data
     static std::shared_ptr<ImportedModels> from_import(ImportData const&);
 
@@ -58,7 +55,7 @@ class ImportedModels
     ImportedModelId builtin_model_id(IMC imc) const;
 
   private:
-    std::unordered_map<IMC, ImportedModelId> builtin_id_map_;
+    EnumArray<IMC, ImportedModelId> builtin_id_map_;
     std::vector<ImportOpticalModel> models_;
 };
 
@@ -78,6 +75,9 @@ class ImportedModelAdapter
   public:
     // Create an adapter for the given model identifier
     ImportedModelAdapter(ImportedModelId id, SPConstImported imported);
+
+    // Create an adapter for the given model class
+    ImportedModelAdapter(ImportModelClass imc, SPConstImported imported);
 
     // Get MFP grid for the optical material
     ImportPhysicsVector const& mfp(OpticalMaterialId id) const;

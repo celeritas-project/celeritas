@@ -13,7 +13,7 @@
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/MaterialView.hh"
-#include "celeritas/track/SimTrackView.hh"
+#include "celeritas/optical/SimTrackView.hh"
 
 namespace celeritas
 {

@@ -16,8 +16,7 @@
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
-#    include "corecel/io/Repr.hh"
-#    include "celeritas/UnitTypes.hh"
+#    include "celeritas/global/Debug.hh"
 #endif
 
 namespace celeritas
@@ -73,22 +72,9 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
                                  sim.status() == TrackStatus::errored
                                      ? LogLevel::error
                                      : LogLevel::debug);
-        msg << "Killing track " << sim.track_id().get() << " of event "
-            << sim.event_id().get() << " (in track slot "
-            << track.track_slot_id().get() << ") at " << repr(geo.pos()) << ' '
-            << units::NativeTraits::Length::label() << " along "
-            << repr(geo.dir()) << ": ";
-        if (!geo.is_outside())
-        {
-            msg << "depositing " << deposited << ' '
-                << Energy::unit_type::label() << " in "
-                << "volume " << geo.volume_id().unchecked_get();
-        }
-        else
-        {
-            msg << "lost " << deposited << ' ' << Energy::unit_type::label()
-                << " energy";
-        }
+        msg << "Killing track " << StreamableTrack{track} << ": "
+            << (geo.is_outside() ? "depositing" : "lost") << ' ' << deposited
+            << ' ' << Energy::unit_type::label();
     }
 #endif
 

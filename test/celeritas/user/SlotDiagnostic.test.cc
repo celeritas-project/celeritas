@@ -134,7 +134,11 @@ void SlotDiagnosticTest::RunResult::print_expected() const
 class TestEm3SlotTest : virtual public TestEm3Base,
                         virtual public SlotDiagnosticTest
 {
-    double initial_occupancy() const override { return 0.125; }
+  protected:
+    size_type initial_occupancy(size_type track_slots) const override
+    {
+        return static_cast<size_type>(0.125 * track_slots);
+    }
 
     auto build_init() -> SPConstTrackInit override
     {
@@ -164,7 +168,6 @@ class TestEm3SlotTest : virtual public TestEm3Base,
         std::vector<Primary> result(count, p);
         for (auto i : range(count))
         {
-            result[i].track_id = TrackId{i};
             result[i].particle_id = particles[i % particles.size()];
         }
         return result;
@@ -265,15 +268,34 @@ TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
     }
 }
 
-TEST_F(TestEm3SlotTest, DISABLED_long_demo)
+//---------------------------------------------------------------------------//
+class LongDemoTest : public TestEm3SlotTest
+{
+  protected:
+    size_type initial_occupancy(size_type) const final { return 16; }
+};
+
+TEST_F(LongDemoTest, more_steps)
 {
     if (celeritas::device())
     {
-        this->run<MemSpace::device>(512, 256);
+        this->run<MemSpace::device>(32, 512);
     }
     else
     {
-        this->run<MemSpace::host>(512, 256);
+        this->run<MemSpace::host>(32, 512);
+    }
+}
+
+TEST_F(LongDemoTest, more_slots)
+{
+    if (celeritas::device())
+    {
+        this->run<MemSpace::device>(96, 512);
+    }
+    else
+    {
+        this->run<MemSpace::host>(96, 512);
     }
 }
 

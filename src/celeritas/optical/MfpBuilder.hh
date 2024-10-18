@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/MfpBuilder.hh
+//! \file celeritas/optical/MfpBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,15 +13,12 @@ namespace celeritas
 {
 namespace optical
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Helper class for optical models to build MFP tables.
  *
  * Tracks individual grid IDs that have been built, and returns them
- * as an ItemRange which may be used by model MFP tables. Can likely
- * be refactored into GenericGridInserter.
+ * as an ItemRange which may be used by model MFP tables.
  */
 class MfpBuilder
 {
@@ -88,6 +85,5 @@ auto MfpBuilder::grid_ids() const -> GridIdRange
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas

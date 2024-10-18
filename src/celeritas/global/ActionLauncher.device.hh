@@ -68,13 +68,13 @@ class ActionLauncher : public KernelLauncher<F>
 
     // Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
-                    F const& call_thread) const;
+                    F const& execute_thread) const;
 
     // Launch with reduced grid size for when tracks are sorted
     void operator()(StepActionT const& action,
                     CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
-                    F const& call_thread) const;
+                    F const& execute_thread) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -104,10 +104,10 @@ ActionLauncher<F>::ActionLauncher(StepActionT const& action,
  */
 template<class F>
 void ActionLauncher<F>::operator()(CoreState<MemSpace::device> const& state,
-                                   F const& call_thread) const
+                                   F const& execute_thread) const
 {
     return (*this)(
-        range(ThreadId{state.size()}), state.stream_id(), call_thread);
+        range(ThreadId{state.size()}), state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -120,7 +120,7 @@ template<class F>
 void ActionLauncher<F>::operator()(StepActionT const& action,
                                    CoreParams const& params,
                                    CoreState<MemSpace::device> const& state,
-                                   F const& call_thread) const
+                                   F const& execute_thread) const
 {
     if (state.has_action_range()
         && is_action_sorted(action.order(), params.init()->track_order()))
@@ -128,12 +128,12 @@ void ActionLauncher<F>::operator()(StepActionT const& action,
         // Launch on a subset of threads
         return (*this)(state.get_action_range(action.action_id()),
                        state.stream_id(),
-                       call_thread);
+                       execute_thread);
     }
     else
     {
         // Not partitioned by action: launch on all threads
-        return (*this)(state, call_thread);
+        return (*this)(state, execute_thread);
     }
 }
 

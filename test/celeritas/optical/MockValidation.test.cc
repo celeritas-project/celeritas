@@ -34,7 +34,7 @@ TEST_F(MockValidationTest, validate)
     auto const& models = import_models();
     auto const& materials = import_materials();
 
-    EXPECT_EQ(4, models.size());
+    EXPECT_EQ(3, models.size());
     EXPECT_EQ(5, materials.size());
 
     // Check models
@@ -42,27 +42,14 @@ TEST_F(MockValidationTest, validate)
     for (auto const& model : models)
     {
         EXPECT_NE(ImportModelClass::size_, model.model_class);
-        EXPECT_EQ(materials.size(), model.mfps.size());
+        EXPECT_EQ(materials.size(), model.mfp_table.size());
 
-        for (auto const& mfp : model.mfps)
+        for (auto const& mfp : model.mfp_table)
         {
             EXPECT_EQ(ImportPhysicsVectorType::free, mfp.vector_type);
             EXPECT_TRUE(mfp);
         }
     }
-
-    // Check IDs correspond to correct imported model
-
-    ASSERT_LT(absorption_id().get(), models.size());
-    EXPECT_EQ(ImportModelClass::absorption,
-              models[absorption_id().get()].model_class);
-
-    ASSERT_LT(rayleigh_id().get(), models.size());
-    EXPECT_EQ(ImportModelClass::rayleigh,
-              models[rayleigh_id().get()].model_class);
-
-    ASSERT_LT(wls_id().get(), models.size());
-    EXPECT_EQ(ImportModelClass::wls, models[wls_id().get()].model_class);
 
     // Check materials
 

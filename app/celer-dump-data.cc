@@ -816,7 +816,7 @@ class OpticalMfpHelper
         auto iter = std::find_if(models.begin(), models.end(), [imc] (auto const& m) { return m.model_class == imc; });
         if (iter != models.end())
         {
-            mfps_ = &iter->mfps;
+            mfps_ = &iter->mfp_table;
         }
     }
 

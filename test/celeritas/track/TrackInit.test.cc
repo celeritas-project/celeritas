@@ -141,7 +141,6 @@ class TrackInitTestBase : public SimpleTestBase
             p.direction = {0, 0, 1};
             p.time = 0;
             p.event_id = EventId{0};
-            p.track_id = TrackId{i};
             result.push_back(p);
         }
         return result;
@@ -249,7 +248,7 @@ TYPED_TEST(TrackInitTest, extend_primaries)
         // Don't initialize
         auto primaries = this->make_primaries(2);
         this->insert_primaries(this->state(), make_span(primaries));
-        auto result = RunResult::from_state(this->state());
+        RunResult::from_state(this->state());
 
         EXPECT_EQ(0, this->state().counters().num_initializers);
     }
@@ -417,14 +416,31 @@ TYPED_TEST(TrackInitTest, primaries)
     }
 
     // Check the results
-    static int const expected_track_ids[]
-        = {8, 1, 9, 3, 10, 5, 11, 7, 12, 9, 13, 11, 14, 13, 15, 15};
+    static int const expected_track_ids[] = {
+        56,
+        1,
+        57,
+        3,
+        58,
+        5,
+        59,
+        7,
+        60,
+        9,
+        61,
+        11,
+        62,
+        13,
+        63,
+        15,
+    };
     static int const expected_parent_ids[]
         = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     static int const expected_vacancies[] = {0, 2, 4, 6, 8, 10, 12, 14};
-    static int const expected_init_ids[] = {0, 1, 2, 3, 4, 5, 6, 7,
-                                            0, 1, 2, 3, 4, 5, 6, 7,
-                                            0, 1, 2, 3, 4, 5, 6, 7};
+    static int const expected_init_ids[] = {
+        16, 17, 18, 19, 20, 21, 22, 23, 32, 33, 34, 35,
+        36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55,
+    };
     auto result = RunResult::from_state(this->state());
     EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
     EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);

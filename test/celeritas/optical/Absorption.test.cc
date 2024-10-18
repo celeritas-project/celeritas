@@ -34,13 +34,17 @@ class AbsorptionModelTest : public MockImportedData
     void SetUp() override {}
 
     //! Construct absorption model from mock data
-    std::shared_ptr<AbsorptionModel const> create_model() const
+    std::shared_ptr<AbsorptionModel const> create_model()
     {
-        return std::make_shared<AbsorptionModel const>(
-            ActionId{0},
-            ImportedModelAdapter{MockImportedData::absorption_id(),
-                                 MockImportedData::create_imported_models()});
+        auto models = MockImportedData::create_imported_models();
+
+        import_model_id_
+            = models->builtin_model_id(ImportModelClass::absorption);
+
+        return std::make_shared<AbsorptionModel const>(ActionId{0}, models);
     }
+
+    ImportedModels::ImportedModelId import_model_id_;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,10 +83,13 @@ TEST_F(AbsorptionModelTest, interaction_mfp)
     auto model = create_model();
     auto builder = this->create_mfp_builder();
 
-    model->build_mfps(builder);
+    for (auto mat : range(OpticalMaterialId(import_materials().size())))
+    {
+        model->build_mfps(mat, builder);
+    }
 
-    this->check_built_table_exact(
-        this->import_models()[this->absorption_id().get()].mfps,
+    this->check_built_table(
+        this->import_models()[import_model_id_.get()].mfp_table,
         builder.grid_ids());
 }
 

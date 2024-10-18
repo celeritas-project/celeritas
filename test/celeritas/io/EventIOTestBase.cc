@@ -51,10 +51,6 @@ void EventIOTestBase::ReadAllResult::print_expected() const
          << repr(this->event)
          << ";\n"
             "EXPECT_VEC_EQ(expected_event, result.event);\n"
-            "static int const expected_track[] = "
-         << repr(this->track)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_track, result.track);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -115,7 +111,6 @@ auto EventIOTestBase::read_all(Reader& read_event) const -> ReadAllResult
                 result.dir.end(), p.direction.begin(), p.direction.end());
             result.time.push_back(p.time / units::second);
             result.event.push_back(p.event_id.unchecked_get());
-            result.track.push_back(p.track_id.unchecked_get());
         }
     }
     return result;
@@ -135,23 +130,17 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
                       5.67e-9 * units::second,
-                      EventId{0},
-                      TrackId{}};
+                      EventId{0}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
                        from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
                        5.78e-9 * units::second,
-                       EventId{0},
-                       TrackId{}};
+                       EventId{0}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};
         primaries[1].position = from_cm(Real3{-3, -4, 5});
         primaries[3].position = primaries[2].position;
         primaries[3].time = primaries[2].time;
-        for (auto i : range(primaries.size()))
-        {
-            primaries[i].track_id = TrackId(i * 2);
-        }
         return primaries;
     }();
 
@@ -199,7 +188,6 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
     static real_type const expected_time[] = {5.67e-09, 5.78e-09, 5.67e-09,
         5.67e-09, 5.67e-09, 5.78e-09, 5.67e-09, 5.67e-09, 5.67e-09, 5.67e-09};
     static int const expected_event[] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
-    static int const expected_track[] = {0, 1, 2, 3, 0, 1, 2, 3, 4, 0};
     // clang-format on
 
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
@@ -208,7 +196,6 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
     EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
     EXPECT_VEC_NEAR(expected_time, result.time, real_type(1e-6));
     EXPECT_VEC_EQ(expected_event, result.event);
-    EXPECT_VEC_EQ(expected_track, result.track);
 }
 
 //---------------------------------------------------------------------------//

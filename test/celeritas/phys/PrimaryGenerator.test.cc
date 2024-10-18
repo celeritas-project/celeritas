@@ -67,7 +67,6 @@ TEST_F(PrimaryGeneratorTest, basic)
 
     std::vector<int> particle_id;
     std::vector<int> event_id;
-    std::vector<int> track_id;
 
     for (size_type i = 0; i < inp.num_events; ++i)
     {
@@ -82,7 +81,6 @@ TEST_F(PrimaryGeneratorTest, basic)
             EXPECT_TRUE(is_soft_unit_vector(p.direction));
             particle_id.push_back(p.particle_id.unchecked_get());
             event_id.push_back(p.event_id.unchecked_get());
-            track_id.push_back(p.track_id.unchecked_get());
         }
     }
     auto primaries = generate_primaries();
@@ -90,11 +88,9 @@ TEST_F(PrimaryGeneratorTest, basic)
 
     static int const expected_particle_id[] = {0, 1, 0, 0, 1, 0};
     static int const expected_event_id[] = {0, 0, 0, 1, 1, 1};
-    static int const expected_track_id[] = {0, 1, 2, 0, 1, 2};
 
     EXPECT_VEC_EQ(expected_particle_id, particle_id);
     EXPECT_VEC_EQ(expected_event_id, event_id);
-    EXPECT_VEC_EQ(expected_track_id, track_id);
 }
 
 TEST_F(PrimaryGeneratorTest, options)
@@ -118,7 +114,6 @@ TEST_F(PrimaryGeneratorTest, options)
     {
         auto const& p = primaries[i];
         EXPECT_EQ(ParticleId{0}, p.particle_id);
-        EXPECT_EQ(TrackId{i}, p.track_id);
         EXPECT_EQ(EventId{0}, p.event_id);
         EXPECT_EQ(MevEnergy{1}, p.energy);
         EXPECT_REAL_EQ(0.0, p.time);

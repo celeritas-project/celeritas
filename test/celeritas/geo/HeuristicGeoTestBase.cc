@@ -11,7 +11,6 @@
 #include <iostream>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"

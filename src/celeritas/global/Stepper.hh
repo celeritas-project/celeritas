@@ -104,8 +104,11 @@ class StepperInterface
     // Transport existing states and these new primaries
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
+    // Kill all tracks in flight to debug "stuck" tracks
+    virtual void kill_active() = 0;
+
     // Reseed the RNGs at the start of an event for reproducibility
-    virtual void reseed(EventId event_id) = 0;
+    virtual void reseed(UniqueEventId event_id) = 0;
 
     //! Get action sequence for timing diagnostics
     virtual ActionSequenceT const& actions() const = 0;
@@ -165,8 +168,11 @@ class Stepper final : public StepperInterface
     // Transport existing states and these new primaries
     StepperResult operator()(SpanConstPrimary primaries) final;
 
+    // Kill all tracks in flight to debug "stuck" tracks
+    void kill_active() final;
+
     // Reseed the RNGs at the start of an event for reproducibility
-    void reseed(EventId event_id) final;
+    void reseed(UniqueEventId event_id) final;
 
     //! Get action sequence for timing diagnostics
     ActionSequenceT const& actions() const final { return *actions_; }

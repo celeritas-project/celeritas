@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/MfpBuilder.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/detail/MfpBuilder.hh"
+#include "celeritas/optical/MfpBuilder.hh"
 
 #include "MockImportedData.hh"
 #include "celeritas_test.hh"
@@ -41,7 +41,7 @@ TEST_F(MfpBuilderTest, construct_tables)
     {
         auto build = this->create_mfp_builder();
 
-        for (auto const& mfp : model.mfps)
+        for (auto const& mfp : model.mfp_table)
         {
             build(mfp);
         }
@@ -54,7 +54,7 @@ TEST_F(MfpBuilderTest, construct_tables)
     // Check each MFP table has been built correctly
     for (auto table_id : range(tables.size()))
     {
-        this->check_built_table_exact(models[table_id].mfps, tables[table_id]);
+        this->check_built_table_exact(models[table_id].mfp_table, tables[table_id]);
     }
 }
 
