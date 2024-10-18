@@ -88,9 +88,11 @@ if(CELERITAS_USE_Geant4)
   # Optional dependence on low-energy EM data and neutron data
   set(CELERITASTEST_G4ENV)
   foreach(_ds G4EMLOW G4ENSDFSTATE G4PARTICLEXS)
-    list(APPEND CELERITASTEST_G4ENV
-      "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
-    )
+    if(NOT DEFINED ENV{${Geant4_DATASET_${_ds}_ENVVAR}})
+      list(APPEND CELERITASTEST_G4ENV
+         "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
+       )
+    endif()
   endforeach()
 endif()
 
