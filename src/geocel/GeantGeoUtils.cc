@@ -122,13 +122,12 @@ void free_and_clear(std::vector<T*>* table)
  */
 std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 {
-    CELER_EXPECT(pnh.touch);
+    CELER_EXPECT(pnh.nav);
     os << '{';
 
-    auto& touch = const_cast<GeantTouchableBase&>(*pnh.touch);
-    for (int depth : range(touch.GetHistoryDepth()))
+    for (int depth : range(pnh.nav->GetDepth()))
     {
-        G4VPhysicalVolume* vol = touch.GetVolume(depth);
+        G4VPhysicalVolume* vol = pnh.nav->GetVolume(depth);
         CELER_ASSERT(vol);
         G4LogicalVolume* lv = vol->GetLogicalVolume();
         CELER_ASSERT(lv);

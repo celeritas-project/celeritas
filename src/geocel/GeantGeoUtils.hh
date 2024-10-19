@@ -21,6 +21,7 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4Navigator;
+class G4NavigationHistory;
 
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 // Geant4 11.2 removed G4VTouchable
@@ -43,7 +44,7 @@ using GeantTouchableBase = G4VTouchable;
 //! Wrap around a touchable to get a descriptive output.
 struct PrintableNavHistory
 {
-    GeantTouchableBase const* touch{nullptr};
+    G4NavigationHistory const* nav{nullptr};
 };
 
 //---------------------------------------------------------------------------//

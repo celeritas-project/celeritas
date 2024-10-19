@@ -9,6 +9,9 @@
 
 #include <algorithm>
 #include <G4LogicalVolume.hh>
+#include <G4Navigator.hh>
+#include <G4ThreeVector.hh>
+#include <G4TouchableHistory.hh>
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
@@ -55,14 +58,13 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
     }
 };
 
+//---------------------------------------------------------------------------//
 class SolidsTest : public GeantGeoUtilsTest
 {
     std::string geometry_basename() const override { return "solids"; }
 };
 
-using GdmlTest = SolidsTest;
-
-TEST_F(GdmlTest, write)
+TEST_F(SolidsTest, write_geant_geometry)
 {
     auto* world = this->geometry()->world();
     ASSERT_TRUE(world);
@@ -77,9 +79,7 @@ TEST_F(GdmlTest, write)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-using FindGeantVolumesTest = SolidsTest;
-
-TEST_F(FindGeantVolumesTest, standard)
+TEST_F(SolidsTest, find_geant_volumes)
 {
     auto vols = find_geant_volumes({"box500", "trd3", "trd1"});
     auto vol_names = get_vol_names(vols.begin(), vols.end());
@@ -87,17 +87,39 @@ TEST_F(FindGeantVolumesTest, standard)
     EXPECT_VEC_EQ(expected_vol_names, vol_names);
 }
 
-TEST_F(FindGeantVolumesTest, missing)
+TEST_F(SolidsTest, find_geant_volumes_missing)
 {
     EXPECT_THROW(find_geant_volumes({"box500", "trd3", "turd3"}), RuntimeError);
 }
 
-TEST_F(FindGeantVolumesTest, duplicate)
+TEST_F(SolidsTest, find_geant_volumes_duplicate)
 {
     auto vols = find_geant_volumes({"trd3_refl"});
     auto vol_names = get_vol_names(vols.begin(), vols.end());
     static char const* const expected_vol_names[] = {"trd3_refl", "trd3_refl"};
     EXPECT_VEC_EQ(expected_vol_names, vol_names);
+}
+
+//---------------------------------------------------------------------------//
+class FourLevelsTest : public GeantGeoUtilsTest
+{
+    std::string geometry_basename() const override { return "four-levels"; }
+};
+
+TEST_F(FourLevelsTest, printable_nav)
+{
+    G4Navigator navi;
+    G4TouchableHistory touchable;
+    navi.SetWorldVolume(
+        const_cast<G4VPhysicalVolume*>(this->geometry()->world()));
+    navi.LocateGlobalPointAndUpdateTouchable(
+        G4ThreeVector(100, 100, 100), G4ThreeVector(1, 0, 0), &touchable);
+
+    std::ostringstream os;
+    os << PrintableNavHistory{touchable.GetHistory()};
+    EXPECT_EQ(
+        R"({{pv='World0xdeadbeef_PV', lv=29='World0xdeadbeef'} -> {pv='env1', lv=28='Envelope'} -> {pv='Shape1', lv=27='Shape1'}})",
+        os.str());
 }
 
 //---------------------------------------------------------------------------//

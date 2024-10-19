@@ -21,6 +21,8 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
 //---------------------------------------------------------------------------//
 struct LogicalVisitor
 {
@@ -64,6 +66,10 @@ struct MaxPhysicalVisitor : PhysicalVisitor
     }
 };
 
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 class VisitGeantVolumesTest : public GeantGeoTestBase
 {
   public:
