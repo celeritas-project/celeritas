@@ -11,8 +11,10 @@
 #include <G4GeometryManager.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
+#include <G4PhysicalVolumeStore.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
+#include <G4VPhysicalVolume.hh>
 #include <G4VSolid.hh>
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
@@ -181,9 +183,28 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the Geant4 physical volume corresponding to a volume instance ID.
+ *
+ * If the input ID is false, a null pointer will be returned.
+ */
+G4VPhysicalVolume const* GeantGeoParams::id_to_pv(VolumeInstanceId id) const
+{
+    CELER_EXPECT(!id || id < vol_instances_.size());
+    if (!id)
+    {
+        return nullptr;
+    }
+
+    G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
+    CELER_ASSERT(id < pv_store->size());
+    return (*pv_store)[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the Geant4 logical volume corresponding to a volume ID.
  *
- * If the input volume ID is false, a null pointer will be returned.
+ * If the input volume ID is unassigned, a null pointer will be returned.
  */
 G4LogicalVolume const* GeantGeoParams::id_to_lv(VolumeId id) const
 {

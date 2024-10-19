@@ -85,9 +85,14 @@ class GeantGeoTrackView
     CELER_FORCEINLINE Real3 const& dir() const { return dir_; }
     //!@}
 
-    // Get the volume ID in the current cell.
-    CELER_FORCEINLINE VolumeId volume_id() const;
-    CELER_FORCEINLINE int volume_physid() const;
+    // Get the volume ID in the lowest level volume.
+    inline VolumeId volume_id() const;
+    // Get the physical volume ID in the current cell
+    inline VolumeInstanceId volume_instance_id() const;
+    // Get the depth in the geometry hierarchy
+    inline LevelId level() const;
+    //
+    inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
     //!@{
     //! VecGeom states are never "on" a surface
@@ -255,13 +260,47 @@ VolumeId GeantGeoTrackView::volume_id() const
 /*!
  * Get the physical volume ID in the current cell.
  */
-int GeantGeoTrackView::volume_physid() const
+CELER_FORCEINLINE VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
     G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
     if (!pv)
-        return -1;
-    return pv->GetInstanceID();
+        return {};
+    return id_cast<VolumeInstanceId>(pv->GetInstanceID());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the depth in the geometry hierarchy.
+ */
+LevelId GeantGeoTrackView::level() const
+{
+    auto* touch = touch_handle_();
+    return id_cast<LevelId>(touch->GetHistoryDepth() - 1);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance ID at every level.
+ *
+ * The input span size must be equal to the value of "level" plus one. The
+ * top-most level ("world" or level zero) starts at index zero and moves
+ * downward. Note that Geant4 uses the \em reverse nomenclature.
+ */
+void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+{
+    CELER_EXPECT(levels.size() == this->level().get() + 1);
+
+    auto* touch = touch_handle_();
+    auto const max_depth = static_cast<size_type>(touch->GetHistoryDepth());
+    for (auto lev : range(levels.size()))
+    {
+        G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev);
+        CELER_ASSERT(pv);
+        auto inst_id = pv->GetInstanceID();
+        CELER_ASSERT(inst_id >= 0);
+        levels[lev] = id_cast<VolumeInstanceId>(pv->GetInstanceID());
+    }
 }
 
 //---------------------------------------------------------------------------//

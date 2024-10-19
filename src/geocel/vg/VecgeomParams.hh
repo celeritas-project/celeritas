@@ -55,7 +55,7 @@ class VecgeomParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     //! Maximum nested geometry depth
-    int max_depth() const { return host_ref_.max_depth; }
+    LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
 
     //// VOLUMES ////
 
