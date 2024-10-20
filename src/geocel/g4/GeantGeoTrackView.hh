@@ -248,9 +248,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 VolumeId GeantGeoTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    auto inst_id = this->volume()->GetInstanceID();
-    CELER_ENSURE(inst_id >= 0);
-    return VolumeId{static_cast<VolumeId::size_type>(inst_id)};
+    return id_cast<VolumeId>(this->volume()->GetInstanceID());
 }
 
 //---------------------------------------------------------------------------//
