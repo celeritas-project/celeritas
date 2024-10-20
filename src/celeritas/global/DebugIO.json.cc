@@ -96,7 +96,7 @@ struct FromId
     nlohmann::json convert_impl(VolumeId id) const
     {
         auto const& params = *this->params->geometry();
-        return params.id_to_label(id);
+        return params.volumes().at(id);
     }
 };
 

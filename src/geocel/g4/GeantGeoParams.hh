@@ -91,7 +91,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions_;
 
     // Host metadata/access
-    VolumeMap vol_labels_;
+    VolumeMap volumes_;
     BBox bbox_;
 
     // Host/device storage and reference
@@ -114,7 +114,7 @@ class GeantGeoParams final : public GeoParamsInterface,
  */
 auto GeantGeoParams::volumes() const -> VolumeMap const&
 {
-    return vol_labels_;
+    return volumes_;
 }
 
 //---------------------------------------------------------------------------//

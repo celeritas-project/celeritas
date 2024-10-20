@@ -98,7 +98,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
     this->build_tracking();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -142,7 +142,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
     this->build_tracking();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -172,7 +172,7 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
     auto inst_id = volume->GetInstanceID();
     CELER_ENSURE(inst_id >= 0);
     VolumeId result{static_cast<VolumeId::size_type>(inst_id)};
-    if (!(result < this->num_volumes()))
+    if (!(result < volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
         // class was created
@@ -189,7 +189,7 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
  */
 G4LogicalVolume const* GeantGeoParams::id_to_lv(VolumeId id) const
 {
-    CELER_EXPECT(!id || id < this->num_volumes());
+    CELER_EXPECT(!id || id < volumes_.size());
     if (!id)
     {
         return nullptr;
@@ -231,7 +231,7 @@ void GeantGeoParams::build_metadata()
     CELER_ASSERT(world_lv);
 
     // Construct volume labels
-    vol_labels_ = LabelIdMultiMap<VolumeId>(
+    volumes_ = LabelIdMultiMap<VolumeId>(
         "volume", get_volume_labels(*world_lv, !loaded_gdml_));
 
     // Save world bbox (NOTE: assumes no transformation on PV?)

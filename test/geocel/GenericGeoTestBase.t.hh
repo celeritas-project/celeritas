@@ -77,7 +77,7 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
     {
         return "[OUTSIDE]";
     }
-    return this->geometry()->id_to_label(geo.volume_id()).name;
+    return this->geometry()->volumes().at(geo.volume_id()).name;
 }
 
 //---------------------------------------------------------------------------//
@@ -97,7 +97,7 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
     }
 
     // Only call this function if the geometry supports surfaces
-    return ptr->id_to_label(geo.surface_id()).name;
+    return ptr->surfaces().at(geo.surface_id()).name;
 }
 
 //---------------------------------------------------------------------------//

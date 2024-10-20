@@ -149,7 +149,7 @@ TEST_F(SimpleCmsTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(7, geom.num_volumes());
+    EXPECT_EQ(7, geom.volumes().size());
 }
 
 //---------------------------------------------------------------------------//
@@ -307,12 +307,12 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), to_cm(bbox.lower()));
     EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), to_cm(bbox.upper()));
 
-    ASSERT_EQ(4, geom.num_volumes());
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
-    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.id_to_label(VolumeId{3}));
+    ASSERT_EQ(4, geom.volumes().size());
+    EXPECT_EQ("Shape2", geom.volumes().at(VolumeId{0}).name);
+    EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
+    EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
+    EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
+    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.volumes().at(VolumeId{3}));
 }
 
 //---------------------------------------------------------------------------//
@@ -690,10 +690,10 @@ TEST_F(SolidsTest, names)
 {
     auto const& geom = *this->geometry();
     std::vector<std::string> labels;
-    for (auto vid : range(VolumeId{geom.num_volumes()}))
+    for (auto vid : range(VolumeId{geom.volumes().size()}))
     {
         labels.push_back(
-            this->genericize_pointers(to_string(geom.id_to_label(vid))));
+            this->genericize_pointers(to_string(geom.volumes().at(vid))));
     }
 
     // clang-format off
@@ -938,7 +938,7 @@ TEST_F(SolidsTest, trace)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->id_to_label(geo.volume_id());
+    auto const& label = this->geometry()->volumes().at(geo.volume_id());
     // Note: through GDML there is only one trd3_refl
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
@@ -1092,11 +1092,11 @@ TEST_F(FourLevelsGeantTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), to_cm(bbox.lower()));
     EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), to_cm(bbox.upper()));
 
-    ASSERT_EQ(4, geom.num_volumes());
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
+    ASSERT_EQ(4, geom.volumes().size());
+    EXPECT_EQ("Shape2", geom.volumes().at(VolumeId{0}).name);
+    EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
+    EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
+    EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
 }
 
 //---------------------------------------------------------------------------//
@@ -1244,10 +1244,10 @@ TEST_F(SolidsGeantTest, names)
 {
     auto const& geom = *this->geometry();
     std::vector<std::string> labels;
-    for (auto vid : range(VolumeId{geom.num_volumes()}))
+    for (auto vid : range(VolumeId{geom.volumes().size()}))
     {
         labels.push_back(
-            this->genericize_pointers(to_string(geom.id_to_label(vid))));
+            this->genericize_pointers(to_string(geom.volumes().at(vid))));
     }
 
     // clang-format off
@@ -1462,7 +1462,7 @@ TEST_F(SolidsGeantTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
     EXPECT_EQ(VolumeId{30}, geo.volume_id());
-    auto const& label = this->geometry()->id_to_label(geo.volume_id());
+    auto const& label = this->geometry()->volumes().at(geo.volume_id());
     EXPECT_EQ("trd3", label.name);
     EXPECT_TRUE(ends_with(label.ext, "_refl"));
 }

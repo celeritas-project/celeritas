@@ -30,14 +30,15 @@ namespace
 //---------------------------------------------------------------------------//
 VolumeId find_volume_fuzzy(GeoParamsInterface const& geo, Label const& label)
 {
-    if (auto id = geo.find_volume(label))
+    auto const& vols = geo.volumes();
+    if (auto id = vols.find(label))
     {
         // Exact match
         return id;
     }
 
     // Fall back to skipping the extension: look for all possible matches
-    auto all_ids = geo.find_volumes(label.name);
+    auto all_ids = vols.find_all(label.name);
     if (all_ids.size() == 1)
     {
         if (!label.ext.empty())
@@ -45,21 +46,19 @@ VolumeId find_volume_fuzzy(GeoParamsInterface const& geo, Label const& label)
             CELER_LOG(warning)
                 << "Failed to exactly match " << celeritas_core_geo
                 << " volume from volume '" << label << "'; found '"
-                << geo.id_to_label(all_ids.front())
-                << "' by omitting the extension";
+                << vols.at(all_ids.front()) << "' by omitting the extension";
         }
         return all_ids.front();
     }
     if (all_ids.size() > 1)
     {
-        CELER_LOG(warning)
-            << "Multiple volumes '"
-            << join(all_ids.begin(),
-                    all_ids.end(),
-                    "', '",
-                    [&geo](VolumeId v) { return geo.id_to_label(v); })
-            << "' match the name '" << label.name
-            << "': returning the last one";
+        CELER_LOG(warning) << "Multiple volumes '"
+                           << join(all_ids.begin(),
+                                   all_ids.end(),
+                                   "', '",
+                                   [&vols](VolumeId v) { return vols.at(v); })
+                           << "' match the name '" << label.name
+                           << "': returning the last one";
         return all_ids.back();
     }
     return {};
