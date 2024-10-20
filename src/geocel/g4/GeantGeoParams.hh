@@ -59,33 +59,17 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //// VOLUMES ////
 
-    //! Number of volumes
-    VolumeId::size_type num_volumes() const final
-    {
-        return vol_labels_.size();
-    }
-
-    // Get the label for a placed volume ID
-    Label const& id_to_label(VolumeId vol_id) const final;
-
-    //! \cond
-    using GeoParamsInterface::find_volume;
-    //! \endcond
-
-    // Get the volume ID corresponding to a unique label name
-    VolumeId find_volume(std::string const& name) const final;
-
-    // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(Label const& label) const final;
+    // Get volume metadata
+    inline VolumeMap const& volumes() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
     VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
-    // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(std::string const& name) const final;
-
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_lv(VolumeId vol_id) const;
+
+    // DEPRECATED
+    using GeoParamsInterface::find_volume;
 
     //// DATA ACCESS ////
 
@@ -107,7 +91,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions_;
 
     // Host metadata/access
-    LabelIdMultiMap<VolumeId> vol_labels_;
+    VolumeMap vol_labels_;
     BBox bbox_;
 
     // Host/device storage and reference
@@ -121,6 +105,17 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Construct labels and other host-only metadata
     void build_metadata();
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get volume metadata.
+ */
+auto GeantGeoParams::volumes() const -> VolumeMap const&
+{
+    return vol_labels_;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

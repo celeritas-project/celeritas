@@ -164,41 +164,6 @@ GeantGeoParams::~GeantGeoParams()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label for a placed volume ID.
- */
-Label const& GeantGeoParams::id_to_label(VolumeId vol) const
-{
-    CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_.get(vol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the ID corresponding to a label.
- */
-auto GeantGeoParams::find_volume(std::string const& name) const -> VolumeId
-{
-    auto result = vol_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "volume '" << name << "' is not unique");
-    return result.front();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a label.
- *
- * If the label isn't in the geometry, a null ID will be returned.
- */
-VolumeId GeantGeoParams::find_volume(Label const& label) const
-{
-    return vol_labels_.find(label);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
 VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
@@ -214,19 +179,6 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
         result = {};
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get zero or more volume IDs corresponding to a name.
- *
- * This is useful for volumes that are repeated in the geometry with different
- * uniquifying 'extensions' from Geant4.
- */
-auto GeantGeoParams::find_volumes(std::string const& name) const
-    -> SpanConstVolumeId
-{
-    return vol_labels_.find_all(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -280,7 +232,7 @@ void GeantGeoParams::build_metadata()
 
     // Construct volume labels
     vol_labels_ = LabelIdMultiMap<VolumeId>(
-        get_volume_labels(*world_lv, !loaded_gdml_));
+        "volume", get_volume_labels(*world_lv, !loaded_gdml_));
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
     bbox_ = [world_lv] {

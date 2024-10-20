@@ -59,30 +59,14 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //// VOLUMES ////
 
-    //! Number of volumes
-    VolumeId::size_type num_volumes() const final
-    {
-        return vol_labels_.size();
-    }
-
-    // Get the label for a placed volume ID
-    Label const& id_to_label(VolumeId vol_id) const final;
-
-    //! \cond
-    using GeoParamsInterface::find_volume;
-    //! \endcond
-
-    // Get the volume ID corresponding to a unique label name
-    VolumeId find_volume(std::string const& name) const final;
-
-    // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(Label const& label) const final;
+    // Get volume metadata
+    inline VolumeMap const& volumes() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
     VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
-    // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(std::string const& name) const final;
+    // DEPRECATED
+    using GeoParamsInterface::find_volume;
 
     //// DATA ACCESS ////
 
@@ -96,7 +80,7 @@ class VecgeomParams final : public GeoParamsInterface,
     //// DATA ////
 
     // Host metadata/access
-    LabelIdMultiMap<VolumeId> vol_labels_;
+    LabelIdMultiMap<VolumeId> volumes_;
     std::unordered_map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
 
     BBox bbox_;
@@ -122,6 +106,15 @@ class VecgeomParams final : public GeoParamsInterface,
     // Construct labels and other host-only metadata
     void build_metadata();
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get volume metadata.
+ */
+auto VecgeomParams::volumes() const -> VolumeMap const&
+{
+    return volumes_;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

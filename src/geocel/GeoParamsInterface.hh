@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"  // IWYU pragma: export
 #include "corecel/cont/Span.hh"  // IWYU pragma: export
 #include "corecel/io/Label.hh"  // IWYU pragma: export
 
@@ -32,6 +33,7 @@ class GeoParamsInterface
     //!@{
     //! \name Type aliases
     using SpanConstVolumeId = Span<VolumeId const>;
+    using VolumeMap = LabelIdMultiMap<VolumeId>;
     //!@}
 
   public:
@@ -43,28 +45,46 @@ class GeoParamsInterface
 
     //// VOLUMES ////
 
-    //! Number of volumes
-    virtual VolumeId::size_type num_volumes() const = 0;
-
-    //! Get the label for a placed volume ID
-    virtual Label const& id_to_label(VolumeId vol_id) const = 0;
-
-    //! Get the volume ID corresponding to a unique name
-    virtual VolumeId find_volume(std::string const& name) const = 0;
-
-    //! Get the volume ID corresponding to a unique label
-    virtual VolumeId find_volume(Label const& label) const = 0;
+    //! Get volume metadata
+    virtual VolumeMap const& volumes() const = 0;
 
     //! Get the volume ID corresponding to a Geant4 logical volume
     virtual VolumeId find_volume(G4LogicalVolume const* volume) const = 0;
 
-    //! Get zero or more volume IDs corresponding to a name
-    virtual SpanConstVolumeId find_volumes(std::string const& name) const = 0;
+    //// DEPRECATED: remove in v0.6 ////
 
-    //// HELPER FUNCTIONS ////
+    //! Number of volumes
+    VolumeId::size_type num_volumes() const { return this->volumes().size(); }
 
-    // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(char const* name) const;
+    //! Get the label for a placed volume ID
+    Label const& id_to_label(VolumeId vol_id) const
+    {
+        return this->volumes().at(vol_id);
+    }
+
+    //! Get the volume ID corresponding to a unique name
+    VolumeId find_volume(std::string const& name) const
+    {
+        return this->volumes().find_unique(name);
+    }
+
+    //! Get the volume ID corresponding to a unique label
+    VolumeId find_volume(Label const& label) const
+    {
+        return this->volumes().find(label);
+    }
+
+    //! Get the volume ID corresponding to a unique name
+    VolumeId find_volume(char const* name) const
+    {
+        return this->find_volume(std::string{name});
+    }
+
+    //! Get the volume ID corresponding to a unique name
+    SpanConstVolumeId find_volumes(std::string const& name) const
+    {
+        return this->volumes().find_all(name);
+    }
 
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
@@ -77,35 +97,43 @@ class GeoParamsInterface
 //---------------------------------------------------------------------------//
 /*!
  * Interface class for a host geometry that supports surfaces.
+ *
+ * \todo Remove this interface, use empty surface map instead
  */
 class GeoParamsSurfaceInterface : public GeoParamsInterface
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
+    //!@}
+
+  public:
     using GeoParamsInterface::id_to_label;
 
+    //! Get surface metadata
+    virtual SurfaceMap const& surfaces() const = 0;
+
+    //// DEPRECATED: remove in v0.6 ////
+
     //! Get the label for a placed volume ID
-    virtual Label const& id_to_label(SurfaceId surf_id) const = 0;
+    Label const& id_to_label(SurfaceId surf_id) const
+    {
+        return this->surfaces().at(surf_id);
+    }
 
     //! Get the surface ID corresponding to a unique label name
-    virtual SurfaceId find_surface(std::string const& name) const = 0;
+    SurfaceId find_surface(std::string const& name) const
+    {
+        return this->surfaces().find(name);
+    }
 
     //! Number of distinct surfaces
-    virtual SurfaceId::size_type num_surfaces() const = 0;
+    SurfaceId::size_type num_surfaces() const
+    {
+        return this->surfaces().size();
+    }
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Find the unique volume corresponding to a unique name.
- *
- * This method is here to disambiguate the implicit std::string and Label
- * constructors.
- */
-VolumeId GeoParamsInterface::find_volume(char const* name) const
-{
-    return this->find_volume(std::string{name});
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
