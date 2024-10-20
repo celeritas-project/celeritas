@@ -126,7 +126,7 @@ TEST(OpaqueIdTest, id_cast)
 
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(id_cast<IdT>(-12345678ull), DebugError);
+        EXPECT_THROW(id_cast<IdT>(-12345678ll), DebugError);
         EXPECT_THROW(id_cast<IdT>(-1), DebugError);
         EXPECT_THROW(id_cast<IdT>(IdT{}.unchecked_get()), DebugError);
         EXPECT_THROW(
