@@ -42,7 +42,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
     }
 
     auto const& volumes = geo.volumes();
-    if (auto id = volumes.find(label))
+    if (auto id = volumes.find_exact(label))
     {
         // Exact match
         return id;

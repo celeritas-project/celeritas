@@ -168,7 +168,7 @@ auto HeuristicGeoTestBase::get_avg_path_impl(
     real_type const norm = 1 / real_type(num_states);
     for (auto i : range(ref_vol_labels.size()))
     {
-        auto vol_id = geo.volumes().find(ref_vol_labels[i]);
+        auto vol_id = geo.volumes().find_unique(ref_vol_labels[i]);
         if (vol_id)
         {
             result[i] = path[vol_id.unchecked_get()] * norm;

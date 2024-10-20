@@ -48,7 +48,7 @@ TEST(LabelIdMultiMapTest, empty)
     for (CatMultiMap const* cats : {&default_cats, &empty_cats})
     {
         EXPECT_EQ(0, cats->size());
-        EXPECT_EQ(CatId{}, cats->find(Label{"merry"}));
+        EXPECT_EQ(CatId{}, cats->find_exact(Label{"merry"}));
         EXPECT_EQ(0, cats->find_all("pippin").size());
         if (CELERITAS_DEBUG)
         {
@@ -63,11 +63,11 @@ TEST(LabelIdMultiMapTest, no_ext_with_duplicates)
         "cat", VecLabel{{"dexter", "andy", "loki", "bob", "bob", "bob"}}};
     EXPECT_TRUE(cats);
     EXPECT_EQ(6, cats.size());
-    EXPECT_EQ(CatId{}, cats.find("nyoka"));
-    EXPECT_EQ(CatId{0}, cats.find("dexter"));
-    EXPECT_EQ(CatId{1}, cats.find("andy"));
-    EXPECT_EQ(CatId{2}, cats.find("loki"));
-    EXPECT_EQ(CatId{2}, cats.find(Label{"loki"}));
+    EXPECT_EQ(CatId{}, cats.find_exact("nyoka"));
+    EXPECT_EQ(CatId{0}, cats.find_exact("dexter"));
+    EXPECT_EQ(CatId{1}, cats.find_exact("andy"));
+    EXPECT_EQ(CatId{2}, cats.find_exact("loki"));
+    EXPECT_EQ(CatId{2}, cats.find_exact(Label{"loki"}));
 
     EXPECT_EQ(CatId{}, cats.find_unique("nyoka"));
     EXPECT_EQ(CatId{2}, cats.find_unique("loki"));
@@ -92,8 +92,8 @@ TEST(LabelIdMultiMapTest, some_labels)
                        {"fluffy", "jr"},
                        {"fluffy", "sr"}}}};
     EXPECT_EQ(4, cats.size());
-    EXPECT_EQ(CatId{1}, cats.find(Label{"fluffy"}));
-    EXPECT_EQ(CatId{2}, cats.find(Label{"fluffy", "jr"}));
+    EXPECT_EQ(CatId{1}, cats.find_exact(Label{"fluffy"}));
+    EXPECT_EQ(CatId{2}, cats.find_exact(Label{"fluffy", "jr"}));
     {
         auto found = cats.find_all("fluffy");
         static CatId const expected_found[] = {CatId{1}, CatId{2}, CatId{3}};

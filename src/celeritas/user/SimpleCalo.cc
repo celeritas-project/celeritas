@@ -31,7 +31,7 @@ namespace
 VolumeId find_volume_fuzzy(GeoParamsInterface const& geo, Label const& label)
 {
     auto const& vols = geo.volumes();
-    if (auto id = vols.find(label))
+    if (auto id = vols.find_exact(label))
     {
         // Exact match
         return id;
