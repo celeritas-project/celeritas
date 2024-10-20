@@ -56,25 +56,39 @@ class LabelIdMultiMap
     // Empty constructor for delayed build
     LabelIdMultiMap() = default;
 
-    // Construct from a vector of label+sublabel pairs
-    explicit LabelIdMultiMap(VecLabel keys);
+    // Construct from a vector of label+sublabel pairs, with a type string
+    inline LabelIdMultiMap(std::string&& label, VecLabel&& keys);
+
+    // Construct from a vector of label+sublabel pairs, with no type
+    inline explicit LabelIdMultiMap(VecLabel&& keys);
 
     // Access the range of IDs corresponding to a label
     inline SpanConstIdT find_all(std::string const& label) const;
+
+    // Find an ID by label, throwing if not unique
+    inline IdT find_unique(std::string const& name) const;
 
     // Access an ID by label/sublabel pair
     inline IdT find(Label const& label_sub) const;
 
     // Access the label+sublabel pair for an Id
-    inline Label const& get(IdT id) const;
+    // DEPRECATED: remove in v0.6 (use 'at')
+    CELER_FORCEINLINE Label const& get(IdT id) const { return this->at(id); }
+
+    // Access the label+sublabel pair for an Id
+    inline Label const& at(IdT id) const;
+
+    //! Get the number of elements
+    CELER_FORCEINLINE size_type size() const { return keys_.size(); }
+
+    // Whether this map is initialized
+    inline explicit operator bool() const;
 
     //! Get duplicate labels to warn about
     SpanConstIdT duplicates() const { return make_span(duplicates_); }
 
-    //! Get the number of elements
-    size_type size() const { return keys_.size(); }
-
   private:
+    std::string type_label_;
     VecLabel keys_;
     std::vector<IdT> id_data_;
     std::vector<size_type> id_offsets_;
@@ -86,10 +100,21 @@ class LabelIdMultiMap
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Construct from a vector of label+sublabel pairs, with no type.
  */
 template<class I>
-LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
+LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel&& keys)
+    : LabelIdMultiMap{{}, std::move(keys)}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a vector of label+sublabel pairs, with a type string.
+ */
+template<class I>
+LabelIdMultiMap<I>::LabelIdMultiMap(std::string&& label, VecLabel&& keys)
+    : type_label_{std::move(label)}, keys_{std::move(keys)}
 {
     if (keys_.empty())
     {
@@ -105,8 +130,8 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
         id_data_[idx] = IdT{idx};
     }
     // Reorder consecutive ID data based on string lexicographic ordering
-    std::sort(id_data_.begin(), id_data_.end(), [this](IdT a, IdT b) {
-        return this->keys_[a.unchecked_get()] < this->keys_[b.unchecked_get()];
+    std::sort(id_data_.begin(), id_data_.end(), [&keys = keys_](IdT a, IdT b) {
+        return keys[a.unchecked_get()] < keys[b.unchecked_get()];
     });
 
     // Reserve space for groups
@@ -148,6 +173,9 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
 //---------------------------------------------------------------------------//
 /*!
  * Access the range of IDs corresponding to a label.
+ *
+ * This is useful for identifiers that may be repeated in a problem definition
+ * with uniquifying "extensions", such as pointer addresses from Geant4.
  */
 template<class I>
 auto LabelIdMultiMap<I>::find_all(std::string const& name) const -> SpanConstIdT
@@ -166,6 +194,21 @@ auto LabelIdMultiMap<I>::find_all(std::string const& name) const -> SpanConstIdT
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access the range of IDs corresponding to a label.
+ */
+template<class I>
+auto LabelIdMultiMap<I>::find_unique(std::string const& name) const -> IdT
+{
+    auto items = this->find_all(name);
+    if (items.empty())
+        return {};
+    CELER_VALIDATE(items.size() == 1,
+                   << type_label_ << " '" << name << "' is not unique");
+    return items.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access an ID by label/sublabel pair.
  *
  * This returns a \c false OpaqueId if no such label pair exists.
@@ -176,11 +219,11 @@ auto LabelIdMultiMap<I>::find(Label const& label_sub) const -> IdT
     auto items = this->find_all(label_sub.name);
 
     // Just do a linear search on sublabels
-    auto iter
-        = std::find_if(items.begin(), items.end(), [this, &label_sub](IdT id) {
-              CELER_EXPECT(id < this->keys_.size());
-              return this->keys_[id.unchecked_get()].ext == label_sub.ext;
-          });
+    auto iter = std::find_if(
+        items.begin(), items.end(), [&keys = keys_, &label_sub](IdT id) {
+            CELER_EXPECT(id < keys.size());
+            return keys[id.unchecked_get()].ext == label_sub.ext;
+        });
     if (iter == items.end())
     {
         // No sublabel matches
@@ -197,10 +240,20 @@ auto LabelIdMultiMap<I>::find(Label const& label_sub) const -> IdT
  * This raises an exception if the ID is outside of the valid range.
  */
 template<class I>
-Label const& LabelIdMultiMap<I>::get(IdT id) const
+Label const& LabelIdMultiMap<I>::at(IdT id) const
 {
     CELER_EXPECT(id < this->size());
     return keys_[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this map is initialized.
+ */
+template<class I>
+CELER_FORCEINLINE LabelIdMultiMap<I>::operator bool() const
+{
+    return !keys_.empty() || !type_label_.empty();
 }
 
 //---------------------------------------------------------------------------//
