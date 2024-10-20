@@ -259,7 +259,7 @@ VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
 CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return VolumeId{this->volume().id()};
+    return id_cast<VolumeId>(this->volume().id());
 }
 
 //---------------------------------------------------------------------------//

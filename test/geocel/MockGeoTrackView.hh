@@ -111,7 +111,7 @@ MockGeoTrackView::operator=(Initializer_t const& init)
 CELER_FUNCTION VolumeId MockGeoTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return VolumeId{static_cast<size_type>(volume_id_)};
+    return id_cast<VolumeId>(volume_id_);
 }
 
 //---------------------------------------------------------------------------//
