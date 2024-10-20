@@ -75,14 +75,14 @@ class GeoParamsInterface
     [[deprecated]]
     VolumeId find_volume(Label const& label) const
     {
-        return this->volumes().find(label);
+        return this->volumes().find_exact(label);
     }
 
     //! Get the volume ID corresponding to a unique name
     [[deprecated]]
     VolumeId find_volume(char const* name) const
     {
-        return this->find_volume(std::string{name});
+        return this->volumes().find_unique(name);
     }
 
     //! Get the volume ID corresponding to a unique name

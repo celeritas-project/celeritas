@@ -27,9 +27,9 @@ namespace celeritas
  * Many Geant4 geometry definitions reuse a label for material or volume
  * definitions, and we need to track the unique name across multiple codes
  * (Geant4, VecGeom+GDML) to differentiate between materials or volumes. This
- * class maps a "label" to a range of "sublabels", each of which corresponds to
- * a unique ID. It also provides the reverse mapping so that an ID can retrieve
- * the corresponding label/sublabel pair.
+ * class maps a "label" to a name plus a range of "extensions", each of which
+ * corresponds to a unique ID. It also provides the reverse mapping so that an
+ * ID can retrieve the corresponding name/extension pair.
  *
  * There is no requirement that sublabels be ordered adjacent to each other:
  * the IDs corresponding to a label may be noncontiguous.
@@ -37,8 +37,11 @@ namespace celeritas
  * Duplicate labels are allowed but will be added to a list of duplicate IDs
  * that can be warned about downstream. Empty labels will be ignored.
  *
- * If no sublabels or labels are available, an empty span or "false" OpaqueId
- * will be returned.
+ * If no sublabels or labels are available for a \c find_X call, an empty span
+ * or "false" OpaqueId will be returned.
+ *
+ * The three kinds of \c find methods are named differently to avoid ambiguity:
+ * - \c find_all returns
  */
 template<class I>
 class LabelIdMultiMap
@@ -62,14 +65,23 @@ class LabelIdMultiMap
     // Construct from a vector of label+sublabel pairs, with no type
     inline explicit LabelIdMultiMap(VecLabel&& keys);
 
-    // Access the range of IDs corresponding to a label
-    inline SpanConstIdT find_all(std::string const& label) const;
+    // Access the range of IDs corresponding to a name
+    inline SpanConstIdT find_all(std::string const& name) const;
 
-    // Find an ID by label, throwing if not unique
+    // Find an ID by name, throwing if not unique
     inline IdT find_unique(std::string const& name) const;
 
-    // Access an ID by label/sublabel pair
-    inline IdT find(Label const& label_sub) const;
+    // Access an ID by name/extension pair
+    inline IdT find_exact(Label const& label) const;
+
+    // Access the Id using an *exact* label, dangerous because of string->Label
+    // cast
+    // DEPRECATED: remove in v0.6 (use 'find_exact')
+    [[deprecated]]
+    CELER_FORCEINLINE IdT find(Label const& label) const
+    {
+        return this->find_exact(label);
+    }
 
     // Access the label+sublabel pair for an Id
     // DEPRECATED: remove in v0.6 (use 'at')
@@ -195,7 +207,10 @@ auto LabelIdMultiMap<I>::find_all(std::string const& name) const -> SpanConstIdT
 
 //---------------------------------------------------------------------------//
 /*!
- * Access the range of IDs corresponding to a label.
+ * Find the ID corresponding to a label if exactly one exists.
+ *
+ * This will return an invalid ID if no labels match the given name, and it
+ * will raise an exception if multiple labels do.
  */
 template<class I>
 auto LabelIdMultiMap<I>::find_unique(std::string const& name) const -> IdT
@@ -210,12 +225,12 @@ auto LabelIdMultiMap<I>::find_unique(std::string const& name) const -> IdT
 
 //---------------------------------------------------------------------------//
 /*!
- * Access an ID by label/sublabel pair.
+ * Access an ID by exact label (name plus extension).
  *
  * This returns a \c false OpaqueId if no such label pair exists.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find(Label const& label_sub) const -> IdT
+auto LabelIdMultiMap<I>::find_exact(Label const& label_sub) const -> IdT
 {
     auto items = this->find_all(label_sub.name);
 
