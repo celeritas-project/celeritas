@@ -132,7 +132,7 @@ void to_json_impl(nlohmann::json& j,
                   FromId from_id)
 {
     ASSIGN_TRANSFORMED(particle_id, from_id);
-    ASSIGN_TRANSFORMED(energy, Labeled{units::Mev::label()});
+    ASSIGN_TRANSFORMED(energy, passthrough);
 }
 
 //---------------------------------------------------------------------------//
