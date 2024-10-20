@@ -83,18 +83,21 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     using GeoParamsSurfaceInterface::id_to_label;
 
     // Get the label for a universe ID
+    [[deprecated]]
     Label const& id_to_label(UniverseId univ_id) const
     {
         return this->universes().at(univ_id);
     }
 
     // Get the universe ID corresponding to a unique label name
+    [[deprecated]]
     UniverseId find_universe(std::string const& name) const
     {
         return this->universes().find(name);
     }
 
     // Number of universes
+    [[deprecated]]
     UniverseId::size_type num_universes() const
     {
         return this->universes().size();

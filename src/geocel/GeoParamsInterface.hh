@@ -54,33 +54,39 @@ class GeoParamsInterface
     //// DEPRECATED: remove in v0.6 ////
 
     //! Number of volumes
+    [[deprecated]]
     VolumeId::size_type num_volumes() const { return this->volumes().size(); }
 
     //! Get the label for a placed volume ID
+    [[deprecated]]
     Label const& id_to_label(VolumeId vol_id) const
     {
         return this->volumes().at(vol_id);
     }
 
     //! Get the volume ID corresponding to a unique name
+    [[deprecated]]
     VolumeId find_volume(std::string const& name) const
     {
         return this->volumes().find_unique(name);
     }
 
     //! Get the volume ID corresponding to a unique label
+    [[deprecated]]
     VolumeId find_volume(Label const& label) const
     {
         return this->volumes().find(label);
     }
 
     //! Get the volume ID corresponding to a unique name
+    [[deprecated]]
     VolumeId find_volume(char const* name) const
     {
         return this->find_volume(std::string{name});
     }
 
     //! Get the volume ID corresponding to a unique name
+    [[deprecated]]
     SpanConstVolumeId find_volumes(std::string const& name) const
     {
         return this->volumes().find_all(name);
@@ -117,18 +123,21 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
     //// DEPRECATED: remove in v0.6 ////
 
     //! Get the label for a placed volume ID
+    [[deprecated]]
     Label const& id_to_label(SurfaceId surf_id) const
     {
         return this->surfaces().at(surf_id);
     }
 
     //! Get the surface ID corresponding to a unique label name
+    [[deprecated]]
     SurfaceId find_surface(std::string const& name) const
     {
         return this->surfaces().find(name);
     }
 
     //! Number of distinct surfaces
+    [[deprecated]]
     SurfaceId::size_type num_surfaces() const
     {
         return this->surfaces().size();

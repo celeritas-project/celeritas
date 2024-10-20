@@ -73,6 +73,7 @@ class LabelIdMultiMap
 
     // Access the label+sublabel pair for an Id
     // DEPRECATED: remove in v0.6 (use 'at')
+    [[deprecated]]
     CELER_FORCEINLINE Label const& get(IdT id) const { return this->at(id); }
 
     // Access the label+sublabel pair for an Id
