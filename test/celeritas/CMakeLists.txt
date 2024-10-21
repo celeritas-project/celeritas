@@ -117,6 +117,12 @@ celeritas_add_test(Constants.test.cc
 celeritas_add_test(Units.test.cc)
 
 #-----------------------------------------------------------------------------#
+# Decay
+
+# Muon
+celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
+
+#-----------------------------------------------------------------------------#
 # EM
 
 # Distributions
