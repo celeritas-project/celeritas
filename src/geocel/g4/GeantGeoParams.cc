@@ -271,10 +271,10 @@ void GeantGeoParams::build_metadata()
     ScopedMem record_mem("GeantGeoParams.build_metadata");
 
     // Construct volume labels
-    volumes_ = LabelIdMultiMap<VolumeId>(
-        "volume", get_volume_labels(*host_ref_.world, !loaded_gdml_));
-    vol_instances_ = LabelIdMultiMap<VolumeInstanceId>(
-        "volume instance", get_pv_labels(*host_ref_.world));
+    volumes_ = VolumeMap{"volume",
+                         get_volume_labels(*host_ref_.world, !loaded_gdml_)};
+    vol_instances_
+        = VolInstanceMap{"volume instance", get_pv_labels(*host_ref_.world)};
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
     bbox_ = [world_lv = host_ref_.world->GetLogicalVolume()] {

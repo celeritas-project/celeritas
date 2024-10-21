@@ -91,7 +91,7 @@ class GeantGeoTrackView
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
     inline LevelId level() const;
-    //
+    // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
     //!@{
@@ -297,8 +297,6 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     {
         G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev);
         CELER_ASSERT(pv);
-        auto inst_id = pv->GetInstanceID();
-        CELER_ASSERT(inst_id >= 0);
         levels[lev] = id_cast<VolumeInstanceId>(pv->GetInstanceID());
     }
 }
