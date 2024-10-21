@@ -68,6 +68,30 @@ get_volume_labels(G4VPhysicalVolume const& world, bool unique_volumes)
 }
 
 //---------------------------------------------------------------------------//
+std::vector<Label> get_pv_labels(G4VPhysicalVolume const& world)
+{
+    std::vector<Label> labels;
+    visit_geant_volume_instances(
+        [&](G4VPhysicalVolume const& pv, int) {
+            auto i = static_cast<std::size_t>(pv.GetInstanceID());
+            if (i >= labels.size())
+            {
+                labels.resize(i + 1);
+            }
+            if (!labels[i].empty())
+            {
+                // Already visited this PV
+                return false;
+            }
+            labels[i] = Label::from_geant(pv.GetName());
+            CELER_ASSERT(!labels[i].empty());
+            return true;
+        },
+        world);
+    return labels;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -249,6 +273,8 @@ void GeantGeoParams::build_metadata()
     // Construct volume labels
     volumes_ = LabelIdMultiMap<VolumeId>(
         "volume", get_volume_labels(*host_ref_.world, !loaded_gdml_));
+    vol_instances_ = LabelIdMultiMap<VolumeInstanceId>(
+        "volume instance", get_pv_labels(*host_ref_.world));
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
     bbox_ = [world_lv = host_ref_.world->GetLogicalVolume()] {

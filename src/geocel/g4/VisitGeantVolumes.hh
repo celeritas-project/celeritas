@@ -25,6 +25,10 @@ namespace celeritas
  * <code>bool(*)(G4VPhysicalVolume const&, int)</code>
  * where the return value indicates whether the volume's daughters should be
  * visited, and the integer is the depth of the volume being visited.
+ *
+ * By default this will visit the entire "touchable" hierachy: this may be very
+ * expensive! If it's desired to only visit single physical volumes, mark them
+ * as visited using a set.
  */
 template<class F>
 void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
@@ -36,20 +40,19 @@ void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
     };
 
     std::deque<QueuedDaughter> queue;
-    auto visit_impl
-        = [&queue, &visit](G4VPhysicalVolume const& g4pv, int depth) {
-              if (visit(g4pv, depth))
-              {
-                  // Append children
-                  auto const* lv = g4pv.GetLogicalVolume();
-                  CELER_ASSERT(lv);
-                  auto num_children = lv->GetNoDaughters();
-                  for (auto i : range(num_children))
-                  {
-                      queue.push_back({lv->GetDaughter(i), depth + 1});
-                  }
-              }
-          };
+    auto visit_impl = [&queue, &visit](G4VPhysicalVolume const& pv, int depth) {
+        if (visit(pv, depth))
+        {
+            // Append children
+            auto const* lv = pv.GetLogicalVolume();
+            CELER_ASSERT(lv);
+            auto num_children = lv->GetNoDaughters();
+            for (auto i : range(num_children))
+            {
+                queue.push_back({lv->GetDaughter(i), depth + 1});
+            }
+        }
+    };
 
     // Visit the top-level physical volume
     visit_impl(world, 0);

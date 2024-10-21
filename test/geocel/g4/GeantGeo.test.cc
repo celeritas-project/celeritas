@@ -75,6 +75,27 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
     EXPECT_EQ(Label("World", "0xdeadbeef"), geom.volumes().at(VolumeId{3}));
 
+    auto const& vol_instances = geom.volume_instances();
+    std::vector<std::string> instance_names;
+    for (auto viid : range(VolumeInstanceId{vol_instances.size()}))
+    {
+        instance_names.push_back(vol_instances.at(viid).name);
+    }
+    static char const* const expected_instance_names[] = {
+        "Shape2",
+        "Shape1",
+        "env1",
+        "env2",
+        "env3",
+        "env4",
+        "env5",
+        "env6",
+        "env7",
+        "env8",
+        "World",
+    };
+    EXPECT_VEC_EQ(expected_instance_names, instance_names);
+
     auto const* lv = geom.id_to_lv(VolumeId{2});
     ASSERT_TRUE(lv);
     EXPECT_EQ("Envelope", lv->GetName());
@@ -379,7 +400,7 @@ TEST_F(SolidsTest, output)
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":0,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
             to_string(out));
     }
 }
