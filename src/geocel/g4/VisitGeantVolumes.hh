@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <vector>
 #include <G4LogicalVolume.hh>
+#include <G4VPhysicalVolume.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -18,34 +19,79 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Do a recursive depth-first listing of Geant4 logical volumes.
+ * Perform a depth-first traversal of physical volumes.
+ *
+ * The function must have the signature
+ * <code>bool(*)(G4VPhysicalVolume const&, int)</code>
+ * where the return value indicates whether the volume's daughters should be
+ * visited, and the integer is the depth of the volume being visited.
+ */
+template<class F>
+void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
+{
+    struct QueuedDaughter
+    {
+        int depth{0};
+        G4LogicalVolume const* lv{nullptr};
+        std::size_t index{0};
+    };
+
+    std::vector<QueuedDaughter> queue;
+    auto visit_impl
+        = [&queue, &visit](G4VPhysicalVolume const& g4pv, int depth) {
+              if (visit(g4pv, depth))
+              {
+                  // Append children
+                  auto const* lv = g4pv.GetLogicalVolume();
+                  CELER_ASSERT(lv);
+                  auto num_children = lv->GetNoDaughters();
+                  for (auto i : range(num_children))
+                  {
+                      queue.push_back({depth + 1, lv, num_children - i - 1});
+                  }
+              }
+          };
+
+    // Visit the top-level physical volume
+    visit_impl(world, 0);
+
+    while (!queue.empty())
+    {
+        QueuedDaughter qd = queue.back();
+        queue.pop_back();
+
+        // Visit popped daughter
+        G4VPhysicalVolume const* g4pv = qd.lv->GetDaughter(qd.index);
+        CELER_ASSERT(g4pv);
+        visit_impl(*g4pv, qd.depth);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform a depth-first listing of Geant4 logical volumes.
  *
  * This will visit each volume exactly once based on when it's encountered in
  * the hierarchy. The visitor function F should have the signature
  * \code void(*)(G4LogicalVolume const&) \endcode .
  */
 template<class F>
-void visit_geant_volumes(F&& vis, G4LogicalVolume const& parent_vol)
+void visit_geant_volumes(F&& vis, G4VPhysicalVolume const& parent_vol)
 {
     std::unordered_set<G4LogicalVolume const*> visited;
-    std::vector<G4LogicalVolume const*> stack{&parent_vol};
-
-    while (!stack.empty())
-    {
-        G4LogicalVolume const* lv = stack.back();
-        stack.pop_back();
-        vis(*lv);
-        for (auto const i : range(lv->GetNoDaughters()))
+    auto visit_impl
+        = [&vis, &visited](G4VPhysicalVolume const& pv, int) -> bool {
+        auto const* lv = pv.GetLogicalVolume();
+        if (!visited.insert(lv).second)
         {
-            G4LogicalVolume* daughter = lv->GetDaughter(i)->GetLogicalVolume();
-            CELER_ASSERT(daughter);
-            auto&& [iter, inserted] = visited.insert(daughter);
-            if (inserted)
-            {
-                stack.push_back(daughter);
-            }
+            // Already visited
+            return false;
         }
-    }
+        vis(*lv);
+        return true;
+    };
+
+    visit_geant_volume_instances(visit_impl, parent_vol);
 }
 
 //---------------------------------------------------------------------------//

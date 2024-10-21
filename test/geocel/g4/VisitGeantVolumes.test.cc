@@ -31,6 +31,18 @@ struct LogicalVisitor
     }
 };
 
+struct PhysicalVisitor
+{
+    std::vector<std::string> names;
+    bool operator()(G4VPhysicalVolume const& pv, int depth)
+    {
+        std::ostringstream os;
+        os << depth << ':' << Label::from_geant(pv.GetName()).name;
+        names.push_back(std::move(os).str());
+        return true;
+    }
+};
+
 class VisitGeantVolumesTest : public GeantGeoTestBase
 {
   public:
@@ -53,10 +65,27 @@ class FourLevelsTest : public VisitGeantVolumesTest
 TEST_F(FourLevelsTest, logical)
 {
     LogicalVisitor visit;
-    visit_geant_volumes(visit, *this->geometry()->world()->GetLogicalVolume());
+    visit_geant_volumes(visit, *this->geometry()->world());
 
     static char const* const expected_names[]
         = {"World", "Envelope", "Shape1", "Shape2"};
+    EXPECT_VEC_EQ(expected_names, visit.names);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsTest, physical)
+{
+    PhysicalVisitor visit;
+    visit_geant_volume_instances(visit, *this->geometry()->world());
+
+    static char const* const expected_names[] = {
+        "0:World",  "1:env1",   "2:Shape1", "3:Shape2", "1:env2",
+        "2:Shape1", "3:Shape2", "1:env3",   "2:Shape1", "3:Shape2",
+        "1:env4",   "2:Shape1", "3:Shape2", "1:env5",   "2:Shape1",
+        "3:Shape2", "1:env6",   "2:Shape1", "3:Shape2", "1:env7",
+        "2:Shape1", "3:Shape2", "1:env8",   "2:Shape1", "3:Shape2",
+    };
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
 
@@ -71,10 +100,27 @@ class MultiLevelTest : public VisitGeantVolumesTest
 TEST_F(MultiLevelTest, logical)
 {
     LogicalVisitor visit;
-    visit_geant_volumes(visit, *this->geometry()->world()->GetLogicalVolume());
+    visit_geant_volumes(visit, *this->geometry()->world());
 
     static char const* const expected_names[]
-        = {"World", "Shape2", "Envelope", "Shape1"};
+        = {"World", "Shape1", "Shape2", "Envelope"};
+    EXPECT_VEC_EQ(expected_names, visit.names);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MultiLevelTest, physical)
+{
+    PhysicalVisitor visit;
+    visit_geant_volume_instances(visit, *this->geometry()->world());
+
+    static char const* const expected_names[] = {
+        "0:World",  "1:worldshape1", "2:Shape2", "1:env2",   "2:Shape1",
+        "3:Shape2", "1:env3",        "2:Shape1", "3:Shape2", "1:env4",
+        "2:Shape1", "3:Shape2",      "1:env5",   "2:Shape1", "3:Shape2",
+        "1:env6",   "2:Shape1",      "3:Shape2", "1:env7",   "2:Shape1",
+        "3:Shape2", "1:worldshape2",
+    };
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
 

@@ -44,7 +44,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 std::vector<Label>
-get_volume_labels(G4LogicalVolume const& world, bool unique_volumes)
+get_volume_labels(G4VPhysicalVolume const& world, bool unique_volumes)
 {
     std::vector<Label> labels;
     visit_geant_volumes(
@@ -246,15 +246,13 @@ void GeantGeoParams::build_metadata()
 
     ScopedMem record_mem("GeantGeoParams.build_metadata");
 
-    auto const* world_lv = host_ref_.world->GetLogicalVolume();
-    CELER_ASSERT(world_lv);
-
     // Construct volume labels
     volumes_ = LabelIdMultiMap<VolumeId>(
-        "volume", get_volume_labels(*world_lv, !loaded_gdml_));
+        "volume", get_volume_labels(*host_ref_.world, !loaded_gdml_));
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
-    bbox_ = [world_lv] {
+    bbox_ = [world_lv = host_ref_.world->GetLogicalVolume()] {
+        CELER_EXPECT(world_lv);
         G4VSolid const* solid = world_lv->GetSolid();
         CELER_ASSERT(solid);
         G4VisExtent const& extent = solid->GetExtent();
