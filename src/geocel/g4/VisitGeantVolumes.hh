@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <deque>
 #include <unordered_set>
-#include <vector>
 #include <G4LogicalVolume.hh>
 #include <G4VPhysicalVolume.hh>
 
@@ -19,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform a depth-first traversal of physical volumes.
+ * Perform a breadth-first traversal of physical volumes.
  *
  * The function must have the signature
  * <code>bool(*)(G4VPhysicalVolume const&, int)</code>
@@ -31,12 +31,11 @@ void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
 {
     struct QueuedDaughter
     {
+        G4VPhysicalVolume const* pv{nullptr};
         int depth{0};
-        G4LogicalVolume const* lv{nullptr};
-        std::size_t index{0};
     };
 
-    std::vector<QueuedDaughter> queue;
+    std::deque<QueuedDaughter> queue;
     auto visit_impl
         = [&queue, &visit](G4VPhysicalVolume const& g4pv, int depth) {
               if (visit(g4pv, depth))
@@ -47,7 +46,7 @@ void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
                   auto num_children = lv->GetNoDaughters();
                   for (auto i : range(num_children))
                   {
-                      queue.push_back({depth + 1, lv, num_children - i - 1});
+                      queue.push_back({lv->GetDaughter(i), depth + 1});
                   }
               }
           };
@@ -57,13 +56,11 @@ void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
 
     while (!queue.empty())
     {
-        QueuedDaughter qd = queue.back();
-        queue.pop_back();
+        QueuedDaughter qd = queue.front();
+        queue.pop_front();
 
         // Visit popped daughter
-        G4VPhysicalVolume const* g4pv = qd.lv->GetDaughter(qd.index);
-        CELER_ASSERT(g4pv);
-        visit_impl(*g4pv, qd.depth);
+        visit_impl(*qd.pv, qd.depth);
     }
 }
 
