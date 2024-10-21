@@ -124,9 +124,9 @@ TEST_F(MuDecayInteractorTest, stress_test)
 
     // With only one secondary being returned, there is no expectation of
     // energy or momentum conservation
-    static double const expected_avg_sec_energies[] = {393.788114552358};
+    static double const expected_avg_sec_energies[] = {390.025941805075};
     static double const expected_avg_total_momentum[]
-        = {-0.0829120244723066, -0.282753794337841, 391.994238643819};
+        = {-0.0821227515229907, -0.280044247644299, 388.249318108501};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_sec_energies, avg_sec_energies);
     EXPECT_VEC_SOFT_EQ(expected_avg_total_momentum, avg_total_momentum);

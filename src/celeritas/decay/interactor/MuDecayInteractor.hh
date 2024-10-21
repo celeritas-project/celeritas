@@ -21,6 +21,7 @@
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -42,8 +43,10 @@ namespace celeritas
  * Manual, Release 11.2, section 4.2.3.
  *
  * \warning Neutrinos are currently not returned in this interactor to minimize
- * secondary memory requirements. The full three-body decay can be reverted
- * from PR #1456, commit `ecc4326`.
+ * secondary memory requirements.
+ *
+ * \note The full three-body decay can be recovered from PR #1456, commit
+ * `ecc4326`.
  */
 class MuDecayInteractor
 {
@@ -133,7 +136,7 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     // code implementation leads to a total CM energy of ~104.6 MeV instead of
     // the expected 105.7 MeV (muon mass), which is achieved by using the
     // physics manual definition
-    max_energy_ = real_type{0.5} * shared_.muon_mass;
+    max_energy_ = real_type{0.5} * shared_.muon_mass - shared_.electron_mass;
 }
 
 //---------------------------------------------------------------------------//
@@ -165,31 +168,17 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
     real_type electron_energy_frac;
     real_type electron_nu_energy_frac;
-    size_type const max_iter{1000};  // \todo Why?
-
-    for ([[maybe_unused]] auto i : range(max_iter))
+    do
     {
-        for ([[maybe_unused]] auto j : range(max_iter))
+        do
         {
-            electron_nu_energy_frac = sample_max_ * generate_canonical(rng);
-            if (generate_canonical(rng)
-                <= electron_nu_energy_frac
-                       * (real_type{1} - electron_nu_energy_frac))
-            {
-                break;
-            }
-            electron_nu_energy_frac = sample_max_;
-        }
+            electron_nu_energy_frac = UniformRealDist(0, sample_max_)(rng);
+        } while (generate_canonical(rng)
+                 > electron_nu_energy_frac
+                       * (real_type{1} - electron_nu_energy_frac));
 
         electron_energy_frac = generate_canonical(rng);
-        if (electron_nu_energy_frac >= real_type{1} - electron_energy_frac)
-        {
-            break;
-        }
-        electron_nu_energy_frac = real_type{1} - electron_energy_frac;
-    }
-    real_type muon_nu_energy_frac = real_type{2} - electron_energy_frac
-                                    - electron_nu_energy_frac;
+    } while (electron_nu_energy_frac < real_type{1} - electron_energy_frac);
 
     // Momentum of secondaries at rest frame
     auto charged_lep_energy
@@ -209,16 +198,16 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     auto charged_lep_4vec = this->to_lab_frame(
         charged_lep_dir, charged_lep_energy, shared_.electron_mass);
 
-    // Interaction stores kinetic energy; FourVector stores total energy
-    secondaries[0].particle_id = is_muon_ ? shared_.ids.electron
-                                          : shared_.ids.positron;
-    secondaries[0].energy
-        = Energy{charged_lep_4vec.energy - shared_.electron_mass};
-    secondaries[0].direction = make_unit_vector(charged_lep_4vec.mom);
-
     // Return electron only to reduce secondary memory usage
     Interaction result = Interaction::from_decay();
     result.secondaries = {secondaries, 1};
+    result.secondaries[0].particle_id = is_muon_ ? shared_.ids.electron
+                                                 : shared_.ids.positron;
+    // Interaction stores kinetic energy; FourVector stores total energy
+    result.secondaries[0].energy
+        = Energy{charged_lep_4vec.energy - shared_.electron_mass};
+    result.secondaries[0].direction = make_unit_vector(charged_lep_4vec.mom);
+
     return result;
 }
 
@@ -236,7 +225,7 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(
     CELER_EXPECT(momentum > zero_quantity());
     CELER_EXPECT(mass >= 0);
 
-    Real3 p = dir * momentum.value();  // Momentum [MeV]
+    Real3 p = dir * momentum.value();
     FourVector lepton_4vec{p, std::sqrt(ipow<2>(norm(p)) + ipow<2>(mass))};
     boost(boost_vector(inc_fourvec_), &lepton_4vec);
 
