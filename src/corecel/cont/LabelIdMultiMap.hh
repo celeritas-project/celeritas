@@ -41,7 +41,10 @@ namespace celeritas
  * or "false" OpaqueId will be returned.
  *
  * The three kinds of \c find methods are named differently to avoid ambiguity:
- * - \c find_all returns
+ * - \c find_all returns the full set of IDs that match the given name;
+ * - \c find_unique is a convenience accessor for locating a volume by name,
+ *   but it only works if there are no duplicates; and
+ * - \c find_exact looks for the full label, both name and extension.
  */
 template<class I>
 class LabelIdMultiMap
