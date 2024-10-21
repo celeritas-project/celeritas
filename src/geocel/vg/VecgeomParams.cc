@@ -224,11 +224,14 @@ VecgeomParams::~VecgeomParams()
 //---------------------------------------------------------------------------//
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
- *
- * \todo Implement by adding to g4vg converter.
  */
-G4VPhysicalVolume const* VecgeomParams::id_to_pv(VolumeInstanceId) const
+G4VPhysicalVolume const* VecgeomParams::id_to_pv(VolumeInstanceId viid) const
 {
+    CELER_EXPECT(viid);
+    if (viid < g4_pv_map_.size())
+    {
+        return g4_pv_map_[viid.unchecked_get()];
+    }
     return nullptr;
 }
 
@@ -283,6 +286,7 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     auto result = convert(world);
     CELER_ASSERT(result.world != nullptr);
     g4log_volid_map_ = std::move(result.volumes);
+    g4_pv_map_ = std::move(result.placed_volumes);
 
     // Set as world volume
     auto& vg_manager = vecgeom::GeoManager::Instance();

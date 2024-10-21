@@ -422,11 +422,43 @@ TEST_F(TestMultiEm3InstanceCaloTest, step)
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
-        static char const* const expected_instance[]
-            = {"lar:world_PV/Calorimeter/Layer/lar_pv", "world:world_PV"};
+        static char const* const expected_instance[] = {
+            "lar:world_PV/Calorimeter/Layer@01/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@02/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@03/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@04/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@05/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@06/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@07/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@08/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@10/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@11/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@12/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@13/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@19/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@22/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@23/lar_pv",
+            "world:world_PV",
+        };
         EXPECT_VEC_EQ(expected_instance, result.instance);
-        static real_type const expected_edep[]
-            = {166.339529328758, 1.0705708104433e-22};
+        static real_type const expected_edep[] = {
+            119.07765248441,
+            5.6982482241006,
+            9.8645286098002,
+            3.0888952869348,
+            4.2251588793224,
+            6.802967016913,
+            3.4729927310761,
+            0.2314916788373,
+            3.7499525366117,
+            1.4374927547187,
+            4.3684761895643,
+            1.9692501131587,
+            0.26781065169827,
+            1.1814042933331,
+            0.90320787827792,
+            1.0684944212087e-22,
+        };
         EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
     }
     else

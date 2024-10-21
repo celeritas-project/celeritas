@@ -56,6 +56,7 @@ class Converter
     //! \name Type aliases
     using arg_type = G4VPhysicalVolume const*;
     using MapLvVolId = std::unordered_map<G4LogicalVolume const*, VolumeId>;
+    using VecPv = std::vector<G4VPhysicalVolume const*>;
     using VGPlacedVolume = vecgeom::VPlacedVolume;
     //!@}
 
@@ -69,6 +70,7 @@ class Converter
     {
         VGPlacedVolume* world{nullptr};
         MapLvVolId volumes;
+        VecPv placed_volumes;  //!< Indexed by VecGeom PlacedVolume ID
     };
 
   public:
@@ -95,6 +97,7 @@ class Converter
     std::unique_ptr<SolidConverter> convert_solid_;
     std::unique_ptr<LogicalVolumeConverter> convert_lv_;
     std::unordered_set<VGLogicalVolume const*> built_daughters_;
+    VecPv placed_volumes_;
 
     VGLogicalVolume* build_with_daughters(G4LogicalVolume const* mother_g4lv);
 #endif
