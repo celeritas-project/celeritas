@@ -133,7 +133,7 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
     [[deprecated]]
     SurfaceId find_surface(std::string const& name) const
     {
-        return this->surfaces().find(name);
+        return this->surfaces().find_unique(name);
     }
 
     //! Number of distinct surfaces

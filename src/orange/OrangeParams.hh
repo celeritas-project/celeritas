@@ -93,7 +93,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     [[deprecated]]
     UniverseId find_universe(std::string const& name) const
     {
-        return this->universes().find(name);
+        return this->universes().find_unique(name);
     }
 
     // Number of universes
