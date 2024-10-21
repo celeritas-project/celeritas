@@ -102,6 +102,32 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
+std::string
+GenericGeoTestBase<HP>::all_volume_instance_names(GeoTrackView const& geo) const
+{
+    if (geo.is_outside())
+    {
+        return "[OUTSIDE]";
+    }
+
+    auto level = geo.level();
+    CELER_ASSERT(level && level >= LevelId{0});
+
+    std::vector<VolumeInstanceId> ids(level.get() + 1);
+    geo.volume_instance_id(make_span(ids));
+
+    auto const& vol_inst = this->geometry()->volume_instances();
+    std::ostringstream os;
+    os << vol_inst.at(ids[0]);
+    for (auto i : range(std::size_t{1}, ids.size()))
+    {
+        os << '/' << vol_inst.at(ids[i]);
+    }
+    return std::move(os).str();
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
 auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid) -> GeoTrackView
 {
     if (!host_state_)

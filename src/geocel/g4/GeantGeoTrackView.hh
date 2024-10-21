@@ -276,7 +276,7 @@ CELER_FORCEINLINE VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 LevelId GeantGeoTrackView::level() const
 {
     auto* touch = touch_handle_();
-    return id_cast<LevelId>(touch->GetHistoryDepth() - 1);
+    return id_cast<LevelId>(touch->GetHistoryDepth());
 }
 
 //---------------------------------------------------------------------------//
