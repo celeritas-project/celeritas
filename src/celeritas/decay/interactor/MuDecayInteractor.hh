@@ -40,6 +40,10 @@ namespace celeritas
  *
  * This interactor follows \c G4MuonDecayChannel and the Physics Reference
  * Manual, Release 11.2, section 4.2.3.
+ *
+ * \warning Neutrinos are currently not returned in this interactor to minimize
+ * secondary memory requirements. The full three-body decay can be reverted
+ * from PR #1456, commit `ecc4326`.
  */
 class MuDecayInteractor
 {
@@ -47,6 +51,8 @@ class MuDecayInteractor
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
+    using MevMomentum = units::MevMomentum;
+    using UniformRealDist = UniformRealDistribution<real_type>;
     //!@}
 
     // Construct with shared and state data
@@ -66,13 +72,13 @@ class MuDecayInteractor
     // Constant data
     MuDecayData shared_;
     // Incident muon energy
-    units::MevEnergy const inc_energy_;
+    Energy const inc_energy_;
     // Incident muon direction
     Real3 const inc_direction_;
-    // Allocate space for a secondary particles
+    // Allocate space for secondary particles (currently, electron only)
     StackAllocator<Secondary>& allocate_;
     // Define decay channel based on muon or anti-muon primary
-    ParticleId secondary_id_[3];
+    bool is_muon_;
     // Incident muon four vector
     FourVector inc_fourvec_;
     // Max sampled fractional energy
@@ -84,12 +90,12 @@ class MuDecayInteractor
 
     // Boost four vector from the rest frame to the lab frame
     inline CELER_FUNCTION FourVector to_lab_frame(Real3 const& dir,
-                                                  Energy const& energy,
+                                                  MevMomentum const& momentum,
                                                   real_type const& mass);
 
     // Calculate particle momentum (or kinetic energy) in the center of mass
-    inline CELER_FUNCTION Energy momentum(real_type const& energy_frac,
-                                          real_type const& mass);
+    inline CELER_FUNCTION MevMomentum calc_momentum(real_type const& energy_frac,
+                                                    real_type const& mass);
 };
 
 //---------------------------------------------------------------------------//
@@ -112,29 +118,22 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
                  || particle.particle_id() == shared_.ids.mu_plus);
 
     // Define decay channel
-    auto const& ids = shared_.ids;
-    bool muon = (particle.particle_id() == ids.mu_minus) ? true : false;
-    secondary_id_[0] = muon ? ids.electron : ids.positron;
-    secondary_id_[1] = muon ? ids.anti_electron_neutrino
-                            : ids.electron_neutrino;
-    secondary_id_[2] = muon ? ids.muon_neutrino : ids.anti_muon_neutrino;
+    is_muon_ = (particle.particle_id() == shared_.ids.mu_minus) ? true : false;
 
     // Set up muon four vector to boost decay to the lab-frame
-    Real3 inc_momentum = inc_direction_ * inc_energy_.value();
-    inc_fourvec_ = {
-        inc_momentum,
-        std::sqrt(ipow<2>(norm(inc_momentum)) + ipow<2>(shared_.muon_mass))};
+    inc_fourvec_ = {inc_direction_ * particle.momentum().value(),
+                    particle.total_energy().value()};
 
     // Sampling constants
     sample_max_ = real_type{1}
-                  + ipow<2>(shared_.electron_mass) / ipow<2>(shared_.muon_mass);
+                  + ipow<2>(shared_.electron_mass / shared_.muon_mass);
 
     // Geant4 physics manual defines E_{max} = m_\mu / 2, while the source code
     // (since v10.2.0 at least) defines E_{max} = m_\mu / 2 - m_e . The source
     // code implementation leads to a total CM energy of ~104.6 MeV instead of
     // the expected 105.7 MeV (muon mass), which is achieved by using the
     // physics manual definition
-    max_energy_ = 0.5 * shared_.muon_mass;
+    max_energy_ = real_type{0.5} * shared_.muon_mass;
 }
 
 //---------------------------------------------------------------------------//
@@ -152,14 +151,12 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
  * The decay is sampled at the muon's reference frame (based on
  * \c G4MuonDecayChannel::DecayIt ) and the resulting four vector is boosted to
  * the lab frame using the muon's incident energy and direction.
- *
- * \note Neutrinos are assumed to have zero mass.
  */
 template<class Engine>
 CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 {
     // Allocate secondaries
-    Secondary* secondaries = allocate_(3);
+    Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
     {
         // Failed to allocate secondaries
@@ -194,70 +191,34 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     real_type muon_nu_energy_frac = real_type{2} - electron_energy_frac
                                     - electron_nu_energy_frac;
 
-    // Momentum of secondaries at rest frame; neutrino masses are ignored
+    // Momentum of secondaries at rest frame
     auto charged_lep_energy
-        = this->momentum(electron_energy_frac, shared_.electron_mass);
-    auto electron_nu_energy = this->momentum(electron_nu_energy_frac, 0);
-    auto muon_nu_energy = this->momentum(muon_nu_energy_frac, 0);
-
-    // Angle between charged lepton and electron neutrino
-    real_type cos_theta
-        = real_type{1} - 2 / electron_energy_frac - 2 / electron_nu_energy_frac
-          + 2 / (electron_nu_energy_frac * electron_energy_frac);
-    CELER_ASSERT(std::fabs(cos_theta) <= 1);
-    real_type sin_theta = std::sqrt(real_type{1} - ipow<2>(cos_theta));
-
-    // Use an initial arbitrary direction for secondaries.
-    // Placing the electron on one axis (e.g. +z), simplifies the calculation
-    // for the other two secondaries. The direction of the electron neutrino
-    // is defined by the sampled theta, and the muon neutrino direction is
-    // calculated via conservation of momentum
-    Real3 charged_lep_dir = {0, 0, 1};
-    Real3 electron_nu_dir = {sin_theta, 0, cos_theta};
-    Real3 muon_nu_dir
-        = {-(electron_nu_energy_frac / muon_nu_energy_frac) * sin_theta,
-           0,
-           -electron_energy_frac / muon_nu_energy_frac
-               - (electron_nu_energy_frac / muon_nu_energy_frac) * cos_theta};
+        = this->calc_momentum(electron_energy_frac, shared_.electron_mass);
 
     // Apply a spherically uniform rotation to the decay
-    real_type euler_phi
-        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
-    real_type euler_theta = std::acos(2 * generate_canonical(rng) - 1);
-    real_type euler_psi
-        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
+    auto sample_twopi = UniformRealDist(0, 2 * constants::pi);
+    real_type euler_phi = sample_twopi(rng);
+    real_type euler_theta = std::acos(UniformRealDist(-1, 1)(rng));
+    real_type euler_psi = sample_twopi(rng);
 
     EulerRotation rotate(euler_phi, euler_theta, euler_psi);
+    Real3 charged_lep_dir = {0, 0, 1};
     charged_lep_dir = rotate(charged_lep_dir);
-    electron_nu_dir = rotate(electron_nu_dir);
-    muon_nu_dir = rotate(muon_nu_dir);
 
     // Boost secondaries to the lab frame
     auto charged_lep_4vec = this->to_lab_frame(
         charged_lep_dir, charged_lep_energy, shared_.electron_mass);
-    auto electron_nu_4vec
-        = this->to_lab_frame(electron_nu_dir, electron_nu_energy, 0);
-    auto muon_nu_4vec = this->to_lab_frame(muon_nu_dir, muon_nu_energy, 0);
-
-    // \todo Return electron only?
-    Interaction result = Interaction::from_absorption();
-    result.action = Interaction::Action::decay;
-    result.secondaries = {secondaries, 3};
 
     // Interaction stores kinetic energy; FourVector stores total energy
-    result.secondaries[0].particle_id = secondary_id_[0];
-    result.secondaries[0].energy
+    secondaries[0].particle_id = is_muon_ ? shared_.ids.electron
+                                          : shared_.ids.positron;
+    secondaries[0].energy
         = Energy{charged_lep_4vec.energy - shared_.electron_mass};
-    result.secondaries[0].direction = make_unit_vector(charged_lep_4vec.mom);
+    secondaries[0].direction = make_unit_vector(charged_lep_4vec.mom);
 
-    result.secondaries[1].particle_id = secondary_id_[1];
-    result.secondaries[1].energy = Energy{electron_nu_4vec.energy};  // no mass
-    result.secondaries[1].direction = make_unit_vector(electron_nu_4vec.mom);
-
-    result.secondaries[2].particle_id = secondary_id_[2];
-    result.secondaries[2].energy = Energy{muon_nu_4vec.energy};  // no mass
-    result.secondaries[2].direction = make_unit_vector(muon_nu_4vec.mom);
-
+    // Return electron only to reduce secondary memory usage
+    Interaction result = Interaction::from_decay();
+    result.secondaries = {secondaries, 1};
     return result;
 }
 
@@ -268,15 +229,14 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
  * \note This assumes the primary to be at rest and, thus, there is no need to
  * perform an inverse boost of the primary at the CM frame.
  */
-CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
-                                                          Energy const& energy,
-                                                          real_type const& mass)
+CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(
+    Real3 const& dir, MevMomentum const& momentum, real_type const& mass)
 {
     CELER_EXPECT(norm(dir) > 0);
-    CELER_EXPECT(energy > zero_quantity());
+    CELER_EXPECT(momentum > zero_quantity());
     CELER_EXPECT(mass >= 0);
 
-    Real3 p = dir * energy.value();  // Momentum [MeV]
+    Real3 p = dir * momentum.value();  // Momentum [MeV]
     FourVector lepton_4vec{p, std::sqrt(ipow<2>(norm(p)) + ipow<2>(mass))};
     boost(boost_vector(inc_fourvec_), &lepton_4vec);
 
@@ -288,11 +248,12 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
  * Calculate final particle momentum (or kinetic energy) from its sampled
  * fractional energy.
  */
-CELER_FUNCTION units::MevEnergy
-MuDecayInteractor::momentum(real_type const& energy_frac, real_type const& mass)
+CELER_FUNCTION units::MevMomentum
+MuDecayInteractor::calc_momentum(real_type const& energy_frac,
+                                 real_type const& mass)
 {
-    return Energy{std::sqrt(ipow<2>(energy_frac) * ipow<2>(max_energy_)
-                            + 2 * energy_frac * max_energy_ * mass)};
+    return MevMomentum{std::sqrt(ipow<2>(energy_frac * max_energy_)
+                                 + 2 * energy_frac * max_energy_ * mass)};
 }
 
 //---------------------------------------------------------------------------//

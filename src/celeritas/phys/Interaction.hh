@@ -53,6 +53,9 @@ struct Interaction
     // Return an interaction representing an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();
 
+    // Return an interaction representing a decay process
+    static inline CELER_FUNCTION Interaction from_decay();
+
     // Return an interaction with no change in the track state
     static inline CELER_FUNCTION Interaction from_unchanged();
 
@@ -169,6 +172,17 @@ CELER_FUNCTION Interaction Interaction::from_unchanged()
 {
     Interaction result;
     result.action = Action::unchanged;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an interaction from a particle that decayed.
+ */
+CELER_FUNCTION Interaction Interaction::from_decay()
+{
+    Interaction result = from_absorption();
+    result.action = Action::decay;
     return result;
 }
 
