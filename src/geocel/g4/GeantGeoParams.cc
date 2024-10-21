@@ -98,7 +98,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
     this->build_tracking();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -142,7 +142,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
     this->build_tracking();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -164,48 +164,13 @@ GeantGeoParams::~GeantGeoParams()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label for a placed volume ID.
- */
-Label const& GeantGeoParams::id_to_label(VolumeId vol) const
-{
-    CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_.get(vol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the ID corresponding to a label.
- */
-auto GeantGeoParams::find_volume(std::string const& name) const -> VolumeId
-{
-    auto result = vol_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "volume '" << name << "' is not unique");
-    return result.front();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a label.
- *
- * If the label isn't in the geometry, a null ID will be returned.
- */
-VolumeId GeantGeoParams::find_volume(Label const& label) const
-{
-    return vol_labels_.find(label);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
 VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 {
     CELER_EXPECT(volume);
     auto result = id_cast<VolumeId>(volume->GetInstanceID());
-    if (!(result < this->num_volumes()))
+    if (!(result < volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
         // class was created
@@ -216,26 +181,13 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get zero or more volume IDs corresponding to a name.
- *
- * This is useful for volumes that are repeated in the geometry with different
- * uniquifying 'extensions' from Geant4.
- */
-auto GeantGeoParams::find_volumes(std::string const& name) const
-    -> SpanConstVolumeId
-{
-    return vol_labels_.find_all(name);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the Geant4 logical volume corresponding to a volume ID.
  *
  * If the input volume ID is false, a null pointer will be returned.
  */
 G4LogicalVolume const* GeantGeoParams::id_to_lv(VolumeId id) const
 {
-    CELER_EXPECT(!id || id < this->num_volumes());
+    CELER_EXPECT(!id || id < volumes_.size());
     if (!id)
     {
         return nullptr;
@@ -277,8 +229,8 @@ void GeantGeoParams::build_metadata()
     CELER_ASSERT(world_lv);
 
     // Construct volume labels
-    vol_labels_ = LabelIdMultiMap<VolumeId>(
-        get_volume_labels(*world_lv, !loaded_gdml_));
+    volumes_ = LabelIdMultiMap<VolumeId>(
+        "volume", get_volume_labels(*world_lv, !loaded_gdml_));
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
     bbox_ = [world_lv] {

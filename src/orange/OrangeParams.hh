@@ -38,6 +38,13 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
                            public ParamsDataInterface<OrangeParamsData>
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
+    using UniverseMap = LabelIdMultiMap<UniverseId>;
+    //!@}
+
+  public:
     // Construct from a JSON or GDML file (if JSON or Geant4 are enabled)
     explicit OrangeParams(std::string const& filename);
 
@@ -56,51 +63,45 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     //! Maximum universe depth
     size_type max_depth() const { return this->host_ref().scalars.max_depth; }
 
-    //// VOLUMES ////
+    //// LABELS AND MAPPING ////
 
-    // Number of volumes
-    inline VolumeId::size_type num_volumes() const final;
+    // Get surface metadata
+    inline SurfaceMap const& surfaces() const final;
 
-    // Get the label for a volume ID
-    Label const& id_to_label(VolumeId vol_id) const final;
+    // Get universe metadata
+    inline UniverseMap const& universes() const;
 
-    //! \cond
-    using GeoParamsSurfaceInterface::find_volume;
-    //! \endcond
-
-    // Get the volume ID corresponding to a unique name
-    VolumeId find_volume(std::string const& name) const final;
-
-    // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(Label const& label) const final;
+    // Get volume metadata
+    inline VolumeMap const& volumes() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
     inline VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
-    // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(std::string const& name) const final;
+    //// DEPRECATED ////
 
-    //// SURFACES ////
-
-    // Get the label for a surface ID
-    Label const& id_to_label(SurfaceId surf_id) const final;
-
-    // Get the surface ID corresponding to a unique label name
-    SurfaceId find_surface(std::string const& name) const final;
-
-    // Number of distinct surfaces
-    inline SurfaceId::size_type num_surfaces() const final;
-
-    //// UNIVERSES ////
+    using GeoParamsSurfaceInterface::find_volume;
+    using GeoParamsSurfaceInterface::id_to_label;
 
     // Get the label for a universe ID
-    Label const& id_to_label(UniverseId surf_id) const;
+    [[deprecated]]
+    Label const& id_to_label(UniverseId univ_id) const
+    {
+        return this->universes().at(univ_id);
+    }
 
     // Get the universe ID corresponding to a unique label name
-    UniverseId find_universe(std::string const& name) const;
+    [[deprecated]]
+    UniverseId find_universe(std::string const& name) const
+    {
+        return this->universes().find_unique(name);
+    }
 
     // Number of universes
-    inline UniverseId::size_type num_universes() const;
+    [[deprecated]]
+    UniverseId::size_type num_universes() const
+    {
+        return this->universes().size();
+    }
 
     //// DATA ACCESS ////
 
@@ -112,9 +113,9 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
 
   private:
     // Host metadata/access
-    LabelIdMultiMap<UniverseId> univ_labels_;
-    LabelIdMultiMap<SurfaceId> surf_labels_;
-    LabelIdMultiMap<VolumeId> vol_labels_;
+    SurfaceMap surf_labels_;
+    UniverseMap univ_labels_;
+    VolumeMap vol_labels_;
     BBox bbox_;
     bool supports_safety_{};
 
@@ -126,40 +127,40 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Get surface metadata.
+ */
+auto OrangeParams::surfaces() const -> SurfaceMap const&
+{
+    return surf_labels_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get universe metadata.
+ */
+auto OrangeParams::universes() const -> UniverseMap const&
+{
+    return univ_labels_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get volume metadata.
+ */
+auto OrangeParams::volumes() const -> VolumeMap const&
+{
+    return vol_labels_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Locate the volume ID corresponding to a Geant4 volume.
  *
- * TODO: To be properly implemented, as it requires a future Geant4 converter.
+ * \todo Implement using \c g4org::Converter
  */
 VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
 {
     return VolumeId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Number of volumes.
- */
-VolumeId::size_type OrangeParams::num_volumes() const
-{
-    return vol_labels_.size();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Number of surfaces.
- */
-SurfaceId::size_type OrangeParams::num_surfaces() const
-{
-    return surf_labels_.size();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Number of universes.
- */
-UniverseId::size_type OrangeParams::num_universes() const
-{
-    return univ_labels_.size();
 }
 
 //---------------------------------------------------------------------------//

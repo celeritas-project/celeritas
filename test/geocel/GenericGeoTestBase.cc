@@ -95,7 +95,7 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
             CELER_ASSERT(i < result.volumes.size());
 
             auto label = Label::from_geant(name);
-            auto id = geom.find_volume(label);
+            auto id = geom.volumes().find_exact(label);
             if (!id)
             {
                 result.volumes[i] = Result::missing;

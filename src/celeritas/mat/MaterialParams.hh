@@ -40,6 +40,8 @@ struct ImportData;
  * Materials in Celeritas currently correspond to "material cut couples" in
  * Geant4, i.e. the outer product of geometry model-defined materials and
  * user-defined physics regions.
+ *
+ * \todo Replace id_to_label etc. with direct access to LabelIdMultiMap
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {

@@ -41,20 +41,21 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
         label = Label::from_geant(make_gdml_name(lv));
     }
 
-    if (auto id = geo.find_volume(label))
+    auto const& volumes = geo.volumes();
+    if (auto id = volumes.find_exact(label))
     {
         // Exact match
         return id;
     }
 
     // Fall back to skipping the extension: look for all possible matches
-    auto all_ids = geo.find_volumes(label.name);
+    auto all_ids = volumes.find_all(label.name);
     if (all_ids.size() == 1)
     {
         CELER_LOG(warning) << "Failed to exactly match " << celeritas_core_geo
                            << " volume from Geant4 volume '" << lv.GetName()
                            << "'@" << static_cast<void const*>(&lv)
-                           << "; found '" << geo.id_to_label(all_ids.front())
+                           << "; found '" << volumes.at(all_ids.front())
                            << "' by omitting the extension";
         return all_ids.front();
     }
@@ -63,7 +64,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
     // address attached (in case an original GDML volume name already
     // had a pointer suffix and LoadGdml added another)
     label = Label::from_geant(make_gdml_name(lv));
-    all_ids = geo.find_volumes(label.name);
+    all_ids = volumes.find_all(label.name);
     if (all_ids.size() > 1)
     {
         CELER_LOG(warning)
@@ -71,9 +72,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
             << join(all_ids.begin(),
                     all_ids.end(),
                     "', '",
-                    [&geo = this->geo](VolumeId v) {
-                        return geo.id_to_label(v);
-                    })
+                    [&volumes](VolumeId v) { return volumes.at(v); })
             << "' match the Geant4 volume with extension omitted: returning "
                "the last one";
         return all_ids.back();
