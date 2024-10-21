@@ -109,6 +109,7 @@ endif()
 # Geant4
 
 if(CELERITAS_USE_Geant4)
+  celeritas_add_test(g4/VisitGeantVolumes.test.cc LINK_LIBRARIES ${_g4_geo_libs})
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
 endif()
 
