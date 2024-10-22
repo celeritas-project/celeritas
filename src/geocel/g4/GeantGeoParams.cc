@@ -72,7 +72,7 @@ std::vector<Label> get_pv_labels(G4VPhysicalVolume const& world)
 {
     std::vector<Label> labels;
     visit_geant_volume_instances(
-        [&](G4VPhysicalVolume const& pv, int) {
+        [&labels](G4VPhysicalVolume const& pv, int) {
             auto i = static_cast<std::size_t>(pv.GetInstanceID());
             if (i >= labels.size())
             {
@@ -89,6 +89,21 @@ std::vector<Label> get_pv_labels(G4VPhysicalVolume const& world)
         },
         world);
     return labels;
+}
+
+//---------------------------------------------------------------------------//
+LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
+{
+    int result{0};
+    visit_geant_volume_instances(
+        [&result](G4VPhysicalVolume const&, int level) {
+            result = max(level, result);
+            return true;
+        },
+        world);
+    CELER_ENSURE(result >= 0);
+    // Maximum "depth" is one greater than "highest level"
+    return static_cast<LevelId::size_type>(result + 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -275,6 +290,7 @@ void GeantGeoParams::build_metadata()
                          get_volume_labels(*host_ref_.world, !loaded_gdml_)};
     vol_instances_
         = VolInstanceMap{"volume instance", get_pv_labels(*host_ref_.world)};
+    max_depth_ = get_max_depth(*host_ref_.world);
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
     bbox_ = [world_lv = host_ref_.world->GetLogicalVolume()] {
