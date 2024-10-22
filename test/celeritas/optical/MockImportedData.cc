@@ -111,9 +111,6 @@ std::vector<ImportOpticalModel> const& MockImportedData::import_models()
 //---------------------------------------------------------------------------//
 /*!
  * Construct vector of ImportOpticalMaterial from mock data.
- *
- * Currently returns a vector of 5 empty materials.
- * TODO: Reimplement with mock data for models that depend on material data.
  */
 std::vector<ImportOpticalMaterial> const& MockImportedData::import_materials()
 {

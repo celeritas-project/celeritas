@@ -163,7 +163,7 @@ VecgeomParams::VecgeomParams(std::string const& filename)
     this->build_data();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -182,7 +182,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     this->build_data();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -223,41 +223,6 @@ VecgeomParams::~VecgeomParams()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label for a placed volume ID.
- */
-Label const& VecgeomParams::id_to_label(VolumeId vol) const
-{
-    CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_.get(vol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the ID corresponding to a label.
- */
-auto VecgeomParams::find_volume(std::string const& name) const -> VolumeId
-{
-    auto result = vol_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "volume '" << name << "' is not unique");
-    return result.front();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a label.
- *
- * If the label isn't in the geometry, a null ID will be returned.
- */
-VolumeId VecgeomParams::find_volume(Label const& label) const
-{
-    return vol_labels_.find(label);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
 VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
@@ -270,18 +235,6 @@ VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
             result = iter->second;
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get zero or more volume IDs corresponding to a name.
- *
- * This is useful for volumes that are repeated in the geometry with different
- * uniquifying 'extensions' from Geant4.
- */
-auto VecgeomParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
-{
-    return vol_labels_.find_all(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -516,7 +469,7 @@ void VecgeomParams::build_metadata()
 {
     ScopedMem record_mem("VecgeomParams.build_metadata");
     // Construct volume labels
-    vol_labels_ = LabelIdMultiMap<VolumeId>([] {
+    volumes_ = VolumeMap("volume", [] {
         auto& vg_manager = vecgeom::GeoManager::Instance();
         CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
 
@@ -546,11 +499,11 @@ void VecgeomParams::build_metadata()
 
     // Check for duplicates
     {
-        auto vol_dupes = vol_labels_.duplicates();
+        auto vol_dupes = volumes_.duplicates();
         if (!vol_dupes.empty())
         {
             auto streamed_label = [this](std::ostream& os, VolumeId v) {
-                os << '"' << this->vol_labels_.get(v) << "\" ("
+                os << '"' << this->volumes_.at(v) << "\" ("
                    << v.unchecked_get() << ')';
             };
 

@@ -48,9 +48,10 @@ void GeoParamsOutput::output(JsonPimpl* j) const
     {
         auto label = json::array();
 
-        for (auto id : range(VolumeId{geo_->num_volumes()}))
+        auto const& volumes = geo_->volumes();
+        for (auto id : range(VolumeId{volumes.size()}))
         {
-            label.push_back(geo_->id_to_label(id));
+            label.push_back(volumes.at(id));
         }
         obj["volumes"] = {
             {"label", std::move(label)},
@@ -63,9 +64,10 @@ void GeoParamsOutput::output(JsonPimpl* j) const
     {
         auto label = json::array();
 
-        for (auto id : range(SurfaceId{surf_geo->num_surfaces()}))
+        auto const& surfaces = surf_geo->surfaces();
+        for (auto id : range(SurfaceId{surfaces.size()}))
         {
-            label.push_back(surf_geo->id_to_label(id));
+            label.push_back(surfaces.at(id));
         }
         obj["surfaces"] = {
             {"label", std::move(label)},

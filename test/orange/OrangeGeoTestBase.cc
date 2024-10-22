@@ -235,7 +235,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     os << "# Surfaces\n";
 
     // Loop over all surfaces and apply
-    for (auto id : range(LocalSurfaceId{this->params().num_surfaces()}))
+    for (auto id : range(LocalSurfaceId{this->params().surfaces().size()}))
     {
         os << " - " << this->id_to_label(UniverseId{0}, id) << "(" << id.get()
            << "): ";
@@ -251,7 +251,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 VolumeId::size_type OrangeGeoTestBase::num_volumes() const
 {
     CELER_EXPECT(params_);
-    return params_->num_volumes();
+    return params_->volumes().size();
 }
 
 //---------------------------------------------------------------------------//
@@ -261,7 +261,7 @@ VolumeId::size_type OrangeGeoTestBase::num_volumes() const
 SurfaceId OrangeGeoTestBase::find_surface(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    SurfaceId surface_id = params_->find_surface(label);
+    SurfaceId surface_id = params_->surfaces().find_unique(label);
     CELER_VALIDATE(surface_id,
                    << "nonexistent surface label '" << label << '\'');
     return surface_id;
@@ -274,7 +274,7 @@ SurfaceId OrangeGeoTestBase::find_surface(std::string const& label) const
 VolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    VolumeId volume_id = params_->find_volume(label);
+    VolumeId volume_id = params_->volumes().find_unique(label);
     CELER_VALIDATE(volume_id, << "nonexistent volume label '" << label << '\'');
     return volume_id;
 }
@@ -290,7 +290,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalSurfaceId surfid) const
         return "[none]";
 
     detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
-    return params_->id_to_label(ui.global_surface(uid, surfid)).name;
+    return params_->surfaces().at(ui.global_surface(uid, surfid)).name;
 }
 
 //---------------------------------------------------------------------------//
@@ -313,7 +313,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
         return "[none]";
 
     detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
-    return params_->id_to_label(ui.global_volume(uid, volid)).name;
+    return params_->volumes().at(ui.global_volume(uid, volid)).name;
 }
 
 //---------------------------------------------------------------------------//

@@ -80,9 +80,9 @@ StepCollector::StepCollector(VecInterface callbacks,
                 CELER_VALIDATE(inserted,
                                << "multiple step interfaces map single volume "
                                   "to a detector ('"
-                               << geo->id_to_label(prev->first) << "' -> "
+                               << geo->volumes().at(prev->first) << "' -> "
                                << prev->second.get() << " and '"
-                               << geo->id_to_label(kv.first) << "' -> "
+                               << geo->volumes().at(kv.first) << "' -> "
                                << kv.second.get() << ')');
             }
 
@@ -115,7 +115,8 @@ StepCollector::StepCollector(VecInterface callbacks,
         {
             // Assign detector IDs for each ("logical" in Geant4) volume
             CELER_EXPECT(geo);
-            std::vector<DetectorId> temp_det(geo->num_volumes(), DetectorId{});
+            std::vector<DetectorId> temp_det(geo->volumes().size(),
+                                             DetectorId{});
             for (auto const& kv : detector_map)
             {
                 CELER_ASSERT(kv.first < temp_det.size());
