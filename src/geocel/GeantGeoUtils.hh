@@ -91,6 +91,11 @@ std::unordered_set<G4LogicalVolume const*>
 std::string make_gdml_name(G4LogicalVolume const&);
 
 //---------------------------------------------------------------------------//
+// Update a nav history to match the given pv stack
+void set_history(Span<G4VPhysicalVolume const*> stack,
+                 G4NavigationHistory* nav);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
