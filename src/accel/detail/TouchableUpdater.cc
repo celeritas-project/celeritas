@@ -100,7 +100,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
             CELER_LOG_LOCAL(warning)
                 << "Bumping navigation state by " << repr(g4step)
                 << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
-                << " from " << PrintableNavHistory{touchable_.GetHistory()}
+                << " from " << PrintableNavHistory{touchable_->GetHistory()}
                 << " to try to reach " << PrintableLV{lv};
         }
 
