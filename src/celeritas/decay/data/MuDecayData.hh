@@ -38,19 +38,25 @@ struct MuDecayIds
  */
 struct MuDecayData
 {
+    //!@{
+    //! \name Type aliases
+    using Mass = units::MevMass;
+    //!@}
+
     //! Particle identifiers
     MuDecayIds ids;
 
     //! Muon/anti-muon mass [MeV]
-    real_type muon_mass;
+    Mass muon_mass;
 
     //! Electron/positron mass [MeV]
-    real_type electron_mass;
+    Mass electron_mass;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && muon_mass > 0 && electron_mass > 0;
+        return ids && muon_mass > zero_quantity()
+               && electron_mass > zero_quantity();
     }
 };
 

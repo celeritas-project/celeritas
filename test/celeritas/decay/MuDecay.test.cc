@@ -26,8 +26,8 @@ class MuDecayInteractorTest : public InteractorHostTestBase
         data_.ids.positron = params.find(pdg::positron());
         data_.ids.mu_minus = params.find(pdg::mu_minus());
         data_.ids.mu_plus = params.find(pdg::mu_plus());
-        data_.electron_mass = params.get(data_.ids.electron).mass().value();
-        data_.muon_mass = params.get(data_.ids.mu_minus).mass().value();
+        data_.electron_mass = params.get(data_.ids.electron).mass();
+        data_.muon_mass = params.get(data_.ids.mu_minus).mass();
     }
 
   protected:
@@ -124,9 +124,9 @@ TEST_F(MuDecayInteractorTest, stress_test)
 
     // With only one secondary being returned, there is no expectation of
     // energy or momentum conservation
-    static double const expected_avg_sec_energies[] = {390.025941805075};
+    static double const expected_avg_sec_energies[] = {384.1448835314};
     static double const expected_avg_total_momentum[]
-        = {-0.0821227515229907, -0.280044247644299, 388.249318108501};
+        = {0.554857155437642, -0.113397931984889, 382.358304534532};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_sec_energies, avg_sec_energies);
     EXPECT_VEC_SOFT_EQ(expected_avg_total_momentum, avg_total_momentum);

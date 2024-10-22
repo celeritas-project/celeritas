@@ -181,7 +181,13 @@ CELER_FUNCTION Interaction Interaction::from_unchanged()
  */
 CELER_FUNCTION Interaction Interaction::from_decay()
 {
-    Interaction result = from_absorption();
+    Interaction result;
+    result.energy = zero_quantity();
+#if CELERITAS_DEBUG
+    // Direction should *not* be accessed if incident particle has decayed.
+    constexpr auto nan = numeric_limits<real_type>::quiet_NaN();
+    result.direction = {nan, nan, nan};
+#endif
     result.action = Action::decay;
     return result;
 }
