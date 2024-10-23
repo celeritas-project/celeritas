@@ -48,7 +48,6 @@ class KnSimpleLoopTestBase : public SimpleTestBase,
         p.particle_id = this->particle()->find(pdg::gamma());
         CELER_ASSERT(p.particle_id);
         p.energy = MevEnergy{10.0};
-        p.track_id = TrackId{0};
         p.position = {0, 0, 0};
         p.direction = {1, 0, 0};
         p.time = 0;
@@ -109,7 +108,6 @@ class TestEm3CollectorTestBase : public TestEm3Base,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
-            result[i].track_id = TrackId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;

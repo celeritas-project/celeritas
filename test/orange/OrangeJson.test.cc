@@ -59,8 +59,8 @@ TEST_F(FiveVolumesTest, params)
 {
     OrangeParams const& geo = this->params();
 
-    EXPECT_EQ(6, geo.num_volumes());
-    EXPECT_EQ(12, geo.num_surfaces());
+    EXPECT_EQ(6, geo.volumes().size());
+    EXPECT_EQ(12, geo.surfaces().size());
     EXPECT_FALSE(geo.supports_safety());
 }
 
@@ -73,8 +73,8 @@ class UniversesTest : public JsonOrangeTest
 TEST_F(UniversesTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(12, geo.num_volumes());
-    EXPECT_EQ(25, geo.num_surfaces());
+    EXPECT_EQ(12, geo.volumes().size());
+    EXPECT_EQ(25, geo.surfaces().size());
     EXPECT_EQ(3, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
 
@@ -94,9 +94,9 @@ TEST_F(UniversesTest, params)
                                          "[EXTERIOR]",
                                          "patty"};
     std::vector<std::string> actual;
-    for (auto const id : range(VolumeId{geo.num_volumes()}))
+    for (auto const id : range(VolumeId{geo.volumes().size()}))
     {
-        actual.push_back(geo.id_to_label(id).name);
+        actual.push_back(geo.volumes().at(id).name);
     }
 
     EXPECT_VEC_EQ(expected, actual);
@@ -196,7 +196,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
         other = OrangeTrackView::DetailedInitializer{geo, {1, 0, 0}};
         EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
-        EXPECT_EQ("c", this->params().id_to_label(other.volume_id()).name);
+        EXPECT_EQ("c", this->params().volumes().at(other.volume_id()).name);
         EXPECT_FALSE(other.is_outside());
         EXPECT_FALSE(other.is_on_boundary());
     }
@@ -481,8 +481,8 @@ class RectArrayTest : public JsonOrangeTest
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(35, geo.num_volumes());
-    EXPECT_EQ(22, geo.num_surfaces());
+    EXPECT_EQ(35, geo.volumes().size());
+    EXPECT_EQ(22, geo.surfaces().size());
     EXPECT_EQ(4, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
 

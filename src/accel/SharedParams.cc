@@ -454,6 +454,17 @@ void SharedParams::initialize_core(SetupOptions const& options)
         export_root(*imported);
     }
 
+    if (!options.geometry_output_file.empty())
+    {
+        CELER_VALIDATE(options.geometry_file.empty(),
+                       << "the 'geometry_output_file' option cannot be used "
+                          "when manually loading a geometry (the "
+                          "'geometry_file' option is also set)");
+
+        write_geant_geometry(GeantImporter::get_world_volume(),
+                             options.geometry_output_file);
+    }
+
     CoreParams::Input params;
 
     // Create registries
@@ -530,11 +541,17 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.sim = SimParams::from_import(
         *imported, params.particle, options.max_field_substeps);
 
+    if (options.max_num_events > 0)
+    {
+        CELER_LOG(warning) << "Deprecated option 'max_events': will be "
+                              "removed in v0.6";
+    }
+
     // Construct track initialization params
     params.init = [&options] {
         TrackInitParams::Input input;
         input.capacity = options.initializer_capacity;
-        input.max_events = options.max_num_events;
+        input.max_events = 1;  // TODO: use special "max events" case
         input.track_order = options.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();

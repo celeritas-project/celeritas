@@ -46,6 +46,40 @@
 
 namespace celeritas
 {
+namespace
+{
+bool nonfatal_flush()
+{
+    static bool const result = [] {
+        auto result = getenv_flag("CELER_NONFATAL_FLUSH", false);
+        return result.value;
+    }();
+    return result;
+}
+
+#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
+    do                                                              \
+    {                                                               \
+        if (CELER_UNLIKELY(!(COND)))                                \
+        {                                                           \
+            std::ostringstream celer_runtime_msg_;                  \
+            celer_runtime_msg_ MSG;                                 \
+            if (nonfatal_flush())                                   \
+            {                                                       \
+                CELER_LOG_LOCAL(error) << celer_runtime_msg_.str(); \
+                (STEPPER).kill_active();                            \
+            }                                                       \
+            else                                                    \
+            {                                                       \
+                CELER_RUNTIME_THROW(                                \
+                    ::celeritas::RuntimeError::validate_err_str,    \
+                    celer_runtime_msg_.str(),                       \
+                    #COND);                                         \
+            }                                                       \
+        }                                                           \
+    } while (0)
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
@@ -146,8 +180,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
 
-    event_id_ = EventId(id);
-    track_counter_ = 0;
+    event_id_ = UniqueEventId(id);
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -166,7 +199,6 @@ void LocalTransporter::InitializeEvent(int id)
 void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(event_id_);
 
     Primary track;
 
@@ -193,13 +225,9 @@ void LocalTransporter::Push(G4Track const& g4track)
     }
 
     /*!
-     * \todo Celeritas track IDs are independent from Geant4 track IDs, since
-     * they must be sequential from zero for a given event. We may need to save
-     * (and share with sensitive detectors!) a map of track IDs for calling
-     * back to Geant4.
+     * \todo Eliminate event ID from primary.
      */
-    track.track_id = TrackId{track_counter_++};
-    track.event_id = event_id_;
+    track.event_id = EventId{0};
 
     buffer_.push_back(track);
     if (buffer_.size() >= auto_flush_)
@@ -253,15 +281,17 @@ void LocalTransporter::Flush()
 
     while (track_counts)
     {
-        CELER_VALIDATE(step_iters < max_steps_,
-                       << "number of step iterations exceeded the allowed "
-                          "maximum ("
-                       << max_steps_ << ")");
+        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_steps_,
+                                      << "number of step iterations exceeded "
+                                         "the allowed maximum ("
+                                      << max_steps_ << ")",
+                                      *step_);
 
         track_counts = (*step_)();
         ++step_iters;
 
-        CELER_VALIDATE(!interrupted(), << "caught interrupt signal");
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            !interrupted(), << "caught interrupt signal", *step_);
     }
 }
 

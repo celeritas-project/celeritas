@@ -70,7 +70,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         std::vector<std::string> result;
         for (VolumeId vid : vols)
         {
-            result.push_back(geo.id_to_label(vid).name);
+            result.push_back(geo.volumes().at(vid).name);
         }
         return result;
     }

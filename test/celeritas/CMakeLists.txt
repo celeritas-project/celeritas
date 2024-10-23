@@ -77,6 +77,7 @@ celeritas_add_test_library(testcel_celeritas
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
   neutron/NeutronTestBase.cc
+  optical/MockImportedData.cc
   optical/OpticalTestBase.cc
   optical/InteractorHostTestBase.cc
   phys/InteractionIO.cc
@@ -154,6 +155,7 @@ set(_import_filter
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "LarSphere.*"
+  "LarSphereExtramat.*"
   "Solids.*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
@@ -293,9 +295,13 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Optical
 celeritas_add_test(optical/Cerenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
+celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
+celeritas_add_test(optical/ImportedModelAdapter.test.cc)
+celeritas_add_test(optical/MfpBuilder.test.cc)
+celeritas_add_test(optical/MockValidation.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

@@ -10,6 +10,9 @@
 #include <algorithm>
 #include <G4LogicalVolume.hh>
 
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
+
 #include "celeritas_test.hh"
 #include "g4/GeantGeoTestBase.hh"
 
@@ -56,6 +59,23 @@ class SolidsTest : public GeantGeoUtilsTest
 {
     std::string geometry_basename() const override { return "solids"; }
 };
+
+using GdmlTest = SolidsTest;
+
+TEST_F(GdmlTest, write)
+{
+    auto* world = this->geometry()->world();
+    ASSERT_TRUE(world);
+
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
+    write_geant_geometry(world, this->make_unique_filename(".gdml"));
+
+    static char const* const expected_log_messages[] = {
+        R"(Geant4 regions have not been set up: skipping export of energy cuts and regions)"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+}
 
 using FindGeantVolumesTest = SolidsTest;
 

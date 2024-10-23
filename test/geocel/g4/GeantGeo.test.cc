@@ -64,16 +64,39 @@ class FourLevelsTest : public GeantGeoTest
 TEST_F(FourLevelsTest, accessors)
 {
     auto const& geom = *this->geometry();
+    EXPECT_EQ(4, geom.max_depth());
+
     auto const& bbox = geom.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-24., -24., -24.}), to_cm(bbox.lower()));
     EXPECT_VEC_SOFT_EQ((Real3{24., 24., 24.}), to_cm(bbox.upper()));
 
-    ASSERT_EQ(4, geom.num_volumes());
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
-    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.id_to_label(VolumeId{3}));
+    ASSERT_EQ(4, geom.volumes().size());
+    EXPECT_EQ("Shape2", geom.volumes().at(VolumeId{0}).name);
+    EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
+    EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
+    EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
+    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.volumes().at(VolumeId{3}));
+
+    auto const& vol_instances = geom.volume_instances();
+    std::vector<std::string> instance_names;
+    for (auto viid : range(VolumeInstanceId{vol_instances.size()}))
+    {
+        instance_names.push_back(vol_instances.at(viid).name);
+    }
+    static char const* const expected_instance_names[] = {
+        "Shape2",
+        "Shape1",
+        "env1",
+        "env2",
+        "env3",
+        "env4",
+        "env5",
+        "env6",
+        "env7",
+        "env8",
+        "World",
+    };
+    EXPECT_VEC_EQ(expected_instance_names, instance_names);
 
     auto const* lv = geom.id_to_lv(VolumeId{2});
     ASSERT_TRUE(lv);
@@ -337,6 +360,36 @@ TEST_F(FourLevelsTest, safety)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsTest, levels)
+{
+    auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
+    EXPECT_EQ("World@0xdeadbeef_PV/env1/Shape1/Shape2",
+              this->all_volume_instance_names(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("World@0xdeadbeef_PV/env1/Shape1",
+              this->all_volume_instance_names(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("World@0xdeadbeef_PV/env1", this->all_volume_instance_names(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("World@0xdeadbeef_PV", this->all_volume_instance_names(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("[OUTSIDE]", this->all_volume_instance_names(geo));
+}
+
+//---------------------------------------------------------------------------//
 class SolidsTest : public GeantGeoTest
 {
     std::string geometry_basename() const override { return "solids"; }
@@ -354,6 +407,8 @@ class SolidsTest : public GeantGeoTest
 TEST_F(SolidsTest, accessors)
 {
     auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+
     auto const& bbox = geom.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-600., -300., -75.}), to_cm(bbox.lower()));
     EXPECT_VEC_SOFT_EQ((Real3{600., 300., 75.}), to_cm(bbox.upper()));
@@ -363,11 +418,11 @@ TEST_F(SolidsTest, accessors)
     // offset. This value will be zero if running the solids test as
     // standalone.
     int const offset = 4;
-    ASSERT_EQ(26 + offset, geom.num_volumes());
-    EXPECT_EQ("box500", geom.id_to_label(VolumeId{0 + offset}).name);
-    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{1 + offset}).name);
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{24 + offset}).name);
-    EXPECT_EQ("trd3_refl", geom.id_to_label(VolumeId{25 + offset}).name);
+    ASSERT_EQ(26 + offset, geom.volumes().size());
+    EXPECT_EQ("box500", geom.volumes().at(VolumeId{0 + offset}).name);
+    EXPECT_EQ("cone1", geom.volumes().at(VolumeId{1 + offset}).name);
+    EXPECT_EQ("World", geom.volumes().at(VolumeId{24 + offset}).name);
+    EXPECT_EQ("trd3_refl", geom.volumes().at(VolumeId{25 + offset}).name);
 }
 
 //---------------------------------------------------------------------------//
@@ -379,7 +434,7 @@ TEST_F(SolidsTest, output)
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
             to_string(out));
     }
 }
@@ -607,7 +662,7 @@ TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
     EXPECT_EQ(VolumeId{29}, geo.volume_id());
-    auto const& label = this->geometry()->id_to_label(geo.volume_id());
+    auto const& label = this->geometry()->volumes().at(geo.volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }

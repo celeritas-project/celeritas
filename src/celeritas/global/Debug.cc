@@ -34,21 +34,12 @@ void debug_print_impl(T const& view)
 }  // namespace
 
 //---------------------------------------------------------------------------//
-/*!
- * In the stepping loop, for interactive breakpoints, a debug pointer.
- *
- * This is accessible when:
- * - Inside an \c execute call (i.e., during stepping)
- * - Using CoreParams on host
- * - The status checker is enabled
- *
- * ... or if running inside a unit test that sets them.
- *
- * \warning This is not thread safe: it should only be used in single-threaded
- * (or track-parallel) execution modes, and ONLY inside an interactive
- * debugger. See celeritas/track/Debug.hh .
- */
-CoreParams const* g_debug_executing_params{nullptr};
+std::ostream& operator<<(std::ostream& os, StreamableTrack const& track_wrap)
+{
+    nlohmann::json j = track_wrap.track;
+    os << j.dump();
+    return os;
+}
 
 //---------------------------------------------------------------------------//
 #define DEFINE_DEBUG_PRINT(TYPE)       \

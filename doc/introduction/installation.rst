@@ -101,8 +101,8 @@ easy way to toggle through all the valid options.
   Enable features of the given dependency. The configuration will fail if the
   dependent package is not found.
 
-``CELERITAS_BUILD_{DEMOS|DOCS|TESTS}``
-  Build demo apps, documentation, and/or tests.
+``CELERITAS_BUILD_{DOCS|TESTS}``
+  Build optional documentation and/or tests.
 
 ``CELERITAS_CORE_GEO``
   Select the geometry package used by the Celeritas stepping loop. Valid

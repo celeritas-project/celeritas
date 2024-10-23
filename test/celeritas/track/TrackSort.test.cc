@@ -97,7 +97,6 @@ class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
     {
         Primary p;
         p.energy = units::MevEnergy{1000};
-        p.track_id = TrackId{0};
         p.position = from_cm({-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;

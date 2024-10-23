@@ -204,8 +204,7 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
     // Remap IDs. "parent" will only be undefined for the root node.
     auto remapped_id = [&new_indices](BIHNodeId old) {
         CELER_EXPECT(old < new_indices.size());
-        return BIHNodeId{
-            static_cast<size_type>(new_indices[old.unchecked_get()])};
+        return id_cast<BIHNodeId>(new_indices[old.unchecked_get()]);
     };
 
     for (auto& inner_node : inner_nodes)

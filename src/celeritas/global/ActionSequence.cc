@@ -83,14 +83,6 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    if constexpr (M == MemSpace::host)
-    {
-        if (status_checker_)
-        {
-            g_debug_executing_params = &params;
-        }
-    }
-
     // When running a single track slot on host, we can preemptively skip
     // inapplicable post-step actions
     auto const skip_post_action = [&](auto const& action) {
@@ -142,11 +134,6 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
                 }
             }
         }
-    }
-
-    if (M == MemSpace::host && status_checker_)
-    {
-        g_debug_executing_params = nullptr;
     }
 }
 

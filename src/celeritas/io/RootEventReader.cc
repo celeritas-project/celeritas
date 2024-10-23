@@ -108,7 +108,6 @@ auto RootEventReader::operator()() -> result_type
     CELER_EXPECT(entry_count_ <= num_entries_);
 
     EventId expected_evt_id{0};
-    TrackId track_id{0};
     result_type primaries;
     ScopedRootErrorHandler scoped_root_error;
 
@@ -131,7 +130,6 @@ auto RootEventReader::operator()() -> result_type
         }
 
         Primary primary;
-        primary.track_id = track_id;
         primary.event_id = expected_evt_id;
         primary.particle_id = params_->find(
             PDGNumber{from_leaf<int>(*ttree_->GetLeaf("particle"))});
@@ -141,8 +139,6 @@ auto RootEventReader::operator()() -> result_type
         primary.position = from_array_leaf(*ttree_->GetLeaf("pos"));
         primary.direction = from_array_leaf(*ttree_->GetLeaf("dir"));
         primaries.push_back(std::move(primary));
-
-        track_id++;
     }
 
     scoped_root_error.throw_if_errors();

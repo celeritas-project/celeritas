@@ -28,46 +28,27 @@ namespace detail
  * G4Material map. Unique materials should have unique optical material IDs.
  */
 GeantOpticalModelImporter::GeantOpticalModelImporter(
-    std::vector<ImportPhysMaterial> const& materials)
+    GeoOpticalIdMap const& geo_to_opt)
+    : opt_to_mat_{geo_to_opt.num_optical(), nullptr}
 {
-    using Index = OpaqueId<G4Material, typename ImportPhysMaterial::Index>;
-
-    // Create optical material -> G4MaterialPropertiesTable lookup
-    Index::size_type num_opt_materials = 0;
-    for (auto const& mat : materials)
+    if (geo_to_opt.empty())
     {
-        if (Index{mat.optical_material_id})
-        {
-            num_opt_materials
-                = std::max(num_opt_materials, mat.optical_material_id + 1);
-        }
+        return;
     }
-    opt_to_mat_ = std::vector<G4MaterialPropertiesTable const*>(
-        num_opt_materials, nullptr);
 
     auto const& mt = *G4Material::GetMaterialTable();
-    CELER_ASSERT(mt.size() == materials.size());
-
-    for (auto mat_idx : range(mt.size()))
+    for (auto geo_mat_id : range(GeoMaterialId(mt.size())))
     {
-        if (auto opt_id = Index{materials[mat_idx].optical_material_id})
+        auto opt_id = geo_to_opt[geo_mat_id];
+        if (!opt_id)
         {
-            G4Material const* material = mt[mat_idx];
-            CELER_ASSERT(material);
-
-            auto& mapped_mpt = opt_to_mat_[opt_id.get()];
-            auto const* mpt = material->GetMaterialPropertiesTable();
-
-            // Different material properties shouldn't map to the same optical
-            // ID
-            CELER_EXPECT(!mapped_mpt || mapped_mpt == mpt);
-
-            mapped_mpt = mpt;
-
-            // Optical IDs should have material property tables already
-            // associated with them
-            CELER_ASSERT(mapped_mpt);
+            continue;
         }
+
+        // Save properties tables
+        G4Material const* material = mt[geo_mat_id.get()];
+        CELER_ASSERT(material);
+        opt_to_mat_[opt_id.get()] = material->GetMaterialPropertiesTable();
     }
 
     CELER_ASSERT(std::all_of(
@@ -85,6 +66,7 @@ GeantOpticalModelImporter::GeantOpticalModelImporter(
  */
 ImportOpticalModel GeantOpticalModelImporter::operator()(IMC imc) const
 {
+    CELER_EXPECT(*this);
     switch (imc)
     {
         case IMC::absorption:

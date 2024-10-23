@@ -5,15 +5,12 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/detail/Filler.cu
 //---------------------------------------------------------------------------//
-#include "corecel/data/detail/Filler.device.t.hh"
+#include "corecel/data/Filler.device.t.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-template struct Filler<TrackStatus, MemSpace::device>;
+template class Filler<TrackStatus, MemSpace::device>;
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

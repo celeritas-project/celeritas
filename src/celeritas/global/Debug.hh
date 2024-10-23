@@ -4,9 +4,11 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/Debug.hh
-//! \brief Utilities *only* for interactive debugging
+//! \brief Utilities for interactive debugging and diagnostic output
 //---------------------------------------------------------------------------//
 #pragma once
+
+#include <iosfwd>
 
 #include "celeritas/geo/GeoFwd.hh"
 
@@ -20,8 +22,13 @@ class ParticleTrackView;
 class SimTrackView;
 
 //---------------------------------------------------------------------------//
-// Params during an execute call, ONLY for interactive debugging
-extern CoreParams const* g_debug_executing_params;
+//! Print a track to the given stream
+struct StreamableTrack
+{
+    CoreTrackView const& track;
+};
+
+std::ostream& operator<<(std::ostream&, StreamableTrack const&);
 
 //---------------------------------------------------------------------------//
 // Print everything that can be printed about a core track view
