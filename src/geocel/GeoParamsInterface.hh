@@ -16,6 +16,7 @@
 #include "Types.hh"
 
 class G4LogicalVolume;
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -34,6 +35,7 @@ class GeoParamsInterface
     //! \name Type aliases
     using SpanConstVolumeId = Span<VolumeId const>;
     using VolumeMap = LabelIdMultiMap<VolumeId>;
+    using VolInstanceMap = LabelIdMultiMap<VolumeInstanceId>;
     //!@}
 
   public:
@@ -43,13 +45,22 @@ class GeoParamsInterface
     //! Outer bounding box of geometry
     virtual BBox const& bbox() const = 0;
 
+    //! Maximum nested scene/volume depth
+    virtual LevelId::size_type max_depth() const = 0;
+
     //// VOLUMES ////
 
     //! Get volume metadata
     virtual VolumeMap const& volumes() const = 0;
 
+    //! Get volume instance metadata
+    virtual VolInstanceMap const& volume_instances() const = 0;
+
     //! Get the volume ID corresponding to a Geant4 logical volume
     virtual VolumeId find_volume(G4LogicalVolume const* volume) const = 0;
+
+    //! Get the Geant4 PV corresponding to a volume instance
+    virtual G4VPhysicalVolume const* id_to_pv(VolumeInstanceId id) const = 0;
 
     //// DEPRECATED: remove in v0.6 ////
 

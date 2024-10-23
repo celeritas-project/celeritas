@@ -104,7 +104,7 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
             }
             result.volumes[i] = static_cast<int>(id.unchecked_get());
         },
-        *world->GetLogicalVolume());
+        *world);
 
     // Trim leading 'empty' values
     auto first_nonempty = std::find_if(
