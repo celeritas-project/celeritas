@@ -57,14 +57,11 @@ void BuildOutput::output(JsonPimpl* j) const
         if constexpr (CELERITAS_USE_CUDA)
         {
             cfg["CUDA_VERSION"] = celeritas_cuda_version;
+            cfg["Thrust_VERSION"] = celeritas_thrust_version;
         }
         if constexpr (CELERITAS_USE_HIP)
         {
             cfg["HIP_VERSION"] = celeritas_hip_version;
-        }
-        if constexpr (CELERITAS_USE_CUDA || CELERITAS_USE_HIP)
-        {
-            cfg["Thrust_VERSION"] = celeritas_thrust_version;
         }
         if constexpr (CELERITAS_USE_VECGEOM)
         {

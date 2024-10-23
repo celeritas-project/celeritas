@@ -300,7 +300,7 @@ elseif(CELERITAS_USE_HIP)
   endif()
 endif()
 
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+if(CELERITAS_USE_CUDA)
   find_package(Thrust REQUIRED)
 endif()
 
