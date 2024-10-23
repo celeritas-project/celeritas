@@ -56,9 +56,11 @@ foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
   list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${_lower}[] = \"${${_var}}\";"
+    "inline constexpr char ${_lower}[] = \"${${_var}}\"\;"
   )
 endforeach()
+
+list(APPEND CELERITAS_CMAKE_STRINGS "")
 
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
@@ -73,11 +75,11 @@ foreach(_pkg CLHEP CUDA HIP Geant4 Thrust VecGeom)
     set(_value "")
   endif()
   list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char celeritas_${_lower}_version[] = \"${_value}\";"
+    "inline constexpr char celeritas_${_lower}_version[] = \"${_value}\"\;"
   )
 endforeach()
 
-string(JOIN "\n" CELERITAS_CMAKE_STRINGS ${CELERITAS_CMAKE_STRINGS})
+list(JOIN CELERITAS_CMAKE_STRINGS "\n" CELERITAS_CMAKE_STRINGS)
 
 # NOTE: some values are defined in top-level CMakeLists
 # - CELERITAS_HAVE_ROCTX
@@ -98,7 +100,7 @@ foreach(_dep Geant4 VecGeom HepMC3)
     "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
   )
 endforeach()
-string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
+list(JOIN CELERITAS_DEPENDENCY_VERSIONS "\n" CELERITAS_DEPENDENCY_VERSIONS)
 
 #-----------------------------------------------------------------------------#
 
