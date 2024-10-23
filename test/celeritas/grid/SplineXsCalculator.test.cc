@@ -188,32 +188,34 @@ TEST_F(SplineXsCalculatorTest, quardratic_simple)
     this->build(
         {1.0, 1e5}, 6, [](real_type energy) { return 0.1 * energy * energy; });
 
-    size_type order = 2;
-    SplineXsCalculator calc(this->data(), this->values(), order);
+    for (size_type order = 2; order < 5; ++order)
+    {
+        SplineXsCalculator calc(this->data(), this->values(), order);
 
-    // Test on grid points
-    EXPECT_SOFT_EQ(0.1, calc(Energy{1}));
-    EXPECT_SOFT_EQ(1e3, calc(Energy{1e2}));
-    EXPECT_SOFT_EQ(1.0e9 - 2, calc(Energy{1e5 - 1e-4}));
-    EXPECT_SOFT_EQ(1e9, calc(Energy{1e5}));
+        // Test on grid points
+        EXPECT_SOFT_EQ(0.1, calc(Energy{1}));
+        EXPECT_SOFT_EQ(1e3, calc(Energy{1e2}));
+        EXPECT_SOFT_EQ(1.0e9 - 2, calc(Energy{1e5 - 1e-4}));
+        EXPECT_SOFT_EQ(1e9, calc(Energy{1e5}));
 
-    // Test access by index
-    EXPECT_SOFT_EQ(0.1, calc[0]);
-    EXPECT_SOFT_EQ(1e3, calc[2]);
-    EXPECT_SOFT_EQ(1e9, calc[5]);
+        // Test access by index
+        EXPECT_SOFT_EQ(0.1, calc[0]);
+        EXPECT_SOFT_EQ(1e3, calc[2]);
+        EXPECT_SOFT_EQ(1e9, calc[5]);
 
-    // Test between grid points
-    EXPECT_SOFT_EQ(2.50, calc(Energy{5}));
-    EXPECT_SOFT_EQ(2.5e4, calc(Energy{5e2}));
-    EXPECT_SOFT_EQ(2.5e8, calc(Energy{5e4}));
+        // Test between grid points
+        EXPECT_SOFT_EQ(2.50, calc(Energy{5}));
+        EXPECT_SOFT_EQ(2.5e4, calc(Energy{5e2}));
+        EXPECT_SOFT_EQ(2.5e8, calc(Energy{5e4}));
 
-    // Test out-of-bounds
-    EXPECT_SOFT_EQ(0.1, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(1e9, calc(Energy{1e7}));
+        // Test out-of-bounds
+        EXPECT_SOFT_EQ(0.1, calc(Energy{0.0001}));
+        EXPECT_SOFT_EQ(1e9, calc(Energy{1e7}));
 
-    // Test energy grid bounds
-    EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
-    EXPECT_SOFT_EQ(1e5, value_as<Energy>(calc.energy_max()));
+        // Test energy grid bounds
+        EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
+        EXPECT_SOFT_EQ(1e5, value_as<Energy>(calc.energy_max()));
+    }
 }
 
 TEST_F(SplineXsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
