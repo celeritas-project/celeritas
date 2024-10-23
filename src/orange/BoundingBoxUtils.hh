@@ -225,18 +225,15 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 /*!
  * Calculate the distance to the inside of the bbox from a pos and dir.
  *
- * If there is no intersection, the result will be inf.
+ * The supplied position is expected to be outside of the bbox. If there is no
+ * intersection, the result will be inf.
  */
 template<class T, class U>
 inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
                              Array<U, 3> const& pos,
                              Array<U, 3> const& dir)
 {
-    if (is_inside(bbox, pos))
-    {
-        // Starting from inside the bbox so the distance to inside is zero
-        return 0.;
-    }
+    CELER_EXPECT(!is_inside(bbox, pos));
 
     // Loop over all 6 planes to find the minimum intersection
     U min_dist = numeric_limits<U>::infinity();

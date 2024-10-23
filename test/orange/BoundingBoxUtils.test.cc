@@ -201,8 +201,11 @@ TEST_F(BoundingBoxUtilsTest, bbox_dist_to_inside)
               calc_dist_to_inside(bbox, pos, dir));
 
     // Already inside
-    pos = Real3{0.5, 0.6, 0.7};
-    EXPECT_SOFT_EQ(0., calc_dist_to_inside(bbox, pos, dir));
+    if (CELERITAS_DEBUG)
+    {
+        pos = Real3{0.5, 0.6, 0.7};
+        EXPECT_THROW(calc_dist_to_inside(bbox, pos, dir), DebugError);
+    }
 }
 
 TEST_F(BoundingBoxUtilsTest, bbox_encloses)
