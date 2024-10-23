@@ -51,6 +51,12 @@ endif()
 
 # Save CMake variables as strings
 set(CELERITAS_CMAKE_STRINGS)
+macro(celeritas_append_cmake_string key value)
+  list(APPEND CELERITAS_CMAKE_STRINGS
+    "inline constexpr char ${key}[] = \"${value}\"\;"
+  )
+endmacro()
+
 string(TOLOWER "${CMAKE_BUILD_TYPE}," CELERITAS_BUILD_TYPE)
 if(BUILD_SHARED_LIBS)
   string(APPEND CELERITAS_BUILD_TYPE "shared")
@@ -58,12 +64,17 @@ else()
   string(APPEND CELERITAS_BUILD_TYPE "static")
 endif()
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
-  set(_var "CELERITAS_${_var}")
-  string(TOLOWER "${_var}" _lower)
-  list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${_lower}[] = \"${${_var}}\"\;"
-  )
+  string(TOLOWER "celeritas_${_var}" _lower)
+  celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
+
+set(_gpu_arch "")
+if(CELERITAS_USE_CUDA)
+  set(_gpu_arch "${CMAKE_CUDA_ARCHITECTURES}")
+elseif()
+  set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
+endif()
+celeritas_append_cmake_string("celeritas_gpu_architectures" "${_gpu_arch}")
 
 list(APPEND CELERITAS_CMAKE_STRINGS "")
 
@@ -79,9 +90,7 @@ foreach(_pkg CLHEP CUDA HIP Geant4 Thrust VecGeom)
   else()
     set(_value "")
   endif()
-  list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char celeritas_${_lower}_version[] = \"${_value}\"\;"
-  )
+  celeritas_append_cmake_string("celeritas_${_lower}_version" "${_value}")
 endforeach()
 
 list(JOIN CELERITAS_CMAKE_STRINGS "\n" CELERITAS_CMAKE_STRINGS)
