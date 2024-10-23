@@ -313,17 +313,10 @@ void activate_device(Device&& device)
     if (!device)
         return;
 
-    CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
-                           << device.device_id() << " of "
-                           << Device::num_devices();
-    ScopedTimeLog scoped_time(&self_logger(), 1.0);
-    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
-    d = std::move(device);
-
     // Check capability version against cmake variable; rough but better than
     // nothing! CMake format: "70-real 72-virtual" or "35;50;72" or "
     if (std::string(celeritas_gpu_architectures)
-            .find(std::to_string(d.capability()))
+            .find(std::to_string(device.capability()))
         == std::string::npos)
     {
         constexpr auto gpu_str = CELERITAS_USE_CUDA  ? "CUDA"
@@ -331,11 +324,19 @@ void activate_device(Device&& device)
                                                      : "";
         CELER_LOG(warning)
             << "Device '" << device.name() << "' has " << gpu_str
-            << " compute capability of " << d.capability()
+            << " compute capability of " << device.capability()
             << ", but Celeritas was compiled with CMAKE_" << gpu_str
             << "_ARCHITECTURES=\"" << celeritas_gpu_architectures
             << "\": code may mysteriously die at runtime";
     }
+
+    CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
+                           << device.device_id() << " of "
+                           << Device::num_devices();
+
+    ScopedTimeLog scoped_time(&self_logger(), 1.0);
+    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
+    d = std::move(device);
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
