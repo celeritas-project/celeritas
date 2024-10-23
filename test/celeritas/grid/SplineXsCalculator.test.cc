@@ -249,6 +249,75 @@ TEST_F(SplineXsCalculatorTest, quadratic_scaling)
     }
 }
 
+TEST_F(SplineXsCalculatorTest, cubic_simple)
+{
+    auto reference_xs = [](real_type energy) {
+        auto result = 0.1 * energy * energy * energy - energy * energy
+                      + 10.0 * energy;
+        return result;
+    };
+
+    this->build({0.1, 1e6}, 8, reference_xs);
+
+    for (size_type order = 3; order < 5; ++order)
+    {
+        SplineXsCalculator calc(this->data(), this->values(), order);
+
+        for (real_type e : {1.0, 5.0, 1e2, 5e2, 1e3, 5e4, 1e5 - 1e-4, 1e5})
+        {
+            EXPECT_SOFT_EQ(reference_xs(e), calc(Energy{e})) << "e=" << repr(e);
+        }
+
+        // Test access by index
+        EXPECT_SOFT_EQ(reference_xs(1.0), calc[1]);
+        EXPECT_SOFT_EQ(reference_xs(1e2), calc[3]);
+        EXPECT_SOFT_EQ(reference_xs(1e5), calc[6]);
+
+        // Test out-of-bounds
+        EXPECT_SOFT_EQ(reference_xs(0.1), calc(Energy{0.0001}));
+        EXPECT_SOFT_EQ(reference_xs(1e6), calc(Energy{1e7}));
+
+        // Test energy grid bounds
+        EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
+        EXPECT_SOFT_EQ(1e6, value_as<Energy>(calc.energy_max()));
+    }
+}
+
+TEST_F(SplineXsCalculatorTest, cubic_scaling)
+{
+    auto reference_xs = [](real_type energy) {
+        auto result = 0.1 * energy * energy * energy - energy * energy
+                      + 10.0 * energy;
+        return result;
+    };
+
+    for (size_type prime : {0, 3, 5, 8})
+    {
+        this->build({0.1, 1e6}, 8, reference_xs);
+        this->convert_to_prime(prime);
+        for (size_type order = 3; order < 5; ++order)
+        {
+            SplineXsCalculator calc(this->data(), this->values(), order);
+
+            // Test on and between grid points
+            for (real_type e : {1.0, 5.0, 1e2, 5e2, 1e3, 5e4, 1e5 - 1e-4, 1e5})
+            {
+                EXPECT_SOFT_EQ(reference_xs(e), calc(Energy{e}))
+                    << "e=" << repr(e);
+            }
+
+            // Test access by index
+            EXPECT_SOFT_EQ(reference_xs(1.0), calc[1]);
+            EXPECT_SOFT_EQ(reference_xs(1e2), calc[3]);
+            EXPECT_SOFT_EQ(reference_xs(1e5), calc[6]);
+
+            // Test energy grid bounds
+            EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
+            EXPECT_SOFT_EQ(1e6, value_as<Energy>(calc.energy_max()));
+        }
+    }
+}
+
 TEST_F(SplineXsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
 {
     // values of 1, 10, 100 --> actual xs = {1, 10, 100}
