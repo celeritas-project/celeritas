@@ -40,7 +40,7 @@ TEST_F(SplineXsCalculatorTest, simple)
     // *No* magical 1/E scaling
     this->build(1.0, 1e5, 6);
 
-    for (size_type order = 1; order < 4; ++order)
+    for (size_type order = 1; order < 5; ++order)
     {
         SplineXsCalculator calc(this->data(), this->values(), order);
 
@@ -77,7 +77,7 @@ TEST_F(SplineXsCalculatorTest, scaled_lowest)
     this->build(0.1, 1e4, 6);
     this->set_prime_index(0);
 
-    for (size_type order = 1; order < 4; ++order)
+    for (size_type order = 1; order < 5; ++order)
     {
         SplineXsCalculator calc(this->data(), this->values(), order);
 
@@ -124,7 +124,7 @@ TEST_F(SplineXsCalculatorTest, scaled_middle)
         x *= 3;
     }
 
-    for (size_type order = 1; order < 4; ++order)
+    for (size_type order = 1; order < 5; ++order)
     {
         SplineXsCalculator calc(this->data(), this->values(), order);
 
@@ -211,6 +211,46 @@ TEST_F(SplineXsCalculatorTest, quardratic_simple)
         // Test out-of-bounds
         EXPECT_SOFT_EQ(0.1, calc(Energy{0.0001}));
         EXPECT_SOFT_EQ(1e9, calc(Energy{1e7}));
+
+        // Test energy grid bounds
+        EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
+        EXPECT_SOFT_EQ(1e5, value_as<Energy>(calc.energy_max()));
+    }
+}
+
+TEST_F(SplineXsCalculatorTest, quardratic_lowest)
+{
+    auto reference_xs = [](real_type energy) {
+        auto result = 0.1 * energy * energy;
+        return result;
+    };
+
+    this->build({1.0, 1e5}, 6, reference_xs);
+    this->convert_to_prime(0);
+
+    for (size_type order = 2; order < 5; ++order)
+    {
+        SplineXsCalculator calc(this->data(), this->values(), order);
+
+        // Test on grid points
+        EXPECT_SOFT_EQ(0.1, calc(Energy{1}));
+        EXPECT_SOFT_EQ(1e3, calc(Energy{1e2}));
+        EXPECT_SOFT_EQ(1.0e9 - 2, calc(Energy{1e5 - 1e-4}));
+        EXPECT_SOFT_EQ(1e9, calc(Energy{1e5}));
+
+        // Test access by index
+        EXPECT_SOFT_EQ(0.1, calc[0]);
+        EXPECT_SOFT_EQ(1e3, calc[2]);
+        EXPECT_SOFT_EQ(1e9, calc[5]);
+
+        // Test between grid points
+        EXPECT_SOFT_EQ(2.50, calc(Energy{5}));
+        EXPECT_SOFT_EQ(2.5e4, calc(Energy{5e2}));
+        EXPECT_SOFT_EQ(2.5e8, calc(Energy{5e4}));
+
+        // Test out-of-bounds
+        EXPECT_SOFT_EQ(1000, calc(Energy{0.0001}));
+        EXPECT_SOFT_EQ(1e7, calc(Energy{1e7}));
 
         // Test energy grid bounds
         EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
