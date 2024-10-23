@@ -114,6 +114,7 @@ list(APPEND SOURCES
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
+  user/detail/StepParams.cc
 )
 
 #-----------------------------------------------------------------------------#
