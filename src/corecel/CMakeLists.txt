@@ -55,22 +55,29 @@ set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
-  string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${_lower}[] = \"${${_var}}\";\n"
+  list(APPEND CELERITAS_CMAKE_STRINGS
+    "inline constexpr char ${_lower}[] = \"${${_var}}\";"
   )
 endforeach()
 
 # Save dependency versions as strings
-foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
-  string(TOLOWER "${_var}" _lower)
-  if(DEFINED ${_var}_STRING)
-    set(_var "${_var}_STRING")
+set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
+set(HIP_VERSION_STRING "${hip-lang_VERSION}")
+foreach(_pkg CLHEP CUDA HIP Geant4 Thrust VecGeom)
+  string(TOLOWER "${_pkg}" _lower)
+  if(DEFINED ${_pkg}_VERSION_STRING)
+    set(_value "${${_pkg}_VERSION_STRING}")
+  elseif(DEFINED ${_pkg}_VERSION)
+    set(_value "${${_pkg}_VERSION}")
+  else()
+    set(_value "")
   endif()
-  set(_value "${${_var}}")
-  string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char celeritas_${_lower}[] = \"${_value}\";\n"
+  list(APPEND CELERITAS_CMAKE_STRINGS
+    "inline constexpr char celeritas_${_lower}_version[] = \"${_value}\";"
   )
 endforeach()
+
+string(JOIN "\n" CELERITAS_CMAKE_STRINGS ${CELERITAS_CMAKE_STRINGS})
 
 # NOTE: some values are defined in top-level CMakeLists
 # - CELERITAS_HAVE_ROCTX

@@ -300,6 +300,10 @@ elseif(CELERITAS_USE_HIP)
   endif()
 endif()
 
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  find_package(Thrust REQUIRED)
+endif()
+
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
   if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
@@ -562,7 +566,7 @@ set(_cmake_files
   "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
-foreach(_dep Geant4 HepMC3 ROOT VecGeom)
+foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
