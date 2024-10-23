@@ -71,20 +71,32 @@ get_volume_labels(G4VPhysicalVolume const& world, bool unique_volumes)
 std::vector<Label> get_pv_labels(G4VPhysicalVolume const& world)
 {
     std::vector<Label> labels;
+    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
+
     visit_geant_volume_instances(
-        [&labels](G4VPhysicalVolume const& pv, int) {
+        [&labels, &max_depth](G4VPhysicalVolume const& pv, int depth) {
+            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+            if (!inserted)
+            {
+                if (iter->second >= depth)
+                {
+                    // Already visited PV at this depth or more
+                    return false;
+                }
+                // Update the max depth
+                iter->second = depth;
+            }
+
             auto i = static_cast<std::size_t>(pv.GetInstanceID());
             if (i >= labels.size())
             {
                 labels.resize(i + 1);
             }
-            if (!labels[i].empty())
+            if (labels[i].empty())
             {
-                // Already visited this PV
-                return false;
+                labels[i] = Label::from_geant(pv.GetName());
+                CELER_ASSERT(!labels[i].empty());
             }
-            labels[i] = Label::from_geant(pv.GetName());
-            CELER_ASSERT(!labels[i].empty());
             return true;
         },
         world);

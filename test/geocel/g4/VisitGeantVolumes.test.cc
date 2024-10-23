@@ -101,11 +101,11 @@ TEST_F(FourLevelsTest, physical)
     visit_geant_volume_instances(visit, *this->geometry()->world());
 
     static char const* const expected_names[] = {
-        "0:World",  "1:env1",   "1:env2",   "1:env3",   "1:env4",
-        "1:env5",   "1:env6",   "1:env7",   "1:env8",   "2:Shape1",
-        "2:Shape1", "2:Shape1", "2:Shape1", "2:Shape1", "2:Shape1",
-        "2:Shape1", "2:Shape1", "3:Shape2", "3:Shape2", "3:Shape2",
-        "3:Shape2", "3:Shape2", "3:Shape2", "3:Shape2", "3:Shape2",
+        "0:World",  "1:env1",   "2:Shape1", "3:Shape2", "1:env2",
+        "2:Shape1", "3:Shape2", "1:env3",   "2:Shape1", "3:Shape2",
+        "1:env4",   "2:Shape1", "3:Shape2", "1:env5",   "2:Shape1",
+        "3:Shape2", "1:env6",   "2:Shape1", "3:Shape2", "1:env7",
+        "2:Shape1", "3:Shape2", "1:env8",   "2:Shape1", "3:Shape2",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
@@ -124,7 +124,7 @@ TEST_F(MultiLevelTest, logical)
     visit_geant_volumes(visit, *this->geometry()->world());
 
     static char const* const expected_names[]
-        = {"World", "Shape1", "Envelope", "Shape2"};
+        = {"World", "Shape1", "Shape2", "Envelope"};
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
 
@@ -136,11 +136,11 @@ TEST_F(MultiLevelTest, physical)
     visit_geant_volume_instances(visit, *this->geometry()->world());
 
     static char const* const expected_names[] = {
-        "0:World",  "1:worldshape1", "1:env2",   "1:env3",        "1:env4",
-        "1:env5",   "1:env6",        "1:env7",   "1:worldshape2", "2:Shape2",
-        "2:Shape1", "2:Shape1",      "2:Shape1", "2:Shape1",      "2:Shape1",
-        "2:Shape1", "3:Shape2",      "3:Shape2", "3:Shape2",      "3:Shape2",
-        "3:Shape2", "3:Shape2",
+        "0:World",  "1:worldshape1", "2:Shape2", "1:env2",   "2:Shape1",
+        "3:Shape2", "1:env3",        "2:Shape1", "3:Shape2", "1:env4",
+        "2:Shape1", "3:Shape2",      "1:env5",   "2:Shape1", "3:Shape2",
+        "1:env6",   "2:Shape1",      "3:Shape2", "1:env7",   "2:Shape1",
+        "3:Shape2", "1:worldshape2",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
 
@@ -149,16 +149,16 @@ TEST_F(MultiLevelTest, physical)
     static std::string const expected_max_names[] = {
         "0:World",
         "1:worldshape1",
+        "2:Shape2",
         "1:env2",
+        "2:Shape1",
+        "3:Shape2",
         "1:env3",
         "1:env4",
         "1:env5",
         "1:env6",
         "1:env7",
         "1:worldshape2",
-        "2:Shape2",
-        "2:Shape1",
-        "3:Shape2",
     };
     EXPECT_VEC_EQ(expected_max_names, visit_max.names);
 }
