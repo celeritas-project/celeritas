@@ -12,8 +12,10 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/QuantityIO.json.hh"
+#include "corecel/sys/Environment.hh"
 
 #include "CoreTrackView.hh"
+#include "Debug.hh"
 
 namespace celeritas
 {
@@ -132,6 +134,16 @@ void KernelContextException::initialize(CoreTrackView const& core)
                 volume_ = geo.volume_id();
             }
             surface_ = geo.surface_id();
+        }
+
+        if (!celeritas::getenv("CELERITAS_EXCEPTION_DEBUG").empty())
+        {
+            // This shouldn't *really* be necessary for full functionality of
+            // the exception, but adding a direct reference to the
+            // "debug_print" symbol allows it to be accessed in downstream
+            // frameworks that use Celeritas, even if they use LTO and
+            // -Wl,--exclude-libs,ALL
+            debug_print(core);
         }
     }
     {

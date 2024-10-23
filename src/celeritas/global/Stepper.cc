@@ -23,6 +23,8 @@
 #include "ActionSequence.hh"
 #include "CoreParams.hh"
 
+#include "detail/KillActive.hh"
+
 namespace celeritas
 {
 namespace
@@ -154,6 +156,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                            [](Primary const& left, Primary const& right) {
                                return left.event_id < right.event_id;
                            });
+    CELER_ASSERT(max_id->event_id);
     CELER_VALIDATE(max_id->event_id < params_->init()->max_events(),
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
@@ -165,16 +168,36 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Reseed the RNGs at the start of an event for "strong" reproducibility.
+ * Kill all tracks in flight to debug "stuck" tracks.
+ *
+ * The next "step" will apply the tracking cut and (if CPU) print diagnostic
+ * output about the failed tracks.
+ */
+template<MemSpace M>
+void Stepper<M>::kill_active()
+{
+    CELER_LOG_LOCAL(error) << "Killing " << state_->counters().num_active
+                           << " active tracks";
+    detail::kill_active(*params_, *state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reseed RNGs and counters at the start of an event for reproducibility.
  *
  * This reinitializes the RNG states using a single seed and unique subsequence
- * for each thread. It ensures that given an event number, that event can be
+ * for each thread. It ensures that given an event identification, the random
+ * number sequence for the event (and thus the event's behavior) can be
  * reproduced.
  */
 template<MemSpace M>
-void Stepper<M>::reseed(EventId event_id)
+void Stepper<M>::reseed(UniqueEventId event_id)
 {
-    reseed_rng(get_ref<M>(*params_->rng()), state_->ref().rng, event_id.get());
+    reseed_rng(get_ref<M>(*params_->rng()),
+               state_->ref().rng,
+               state_->stream_id(),
+               event_id);
+    params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
 }
 
 //---------------------------------------------------------------------------//

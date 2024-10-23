@@ -154,6 +154,7 @@ set(_import_filter
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "LarSphere.*"
+  "LarSphereExtramat.*"
   "Solids.*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)

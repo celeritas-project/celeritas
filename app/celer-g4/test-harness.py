@@ -87,6 +87,14 @@ inp = {
     "step_diagnostic_bins": 8,
 }
 
+if ext == "cpu-nonfatal":
+    inp.update({
+        "max_steps": 30,
+        "environ": {
+            "CELER_NONFATAL_FLUSH": "1",
+        }
+    })
+
 kwargs = {}
 if use_celeritas:
     # IO through streams should work with celeritas or g4 as driver, but just
