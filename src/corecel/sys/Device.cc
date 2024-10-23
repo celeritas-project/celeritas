@@ -200,6 +200,9 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     extra_["regs_per_multiprocessor"] = props.regsPerMultiprocessor;
 #    endif
 
+    // Save for comparison to CMake configuration
+    capability_ = 10 * props.major + props.minor;
+
     // Save for possible block size initialization
     max_threads_per_block_ = props.maxThreadsPerBlock;
 #endif
@@ -316,6 +319,23 @@ void activate_device(Device&& device)
     ScopedTimeLog scoped_time(&self_logger(), 1.0);
     CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
     d = std::move(device);
+
+    // Check capability version against cmake variable; rough but better than
+    // nothing! CMake format: "70-real 72-virtual" or "35;50;72" or "
+    if (std::string(celeritas_gpu_architectures)
+            .find(std::to_string(d.capability()))
+        == std::string::npos)
+    {
+        constexpr auto gpu_str = CELERITAS_USE_CUDA  ? "CUDA"
+                                 : CELERITAS_USE_HIP ? "HIP"
+                                                     : "";
+        CELER_LOG(warning)
+            << "Device '" << device.name() << "' has " << gpu_str
+            << " compute capability of " << d.capability()
+            << ", but Celeritas was compiled with CMAKE_" << gpu_str
+            << "_ARCHITECTURES=\"" << celeritas_gpu_architectures
+            << "\": code may mysteriously die at runtime";
+    }
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
