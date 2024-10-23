@@ -183,7 +183,7 @@ TEST_F(SplineXsCalculatorTest, scaled_highest)
     EXPECT_SOFT_EQ(100, value_as<Energy>(calc.energy_max()));
 }
 
-TEST_F(SplineXsCalculatorTest, quardratic_simple)
+TEST_F(SplineXsCalculatorTest, quadratic_simple)
 {
     auto reference_xs = [](real_type energy) {
         auto result = 0.1 * energy * energy - 10.0 * energy + 10.0;
@@ -216,7 +216,7 @@ TEST_F(SplineXsCalculatorTest, quardratic_simple)
     }
 }
 
-TEST_F(SplineXsCalculatorTest, quardratic_scaling)
+TEST_F(SplineXsCalculatorTest, quadratic_scaling)
 {
     auto reference_xs = [](real_type energy) {
         auto result = 0.1 * energy * energy - 10.0 * energy + 10.0;
