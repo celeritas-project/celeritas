@@ -101,9 +101,9 @@ class GeantGeoTrackView
     //!@}
 
     // Whether the track is outside the valid geometry region
-    CELER_FORCEINLINE bool is_outside() const;
+    inline bool is_outside() const;
     // Whether the track is exactly on a surface
-    CELER_FORCEINLINE bool is_on_boundary() const;
+    inline bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
 
@@ -260,7 +260,7 @@ VolumeId GeantGeoTrackView::volume_id() const
 /*!
  * Get the physical volume ID in the current cell.
  */
-CELER_FORCEINLINE VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
+VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
     G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
@@ -305,7 +305,7 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 /*!
  * Whether the track is outside the valid geometry region.
  */
-bool GeantGeoTrackView::is_outside() const
+CELER_FORCEINLINE bool GeantGeoTrackView::is_outside() const
 {
     return this->volume() == nullptr;
 }
@@ -314,7 +314,7 @@ bool GeantGeoTrackView::is_outside() const
 /*!
  * Whether the track is on the boundary of a volume.
  */
-bool GeantGeoTrackView::is_on_boundary() const
+CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 {
     return safety_radius_ == 0.0;
 }
@@ -323,7 +323,7 @@ bool GeantGeoTrackView::is_on_boundary() const
 /*!
  * Find the distance to the next geometric boundary.
  */
-Propagation GeantGeoTrackView::find_next_step()
+CELER_FORCEINLINE Propagation GeantGeoTrackView::find_next_step()
 {
     return this->find_next_step(numeric_limits<real_type>::infinity());
 }
@@ -385,7 +385,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 /*!
  * Find the safety at the current position.
  */
-auto GeantGeoTrackView::find_safety() -> real_type
+CELER_FORCEINLINE auto GeantGeoTrackView::find_safety() -> real_type
 {
     return this->find_safety(numeric_limits<real_type>::infinity());
 }
@@ -509,7 +509,7 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
 /*!
  * Whether a next step has been calculated.
  */
-bool GeantGeoTrackView::has_next_step() const
+CELER_FORCEINLINE bool GeantGeoTrackView::has_next_step() const
 {
     return next_step_ != 0;
 }

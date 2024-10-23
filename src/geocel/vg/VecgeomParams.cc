@@ -499,8 +499,7 @@ void VecgeomParams::build_metadata()
                     std::string const& label = vol->GetLabel();
                     if (starts_with(label, "[TEMP]"))
                     {
-                        // Temporary logical volume not directly used in
-                        // transport
+                        // Temporary volume not directly used in transport
                         return Label{};
                     }
                     return Label::from_geant(label);
@@ -525,19 +524,7 @@ void VecgeomParams::build_metadata()
                 vecgeom::VPlacedVolume const* vol
                     = vg_manager.FindPlacedVolume(vol_idx);
                 CELER_ASSERT(vol);
-
-                auto label = [vol] {
-                    std::string const& label = vol->GetLabel();
-                    if (starts_with(label, "[TEMP]"))
-                    {
-                        // Temporary logical volume not directly used in
-                        // transport
-                        return Label{};
-                    }
-                    return Label::from_geant(label);
-                }();
-
-                result[vol_idx] = std::move(label);
+                result[vol_idx] = Label::from_geant(vol->GetLabel());
             }
             return result;
         }()};

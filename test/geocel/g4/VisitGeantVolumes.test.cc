@@ -43,6 +43,27 @@ struct PhysicalVisitor
     }
 };
 
+struct MaxPhysicalVisitor : PhysicalVisitor
+{
+    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
+
+    bool operator()(G4VPhysicalVolume const& pv, int depth)
+    {
+        auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+        if (!inserted)
+        {
+            if (iter->second >= depth)
+            {
+                // Already visited PV at this depth or more
+                return false;
+            }
+            // Update the max depth
+            iter->second = depth;
+        }
+        return PhysicalVisitor::operator()(pv, depth);
+    }
+};
+
 class VisitGeantVolumesTest : public GeantGeoTestBase
 {
   public:
@@ -122,6 +143,24 @@ TEST_F(MultiLevelTest, physical)
         "3:Shape2", "3:Shape2",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
+
+    MaxPhysicalVisitor visit_max;
+    visit_geant_volume_instances(visit_max, *this->geometry()->world());
+    static std::string const expected_max_names[] = {
+        "0:World",
+        "1:worldshape1",
+        "1:env2",
+        "1:env3",
+        "1:env4",
+        "1:env5",
+        "1:env6",
+        "1:env7",
+        "1:worldshape2",
+        "2:Shape2",
+        "2:Shape1",
+        "3:Shape2",
+    };
+    EXPECT_VEC_EQ(expected_max_names, visit_max.names);
 }
 
 //---------------------------------------------------------------------------//

@@ -23,7 +23,7 @@ namespace celeritas
  *
  * The function must have the signature
  * <code>bool(*)(G4VPhysicalVolume const&, int)</code>
- * where the return value indicates whether the volume's daughters should be
+ * where the return value indicates whether the volume's children should be
  * visited, and the integer is the depth of the volume being visited.
  *
  * By default this will visit the entire "touchable" hierachy: this may be very
@@ -33,13 +33,13 @@ namespace celeritas
 template<class F>
 void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
 {
-    struct QueuedDaughter
+    struct QueuedVolume
     {
         G4VPhysicalVolume const* pv{nullptr};
         int depth{0};
     };
 
-    std::deque<QueuedDaughter> queue;
+    std::deque<QueuedVolume> queue;
     auto visit_impl = [&queue, &visit](G4VPhysicalVolume const& pv, int depth) {
         if (visit(pv, depth))
         {
@@ -59,11 +59,11 @@ void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
 
     while (!queue.empty())
     {
-        QueuedDaughter qd = queue.front();
+        QueuedVolume qv = queue.front();
         queue.pop_front();
 
         // Visit popped daughter
-        visit_impl(*qd.pv, qd.depth);
+        visit_impl(*qv.pv, qv.depth);
     }
 }
 

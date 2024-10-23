@@ -48,7 +48,7 @@ using SurfaceId = OpaqueId<struct Surface_>;
 //! Identifier for a geometry volume that may be repeated
 using VolumeId = OpaqueId<struct Volume_>;
 
-//! Identifier for an instance of a geometry volume (aka Phys/Placed)
+//! Identifier for an instance of a geometry volume (aka physical/placed)
 using VolumeInstanceId = OpaqueId<struct VolumeInstance_>;
 
 //---------------------------------------------------------------------------//
