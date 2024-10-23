@@ -203,17 +203,17 @@ TEST_F(SplineXsCalculatorTest, quardratic_simple)
     EXPECT_SOFT_EQ(1e9, calc[5]);
 
     // Test between grid points
-    EXPECT_SOFT_EQ(4.50, calc(Energy{5}));
+    EXPECT_SOFT_EQ(2.50, calc(Energy{5}));
     EXPECT_SOFT_EQ(2.5e4, calc(Energy{5e2}));
-    EXPECT_SOFT_EQ(4.5e8, calc(Energy{5e4}));
+    EXPECT_SOFT_EQ(2.5e8, calc(Energy{5e4}));
 
     // Test out-of-bounds
     EXPECT_SOFT_EQ(0.1, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(1e9, calc(Energy{1e7}));
 
     // Test energy grid bounds
-    EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
-    EXPECT_SOFT_EQ(1e9, value_as<Energy>(calc.energy_max()));
+    EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
+    EXPECT_SOFT_EQ(1e5, value_as<Energy>(calc.energy_max()));
 }
 
 TEST_F(SplineXsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))

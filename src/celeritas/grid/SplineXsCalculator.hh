@@ -167,30 +167,18 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
         real_type high_dist = loge_grid_[lower_idx + 1] - loge;
         CELER_ASSERT(low_dist >= 0);
         CELER_ASSERT(high_dist >= 0);
-        if (low_dist > high_dist)
+
+        // if we already clipped based on the bounding indices, don't clip
+        // again
+        if (true_high_idx - true_low_idx > order_ + 1)
         {
-            // ensure the true indexes actually bound the energy we are
-            // interpolating
-            if (lower_idx > true_low_idx)
+            if (low_dist > high_dist)
             {
                 true_low_idx += 1;
             }
             else
             {
                 true_high_idx -= 1;
-            }
-        }
-        else if (high_dist > low_dist && true_high_idx > lower_idx + 1)
-        {
-            // ensure the true indexes actually bound the energy we are
-            // interpolating
-            if (true_high_idx > lower_idx + 1)
-            {
-                true_high_idx -= 1;
-            }
-            else
-            {
-                true_low_idx += 1;
             }
         }
     }
