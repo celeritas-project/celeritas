@@ -68,7 +68,7 @@ elseif(CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  find_dependency(Thrust REQUIRED)
+  find_dependency(Thrust)
 endif()
 
 if(CELERITAS_USE_Geant4)
