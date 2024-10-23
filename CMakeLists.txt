@@ -49,7 +49,6 @@ option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
-option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
 # Assertion handling

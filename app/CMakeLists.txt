@@ -73,11 +73,6 @@ add_subdirectory(celer-sim)
 add_subdirectory(celer-g4)
 add_subdirectory(celer-geo)
 
-if(CELERITAS_BUILD_DEMOS)
-  add_subdirectory(demo-interactor)
-  add_subdirectory(demo-geo-check)
-endif()
-
 #-----------------------------------------------------------------------------#
 # TESTS
 #-----------------------------------------------------------------------------#
