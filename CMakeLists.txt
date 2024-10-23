@@ -301,7 +301,8 @@ elseif(CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  find_package(Thrust REQUIRED)
+  # NOTE: older versions of CUDA/Thrust don't include a CMake configuration file
+  find_package(Thrust)
 endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
