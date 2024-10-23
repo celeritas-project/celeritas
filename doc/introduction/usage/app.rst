@@ -19,6 +19,7 @@ Usage::
           celer-sim [--help|-h]
           celer-sim --version
           celer-sim --config
+          celer-sim --device
           celer-sim --dump-default
 
 
@@ -26,6 +27,8 @@ Usage::
   JSON from ``stdin``.
 - The ``--config`` option prints the contents of the ``["system"]["build"]``
   diagnostic output. It includes configuration options and the version number.
+- The ``--device`` option prints diagnostic output for the default GPU, similar
+  to the output from the ``deviceQuery`` CUDA example.
 - The ``--dump-default`` option prints the default options for the execution.
   Not all variables will be shown, because some are conditional on others.
 
