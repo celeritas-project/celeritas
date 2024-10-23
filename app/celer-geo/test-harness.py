@@ -26,7 +26,7 @@ def decode_line(jsonline):
         print("fatal:", str(e))
         exit(1)
 
-exe = environ.get("CELERITAS_DEMO_EXE", "./demo-rasterizer")
+exe = environ.get("CELERITAS_EXE", "./celer-geo")
 ext = environ.get("CELER_TEST_EXT", "unknown")
 
 problem_name = "-".join([Path(model_file).stem, ext])
