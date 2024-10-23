@@ -51,7 +51,12 @@ endif()
 
 # Save CMake variables as strings
 set(CELERITAS_CMAKE_STRINGS)
-set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+string(TOLOWER "${CMAKE_BUILD_TYPE}," CELERITAS_BUILD_TYPE)
+if(BUILD_SHARED_LIBS)
+  string(APPEND CELERITAS_BUILD_TYPE "shared")
+else()
+  string(APPEND CELERITAS_BUILD_TYPE "static")
+endif()
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
