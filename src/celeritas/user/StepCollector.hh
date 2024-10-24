@@ -19,12 +19,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class AuxParamsRegistry;
+class CoreParams;
 
 namespace detail
 {
 template<StepPoint P>
 class StepGatherAction;
-struct StepStorage;
+class StepParams;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -39,9 +41,6 @@ struct StepStorage;
  * detectors" (mapping volume IDs to detector IDs and ignoring unmapped
  * volumes) and supporting unfiltered output for "MC truth" . Right now only
  * one or the other can be used, not both.
- *
- * \todo Add a "begin run" interface to set up the stream store, rather than
- * passing in number of streams at construction time.
  */
 class StepCollector
 {
@@ -54,18 +53,15 @@ class StepCollector
     //!@}
 
   public:
-    // Construct with options and register pre/post-step actions
-    StepCollector(VecInterface callbacks,
-                  SPConstGeo geo,
-                  size_type max_streams,
-                  ActionRegistry* action_registry);
+    // Construct and add to core params
+    static std::shared_ptr<StepCollector>
+    make_and_insert(CoreParams const& core, VecInterface callbacks);
 
-    // Default destructor and move and copy
-    ~StepCollector();
-    StepCollector(StepCollector const&);
-    StepCollector& operator=(StepCollector const&);
-    StepCollector(StepCollector&&);
-    StepCollector& operator=(StepCollector&&);
+    // Construct with options and register pre/post-step actions
+    StepCollector(SPConstGeo geo,
+                  VecInterface&& callbacks,
+                  AuxParamsRegistry* aux_registry,
+                  ActionRegistry* action_registry);
 
     // See which data are being gathered
     StepSelection const& selection() const;
@@ -73,9 +69,8 @@ class StepCollector
   private:
     template<StepPoint P>
     using SPStepGatherAction = std::shared_ptr<detail::StepGatherAction<P>>;
-    using SPStepStorage = std::shared_ptr<detail::StepStorage>;
 
-    SPStepStorage storage_;
+    std::shared_ptr<detail::StepParams> params_;
     SPStepGatherAction<StepPoint::pre> pre_action_;
     SPStepGatherAction<StepPoint::post> post_action_;
 };
