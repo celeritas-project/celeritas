@@ -101,6 +101,10 @@ TEST_F(FourLevelsTest, accessors)
     auto const* lv = geom.id_to_lv(VolumeId{2});
     ASSERT_TRUE(lv);
     EXPECT_EQ("Envelope", lv->GetName());
+
+    auto const* pv = geom.id_to_pv(VolumeInstanceId{2});
+    ASSERT_TRUE(pv);
+    EXPECT_EQ("Envelope", lv->GetName());
 }
 
 //---------------------------------------------------------------------------//
@@ -944,6 +948,47 @@ TEST_F(ZnenvTest, trace)
         auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
         EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
         EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
+}
+
+//---------------------------------------------------------------------------//
+class MultiLevelTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override { return "multi-level"; }
+};
+
+TEST_F(MultiLevelTest, DISABLED_level_strings)
+{
+    using R2 = Array<real_type, 2>;
+
+    auto const& vol_inst = this->geometry()->volume_instances();
+    std::vector<VolumeInstanceId> ids;
+    std::vector<std::string> names;
+    std::ostringstream os;
+
+    for (R2 xy : {R2{-5, 0},
+                  R2{0, 0},
+                  R2{-5, 0},
+                  R2{7.5, 7.5},
+                  R2{7.5, 12.5},
+                  R2{12.5, 12.5},
+                  R2{-12.5, 7.5},
+                  R2{-7.5, 12.5},
+                  R2{-7.5, -7.5},
+                  R2{-12.5, -12.5}})
+    {
+        auto geo = this->make_geo_track_view({xy[0], xy[1], 0.0}, {1, 0, 0});
+
+        auto level = geo.level();
+        CELER_ASSERT(level && level >= LevelId{0});
+        ids.resize(level.get() + 1);
+        geo.volume_instance_id(make_span(ids));
+        names.resize(ids.size());
+        for (auto i : range(ids.size()))
+        {
+            names[i] = vol_inst.at(ids[i]).name;
+        }
+        PRINT_EXPECTED(names);
     }
 }
 

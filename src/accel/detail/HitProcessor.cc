@@ -24,7 +24,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"

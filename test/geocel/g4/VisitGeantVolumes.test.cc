@@ -21,6 +21,8 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
 //---------------------------------------------------------------------------//
 struct LogicalVisitor
 {
@@ -64,6 +66,10 @@ struct MaxPhysicalVisitor : PhysicalVisitor
     }
 };
 
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 class VisitGeantVolumesTest : public GeantGeoTestBase
 {
   public:
@@ -123,8 +129,7 @@ TEST_F(MultiLevelTest, logical)
     LogicalVisitor visit;
     visit_geant_volumes(visit, *this->geometry()->world());
 
-    static char const* const expected_names[]
-        = {"World", "Shape1", "Shape2", "Envelope"};
+    static char const* const expected_names[] = {"world", "sph", "box"};
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
 
@@ -136,30 +141,33 @@ TEST_F(MultiLevelTest, physical)
     visit_geant_volume_instances(visit, *this->geometry()->world());
 
     static char const* const expected_names[] = {
-        "0:World",  "1:worldshape1", "2:Shape2", "1:env2",   "2:Shape1",
-        "3:Shape2", "1:env3",        "2:Shape1", "3:Shape2", "1:env4",
-        "2:Shape1", "3:Shape2",      "1:env5",   "2:Shape1", "3:Shape2",
-        "1:env6",   "2:Shape1",      "3:Shape2", "1:env7",   "2:Shape1",
-        "3:Shape2", "1:worldshape2",
+        "0:world_PV",
+        "1:topsph1",
+        "1:topbox1",
+        "2:boxsph1",
+        "2:boxsph2",
+        "1:topbox2",
+        "2:boxsph1",
+        "2:boxsph2",
+        "1:topbox3",
+        "2:boxsph1",
+        "2:boxsph2",
+        "1:topsph2",
+        "2:boxsph1",
+        "2:boxsph2",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
 
     MaxPhysicalVisitor visit_max;
     visit_geant_volume_instances(visit_max, *this->geometry()->world());
-    static std::string const expected_max_names[] = {
-        "0:World",
-        "1:worldshape1",
-        "2:Shape2",
-        "1:env2",
-        "2:Shape1",
-        "3:Shape2",
-        "1:env3",
-        "1:env4",
-        "1:env5",
-        "1:env6",
-        "1:env7",
-        "1:worldshape2",
-    };
+    static std::string const expected_max_names[] = {"0:world_PV",
+                                                     "1:topsph1",
+                                                     "1:topbox1",
+                                                     "2:boxsph1",
+                                                     "2:boxsph2",
+                                                     "1:topbox2",
+                                                     "1:topbox3",
+                                                     "1:topsph2"};
     EXPECT_VEC_EQ(expected_max_names, visit_max.names);
 }
 

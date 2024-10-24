@@ -20,7 +20,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 
-#include "Convert.geant.hh"
+#include "Convert.hh"
 #include "GeantGeoData.hh"
 
 namespace celeritas

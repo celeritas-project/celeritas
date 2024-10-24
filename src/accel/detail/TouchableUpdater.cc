@@ -15,34 +15,13 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/g4/Repr.hh"
 #include "celeritas/ext/GeantUnits.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<>
-struct ReprTraits<G4ThreeVector>
-{
-    using value_type = std::decay_t<G4ThreeVector>;
-
-    static void print_type(std::ostream& os, char const* name = nullptr)
-    {
-        os << "G4ThreeVector";
-        if (name)
-        {
-            os << ' ' << name;
-        }
-    }
-    static void init(std::ostream& os) { ReprTraits<double>::init(os); }
-
-    static void print_value(std::ostream& os, G4ThreeVector const& vec)
-    {
-        os << '{' << vec[0] << ", " << vec[1] << ", " << vec[2] << '}';
-    }
-};
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -100,7 +79,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
             CELER_LOG_LOCAL(warning)
                 << "Bumping navigation state by " << repr(g4step)
                 << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
-                << " from " << PrintableNavHistory{touchable_}
+                << " from " << PrintableNavHistory{touchable_->GetHistory()}
                 << " to try to reach " << PrintableLV{lv};
         }
 
@@ -122,14 +101,15 @@ bool TouchableUpdater::operator()(Real3 const& pos,
         if (g4step > g4max_quiet_step)
         {
             CELER_LOG_LOCAL(diagnostic)
-                << "...bumped to " << PrintableNavHistory{touchable_};
+                << "...bumped to "
+                << PrintableNavHistory{touchable_->GetHistory()};
         }
         else if (pv->GetLogicalVolume() == lv)
         {
             CELER_LOG_LOCAL(debug)
                 << "Bumped navigation state by " << repr(g4step) << " to "
                 << repr(g4pos) << " to enter "
-                << PrintableNavHistory{touchable_};
+                << PrintableNavHistory{touchable_->GetHistory()};
         }
 
         return pv->GetLogicalVolume() == lv;
@@ -172,7 +152,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
         << "Failed to bump navigation state up to a distance of " << g4max_step
         << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
         << " to try to reach " << PrintableLV{lv} << ": found "
-        << PrintableNavHistory{touchable_};
+        << PrintableNavHistory{touchable_->GetHistory()};
     return false;
 }
 
