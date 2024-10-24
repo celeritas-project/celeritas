@@ -24,10 +24,20 @@ namespace celeritas
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<SimParams>
-SimParams::from_import(ImportData const& data,
-                       SPConstParticles particle_params,
-                       size_type max_field_substeps)
+SimParams::Input SimParams::Input::from_import(ImportData const& data,
+                                               SPConstParticles particle_params)
+{
+    return SimParams::Input::from_import(
+        data, std::move(particle_params), FieldDriverOptions{}.max_substeps);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data.
+ */
+SimParams::Input SimParams::Input::from_import(ImportData const& data,
+                                               SPConstParticles particle_params,
+                                               size_type max_field_substeps)
 {
     CELER_EXPECT(particle_params);
     CELER_EXPECT(data.trans_params);
@@ -40,12 +50,6 @@ SimParams::from_import(ImportData const& data,
             && max_field_substeps < std::numeric_limits<MaxSubstepsInt>::max(),
         << "maximum field substep limit " << max_field_substeps
         << " is out of range (should be in (0, "
-        << std::numeric_limits<MaxSubstepsInt>::max() << "))");
-    CELER_VALIDATE(
-        data.trans_params.max_steps >= 0
-            && max_field_substeps < std::numeric_limits<size_type>::max(),
-        << "maximum step limit " << data.trans_params.max_steps
-        << " is out of range (should be in [0, "
         << std::numeric_limits<MaxSubstepsInt>::max() << "))");
 
     SimParams::Input input;
@@ -74,22 +78,8 @@ SimParams::from_import(ImportData const& data,
             = LoopingThreshold::Energy(iter->second.important_energy);
         input.looping.insert({pdg, looping});
     }
-    if (data.trans_params.max_steps > 0)
-    {
-        input.max_steps = data.trans_params.max_steps;
-    }
-    return std::make_shared<SimParams>(std::move(input));
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Construct with imported data and default max field substeps.
- */
-std::shared_ptr<SimParams>
-SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
-{
-    return SimParams::from_import(
-        data, particle_params, FieldDriverOptions{}.max_substeps);
+    return input;
 }
 
 //---------------------------------------------------------------------------//
@@ -99,6 +89,12 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
 SimParams::SimParams(Input const& input)
 {
     CELER_EXPECT(input.particles);
+    CELER_VALIDATE(
+        input.max_steps >= 0
+            && input.max_steps < std::numeric_limits<size_type>::max(),
+        << "maximum step limit " << input.max_steps
+        << " is out of range (should be in [0, "
+        << std::numeric_limits<size_type>::max() << "))");
 
     HostVal<SimParamsData> host_data;
 

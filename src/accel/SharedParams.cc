@@ -538,16 +538,15 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.rng = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
 
     // Construct simulation params
-    if (options.max_steps != SetupOptions::no_max_steps())
-    {
-        /*!
-         * \todo Either we should do SimParams::Input::from_import, or we
-         * should have all of our setup parameters live inside the ImportData.
-         */
-        imported->trans_params.max_steps = options.max_steps;
-    }
-    params.sim = SimParams::from_import(
-        *imported, params.particle, options.max_field_substeps);
+    params.sim = std::make_shared<SimParams>([&] {
+        auto input = SimParams::Input::from_import(
+            *imported, params.particle, options.max_field_substeps);
+        if (options.max_steps != SetupOptions::no_max_steps())
+        {
+            input.max_steps = options.max_steps;
+        }
+        return input;
+    }());
 
     if (options.max_num_events > 0)
     {

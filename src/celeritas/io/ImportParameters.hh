@@ -114,8 +114,6 @@ struct ImportTransParameters
     ImportLoopingMap looping;
     //! Maximum number of substeps in the field propagator
     int max_substeps{1000};
-    //! Optional global "step count" cutoff (use with care!): ignored if zero
-    int max_steps{0};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const
