@@ -88,7 +88,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
     : auto_flush_(options.auto_flush ? options.auto_flush
                                      : options.max_num_tracks)
-    , max_steps_(options.max_steps)
+    , max_step_iters_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params,
@@ -281,10 +281,10 @@ void LocalTransporter::Flush()
 
     while (track_counts)
     {
-        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_steps_,
+        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_step_iters_,
                                       << "number of step iterations exceeded "
                                          "the allowed maximum ("
-                                      << max_steps_ << ")",
+                                      << max_step_iters_ << ")",
                                       *step_);
 
         track_counts = (*step_)();
