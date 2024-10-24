@@ -10,7 +10,6 @@
       "generator": "Ninja",
       "cacheVariables": {
         "Celeritas_GIT_DESCRIBE": "",
-        "CELERITAS_BUILD_DEMOS":{"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS":{"type": "BOOL", "value": "ON"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
       }
@@ -22,7 +21,6 @@
       "binaryDir": "${sourceDir}/build",
       "inherits": "default",
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
@@ -40,7 +38,6 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},

@@ -60,8 +60,8 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    //! Maximum universe depth
-    size_type max_depth() const { return this->host_ref().scalars.max_depth; }
+    // Maximum universe depth
+    inline size_type max_depth() const final;
 
     //// LABELS AND MAPPING ////
 
@@ -74,8 +74,15 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     // Get volume metadata
     inline VolumeMap const& volumes() const final;
 
+    // Get (physical) volume instance metadata
+    inline VolInstanceMap const& volume_instances() const final;
+
     // Get the volume ID corresponding to a Geant4 logical volume
     inline VolumeId find_volume(G4LogicalVolume const* volume) const final;
+
+    // Get the Geant4 physical volume corresponding to a volume instance ID
+    inline G4VPhysicalVolume const*
+    id_to_pv(VolumeInstanceId vol_id) const final;
 
     //// DEPRECATED ////
 
@@ -116,6 +123,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     SurfaceMap surf_labels_;
     UniverseMap univ_labels_;
     VolumeMap vol_labels_;
+    VolInstanceMap vol_instances_;
     BBox bbox_;
     bool supports_safety_{};
 
@@ -125,6 +133,15 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum universe depth.
+ */
+size_type OrangeParams::max_depth() const
+{
+    return this->host_ref().scalars.max_depth;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get surface metadata.
@@ -154,6 +171,15 @@ auto OrangeParams::volumes() const -> VolumeMap const&
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get volume instance metadata.
+ */
+auto OrangeParams::volume_instances() const -> VolInstanceMap const&
+{
+    return vol_instances_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Locate the volume ID corresponding to a Geant4 volume.
  *
  * \todo Implement using \c g4org::Converter
@@ -161,6 +187,17 @@ auto OrangeParams::volumes() const -> VolumeMap const&
 VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
 {
     return VolumeId{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the Geant4 physical volume corresponding to a volume instance ID.
+ *
+ * \todo Implement using \c g4org::Converter
+ */
+G4VPhysicalVolume const* OrangeParams::id_to_pv(VolumeInstanceId) const
+{
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//

@@ -55,15 +55,21 @@ class VecgeomParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     //! Maximum nested geometry depth
-    int max_depth() const { return host_ref_.max_depth; }
+    LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
 
     //// VOLUMES ////
 
     // Get volume metadata
     inline VolumeMap const& volumes() const final;
 
+    // Get (physical) volume instance metadata
+    inline VolInstanceMap const& volume_instances() const final;
+
     // Get the volume ID corresponding to a Geant4 logical volume
     VolumeId find_volume(G4LogicalVolume const* volume) const final;
+
+    // Get the Geant4 physical volume corresponding to a volume instance ID
+    G4VPhysicalVolume const* id_to_pv(VolumeInstanceId vol_id) const final;
 
     // DEPRECATED
     using GeoParamsInterface::find_volume;
@@ -81,6 +87,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     // Host metadata/access
     LabelIdMultiMap<VolumeId> volumes_;
+    VolInstanceMap vol_instances_;
     std::unordered_map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
 
     BBox bbox_;
@@ -114,6 +121,17 @@ class VecgeomParams final : public GeoParamsInterface,
 auto VecgeomParams::volumes() const -> VolumeMap const&
 {
     return volumes_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get volume instance metadata.
+ *
+ * Volume instances correspond directly to Geant4 physical volumes.
+ */
+auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
+{
+    return vol_instances_;
 }
 
 //---------------------------------------------------------------------------//

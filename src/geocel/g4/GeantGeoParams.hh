@@ -57,13 +57,22 @@ class GeantGeoParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
+    // Maximum nested scene/volume depth
+    LevelId::size_type max_depth() const final { return max_depth_; }
+
     //// VOLUMES ////
 
-    // Get volume metadata
+    // Get (logical) volume metadata
     inline VolumeMap const& volumes() const final;
+
+    // Get (physical) volume instance metadata
+    inline VolInstanceMap const& volume_instances() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
     VolumeId find_volume(G4LogicalVolume const* volume) const final;
+
+    // Get the Geant4 physical volume corresponding to a volume instance ID
+    G4VPhysicalVolume const* id_to_pv(VolumeInstanceId vol_id) const final;
 
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_lv(VolumeId vol_id) const;
@@ -92,7 +101,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Host metadata/access
     VolumeMap volumes_;
+    VolInstanceMap vol_instances_;
     BBox bbox_;
+    LevelId::size_type max_depth_{0};
 
     // Host/device storage and reference
     HostRef host_ref_;
@@ -111,10 +122,23 @@ class GeantGeoParams final : public GeoParamsInterface,
 //---------------------------------------------------------------------------//
 /*!
  * Get volume metadata.
+ *
+ * Volumes correspond directly to Geant4 logical volumes.
  */
 auto GeantGeoParams::volumes() const -> VolumeMap const&
 {
     return volumes_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get volume instance metadata.
+ *
+ * Volume instances correspond directly to Geant4 physical volumes.
+ */
+auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
+{
+    return vol_instances_;
 }
 
 //---------------------------------------------------------------------------//
