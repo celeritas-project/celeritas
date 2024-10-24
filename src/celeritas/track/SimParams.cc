@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SimParams.hh"
 
+#include <limits>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
@@ -25,12 +27,18 @@ namespace celeritas
 std::shared_ptr<SimParams>
 SimParams::from_import(ImportData const& data,
                        SPConstParticles particle_params,
-                       short int max_field_substeps)
+                       size_type max_field_substeps)
 {
     CELER_EXPECT(particle_params);
-    CELER_EXPECT(max_field_substeps > 0);
     CELER_EXPECT(data.trans_params);
     CELER_EXPECT(data.trans_params.looping.size() == particle_params->size());
+    constexpr auto field_driver_int_max
+        = std::numeric_limits<decltype(FieldDriverOptions{}.max_substeps)>::max();
+    CELER_VALIDATE(
+        max_field_substeps > 0 && max_field_substeps < field_driver_int_max,
+        << "maximum field substep limit " << max_field_substeps
+        << " is out of range (should be in (0, " << field_driver_int_max
+        << "))");
 
     SimParams::Input input;
     input.particles = std::move(particle_params);
