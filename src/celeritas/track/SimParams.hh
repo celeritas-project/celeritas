@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "SimData.hh"
@@ -38,6 +39,7 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
     {
         SPConstParticles particles;
         std::unordered_map<PDGNumber, LoopingThreshold> looping;
+        size_type max_steps = numeric_limits<size_type>::max();
     };
 
   public:

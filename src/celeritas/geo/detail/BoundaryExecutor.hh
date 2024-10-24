@@ -65,8 +65,8 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
         if (CELER_UNLIKELY(!matid))
         {
 #if !CELER_DEVICE_COMPILE
-            CELER_LOG_LOCAL(error) << "Track entered a volume without an "
-                                      "associated material";
+            CELER_LOG_LOCAL(error)
+                << R"(Track entered a volume without an associated material)";
 #endif
             track.apply_errored();
             return;

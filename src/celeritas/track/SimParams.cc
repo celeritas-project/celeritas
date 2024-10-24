@@ -32,13 +32,21 @@ SimParams::from_import(ImportData const& data,
     CELER_EXPECT(particle_params);
     CELER_EXPECT(data.trans_params);
     CELER_EXPECT(data.trans_params.looping.size() == particle_params->size());
-    constexpr auto field_driver_int_max
-        = std::numeric_limits<decltype(FieldDriverOptions{}.max_substeps)>::max();
+
+    using MaxSubstepsInt = decltype(FieldDriverOptions{}.max_substeps);
+
     CELER_VALIDATE(
-        max_field_substeps > 0 && max_field_substeps < field_driver_int_max,
+        max_field_substeps > 0
+            && max_field_substeps < std::numeric_limits<MaxSubstepsInt>::max(),
         << "maximum field substep limit " << max_field_substeps
-        << " is out of range (should be in (0, " << field_driver_int_max
-        << "))");
+        << " is out of range (should be in (0, "
+        << std::numeric_limits<MaxSubstepsInt>::max() << "))");
+    CELER_VALIDATE(
+        data.trans_params.max_steps >= 0
+            && max_field_substeps < std::numeric_limits<size_type>::max(),
+        << "maximum step limit " << data.trans_params.max_steps
+        << " is out of range (should be in [0, "
+        << std::numeric_limits<MaxSubstepsInt>::max() << "))");
 
     SimParams::Input input;
     input.particles = std::move(particle_params);
@@ -46,7 +54,8 @@ SimParams::from_import(ImportData const& data,
     // Calculate the maximum number of steps a track below the threshold energy
     // can take while looping (ceil(max Geant4 field propagator substeps / max
     // Celeritas field propagator substeps))
-    CELER_ASSERT(data.trans_params.max_substeps >= max_field_substeps);
+    CELER_ASSERT(data.trans_params.max_substeps
+                 >= static_cast<int>(max_field_substeps));
     auto max_subthreshold_steps = ceil_div<size_type>(
         data.trans_params.max_substeps, max_field_substeps);
 
@@ -64,6 +73,10 @@ SimParams::from_import(ImportData const& data,
         looping.threshold_energy
             = LoopingThreshold::Energy(iter->second.important_energy);
         input.looping.insert({pdg, looping});
+    }
+    if (data.trans_params.max_steps > 0)
+    {
+        input.max_steps = data.trans_params.max_steps;
     }
     return std::make_shared<SimParams>(input);
 }
@@ -102,6 +115,7 @@ SimParams::SimParams(Input const& input)
         CELER_ASSERT(looping.back());
     }
     make_builder(&host_data.looping).insert_back(looping.begin(), looping.end());
+    host_data.max_steps = input.max_steps;
 
     data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
