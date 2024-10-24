@@ -1,13 +1,11 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/PinnedAllocator.t.hh
+//! \file corecel/data/detail/PinnedAllocatorImpl.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "PinnedAllocator.hh"
+#include "PinnedAllocatorImpl.hh"
 
 #include <limits>
 #include <new>
@@ -21,18 +19,20 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
- * Allocate and construct space for \c n objects.
+ * Allocate and construct space for \c n objects of size \c sizof_t.
  *
  * If any devices are available, use pinned memory. Otherwise, use standard
  * allocation.
  */
-template<class T>
-T* PinnedAllocator<T>::allocate(std::size_t n)
+void* malloc_pinned(std::size_t n, std::size_t sizeof_t)
 {
     CELER_EXPECT(n != 0);
-    if (n > std::numeric_limits<std::size_t>::max() / sizeof(T))
+    CELER_EXPECT(sizeof_t != 0);
+    if (n > std::numeric_limits<std::size_t>::max() / sizeof_t)
         throw std::bad_array_new_length();
 
     void* p{nullptr};
@@ -42,15 +42,15 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
         // memory
 #if CELERITAS_USE_CUDA
         CELER_CUDA_CALL(cudaHostAlloc(
-            &p, n * sizeof(T), CELER_DEVICE_PREFIX(HostAllocDefault)));
+            &p, n * sizeof_t, CELER_DEVICE_PREFIX(HostAllocDefault)));
 #elif CELERITAS_USE_HIP
         CELER_HIP_CALL(hipHostMalloc(
-            &p, n * sizeof(T), CELER_DEVICE_PREFIX(HostMallocDefault)));
+            &p, n * sizeof_t, CELER_DEVICE_PREFIX(HostMallocDefault)));
 #endif
     }
     else
     {
-        p = ::operator new(n * sizeof(T));
+        p = ::operator new(n * sizeof_t);
     }
 
     if (!p)
@@ -58,7 +58,7 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
         throw std::bad_alloc();
     }
 
-    return static_cast<T*>(p);
+    return p;
 }
 
 //---------------------------------------------------------------------------//
@@ -68,8 +68,7 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
  * Because \c Device::num_devices is static, this will always be symmetric
  * with the \c PinnedAllocator::allocate call.
  */
-template<class T>
-void PinnedAllocator<T>::deallocate(T* p, std::size_t) noexcept
+void free_pinned(void* p) noexcept
 {
     if (Device::num_devices() > 0)
     {
@@ -95,4 +94,5 @@ void PinnedAllocator<T>::deallocate(T* p, std::size_t) noexcept
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
