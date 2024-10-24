@@ -101,6 +101,8 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     std::string volume_name(GeoTrackView const& geo) const;
     //! Get the name of the current surface if available
     std::string surface_name(GeoTrackView const& geo) const;
+    //! Get the stack of volume instances
+    std::string all_volume_instance_names(GeoTrackView const& geo) const;
 
     //! Get a host track view
     GeoTrackView make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});

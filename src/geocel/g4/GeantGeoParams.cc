@@ -11,8 +11,10 @@
 #include <G4GeometryManager.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
+#include <G4PhysicalVolumeStore.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
+#include <G4VPhysicalVolume.hh>
 #include <G4VSolid.hh>
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
@@ -42,7 +44,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 std::vector<Label>
-get_volume_labels(G4LogicalVolume const& world, bool unique_volumes)
+get_volume_labels(G4VPhysicalVolume const& world, bool unique_volumes)
 {
     std::vector<Label> labels;
     visit_geant_volumes(
@@ -63,6 +65,57 @@ get_volume_labels(G4LogicalVolume const& world, bool unique_volumes)
         },
         world);
     return labels;
+}
+
+//---------------------------------------------------------------------------//
+std::vector<Label> get_pv_labels(G4VPhysicalVolume const& world)
+{
+    std::vector<Label> labels;
+    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
+
+    visit_geant_volume_instances(
+        [&labels, &max_depth](G4VPhysicalVolume const& pv, int depth) {
+            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+            if (!inserted)
+            {
+                if (iter->second >= depth)
+                {
+                    // Already visited PV at this depth or more
+                    return false;
+                }
+                // Update the max depth
+                iter->second = depth;
+            }
+
+            auto i = static_cast<std::size_t>(pv.GetInstanceID());
+            if (i >= labels.size())
+            {
+                labels.resize(i + 1);
+            }
+            if (labels[i].empty())
+            {
+                labels[i] = Label::from_geant(pv.GetName());
+                CELER_ASSERT(!labels[i].empty());
+            }
+            return true;
+        },
+        world);
+    return labels;
+}
+
+//---------------------------------------------------------------------------//
+LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
+{
+    int result{0};
+    visit_geant_volume_instances(
+        [&result](G4VPhysicalVolume const&, int level) {
+            result = max(level, result);
+            return true;
+        },
+        world);
+    CELER_ENSURE(result >= 0);
+    // Maximum "depth" is one greater than "highest level"
+    return static_cast<LevelId::size_type>(result + 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -181,9 +234,28 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the Geant4 physical volume corresponding to a volume instance ID.
+ *
+ * If the input ID is false, a null pointer will be returned.
+ */
+G4VPhysicalVolume const* GeantGeoParams::id_to_pv(VolumeInstanceId id) const
+{
+    CELER_EXPECT(!id || id < vol_instances_.size());
+    if (!id)
+    {
+        return nullptr;
+    }
+
+    G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
+    CELER_ASSERT(id < pv_store->size());
+    return (*pv_store)[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the Geant4 logical volume corresponding to a volume ID.
  *
- * If the input volume ID is false, a null pointer will be returned.
+ * If the input volume ID is unassigned, a null pointer will be returned.
  */
 G4LogicalVolume const* GeantGeoParams::id_to_lv(VolumeId id) const
 {
@@ -225,15 +297,16 @@ void GeantGeoParams::build_metadata()
 
     ScopedMem record_mem("GeantGeoParams.build_metadata");
 
-    auto const* world_lv = host_ref_.world->GetLogicalVolume();
-    CELER_ASSERT(world_lv);
-
     // Construct volume labels
-    volumes_ = LabelIdMultiMap<VolumeId>(
-        "volume", get_volume_labels(*world_lv, !loaded_gdml_));
+    volumes_ = VolumeMap{"volume",
+                         get_volume_labels(*host_ref_.world, !loaded_gdml_)};
+    vol_instances_
+        = VolInstanceMap{"volume instance", get_pv_labels(*host_ref_.world)};
+    max_depth_ = get_max_depth(*host_ref_.world);
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
-    bbox_ = [world_lv] {
+    bbox_ = [world_lv = host_ref_.world->GetLogicalVolume()] {
+        CELER_EXPECT(world_lv);
         G4VSolid const* solid = world_lv->GetSolid();
         CELER_ASSERT(solid);
         G4VisExtent const& extent = solid->GetExtent();
