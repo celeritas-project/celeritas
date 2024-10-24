@@ -1,19 +1,25 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/PinnedAllocator.cc
+//! \file corecel/data/detail/PinnedAllocatorImpl.hh
 //---------------------------------------------------------------------------//
-#include "corecel/Types.hh"
+#pragma once
 
-#include "PinnedAllocator.t.hh"
+#include <cstdlib>
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
-// Explicit instantiations
-template struct PinnedAllocator<real_type>;
-template struct PinnedAllocator<size_type>;
+// Allocate pinned memory
+void* malloc_pinned(std::size_t n, std::size_t sizeof_t);
+
+// Free pinned memory
+void free_pinned(void* ptr) noexcept;
+
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
