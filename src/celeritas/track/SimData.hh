@@ -58,7 +58,14 @@ struct LoopingThreshold
 
 //---------------------------------------------------------------------------//
 /*!
- * Persistent simulation data.
+ * Shared simulation data.
+ *
+ * These are cutoff parameters based on the number of steps a track has taken.
+ * Currently these are global or per particle type (with a single energy cut);
+ * we should make them [energy, particle, region] for full extensibility.
+ *
+ * \note These params are used both by the main tracking loop \em and the
+ * SimTrackView in optical physics.
  */
 template<Ownership W, MemSpace M>
 struct SimParamsData
@@ -71,11 +78,12 @@ struct SimParamsData
     //// DATA ////
 
     ParticleItems<LoopingThreshold> looping;
+    size_type max_steps{};
 
     //// METHODS ////
 
     //! Whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const { return true; }
+    explicit CELER_FUNCTION operator bool() const { return max_steps > 0; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -83,6 +91,7 @@ struct SimParamsData
     {
         CELER_EXPECT(other);
         looping = other.looping;
+        max_steps = other.max_steps;
         return *this;
     }
 };
