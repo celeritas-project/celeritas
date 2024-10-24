@@ -272,6 +272,16 @@ enum class ZOrder : size_type
     exterior = size_type(-1),  //!< The global problem boundary
 };
 
+/*!
+ * Optional transformations to apply when building a CsgUnit.
+ */
+enum class UnitSimplification : size_type
+{
+    none = 0,  //!< No simplification
+    csgtree_infix_logic,  //!< CsgTree suitable for infix logic evaluation
+    size_
+};
+
 //---------------------------------------------------------------------------//
 // STRUCTS
 //---------------------------------------------------------------------------//

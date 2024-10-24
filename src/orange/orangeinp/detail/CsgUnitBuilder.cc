@@ -11,6 +11,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/OrangeData.hh"
+#include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/transform/TransformIO.hh"
 #include "orange/transform/TransformSimplifier.hh"
 
@@ -191,6 +192,42 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v,
     unit_->fills[v.unchecked_get()] = std::move(new_daughter);
 
     CELER_ENSURE(is_filled(unit_->fills[v.unchecked_get()]));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Simplify negated joins for Infix evaluation
+ */
+void CsgUnitBuilder::simplifiy_joins()
+{
+    auto& tree = unit_->tree;
+    auto simplification = transform_negated_joins(tree);
+    CELER_EXPECT(tree.size() == simplification.equivalent_nodes.size());
+    std::vector<std::set<CsgUnit::Metadata>> md;
+    md.resize(simplification.tree.size());
+
+    std::map<NodeId, CsgUnit::Region> regions;
+
+    for (auto node_id : range(tree.size()))
+    {
+        if (auto equivalent_node = simplification.equivalent_nodes[node_id];
+            equivalent_node)
+        {
+            CELER_EXPECT(equivalent_node < md.size());
+            md[equivalent_node.unchecked_get()] = unit_->metadata[node_id];
+            regions[equivalent_node] = unit_->regions[NodeId{node_id}];
+        }
+        else if (unit_->regions.find(NodeId{node_id}) != unit_->regions.end()
+                 || !unit_->metadata[node_id].empty())
+        {
+            CELER_LOG(warning)
+                << "While simplifying node '" << node_id
+                << "': has metadata or region but no equivalent node";
+        }
+    }
+    unit_->metadata = std::move(md);
+    unit_->regions = std::move(regions);
+    unit_->tree = std::move(simplification.tree);
 }
 
 //---------------------------------------------------------------------------//
