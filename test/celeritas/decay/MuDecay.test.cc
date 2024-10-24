@@ -28,6 +28,8 @@ class MuDecayInteractorTest : public InteractorHostTestBase
         data_.ids.mu_plus = params.find(pdg::mu_plus());
         data_.electron_mass = params.get(data_.ids.electron).mass();
         data_.muon_mass = params.get(data_.ids.mu_minus).mass();
+
+        this->set_inc_direction({0, 0, 1});
     }
 
   protected:
@@ -41,13 +43,13 @@ class MuDecayInteractorTest : public InteractorHostTestBase
 TEST_F(MuDecayInteractorTest, basic)
 {
     auto const& params = *this->particle_params();
-    this->set_inc_direction({0, 0, 1});
     auto const at_rest = MevEnergy{0};
+    auto const max_lepton_energy = real_type{0.5} * data_.muon_mass.value()
+                                   - data_.electron_mass.value();
 
     // Anti-muon decay
     {
         this->set_inc_particle(pdg::mu_plus(), at_rest);
-
         MuDecayInteractor interact(data_,
                                    this->particle_track(),
                                    this->direction(),
@@ -58,12 +60,12 @@ TEST_F(MuDecayInteractorTest, basic)
         auto const& sec = result.secondaries;
         EXPECT_EQ(1, sec.size());
         EXPECT_EQ(pdg::positron(), params.id_to_pdg(sec[0].particle_id));
+        EXPECT_GE(max_lepton_energy, sec[0].energy.value());
     }
 
     // Muon decay
     {
         this->set_inc_particle(pdg::mu_minus(), at_rest);
-
         MuDecayInteractor interact(data_,
                                    this->particle_track(),
                                    this->direction(),
@@ -74,6 +76,7 @@ TEST_F(MuDecayInteractorTest, basic)
         auto const& sec = result.secondaries;
         EXPECT_EQ(1, sec.size());
         EXPECT_EQ(pdg::electron(), params.id_to_pdg(sec[0].particle_id));
+        EXPECT_GE(max_lepton_energy, sec[0].energy.value());
     }
 }
 
@@ -86,7 +89,6 @@ TEST_F(MuDecayInteractorTest, stress_test)
 
     this->resize_secondaries(num_secondaries * num_samples);
     this->set_inc_particle(pdg::mu_minus(), one_gev);
-    this->set_inc_direction({0, 0, 1});
     MuDecayInteractor interact(data_,
                                this->particle_track(),
                                this->direction(),

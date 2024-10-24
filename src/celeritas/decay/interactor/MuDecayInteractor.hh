@@ -188,9 +188,9 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         = this->calc_momentum(electron_energy_frac, shared_.electron_mass);
 
     // Apply a spherically uniform rotation to the decay
-    Real3 charged_lep_dir
-        = from_spherical(UniformRealDist(-1, 1)(rng),
-                         UniformRealDist(0, 2 * constants::pi)(rng));
+    auto rotate_costheta = UniformRealDist(-1, 1)(rng);
+    auto rotate_phi = UniformRealDist(0, 2 * constants::pi)(rng);
+    Real3 charged_lep_dir = from_spherical(rotate_costheta, rotate_phi);
 
     // Boost secondaries to the lab frame
     auto charged_lep_4vec = this->to_lab_frame(
