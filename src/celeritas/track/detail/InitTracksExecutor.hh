@@ -51,7 +51,7 @@ struct InitTracksExecutor
 
     ParamsPtr params;
     StatePtr state;
-    size_type num_new_tracks;
+    size_type num_new_tracks{};
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
