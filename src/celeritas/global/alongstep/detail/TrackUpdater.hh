@@ -51,7 +51,7 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView& track)
         CELER_ASSERT(sim.post_step_action());
         auto phys = track.make_physics_view();
 
-        if (sim.num_steps() > sim.max_steps()
+        if (sim.num_steps() == sim.max_steps()
             && sim.post_step_action() != track.tracking_cut_action())
         {
 #if !CELER_DEVICE_COMPILE
