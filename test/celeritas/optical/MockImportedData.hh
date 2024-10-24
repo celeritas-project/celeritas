@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/data/Collection.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
@@ -24,6 +25,7 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
+
 //---------------------------------------------------------------------------//
 /*!
  * Imported mock optical data.
@@ -65,8 +67,13 @@ class MockImportedData : public ::celeritas::test::Test
     //! \name Check results
     void check_mfp(ImportPhysicsVector const& expected,
                    ImportPhysicsVector const& imported) const;
+    void check_built_table_exact(ImportedMfpTable const& expected,
+                                 ItemRange<Grid> const& table) const;
+    void check_built_table_soft(ImportedMfpTable const& expected,
+                                ItemRange<Grid> const& table) const;
     void check_built_table(ImportedMfpTable const& expected,
-                           ItemRange<Grid> const& table) const;
+                           ItemRange<Grid> const& table,
+                           bool soft) const;
     //!@}
 
     //!@{
@@ -76,7 +83,55 @@ class MockImportedData : public ::celeritas::test::Test
     //!@}
 };
 
+namespace detail
+{
 //---------------------------------------------------------------------------//
+/*!
+ * Useful unit for working in optical physics scales.
+ */
+struct ElectronVolt
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return units::Mev::value() / 1e6;
+    }
+    static char const* label() { return "eV"; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Takes a list of grids and values, and converts them to a physics vector
+ * with the units specified by the template parameters.
+ *
+ * Useful for converting lists of data into the appropriate Celeritas units.
+ */
+template<class GridUnit, class ValueUnit>
+static std::vector<ImportPhysicsVector>
+convert_vector_units(std::vector<std::vector<double>> const& grid,
+                     std::vector<std::vector<double>> const& value)
+{
+    CELER_ASSERT(grid.size() == value.size());
+    std::vector<ImportPhysicsVector> vecs;
+    for (auto i : range(grid.size()))
+    {
+        ImportPhysicsVector v;
+        v.vector_type = ImportPhysicsVectorType::free;
+        for (double x : grid[i])
+        {
+            v.x.push_back(x * GridUnit::value());
+        }
+        for (double y : value[i])
+        {
+            v.y.push_back(y * ValueUnit::value());
+        }
+        CELER_ASSERT(v);
+        vecs.push_back(std::move(v));
+    }
+    return vecs;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace test
 }  // namespace optical
 }  // namespace celeritas

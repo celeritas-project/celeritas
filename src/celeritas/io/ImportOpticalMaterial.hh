@@ -114,11 +114,12 @@ struct ImportOpticalRayleigh
 {
     double scale_factor{1};  //!< Scale the scattering length (optional)
     double compressibility{};  //!< Isothermal compressibility
+    double temperature{};  //!< Temperature of material
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return scale_factor >= 0 && compressibility >= 0;
+        return scale_factor > 0 && compressibility > 0 && temperature > 0;
     }
 };
 

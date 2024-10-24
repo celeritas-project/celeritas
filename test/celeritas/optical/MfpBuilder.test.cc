@@ -54,7 +54,7 @@ TEST_F(MfpBuilderTest, construct_tables)
     // Check each MFP table has been built correctly
     for (auto table_id : range(tables.size()))
     {
-        this->check_built_table(models[table_id].mfp_table, tables[table_id]);
+        this->check_built_table_exact(models[table_id].mfp_table, tables[table_id]);
     }
 }
 

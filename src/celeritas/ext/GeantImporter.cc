@@ -564,6 +564,7 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
         get_property(&optical.rayleigh.compressibility,
                      "ISOTHERMAL_COMPRESSIBILITY",
                      ImportUnits::len_time_sq_per_mass);
+        optical.rayleigh.temperature = material->GetTemperature();
 
         // Save WLS properties
         get_property(&optical.wls.mean_num_photons,

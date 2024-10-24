@@ -51,7 +51,13 @@ TEST_F(MockValidationTest, validate)
         }
     }
 
-    // TODO: Check materials
+    // Check materials
+
+    for (auto const& material : materials)
+    {
+        EXPECT_TRUE(material.properties);
+        EXPECT_TRUE(material.rayleigh);
+    }
 }
 
 //---------------------------------------------------------------------------//
