@@ -50,7 +50,7 @@ class StepParams : public ParamsDataInterface<StepParamsData>,
     std::string_view label() const final { return "detector-step"; }
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
-    // Build optical core state data for a stream
+    // Build core state data for a stream
     UPState create_state(MemSpace, StreamId, size_type) const final;
     //!@}
 
