@@ -7,7 +7,8 @@
 FindThrust
 ----------
 
-Find the Thrust algorithm library for HIP or CUDA.
+Find the Thrust algorithm library for CUDA. Note that HIP's installation may be
+available under the name "rocthrust" but we can't handle that.
 
 #]=======================================================================]
 

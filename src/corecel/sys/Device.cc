@@ -315,7 +315,7 @@ void activate_device(Device&& device)
 
     // Check capability version against cmake variable; rough but better than
     // nothing! CMake format: "native" or "70-real 72-virtual" or "35;50;72" or
-    // "
+    // for HIP, "gfx90a"
     std::string_view const arch{celeritas_gpu_architectures};
     if (arch != "native"
         && arch.find(std::to_string(device.capability())) == std::string::npos)
