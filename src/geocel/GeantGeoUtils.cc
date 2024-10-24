@@ -120,19 +120,22 @@ void free_and_clear(std::vector<T*>* table)
 //---------------------------------------------------------------------------//
 /*!
  * Print detailed information about the touchable history.
+ *
+ * For brevity, this does not print the world volume.
  */
 std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 {
     CELER_EXPECT(pnh.nav);
     os << '{';
 
-    for (int depth : range(pnh.nav->GetDepth()))
+    int depth = pnh.nav->GetDepth();
+    for (int level : range(depth))
     {
-        G4VPhysicalVolume* vol = pnh.nav->GetVolume(depth);
+        G4VPhysicalVolume* vol = pnh.nav->GetVolume(depth - level);
         CELER_ASSERT(vol);
         G4LogicalVolume* lv = vol->GetLogicalVolume();
         CELER_ASSERT(lv);
-        if (depth != 0)
+        if (level != 0)
         {
             os << " -> ";
         }
