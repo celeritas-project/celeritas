@@ -35,6 +35,7 @@ struct Interaction
     {
         scattered,  //!< Still alive, state has changed
         absorbed,  //!< Absorbed or transformed to another particle type
+        decay,  //!< N-body decay
         unchanged,  //!< No state change, no secondaries
         failed,  //!< Ran out of memory during sampling
     };
@@ -51,6 +52,9 @@ struct Interaction
 
     // Return an interaction representing an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();
+
+    // Return an interaction representing a decay process
+    static inline CELER_FUNCTION Interaction from_decay();
 
     // Return an interaction with no change in the track state
     static inline CELER_FUNCTION Interaction from_unchanged();
@@ -168,6 +172,23 @@ CELER_FUNCTION Interaction Interaction::from_unchanged()
 {
     Interaction result;
     result.action = Action::unchanged;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an interaction from a particle that decayed.
+ */
+CELER_FUNCTION Interaction Interaction::from_decay()
+{
+    Interaction result;
+    result.energy = zero_quantity();
+#if CELERITAS_DEBUG
+    // Direction should *not* be accessed if incident particle has decayed.
+    constexpr auto nan = numeric_limits<real_type>::quiet_NaN();
+    result.direction = {nan, nan, nan};
+#endif
+    result.action = Action::decay;
     return result;
 }
 
