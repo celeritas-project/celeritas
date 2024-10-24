@@ -78,7 +78,7 @@ SimParams::from_import(ImportData const& data,
     {
         input.max_steps = data.trans_params.max_steps;
     }
-    return std::make_shared<SimParams>(input);
+    return std::make_shared<SimParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
@@ -127,7 +127,10 @@ SimParams::SimParams(Input const& input)
  */
 SimParams::SimParams()
 {
-    data_ = CollectionMirror<SimParamsData>{{}};
+    HostVal<SimParamsData> host_data;
+    host_data.max_steps = numeric_limits<size_type>::max();
+
+    data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

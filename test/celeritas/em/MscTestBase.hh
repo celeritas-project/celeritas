@@ -23,7 +23,6 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/track/SimData.hh"
-#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "DiagnosticRngEngine.hh"
