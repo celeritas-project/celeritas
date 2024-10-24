@@ -21,6 +21,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "StepGatherExecutor.hh"
+#include "StepParams.hh"
 #include "../StepData.hh"
 
 namespace celeritas
@@ -33,13 +34,13 @@ namespace detail
  */
 template<StepPoint P>
 StepGatherAction<P>::StepGatherAction(ActionId id,
-                                      SPStepStorage storage,
+                                      SPConstStepParams params,
                                       VecInterface callbacks)
-    : id_(id), storage_(std::move(storage)), callbacks_(std::move(callbacks))
+    : id_(id), params_(std::move(params)), callbacks_(std::move(callbacks))
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(!callbacks_.empty() || P == StepPoint::pre);
-    CELER_EXPECT(storage_);
+    CELER_EXPECT(params_);
 
     description_ = "gather ";
     description_ += (P == StepPoint::pre ? "pre" : "post");
@@ -55,17 +56,20 @@ template<StepPoint P>
 void StepGatherAction<P>::step(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    auto const& step_state = storage_->obj.state<MemSpace::native>(
-        state.stream_id(), state.size());
+    // Extract the local step state data
+    auto const& step_params = params_->ref<MemSpace::native>();
+    auto& step_state = params_->state_ref<MemSpace::native>(state.aux());
+
+    // Run the action
     auto execute = TrackExecutor{
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::StepGatherExecutor<P>{storage_->obj.params<MemSpace::native>(),
-                                      step_state}};
+        detail::StepGatherExecutor<P>{step_params, step_state}};
     launch_action(*this, params, state, execute);
 
     if (P == StepPoint::post)
     {
+        // Execute callbacks at the end of the step
         StepState<MemSpace::native> cb_state{step_state, state.stream_id()};
         for (auto const& sp_callback : callbacks_)
         {

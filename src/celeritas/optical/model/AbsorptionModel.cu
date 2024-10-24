@@ -1,28 +1,27 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
+//---------------------------------*-CUDA-*----------------------------------//
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/StepStorage.hh
+//! \file celeritas/optical/model/AbsorptionModel.cu
 //---------------------------------------------------------------------------//
-#pragma once
+#include "AbsorptionModel.hh"
 
-#include "corecel/data/StreamStore.hh"
-
-#include "../StepData.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
-struct StepStorage
+/*!
+ * Interact with device data.
+ */
+void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const
 {
-    using StoreT = StreamStore<StepParamsData, StepStateData>;
-
-    StoreT obj;
-};
+    CELER_NOT_IMPLEMENTED("optical core physics");
+}
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

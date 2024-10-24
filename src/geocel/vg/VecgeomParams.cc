@@ -163,7 +163,7 @@ VecgeomParams::VecgeomParams(std::string const& filename)
     this->build_data();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -182,7 +182,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     this->build_data();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -223,37 +223,13 @@ VecgeomParams::~VecgeomParams()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label for a placed volume ID.
- */
-Label const& VecgeomParams::id_to_label(VolumeId vol) const
-{
-    CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_.get(vol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the ID corresponding to a label.
- */
-auto VecgeomParams::find_volume(std::string const& name) const -> VolumeId
-{
-    auto result = vol_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "volume '" << name << "' is not unique");
-    return result.front();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a label.
+ * Get the Geant4 physical volume corresponding to a volume instance ID.
  *
- * If the label isn't in the geometry, a null ID will be returned.
+ * \todo Implement by adding to g4vg converter.
  */
-VolumeId VecgeomParams::find_volume(Label const& label) const
+G4VPhysicalVolume const* VecgeomParams::id_to_pv(VolumeInstanceId) const
 {
-    return vol_labels_.find(label);
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//
@@ -270,18 +246,6 @@ VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
             result = iter->second;
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get zero or more volume IDs corresponding to a name.
- *
- * This is useful for volumes that are repeated in the geometry with different
- * uniquifying 'extensions' from Geant4.
- */
-auto VecgeomParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
-{
-    return vol_labels_.find_all(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -515,42 +479,63 @@ void VecgeomParams::build_data()
 void VecgeomParams::build_metadata()
 {
     ScopedMem record_mem("VecgeomParams.build_metadata");
+
     // Construct volume labels
-    vol_labels_ = LabelIdMultiMap<VolumeId>([] {
-        auto& vg_manager = vecgeom::GeoManager::Instance();
-        CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
+    volumes_ = VolumeMap{
+        "volume", [] {
+            auto& vg_manager = vecgeom::GeoManager::Instance();
+            CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
 
-        std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
+            std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
 
-        for (auto vol_idx : range<VolumeId::size_type>(result.size()))
-        {
-            // Get label
-            vecgeom::LogicalVolume const* vol
-                = vg_manager.FindLogicalVolume(vol_idx);
-            CELER_ASSERT(vol);
+            for (auto vol_idx : range<VolumeId::size_type>(result.size()))
+            {
+                // Get label
+                vecgeom::LogicalVolume const* vol
+                    = vg_manager.FindLogicalVolume(vol_idx);
+                CELER_ASSERT(vol);
 
-            auto label = [vol] {
-                std::string const& label = vol->GetLabel();
-                if (starts_with(label, "[TEMP]"))
-                {
-                    // Temporary logical volume not directly used in transport
-                    return Label{};
-                }
-                return Label::from_geant(label);
-            }();
+                auto label = [vol] {
+                    std::string const& label = vol->GetLabel();
+                    if (starts_with(label, "[TEMP]"))
+                    {
+                        // Temporary volume not directly used in transport
+                        return Label{};
+                    }
+                    return Label::from_geant(label);
+                }();
 
-            result[vol_idx] = std::move(label);
-        }
-        return result;
-    }());
+                result[vol_idx] = std::move(label);
+            }
+            return result;
+        }()};
+
+    // Construct volume instance labels
+    vol_instances_ = VolInstanceMap{
+        "volume instance", [] {
+            auto& vg_manager = vecgeom::GeoManager::Instance();
+            CELER_EXPECT(vg_manager.GetPlacedVolumesCount() > 0);
+
+            std::vector<Label> result(vg_manager.GetPlacedVolumesCount());
+
+            for (auto vol_idx : range<VolumeId::size_type>(result.size()))
+            {
+                // Get label
+                vecgeom::VPlacedVolume const* vol
+                    = vg_manager.FindPlacedVolume(vol_idx);
+                CELER_ASSERT(vol);
+                result[vol_idx] = Label::from_geant(vol->GetLabel());
+            }
+            return result;
+        }()};
 
     // Check for duplicates
     {
-        auto vol_dupes = vol_labels_.duplicates();
+        auto vol_dupes = volumes_.duplicates();
         if (!vol_dupes.empty())
         {
             auto streamed_label = [this](std::ostream& os, VolumeId v) {
-                os << '"' << this->vol_labels_.get(v) << "\" ("
+                os << '"' << this->volumes_.at(v) << "\" ("
                    << v.unchecked_get() << ')';
             };
 

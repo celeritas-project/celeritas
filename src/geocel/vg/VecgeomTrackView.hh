@@ -99,9 +99,15 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION Real3 const& dir() const { return dir_; }
     //!@}
 
-    // Get the volume ID in the current cell.
-    CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
-    CELER_FORCEINLINE_FUNCTION int volume_physid() const;
+    // Get the current volume's ID
+    inline CELER_FUNCTION VolumeId volume_id() const;
+    // Get the ID of the current volume instance
+    inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
+    // Get the depth in the geometry hierarchy
+    inline CELER_FUNCTION LevelId level() const;
+    // Get the volume instance ID for all levels
+    inline CELER_FUNCTION void
+    volume_instance_id(Span<VolumeInstanceId> levels) const;
 
     //!@{
     //! VecGeom states are never "on" a surface
@@ -256,20 +262,47 @@ VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
 /*!
  * Get the volume ID in the current cell.
  */
-CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
+CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return VolumeId{this->volume().id()};
+    return id_cast<VolumeId>(this->volume().id());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the physical volume ID in the current cell.
  */
-CELER_FUNCTION int VecgeomTrackView::volume_physid() const
+CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return this->vgstate_.Top()->id();
+    vecgeom::VPlacedVolume const* top = vgstate_.Top();
+    CELER_ASSERT(top);
+    return id_cast<VolumeInstanceId>(top->id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the depth in the geometry hierarchy.
+ */
+CELER_FUNCTION LevelId VecgeomTrackView::level() const
+{
+    return id_cast<LevelId>(vgstate_.GetLevel());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance ID for all levels>
+ */
+CELER_FUNCTION void
+VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+{
+    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    for (auto lev : range(levels.size()))
+    {
+        vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);
+        CELER_ASSERT(pv);
+        levels[lev] = id_cast<VolumeInstanceId>(vgstate_.At(lev)->id());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -301,7 +334,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
 {
     if (this->is_outside())
     {
-        // Find distance to interior from outside world volume
+        // SPECIAL CASE: find distance to interior from outside world volume
         auto* pplvol = params_.world_volume;
         next_step_ = pplvol->DistanceToIn(detail::to_vector(pos_),
                                           detail::to_vector(dir_),

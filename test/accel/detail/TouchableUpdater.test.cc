@@ -66,7 +66,7 @@ class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
     G4LogicalVolume const* find_lv(std::string const& name) const
     {
         auto const& geo = *this->geometry();
-        auto const* lv = geo.id_to_lv(geo.find_volume(name));
+        auto const* lv = geo.id_to_lv(geo.volumes().find_unique(name));
         CELER_ENSURE(lv);
         return lv;
     }

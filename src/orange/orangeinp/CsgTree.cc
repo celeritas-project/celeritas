@@ -94,7 +94,7 @@ auto CsgTree::insert(Node&& n) -> Insertion
     if (inserted)
     {
         // Save new node ID
-        iter->second = NodeId{static_cast<size_type>(nodes_.size())};
+        iter->second = id_cast<NodeId>(nodes_.size());
         // Add a copy of the new node
         nodes_.push_back(iter->first);
     }

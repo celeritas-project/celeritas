@@ -77,7 +77,7 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
     {
         return "[OUTSIDE]";
     }
-    return this->geometry()->id_to_label(geo.volume_id()).name;
+    return this->geometry()->volumes().at(geo.volume_id()).name;
 }
 
 //---------------------------------------------------------------------------//
@@ -97,7 +97,33 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
     }
 
     // Only call this function if the geometry supports surfaces
-    return ptr->id_to_label(geo.surface_id()).name;
+    return ptr->surfaces().at(geo.surface_id()).name;
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
+std::string
+GenericGeoTestBase<HP>::all_volume_instance_names(GeoTrackView const& geo) const
+{
+    if (geo.is_outside())
+    {
+        return "[OUTSIDE]";
+    }
+
+    auto level = geo.level();
+    CELER_ASSERT(level && level >= LevelId{0});
+
+    std::vector<VolumeInstanceId> ids(level.get() + 1);
+    geo.volume_instance_id(make_span(ids));
+
+    auto const& vol_inst = this->geometry()->volume_instances();
+    std::ostringstream os;
+    os << vol_inst.at(ids[0]);
+    for (auto i : range(std::size_t{1}, ids.size()))
+    {
+        os << '/' << vol_inst.at(ids[i]);
+    }
+    return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//

@@ -48,16 +48,16 @@ TEST_F(OneVolumeTest, params)
 {
     OrangeParams const& geo = this->params();
 
-    EXPECT_EQ(1, geo.num_universes());
-    EXPECT_EQ(1, geo.num_volumes());
-    EXPECT_EQ(0, geo.num_surfaces());
+    EXPECT_EQ(1, geo.universes().size());
+    EXPECT_EQ(1, geo.volumes().size());
+    EXPECT_EQ(0, geo.surfaces().size());
     EXPECT_TRUE(geo.supports_safety());
 
-    EXPECT_EQ("one volume", geo.id_to_label(UniverseId{0}).name);
-    EXPECT_EQ(UniverseId{0}, geo.find_universe("one volume"));
+    EXPECT_EQ("one volume", geo.universes().at(UniverseId{0}).name);
+    EXPECT_EQ(UniverseId{0}, geo.universes().find_unique("one volume"));
 
-    EXPECT_EQ("infinite", geo.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ(VolumeId{0}, geo.find_volume("infinite"));
+    EXPECT_EQ("infinite", geo.volumes().at(VolumeId{0}).name);
+    EXPECT_EQ(VolumeId{0}, geo.volumes().find_unique("infinite"));
 }
 
 TEST_F(OneVolumeTest, track_view)
@@ -145,12 +145,12 @@ TEST_F(TwoVolumeTest, params)
 {
     OrangeParams const& geo = this->params();
 
-    EXPECT_EQ(2, geo.num_volumes());
-    EXPECT_EQ(1, geo.num_surfaces());
+    EXPECT_EQ(2, geo.volumes().size());
+    EXPECT_EQ(1, geo.surfaces().size());
     EXPECT_TRUE(geo.supports_safety());
 
-    EXPECT_EQ("sphere", geo.id_to_label(SurfaceId{0}).name);
-    EXPECT_EQ(SurfaceId{0}, geo.find_surface("sphere"));
+    EXPECT_EQ("sphere", geo.surfaces().at(SurfaceId{0}).name);
+    EXPECT_EQ(SurfaceId{0}, geo.surfaces().find_unique("sphere"));
 
     auto const& bbox = geo.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -1.5}), bbox.lower());

@@ -221,7 +221,7 @@ MaterialParams::MaterialParams(Input const& inp)
 Label const& MaterialParams::id_to_label(MaterialId mat) const
 {
     CELER_EXPECT(mat < mat_labels_.size());
-    return mat_labels_.get(mat);
+    return mat_labels_.at(mat);
 }
 
 //---------------------------------------------------------------------------//
@@ -260,7 +260,7 @@ auto MaterialParams::find_materials(std::string const& name) const
 Label const& MaterialParams::id_to_label(ElementId el) const
 {
     CELER_EXPECT(el < el_labels_.size());
-    return el_labels_.get(el);
+    return el_labels_.at(el);
 }
 
 //---------------------------------------------------------------------------//
@@ -296,7 +296,7 @@ auto MaterialParams::find_elements(std::string const& name) const
 Label const& MaterialParams::id_to_label(IsotopeId id) const
 {
     CELER_EXPECT(id < isot_labels_.size());
-    return isot_labels_.get(id);
+    return isot_labels_.at(id);
 }
 
 //---------------------------------------------------------------------------//
