@@ -12,7 +12,6 @@
 #include <thrust/execution_policy.h>
 #include <thrust/iterator/counting_iterator.h>
 
-#include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
@@ -21,72 +20,20 @@
 
 #include "StepData.hh"
 
+#include "detail/StepScratchCopyExecutor.hh"
+
 namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-/*!
- * Gather results from active tracks that are in a detector.
- */
-__global__ void
-gather_step_kernel(DeviceRef<StepStateData> const state, size_type num_valid)
-{
-    CELER_EXPECT(state.size() == state.scratch.size()
-                 && state.size() >= num_valid);
-
-    TrackSlotId tid{KernelParamCalculator::thread_id().get()};
-    if (!(tid < num_valid))
-    {
-        return;
-    }
-
-#define DS_FAST_GET(CONT, TID) CONT.data().get()[TID.unchecked_get()]
-
-    TrackSlotId valid_tid{DS_FAST_GET(state.valid_id, tid)};
-    CELER_ASSERT(valid_tid < state.size());
-
-    // Equivalent to `CONT[tid]` but without debug checking, which causes this
-    // function to grow large enough to emit warnings
-#define DS_COPY_IF_SELECTED(FIELD)                          \
-    do                                                      \
-    {                                                       \
-        if (!state.data.FIELD.empty())                      \
-        {                                                   \
-            DS_FAST_GET(state.scratch.FIELD, tid)           \
-                = DS_FAST_GET(state.data.FIELD, valid_tid); \
-        }                                                   \
-    } while (0)
-
-    DS_COPY_IF_SELECTED(detector);
-    DS_COPY_IF_SELECTED(track_id);
-
-    for (auto sp : range(StepPoint::size_))
-    {
-        DS_COPY_IF_SELECTED(points[sp].time);
-        DS_COPY_IF_SELECTED(points[sp].pos);
-        DS_COPY_IF_SELECTED(points[sp].dir);
-        DS_COPY_IF_SELECTED(points[sp].energy);
-    }
-
-    DS_COPY_IF_SELECTED(event_id);
-    DS_COPY_IF_SELECTED(parent_id);
-    DS_COPY_IF_SELECTED(track_step_count);
-    DS_COPY_IF_SELECTED(step_length);
-    DS_COPY_IF_SELECTED(particle);
-    DS_COPY_IF_SELECTED(energy_deposition);
-#undef DS_COPY_IF_SELECTED
-}
-
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 /*!
  * Gather results from active tracks that are in a detector.
  */
-void gather_step(DeviceRef<StepStateData> const& state, size_type num_valid)
+void gather_step_scratch(DeviceRef<StepStateData> const& state,
+                         size_type num_valid)
 {
     if (num_valid == 0)
     {
@@ -94,11 +41,10 @@ void gather_step(DeviceRef<StepStateData> const& state, size_type num_valid)
         return;
     }
 
-    CELER_LAUNCH_KERNEL(gather_step,
-                        num_valid,
-                        celeritas::device().stream(state.stream_id).get(),
-                        state,
-                        num_valid);
+    auto execute_thread = StepScratchCopyExecutor{state, num_valid};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "gather-step-scratch");
+    launch_kernel(num_threads, state.stream_id, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -122,6 +68,26 @@ template<class T>
 void copy_field(DetectorStepOutput::vector<T>* dst,
                 StateRef<T> const& src,
                 size_type num_valid,
+                StreamId stream)
+{
+    if (src.empty() || num_valid == 0)
+    {
+        // This field is not in use or had no hits
+        dst->clear();
+        return;
+    }
+    dst->resize(num_valid);
+    // Copy all items from valid threads
+    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}, stream};
+    copy(MemSpace::device, {src.data().get(), num_valid});
+}
+
+//---------------------------------------------------------------------------//
+template<class T>
+void copy_field(DetectorStepOutput::vector<T>* dst,
+                ItemRef<T> const& src,
+                size_type num_valid,
+                size_type per_thread,
                 StreamId stream)
 {
     if (src.empty() || num_valid == 0)
@@ -164,7 +130,7 @@ void copy_steps<MemSpace::device>(
     size_type num_valid = end - start;
 
     // Gather the step data on device
-    gather_step(state, num_valid);
+    gather_step_scratch(state, num_valid);
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
@@ -180,6 +146,9 @@ void copy_steps<MemSpace::device>(
         DS_ASSIGN(points[sp].pos);
         DS_ASSIGN(points[sp].dir);
         DS_ASSIGN(points[sp].energy);
+
+        copy_field(
+            &(output->FIELD), state.scratch.FIELD, num_valid, state.stream_id);
     }
 
     DS_ASSIGN(event_id);
@@ -188,6 +157,9 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(step_length);
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
+
+    output->volume_instance_depth = state.volume_instance_depth;
+
 #undef DS_ASSIGN
 
     // Copies must be complete before returning

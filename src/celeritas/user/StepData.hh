@@ -32,19 +32,21 @@ struct StepPointSelection
     bool time{false};
     bool pos{false};
     bool dir{false};
-    bool volume_id{false};
     bool energy{false};
+
+    bool volume_id{false};
+    bool volume_instance_ids{false};
 
     //! Create StepPointSelection with all options set to true
     static constexpr StepPointSelection all()
     {
-        return StepPointSelection{true, true, true, true, true};
+        return StepPointSelection{true, true, true, true, true, true};
     }
 
     //! Whether any selection is requested
     explicit CELER_FUNCTION operator bool() const
     {
-        return time || pos || dir || volume_id || energy;
+        return time || pos || dir || energy || volume_id || volume_instance_ids;
     }
 
     //! Combine the selection with another
@@ -53,8 +55,9 @@ struct StepPointSelection
         this->time |= other.time;
         this->pos |= other.pos;
         this->dir |= other.dir;
-        this->volume_id |= other.volume_id;
         this->energy |= other.energy;
+        this->volume_id |= other.volume_id;
+        this->volume_instance_ids |= other.volume_instance_ids;
         return *this;
     }
 };
@@ -140,6 +143,9 @@ struct StepParamsData
     //! Filter out steps that have not deposited energy (for sensitive det)
     bool nonzero_energy_deposition{false};
 
+    //! Per-state volume instance size if volume_instance_ids selected
+    size_type volume_instance_depth{0};
+
     //// METHODS ////
 
     //! Whether the data is assigned
@@ -156,6 +162,7 @@ struct StepParamsData
         selection = other.selection;
         detector = other.detector;
         nonzero_energy_deposition = other.nonzero_energy_deposition;
+        volume_instance_depth = other.volume_instance_depth;
         return *this;
     }
 };
@@ -177,6 +184,8 @@ struct StepPointStateData
 
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
+    template<class T>
+    using Items = celeritas::Collection<T, W, M>;
     using Energy = units::MevEnergy;
 
     // Sim
@@ -186,6 +195,7 @@ struct StepPointStateData
     StateItems<Real3> pos;
     StateItems<Real3> dir;
     StateItems<VolumeId> volume_id;
+    Items<VolumeInstanceId> volume_instance_ids;
 
     // Physics
     StateItems<Energy> energy;
@@ -204,6 +214,7 @@ struct StepPointStateData
         pos = other.pos;
         dir = other.dir;
         volume_id = other.volume_id;
+        volume_instance_ids = other.volume_instance_ids;
         energy = other.energy;
         return *this;
     }
@@ -308,6 +319,11 @@ struct StepStateDataImpl
  *
  * Extra storage \c scratch and \c valid_id is needed to efficiently gather and
  * copy the step data on the device but will not be allocated on the host.
+ *
+ * \todo Refactor the step interface stuff so that we passing params alongside
+ * state data to the step interfaces, so that we don't have to keep a copy of
+ * the volume instance depth (and for better consistency with the rest of the
+ * code).
  */
 template<Ownership W, MemSpace M>
 struct StepStateData
@@ -328,6 +344,9 @@ struct StepStateData
 
     //! Thread IDs of active tracks that are in a detector
     StateItems<size_type> valid_id;
+
+    // Copy of params max depth for dimensioning volume_instance_ids
+    size_type volume_instance_depth{0};
 
     //! Unique identifier for "thread-local" data.
     StreamId stream_id;
@@ -358,6 +377,7 @@ struct StepStateData
         data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
+        volume_instance_depth = other.volume_instance_depth;
         stream_id = other.stream_id;
         return *this;
     }
@@ -372,6 +392,7 @@ struct StepStateData
 template<MemSpace M>
 inline void resize(StepPointStateData<Ownership::value, M>* state,
                    StepPointSelection selection,
+                   HostCRef<StepParamsData> const& params,
                    size_type size)
 {
     CELER_EXPECT(size > 0);
@@ -388,6 +409,12 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(pos);
     SD_RESIZE_IF_SELECTED(dir);
     SD_RESIZE_IF_SELECTED(volume_id);
+    if (selection.volume_instance_ids)
+    {
+        size_type const vi_depth = params.volume_instance_depth;
+        CELER_ASSERT(vi_depth > 0);
+        resize(&state->volume_instance_ids, size * vi_depth);
+    }
     SD_RESIZE_IF_SELECTED(energy);
 
 #undef SD_RESIZE_IF_SELECTED
@@ -407,7 +434,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
 
     for (auto sp : range(StepPoint::size_))
     {
-        resize(&state->points[sp], params.selection.points[sp], size);
+        resize(&state->points[sp], params.selection.points[sp], params, size);
     }
 
 #define SD_RESIZE_IF_SELECTED(ATTR)     \
@@ -447,6 +474,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     CELER_EXPECT(state->size() == 0);
     CELER_EXPECT(size > 0);
 
+    state->volume_instance_depth = params.volume_instance_depth;
     state->stream_id = stream_id;
 
     resize(&state->data, params, size);

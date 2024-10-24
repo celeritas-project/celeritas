@@ -26,19 +26,27 @@ struct StepStateData;
 /*!
  * CPU results for detector stepping at the beginning or end of a step.
  *
- * Since the volume has a one-to-one mapping to a DetectorId, we omit it.
+ * Since the volume has a one-to-one mapping to a DetectorId, we omit it. Since
+ * multiple "touchable" (multi-level geometry instance) volumes can point to
+ * the same detector, and the location in that hierarchy can be important, a
+ * separate "volume instance IDs" multi-D level is available.
  */
 struct DetectorStepPointOutput
 {
+    //// TYPES ////
+
     using Energy = units::MevEnergy;
-
     template<class T>
-    using vector = std::vector<T, PinnedAllocator<T>>;
+    using PinnedVec = std::vector<T, PinnedAllocator<T>>;
 
-    vector<real_type> time;
-    vector<Real3> pos;
-    vector<Real3> dir;
-    vector<Energy> energy;
+    //// DATA ////
+
+    PinnedVec<real_type> time;
+    PinnedVec<Real3> pos;
+    PinnedVec<Real3> dir;
+    PinnedVec<Energy> energy;
+
+    PinnedVec<VolumeInstanceId> volume_instance_ids;
 };
 
 //---------------------------------------------------------------------------//
@@ -55,25 +63,33 @@ struct DetectorStepPointOutput
  */
 struct DetectorStepOutput
 {
+    //// TYPES ////
+
     using Energy = units::MevEnergy;
+    template<class T>
+    using PinnedVec = std::vector<T, PinnedAllocator<T>>;
+
+    //// DATA ////
 
     // Pre- and post-step data
     EnumArray<StepPoint, DetectorStepPointOutput> points;
 
-    template<class T>
-    using vector = std::vector<T, PinnedAllocator<T>>;
-
     // Detector ID and track ID are always set
-    vector<DetectorId> detector;
-    vector<TrackId> track_id;
+    PinnedVec<DetectorId> detector;
+    PinnedVec<TrackId> track_id;
 
     // Additional optional data
-    vector<EventId> event_id;
-    vector<TrackId> parent_id;
-    vector<size_type> track_step_count;
-    vector<real_type> step_length;
-    vector<ParticleId> particle;
-    vector<Energy> energy_deposition;
+    PinnedVec<EventId> event_id;
+    PinnedVec<TrackId> parent_id;
+    PinnedVec<size_type> track_step_count;
+    PinnedVec<real_type> step_length;
+    PinnedVec<ParticleId> particle;
+    PinnedVec<Energy> energy_deposition;
+
+    // 2D size for volume instances
+    size_type volume_instance_depth{0};
+
+    //// METHODS ////
 
     //! Number of elements in the detector output.
     size_type size() const { return detector.size(); }
