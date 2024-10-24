@@ -314,10 +314,11 @@ void activate_device(Device&& device)
         return;
 
     // Check capability version against cmake variable; rough but better than
-    // nothing! CMake format: "70-real 72-virtual" or "35;50;72" or "
-    if (std::string(celeritas_gpu_architectures)
-            .find(std::to_string(device.capability()))
-        == std::string::npos)
+    // nothing! CMake format: "native" or "70-real 72-virtual" or "35;50;72" or
+    // "
+    std::string_view const arch{celeritas_gpu_architectures};
+    if (arch != "native"
+        && arch.find(std::to_string(device.capability())) == std::string::npos)
     {
         constexpr auto gpu_str = CELERITAS_USE_CUDA  ? "CUDA"
                                  : CELERITAS_USE_HIP ? "HIP"
