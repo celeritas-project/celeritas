@@ -12,15 +12,13 @@
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/decay/data/MuDecayData.hh"
 #include "celeritas/phys/FourVector.hh"
 #include "celeritas/phys/Interaction.hh"
-#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -188,9 +186,8 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         = this->calc_momentum(electron_energy_frac, shared_.electron_mass);
 
     // Apply a spherically uniform rotation to the decay
-    auto rotate_costheta = UniformRealDist(-1, 1)(rng);
-    auto rotate_phi = UniformRealDist(0, 2 * constants::pi)(rng);
-    Real3 charged_lep_dir = from_spherical(rotate_costheta, rotate_phi);
+    IsotropicDistribution rotate;
+    Real3 charged_lep_dir = rotate(rng);
 
     // Boost secondaries to the lab frame
     auto charged_lep_4vec = this->to_lab_frame(
