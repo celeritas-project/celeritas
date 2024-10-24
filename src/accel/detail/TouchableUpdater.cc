@@ -15,34 +15,13 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/g4/Repr.hh"
 #include "celeritas/ext/GeantUnits.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<>
-struct ReprTraits<G4ThreeVector>
-{
-    using value_type = std::decay_t<G4ThreeVector>;
-
-    static void print_type(std::ostream& os, char const* name = nullptr)
-    {
-        os << "G4ThreeVector";
-        if (name)
-        {
-            os << ' ' << name;
-        }
-    }
-    static void init(std::ostream& os) { ReprTraits<double>::init(os); }
-
-    static void print_value(std::ostream& os, G4ThreeVector const& vec)
-    {
-        os << '{' << vec[0] << ", " << vec[1] << ", " << vec[2] << '}';
-    }
-};
-
 namespace detail
 {
 //---------------------------------------------------------------------------//

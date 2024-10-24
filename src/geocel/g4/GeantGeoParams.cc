@@ -34,7 +34,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 
-#include "Convert.geant.hh"  // IWYU pragma: associated
+#include "Convert.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
 #include "VisitGeantVolumes.hh"
 
