@@ -230,6 +230,7 @@ void LocalTransporter::Push(G4Track const& g4track)
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
+    buffer_energy_ += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
         /*!
@@ -254,7 +255,8 @@ void LocalTransporter::Flush()
     if (celeritas::device())
     {
         CELER_LOG_LOCAL(info)
-            << "Transporting " << buffer_.size() << " tracks from event "
+            << "Transporting " << buffer_.size() << " tracks ("
+            << buffer_energy_ << " MeV cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
     }
 
@@ -276,6 +278,7 @@ void LocalTransporter::Flush()
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
     buffer_.clear();
+    buffer_energy_ = 0;
 
     size_type step_iters = 1;
 
