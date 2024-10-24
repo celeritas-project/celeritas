@@ -25,15 +25,12 @@ namespace optical
 /*!
  * Construct the model from imported data.
  */
-RayleighModel::RayleighModel(ActionId id,
-                             ImportedModelAdapter imported,
-                             Input input)
+RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
     : Model(id, "optical-rayleigh", "interact by optical Rayleigh")
-    , imported_(std::move(imported))
+    , imported_(ImportModelClass::rayleigh, imported)
     , properties_(std::move(input.properties))
     , rayleigh_(std::move(input.rayleigh))
 {
-    CELER_EXPECT(properties_.size() == imported_.num_materials());
     CELER_EXPECT(rayleigh_.size() == properties_.size());
 }
 

@@ -17,6 +17,8 @@ struct ImportOpticalProperty;
 
 namespace optical
 {
+struct MaterialParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical Rayleigh scattering model interaction.
@@ -24,6 +26,11 @@ namespace optical
 class RayleighModel : public Model
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPConstImported = std::shared_ptr<ImportedModels const>;
+    //!@}
+
     struct Input
     {
         std::vector<ImportOpticalProperty> properties;
@@ -32,16 +39,16 @@ class RayleighModel : public Model
 
   public:
     // Construct with imported data
-    RayleighModel(ActionId id, ImportedModelAdapter imported, Input input);
+    RayleighModel(ActionId id, SPConstImported imported, Input input);
 
     // Build the mean free paths for this model
-    void build_mfps(OpticalMaterialId, MfpBuilder&) const override final;
+    void build_mfps(OpticalMaterialId, MfpBuilder&) const final;
 
     // Execute the model with host data
-    void step(CoreParams const&, CoreStateHost&) const override final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Execute the model with device data
-    void step(CoreParams const&, CoreStateDevice&) const override final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
     ImportedModelAdapter imported_;

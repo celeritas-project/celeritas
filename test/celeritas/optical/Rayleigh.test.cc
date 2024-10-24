@@ -54,9 +54,7 @@ class RayleighModelTest : public MockImportedData
         import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
 
         return std::make_shared<RayleighModel const>(
-            ActionId{0},
-            ImportedModelAdapter{ImportModelClass::rayleigh, models},
-            this->create_input());
+            ActionId{0}, models, this->create_input());
     }
 
     //! Construct Rayleigh model with only mock material data
@@ -67,9 +65,7 @@ class RayleighModelTest : public MockImportedData
         import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
 
         return std::make_shared<RayleighModel const>(
-            ActionId{0},
-            ImportedModelAdapter{ImportModelClass::rayleigh, models},
-            this->create_input());
+            ActionId{0}, models, this->create_input());
     }
 
     //! Create mock input for Rayleigh model
