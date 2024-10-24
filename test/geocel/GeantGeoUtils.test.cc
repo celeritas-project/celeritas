@@ -138,9 +138,8 @@ TEST_F(MultiLevelTest, printable_nav)
 
     std::ostringstream os;
     os << PrintableNavHistory{touchable.GetHistory()};
-    EXPECT_EQ(
-        R"({{pv='world_PV', lv=28='world'} -> {pv='topsph2', lv=27='box'}})",
-        os.str());
+    EXPECT_EQ(R"({{pv='boxsph2', lv=26='sph'} -> {pv='topsph2', lv=27='box'}})",
+              os.str());
 }
 
 //! Test set_history using some of the same properties that CMS HGcal needs
