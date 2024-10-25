@@ -104,6 +104,8 @@ class GeantGeoParams final : public GeoParamsInterface,
     VolInstanceMap vol_instances_;
     BBox bbox_;
     LevelId::size_type max_depth_{0};
+    VolumeId::size_type lv_offset_{0};
+    VolumeInstanceId::size_type pv_offset_{0};
 
     // Host/device storage and reference
     HostRef host_ref_;

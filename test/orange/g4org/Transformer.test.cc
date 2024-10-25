@@ -16,7 +16,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/detail/LengthUnits.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/g4org/Scaler.hh"
 #include "orange/transform/TransformIO.hh"

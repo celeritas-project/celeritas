@@ -9,7 +9,7 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 
