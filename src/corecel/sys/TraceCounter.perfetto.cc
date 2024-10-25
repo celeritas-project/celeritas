@@ -39,7 +39,8 @@ void trace_counter(char const* name, T value)
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template void trace_counter(char const*, size_type);
+template void trace_counter(char const*, unsigned int);
+template void trace_counter(char const*, std::size_t);
 template void trace_counter(char const*, float);
 template void trace_counter(char const*, double);
 
