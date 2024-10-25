@@ -73,8 +73,6 @@ class SimTrackView
     // Limit the step by this distance and action
     inline CELER_FUNCTION bool step_limit(StepLimit const& sl);
 
-    //// DYNAMIC PROPERTIES ////
-
     // Unique track identifier
     inline CELER_FUNCTION TrackId track_id() const;
 
@@ -119,6 +117,9 @@ class SimTrackView
     // Particle-dependent parameters for killing looping tracks
     inline CELER_FUNCTION LoopingThreshold const&
         looping_threshold(ParticleId) const;
+
+    // Maximum number of steps before killing the track
+    inline CELER_FUNCTION size_type max_steps() const;
 
   private:
     SimParamsRef const& params_;
@@ -410,6 +411,15 @@ CELER_FORCEINLINE_FUNCTION LoopingThreshold const&
 SimTrackView::looping_threshold(ParticleId pid) const
 {
     return params_.looping[pid];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum number of steps before killing the track.
+ */
+CELER_FORCEINLINE_FUNCTION size_type SimTrackView::max_steps() const
+{
+    return params_.max_steps;
 }
 
 //---------------------------------------------------------------------------//

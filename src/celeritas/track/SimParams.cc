@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SimParams.hh"
 
+#include <limits>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
@@ -22,15 +24,33 @@ namespace celeritas
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<SimParams>
-SimParams::from_import(ImportData const& data,
-                       SPConstParticles particle_params,
-                       short int max_field_substeps)
+SimParams::Input SimParams::Input::from_import(ImportData const& data,
+                                               SPConstParticles particle_params)
+{
+    return SimParams::Input::from_import(
+        data, std::move(particle_params), FieldDriverOptions{}.max_substeps);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data.
+ */
+SimParams::Input SimParams::Input::from_import(ImportData const& data,
+                                               SPConstParticles particle_params,
+                                               size_type max_field_substeps)
 {
     CELER_EXPECT(particle_params);
-    CELER_EXPECT(max_field_substeps > 0);
     CELER_EXPECT(data.trans_params);
     CELER_EXPECT(data.trans_params.looping.size() == particle_params->size());
+
+    using MaxSubstepsInt = decltype(FieldDriverOptions{}.max_substeps);
+
+    CELER_VALIDATE(max_field_substeps > 0
+                       && max_field_substeps
+                              <= std::numeric_limits<MaxSubstepsInt>::max(),
+                   << "maximum field substep limit " << max_field_substeps
+                   << " is out of range (should be in (0, "
+                   << std::numeric_limits<MaxSubstepsInt>::max() << "))");
 
     SimParams::Input input;
     input.particles = std::move(particle_params);
@@ -38,7 +58,8 @@ SimParams::from_import(ImportData const& data,
     // Calculate the maximum number of steps a track below the threshold energy
     // can take while looping (ceil(max Geant4 field propagator substeps / max
     // Celeritas field propagator substeps))
-    CELER_ASSERT(data.trans_params.max_substeps >= max_field_substeps);
+    CELER_ASSERT(data.trans_params.max_substeps
+                 >= static_cast<int>(max_field_substeps));
     auto max_subthreshold_steps = ceil_div<size_type>(
         data.trans_params.max_substeps, max_field_substeps);
 
@@ -57,18 +78,8 @@ SimParams::from_import(ImportData const& data,
             = LoopingThreshold::Energy(iter->second.important_energy);
         input.looping.insert({pdg, looping});
     }
-    return std::make_shared<SimParams>(input);
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Construct with imported data and default max field substeps.
- */
-std::shared_ptr<SimParams>
-SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
-{
-    return SimParams::from_import(
-        data, particle_params, FieldDriverOptions{}.max_substeps);
+    return input;
 }
 
 //---------------------------------------------------------------------------//
@@ -78,6 +89,12 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
 SimParams::SimParams(Input const& input)
 {
     CELER_EXPECT(input.particles);
+    CELER_VALIDATE(
+        input.max_steps > 0
+            && input.max_steps <= std::numeric_limits<size_type>::max(),
+        << "maximum step limit " << input.max_steps
+        << " is out of range (should be in (0, "
+        << std::numeric_limits<size_type>::max() << "))");
 
     HostVal<SimParamsData> host_data;
 
@@ -94,18 +111,9 @@ SimParams::SimParams(Input const& input)
         CELER_ASSERT(looping.back());
     }
     make_builder(&host_data.looping).insert_back(looping.begin(), looping.end());
+    host_data.max_steps = input.max_steps;
 
     data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
-    CELER_ENSURE(data_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct without looping counters.
- */
-SimParams::SimParams()
-{
-    data_ = CollectionMirror<SimParamsData>{{}};
     CELER_ENSURE(data_);
 }
 

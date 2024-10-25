@@ -7,6 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "MscTestBase.hh"
 
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/track/SimParams.hh"
+
 namespace celeritas
 {
 namespace test

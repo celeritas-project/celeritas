@@ -13,7 +13,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayOperators.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/field/RZMapField.hh"

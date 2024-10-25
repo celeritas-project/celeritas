@@ -51,7 +51,7 @@ struct InitTracksExecutor
 
     ParamsPtr params;
     StatePtr state;
-    size_type num_new_tracks;
+    size_type num_new_tracks{};
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
@@ -142,8 +142,8 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
                 {
                     // Print an error message if initialization was
                     // "successful" but track is outside
-                    CELER_LOG_LOCAL(error) << "Track started outside the "
-                                              "geometry";
+                    CELER_LOG_LOCAL(error)
+                        << R"(Track started outside the geometry)";
                 }
                 else
                 {

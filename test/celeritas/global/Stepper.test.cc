@@ -25,6 +25,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/RngEngine.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "DummyAction.hh"
@@ -62,7 +63,21 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         return result;
     }
 
+    SPConstSim build_sim() override
+    {
+        SimParams::Input input;
+        input.particles = this->particle();
+        if (max_steps_ > 0)
+        {
+            input.max_steps = max_steps_;
+        }
+        CELER_LOG(debug) << "Building with step limit of " << input.max_steps;
+        return std::make_shared<SimParams>(input);
+    }
+
     size_type max_average_steps() const override { return 100000; }
+
+    size_type max_steps_{0};
 };
 
 class StepperOrderTest : public SimpleComptonTest
@@ -303,6 +318,27 @@ TEST_F(SimpleComptonTest, kill_active)
     static char const* const expected_log_levels[]
         = {"error", "error", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+}
+
+TEST_F(SimpleComptonTest, max_steps)
+{
+    max_steps_ = 2;
+
+    size_type num_primaries = 2;
+    size_type num_tracks = 64;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+
+    ScopedLogStorer scoped_log{&celeritas::self_logger()};
+    auto result = this->run(step, num_primaries);
+
+    static char const* const expected_log_levels[]
+        = {"error", "error", "error", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+    ASSERT_EQ(4, scoped_log.messages().size());
+    EXPECT_EQ("Track exceeded maximum step count", scoped_log.messages()[0]);
+    EXPECT_TRUE(scoped_log.messages()[2].find("\"num_steps\":2")
+                != std::string::npos);
 }
 
 //---------------------------------------------------------------------------//
