@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+
 #include "corecel/Config.hh"
 
 namespace celeritas
