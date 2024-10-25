@@ -17,8 +17,6 @@ struct ImportOpticalProperty;
 
 namespace optical
 {
-struct MaterialParams;
-
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical Rayleigh scattering model interaction.

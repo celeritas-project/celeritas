@@ -15,8 +15,6 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 
-#include "../MaterialParams.hh"
-
 namespace celeritas
 {
 namespace optical

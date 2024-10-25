@@ -106,7 +106,7 @@ struct ElectronVolt
  * Useful for converting lists of data into the appropriate Celeritas units.
  */
 template<class GridUnit, class ValueUnit>
-static std::vector<ImportPhysicsVector>
+std::vector<ImportPhysicsVector>
 convert_vector_units(std::vector<std::vector<double>> const& grid,
                      std::vector<std::vector<double>> const& value)
 {
