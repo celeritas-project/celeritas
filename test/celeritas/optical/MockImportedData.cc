@@ -134,25 +134,25 @@ std::vector<ImportOpticalMaterial> const& MockImportedData::import_materials()
            {2, 1e-20 * MeterCubedPerMeV::value(), 200 * units::kelvin}};
 
     static std::vector<ImportOpticalMaterial> materials{
-        ImportOpticalMaterial{properties[0],
+        ImportOpticalMaterial{ImportOpticalProperty{properties[0]},
                               ImportScintData{},
-                              mock_rayleigh[0],
+                              ImportOpticalRayleigh{mock_rayleigh[0]},
                               ImportWavelengthShift{}},
-        ImportOpticalMaterial{properties[0],
+        ImportOpticalMaterial{ImportOpticalProperty{properties[0]},
                               ImportScintData{},
-                              mock_rayleigh[1],
+                              ImportOpticalRayleigh{mock_rayleigh[1]},
                               ImportWavelengthShift{}},
-        ImportOpticalMaterial{properties[1],
+        ImportOpticalMaterial{ImportOpticalProperty{properties[1]},
                               ImportScintData{},
-                              mock_rayleigh[0],
+                              ImportOpticalRayleigh{mock_rayleigh[0]},
                               ImportWavelengthShift{}},
-        ImportOpticalMaterial{properties[2],
+        ImportOpticalMaterial{ImportOpticalProperty{properties[2]},
                               ImportScintData{},
-                              mock_rayleigh[2],
+                              ImportOpticalRayleigh{mock_rayleigh[2]},
                               ImportWavelengthShift{}},
-        ImportOpticalMaterial{properties[1],
+        ImportOpticalMaterial{ImportOpticalProperty{properties[1]},
                               ImportScintData{},
-                              mock_rayleigh[1],
+                              ImportOpticalRayleigh{mock_rayleigh[1]},
                               ImportWavelengthShift{}}};
 
     return materials;
