@@ -30,5 +30,4 @@ inline constexpr auto* perfetto_track_event_category{"Celeritas"};
 // included by corecel TU only.
 PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category(celeritas::detail::perfetto_track_event_category)
-        .SetDescription("Events from the celeritas "
-                        "library"));
+        .SetDescription(R"(Events from the celeritas library)"));
