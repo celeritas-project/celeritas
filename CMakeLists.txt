@@ -313,6 +313,8 @@ if(CELERITAS_USE_CUDA)
   # file, so don't make it required
   find_package(Thrust)
 endif()
+# Unconditionally set Thrust availability for downstream configuration
+set(CELERITAS_USE_Thrust "${Thrust_FOUND}")
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
@@ -583,7 +585,6 @@ set(_cmake_files
   "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
-set(CELERITAS_USE_Thrust ${CELERITAS_USE_CUDA})
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
@@ -618,6 +619,8 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
+# Thrust dependency is not a cache variable:
+celeritas_export_var(CELERITAS_USE_Thrust)
 
 # Export defaulted variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")

@@ -67,14 +67,10 @@ elseif(CELERITAS_USE_HIP)
   find_dependency(hip REQUIRED QUIET)
 endif()
 
-if(CELERITAS_USE_CUDA)
-  find_dependency(Thrust)
-endif()
-
 if(CELERITAS_USE_Geant4)
   # FIXME: needed for Geant4 11.1+ to avoid causing errors in VecGeom's
   # FindXercesC
-  find_dependency(XercesC)
+  find_dependency(XercesC REQUIRED)
   # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
   # Save and restore include directories around the call -- even though as a
   # standalone project Celeritas will never have directory-level includes
@@ -110,6 +106,10 @@ endif()
 
 if(CELERITAS_USE_ROOT)
   find_dependency(ROOT @ROOT_VERSION@ REQUIRED)
+endif()
+
+if(CELERITAS_USE_Thrust)
+  find_dependency(Thrust)
 endif()
 
 if(CELERITAS_USE_VecGeom)
