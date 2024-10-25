@@ -67,6 +67,10 @@ elseif(CELERITAS_USE_HIP)
   find_dependency(hip REQUIRED QUIET)
 endif()
 
+if(CELERITAS_USE_CUDA)
+  find_dependency(Thrust)
+endif()
+
 if(CELERITAS_USE_Geant4)
   # FIXME: needed for Geant4 11.1+ to avoid causing errors in VecGeom's
   # FindXercesC

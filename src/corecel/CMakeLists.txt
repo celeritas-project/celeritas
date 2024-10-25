@@ -51,26 +51,49 @@ endif()
 
 # Save CMake variables as strings
 set(CELERITAS_CMAKE_STRINGS)
-set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
-  set(_var "CELERITAS_${_var}")
-  string(TOLOWER "${_var}" _lower)
-  string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${_lower}[] = \"${${_var}}\";\n"
+macro(celeritas_append_cmake_string key value)
+  list(APPEND CELERITAS_CMAKE_STRINGS
+    "inline constexpr char ${key}[] = \"${value}\"\;"
   )
+endmacro()
+
+string(TOLOWER "${CMAKE_BUILD_TYPE}," CELERITAS_BUILD_TYPE)
+if(BUILD_SHARED_LIBS)
+  string(APPEND CELERITAS_BUILD_TYPE "shared")
+else()
+  string(APPEND CELERITAS_BUILD_TYPE "static")
+endif()
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
+  string(TOLOWER "celeritas_${_var}" _lower)
+  celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
 
+set(_gpu_arch "")
+if(CELERITAS_USE_CUDA)
+  set(_gpu_arch "${CMAKE_CUDA_ARCHITECTURES}")
+elseif(CELERITAS_USE_HIP)
+  set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
+endif()
+celeritas_append_cmake_string("celeritas_gpu_architectures" "${_gpu_arch}")
+
+list(APPEND CELERITAS_CMAKE_STRINGS "")
+
 # Save dependency versions as strings
-foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
-  string(TOLOWER "${_var}" _lower)
-  if(DEFINED ${_var}_STRING)
-    set(_var "${_var}_STRING")
+set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
+set(HIP_VERSION_STRING "${hip-lang_VERSION}")
+foreach(_pkg CLHEP CUDA HIP Geant4 Thrust VecGeom)
+  string(TOLOWER "${_pkg}" _lower)
+  if(DEFINED ${_pkg}_VERSION_STRING)
+    set(_value "${${_pkg}_VERSION_STRING}")
+  elseif(DEFINED ${_pkg}_VERSION)
+    set(_value "${${_pkg}_VERSION}")
+  else()
+    set(_value "")
   endif()
-  set(_value "${${_var}}")
-  string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char celeritas_${_lower}[] = \"${_value}\";\n"
-  )
+  celeritas_append_cmake_string("celeritas_${_lower}_version" "${_value}")
 endforeach()
+
+list(JOIN CELERITAS_CMAKE_STRINGS "\n" CELERITAS_CMAKE_STRINGS)
 
 # NOTE: some values are defined in top-level CMakeLists
 # - CELERITAS_HAVE_ROCTX
@@ -91,7 +114,7 @@ foreach(_dep Geant4 VecGeom HepMC3)
     "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
   )
 endforeach()
-string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
+list(JOIN CELERITAS_DEPENDENCY_VERSIONS "\n" CELERITAS_DEPENDENCY_VERSIONS)
 
 #-----------------------------------------------------------------------------#
 

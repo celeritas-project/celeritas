@@ -230,8 +230,12 @@ celeritas_set_default(CMAKE_CXX_STANDARD 17 STRING "C++ standard")
 celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF "Allow C++ compiler extensions")
 if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
-  celeritas_set_default(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
-  celeritas_set_default(CMAKE_CUDA_EXTENSIONS ${CMAKE_CXX_EXTENSIONS})
+  celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
+  celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
+  # Use host compiler by default to ensure ABI consistency
+  celeritas_set_default(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}"
+    "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists"
+  )
 endif()
 
 ### Linking flags ###
@@ -283,9 +287,13 @@ if(BUILD_TESTING)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # Use host compiler by default to ensure ABI consistency
-  set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING
-    "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists")
+  if(NOT CMAKE_CUDA_ARCHITECTURES)
+    message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
+      "to specify the GPU target device, is not defined, and the default "
+      "guess may be wrong.  Verify that this value matches your CUDA "
+      "device capability."
+    )
+  endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
 elseif(CELERITAS_USE_HIP)
@@ -298,6 +306,12 @@ elseif(CELERITAS_USE_HIP)
       OFF
     )
   endif()
+endif()
+
+if(CELERITAS_USE_CUDA)
+  # NOTE: older versions of CUDA/Thrust don't include a CMake configuration
+  # file, so don't make it required
+  find_package(Thrust)
 endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
@@ -382,6 +396,13 @@ if(CELERITAS_USE_VecGeom)
       "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
       CELERITAS_USE_CUDA
       "${VecGeom_CUDA_FOUND}"
+    )
+  elseif(CELERITAS_USE_CUDA
+      AND NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
+    message(WARNING "CUDA architecture types between "
+      "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
+      "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match:"
+      "runtime errors may result"
     )
   endif()
   if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
@@ -562,7 +583,8 @@ set(_cmake_files
   "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
-foreach(_dep Geant4 HepMC3 ROOT VecGeom)
+set(CELERITAS_USE_Thrust ${CELERITAS_USE_CUDA})
+foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
@@ -599,7 +621,13 @@ endforeach()
 
 # Export defaulted variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
-foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES)
+set(_celer_other_cmake_variables)
+if(CELERITAS_USE_CUDA)
+  set(_celer_other_cmake_variables CMAKE_CUDA_ARCHITECTURES)
+elseif(CELERITAS_USE_HIP)
+  set(_celer_other_cmake_variables CMAKE_HIP_ARCHITECTURES)
+endif()
+foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES _celer_other_cmake_variables)
   list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
 endforeach()
 

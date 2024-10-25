@@ -106,6 +106,9 @@ class Device
     //! Number of execution units per compute unit (1 for NVIDIA, 4 for AMD)
     unsigned int eu_per_cu() const { return eu_per_cu_; }
 
+    //! CUDA/HIP capability: major * 10 + minor
+    unsigned int capability() const { return capability_; }
+
     //! Additional potentially interesting diagnostics
     MapStrInt const& extra() const { return extra_; }
 
@@ -140,6 +143,7 @@ class Device
     int max_threads_per_cu_{};
     unsigned int threads_per_warp_{};
     bool can_map_host_memory_{};
+    unsigned int capability_{0};
     unsigned int eu_per_cu_{};
     MapStrInt extra_;
     UPStreamStorage streams_;

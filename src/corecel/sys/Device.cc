@@ -200,6 +200,9 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     extra_["regs_per_multiprocessor"] = props.regsPerMultiprocessor;
 #    endif
 
+    // Save for comparison to CMake configuration
+    capability_ = 10 * props.major + props.minor;
+
     // Save for possible block size initialization
     max_threads_per_block_ = props.maxThreadsPerBlock;
 #endif
@@ -310,9 +313,28 @@ void activate_device(Device&& device)
     if (!device)
         return;
 
+    // Check capability version against cmake variable; rough but better than
+    // nothing! CMake format: "native" or "70-real 72-virtual" or "35;50;72" or
+    // for HIP, "gfx90a"
+    std::string_view const arch{celeritas_gpu_architectures};
+    if (arch != "native"
+        && arch.find(std::to_string(device.capability())) == std::string::npos)
+    {
+        constexpr auto gpu_str = CELERITAS_USE_CUDA  ? "CUDA"
+                                 : CELERITAS_USE_HIP ? "HIP"
+                                                     : "";
+        CELER_LOG(warning)
+            << "Device '" << device.name() << "' has " << gpu_str
+            << " compute capability of " << device.capability()
+            << ", but Celeritas was compiled with CMAKE_" << gpu_str
+            << "_ARCHITECTURES=\"" << celeritas_gpu_architectures
+            << "\": code may mysteriously die at runtime";
+    }
+
     CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
                            << device.device_id() << " of "
                            << Device::num_devices();
+
     ScopedTimeLog scoped_time(&self_logger(), 1.0);
     CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
     d = std::move(device);
