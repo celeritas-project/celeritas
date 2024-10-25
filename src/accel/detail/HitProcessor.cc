@@ -24,6 +24,8 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TraceCounter.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -186,6 +188,9 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].pos.empty());
     CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].dir.empty());
     CELER_ASSERT(tracks_.empty() || !out.particle.empty());
+
+    ScopedProfiling profile_this{"process-hits"};
+    trace_counter("process-hits", out.size());
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 

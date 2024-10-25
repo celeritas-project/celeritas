@@ -15,6 +15,7 @@
 #include "corecel/data/Copier.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
 
@@ -115,6 +116,8 @@ void copy_steps<MemSpace::device>(
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
     CELER_EXPECT(output);
+
+    ScopedProfiling profile_this{"copy-steps"};
 
     // Store the thread IDs of active tracks that are in a detector
     auto start = thrust::device_pointer_cast(state.valid_id.data().get());

@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "StepData.hh"
 
@@ -115,6 +116,8 @@ void copy_steps<MemSpace::host>(
     StepStateData<Ownership::reference, MemSpace::host> const& state)
 {
     CELER_EXPECT(output);
+
+    ScopedProfiling profile_this{"copy-steps"};
 
     // Get the number of threads that are active and in a detector
     size_type size = count_num_valid(state.data.detector);
