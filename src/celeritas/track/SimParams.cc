@@ -45,12 +45,12 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
 
     using MaxSubstepsInt = decltype(FieldDriverOptions{}.max_substeps);
 
-    CELER_VALIDATE(
-        max_field_substeps > 0
-            && max_field_substeps < std::numeric_limits<MaxSubstepsInt>::max(),
-        << "maximum field substep limit " << max_field_substeps
-        << " is out of range (should be in (0, "
-        << std::numeric_limits<MaxSubstepsInt>::max() << "))");
+    CELER_VALIDATE(max_field_substeps > 0
+                       && max_field_substeps
+                              <= std::numeric_limits<MaxSubstepsInt>::max(),
+                   << "maximum field substep limit " << max_field_substeps
+                   << " is out of range (should be in (0, "
+                   << std::numeric_limits<MaxSubstepsInt>::max() << "))");
 
     SimParams::Input input;
     input.particles = std::move(particle_params);
@@ -90,10 +90,10 @@ SimParams::SimParams(Input const& input)
 {
     CELER_EXPECT(input.particles);
     CELER_VALIDATE(
-        input.max_steps >= 0
-            && input.max_steps < std::numeric_limits<size_type>::max(),
+        input.max_steps > 0
+            && input.max_steps <= std::numeric_limits<size_type>::max(),
         << "maximum step limit " << input.max_steps
-        << " is out of range (should be in [0, "
+        << " is out of range (should be in (0, "
         << std::numeric_limits<size_type>::max() << "))");
 
     HostVal<SimParamsData> host_data;
@@ -112,19 +112,6 @@ SimParams::SimParams(Input const& input)
     }
     make_builder(&host_data.looping).insert_back(looping.begin(), looping.end());
     host_data.max_steps = input.max_steps;
-
-    data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
-    CELER_ENSURE(data_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct without looping counters.
- */
-SimParams::SimParams()
-{
-    HostVal<SimParamsData> host_data;
-    host_data.max_steps = numeric_limits<size_type>::max();
 
     data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);

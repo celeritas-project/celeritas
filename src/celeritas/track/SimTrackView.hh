@@ -118,7 +118,7 @@ class SimTrackView
     inline CELER_FUNCTION LoopingThreshold const&
         looping_threshold(ParticleId) const;
 
-    // Maximum number of tracks before killing the track
+    // Maximum number of steps before killing the track
     inline CELER_FUNCTION size_type max_steps() const;
 
   private:
@@ -415,7 +415,7 @@ SimTrackView::looping_threshold(ParticleId pid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Maximum number of tracks before killing the track.
+ * Maximum number of steps before killing the track.
  */
 CELER_FORCEINLINE_FUNCTION size_type SimTrackView::max_steps() const
 {

@@ -88,7 +88,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
     : auto_flush_(options.auto_flush ? options.auto_flush
                                      : options.max_num_tracks)
-    , max_step_iters_(options.max_steps)
+    , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params,
