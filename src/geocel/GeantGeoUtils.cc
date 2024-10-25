@@ -385,7 +385,7 @@ void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
     auto nav_stack_size
         = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
 
-    // Loop deeper until stack and nav disagere
+    // Loop deeper until stack and nav disagree
     for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());
          level != end_level;
          ++level)
