@@ -19,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Simple tracing counter.
+ * Simple performance tracing counter.
  * \tparam T Arithmetic counter type
  *
  * Records a named value at the current timestamp which
