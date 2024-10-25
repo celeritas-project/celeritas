@@ -9,6 +9,8 @@
 
 #include <cstdlib>
 
+#include "detail/PinnedAllocatorImpl.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -29,9 +31,15 @@ struct PinnedAllocator
 {
     using value_type = T;
 
-    [[nodiscard]] T* allocate(std::size_t);
+    [[nodiscard]] CELER_FORCEINLINE T* allocate(std::size_t count)
+    {
+        return static_cast<T*>(detail::malloc_pinned(count, sizeof(T)));
+    }
 
-    void deallocate(T*, std::size_t) noexcept;
+    CELER_FORCEINLINE void deallocate(T* ptr, std::size_t) noexcept
+    {
+        return detail::free_pinned(ptr);
+    }
 };
 
 template<class T, class U>

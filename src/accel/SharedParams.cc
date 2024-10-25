@@ -598,21 +598,21 @@ void SharedParams::initialize_core(SetupOptions const& options)
         return along_step;
     }());
 
-    // Construct sensitive detector callback
-    if (options.sd)
-    {
-        hit_manager_ = std::make_shared<detail::HitManager>(
-            *params.geometry, *params.particle, options.sd, params.max_streams);
-        step_collector_ = std::make_shared<StepCollector>(
-            StepCollector::VecInterface{hit_manager_},
-            params.geometry,
-            params.max_streams,
-            params.action_reg.get());
-    }
-
     // Create params
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
+
+    // Construct sensitive detector callback
+    if (options.sd)
+    {
+        hit_manager_
+            = std::make_shared<detail::HitManager>(*params_->geometry(),
+                                                   *params_->particle(),
+                                                   options.sd,
+                                                   params_->max_streams());
+        step_collector_
+            = StepCollector::make_and_insert(*params_, {hit_manager_});
+    }
 
     // Add diagnostics
     if (!options.slot_diagnostic_prefix.empty())

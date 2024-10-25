@@ -564,9 +564,9 @@ void Runner::build_step_collectors(RunnerInput const& inp)
     if (!step_interfaces.empty())
     {
         step_collector_ = std::make_unique<StepCollector>(
-            std::move(step_interfaces),
             core_params_->geometry(),
-            core_params_->max_streams(),
+            std::move(step_interfaces),
+            core_params_->aux_reg().get(),
             core_params_->action_reg().get());
     }
 }

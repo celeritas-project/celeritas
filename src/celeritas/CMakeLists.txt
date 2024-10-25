@@ -50,7 +50,6 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
-  global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
   grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc
@@ -114,6 +113,7 @@ list(APPEND SOURCES
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
+  user/detail/StepParams.cc
 )
 
 #-----------------------------------------------------------------------------#
