@@ -3,11 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/Counter.perfetto.cc
+//! \file corecel/sys/TraceCounter.perfetto.cc
 //! \brief Numeric tracing counter
 //---------------------------------------------------------------------------//
-
-#include "Counter.hh"
+#include "TraceCounter.hh"
 
 #include <type_traits>
 #include <perfetto.h>

@@ -187,7 +187,7 @@ endif()
 if(CELERITAS_USE_Perfetto)
   list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
   list(APPEND SOURCES
-    sys/Counter.perfetto.cc
+    sys/TraceCounter.perfetto.cc
     sys/TracingSession.cc
   )
 endif()

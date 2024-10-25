@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/Counter.hh
+//! \file corecel/sys/TraceCounter.hh
 //! \brief Numeric tracing counter
 //---------------------------------------------------------------------------//
 #pragma once
