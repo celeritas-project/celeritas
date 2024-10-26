@@ -214,11 +214,12 @@ auto Converter::operator()(arg_type g4world) -> result_type
 
     result_type result;
     result.world = world_lv->Place(g4world->GetName().c_str(), &trans);
-    result.volumes = convert_lv_->make_volume_map();
-    result.placed_volumes = std::move(placed_volumes_);
+    result.logical_volumes = convert_lv_->make_volume_map();
+    result.physical_volumes = std::move(placed_volumes_);
 
     CELER_ENSURE(result.world);
-    CELER_ENSURE(!result.volumes.empty());
+    CELER_ENSURE(!result.logical_volumes.empty());
+    CELER_ENSURE(!result.physical_volumes.empty());
     return result;
 }
 

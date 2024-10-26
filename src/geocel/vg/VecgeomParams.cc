@@ -285,8 +285,20 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     g4vg::Converter convert{opts};
     auto result = convert(world);
     CELER_ASSERT(result.world != nullptr);
-    g4log_volid_map_ = std::move(result.volumes);
-    g4_pv_map_ = std::move(result.placed_volumes);
+    g4log_volid_map_.reserve(result.logical_volumes.size());
+    for (auto vol_idx : range(result.logical_volumes.size()))
+    {
+        auto&& [iter, inserted] = g4log_volid_map_.insert(
+            {result.logical_volumes[vol_idx], id_cast<VolumeId>(vol_idx)});
+        if (CELER_UNLIKELY(!inserted))
+        {
+            // This shouldn't happen...
+            CELER_LOG(warning)
+                << "Geant4 logical volume " << PrintableLV{iter->first}
+                << " maps to multiple volume IDs";
+        }
+    }
+    g4_pv_map_ = std::move(result.physical_volumes);
 
     // Set as world volume
     auto& vg_manager = vecgeom::GeoManager::Instance();
