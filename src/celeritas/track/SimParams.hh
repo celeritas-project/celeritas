@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "SimData.hh"
@@ -36,25 +37,24 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
     //! Input data to construct this class
     struct Input
     {
+        // Construct with imported data and default max field substeps
+        static Input from_import(ImportData const&, SPConstParticles);
+
+        // Construct with imported data and max field substeps
+        static Input from_import(ImportData const&,
+                                 SPConstParticles,
+                                 size_type max_field_substeps);
+
+        //// DATA ////
+
         SPConstParticles particles;
         std::unordered_map<PDGNumber, LoopingThreshold> looping;
+        size_type max_steps = numeric_limits<size_type>::max();
     };
 
   public:
-    // Construct with imported data and default max field substeps
-    static std::shared_ptr<SimParams>
-    from_import(ImportData const&, SPConstParticles);
-
-    // Construct with imported data
-    static std::shared_ptr<SimParams> from_import(ImportData const&,
-                                                  SPConstParticles,
-                                                  short int max_field_substeps);
-
     // Construct with simulation input data
     explicit SimParams(Input const&);
-
-    // Construct without loop counters (for neutral-only simulations)
-    SimParams();
 
     //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }

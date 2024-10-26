@@ -23,7 +23,12 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-using celeritas::TracingMode;
+//! Supported tracing mode
+enum class TracingMode : uint32_t
+{
+    in_process,  //!< Record in-process, writting to a file
+    system  //!< Record in a system daemon
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -40,9 +45,9 @@ initialize_session(TracingMode mode) noexcept
     args.backends |= [&] {
         switch (mode)
         {
-            case TracingMode::InProcess:
+            case TracingMode::in_process:
                 return perfetto::kInProcessBackend;
-            case TracingMode::System:
+            case TracingMode::system:
                 return perfetto::kSystemBackend;
             default:
                 return perfetto::kSystemBackend;
@@ -83,16 +88,11 @@ perfetto::TraceConfig configure_session() noexcept
 }  // namespace
 
 //---------------------------------------------------------------------------//
-// Defined here as we need the full definition of perfetto::TracingSession
-TracingSession::TracingSession(TracingSession&&) noexcept = default;
-TracingSession& TracingSession::operator=(TracingSession&&) noexcept = default;
-
-//---------------------------------------------------------------------------//
 /*!
  * Start a system tracing session.
  */
 TracingSession::TracingSession() noexcept
-    : session_{initialize_session(TracingMode::System)}
+    : session_{initialize_session(TracingMode::system).release()}
 {
     if (session_)
     {
@@ -105,8 +105,9 @@ TracingSession::TracingSession() noexcept
  * Start an in-process tracing session.
  */
 TracingSession::TracingSession(std::string_view filename) noexcept
-    : session_{initialize_session(filename.empty() ? TracingMode::System
-                                                   : TracingMode::InProcess)}
+    : session_{initialize_session(filename.empty() ? TracingMode::system
+                                                   : TracingMode::in_process)
+                   .release()}
 {
     if (session_)
     {
@@ -130,7 +131,7 @@ TracingSession::~TracingSession()
         {
             session_->StopBlocking();
         }
-        if (fd_ != -1)
+        if (fd_ != system_fd_)
         {
             close(fd_);
         }
@@ -148,6 +149,15 @@ void TracingSession::start() noexcept
         started_ = true;
         session_->StartBlocking();
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Define the deleter where the TracingSession definition is accessible.
+ */
+void TracingSession::Deleter::operator()(perfetto::TracingSession* p)
+{
+    delete p;
 }
 
 //---------------------------------------------------------------------------//

@@ -4,67 +4,53 @@
   <define/>
 
   <solids>
-    <orb lunit="mm" name="Shape2" r="50"/>
-    <box lunit="mm" name="Shape1" x="120" y="120" z="120"/>
-    <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Envelope" phi="0" theta="0" x1="140" x2="140" x3="140" x4="140" y1="160" y2="160" z="180"/>
-    <box lunit="mm" name="World" x="480" y="480" z="480"/>
+    <orb lunit="mm" name="sph" r="20"/>
+    <box lunit="mm" name="box" x="150" y="150" z="150"/>
+    <box lunit="mm" name="worldbox" x="480" y="480" z="480"/>
   </solids>
 
   <structure>
-    <volume name="Shape2">
-      <solidref ref="Shape2"/>
+    <volume name="sph">
+      <solidref ref="sph"/>
+        <position unit="mm" x="5" y="5"/>
     </volume>
-    <volume name="Shape1">
-      <solidref ref="Shape1"/>
-      <physvol name="Shape2">
-        <volumeref ref="Shape2"/>
+    <volume name="box">
+      <solidref ref="box"/>
+      <physvol copynumber="31" name="boxsph1">
+        <volumeref ref="sph"/>
+        <position unit="mm" x="25" y="25"/>
+      </physvol>
+      <physvol copynumber="32" name="boxsph2">
+        <volumeref ref="sph"/>
+        <position unit="mm" x="-25" y="-25"/>
       </physvol>
     </volume>
-    <volume name="Envelope">
-      <solidref ref="Envelope"/>
-      <physvol name="Shape1">
-        <volumeref ref="Shape1"/>
+    <volume name="world">
+      <solidref ref="worldbox"/>
+      <physvol copynumber="11" name="topsph1">
+        <volumeref ref="sph"/>
       </physvol>
-    </volume>
-    <volume name="World0xdeadbeef">
-      <solidref ref="World"/>
-      <physvol name="worldshape1">
-        <volumeref ref="Shape1"/>
-        <position unit="mm" x="100" y="100" z="100"/>
+      <physvol copynumber="21" name="topbox1">
+        <volumeref ref="box"/>
+        <position unit="mm" x="100" y="100"/>
       </physvol>
-      <physvol name="env2">
-        <volumeref ref="Envelope"/>
-        <position name="env2_pos" unit="mm" x="-100" y="100" z="100"/>
+      <physvol copynumber="22" name="topbox2">
+        <volumeref ref="box"/>
+        <position unit="mm" x="-100" y="100"/>
       </physvol>
-      <physvol name="env3">
-        <volumeref ref="Envelope"/>
-        <position name="env3_pos" unit="mm" x="100" y="-100" z="100"/>
+      <physvol copynumber="23" name="topbox3">
+        <volumeref ref="box"/>
+        <position unit="mm" x="-100" y="-100"/>
       </physvol>
-      <physvol name="env4">
-        <volumeref ref="Envelope"/>
-        <position name="env4_pos" unit="mm" x="100" y="100" z="-100"/>
-      </physvol>
-      <physvol name="env5">
-        <volumeref ref="Envelope"/>
-        <position name="env5_pos" unit="mm" x="-100" y="-100" z="100"/>
-      </physvol>
-      <physvol name="env6">
-        <volumeref ref="Envelope"/>
-        <position name="env6_pos" unit="mm" x="-100" y="100" z="-100"/>
-      </physvol>
-      <physvol name="env7">
-        <volumeref ref="Envelope"/>
-        <position name="env7_pos" unit="mm" x="100" y="-100" z="-100"/>
-      </physvol>
-      <physvol name="worldshape2">
-        <volumeref ref="Shape2"/>
-        <position unit="mm" x="-100" y="-100" z="-100"/>
+      <physvol copynumber="12" name="topsph2">
+        <volumeref ref="box"/>
+        <position unit="mm" x="100" y="-100"/>
       </physvol>
     </volume>
   </structure>
 
   <setup name="Default" version="1.0">
-    <world ref="World0xdeadbeef"/>
+    <world ref="world"/>
   </setup>
 
 </gdml>

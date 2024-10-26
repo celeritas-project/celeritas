@@ -20,7 +20,7 @@
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/sys/Counter.hh"
+#include "corecel/sys/TraceCounter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionSequence.hh"

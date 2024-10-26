@@ -131,10 +131,10 @@ list(APPEND SOURCES
   Types.cc
   data/Copier.cc
   data/DeviceAllocation.cc
-  data/PinnedAllocator.cc
   data/AuxInterface.cc
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
+  data/detail/PinnedAllocatorImpl.cc
   grid/VectorUtils.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
@@ -210,7 +210,7 @@ endif()
 if(CELERITAS_USE_Perfetto)
   list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
   list(APPEND SOURCES
-    sys/Counter.perfetto.cc
+    sys/TraceCounter.perfetto.cc
     sys/TracingSession.cc
   )
 endif()

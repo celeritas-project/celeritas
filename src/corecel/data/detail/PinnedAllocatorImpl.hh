@@ -1,27 +1,24 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/StepStorage.hh
+//! \file corecel/data/detail/PinnedAllocatorImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/StreamStore.hh"
-
-#include "../StepData.hh"
+#include <cstdlib>
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-struct StepStorage
-{
-    using StoreT = StreamStore<StepParamsData, StepStateData>;
+// Allocate pinned memory
+void* malloc_pinned(std::size_t n, std::size_t sizeof_t);
 
-    StoreT obj;
-};
+// Free pinned memory
+void free_pinned(void* ptr) noexcept;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

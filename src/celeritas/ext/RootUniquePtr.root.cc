@@ -47,7 +47,7 @@ void RootTreeAutoSaveDeleter::operator()(TTree* ptr)
  * downstream.
  */
 template<class T>
-void ExternDeleter<T>::operator()(T* ptr)
+void RootExternDeleter<T>::operator()(T* ptr)
 {
     CELER_EXPECT(ptr);
     CELER_LOG(debug) << "Closing " << ptr->ClassName() << " '"
@@ -58,8 +58,8 @@ void ExternDeleter<T>::operator()(T* ptr)
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
-template struct ExternDeleter<TFile>;
-template struct ExternDeleter<TTree>;
+template struct RootExternDeleter<TFile>;
+template struct RootExternDeleter<TTree>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

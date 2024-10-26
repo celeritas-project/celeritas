@@ -141,9 +141,9 @@ TEST_F(KnSimpleLoopTestBase, mixing_types)
 
     StepCollector::VecInterface interfaces = {calo, mctruth};
 
-    EXPECT_THROW((StepCollector{std::move(interfaces),
-                                this->geometry(),
-                                /* num_streams = */ 1,
+    EXPECT_THROW((StepCollector{this->geometry(),
+                                std::move(interfaces),
+                                this->aux_reg().get(),
                                 this->action_reg().get()}),
                  celeritas::RuntimeError);
 }
@@ -152,11 +152,8 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
 {
     // Add mctruth twice so each step is doubly written
     auto mctruth = std::make_shared<ExampleMctruth>();
-    StepCollector::VecInterface interfaces = {mctruth, mctruth};
-    auto collector = std::make_shared<StepCollector>(std::move(interfaces),
-                                                     this->geometry(),
-                                                     /* num_streams = */ 1,
-                                                     this->action_reg().get());
+    auto collector
+        = StepCollector::make_and_insert(*this->core(), {mctruth, mctruth});
 
     // Do one step with two tracks
     {
