@@ -127,7 +127,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
         auto const sim = track.make_sim_view();
 
         SGL_SET_IF_SELECTED(points[P].time, sim.time());
-        if (P == StepPoint::post)
+        if constexpr (P == StepPoint::post)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
@@ -182,7 +182,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
     {
         auto const par = track.make_particle_view();
 
-        if (P == StepPoint::post)
+        if constexpr (P == StepPoint::post)
         {
             auto const pstep = track.make_physics_step_view();
             SGL_SET_IF_SELECTED(energy_deposition, pstep.energy_deposition());

@@ -21,6 +21,7 @@
 #include "celeritas/user/SimpleCalo.hh"
 
 #include "CaloTestBase.hh"
+#include "ExampleInstanceCalo.hh"
 #include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
@@ -123,10 +124,50 @@ class TestEm3MctruthTest : public TestEm3CollectorTestBase,
 #define TestEm3CaloTest TEST_IF_CELERITAS_GEANT(TestEm3CaloTest)
 class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 {
+  public:
     VecString get_detector_names() const final
     {
         return {"gap_0", "gap_1", "gap_2"};
     }
+};
+
+#define TestMultiEm3InstanceCaloTest \
+    TEST_IF_CELERITAS_GEANT(TestMultiEm3InstanceCaloTest)
+class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
+{
+  public:
+    SPConstAction build_along_step() override
+    {
+        // Don't use magnetic field
+        return TestEm3Base::build_along_step();
+    }
+
+    std::string_view geometry_basename() const override
+    {
+        // NOTE that this is not the flat one, it's the multi-level one.
+        return "testem3";
+    }
+
+    void SetUp() override
+    {
+        ExampleInstanceCalo::VecLabel labels = {"lar", "calorimeter", "world"};
+        calo_ = std::make_shared<ExampleInstanceCalo>(this->geometry(),
+                                                      std::move(labels));
+        collector_ = StepCollector::make_and_insert(*this->core(), {calo_});
+    }
+
+    template<MemSpace M>
+    ExampleInstanceCalo::Result run(size_type num_tracks, size_type num_steps)
+    {
+        this->run_impl<M>(num_tracks, num_steps);
+
+        CELER_EXPECT(calo_);
+        return calo_->result();
+    }
+
+  private:
+    std::shared_ptr<ExampleInstanceCalo> calo_;
+    std::shared_ptr<StepCollector> collector_;
 };
 
 //---------------------------------------------------------------------------//
@@ -327,6 +368,83 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 
     static double const expected_edep[] = {1557.5843684091, 0, 0};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TestMultiEm3InstanceCaloTest, step)
+{
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
+    }
+
+    auto result = this->run<MemSpace::host>(128, 256);
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        static char const* const expected_instance[] = {
+            "lar:world_PV/Calorimeter/Layer@01/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@02/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@03/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@04/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@05/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@06/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@07/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@08/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@09/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@10/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@11/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@12/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@13/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@14/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@16/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@17/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@20/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@21/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@22/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@24/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@36/lar_pv",
+            "lar:world_PV/Calorimeter/Layer@37/lar_pv",
+            "world:world_PV",
+        };
+        EXPECT_VEC_EQ(expected_instance, result.instance);
+        static real_type const expected_edep[] = {
+            110.05119644063,  4.0705132707321,     4.9824252430056,
+            5.3394128046665,  1.450876193031,      0.48834499552627,
+            1.0353508092309,  3.8783734145755,     2.2186613956741,
+            1.3909554627865,  2.6894187967614,     0.18580183403169,
+            1.202094417757,   1.2286808295387,     0.32612943539401,
+            0.22045003149592, 2.9175091048049,     1.4450764431425,
+            0.12729384768923, 4.031963429135,      0.081291330732124,
+            0.61806051953871, 1.0181791886769e-22,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+    }
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    {
+        static char const* const expected_instance[]
+            = {"lar:world_PV/Calorimeter/Layer/lar_pv", "world:world_PV"};
+        EXPECT_VEC_EQ(expected_instance, result.instance);
+        static real_type const expected_edep[]
+            = {166.339529328758, 1.0705708104433e-22};
+        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+    }
+    else
+    {
+        result.print_expected();
+        FAIL() << "Not implemented for current geometry type";
+    }
+}
+
+TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step))
+{
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
+    }
+
+    auto result = this->run<MemSpace::device>(1024, 32);
+    result.print_expected();
 }
 
 //---------------------------------------------------------------------------//
