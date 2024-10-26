@@ -290,8 +290,8 @@ if(CELERITAS_USE_CUDA)
   if(NOT CMAKE_CUDA_ARCHITECTURES)
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
       "to specify the GPU target device, is not defined, and the default "
-      "guess may be wrong.  Verify that this value matches your CUDA "
-      "device capability."
+      "guess may be suboptimal and cause further issues. "
+      "Verify that this value matches your CUDA device capability."
     )
   endif()
   enable_language(CUDA)
