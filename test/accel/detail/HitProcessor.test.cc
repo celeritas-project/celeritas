@@ -112,8 +112,7 @@ auto SimpleCmsTest::make_hit_processor() -> HitProcessor
     return HitProcessor{this->make_detector_volumes(),
                         this->make_particles(),
                         selection_,
-                        locate_touchable_,
-                        StreamId{0}};
+                        locate_touchable_};
 }
 
 auto SimpleCmsTest::get_hits(std::string const& name) const

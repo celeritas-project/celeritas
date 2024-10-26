@@ -65,8 +65,7 @@ class HitProcessor
     HitProcessor(SPConstVecLV detector_volumes,
                  VecParticle const& particles,
                  StepSelection const& selection,
-                 bool locate_touchable,
-                 StreamId stream);
+                 bool locate_touchable);
 
     // Log on destruction
     ~HitProcessor();
@@ -105,9 +104,6 @@ class HitProcessor
 
     //! Post-step selection for copying to track
     StepPointSelection post_step_selection_;
-
-    //! Stream ID
-    StreamId stream_;
 
     void update_track(ParticleId id) const;
 };
