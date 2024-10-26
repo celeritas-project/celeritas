@@ -21,9 +21,11 @@ endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
+  set(_g4_geo_libs)
 else()
   set(_optional_geant4_env ENVIRONMENT "${CELERITASTEST_G4ENV}")
   set(_needs_geant4 ${_optional_geant4_env})
+  celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -87,6 +89,7 @@ celeritas_add_test_library(testcel_celeritas
   phys/SecondaryIO.cc
   user/CaloTestBase.cc
   user/DiagnosticTestBase.cc
+  user/ExampleInstanceCalo.cc
   user/ExampleMctruth.cc
   user/MctruthTestBase.cc
   user/SimpleLoopTestBase.cc
@@ -97,7 +100,7 @@ celeritas_target_link_libraries(testcel_celeritas
     testcel_harness Celeritas::celeritas
   PRIVATE
     testcel_core testcel_orange testcel_geocel
-    nlohmann_json::nlohmann_json
+    nlohmann_json::nlohmann_json ${_g4_geo_libs}
 )
 
 #-----------------------------------------------------------------------------#

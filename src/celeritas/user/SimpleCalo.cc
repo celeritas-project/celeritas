@@ -41,7 +41,7 @@ SimpleCalo::SimpleCalo(std::string output_label,
 
     // Map labels to volume IDs
     volume_ids_.resize(volume_labels_.size());
-    std::vector<std::reference_wrapper<Label>> missing;
+    std::vector<std::reference_wrapper<Label const>> missing;
     GeoVolumeFinder find_volume(geo);
     for (auto i : range(volume_labels_.size()))
     {
