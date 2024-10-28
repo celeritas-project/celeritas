@@ -236,7 +236,7 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
     CELER_EXPECT(!is_inside(bbox, pos));
 
     // Test if an intersection is outside the bbox for a given axis
-    auto out_of_bounds = [&](U intersect, int ax) {
+    auto out_of_bounds = [&bbox](U intersect, int ax) {
         return !(intersect >= bbox.lower()[ax]
                  && intersect <= bbox.upper()[ax]);
     };
