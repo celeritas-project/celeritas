@@ -241,6 +241,21 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
                  && intersect <= bbox.upper()[ax]);
     };
 
+    // Check that the intersection point occurs within the region
+    // bounded by the planes of the other two axes
+    auto in_bounds = [&](int ax, U dist) {
+        for (auto other_ax : range(to_int(Axis::size_)))
+        {
+            if (other_ax == ax)
+                continue;
+
+            auto intersect = pos[other_ax] + dist * dir[other_ax];
+            if (out_of_bounds(intersect, other_ax))
+                return false;
+        }
+        return true;
+    };
+
     // Loop over all 6 planes to find the minimum intersection
     U min_dist = numeric_limits<U>::infinity();
     for (auto bound : range(to_int(Bound::size_)))
@@ -262,22 +277,7 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
                 continue;
             }
 
-            // Check that the intersection point occurs within the region
-            // bounded by the planes of the other two axes
-            bool in_bounds = [&] {
-                for (auto other_ax : range(to_int(Axis::size_)))
-                {
-                    if (other_ax == ax)
-                        continue;
-
-                    auto intersect = pos[other_ax] + dist * dir[other_ax];
-                    if (out_of_bounds(intersect, other_ax))
-                        return false;
-                }
-                return true;
-            }();
-
-            if (in_bounds)
+            if (in_bounds(ax, dist))
             {
                 min_dist = celeritas::min(min_dist, dist);
             }
