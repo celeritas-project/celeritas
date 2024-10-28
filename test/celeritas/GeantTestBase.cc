@@ -208,7 +208,10 @@ auto GeantTestBase::imported_data() const -> ImportData const&
 //---------------------------------------------------------------------------//
 GeantImportDataSelection GeantTestBase::build_import_data_selection() const
 {
-    return {};
+    // By default, don't try to import optical data
+    GeantImportDataSelection result;
+    result.processes &= (~GeantImportDataSelection::optical);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
