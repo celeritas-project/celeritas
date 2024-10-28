@@ -74,6 +74,8 @@ if(CELERITAS_USE_CUDA)
 elseif(CELERITAS_USE_HIP)
   set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
 endif()
+# Arch variable may be ;-separated list, so we need to escape the ;
+string(REPLACE ";" "\;" _gpu_arch "${_gpu_arch}")
 celeritas_append_cmake_string("celeritas_gpu_architectures" "${_gpu_arch}")
 
 list(APPEND CELERITAS_CMAKE_STRINGS "")
