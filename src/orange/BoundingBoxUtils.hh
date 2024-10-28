@@ -235,6 +235,12 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
 {
     CELER_EXPECT(!is_inside(bbox, pos));
 
+    // Test if an intersection is outside the bbox for a given axis
+    auto out_of_bounds = [&](U intersect, int ax) {
+        return !(intersect >= bbox.lower()[ax]
+                 && intersect <= bbox.upper()[ax]);
+    };
+
     // Loop over all 6 planes to find the minimum intersection
     U min_dist = numeric_limits<U>::infinity();
     for (auto bound : range(to_int(Bound::size_)))
@@ -265,11 +271,8 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
                         continue;
 
                     auto intersect = pos[other_ax] + dist * dir[other_ax];
-                    if (!(intersect >= bbox.lower()[other_ax]
-                          && intersect <= bbox.upper()[other_ax]))
-                    {
+                    if (out_of_bounds(intersect, other_ax))
                         return false;
-                    }
                 }
                 return true;
             }();
