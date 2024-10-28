@@ -53,7 +53,7 @@ endif()
 set(CELERITAS_CMAKE_STRINGS)
 macro(celeritas_append_cmake_string key value)
   list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${key}[] = \"${value}\"\;"
+    "inline constexpr char ${key}[] = R\"(${value})\"\;"
   )
 endmacro()
 
