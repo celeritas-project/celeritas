@@ -247,7 +247,8 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
                 continue;
             }
 
-            U dist = (bbox.point(Bound{bound})[ax] - pos[ax]) / dir[ax];
+            U dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
+                     / dir[ax];
 
             if (dist < 0)
             {
@@ -255,22 +256,23 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
                 continue;
             }
 
-            // Calculate the actual intersection point
-            Array<U, 3> intersect = pos + dist * dir;
-
             // Check that the intersection point occurs within the region
             // bounded by the planes of the other two axes
-            bool in_bounds = true;
-            for (auto other_ax : range(to_int(Axis::size_)))
-            {
-                if (other_ax != ax
-                    && (intersect[other_ax] < bbox.lower()[other_ax]
-                        || intersect[other_ax] > bbox.upper()[other_ax]))
+            bool in_bounds = [&] {
+                for (auto other_ax : range(to_int(Axis::size_)))
                 {
-                    in_bounds = false;
-                    break;
+                    if (other_ax == ax)
+                        continue;
+
+                    auto intersect = pos[other_ax] + dist * dir[other_ax];
+                    if (!(intersect >= bbox.lower()[other_ax]
+                          && intersect <= bbox.upper()[other_ax]))
+                    {
+                        return false;
+                    }
                 }
-            }
+                return true;
+            }();
 
             if (in_bounds)
             {
