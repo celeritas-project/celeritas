@@ -118,7 +118,7 @@ TEST_F(ConverterTest, testem3)
     if (auto* unit = std::get_if<UnitInput>(&result.universes[0]))
     {
         SCOPED_TRACE("universe 0");
-        EXPECT_EQ("World0x0", this->genericize_pointers(unit->label.name));
+        EXPECT_EQ("world0x0", this->genericize_pointers(unit->label.name));
         EXPECT_EQ(53, unit->volumes.size());
         EXPECT_EQ(61, unit->surfaces.size());
         EXPECT_VEC_SOFT_EQ((Real3{-24, -24, -24}), to_cm(unit->bbox.lower()));
@@ -132,7 +132,7 @@ TEST_F(ConverterTest, testem3)
     if (auto* unit = std::get_if<UnitInput>(&result.universes[1]))
     {
         SCOPED_TRACE("universe 1");
-        EXPECT_EQ("Layer0x0", genericize_pointers(unit->label.name));
+        EXPECT_EQ("layer0x0", genericize_pointers(unit->label.name));
         EXPECT_EQ(4, unit->volumes.size());
         EXPECT_EQ(1, unit->surfaces.size());
         EXPECT_VEC_SOFT_EQ((Real3{-0.4, -20, -20}), to_cm(unit->bbox.lower()));

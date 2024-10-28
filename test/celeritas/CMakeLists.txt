@@ -386,8 +386,14 @@ if(CELERITAS_USE_Geant4)
     "-TestEm3*"
     "TestEm3*"
   )
+  set(_step_filter
+    "-TestEm3*:TestMultiEm3"
+    "TestEm3*"
+    "TestMultiEm3*"
+  )
 else()
   set(_diagnostic_filter)
+  set(_step_filter)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   # EM track gets stuck
@@ -405,6 +411,7 @@ celeritas_add_test(user/SlotDiagnostic.test.cc
 )
 celeritas_add_test(user/StepCollector.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fixme_single}
+  FILTER ${_step_filter}
 )
 
 #-----------------------------------------------------------------------------#

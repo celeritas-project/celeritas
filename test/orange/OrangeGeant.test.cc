@@ -46,7 +46,7 @@ TEST_F(TestEm3GeantTest, trace)
         auto result = this->track({-20.1}, {1, 0, 0});
 
         static char const* const expected_volumes[] = {
-            "World", "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
+            "world", "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
             "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
             "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
             "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
@@ -57,7 +57,7 @@ TEST_F(TestEm3GeantTest, trace)
             "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
             "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
             "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
-            "pb",    "lar", "World"};
+            "pb",    "lar", "world"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {
             0.1,  0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
