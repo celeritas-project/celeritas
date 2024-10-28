@@ -156,6 +156,7 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
                 break;
             }
             os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id).name;
+#if CELERITAS_USE_GEANT4
             if (G4VPhysicalVolume const* pv = geo_->id_to_pv(vi_id))
             {
                 if (auto copy_num = pv->GetCopyNo())
@@ -163,6 +164,7 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
                     os << '@' << std::setw(2) << std::setfill('0') << copy_num;
                 }
             }
+#endif
         }
         edep_[std::move(os).str()]
             += value_as<units::MevEnergy>(out.energy_deposition[hit]);
