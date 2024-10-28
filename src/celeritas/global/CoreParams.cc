@@ -286,6 +286,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
 
+    // Save non-owning pointer to core params for host diagnostics
+    scalars.host_core_params = ObserverPtr{this};
+
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
     if (celeritas::device())

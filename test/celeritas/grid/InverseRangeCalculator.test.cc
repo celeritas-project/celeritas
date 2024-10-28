@@ -58,10 +58,11 @@ TEST_F(InverseRangeCalculatorTest, all)
     // Top of range
     EXPECT_SOFT_EQ(1e4, calc_energy(500).value());
 
-#if CELERITAS_DEBUG
-    // Above range
-    EXPECT_THROW(calc_energy(500.1), DebugError);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        // Above range
+        EXPECT_THROW(calc_energy(500.1), DebugError);
+    }
 }
 
 //---------------------------------------------------------------------------//

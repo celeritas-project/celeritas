@@ -78,19 +78,19 @@ requires starting external services. To use this mode, the ``tracing_file`` key 
 be absent or empty. Details on how to setup the system services can be found in
 the `Perfetto documentation`_. Root access on the system is required.
 
-If you integrate celeritas in your application, you need to create a ``TracingSession``
+If you integrate Celeritas in your application, you need to create a ``TracingSession``
 instance. The profiling session will end when the object goes out of scope but it can be
 moved to extend its lifetime.
 
 .. sourcecode:: cpp
    :linenos:
 
-   #include "TracingSession.hh"
+   #include "corecel/sys/TracingSession.hh"
 
    int main()
    {
-      // system-level profiling, pass a filename to use application-level profiling
-      TracingSession session;
+      // System-level profiling: pass a filename to use application-level profiling
+      celeritas::TracingSession session;
       session.start()
    }
 

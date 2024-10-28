@@ -8,7 +8,7 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/data/detail/Filler.device.t.hh"
+#include "corecel/data/Filler.device.t.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
@@ -51,8 +51,7 @@ void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const& params,
 //---------------------------------------------------------------------------//
 }  // namespace test
 
-namespace detail
-{
+// Used by "resize" for state
 template class Filler<::celeritas::test::LifeStatus, MemSpace::device>;
-}
+
 }  // namespace celeritas

@@ -50,7 +50,6 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
-  global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
   grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc
@@ -80,6 +79,7 @@ list(APPEND SOURCES
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+  optical/ImportedModelAdapter.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/TrackInitParams.cc
@@ -113,6 +113,7 @@ list(APPEND SOURCES
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
+  user/detail/StepParams.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -144,6 +145,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeoOpticalIdMap.cc
     ext/detail/MuHadEmStandardPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs
@@ -280,9 +282,11 @@ celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/action/InitializeTracksAction)

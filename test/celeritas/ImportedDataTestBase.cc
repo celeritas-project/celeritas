@@ -67,7 +67,10 @@ auto ImportedDataTestBase::build_cutoff() -> SPConstCutoff
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_sim() -> SPConstSim
 {
-    return SimParams::from_import(this->imported_data(), this->particle());
+    return std::make_shared<SimParams>([this] {
+        return SimParams::Input::from_import(this->imported_data(),
+                                             this->particle());
+    }());
 }
 
 //---------------------------------------------------------------------------//

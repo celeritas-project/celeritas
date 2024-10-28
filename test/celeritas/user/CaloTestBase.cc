@@ -27,22 +27,19 @@ CaloTestBase::~CaloTestBase() = default;
  */
 void CaloTestBase::SetUp()
 {
-    size_type num_streams = 1;
-
     std::vector<Label> labels;
     for (auto&& name : this->get_detector_names())
     {
         labels.push_back(name);
     }
+    size_type const num_streams = 1;
     calo_ = std::make_shared<SimpleCalo>(
         std::move(labels), *this->geometry(), num_streams);
 
     StepCollector::VecInterface interfaces = {calo_};
 
-    collector_ = std::make_shared<StepCollector>(std::move(interfaces),
-                                                 this->geometry(),
-                                                 num_streams,
-                                                 this->action_reg().get());
+    collector_
+        = StepCollector::make_and_insert(*this->core(), std::move(interfaces));
 }
 
 //---------------------------------------------------------------------------//

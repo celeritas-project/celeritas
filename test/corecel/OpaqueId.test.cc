@@ -111,6 +111,31 @@ TEST(OpaqueIdTest, iota)
     }
 }
 
+TEST(OpaqueIdTest, id_cast)
+{
+    using IdT = OpaqueId<TestInstantiator, unsigned short int>;
+
+#ifdef CELERITAS_SHOULD_NOT_COMPILE
+    id_cast<IdT>("this shouldn't compile");
+    id_cast<IdT>(1e4);  // nor should this
+#endif
+
+    EXPECT_EQ(3, id_cast<IdT>(3).unchecked_get());
+    int const lvalue{254};
+    EXPECT_EQ(lvalue, id_cast<IdT>(lvalue).unchecked_get());
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(id_cast<IdT>(-12345678ll), DebugError);
+        EXPECT_THROW(id_cast<IdT>(-1), DebugError);
+        EXPECT_THROW(id_cast<IdT>(IdT{}.unchecked_get()), DebugError);
+        EXPECT_THROW(
+            id_cast<IdT>(static_cast<unsigned int>(IdT{}.unchecked_get()) + 1),
+            DebugError);
+        EXPECT_THROW(id_cast<IdT>(100000000l), DebugError);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

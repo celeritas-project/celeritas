@@ -28,7 +28,6 @@ struct Primary
     Real3 direction{0, 0, 0};
     real_type time{};
     EventId event_id;
-    TrackId track_id;
 };
 
 //---------------------------------------------------------------------------//

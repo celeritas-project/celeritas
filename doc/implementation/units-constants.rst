@@ -47,7 +47,7 @@ using the Quantity class and helper functions.
 
 .. doxygenclass:: celeritas::Quantity
 .. doxygenfunction:: celeritas::native_value_to
-.. doxygenfunction:: celeritas::native_value_from(Quantity<UnitT, ValueT> quant)
+.. doxygenfunction:: celeritas::native_value_from(Quantity<UnitT, ValueT> quant) noexcept
 .. doxygenfunction:: celeritas::value_as
 .. doxygenfunction:: celeritas::zero_quantity
 .. doxygenfunction:: celeritas::max_quantity

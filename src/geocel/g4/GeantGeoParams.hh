@@ -57,35 +57,28 @@ class GeantGeoParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
+    // Maximum nested scene/volume depth
+    LevelId::size_type max_depth() const final { return max_depth_; }
+
     //// VOLUMES ////
 
-    //! Number of volumes
-    VolumeId::size_type num_volumes() const final
-    {
-        return vol_labels_.size();
-    }
+    // Get (logical) volume metadata
+    inline VolumeMap const& volumes() const final;
 
-    // Get the label for a placed volume ID
-    Label const& id_to_label(VolumeId vol_id) const final;
-
-    //! \cond
-    using GeoParamsInterface::find_volume;
-    //! \endcond
-
-    // Get the volume ID corresponding to a unique label name
-    VolumeId find_volume(std::string const& name) const final;
-
-    // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(Label const& label) const final;
+    // Get (physical) volume instance metadata
+    inline VolInstanceMap const& volume_instances() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
     VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
-    // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(std::string const& name) const final;
+    // Get the Geant4 physical volume corresponding to a volume instance ID
+    G4VPhysicalVolume const* id_to_pv(VolumeInstanceId vol_id) const final;
 
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_lv(VolumeId vol_id) const;
+
+    // DEPRECATED
+    using GeoParamsInterface::find_volume;
 
     //// DATA ACCESS ////
 
@@ -107,8 +100,12 @@ class GeantGeoParams final : public GeoParamsInterface,
     std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions_;
 
     // Host metadata/access
-    LabelIdMultiMap<VolumeId> vol_labels_;
+    VolumeMap volumes_;
+    VolInstanceMap vol_instances_;
     BBox bbox_;
+    LevelId::size_type max_depth_{0};
+    VolumeId::size_type lv_offset_{0};
+    VolumeInstanceId::size_type pv_offset_{0};
 
     // Host/device storage and reference
     HostRef host_ref_;
@@ -121,6 +118,30 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Construct labels and other host-only metadata
     void build_metadata();
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get volume metadata.
+ *
+ * Volumes correspond directly to Geant4 logical volumes.
+ */
+auto GeantGeoParams::volumes() const -> VolumeMap const&
+{
+    return volumes_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get volume instance metadata.
+ *
+ * Volume instances correspond directly to Geant4 physical volumes.
+ */
+auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
+{
+    return vol_instances_;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

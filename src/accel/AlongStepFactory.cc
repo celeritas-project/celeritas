@@ -12,7 +12,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/QuantityIO.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/field/RZMapFieldInput.hh"

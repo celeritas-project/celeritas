@@ -48,7 +48,6 @@ class KnSimpleLoopTestBase : public SimpleTestBase,
         p.particle_id = this->particle()->find(pdg::gamma());
         CELER_ASSERT(p.particle_id);
         p.energy = MevEnergy{10.0};
-        p.track_id = TrackId{0};
         p.position = {0, 0, 0};
         p.direction = {1, 0, 0};
         p.time = 0;
@@ -109,7 +108,6 @@ class TestEm3CollectorTestBase : public TestEm3Base,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
-            result[i].track_id = TrackId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
@@ -143,9 +141,9 @@ TEST_F(KnSimpleLoopTestBase, mixing_types)
 
     StepCollector::VecInterface interfaces = {calo, mctruth};
 
-    EXPECT_THROW((StepCollector{std::move(interfaces),
-                                this->geometry(),
-                                /* num_streams = */ 1,
+    EXPECT_THROW((StepCollector{this->geometry(),
+                                std::move(interfaces),
+                                this->aux_reg().get(),
                                 this->action_reg().get()}),
                  celeritas::RuntimeError);
 }
@@ -154,11 +152,8 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
 {
     // Add mctruth twice so each step is doubly written
     auto mctruth = std::make_shared<ExampleMctruth>();
-    StepCollector::VecInterface interfaces = {mctruth, mctruth};
-    auto collector = std::make_shared<StepCollector>(std::move(interfaces),
-                                                     this->geometry(),
-                                                     /* num_streams = */ 1,
-                                                     this->action_reg().get());
+    auto collector
+        = StepCollector::make_and_insert(*this->core(), {mctruth, mctruth});
 
     // Do one step with two tracks
     {

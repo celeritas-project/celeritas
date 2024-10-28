@@ -53,7 +53,6 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
         p.particle_id = this->particle()->find(particle);
         CELER_ASSERT(p.particle_id);
         p.energy = energy;
-        p.track_id = TrackId{0};
         p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
@@ -194,7 +193,6 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
         p.energy = MevEnergy{10};
         p.position = {0, 0, 0};
         p.time = 0;
-        p.track_id = TrackId{0};
 
         Array<ParticleId, 2> const particles = {
             this->particle()->find(pdg::electron()),
@@ -244,7 +242,6 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 
         for (auto i : range(count))
         {
-            result[i].track_id = TrackId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -270,10 +267,6 @@ class LeadBox : public LeadBoxTestBase, public StepperTestBase
         p.event_id = EventId{0};
 
         std::vector<Primary> result(count, p);
-        for (auto i : range(count))
-        {
-            result[i].track_id = TrackId{i};
-        }
         return result;
     }
 

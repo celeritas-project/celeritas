@@ -21,6 +21,7 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4Navigator;
+class G4NavigationHistory;
 
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 // Geant4 11.2 removed G4VTouchable
@@ -43,7 +44,7 @@ using GeantTouchableBase = G4VTouchable;
 //! Wrap around a touchable to get a descriptive output.
 struct PrintableNavHistory
 {
-    GeantTouchableBase const* touch{nullptr};
+    G4NavigationHistory const* nav{nullptr};
 };
 
 //---------------------------------------------------------------------------//
@@ -68,6 +69,10 @@ G4VPhysicalVolume* load_geant_geometry(std::string const& gdml_filename);
 // Load a GDML file, stripping pointers
 G4VPhysicalVolume* load_geant_geometry_native(std::string const& gdml_filename);
 
+// Write a GDML file to the given filename
+void write_geant_geometry(G4VPhysicalVolume const* world,
+                          std::string const& out_filename);
+
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();
@@ -84,6 +89,11 @@ std::unordered_set<G4LogicalVolume const*>
 //---------------------------------------------------------------------------//
 // Generate the GDML name for a Geant4 logical volume
 std::string make_gdml_name(G4LogicalVolume const&);
+
+//---------------------------------------------------------------------------//
+// Update a nav history to match the given pv stack
+void set_history(Span<G4VPhysicalVolume const*> stack,
+                 G4NavigationHistory* nav);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

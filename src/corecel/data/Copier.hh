@@ -38,10 +38,10 @@ class Copier
 
   public:
     //! Construct with the destination and the class's memspace
-    explicit Copier(Span<T> dst) : dst_{dst} {};
+    explicit Copier(Span<T> dst) : dst_{dst} {}
 
     //! Also construct with a stream ID to use for async copy
-    Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {};
+    Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {}
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;
 
@@ -53,7 +53,7 @@ class Copier
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy a value from device to host.
+ * Copy a single value from device to host.
  *
  * The source of the data to copy is the function argument.
  */
@@ -68,7 +68,7 @@ class ItemCopier
     ItemCopier() = default;
 
     //! Also construct with a stream ID to use for async copy
-    explicit ItemCopier(StreamId stream) : stream_{stream} {};
+    explicit ItemCopier(StreamId stream) : stream_{stream} {}
 
     inline T operator()(T const* src) const;
 

@@ -14,6 +14,7 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/CoreStateCounters.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 #include "Utils.hh"
 

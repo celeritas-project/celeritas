@@ -24,7 +24,7 @@ tell what variables are in use or may be useful.
  CELER_DISABLE_PARALLEL  corecel   Disable MPI support
  CELER_DISABLE_ROOT      corecel   Disable ROOT I/O calls
  CELER_DEVICE_ASYNC      corecel   Flag for asynchronous memory allocation
- CELER_ENABLE_PROFILING  corecel   Set up NVTX/ROCTX profiling ranges [#pr]
+ CELER_ENABLE_PROFILING  corecel   Set up NVTX/ROCTX profiling ranges [#pr]_
  CELER_LOG               corecel   Set the "global" logger verbosity
  CELER_LOG_LOCAL         corecel   Set the "local" logger verbosity
  CELER_MEMPOOL... [#mp]_ corecel   Change ``cudaMemPoolAttrReleaseThreshold``
@@ -37,12 +37,18 @@ tell what variables are in use or may be useful.
  VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
  CELER_DISABLE           accel     Disable Celeritas offloading entirely
  CELER_KILL_OFFLOAD      accel     Kill Celeritas-supported tracks in Geant4
+ CELER_NONFATAL_FLUSH    accel     Instead of crashing, kill tracks [#nf]_
  CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output
  ======================= ========= ==========================================
 
 .. [#bs] CELER_PERFETTO_BUFFER_SIZE_MB
 .. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD
 .. [#pr] See :ref:`profiling`
+.. [#nf] Normally, exceeding the "maximum steps" or interrupting the stepping
+   loop will call G4Exception, which normally kills the code. (In external
+   frameworks this usually causes a stack trace and core dump.) Instead of
+   doing that, kill all the active tracks and print their state. If more tracks
+   are buffered, those will continue to transport.
 
 Some of the Celeritas-defined environment variables have prefixes from other
 libraries because they directly control the behavior of that library and

@@ -54,6 +54,15 @@ void BuildOutput::output(JsonPimpl* j) const
             cfg["CLHEP_VERSION"] = celeritas_clhep_version;
             cfg["Geant4_VERSION"] = celeritas_geant4_version;
         }
+        if constexpr (CELERITAS_USE_CUDA)
+        {
+            cfg["CUDA_VERSION"] = celeritas_cuda_version;
+            cfg["Thrust_VERSION"] = celeritas_thrust_version;
+        }
+        if constexpr (CELERITAS_USE_HIP)
+        {
+            cfg["HIP_VERSION"] = celeritas_hip_version;
+        }
         if constexpr (CELERITAS_USE_VECGEOM)
         {
             cfg["VecGeom_VERSION"] = celeritas_vecgeom_version;

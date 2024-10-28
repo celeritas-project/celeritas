@@ -32,7 +32,7 @@ struct VecgeomParamsData
     using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
 
     PlacedVolumeT const* world_volume = nullptr;
-    int max_depth = 0;
+    LevelId::size_type max_depth = 0;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const

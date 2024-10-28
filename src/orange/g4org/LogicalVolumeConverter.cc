@@ -80,8 +80,7 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
     // NOTE: this is *not* the physics material ("cut couple")
     if (auto* mat = g4lv.GetMaterial())
     {
-        result->material_id
-            = GeoMaterialId{static_cast<size_type>(mat->GetIndex())};
+        result->material_id = id_cast<GeoMaterialId>(mat->GetIndex());
     }
     else
     {

@@ -71,12 +71,12 @@ class KernelLauncher
     // Launch a kernel for a thread range
     inline void operator()(Range<ThreadId> threads,
                            StreamId stream_id,
-                           F const& call_thread) const;
+                           F const& execute_thread) const;
 
     // Launch a kernel with a custom number of threads
     inline void operator()(size_type num_threads,
                            StreamId stream_id,
-                           F const& call_thread) const;
+                           F const& execute_thread) const;
 
   private:
     KernelParamCalculator calc_launch_params_;
@@ -101,7 +101,7 @@ KernelLauncher<F>::KernelLauncher(std::string_view name)
 template<class F>
 void KernelLauncher<F>::operator()(Range<ThreadId> threads,
                                    StreamId stream_id,
-                                   F const& call_thread) const
+                                   F const& execute_thread) const
 {
     if (!threads.empty())
     {
@@ -110,7 +110,7 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
         auto config = calc_launch_params_(threads.size());
         detail::launch_action_impl<F>
             <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                threads, call_thread);
+                threads, execute_thread);
     }
 }
 
@@ -123,16 +123,16 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
  *
  * \param num_threads Total number of active consecutive threads
  * \param stream_id Execute the kernel on this device stream
- * \param call_thread Call the given functor with the thread ID
+ * \param execute_thread Call the given functor with the thread ID
  */
 template<class F>
 void KernelLauncher<F>::operator()(size_type num_threads,
                                    StreamId stream_id,
-                                   F const& call_thread) const
+                                   F const& execute_thread) const
 {
     CELER_EXPECT(num_threads > 0);
     CELER_EXPECT(stream_id);
-    (*this)(range(ThreadId{num_threads}), stream_id, call_thread);
+    (*this)(range(ThreadId{num_threads}), stream_id, execute_thread);
 }
 
 //---------------------------------------------------------------------------//

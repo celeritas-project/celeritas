@@ -47,7 +47,6 @@ class EventIOTestBase : public Test
         std::vector<double> dir;
         std::vector<double> time;
         std::vector<int> event;
-        std::vector<int> track;
 
         void print_expected() const;
     };
