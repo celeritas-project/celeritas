@@ -36,8 +36,8 @@ class BIHTraverser
 
     // Point-in-volume operation
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId operator()(Real3 const& point,
-                                                   F&& is_inside) const;
+    inline CELER_FUNCTION LocalVolumeId find_volume(Real3 const& point,
+                                                    F&& is_inside) const;
 
   private:
     //// DATA ////
@@ -101,8 +101,8 @@ BIHTraverser::BIHTraverser(BIHTree const& tree,
  * Point-in-volume operation.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHTraverser::operator()(Real3 const& point,
-                                                      F&& is_inside) const
+CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& point,
+                                                       F&& is_inside) const
 {
     BIHNodeId previous_node;
     BIHNodeId current_node{0};

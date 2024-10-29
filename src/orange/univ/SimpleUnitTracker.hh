@@ -360,9 +360,9 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 {
-    detail::BIHTraverser find_impl{unit_record_.bih_tree,
+    detail::BIHTraverser traverser{unit_record_.bih_tree,
                                    params_.bih_tree_data};
-    return find_impl(pos, predicate);
+    return traverser.find_volume(pos, predicate);
 }
 
 //---------------------------------------------------------------------------//
