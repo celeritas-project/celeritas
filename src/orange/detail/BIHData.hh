@@ -38,6 +38,7 @@ struct BIHInnerNode
     {
         real_type position;
         BIHNodeId child;
+        FastBBox bbox;
     };
 
     enum class Edge

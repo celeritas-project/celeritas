@@ -86,7 +86,8 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
     if (!indices.empty())
     {
         VecNodes nodes;
-        this->construct_tree(indices, &nodes, BIHNodeId{});
+        auto inf_bbox = FastBBox::from_infinite();
+        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -116,7 +117,8 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
  */
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
-                                BIHNodeId parent)
+                                BIHNodeId parent,
+                                FastBBox const& bbox)
 {
     using Edge = BIHInnerNode::Edge;
 
@@ -131,19 +133,33 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.parent = parent;
         node.axis = p.axis;
 
-        auto ax = to_int(p.axis);
+        // Return the current bounding box, clipped by the supplied halfspace
+        auto get_shrunk_bbox
+            = [&bbox, axis = p.axis](Bound bound, FastBBox::real_type pos) {
+                  auto out_box = bbox;
+                  out_box.shrink(bound, axis, pos);
+                  return out_box;
+              };
 
-        node.bounding_planes[Edge::left].position
-            = p.bboxes[Edge::left].upper()[ax];
-        node.bounding_planes[Edge::right].position
-            = p.bboxes[Edge::right].lower()[ax];
+        // Populate left/right bounding planes
+        auto left_pos = p.bboxes[Edge::left].upper()[to_int(p.axis)];
+        node.bounding_planes[Edge::left].position = left_pos;
+        node.bounding_planes[Edge::left].bbox
+            = get_shrunk_bbox(Bound::hi, left_pos);
+
+        auto right_pos = p.bboxes[Edge::right].lower()[to_int(p.axis)];
+        node.bounding_planes[Edge::right].position = right_pos;
+        node.bounding_planes[Edge::right].bbox
+            = get_shrunk_bbox(Bound::lo, right_pos);
 
         // Recursively construct the left and right branches
         for (auto edge : range(Edge::size_))
         {
             node.bounding_planes[edge].child = BIHNodeId(nodes->size());
-            this->construct_tree(
-                p.indices[edge], nodes, BIHNodeId(current_index));
+            this->construct_tree(p.indices[edge],
+                                 nodes,
+                                 BIHNodeId(current_index),
+                                 node.bounding_planes[edge].bbox);
         }
 
         CELER_EXPECT(node);
