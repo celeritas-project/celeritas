@@ -135,10 +135,7 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     SPConstGeo geo_;
     HostStateStore host_state_;
 
-    SPConstGeoI build_fresh_geometry(std::string_view)
-    {
-        return this->build_geometry();
-    }
+    SPConstGeoI build_fresh_geometry(std::string_view) override;
 };
 
 //---------------------------------------------------------------------------//
