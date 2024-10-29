@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
@@ -163,10 +164,11 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
     // selected to interpolate to
     if (order_ % 2 == 0)
     {
-        real_type low_dist = loge - loge_grid_[lower_idx];
-        real_type high_dist = loge_grid_[lower_idx + 1] - loge;
-        CELER_ASSERT(low_dist >= 0);
-        CELER_ASSERT(high_dist >= 0);
+        real_type low_dist = abs(loge - loge_grid_[lower_idx]);
+        real_type high_dist = abs(loge_grid_[lower_idx + 1] - loge);
+        std::cout << loge << " " << loge_grid_[lower_idx] << " "
+                  << loge_grid_[lower_idx + 1] << " " << low_dist << " "
+                  << high_dist << std::endl;
 
         // if we already clipped based on the bounding indices, don't clip
         // again
