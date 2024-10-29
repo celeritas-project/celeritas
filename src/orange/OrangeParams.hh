@@ -138,6 +138,11 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
 };
 
 //---------------------------------------------------------------------------//
+
+extern template class CollectionMirror<OrangeParamsData>;
+extern template class ParamsDataInterface<OrangeParamsData>;
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!

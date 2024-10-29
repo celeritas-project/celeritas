@@ -218,5 +218,8 @@ OrangeParams::OrangeParams(OrangeInput&& input)
  */
 OrangeParams::~OrangeParams() = default;
 
+template class CollectionMirror<OrangeParamsData>;
+template class ParamsDataInterface<OrangeParamsData>;
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
