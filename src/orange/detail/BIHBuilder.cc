@@ -120,7 +120,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
                                 BIHNodeId parent,
                                 FastBBox const& bbox)
 {
-    using Edge = BIHInnerNode::Edge;
+    using Side = BIHInnerNode::Side;
 
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
@@ -142,24 +142,22 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
               };
 
         // Populate left/right bounding planes
-        auto left_pos = p.bboxes[Edge::left].upper()[to_int(p.axis)];
-        node.bounding_planes[Edge::left].position = left_pos;
-        node.bounding_planes[Edge::left].bbox
-            = get_shrunk_bbox(Bound::hi, left_pos);
+        auto left_pos = p.bboxes[Side::left].upper()[to_int(p.axis)];
+        node.edges[Side::left].bounding_plane_pos = left_pos;
+        node.edges[Side::left].bbox = get_shrunk_bbox(Bound::hi, left_pos);
 
-        auto right_pos = p.bboxes[Edge::right].lower()[to_int(p.axis)];
-        node.bounding_planes[Edge::right].position = right_pos;
-        node.bounding_planes[Edge::right].bbox
-            = get_shrunk_bbox(Bound::lo, right_pos);
+        auto right_pos = p.bboxes[Side::right].lower()[to_int(p.axis)];
+        node.edges[Side::right].bounding_plane_pos = right_pos;
+        node.edges[Side::right].bbox = get_shrunk_bbox(Bound::lo, right_pos);
 
         // Recursively construct the left and right branches
-        for (auto edge : range(Edge::size_))
+        for (auto edge : range(Side::size_))
         {
-            node.bounding_planes[edge].child = BIHNodeId(nodes->size());
+            node.edges[edge].child = BIHNodeId(nodes->size());
             this->construct_tree(p.indices[edge],
                                  nodes,
                                  BIHNodeId(current_index),
-                                 node.bounding_planes[edge].bbox);
+                                 node.edges[edge].bbox);
         }
 
         CELER_EXPECT(node);
@@ -225,9 +223,9 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
 
     for (auto& inner_node : inner_nodes)
     {
-        for (auto& bp : inner_node.bounding_planes)
+        for (auto& edge : inner_node.edges)
         {
-            bp.child = remapped_id(bp.child);
+            edge.child = remapped_id(edge.child);
         }
         if (inner_node.parent)
         {

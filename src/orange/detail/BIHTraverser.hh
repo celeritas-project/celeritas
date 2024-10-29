@@ -54,7 +54,7 @@ class BIHTraverser
 
     // Determine if traversal shall proceed down a given edge
     inline CELER_FUNCTION bool visit_edge(BIHInnerNode const& node,
-                                          BIHInnerNode::Edge edge,
+                                          BIHInnerNode::Side side,
                                           Real3 const& point) const;
 
     // Determine if a node is inner, i.e., not a leaf
@@ -145,7 +145,7 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
                                   BIHNodeId const& previous_id,
                                   Real3 const& point) const
 {
-    using Edge = BIHInnerNode::Edge;
+    using Side = BIHInnerNode::Side;
 
     BIHNodeId next_id;
 
@@ -156,22 +156,22 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
         {
             // Visiting this inner node for the first time; go down either left
             // or right edge
-            if (this->visit_edge(current_node, Edge::left, point))
+            if (this->visit_edge(current_node, Side::left, point))
             {
-                next_id = current_node.bounding_planes[Edge::left].child;
+                next_id = current_node.edges[Side::left].child;
             }
             else
             {
-                next_id = current_node.bounding_planes[Edge::right].child;
+                next_id = current_node.edges[Side::right].child;
             }
         }
-        else if (previous_id == current_node.bounding_planes[Edge::left].child)
+        else if (previous_id == current_node.edges[Side::left].child)
         {
             // Visiting this inner node for the second time; go down right edge
             // or return to parent
-            if (this->visit_edge(current_node, Edge::right, point))
+            if (this->visit_edge(current_node, Side::right, point))
             {
-                next_id = current_node.bounding_planes[Edge::right].child;
+                next_id = current_node.edges[Side::right].child;
             }
             else
             {
@@ -181,8 +181,7 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
         else
         {
             // Visiting this inner node for the third time; return to parent
-            CELER_EXPECT(previous_id
-                         == current_node.bounding_planes[Edge::right].child);
+            CELER_EXPECT(previous_id == current_node.edges[Side::right].child);
             next_id = current_node.parent;
         }
     }
@@ -202,15 +201,15 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
  */
 CELER_FUNCTION
 bool BIHTraverser::visit_edge(BIHInnerNode const& node,
-                              BIHInnerNode::Edge edge,
+                              BIHInnerNode::Side side,
                               Real3 const& point) const
 {
-    CELER_EXPECT(edge < BIHInnerNode::Edge::size_);
+    CELER_EXPECT(side < BIHInnerNode::Side::size_);
 
-    auto pos = node.bounding_planes[edge].position;
+    auto pos = node.edges[side].bounding_plane_pos;
     auto point_pos = point[to_int(node.axis)];
 
-    return (edge == BIHInnerNode::Edge::left) ? (point_pos < pos)
+    return (side == BIHInnerNode::Side::left) ? (point_pos < pos)
                                               : (pos < point_pos);
 }
 
