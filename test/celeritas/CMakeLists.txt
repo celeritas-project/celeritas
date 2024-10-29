@@ -387,7 +387,7 @@ if(CELERITAS_USE_Geant4)
     "TestEm3*"
   )
   set(_step_filter
-    "-TestEm3*:TestMultiEm3"
+    "-TestEm3*:TestMultiEm3*"
     "TestEm3*"
     "TestMultiEm3*"
   )
