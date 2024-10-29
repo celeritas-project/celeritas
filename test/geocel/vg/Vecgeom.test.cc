@@ -149,7 +149,7 @@ TEST_F(TwoBoxesTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(2, geom.num_volumes());
+    EXPECT_EQ(2, geom.volumes().size());
 
     auto const& bbox = geom.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-500.001, -500.001, -500.001}),
@@ -512,7 +512,7 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-8, to_cm(next.distance));
+    EXPECT_SOFT_EQ(1e-13, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
@@ -525,7 +525,15 @@ TEST_F(FourLevelsTest, reentrant_boundary)
     // Travel nearly tangent to the right edge of the sphere, then scatter to
     // still outside
     next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(0.00031622777925735285, to_cm(next.distance));
+    if (vecgeom_version < Version(2))
+    {
+        EXPECT_SOFT_EQ(0.00031622777925735285, to_cm(next.distance));
+    }
+    else
+    {
+        EXPECT_SOFT_EQ(9.9737647358664937e-07, to_cm(next.distance));
+    }
+
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     geo.set_dir({1, 0, 0});
