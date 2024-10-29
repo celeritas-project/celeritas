@@ -163,8 +163,8 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
     // selected to interpolate to
     if (order_ % 2 == 0)
     {
-        real_type low_dist = abs(loge - loge_grid_[lower_idx]);
-        real_type high_dist = abs(loge_grid_[lower_idx + 1] - loge);
+        real_type low_dist = std::fabs(loge - loge_grid_[lower_idx]);
+        real_type high_dist = std::fabs(loge_grid_[lower_idx + 1] - loge);
 
         // if we already clipped based on the bounding indices, don't clip
         // again
