@@ -14,6 +14,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxIO.json.cc
+  GeoParamsInterface.cc
   GeoParamsOutput.cc
   GeoVolumeFinder.cc
   rasterize/Color.cc

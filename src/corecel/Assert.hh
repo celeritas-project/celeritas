@@ -461,6 +461,10 @@ class DebugError : public std::logic_error
   public:
     // Construct from debug attributes
     explicit DebugError(DebugErrorDetails&&);
+    CELER_DEFAULT_COPY_MOVE(DebugError);
+
+    // Default destructor to anchor vtable
+    ~DebugError();
 
     //! Access the debug data
     DebugErrorDetails const& details() const { return details_; }
@@ -478,6 +482,10 @@ class RuntimeError : public std::runtime_error
   public:
     // Construct from details
     explicit RuntimeError(RuntimeErrorDetails&&);
+    CELER_DEFAULT_COPY_MOVE(RuntimeError);
+
+    // Default destructor to anchor vtable
+    ~RuntimeError();
 
     //! Access detailed information
     RuntimeErrorDetails const& details() const { return details_; }

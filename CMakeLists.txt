@@ -631,7 +631,9 @@ elseif(CELERITAS_USE_HIP)
   set(_celer_other_cmake_variables CMAKE_HIP_ARCHITECTURES)
 endif()
 foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES _celer_other_cmake_variables)
-  list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
+  # Value of _key may be ;-separated list, so we need to escape the ; if present
+  string(REPLACE ";" "\;" _key_val "${${_key}}")
+  list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${_key_val}\")")
 endforeach()
 
 # Add hints for direct dependencies and indirect geant dependencies

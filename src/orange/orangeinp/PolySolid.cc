@@ -163,6 +163,10 @@ PolySolidBase::PolySolidBase(std::string&& label,
 }
 
 //---------------------------------------------------------------------------//
+//! Anchored default virtual destructor
+PolySolidBase::~PolySolidBase() = default;
+
+//---------------------------------------------------------------------------//
 /*!
  * Return a polycone *or* a simplified version for only a single segment.
  */
