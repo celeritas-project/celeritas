@@ -18,12 +18,14 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
 template<class T>
 using StateRef
-    = celeritas::StateCollection<T, Ownership::reference, MemSpace::host>;
+    = celeritas::StateCollection<T, Ownership::reference, MemSpace::native>;
 
 template<class T>
-using ItemRef = celeritas::Collection<T, Ownership::reference, MemSpace::host>;
+using ItemRef
+    = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
 
 using DetectorRef = StateRef<DetectorId>;
 

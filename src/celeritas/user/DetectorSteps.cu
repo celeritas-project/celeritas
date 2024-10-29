@@ -13,7 +13,9 @@
 #include <thrust/iterator/counting_iterator.h>
 
 #include "corecel/data/Copier.hh"
+#include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
@@ -28,32 +30,13 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-// KERNEL INTERFACE
-//---------------------------------------------------------------------------//
-/*!
- * Gather results from active tracks that are in a detector.
- */
-void gather_step_scratch(DeviceRef<StepStateData> const& state,
-                         size_type num_valid)
-{
-    if (num_valid == 0)
-    {
-        // No valid tracks
-        return;
-    }
-
-    auto execute_thread = StepScratchCopyExecutor{state, num_valid};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "gather-step-scratch");
-    launch_kernel(num_threads, state.stream_id, execute_thread);
-}
-
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
 template<class T>
 using StateRef
-    = celeritas::StateCollection<T, Ownership::reference, MemSpace::device>;
+    = celeritas::StateCollection<T, Ownership::reference, MemSpace::native>;
+
+template<class T>
+using ItemRef
+    = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 struct HasDetector
@@ -65,8 +48,23 @@ struct HasDetector
 };
 
 //---------------------------------------------------------------------------//
+size_type count_num_valid(
+    StepStateData<Ownership::reference, MemSpace::device> const& state)
+{
+    // Store the thread IDs of active tracks that are in a detector
+    auto start = device_pointer_cast(state.valid_id.data());
+    auto end = thrust::copy_if(thrust_execute_on(state.stream_id),
+                               thrust::make_counting_iterator(size_type(0)),
+                               thrust::make_counting_iterator(state.size()),
+                               device_pointer_cast(state.data.detector.data()),
+                               start,
+                               HasDetector{});
+    return end - start;
+}
+
+//---------------------------------------------------------------------------//
 template<class T>
-void copy_field(DetectorStepOutput::vector<T>* dst,
+void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 StateRef<T> const& src,
                 size_type num_valid,
                 StreamId stream)
@@ -85,22 +83,24 @@ void copy_field(DetectorStepOutput::vector<T>* dst,
 
 //---------------------------------------------------------------------------//
 template<class T>
-void copy_field(DetectorStepOutput::vector<T>* dst,
+void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 ItemRef<T> const& src,
                 size_type num_valid,
                 size_type per_thread,
                 StreamId stream)
 {
+    CELER_EXPECT(per_thread > 0 || src.empty());
     if (src.empty() || num_valid == 0)
     {
         // This attribute is not in use
         dst->clear();
         return;
     }
-    dst->resize(num_valid);
+    dst->resize(num_valid * per_thread);
     // Copy all items from valid threads
-    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}, stream};
-    copy(MemSpace::device, {src.data().get(), num_valid});
+    Copier<T, MemSpace::host> copy{{dst->data(), num_valid * per_thread},
+                                   stream};
+    copy(MemSpace::device, {src.data().get(), num_valid * per_thread});
 }
 
 //---------------------------------------------------------------------------//
@@ -119,21 +119,16 @@ void copy_steps<MemSpace::device>(
 
     ScopedProfiling profile_this{"copy-steps"};
 
-    // Store the thread IDs of active tracks that are in a detector
-    auto start = thrust::device_pointer_cast(state.valid_id.data().get());
-    auto end = thrust::copy_if(
-        thrust_execute_on(state.stream_id),
-        thrust::make_counting_iterator(size_type(0)),
-        thrust::make_counting_iterator(state.size()),
-        thrust::device_pointer_cast(state.data.detector.data().get()),
-        start,
-        HasDetector{});
-
     // Get the number of threads that are active and in a detector
-    size_type num_valid = end - start;
+    size_type const num_valid = count_num_valid(state);
 
     // Gather the step data on device
-    gather_step_scratch(state, num_valid);
+    {
+        auto execute_thread = detail::StepScratchCopyExecutor{state, num_valid};
+        static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+            "gather-step-scratch");
+        launch_kernel(num_valid, state.stream_id, execute_thread);
+    }
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
@@ -150,8 +145,11 @@ void copy_steps<MemSpace::device>(
         DS_ASSIGN(points[sp].dir);
         DS_ASSIGN(points[sp].energy);
 
-        copy_field(
-            &(output->FIELD), state.scratch.FIELD, num_valid, state.stream_id);
+        copy_field(&(output->points[sp].volume_instance_ids),
+                   state.scratch.points[sp].volume_instance_ids,
+                   num_valid,
+                   state.volume_instance_depth,
+                   state.stream_id);
     }
 
     DS_ASSIGN(event_id);

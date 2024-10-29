@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
@@ -172,7 +173,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
             }
 
             // Fill remaining levels with empty instance IDs
-            for (auto level : range(depth, dst.size()))
+            for (auto level : range<size_type>(depth, dst.size()))
             {
                 dst[level] = {};
             }

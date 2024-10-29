@@ -372,7 +372,7 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TestMultiEm3InstanceCaloTest, step)
+TEST_F(TestMultiEm3InstanceCaloTest, step_host)
 {
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
@@ -468,7 +468,7 @@ TEST_F(TestMultiEm3InstanceCaloTest, step)
     }
 }
 
-TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step))
+TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
