@@ -43,6 +43,9 @@ class ObjectInterface
     //!@}
 
   public:
+    // Anchored default destructor
+    virtual ~ObjectInterface() = 0;
+
     //! Short unique name of this object
     virtual std::string_view label() const = 0;
 
@@ -56,7 +59,6 @@ class ObjectInterface
     //!@{
     //! Allow construction and assignment only through daughter classes
     ObjectInterface() = default;
-    virtual ~ObjectInterface() = default;
     CELER_DEFAULT_COPY_MOVE(ObjectInterface);
     //!@}
 };
