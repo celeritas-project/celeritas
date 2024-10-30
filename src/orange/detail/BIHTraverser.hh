@@ -36,7 +36,7 @@ class BIHTraverser
 
     // Point-in-volume operation
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId find_volume(Real3 const& point,
+    inline CELER_FUNCTION LocalVolumeId find_volume(Real3 const& pos,
                                                     F&& is_inside) const;
 
   private:
@@ -50,12 +50,12 @@ class BIHTraverser
     // Get the ID of the next node in the traversal sequence
     inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId const& current_id,
                                               BIHNodeId const& previous_id,
-                                              Real3 const& point) const;
+                                              Real3 const& pos) const;
 
     // Determine if traversal shall proceed down a given edge
     inline CELER_FUNCTION bool visit_edge(BIHInnerNode const& node,
                                           BIHInnerNode::Side side,
-                                          Real3 const& point) const;
+                                          Real3 const& pos) const;
 
     // Determine if a node is inner, i.e., not a leaf
     inline CELER_FUNCTION bool is_inner(BIHNodeId id) const;
@@ -70,7 +70,7 @@ class BIHTraverser
     // Determine if any leaf node volumes contain the point
     template<class F>
     inline CELER_FUNCTION LocalVolumeId visit_leaf(BIHLeafNode const& leaf_node,
-                                                   Real3 const& point,
+                                                   Real3 const& pos,
                                                    F&& is_inside) const;
 
     // Determine if any inf_vols contain the point
@@ -79,7 +79,7 @@ class BIHTraverser
 
     // Determine if a single bbox contains the point
     inline CELER_FUNCTION bool
-    visit_bbox(LocalVolumeId const& id, Real3 const& point) const;
+    visit_bbox(LocalVolumeId const& id, Real3 const& pos) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -101,7 +101,7 @@ BIHTraverser::BIHTraverser(BIHTree const& tree,
  * Point-in-volume operation.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& point,
+CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& pos,
                                                        F&& is_inside) const
 {
     BIHNodeId previous_node;
@@ -113,7 +113,7 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& point,
         if (!this->is_inner(current_node))
         {
             id = this->visit_leaf(
-                this->get_leaf_node(current_node), point, is_inside);
+                this->get_leaf_node(current_node), pos, is_inside);
 
             if (id)
             {
@@ -122,7 +122,7 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& point,
         }
 
         previous_node = exchange(
-            current_node, this->next_node(current_node, previous_node, point));
+            current_node, this->next_node(current_node, previous_node, pos));
 
     } while (current_node);
 
@@ -143,7 +143,7 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& point,
 CELER_FUNCTION
 BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
                                   BIHNodeId const& previous_id,
-                                  Real3 const& point) const
+                                  Real3 const& pos) const
 {
     using Side = BIHInnerNode::Side;
 
@@ -156,7 +156,7 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
         {
             // Visiting this inner node for the first time; go down either left
             // or right edge
-            if (this->visit_edge(current_node, Side::left, point))
+            if (this->visit_edge(current_node, Side::left, pos))
             {
                 next_id = current_node.edges[Side::left].child;
             }
@@ -169,7 +169,7 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
         {
             // Visiting this inner node for the second time; go down right edge
             // or return to parent
-            if (this->visit_edge(current_node, Side::right, point))
+            if (this->visit_edge(current_node, Side::right, pos))
             {
                 next_id = current_node.edges[Side::right].child;
             }
@@ -202,15 +202,14 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
 CELER_FUNCTION
 bool BIHTraverser::visit_edge(BIHInnerNode const& node,
                               BIHInnerNode::Side side,
-                              Real3 const& point) const
+                              Real3 const& pos) const
 {
     CELER_EXPECT(side < BIHInnerNode::Side::size_);
 
-    auto pos = node.edges[side].bounding_plane_pos;
-    auto point_pos = point[to_int(node.axis)];
+    auto bp_pos = node.edges[side].bounding_plane_pos;
+    auto p = pos[to_int(node.axis)];
 
-    return (side == BIHInnerNode::Side::left) ? (point_pos < pos)
-                                              : (pos < point_pos);
+    return (side == BIHInnerNode::Side::left) ? (p < bp_pos) : (bp_pos < p);
 }
 
 //---------------------------------------------------------------------------//
@@ -252,12 +251,12 @@ BIHLeafNode const& BIHTraverser::get_leaf_node(BIHNodeId id) const
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId BIHTraverser::visit_leaf(
-    BIHLeafNode const& leaf_node, Real3 const& point, F&& is_inside) const
+    BIHLeafNode const& leaf_node, Real3 const& pos, F&& is_inside) const
 {
     for (auto i : range(leaf_node.vol_ids.size()))
     {
         auto id = storage_.local_volume_ids[leaf_node.vol_ids[i]];
-        if (this->visit_bbox(id, point) && is_inside(id))
+        if (this->visit_bbox(id, pos) && is_inside(id))
         {
             return id;
         }
