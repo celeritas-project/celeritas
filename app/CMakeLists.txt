@@ -5,24 +5,6 @@
 #-----------------------------------------------------------------------------#
 
 if(BUILD_TESTING)
-  # Set environment variables from Geant4-exported configuration
-  if(NOT DEFINED CELER_G4ENV)
-    set(_CELER_G4ENV)
-    foreach(_ds IN LISTS Geant4_DATASETS)
-      if(NOT DEFINED ENV{${Geant4_DATASET_${_ds}_ENVVAR}})
-        list(APPEND _CELER_G4ENV
-           "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
-        )
-      else()
-        message(STATUS "For apps value for ${Geant4_DATASET_${_ds}_ENVVAR} taken from the environment rather than the Geant4 cmake fragment")
-        list(APPEND _CELER_G4ENV
-           "${Geant4_DATASET_${_ds}_ENVVAR}=$ENV{${Geant4_DATASET_${_ds}_ENVVAR}}}"
-        )
-      endif()
-    endforeach()
-    set(CELER_G4ENV "${_CELER_G4ENV}" CACHE INTERNAL "Environment variables used to run the Geant4 apps")
-  endif()
-
   if(CELERITAS_USE_Python)
     set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
     set(CELER_NEEDS_PYTHON)
