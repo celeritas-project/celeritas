@@ -12,11 +12,10 @@
 
 namespace celeritas
 {
-struct ImportOpticalRayleigh;
-struct ImportOpticalProperty;
-
 namespace optical
 {
+class MaterialParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical Rayleigh scattering model interaction.
@@ -27,17 +26,14 @@ class RayleighModel : public Model
     //!@{
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedModels const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     //!@}
-
-    struct Input
-    {
-        std::vector<ImportOpticalProperty> properties;
-        std::vector<ImportOpticalRayleigh> rayleigh;
-    };
 
   public:
     // Construct with imported data
-    RayleighModel(ActionId id, SPConstImported imported, Input input);
+    RayleighModel(ActionId id,
+                  SPConstImported imported,
+                  SPConstMaterials materials);
 
     // Build the mean free paths for this model
     void build_mfps(OpticalMaterialId, MfpBuilder&) const final;
@@ -50,8 +46,7 @@ class RayleighModel : public Model
 
   private:
     ImportedModelAdapter imported_;
-    std::vector<ImportOpticalProperty> properties_;
-    std::vector<ImportOpticalRayleigh> rayleigh_;
+    SPConstMaterials materials_;
 };
 
 //---------------------------------------------------------------------------//

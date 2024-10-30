@@ -24,7 +24,6 @@ class GeoMaterialParams;
 
 namespace optical
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Manage properties for optical materials.
@@ -53,6 +52,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         std::vector<ImportOpticalProperty> properties;
         //! Map logical volume ID to optical material ID
         std::vector<OpticalMaterialId> volume_to_mat;
+        //! Material data for Rayleigh MFPs, indexed by \c OpticalMaterialId
+        std::vector<OpticalRayleighMaterial> rayleigh;
     };
 
   public:
@@ -65,11 +66,12 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // Construct with optical property data
     explicit MaterialParams(Input const& inp);
 
-    //! Number of optical materials
-    OpticalMaterialId::size_type num_materials() const
-    {
-        return this->host_ref().refractive_index.size();
-    }
+    // Number of optical materials
+    inline OpticalMaterialId::size_type num_materials() const;
+
+    // Get Rayleigh material data
+    inline OpticalRayleighMaterial const&
+    rayleigh_material(OpticalMaterialId mat) const;
 
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -79,7 +81,31 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
   private:
     CollectionMirror<MaterialParamsData> data_;
+
+    std::vector<OpticalRayleighMaterial> rayleigh_materials_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Number of optical materials.
+ */
+OpticalMaterialId::size_type MaterialParams::num_materials() const
+{
+    return this->host_ref().refractive_index.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get Rayleigh material data used to construct MFPs.
+ */
+OpticalRayleighMaterial const&
+MaterialParams::rayleigh_material(OpticalMaterialId mat) const
+{
+    CELER_EXPECT(mat < rayleigh_materials_.size());
+    return rayleigh_materials_[mat.get()];
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

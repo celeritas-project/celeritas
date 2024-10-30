@@ -46,38 +46,12 @@ class RayleighModelTest : public MockImportedData
   protected:
     void SetUp() override {}
 
-    //! Construct Rayleigh model from mock data
-    std::shared_ptr<RayleighModel const> create_model()
+    //! Create Rayleigh model from mock data
+    std::shared_ptr<RayleighModel const> create_model(SPConstImported models)
     {
-        auto models = MockImportedData::create_imported_models();
-
         import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
-
         return std::make_shared<RayleighModel const>(
-            ActionId{0}, models, this->create_input());
-    }
-
-    //! Construct Rayleigh model with only mock material data
-    std::shared_ptr<RayleighModel const> create_empty_model()
-    {
-        auto models = MockImportedData::create_empty_imported_models();
-
-        import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
-
-        return std::make_shared<RayleighModel const>(
-            ActionId{0}, models, this->create_input());
-    }
-
-    //! Create mock input for Rayleigh model
-    RayleighModel::Input create_input() const
-    {
-        RayleighModel::Input input;
-        for (auto const& material : this->import_materials())
-        {
-            input.properties.push_back(material.properties);
-            input.rayleigh.push_back(material.rayleigh);
-        }
-        return input;
+            ActionId{0}, models, this->optical_materials());
     }
 
     ImportedModels::ImportedModelId import_model_id_;
@@ -171,7 +145,7 @@ TEST_F(RayleighInteractorTest, stress_test)
 // Check model name and description are properly initialized
 TEST_F(RayleighModelTest, description)
 {
-    auto model = create_model();
+    auto model = create_model(this->create_imported_models());
 
     EXPECT_EQ(ActionId{0}, model->action_id());
     EXPECT_EQ("optical-rayleigh", model->label());
@@ -182,7 +156,7 @@ TEST_F(RayleighModelTest, description)
 // Check Rayleigh model MFP tables match imported ones
 TEST_F(RayleighModelTest, interaction_mfp)
 {
-    auto model = create_model();
+    auto model = create_model(this->create_imported_models());
     auto builder = this->create_mfp_builder();
 
     for (auto mat : range(OpticalMaterialId(import_materials().size())))
@@ -219,7 +193,7 @@ TEST_F(RayleighModelTest, material_mfp)
         = detail::convert_vector_units<detail::ElectronVolt, units::Centimeter>(
             expected_energies, expected_mfps);
 
-    auto model = create_empty_model();
+    auto model = create_model(this->create_empty_imported_models());
     auto builder = this->create_mfp_builder();
 
     for (auto mat : range(OpticalMaterialId(import_materials().size())))
