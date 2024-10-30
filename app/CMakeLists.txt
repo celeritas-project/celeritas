@@ -15,6 +15,9 @@ if(BUILD_TESTING)
         )
       else()
         message(STATUS "For apps value for ${Geant4_DATASET_${_ds}_ENVVAR} taken from the environment rather than the Geant4 cmake fragment")
+        list(APPEND _CELER_G4ENV
+           "${Geant4_DATASET_${_ds}_ENVVAR}=$ENV{${Geant4_DATASET_${_ds}_ENVVAR}}}"
+        )
       endif()
     endforeach()
     set(CELER_G4ENV "${_CELER_G4ENV}" CACHE INTERNAL "Environment variables used to run the Geant4 apps")
