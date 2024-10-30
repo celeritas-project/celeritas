@@ -22,6 +22,88 @@ namespace detail
  *
  * \todo move to top-level orange directory out of detail namespace
  */
+class BIHTraverserImpl
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using Storage = NativeCRef<BIHTreeData>;
+    //!@}
+
+    // Construct from vector of bounding boxes and storage for LocalVolumeIds
+    inline CELER_FUNCTION
+    BIHTraverserImpl(BIHTree const& tree, Storage const& storage);
+
+    // Determine if a node is inner, i.e., not a leaf
+    inline CELER_FUNCTION bool is_inner(BIHNodeId id) const;
+
+    // Get an inner node for a given BIHNodeId
+    inline CELER_FUNCTION BIHInnerNode const&
+    get_inner_node(BIHNodeId id) const;
+
+    // Get a leaf node for a given BIHNodeId
+    inline CELER_FUNCTION BIHLeafNode const& get_leaf_node(BIHNodeId id) const;
+
+  private:
+    //// DATA ////
+    BIHTree const& tree_;
+    Storage const& storage_;
+    size_type leaf_offset_;
+};
+
+//---------------------------------------------------------------------------//
+// IMPL functions
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from vector of bounding boxes and storage.
+ */
+CELER_FUNCTION
+BIHTraverserImpl::BIHTraverserImpl(BIHTree const& tree,
+                                   BIHTraverserImpl::Storage const& storage)
+    : tree_(tree), storage_(storage), leaf_offset_(tree.inner_nodes.size())
+{
+    CELER_EXPECT(tree);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Determine if a node is inner, i.e., not a leaf.
+ */
+CELER_FUNCTION
+bool BIHTraverserImpl::is_inner(BIHNodeId id) const
+{
+    return id.unchecked_get() < leaf_offset_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get an inner node for a given BIHNodeId.
+ */
+CELER_FUNCTION
+BIHInnerNode const& BIHTraverserImpl::get_inner_node(BIHNodeId id) const
+{
+    CELER_EXPECT(this->is_inner(id));
+    return storage_.inner_nodes[tree_.inner_nodes[id.unchecked_get()]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get a leaf node for a given BIHNodeId.
+ */
+CELER_FUNCTION
+BIHLeafNode const& BIHTraverserImpl::get_leaf_node(BIHNodeId id) const
+{
+    CELER_EXPECT(!this->is_inner(id));
+    return storage_
+        .leaf_nodes[tree_.leaf_nodes[id.unchecked_get() - leaf_offset_]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Traverse BIH tree using a depth-first search.
+ *
+ * \todo move to top-level orange directory out of detail namespace
+ */
 class BIHTraverser
 {
   public:
@@ -43,7 +125,7 @@ class BIHTraverser
     //// DATA ////
     BIHTree const& tree_;
     Storage const& storage_;
-    size_type leaf_offset_;
+    BIHTraverserImpl impl_;
 
     //// HELPER FUNCTIONS ////
 
@@ -56,16 +138,6 @@ class BIHTraverser
     inline CELER_FUNCTION bool visit_edge(BIHInnerNode const& node,
                                           BIHInnerNode::Side side,
                                           Real3 const& pos) const;
-
-    // Determine if a node is inner, i.e., not a leaf
-    inline CELER_FUNCTION bool is_inner(BIHNodeId id) const;
-
-    // Get an inner node for a given BIHNodeId
-    inline CELER_FUNCTION BIHInnerNode const&
-    get_inner_node(BIHNodeId id) const;
-
-    // Get a leaf node for a given BIHNodeId
-    inline CELER_FUNCTION BIHLeafNode const& get_leaf_node(BIHNodeId id) const;
 
     // Determine if any leaf node volumes contain the point
     template<class F>
@@ -91,7 +163,7 @@ class BIHTraverser
 CELER_FUNCTION
 BIHTraverser::BIHTraverser(BIHTree const& tree,
                            BIHTraverser::Storage const& storage)
-    : tree_(tree), storage_(storage), leaf_offset_(tree.inner_nodes.size())
+    : tree_(tree), storage_(storage), impl_(tree, storage)
 {
     CELER_EXPECT(tree);
 }
@@ -110,10 +182,10 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& pos,
 
     do
     {
-        if (!this->is_inner(current_node))
+        if (!impl_.is_inner(current_node))
         {
             id = this->visit_leaf(
-                this->get_leaf_node(current_node), pos, is_inside);
+                impl_.get_leaf_node(current_node), pos, is_inside);
 
             if (id)
             {
@@ -149,9 +221,9 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
 
     BIHNodeId next_id;
 
-    if (this->is_inner(current_id))
+    if (impl_.is_inner(current_id))
     {
-        auto const& current_node = this->get_inner_node(current_id);
+        auto const& current_node = impl_.get_inner_node(current_id);
         if (previous_id == current_node.parent)
         {
             // Visiting this inner node for the first time; go down either left
@@ -188,7 +260,7 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
     else
     {
         // Leaf node; return to parent
-        CELER_EXPECT(previous_id == this->get_leaf_node(current_id).parent);
+        CELER_EXPECT(previous_id == impl_.get_leaf_node(current_id).parent);
         next_id = previous_id;
     }
 
@@ -210,39 +282,6 @@ bool BIHTraverser::visit_edge(BIHInnerNode const& node,
     auto p = pos[to_int(node.axis)];
 
     return (side == BIHInnerNode::Side::left) ? (p < bp_pos) : (bp_pos < p);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- *  Determine if a node is inner, i.e., not a leaf.
- */
-CELER_FUNCTION
-bool BIHTraverser::is_inner(BIHNodeId id) const
-{
-    return id.unchecked_get() < leaf_offset_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- *  Get an inner node for a given BIHNodeId.
- */
-CELER_FUNCTION
-BIHInnerNode const& BIHTraverser::get_inner_node(BIHNodeId id) const
-{
-    CELER_EXPECT(this->is_inner(id));
-    return storage_.inner_nodes[tree_.inner_nodes[id.unchecked_get()]];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- *  Get a leaf node for a given BIHNodeId.
- */
-CELER_FUNCTION
-BIHLeafNode const& BIHTraverser::get_leaf_node(BIHNodeId id) const
-{
-    CELER_EXPECT(!this->is_inner(id));
-    return storage_
-        .leaf_nodes[tree_.leaf_nodes[id.unchecked_get() - leaf_offset_]];
 }
 
 //---------------------------------------------------------------------------//
