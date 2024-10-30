@@ -146,6 +146,8 @@ class CerenkovTest : public ::celeritas::test::OpticalTestBase
         MaterialParams::Input input;
         input.properties.push_back(std::move(water));
         input.volume_to_mat = {OpticalMaterialId{0}};
+        input.rayleigh
+            = std::vector<OpticalRayleighMaterial>(input.properties.size());
         material = std::make_shared<MaterialParams>(std::move(input));
 
         // Build Cerenkov data
