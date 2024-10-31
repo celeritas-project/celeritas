@@ -10,9 +10,14 @@
 #include <string>
 #include <utility>
 
-#include "LoggerTypes.hh"
+#include "corecel/Config.hh"
 
-#include "detail/LoggerMessage.hh"  // IWYU pragma: export
+#include "LoggerTypes.hh"
+#if CELER_DEVICE_COMPILE
+#    include "detail/NullLoggerMessage.hh"  // IWYU pragma: export
+#else
+#    include "detail/LoggerMessage.hh"  // IWYU pragma: export
+#endif
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -44,16 +49,23 @@
     ::celeritas::world_logger()(CELER_CODE_PROVENANCE, \
                                 ::celeritas::LogLevel::LEVEL)
 
-//---------------------------------------------------------------------------//
 /*!
  * \def CELER_LOG_LOCAL
  *
  * Like \c CELER_LOG but for code paths that may only happen on a single
- * process. Use sparingly.
+ * process or thread. Use sparingly.
  */
 #define CELER_LOG_LOCAL(LEVEL)                        \
     ::celeritas::self_logger()(CELER_CODE_PROVENANCE, \
                                ::celeritas::LogLevel::LEVEL)
+
+// Allow CELER_LOG to be present (but ignored) in device code
+#if CELER_DEVICE_COMPILE
+#    undef CELER_LOG
+#    define CELER_LOG(LEVEL) ::celeritas::NullLoggerMessage()
+#    undef CELER_LOG_LOCAL
+#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::NullLoggerMessage()
+#endif
 
 namespace celeritas
 {

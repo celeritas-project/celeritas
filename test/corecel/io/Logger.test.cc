@@ -11,6 +11,7 @@
 #include <thread>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/detail/NullLoggerMessage.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -20,8 +21,22 @@
 
 namespace celeritas
 {
+namespace detail
+{
 namespace test
 {
+TEST(NullLoggerMessage, all)
+{
+    NullLoggerMessage() << "This should not print anything " << range(10)
+                        << std::setw(5) << 123;
+}
+
+}  // namespace test
+}  // namespace detail
+
+namespace test
+{
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
