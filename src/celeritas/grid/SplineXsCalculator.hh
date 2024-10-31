@@ -97,7 +97,7 @@ SplineXsCalculator::SplineXsCalculator(XsGridData const& grid,
     CELER_EXPECT(data_);
     CELER_ASSERT(grid.value.size() == data_.log_energy.size);
 
-    // order of interpolation must be smaller than the grid size for effective
+    // Order of interpolation must be smaller than the grid size for effective
     // spline interpolation. Max order is set to be clipped at minimum and
     // maximum energy indices so this may be unnecessary
     CELER_ASSERT(order < grid.value.size());
@@ -137,7 +137,7 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
     size_type lower_idx = loge_grid_.find(loge);
     CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
 
-    // number of grid indexs away from the specified energy that need to be
+    // Number of grid indexs away from the specified energy that need to be
     // checked in both directions
     size_type order_steps = order_ / 2 + 1;
 
@@ -159,14 +159,14 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
     size_type true_high_idx
         = min(lower_idx + order_steps + 1, loge_grid_.size());
 
-    // if the requested interpolation order is even, a direction must be
+    // If the requested interpolation order is even, a direction must be
     // selected to interpolate to
     if (order_ % 2 == 0)
     {
         real_type low_dist = std::fabs(loge - loge_grid_[lower_idx]);
         real_type high_dist = std::fabs(loge_grid_[lower_idx + 1] - loge);
 
-        // if we already clipped based on the bounding indices, don't clip
+        // If we already clipped based on the bounding indices, don't clip
         // again
         if (true_high_idx - true_low_idx > order_ + 1)
         {
@@ -230,7 +230,7 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(
         // Inner loop over indices for determining the weight
         for (size_type inner_idx = low_idx; inner_idx < high_idx; ++inner_idx)
         {
-            // don't contribute for inner and outer index the same
+            // Don't contribute for inner and outer index the same
             if (inner_idx != outer_idx)
             {
                 real_type inner_e = std::exp(loge_grid_[inner_idx]);
