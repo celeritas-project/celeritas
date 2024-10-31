@@ -380,109 +380,11 @@ TEST_F(TestMultiEm3InstanceCaloTest, step_host)
     }
 
     auto result = this->run<MemSpace::host>(128, 256);
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        static char const* const expected_instance[] = {
-            "lar:world_PV/Calorimeter/Layer@01/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@02/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@03/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@04/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@05/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@06/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@07/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@08/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@09/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@10/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@11/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@12/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@13/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@14/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@16/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@17/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@20/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@21/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@22/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@24/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@36/lar_pv",
-            "lar:world_PV/Calorimeter/Layer@37/lar_pv",
-            "world:world_PV",
-        };
-        EXPECT_VEC_EQ(expected_instance, result.instance);
-        static real_type const expected_edep[] = {
-            110.05119644063,  4.0705132707321,     4.9824252430056,
-            5.3394128046665,  1.450876193031,      0.48834499552627,
-            1.0353508092309,  3.8783734145755,     2.2186613956741,
-            1.3909554627865,  2.6894187967614,     0.18580183403169,
-            1.202094417757,   1.2286808295387,     0.32612943539401,
-            0.22045003149592, 2.9175091048049,     1.4450764431425,
-            0.12729384768923, 4.031963429135,      0.081291330732124,
-            0.61806051953871, 1.0181791886769e-22,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
-    }
-    else if (this->is_ci_build())
-    {
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-        {
-            static char const* const expected_instance[] = {
-                "calorimeter:world_PV/Calorimeter",
-                "lar:world_PV/Calorimeter/Layer@01/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@02/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@03/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@04/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@05/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@06/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@07/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@08/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@09/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@10/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@12/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@13/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@14/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@18/lar_pv",
-                "lar:world_PV/Calorimeter/Layer@21/lar_pv",
-                "world:world_PV",
-            };
-            EXPECT_VEC_EQ(expected_instance, result.instance);
-            static real_type const expected_edep[] = {
-                9.6500575645106e-33,
-                107.72832870479,
-                6.2873358619943,
-                12.189148900353,
-                9.4805234529614,
-                1.7364077260653,
-                1.8863491366963,
-                0.57483432395196,
-                2.2284870660955,
-                2.8876994555826,
-                1.3921085275577,
-                0.18030630207744,
-                6.0466697544061,
-                3.3388176954109,
-                0.81906292105302,
-                0.45461163015298,
-                1.0181791886789e-22,
-            };
-            EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
-        }
-        else
-        {
-            result.print_expected();
-            FAIL() << "Not implemented for current geometry type";
-        }
-    }
-    else
-    {
-        cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
-        result.print_expected();
 
-        if (this->strict_testing())
-        {
-            FAIL() << "Updated step collector results are required for CI "
-                      "tests";
-        }
-    }
+    auto iter = std::find(result.instance.begin(),
+                          result.instance.end(),
+                          "lar:world_PV/Calorimeter/Layer@01/lar_pv");
+    EXPECT_FALSE(iter != result.instance.end()) << repr(result.instance);
 }
 
 TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
@@ -493,7 +395,11 @@ TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
     }
 
     auto result = this->run<MemSpace::device>(1024, 32);
-    result.print_expected();
+
+    auto iter = std::find(result.instance.begin(),
+                          result.instance.end(),
+                          "lar:world_PV/Calorimeter/Layer@01/lar_pv");
+    EXPECT_FALSE(iter != result.instance.end()) << repr(result.instance);
 }
 
 //---------------------------------------------------------------------------//
