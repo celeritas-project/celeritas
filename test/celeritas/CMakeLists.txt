@@ -21,9 +21,11 @@ endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
+  set(_g4_geo_libs)
 else()
   set(_optional_geant4_env ENVIRONMENT "${CELERITASTEST_G4ENV}")
   set(_needs_geant4 ${_optional_geant4_env})
+  celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -77,6 +79,7 @@ celeritas_add_test_library(testcel_celeritas
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
   neutron/NeutronTestBase.cc
+  optical/MockImportedData.cc
   optical/OpticalTestBase.cc
   optical/InteractorHostTestBase.cc
   phys/InteractionIO.cc
@@ -86,6 +89,7 @@ celeritas_add_test_library(testcel_celeritas
   phys/SecondaryIO.cc
   user/CaloTestBase.cc
   user/DiagnosticTestBase.cc
+  user/ExampleInstanceCalo.cc
   user/ExampleMctruth.cc
   user/MctruthTestBase.cc
   user/SimpleLoopTestBase.cc
@@ -96,7 +100,7 @@ celeritas_target_link_libraries(testcel_celeritas
     testcel_harness Celeritas::celeritas
   PRIVATE
     testcel_core testcel_orange testcel_geocel
-    nlohmann_json::nlohmann_json
+    nlohmann_json::nlohmann_json ${_g4_geo_libs}
 )
 
 #-----------------------------------------------------------------------------#
@@ -299,6 +303,9 @@ celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
+celeritas_add_test(optical/ImportedModelAdapter.test.cc)
+celeritas_add_test(optical/MfpBuilder.test.cc)
+celeritas_add_test(optical/MockValidation.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -380,8 +387,14 @@ if(CELERITAS_USE_Geant4)
     "-TestEm3*"
     "TestEm3*"
   )
+  set(_step_filter
+    "-TestEm3*:TestMultiEm3*"
+    "TestEm3*"
+    "TestMultiEm3*"
+  )
 else()
   set(_diagnostic_filter)
+  set(_step_filter)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   # EM track gets stuck
@@ -399,6 +412,7 @@ celeritas_add_test(user/SlotDiagnostic.test.cc
 )
 celeritas_add_test(user/StepCollector.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fixme_single}
+  FILTER ${_step_filter}
 )
 
 #-----------------------------------------------------------------------------#

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/OpaqueId.hh"
+#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GenericGeoTestBase.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTraits.hh"
@@ -20,6 +21,13 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using OrangeTestBase = GenericGeoTestBase<OrangeParams>;
+
+extern template class CheckedGeoTrackView<OrangeTrackView>;
+extern template class GenericGeoTestBase<OrangeParams>;
+
+//---------------------------------------------------------------------------//
+extern template class CheckedGeoTrackView<OrangeTrackView>;
+extern template class GenericGeoTestBase<OrangeParams>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test

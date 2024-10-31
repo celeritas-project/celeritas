@@ -174,9 +174,9 @@ OrangeParams::OrangeParams(OrangeInput&& input)
             std::visit(insert_universe, std::move(u));
         }
 
-        univ_labels_ = LabelIdMultiMap<UniverseId>{std::move(universe_labels)};
-        surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(surface_labels)};
-        vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
+        surf_labels_ = SurfaceMap{"surface", std::move(surface_labels)};
+        univ_labels_ = UniverseMap{"universe", std::move(universe_labels)};
+        vol_labels_ = VolumeMap{"volume", std::move(volume_labels)};
     }
 
     // Simple safety if all SimpleUnits have simple safety and no RectArrays
@@ -202,6 +202,7 @@ OrangeParams::OrangeParams(OrangeInput&& input)
     CELER_ASSERT(host_data);
     data_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
 
+    CELER_ENSURE(surf_labels_ && univ_labels_ && vol_labels_);
     CELER_ENSURE(data_);
     CELER_ENSURE(vol_labels_.size() > 0);
     CELER_ENSURE(bbox_);
@@ -209,101 +210,16 @@ OrangeParams::OrangeParams(OrangeInput&& input)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label of a volume.
- */
-Label const& OrangeParams::id_to_label(VolumeId vol) const
-{
-    CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_.get(vol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a unique name.
+ * Default destructor to define vtable externally.
  *
- * If the name isn't in the geometry, a null ID will be returned. If the name
- * is not unique, a RuntimeError will be raised.
+ * Needed due to a buggy LLVM optimization that causes dynamic-casts in
+ * downstream libraries to fail: see
+ * https://github.com/celeritas-project/celeritas/pull/1436 .
  */
-VolumeId OrangeParams::find_volume(std::string const& name) const
-{
-    auto result = vol_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "volume '" << name << "' is not unique");
-    return result.front();
-}
+OrangeParams::~OrangeParams() = default;
 
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a label.
- *
- * If the label isn't in the geometry, a null ID will be returned.
- */
-VolumeId OrangeParams::find_volume(Label const& label) const
-{
-    return vol_labels_.find(label);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get zero or more volume IDs corresponding to a name.
- *
- * This is useful for volumes that are repeated in the geometry with different
- * uniquifying 'extensions'.
- */
-auto OrangeParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
-{
-    return vol_labels_.find_all(name);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the label of a surface.
- */
-Label const& OrangeParams::id_to_label(SurfaceId surf) const
-{
-    CELER_EXPECT(surf < surf_labels_.size());
-    return surf_labels_.get(surf);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the surface ID corresponding to a label name.
- */
-SurfaceId OrangeParams::find_surface(std::string const& name) const
-{
-    auto result = surf_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "surface '" << name << "' is not unique");
-    return result.front();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the label of a universe.
- */
-Label const& OrangeParams::id_to_label(UniverseId univ) const
-{
-    CELER_EXPECT(univ < univ_labels_.size());
-    return univ_labels_.get(univ);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the universe ID corresponding to a label name.
- */
-UniverseId OrangeParams::find_universe(std::string const& name) const
-{
-    auto result = univ_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "universe '" << name << "' is not unique");
-    return result.front();
-}
+template class CollectionMirror<OrangeParamsData>;
+template class ParamsDataInterface<OrangeParamsData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

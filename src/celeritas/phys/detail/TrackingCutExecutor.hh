@@ -60,8 +60,6 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
         // Energy conservation for killed positrons
         deposited += 2 * particle.mass().value();
     }
-    track.make_physics_step_view().deposit_energy(Energy{deposited});
-    particle.subtract_energy(particle.energy());
 
 #if !CELER_DEVICE_COMPILE
     {
@@ -77,6 +75,9 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
             << ' ' << Energy::unit_type::label();
     }
 #endif
+
+    track.make_physics_step_view().deposit_energy(Energy{deposited});
+    particle.subtract_energy(particle.energy());
 
     sim.status(TrackStatus::killed);
 }

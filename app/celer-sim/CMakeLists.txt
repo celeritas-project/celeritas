@@ -52,12 +52,12 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
       "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
   endif()
   set(_env
-    "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-sim>"
+    "CELERITAS_EXE=$<TARGET_FILE:celer-sim>"
     "${_geant_exporter_env}"
     "CELER_DISABLE_PARALLEL=1"
     "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
   )
-  
+
   if(CELERITAS_USE_Geant4 AND CELERITAS_USE_HepMC3 AND CELERITAS_USE_Python
       AND (NOT CELERITAS_CORE_GEO STREQUAL "Geant4")
       AND (VecGeom_GDML_FOUND OR NOT (CELERITAS_CORE_GEO STREQUAL "VecGeom")))
@@ -70,12 +70,12 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
   else()
     set(_needs_device)
   endif()
-  
+
   if(CELERITAS_REAL_TYPE STREQUAL "float")
     # FIXME: propagation fails in single precision
     set(_needs_deps DISABLED true)
   endif()
-  
+
   add_test(NAME "app/celer-sim-${test_ext}:gpu"
     COMMAND "${CELER_PYTHON}"
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
@@ -89,7 +89,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     ${_needs_device}
     ${CELER_NEEDS_PYTHON}
   )
-  
+
   # Enable ROOT output for the celer-sim-cpu test when ROOT is available
   if(CELERITAS_USE_ROOT)
     set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/${mctruth_name}")
@@ -99,13 +99,13 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     # Signal to the app that we have to use the JSON input
     set(CELER_GEO "${CELER_CORE_GEO}-JSON")
   endif()
-  
+
   add_test(NAME "app/celer-sim-${test_ext}:cpu"
     COMMAND "${CELER_PYTHON}"
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${mctruth_out}"
   )
   set(_env
-    "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-sim>"
+    "CELERITAS_EXE=$<TARGET_FILE:celer-sim>"
     "${_geant_exporter_env}"
     "CELER_LOG=debug"
     "CELER_LOG_LOCAL=debug"

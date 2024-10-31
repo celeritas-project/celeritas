@@ -33,7 +33,6 @@
       "displayName": "Include-what-you-use (see scripts/dev/run-iwyu.sh)",
       "inherits": [".base"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"}
       }
@@ -89,10 +88,11 @@
       "displayName": "Using Geant4 navigation",
       "inherits": [".base", ".debug", "default"],
       "cacheVariables": {
+        "CELERITAS_CORE_GEO": "Geant4",
+        "CELERITAS_UNITS": "CLHEP",
         "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Python": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_CORE_GEO": "Geant4"
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -108,7 +108,6 @@
       "displayName": "With vecgeom in optimized+errcheck mode",
       "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"}
       }
     },
@@ -130,7 +129,6 @@
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
         "Geant4_DIR": "/Users/seth/Code/geant4-dev/install/lib/cmake/Geant4",
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_UNITS": "CLHEP"
       },

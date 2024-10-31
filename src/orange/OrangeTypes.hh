@@ -60,9 +60,6 @@ using FastBBoxId = OpaqueId<FastBBox>;
 //! Identifier for an array of length three of floating point values
 using FastReal3 = Array<float, 3>;
 
-//! Identifier for the current "level", i.e., depth of embedded universe
-using LevelId = OpaqueId<struct Level_>;
-
 //! Local identifier for a surface within a universe
 using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 

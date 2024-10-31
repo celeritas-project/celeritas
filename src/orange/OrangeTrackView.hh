@@ -88,8 +88,16 @@ class OrangeTrackView
     inline CELER_FUNCTION Real3 const& pos() const;
     // The current direction
     inline CELER_FUNCTION Real3 const& dir() const;
+
     // The current volume ID (null if outside)
     inline CELER_FUNCTION VolumeId volume_id() const;
+    // Get the physical volume ID in the current cell
+    inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
+    // The current level
+    inline CELER_FUNCTION LevelId const& level() const;
+    // Get the volume instance ID for all levels
+    inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
+
     // The current surface ID
     inline CELER_FUNCTION SurfaceId surface_id() const;
     // After 'find_next_step', the next straight-line surface
@@ -160,9 +168,6 @@ class OrangeTrackView
     inline CELER_FUNCTION void next_surface_level(LevelId);
 
     //// PRIVATE STATE ACCESSORS ////
-
-    // The current level
-    inline CELER_FUNCTION LevelId const& level() const;
 
     // The current surface level
     inline CELER_FUNCTION LevelId const& surface_level() const;
@@ -427,6 +432,45 @@ CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
     auto lsa = this->make_lsa();
     detail::UniverseIndexer ui(params_.universe_indexer_data);
     return ui.global_volume(lsa.universe(), lsa.vol());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current volume instance.
+ *
+ * \todo not implemented; VolumeId is already halfway between a "reusable
+ * volume" and a "volume instance" anyway...
+ */
+CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current level.
+ */
+CELER_FORCEINLINE_FUNCTION LevelId const& OrangeTrackView::level() const
+{
+    return states_.level[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance ID at every level.
+ *
+ * The input span size must be equal to the value of "level" plus one. The
+ * top-most level ("world" or level zero) starts at index zero and moves
+ * downward. Note that Geant4 uses the \em reverse nomenclature.
+ */
+CELER_FUNCTION void
+OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+{
+    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    for (auto lev : range(levels.size()))
+    {
+        levels[lev] = {};
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -844,15 +888,6 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_surface_level(LevelId lev)
 
 //---------------------------------------------------------------------------//
 // CONST STATE ACCESSORS
-//---------------------------------------------------------------------------//
-/*!
- * The current level.
- */
-CELER_FORCEINLINE_FUNCTION LevelId const& OrangeTrackView::level() const
-{
-    return states_.level[track_slot_];
-}
-
 /*!
  * The current surface level.
  */

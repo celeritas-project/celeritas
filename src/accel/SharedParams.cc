@@ -538,8 +538,15 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.rng = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
 
     // Construct simulation params
-    params.sim = SimParams::from_import(
-        *imported, params.particle, options.max_field_substeps);
+    params.sim = std::make_shared<SimParams>([&] {
+        auto input = SimParams::Input::from_import(
+            *imported, params.particle, options.max_field_substeps);
+        if (options.max_steps != SetupOptions::no_max_steps())
+        {
+            input.max_steps = options.max_steps;
+        }
+        return input;
+    }());
 
     if (options.max_num_events > 0)
     {
@@ -598,21 +605,21 @@ void SharedParams::initialize_core(SetupOptions const& options)
         return along_step;
     }());
 
-    // Construct sensitive detector callback
-    if (options.sd)
-    {
-        hit_manager_ = std::make_shared<detail::HitManager>(
-            *params.geometry, *params.particle, options.sd, params.max_streams);
-        step_collector_ = std::make_shared<StepCollector>(
-            StepCollector::VecInterface{hit_manager_},
-            params.geometry,
-            params.max_streams,
-            params.action_reg.get());
-    }
-
     // Create params
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
+
+    // Construct sensitive detector callback
+    if (options.sd)
+    {
+        hit_manager_
+            = std::make_shared<detail::HitManager>(*params_->geometry(),
+                                                   *params_->particle(),
+                                                   options.sd,
+                                                   params_->max_streams());
+        step_collector_
+            = StepCollector::make_and_insert(*params_, {hit_manager_});
+    }
 
     // Add diagnostics
     if (!options.slot_diagnostic_prefix.empty())

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"  // IWYU pragma: export
 #include "corecel/cont/Span.hh"  // IWYU pragma: export
 #include "corecel/io/Label.hh"  // IWYU pragma: export
 
@@ -15,6 +16,7 @@
 #include "Types.hh"
 
 class G4LogicalVolume;
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -32,44 +34,79 @@ class GeoParamsInterface
     //!@{
     //! \name Type aliases
     using SpanConstVolumeId = Span<VolumeId const>;
+    using VolumeMap = LabelIdMultiMap<VolumeId>;
+    using VolInstanceMap = LabelIdMultiMap<VolumeInstanceId>;
     //!@}
 
   public:
+    // Anchor virtual destructor
+    virtual ~GeoParamsInterface() = 0;
+
     //! Whether safety distance calculations are accurate and precise
     virtual bool supports_safety() const = 0;
 
     //! Outer bounding box of geometry
     virtual BBox const& bbox() const = 0;
 
+    //! Maximum nested scene/volume depth
+    virtual LevelId::size_type max_depth() const = 0;
+
     //// VOLUMES ////
 
-    //! Number of volumes
-    virtual VolumeId::size_type num_volumes() const = 0;
+    //! Get volume metadata
+    virtual VolumeMap const& volumes() const = 0;
 
-    //! Get the label for a placed volume ID
-    virtual Label const& id_to_label(VolumeId vol_id) const = 0;
-
-    //! Get the volume ID corresponding to a unique name
-    virtual VolumeId find_volume(std::string const& name) const = 0;
-
-    //! Get the volume ID corresponding to a unique label
-    virtual VolumeId find_volume(Label const& label) const = 0;
+    //! Get volume instance metadata
+    virtual VolInstanceMap const& volume_instances() const = 0;
 
     //! Get the volume ID corresponding to a Geant4 logical volume
     virtual VolumeId find_volume(G4LogicalVolume const* volume) const = 0;
 
-    //! Get zero or more volume IDs corresponding to a name
-    virtual SpanConstVolumeId find_volumes(std::string const& name) const = 0;
+    //! Get the Geant4 PV corresponding to a volume instance
+    virtual G4VPhysicalVolume const* id_to_pv(VolumeInstanceId id) const = 0;
 
-    //// HELPER FUNCTIONS ////
+    //// DEPRECATED: remove in v0.6 ////
 
-    // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(char const* name) const;
+    //! Number of volumes
+    [[deprecated]]
+    VolumeId::size_type num_volumes() const { return this->volumes().size(); }
+
+    //! Get the label for a placed volume ID
+    [[deprecated]]
+    Label const& id_to_label(VolumeId vol_id) const
+    {
+        return this->volumes().at(vol_id);
+    }
+
+    //! Get the volume ID corresponding to a unique name
+    [[deprecated]]
+    VolumeId find_volume(std::string const& name) const
+    {
+        return this->volumes().find_unique(name);
+    }
+
+    //! Get the volume ID corresponding to a unique label
+    [[deprecated]]
+    VolumeId find_volume(Label const& label) const
+    {
+        return this->volumes().find_exact(label);
+    }
+
+    //! Get the volume ID corresponding to a unique name
+    [[deprecated]]
+    VolumeId find_volume(char const* name) const
+    {
+        return this->volumes().find_unique(name);
+    }
+
+    //! Get the volume ID corresponding to a unique name
+    [[deprecated]]
+    SpanConstVolumeId find_volumes(std::string const& name) const
+    {
+        return this->volumes().find_all(name);
+    }
 
   protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~GeoParamsInterface() = default;
-
     GeoParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);
 };
@@ -77,35 +114,53 @@ class GeoParamsInterface
 //---------------------------------------------------------------------------//
 /*!
  * Interface class for a host geometry that supports surfaces.
+ *
+ * \todo Remove this interface, use empty surface map instead
  */
 class GeoParamsSurfaceInterface : public GeoParamsInterface
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
+    //!@}
+
+  public:
+    // Default destructor
+    virtual ~GeoParamsSurfaceInterface() = 0;
+
     using GeoParamsInterface::id_to_label;
 
+    //! Get surface metadata
+    virtual SurfaceMap const& surfaces() const = 0;
+
+    //// DEPRECATED: remove in v0.6 ////
+
     //! Get the label for a placed volume ID
-    virtual Label const& id_to_label(SurfaceId surf_id) const = 0;
+    [[deprecated]]
+    Label const& id_to_label(SurfaceId surf_id) const
+    {
+        return this->surfaces().at(surf_id);
+    }
 
     //! Get the surface ID corresponding to a unique label name
-    virtual SurfaceId find_surface(std::string const& name) const = 0;
+    [[deprecated]]
+    SurfaceId find_surface(std::string const& name) const
+    {
+        return this->surfaces().find_unique(name);
+    }
 
     //! Number of distinct surfaces
-    virtual SurfaceId::size_type num_surfaces() const = 0;
-};
+    [[deprecated]]
+    SurfaceId::size_type num_surfaces() const
+    {
+        return this->surfaces().size();
+    }
 
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Find the unique volume corresponding to a unique name.
- *
- * This method is here to disambiguate the implicit std::string and Label
- * constructors.
- */
-VolumeId GeoParamsInterface::find_volume(char const* name) const
-{
-    return this->find_volume(std::string{name});
-}
+  protected:
+    GeoParamsSurfaceInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(GeoParamsSurfaceInterface);
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

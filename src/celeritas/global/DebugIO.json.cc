@@ -96,7 +96,7 @@ struct FromId
     nlohmann::json convert_impl(VolumeId id) const
     {
         auto const& params = *this->params->geometry();
-        return params.id_to_label(id);
+        return params.volumes().at(id);
     }
 };
 
@@ -132,7 +132,7 @@ void to_json_impl(nlohmann::json& j,
                   FromId from_id)
 {
     ASSIGN_TRANSFORMED(particle_id, from_id);
-    ASSIGN_TRANSFORMED(energy, Labeled{units::Mev::label()});
+    ASSIGN_TRANSFORMED(energy, passthrough);
 }
 
 //---------------------------------------------------------------------------//

@@ -38,7 +38,7 @@ endif()
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
 set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
 set(_env
-  "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-geo>"
+  "CELERITAS_EXE=$<TARGET_FILE:celer-geo>"
   "CELER_DISABLE_PARALLEL=1"
 )
 set(_props

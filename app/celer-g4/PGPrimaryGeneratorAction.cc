@@ -13,7 +13,7 @@
 
 #include "corecel/Macros.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas

@@ -102,7 +102,7 @@ auto EventReader::operator()() -> result_type
 
     CELER_LOG(debug) << "Reading event " << event_count_;
     EventId const event_id{event_count_++};
-    if (static_cast<EventId::size_type>(evt.event_number()) != event_id.get())
+    if (id_cast<EventId>(evt.event_number()) != event_id)
     {
         CELER_LOG_LOCAL(warning)
             << "Overwriting event ID " << evt.event_number()
