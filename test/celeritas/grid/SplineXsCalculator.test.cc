@@ -185,10 +185,8 @@ TEST_F(SplineXsCalculatorTest, scaled_highest)
 
 TEST_F(SplineXsCalculatorTest, quadratic_simple)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.1 * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.1} * ipow<2>(energy); };
 
     this->build({1e-3, 1e2}, 6, reference_xs);
 
@@ -219,10 +217,8 @@ TEST_F(SplineXsCalculatorTest, quadratic_simple)
 
 TEST_F(SplineXsCalculatorTest, quadratic_scaled_lowest)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.1 * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.1} * ipow<2>(energy); };
 
     this->build({1.0e-3, 1e2}, 6, reference_xs);
     this->convert_to_prime(0);
@@ -250,10 +246,8 @@ TEST_F(SplineXsCalculatorTest, quadratic_scaled_lowest)
 
 TEST_F(SplineXsCalculatorTest, quadratic_scaled_middle)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.1 * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.1} * ipow<2>(energy); };
 
     this->build({1.0e-3, 1e2}, 6, reference_xs);
     this->convert_to_prime(3);
@@ -281,10 +275,8 @@ TEST_F(SplineXsCalculatorTest, quadratic_scaled_middle)
 
 TEST_F(SplineXsCalculatorTest, quadratic_scaled_highest)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.1 * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.1} * ipow<2>(energy); };
 
     this->build({1.0e-3, 1e2}, 6, reference_xs);
     this->convert_to_prime(5);
@@ -312,10 +304,8 @@ TEST_F(SplineXsCalculatorTest, quadratic_scaled_highest)
 
 TEST_F(SplineXsCalculatorTest, cubic_simple)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.01 * energy * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.01} * ipow<3>(energy); };
 
     this->build({1e-3, 1e4}, 8, reference_xs);
 
@@ -345,10 +335,8 @@ TEST_F(SplineXsCalculatorTest, cubic_simple)
 
 TEST_F(SplineXsCalculatorTest, cubic_scaled_lowest)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.01 * energy * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.01} * ipow<3>(energy); };
 
     this->build({1e-3, 1e4}, 8, reference_xs);
     this->convert_to_prime(0);
@@ -375,10 +363,8 @@ TEST_F(SplineXsCalculatorTest, cubic_scaled_lowest)
 
 TEST_F(SplineXsCalculatorTest, cubic_scaled_middle)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.01 * energy * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.01} * ipow<3>(energy); };
 
     this->build({1e-3, 1e4}, 8, reference_xs);
     this->convert_to_prime(4);
@@ -405,10 +391,8 @@ TEST_F(SplineXsCalculatorTest, cubic_scaled_middle)
 
 TEST_F(SplineXsCalculatorTest, cubic_scaled_highest)
 {
-    auto reference_xs = [](real_type energy) {
-        auto result = 0.1 * energy * energy * energy;
-        return result;
-    };
+    auto reference_xs
+        = [](real_type energy) { return real_type{0.1} * ipow<3>(energy); };
 
     this->build({1e-3, 1e4}, 8, reference_xs);
     this->convert_to_prime(7);

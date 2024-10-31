@@ -218,14 +218,14 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(
     real_type energy, size_type low_idx, size_type high_idx) const
 {
     CELER_EXPECT(high_idx <= loge_grid_.size());
-    real_type result = 0.0;
+    real_type result = 0;
 
     // Outer loop over indices for contributing to the result
     for (size_type outer_idx = low_idx; outer_idx < high_idx; ++outer_idx)
     {
         real_type outer_e = std::exp(loge_grid_[outer_idx]);
-        real_type num = 1.0;
-        real_type denom = 1.0;
+        real_type num = 1;
+        real_type denom = 1;
 
         // Inner loop over indices for determining the weight
         for (size_type inner_idx = low_idx; inner_idx < high_idx; ++inner_idx)
