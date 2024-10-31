@@ -61,7 +61,7 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "Use verbose debug assertions in device code" "OFF"
-  "_celeritas_use_device" OFF
+  "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
 
 # Secondary testing options (only applies to CTest)
