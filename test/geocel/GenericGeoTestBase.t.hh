@@ -267,5 +267,12 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
 }
 
 //---------------------------------------------------------------------------//
+template<class HP>
+auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view) -> SPConstGeoI
+{
+    return this->build_geometry();
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

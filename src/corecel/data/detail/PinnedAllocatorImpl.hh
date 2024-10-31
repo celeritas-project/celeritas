@@ -3,29 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/OrangeTestBase.hh
+//! \file corecel/data/detail/PinnedAllocatorImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
-#include "geocel/CheckedGeoTrackView.hh"
-#include "geocel/GenericGeoTestBase.hh"
-#include "orange/OrangeData.hh"
-#include "orange/OrangeGeoTraits.hh"
-#include "orange/OrangeParams.hh"
-#include "orange/OrangeTrackView.hh"
+#include <cstdlib>
 
 namespace celeritas
 {
-namespace test
+namespace detail
 {
 //---------------------------------------------------------------------------//
-using OrangeTestBase = GenericGeoTestBase<OrangeParams>;
+// Allocate pinned memory
+void* malloc_pinned(std::size_t n, std::size_t sizeof_t);
+
+// Free pinned memory
+void free_pinned(void* ptr) noexcept;
 
 //---------------------------------------------------------------------------//
-extern template class CheckedGeoTrackView<OrangeTrackView>;
-extern template class GenericGeoTestBase<OrangeParams>;
-
-//---------------------------------------------------------------------------//
-}  // namespace test
+}  // namespace detail
 }  // namespace celeritas

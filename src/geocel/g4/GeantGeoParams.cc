@@ -34,7 +34,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 
-#include "Convert.geant.hh"  // IWYU pragma: associated
+#include "Convert.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
 #include "VisitGeantVolumes.hh"
 
@@ -247,8 +247,9 @@ G4VPhysicalVolume const* GeantGeoParams::id_to_pv(VolumeInstanceId id) const
     }
 
     G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
-    CELER_ASSERT(id < pv_store->size());
-    return (*pv_store)[id.unchecked_get()];
+    auto index = id.unchecked_get() - pv_offset_;
+    CELER_ASSERT(index < pv_store->size());
+    return (*pv_store)[index];
 }
 
 //---------------------------------------------------------------------------//
@@ -266,8 +267,9 @@ G4LogicalVolume const* GeantGeoParams::id_to_lv(VolumeId id) const
     }
 
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(id < lv_store->size());
-    return (*lv_store)[id.unchecked_get()];
+    auto index = id.unchecked_get() - lv_offset_;
+    CELER_ASSERT(index < lv_store->size());
+    return (*lv_store)[index];
 }
 
 //---------------------------------------------------------------------------//
@@ -296,6 +298,18 @@ void GeantGeoParams::build_metadata()
     CELER_EXPECT(host_ref_);
 
     ScopedMem record_mem("GeantGeoParams.build_metadata");
+
+    // Get offset of logical/physical volumes present in unit tests
+    lv_offset_ = [] {
+        G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+        CELER_ASSERT(lv_store && !lv_store->empty());
+        return lv_store->front()->GetInstanceID();
+    }();
+    pv_offset_ = [] {
+        G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
+        CELER_ASSERT(pv_store && !pv_store->empty());
+        return pv_store->front()->GetInstanceID();
+    }();
 
     // Construct volume labels
     volumes_ = VolumeMap{"volume",

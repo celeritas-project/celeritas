@@ -33,6 +33,7 @@
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -208,6 +209,17 @@ int main(int argc, char* argv[])
 
     // Initialize GPU
     celeritas::activate_device();
+
+    if (filename == "--device"sv)
+    {
+        if (celeritas::Device::num_devices() == 0)
+        {
+            CELER_LOG(critical) << "No GPUs were detected";
+            return EXIT_FAILURE;
+        }
+        std::cout << nlohmann::json(celeritas::device()).dump(1) << std::endl;
+        return EXIT_SUCCESS;
+    }
 
     std::ifstream infile;
     std::istream* instream = nullptr;

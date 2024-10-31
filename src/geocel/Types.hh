@@ -72,10 +72,11 @@ enum class Axis
  * Here, lo/hi correspond to left/right, back/front, bottom/top. It's used for
  * the two points in a bounding box.
  */
-enum class Bound : bool
+enum class Bound : unsigned char
 {
     lo,
-    hi
+    hi,
+    size_
 };
 
 //---------------------------------------------------------------------------//

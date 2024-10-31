@@ -3,29 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/OrangeTestBase.hh
+//! \file geocel/GeoParamsInterface.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "corecel/OpaqueId.hh"
-#include "geocel/CheckedGeoTrackView.hh"
-#include "geocel/GenericGeoTestBase.hh"
-#include "orange/OrangeData.hh"
-#include "orange/OrangeGeoTraits.hh"
-#include "orange/OrangeParams.hh"
-#include "orange/OrangeTrackView.hh"
+#include "GeoParamsInterface.hh"
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
-using OrangeTestBase = GenericGeoTestBase<OrangeParams>;
+//! Default virtual destructor
+GeoParamsInterface::~GeoParamsInterface() = default;
 
 //---------------------------------------------------------------------------//
-extern template class CheckedGeoTrackView<OrangeTrackView>;
-extern template class GenericGeoTestBase<OrangeParams>;
+//! Default virtual destructor
+GeoParamsSurfaceInterface::~GeoParamsSurfaceInterface() = default;
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

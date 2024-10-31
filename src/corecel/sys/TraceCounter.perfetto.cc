@@ -3,11 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/Counter.perfetto.cc
+//! \file corecel/sys/TraceCounter.perfetto.cc
 //! \brief Numeric tracing counter
 //---------------------------------------------------------------------------//
-
-#include "Counter.hh"
+#include "TraceCounter.hh"
 
 #include <type_traits>
 #include <perfetto.h>
@@ -20,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Simple tracing counter.
+ * Simple performance tracing counter.
  * \tparam T Arithmetic counter type
  *
  * Records a named value at the current timestamp which
@@ -40,7 +39,8 @@ void trace_counter(char const* name, T value)
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template void trace_counter(char const*, size_type);
+template void trace_counter(char const*, unsigned int);
+template void trace_counter(char const*, std::size_t);
 template void trace_counter(char const*, float);
 template void trace_counter(char const*, double);
 

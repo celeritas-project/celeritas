@@ -14,7 +14,7 @@
 #include <G4ThreeVector.hh>
 
 #include "corecel/sys/Stopwatch.hh"
-#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/Convert.hh"
 #include "accel/SetupOptions.hh"
 
 #include "RunInput.hh"
