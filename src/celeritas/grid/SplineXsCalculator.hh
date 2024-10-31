@@ -238,14 +238,13 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(
                 denom *= (outer_e - inner_e);
             }
         }
-        real_type weight = num / denom;
-        real_type value = this->get(outer_idx);
+        real_type weighted_value = num / denom * this->get(outer_idx);
         if (outer_idx >= data_.prime_index)
         {
-            value /= outer_e;
+            weighted_value /= outer_e;
         }
 
-        result += weight * value;
+        result += weighed_value;
     }
 
     return result;
