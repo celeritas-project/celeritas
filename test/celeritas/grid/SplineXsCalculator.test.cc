@@ -194,6 +194,7 @@ TEST_F(SplineXsCalculatorTest, quadratic_simple)
 
     for (size_type order = 2; order < 5; ++order)
     {
+        SCOPED_TRACE("order=" + std::to_string(order));
         SplineXsCalculator calc(this->data(), this->values(), order);
 
         for (real_type e : {1e-2, 5e-2, 1e-1, 5e-1, 1.0, 5.0, 1e1, 5e1, 1e2})
@@ -227,6 +228,7 @@ TEST_F(SplineXsCalculatorTest, quadratic_scaled_lowest)
     this->convert_to_prime(0);
     for (size_type order = 2; order < 5; ++order)
     {
+        SCOPED_TRACE("order=" + std::to_string(order));
         SplineXsCalculator calc(this->data(), this->values(), order);
 
         // Test on and between grid points
@@ -257,6 +259,7 @@ TEST_F(SplineXsCalculatorTest, quadratic_scaled_middle)
     this->convert_to_prime(3);
     for (size_type order = 2; order < 5; ++order)
     {
+        SCOPED_TRACE("order=" + std::to_string(order));
         SplineXsCalculator calc(this->data(), this->values(), order);
 
         // Test on and between grid points
@@ -287,6 +290,7 @@ TEST_F(SplineXsCalculatorTest, quadratic_scaled_highest)
     this->convert_to_prime(5);
     for (size_type order = 2; order < 5; ++order)
     {
+        SCOPED_TRACE("order=" + std::to_string(order));
         SplineXsCalculator calc(this->data(), this->values(), order);
 
         // Test on and between grid points
