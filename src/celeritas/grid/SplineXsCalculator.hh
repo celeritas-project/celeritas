@@ -244,7 +244,7 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(
             weighted_value /= outer_e;
         }
 
-        result += weighed_value;
+        result += weighted_value;
     }
 
     return result;
