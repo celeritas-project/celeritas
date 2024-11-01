@@ -23,7 +23,7 @@ if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
   set(_g4_geo_libs)
 else()
-  set(_optional_geant4_env ENVIRONMENT "${CELERITASTEST_G4ENV}")
+  set(_optional_geant4_env ENVIRONMENT "${CELER_G4ENV}")
   set(_needs_geant4 ${_optional_geant4_env})
   celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
@@ -433,7 +433,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "${_basename}.geant.json"
         "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
       COMMAND
-        "${CMAKE_COMMAND}" "-E" "env" ${CELERITASTEST_G4ENV}
+        "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
         "$<TARGET_FILE:celer-export-geant>"
         "${_gdml}"
         "${_basename}.geant.json"
