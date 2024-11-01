@@ -19,7 +19,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Reinitialize a track's random state from a unique event ID.
  */
 class RngReseedExecutor
 {
@@ -28,6 +28,7 @@ class RngReseedExecutor
     using StateRef = NativeRef<RngStateData>;
 
   public:
+    // Construct with state and event ID
     inline CELER_FUNCTION
     RngReseedExecutor(ParamsCRef const&, StateRef const&, UniqueEventId id);
 
