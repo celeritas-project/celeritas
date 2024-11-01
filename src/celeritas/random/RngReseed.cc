@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "RngReseed.hh"
 
-#include "corecel/cont/Range.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "corecel/sys/KernelLauncher.hh"
 
-#include "RngEngine.hh"
+#include "detail/RngReseedExecutor.hh"
 
 namespace celeritas
 {
@@ -28,21 +27,8 @@ void reseed_rng(HostCRef<RngParamsData> const& params,
                 StreamId,
                 UniqueEventId event_id)
 {
-    CELER_EXPECT(event_id);
-    static_assert(sizeof(ull_int) == sizeof(UniqueEventId::size_type));
-
-    ull_int size = state.size();
-#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
-#    pragma omp parallel for
-#endif
-    for (TrackSlotId::size_type i = 0; i < size; ++i)
-    {
-        RngEngine::Initializer_t init;
-        init.seed = params.seed;
-        init.subsequence = event_id.unchecked_get() * size + i;
-        RngEngine engine(params, state, TrackSlotId{i});
-        engine = init;
-    }
+    launch_kernel(state.size(),
+                  detail::RngReseedExecutor{params, state, event_id});
 }
 
 //---------------------------------------------------------------------------//
