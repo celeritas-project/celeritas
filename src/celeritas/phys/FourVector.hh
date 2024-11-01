@@ -89,4 +89,5 @@ inline CELER_FUNCTION real_type norm(FourVector const& a)
     return std::sqrt(std::fabs(ipow<2>(a.energy) - dot_product(a.mom, a.mom)));
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

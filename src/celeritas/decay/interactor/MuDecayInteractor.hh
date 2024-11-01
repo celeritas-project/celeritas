@@ -19,6 +19,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -76,27 +77,27 @@ class MuDecayInteractor
     Energy const inc_energy_;
     // Incident muon direction
     Real3 const& inc_direction_;
-    // Allocate space for secondary particles (currently, electron only)
+    // Allocate space for secondary particles (electron only)
     StackAllocator<Secondary>& allocate_;
     // Define decay channel based on muon or anti-muon primary
     bool is_muon_;
     // Incident muon four vector
     FourVector inc_fourvec_;
-    // Max sampled fractional energy for the electron neutrino
-    real_type sample_max_;
-    // Maximum electron energy
+    // Max sampled fractional energy for the electron neutrino (not unity)
+    UniformRealDist sample_electron_nu_;
+    // Maximum electron energy [MeV]
     real_type max_energy_;
 
     //// HELPER FUNCTIONS ////
 
     // Boost four vector from the rest frame to the lab frame
     inline CELER_FUNCTION FourVector to_lab_frame(Real3 const& dir,
-                                                  MevMomentum const& momentum,
-                                                  Mass const& mass) const;
+                                                  MevMomentum momentum,
+                                                  Mass mass) const;
 
     // Calculate particle momentum (or kinetic energy) in the center of mass
-    inline CELER_FUNCTION MevMomentum calc_momentum(real_type const& energy_frac,
-                                                    Mass const& mass) const;
+    inline CELER_FUNCTION MevMomentum calc_momentum(real_type energy_frac,
+                                                    Mass mass) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -104,6 +105,12 @@ class MuDecayInteractor
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
+ *
+ * \note Geant4 physics manual defines E_{max} = m_\mu / 2, while the source
+ * code (since v10.2.0 at least) defines E_{max} = m_\mu / 2 - m_e . The source
+ * code implementation leads to a total CM energy of ~104.6 MeV instead of the
+ * expected 105.7 MeV (muon mass), which is achieved by using the physics
+ * manual definition.
  */
 CELER_FUNCTION
 MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
@@ -114,29 +121,19 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     , inc_energy_(particle.energy())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
+    , is_muon_(particle.particle_id() == shared_.ids.mu_minus)
+    , inc_fourvec_({inc_direction_ * particle.momentum().value(),
+                    particle.total_energy().value()})
+    , sample_electron_nu_(0,
+                          real_type{1}
+                              + ipow<2>(shared_.electron_mass.value()
+                                        / shared_.muon_mass.value()))
+    , max_energy_(real_type{0.5} * shared_.muon_mass.value()
+                  - shared_.electron_mass.value())
 {
+    CELER_EXPECT(shared_);
     CELER_EXPECT(particle.particle_id() == shared_.ids.mu_minus
                  || particle.particle_id() == shared_.ids.mu_plus);
-
-    // Define decay channel
-    is_muon_ = (particle.particle_id() == shared_.ids.mu_minus) ? true : false;
-
-    // Set up muon four vector to boost decay to the lab-frame
-    inc_fourvec_ = {inc_direction_ * particle.momentum().value(),
-                    particle.total_energy().value()};
-
-    // Sampling constants
-    sample_max_
-        = real_type{1}
-          + ipow<2>(shared_.electron_mass.value() / shared_.muon_mass.value());
-
-    // Geant4 physics manual defines E_{max} = m_\mu / 2, while the source code
-    // (since v10.2.0 at least) defines E_{max} = m_\mu / 2 - m_e . The source
-    // code implementation leads to a total CM energy of ~104.6 MeV instead of
-    // the expected 105.7 MeV (muon mass), which is achieved by using the
-    // physics manual definition
-    max_energy_ = real_type{0.5} * shared_.muon_mass.value()
-                  - shared_.electron_mass.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -173,7 +170,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     {
         do
         {
-            electron_nu_energy_frac = UniformRealDist(0, sample_max_)(rng);
+            electron_nu_energy_frac = sample_electron_nu_(rng);
         } while (generate_canonical(rng)
                  > electron_nu_energy_frac
                        * (real_type{1} - electron_nu_energy_frac));
@@ -213,10 +210,11 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
  * \note This assumes the primary to be at rest and, thus, there is no need
  * to perform an inverse boost of the primary at the CM frame.
  */
-CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(
-    Real3 const& dir, MevMomentum const& momentum, Mass const& mass) const
+CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
+                                                          MevMomentum momentum,
+                                                          Mass mass) const
 {
-    CELER_EXPECT(norm(dir) > 0);
+    CELER_EXPECT(is_soft_unit_vector(dir));
     CELER_EXPECT(momentum > zero_quantity());
     CELER_EXPECT(mass >= zero_quantity());
 
@@ -234,8 +232,7 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(
  * fractional energy.
  */
 CELER_FUNCTION units::MevMomentum
-MuDecayInteractor::calc_momentum(real_type const& energy_frac,
-                                 Mass const& mass) const
+MuDecayInteractor::calc_momentum(real_type energy_frac, Mass mass) const
 {
     return MevMomentum{
         std::sqrt(ipow<2>(energy_frac * max_energy_)

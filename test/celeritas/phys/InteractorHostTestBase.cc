@@ -35,31 +35,28 @@ InteractorHostTestBase::InteractorHostTestBase()
     constexpr double mu_decay_constant{1 / 2.1969811e-6};  // [s^-1]
 
     // Default particle params
-    // clang-format off
-    ParticleParams::Input par_inp = {
-        {"electron",
-         pdg::electron(),
-         emass,
-         ElementaryCharge{-1},
-         stable_decay_constant},
-        {"positron",
-         pdg::positron(),
-         emass,
-         ElementaryCharge{1},
-         stable_decay_constant},
-        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
-        {"mu_minus",
-         pdg::mu_minus(),
-         mumass,
-         ElementaryCharge{-1},
-         mu_decay_constant},
-        {"mu_plus",
-         pdg::mu_plus(),
-         mumass,
-         ElementaryCharge{1},
-         mu_decay_constant}
-    };
-    // clang-format on
+    ParticleParams::Input par_inp
+        = {{"electron",
+            pdg::electron(),
+            emass,
+            ElementaryCharge{-1},
+            stable_decay_constant},
+           {"positron",
+            pdg::positron(),
+            emass,
+            ElementaryCharge{1},
+            stable_decay_constant},
+           {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
+           {"mu_minus",
+            pdg::mu_minus(),
+            mumass,
+            ElementaryCharge{-1},
+            mu_decay_constant},
+           {"mu_plus",
+            pdg::mu_plus(),
+            mumass,
+            ElementaryCharge{1},
+            mu_decay_constant}};
     this->set_particle_params(std::move(par_inp));
 
     // Default material params

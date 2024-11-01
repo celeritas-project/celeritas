@@ -60,8 +60,5 @@ struct MuDecayData
     }
 };
 
-using MuDecayDeviceRef = MuDecayData;
-using MuDecayHostRef = MuDecayData;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
