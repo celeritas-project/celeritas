@@ -14,6 +14,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- S. R. Johnson. "Accelerating detector simulations with Celeritas: Performance improvements and new capabilities". *Conference on Computing in High Energy and Nuclear Physics (CHEP) 2024*, 21 Oct 2024. [presentation](https://indico.cern.ch/event/1338689/contributions/6015932/attachments/2951364/5189225/celeritas-srj.pdf)
 - S. R. Johnson. "Celeritas: scientific software for HEP simulation". *HSF-India*, 01 Aug 2024. [presentation](https://indico.cern.ch/event/1443576/contributions/6075670/attachments/2906811/5099258/celeritas-software.pdf)
 - S. R. Johnson. "Scalable simulation workflows for Celeritas". *SciDAC PI Meeting*, 17 Jul 2024.
 - S. R. Johnson, S. Tognini, T. Evans, *et al*. "Celeritas: the next generation of HEP simulation". *SciDAC PI Meeting*, 16 Jul 2024.
