@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "RngReseed.hh"
 
-#include "corecel/DeviceRuntimeApi.hh"
-
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
 

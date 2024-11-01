@@ -13,6 +13,7 @@
 #include "corecel/data/Collection.hh"
 
 #include "../CuHipRngData.hh"
+#include "../CuHipRngEngine.hh"
 
 namespace celeritas
 {
@@ -39,6 +40,33 @@ struct CuHipRngInitData
         CELER_EXPECT(other);
         seeds = other.seeds;
         return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the given track slot.
+ */
+struct RngSeedExecutor
+{
+    NativeCRef<CuHipRngParamsData> const params;
+    NativeRef<CuHipRngStateData> const state;
+    NativeCRef<CuHipRngInitData> const seeds;
+
+    //! Initialize the given track slot
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const
+    {
+        CELER_EXPECT(tid < state.size());
+        CuHipRngInitializer init;
+        init.seed = seeds.seeds[tid];
+        CuHipRngEngine rng{params, state, tid};
+        rng = init;
+    }
+
+    //! Initialize from the given thread
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        return (*this)(TrackSlotId{tid.unchecked_get()});
     }
 };
 
