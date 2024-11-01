@@ -149,8 +149,7 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
  * - Calculate the energies of the neutrinos.
  * - Calculate the final directions of the neutrinos using the aforementioned
  * angle and conservation of momentum.
- * - Sample a spherically uniform direction and rotate all three secondaries
- * using `EulerRotation`.
+ * - Sample a spherically uniform direction and rotate all three secondaries.
  * - Boost all particles to the lab frame
  */
 template<class Engine>
