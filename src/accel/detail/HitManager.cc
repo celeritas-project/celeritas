@@ -71,8 +71,17 @@ HitManager::HitManager(SPConstGeo geo,
     update_selection(&selection_.points[StepPoint::post], setup.post);
     if (locate_touchable_)
     {
-        selection_.points[StepPoint::pre].pos = true;
-        selection_.points[StepPoint::pre].dir = true;
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            CELER_LOG(warning) << "Using location-based reconstruction since "
+                                  "ORANGE is active";
+            selection_.points[StepPoint::pre].pos = true;
+            selection_.points[StepPoint::pre].dir = true;
+        }
+        else
+        {
+            selection_.points[StepPoint::pre].volume_instance_ids = true;
+        }
     }
 
     // Hit processors *must* be allocated on the thread they're used because of
