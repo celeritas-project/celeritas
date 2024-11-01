@@ -9,7 +9,6 @@
 
 #include <mutex>
 #include <G4PhysicalConstants.hh>
-#include <G4TransportationManager.hh>
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/GenParticle.h>
 #include <HepMC3/GenVertex.h>
@@ -18,6 +17,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/io/EventReader.hh"
 
 namespace celeritas
@@ -87,10 +87,7 @@ class PrimaryInserter
  */
 G4VSolid* get_world_solid()
 {
-    auto* nav = G4TransportationManager::GetTransportationManager()
-                    ->GetNavigatorForTracking();
-    CELER_ASSERT(nav);
-    auto* world = nav->GetWorldVolume();
+    auto* world = geant_world_volume();
     CELER_VALIDATE(world,
                    << "detector geometry was not initialized before "
                       "HepMC3PrimaryGenerator was instantiated");

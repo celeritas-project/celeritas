@@ -26,6 +26,7 @@
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
+#include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4Version.hh>
 #include <G4ios.hh>
@@ -37,6 +38,7 @@
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "orange/g4org/Converter.hh"
 
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
@@ -48,7 +50,7 @@ static_assert(G4VERSION_NUMBER
                          + 10 * ((CELERITAS_GEANT4_VERSION / 0x100) % 0x100)
                          + (CELERITAS_GEANT4_VERSION % 0x100),
               "CMake-reported Geant4 version does not match installed "
-              "<G4Version.hh>: compare to 'celeritas_sys_config.h'");
+              "<G4Version.hh>: compare to 'corecel/Config.hh'");
 
 namespace celeritas
 {
@@ -285,6 +287,21 @@ Span<G4LogicalVolume*> geant_logical_volumes()
         ++start;
     }
     return {start, stop};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the world volume for the primary geometry.
+ *
+ * \return World volume if geometry has been initialized, nullptr otherwise.
+ */
+G4VPhysicalVolume const* geant_world_volume()
+{
+    auto* man = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(man);
+    auto* nav = man->GetNavigatorForTracking();
+    CELER_ASSERT(nav);
+    return nav->GetWorldVolume();
 }
 
 //---------------------------------------------------------------------------//
