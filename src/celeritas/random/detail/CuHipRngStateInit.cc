@@ -20,7 +20,8 @@ namespace detail
  */
 void rng_state_init(HostCRef<CuHipRngParamsData> const& params,
                     HostRef<CuHipRngStateData> const& state,
-                    HostCRef<CuHipRngInitData> const& seeds)
+                    HostCRef<CuHipRngInitData> const& seeds,
+                    StreamId)
 {
     CELER_EXPECT(state.size() == seeds.size());
     launch_kernel(state.size(), RngSeedExecutor{params, state, seeds});

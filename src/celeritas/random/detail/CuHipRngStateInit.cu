@@ -22,10 +22,11 @@ namespace detail
  */
 void rng_state_init(DeviceCRef<CuHipRngParamsData> const& params,
                     DeviceRef<CuHipRngStateData> const& state,
-                    DeviceCRef<CuHipRngInitData> const& seeds)
+                    DeviceCRef<CuHipRngInitData> const& seeds,
+                    StreamId stream)
 {
     CELER_EXPECT(state.size() == seeds.size());
-    detail::RngReseedExecutor execute_thread{params, state, event_id};
+    detail::RngSeedExecutor execute_thread{params, state, seeds};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "rng-reseed");
     launch_kernel(state.size(), stream, execute_thread);

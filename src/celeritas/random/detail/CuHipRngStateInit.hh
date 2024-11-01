@@ -74,11 +74,13 @@ struct RngSeedExecutor
 // Initialize the RNG state on host/device
 void rng_state_init(DeviceCRef<CuHipRngParamsData> const& params,
                     DeviceRef<CuHipRngStateData> const& state,
-                    DeviceCRef<CuHipRngInitData> const& seeds);
+                    DeviceCRef<CuHipRngInitData> const& seeds,
+                    StreamId stream);
 
 void rng_state_init(HostCRef<CuHipRngParamsData> const& params,
                     HostRef<CuHipRngStateData> const& state,
-                    HostCRef<CuHipRngInitData> const& seeds);
+                    HostCRef<CuHipRngInitData> const& seeds,
+                    StreamId);
 
 #if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
@@ -87,7 +89,8 @@ void rng_state_init(HostCRef<CuHipRngParamsData> const& params,
  */
 inline void rng_state_init(DeviceCRef<CuHipRngParamsData> const&,
                            DeviceRef<CuHipRngStateData> const&,
-                           DeviceCRef<CuHipRngInitData> const&)
+                           DeviceCRef<CuHipRngInitData> const&,
+                           StreamId)
 {
     CELER_ASSERT_UNREACHABLE();
 }
