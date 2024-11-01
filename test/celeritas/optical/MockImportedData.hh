@@ -105,10 +105,11 @@ struct ElectronVolt
 
 //---------------------------------------------------------------------------//
 /*!
- * Takes a list of grids and values, and converts them to a physics vector
- * with the units specified by the template parameters.
+ * Takes a list of grids and values in the specified template units,
+ * and converts to an ImportPhysicsVector of in Celeritas' units.
  *
- * Useful for converting lists of data into the appropriate Celeritas units.
+ * The grid x units are returned in [MeV] rather than native, matching
+ * the usual unit for imported grids.
  */
 template<class GridUnit, class ValueUnit>
 std::vector<ImportPhysicsVector>
@@ -123,7 +124,7 @@ convert_vector_units(std::vector<std::vector<double>> const& grid,
         v.vector_type = ImportPhysicsVectorType::free;
         for (double x : grid[i])
         {
-            v.x.push_back(x * GridUnit::value());
+            v.x.push_back(x * GridUnit::value() / units::Mev::value());
         }
         for (double y : value[i])
         {

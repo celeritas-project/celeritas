@@ -67,8 +67,7 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
         for (auto i : range(energy_grid.size()))
         {
             result.x[i] = energy_grid[i];
-            result.y[i]
-                = calc_mfp(native_value_to<units::MevEnergy>(result.x[i]));
+            result.y[i] = calc_mfp(celeritas::units::MevEnergy{result.x[i]});
         }
 
         build(result);

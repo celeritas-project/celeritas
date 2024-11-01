@@ -85,7 +85,7 @@ mock_vec(std::vector<unsigned int> const& grid_indices,
         mock_values.push_back(values[j]);
     }
 
-    return detail::convert_vector_units<units::Native, units::Native>(
+    return detail::convert_vector_units<units::Mev, units::Native>(
         mock_grids, mock_values);
 }
 

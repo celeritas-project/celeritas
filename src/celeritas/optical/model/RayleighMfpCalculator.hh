@@ -12,6 +12,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/optical/detail/OpticalUtils.hh"
 
 #include "../MaterialData.hh"
 #include "../MaterialView.hh"
@@ -68,7 +69,7 @@ class RayleighMfpCalculator
   public:
     // Construct from material and Rayleigh properties
     inline CELER_FUNCTION
-    RayleighMfpCalculator(MaterialView material,
+    RayleighMfpCalculator(MaterialView const& material,
                           OpticalRayleighMaterial const& rayleigh_material);
 
     // Calculate the MFP for the given energy
@@ -95,13 +96,15 @@ class RayleighMfpCalculator
  * Construct with defaults.
  */
 RayleighMfpCalculator::RayleighMfpCalculator(
-    MaterialView material, OpticalRayleighMaterial const& rayleigh_material)
+    MaterialView const& material,
+    OpticalRayleighMaterial const& rayleigh_material)
     : calc_rindex_(material.make_refractive_index_calculator())
     , density_fluctuation_(
           rayleigh_material.scale_factor * rayleigh_material.compressibility
           * rayleigh_material.temperature * celeritas::constants::k_boltzmann
           / (6 * celeritas::constants::pi))
 {
+    CELER_EXPECT(rayleigh_material);
     CELER_EXPECT(density_fluctuation_ > 0);
 }
 
@@ -111,15 +114,13 @@ RayleighMfpCalculator::RayleighMfpCalculator(
  */
 CELER_FUNCTION real_type RayleighMfpCalculator::operator()(Energy energy) const
 {
-    CELER_EXPECT(value_as<Energy>(energy) > 0);
+    CELER_EXPECT(energy > zero_quantity());
 
-    constexpr real_type hbarc = celeritas::constants::hbar_planck
-                                * celeritas::constants::c_light;
-
-    real_type rindex = calc_rindex_(native_value_from(energy));
+    real_type rindex = calc_rindex_(value_as<Energy>(energy));
     CELER_ASSERT(rindex > 1);
 
-    real_type wave_number = native_value_from(energy) / hbarc;
+    real_type wave_number = 2 * celeritas::constants::pi
+                            / detail::energy_to_wavelength(energy);
     real_type permitivity_fluctuation = (ipow<2>(rindex) - 1)
                                         * (ipow<2>(rindex) + 2) / 3;
 
