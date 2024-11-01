@@ -16,24 +16,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Data storage for muon decay.
- */
-struct MuDecayIds
-{
-    ParticleId mu_minus;
-    ParticleId mu_plus;
-    ParticleId electron;
-    ParticleId positron;
-
-    //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return mu_minus && mu_plus && electron && positron;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Device data for creating a muon decay interactor.
  */
 struct MuDecayData
@@ -44,7 +26,10 @@ struct MuDecayData
     //!@}
 
     //! Particle identifiers
-    MuDecayIds ids;
+    ParticleId mu_minus_id;
+    ParticleId mu_plus_id;
+    ParticleId electron_id;
+    ParticleId positron_id;
 
     //! Muon/anti-muon mass [MeV]
     Mass muon_mass;
@@ -55,7 +40,8 @@ struct MuDecayData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && muon_mass > zero_quantity()
+        return mu_minus_id && mu_plus_id && electron_id && positron_id
+               && muon_mass > zero_quantity()
                && electron_mass > zero_quantity();
     }
 };

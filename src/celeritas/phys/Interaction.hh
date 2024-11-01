@@ -35,7 +35,7 @@ struct Interaction
     {
         scattered,  //!< Still alive, state has changed
         absorbed,  //!< Absorbed or transformed to another particle type
-        decay,  //!< N-body decay
+        decay = absorbed,  //!< N-body decay
         unchanged,  //!< No state change, no secondaries
         failed,  //!< Ran out of memory during sampling
     };
@@ -179,17 +179,9 @@ CELER_FUNCTION Interaction Interaction::from_unchanged()
 /*!
  * Construct an interaction from a particle that decayed.
  */
-CELER_FUNCTION Interaction Interaction::from_decay()
+CELER_FORCEINLINE_FUNCTION Interaction Interaction::from_decay()
 {
-    Interaction result;
-    result.energy = zero_quantity();
-#if CELERITAS_DEBUG
-    // Direction should *not* be accessed if incident particle has decayed.
-    constexpr auto nan = numeric_limits<real_type>::quiet_NaN();
-    result.direction = {nan, nan, nan};
-#endif
-    result.action = Action::decay;
-    return result;
+    return from_absorption();
 }
 
 //---------------------------------------------------------------------------//

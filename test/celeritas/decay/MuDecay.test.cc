@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/decay/MuDecay.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/decay/interactor/MuDecayInteractor.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
@@ -22,12 +24,12 @@ class MuDecayInteractorTest : public InteractorHostTestBase
     void SetUp() override
     {
         auto const& params = *this->particle_params();
-        data_.ids.electron = params.find(pdg::electron());
-        data_.ids.positron = params.find(pdg::positron());
-        data_.ids.mu_minus = params.find(pdg::mu_minus());
-        data_.ids.mu_plus = params.find(pdg::mu_plus());
-        data_.electron_mass = params.get(data_.ids.electron).mass();
-        data_.muon_mass = params.get(data_.ids.mu_minus).mass();
+        data_.electron_id = params.find(pdg::electron());
+        data_.positron_id = params.find(pdg::positron());
+        data_.mu_minus_id = params.find(pdg::mu_minus());
+        data_.mu_plus_id = params.find(pdg::mu_plus());
+        data_.electron_mass = params.get(data_.electron_id).mass();
+        data_.muon_mass = params.get(data_.mu_minus_id).mass();
 
         this->set_inc_direction({0, 0, 1});
     }
@@ -94,7 +96,7 @@ TEST_F(MuDecayInteractorTest, stress_test)
                                this->direction(),
                                this->secondary_allocator());
 
-    double avg_sec_energies[num_secondaries]{};  // Avg energy per secondary
+    Array<double, num_secondaries> avg_sec_energies{};  // Avg energy per sec
     Real3 avg_total_momentum{};  // Avg total momentum per decay
 
     for ([[maybe_unused]] auto sample : range(num_samples))
@@ -106,23 +108,12 @@ TEST_F(MuDecayInteractorTest, stress_test)
         {
             auto const& part = sec[i];
             avg_sec_energies[i] += part.energy.value();
-            for (auto j : range(3))
-            {
-                avg_total_momentum[j] += part.direction[j]
-                                         * part.energy.value();
-            }
+            axpy(part.energy.value(), part.direction, &avg_total_momentum);
         }
     }
 
-    for (auto j : range(num_secondaries))
-    {
-        avg_sec_energies[j] /= num_samples;
-    }
-
-    for (auto j : range(3))
-    {
-        avg_total_momentum[j] /= num_samples;
-    }
+    avg_sec_energies /= num_samples;
+    avg_total_momentum /= num_samples;
 
     // With only one secondary being returned, there is no expectation of
     // energy or momentum conservation

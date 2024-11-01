@@ -30,18 +30,30 @@ namespace celeritas
  *
  * Only one decay channel is implemented, with muons decaying to
  * \f[
- * \mu^- \longrightarrow e^- \overline{\nu}_e \nu_\mu
+ * \mu^- \longrightarrow e^- \bar{\nu}_e \nu_\mu
  * \f]
  * or
  * \f[
- * \mu^+ \longrightarrow e^+ \nu_e \overline{\nu}_\mu
+ * \mu^+ \longrightarrow e^+ \nu_e \bar{\nu}_\mu
  * \f].
  *
- * This interactor follows \c G4MuonDecayChannel and the Physics Reference
- * Manual, Release 11.2, section 4.2.3.
+ * This interactor follows \c G4MuonDecayChannel::DecayIt and the Physics
+ * Reference Manual, Release 11.2, section 4.2.3.
  *
- * \warning Neutrinos are currently not returned in this interactor as they
- * are not tracked down or transported.
+ * The resulting four vector is boosted to the lab frame using the muon's
+ * incident energy and direction. Since only the charged lepton is being
+ * returned, these steps are ommitted:
+ *
+ * - Calculate the angle between charged lepton and electron neutrino.
+ * - Calculate the energies of the neutrinos.
+ * - Calculate the final directions of the neutrinos using the aforementioned
+ * angle and conservation of momentum.
+ * - Sample a spherically uniform direction and rotate all three secondaries.
+ * - Boost all particles to the lab frame
+ *
+ * \warning Neutrinos are currently not returned by this interactor as they
+ * are not tracked down or transported and would significantly increase
+ * secondary memory allocation usage.
  *
  * \note The full three-body decay can be recovered from PR #1456, commit
  * `ecc4326`.
@@ -80,7 +92,7 @@ class MuDecayInteractor
     // Allocate space for secondary particles (electron only)
     StackAllocator<Secondary>& allocate_;
     // Define decay channel based on muon or anti-muon primary
-    bool is_muon_;
+    ParticleId sec_id_;
     // Incident muon four vector
     FourVector inc_fourvec_;
     // Max sampled fractional energy for the electron neutrino (not unity)
@@ -121,9 +133,11 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     , inc_energy_(particle.energy())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , is_muon_(particle.particle_id() == shared_.ids.mu_minus)
-    , inc_fourvec_({inc_direction_ * particle.momentum().value(),
-                    particle.total_energy().value()})
+    , sec_id_((particle.particle_id() == shared_.mu_minus_id)
+                  ? shared_.electron_id
+                  : shared_.positron_id)
+    , inc_fourvec_({inc_direction_ * value_as<MevMomentum>(particle.momentum()),
+                    value_as<Energy>(particle.total_energy())})
     , sample_electron_nu_(0,
                           real_type{1}
                               + ipow<2>(shared_.electron_mass.value()
@@ -132,25 +146,13 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
                   - shared_.electron_mass.value())
 {
     CELER_EXPECT(shared_);
-    CELER_EXPECT(particle.particle_id() == shared_.ids.mu_minus
-                 || particle.particle_id() == shared_.ids.mu_plus);
+    CELER_EXPECT(particle.particle_id() == shared_.mu_minus_id
+                 || particle.particle_id() == shared_.mu_plus_id);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Sample the muon decay.
- *
- * The decay is sampled at the muon rest frame (based on
- * \c G4MuonDecayChannel::DecayIt ) and the resulting four vector is boosted to
- * the lab frame using the muon's incident energy and direction.
- *
- * Since only the charged lepton is being returned, these steps are ommitted:
- * - Calculate the angle between charged lepton and electron neutrino.
- * - Calculate the energies of the neutrinos.
- * - Calculate the final directions of the neutrinos using the aforementioned
- * angle and conservation of momentum.
- * - Sample a spherically uniform direction and rotate all three secondaries.
- * - Boost all particles to the lab frame
  */
 template<class Engine>
 CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
@@ -192,8 +194,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     // Return electron only
     Interaction result = Interaction::from_decay();
     result.secondaries = {secondaries, 1};
-    result.secondaries[0].particle_id = is_muon_ ? shared_.ids.electron
-                                                 : shared_.ids.positron;
+    result.secondaries[0].particle_id = sec_id_;
     // Interaction stores kinetic energy; FourVector stores total energy
     result.secondaries[0].energy
         = Energy{charged_lep_4vec.energy - shared_.electron_mass.value()};
