@@ -3,12 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHTraverser.hh
+//! \file orange/detail/BIHEnclosingVolFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/math/Algorithms.hh"
 
+#include "BIHTraversalHelper.hh"
 #include "../BoundingBoxUtils.hh"
 #include "../OrangeData.hh"
 
@@ -18,11 +19,18 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Traverse BIH tree using a depth-first search.
+ * Traverse the BIH tree to find a volume that contains a point.
  *
- * \todo move to top-level orange directory out of detail namespace
+ * Traversal is carried out using a depth-first search and terminated as soon
+ * as a suitable volume is found. When visiting a leaf node, the bounding boxes
+ * of leaf volumes are tested (inexpensive) before testing the leaf volumes
+ * themselves (expensive). Determining if the point is enclosed by the volume
+ * itself is done with a supplied predicate, which can also be used to exclude
+ * volumes based on more stringent criteria. For example, for surface crossing
+ * operations, a predicate that excludes the volume a particle is in prior to
+ * the crossing may be used.
  */
-class BIHTraverserImpl
+class BIHEnclosingVolFinder
 {
   public:
     //!@{
@@ -32,100 +40,18 @@ class BIHTraverserImpl
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
     inline CELER_FUNCTION
-    BIHTraverserImpl(BIHTree const& tree, Storage const& storage);
+    BIHEnclosingVolFinder(BIHTree const& tree, Storage const& storage);
 
-    // Determine if a node is inner, i.e., not a leaf
-    inline CELER_FUNCTION bool is_inner(BIHNodeId id) const;
-
-    // Get an inner node for a given BIHNodeId
-    inline CELER_FUNCTION BIHInnerNode const&
-    get_inner_node(BIHNodeId id) const;
-
-    // Get a leaf node for a given BIHNodeId
-    inline CELER_FUNCTION BIHLeafNode const& get_leaf_node(BIHNodeId id) const;
-
-  private:
-    //// DATA ////
-    BIHTree const& tree_;
-    Storage const& storage_;
-    size_type leaf_offset_;
-};
-
-//---------------------------------------------------------------------------//
-// IMPL functions
-//---------------------------------------------------------------------------//
-/*!
- * Construct from vector of bounding boxes and storage.
- */
-CELER_FUNCTION
-BIHTraverserImpl::BIHTraverserImpl(BIHTree const& tree,
-                                   BIHTraverserImpl::Storage const& storage)
-    : tree_(tree), storage_(storage), leaf_offset_(tree.inner_nodes.size())
-{
-    CELER_EXPECT(tree);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- *  Determine if a node is inner, i.e., not a leaf.
- */
-CELER_FUNCTION
-bool BIHTraverserImpl::is_inner(BIHNodeId id) const
-{
-    return id.unchecked_get() < leaf_offset_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- *  Get an inner node for a given BIHNodeId.
- */
-CELER_FUNCTION
-BIHInnerNode const& BIHTraverserImpl::get_inner_node(BIHNodeId id) const
-{
-    CELER_EXPECT(this->is_inner(id));
-    return storage_.inner_nodes[tree_.inner_nodes[id.unchecked_get()]];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- *  Get a leaf node for a given BIHNodeId.
- */
-CELER_FUNCTION
-BIHLeafNode const& BIHTraverserImpl::get_leaf_node(BIHNodeId id) const
-{
-    CELER_EXPECT(!this->is_inner(id));
-    return storage_
-        .leaf_nodes[tree_.leaf_nodes[id.unchecked_get() - leaf_offset_]];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Traverse BIH tree using a depth-first search.
- *
- * \todo move to top-level orange directory out of detail namespace
- */
-class BIHTraverser
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using Storage = NativeCRef<BIHTreeData>;
-    //!@}
-
-    // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    inline CELER_FUNCTION
-    BIHTraverser(BIHTree const& tree, Storage const& storage);
-
-    // Point-in-volume operation
+    // Find a volume that satisfies is_inside
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId find_volume(Real3 const& pos,
-                                                    F&& is_inside) const;
+    inline CELER_FUNCTION LocalVolumeId operator()(Real3 const& pos,
+                                                   F&& is_inside) const;
 
   private:
     //// DATA ////
     BIHTree const& tree_;
     Storage const& storage_;
-    BIHTraverserImpl impl_;
+    BIHTraversalHelper helper_;
 
     //// HELPER FUNCTIONS ////
 
@@ -161,31 +87,32 @@ class BIHTraverser
  * Construct from vector of bounding boxes and storage.
  */
 CELER_FUNCTION
-BIHTraverser::BIHTraverser(BIHTree const& tree,
-                           BIHTraverser::Storage const& storage)
-    : tree_(tree), storage_(storage), impl_(tree, storage)
+BIHEnclosingVolFinder::BIHEnclosingVolFinder(
+    BIHTree const& tree, BIHEnclosingVolFinder::Storage const& storage)
+    : tree_(tree), storage_(storage), helper_(tree, storage)
 {
     CELER_EXPECT(tree);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Point-in-volume operation.
+ * Find a volume that satisfies is_inside.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& pos,
-                                                       F&& is_inside) const
+CELER_FUNCTION LocalVolumeId
+BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
 {
     BIHNodeId previous_node;
     BIHNodeId current_node{0};
     LocalVolumeId id;
 
+    // Depth-first search
     do
     {
-        if (!impl_.is_inner(current_node))
+        if (!helper_.is_inner(current_node))
         {
             id = this->visit_leaf(
-                impl_.get_leaf_node(current_node), pos, is_inside);
+                helper_.get_leaf_node(current_node), pos, is_inside);
 
             if (id)
             {
@@ -198,12 +125,7 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& pos,
 
     } while (current_node);
 
-    if (!id)
-    {
-        id = this->visit_inf_vols(is_inside);
-    }
-
-    return id;
+    return this->visit_inf_vols(is_inside);
 }
 
 //---------------------------------------------------------------------------//
@@ -213,17 +135,17 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::find_volume(Real3 const& pos,
  *  Get the ID of the next node in the traversal sequence.
  */
 CELER_FUNCTION
-BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
-                                  BIHNodeId const& previous_id,
-                                  Real3 const& pos) const
+BIHNodeId BIHEnclosingVolFinder::next_node(BIHNodeId const& current_id,
+                                           BIHNodeId const& previous_id,
+                                           Real3 const& pos) const
 {
     using Side = BIHInnerNode::Side;
 
     BIHNodeId next_id;
 
-    if (impl_.is_inner(current_id))
+    if (helper_.is_inner(current_id))
     {
-        auto const& current_node = impl_.get_inner_node(current_id);
+        auto const& current_node = helper_.get_inner_node(current_id);
         if (previous_id == current_node.parent)
         {
             // Visiting this inner node for the first time; go down either left
@@ -260,7 +182,7 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
     else
     {
         // Leaf node; return to parent
-        CELER_EXPECT(previous_id == impl_.get_leaf_node(current_id).parent);
+        CELER_EXPECT(previous_id == helper_.get_leaf_node(current_id).parent);
         next_id = previous_id;
     }
 
@@ -272,9 +194,9 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
  * Determine if traversal shall proceed down a given edge.
  */
 CELER_FUNCTION
-bool BIHTraverser::visit_edge(BIHInnerNode const& node,
-                              BIHInnerNode::Side side,
-                              Real3 const& pos) const
+bool BIHEnclosingVolFinder::visit_edge(BIHInnerNode const& node,
+                                       BIHInnerNode::Side side,
+                                       Real3 const& pos) const
 {
     CELER_EXPECT(side < BIHInnerNode::Side::size_);
 
@@ -289,7 +211,7 @@ bool BIHTraverser::visit_edge(BIHInnerNode const& node,
  * Determine if any leaf node volumes contain the point.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHTraverser::visit_leaf(
+CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
     BIHLeafNode const& leaf_node, Real3 const& pos, F&& is_inside) const
 {
     for (auto i : range(leaf_node.vol_ids.size()))
@@ -308,7 +230,8 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::visit_leaf(
  * Determine if any volumes in inf_vols contain the point.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHTraverser::visit_inf_vols(F&& is_inside) const
+CELER_FUNCTION LocalVolumeId
+BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
 {
     for (auto i : range(tree_.inf_volids.size()))
     {
@@ -326,7 +249,8 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::visit_inf_vols(F&& is_inside) const
  * Determinate if a single bbox contains the point.
  */
 CELER_FUNCTION
-bool BIHTraverser::visit_bbox(LocalVolumeId const& id, Real3 const& point) const
+bool BIHEnclosingVolFinder::visit_bbox(LocalVolumeId const& id,
+                                       Real3 const& point) const
 {
     return is_inside(storage_.bboxes[tree_.bboxes[id]], point);
 }
