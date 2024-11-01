@@ -11,10 +11,10 @@
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
-#include <G4Navigator.hh>
 #include <G4Step.hh>
 #include <G4StepPoint.hh>
 #include <G4ThreeVector.hh>
+#include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
 #include <G4Track.hh>
 #include <G4TransportationManager.hh>
@@ -94,15 +94,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                      && selection.points[StepPoint::pre].dir);
 
         // Create navigator
-        G4VPhysicalVolume* world_volume
-            = G4TransportationManager::GetTransportationManager()
-                  ->GetNavigatorForTracking()
-                  ->GetWorldVolume();
-        navi_ = std::make_unique<G4Navigator>();
-        navi_->SetWorldVolume(world_volume);
-
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
+        update_touchable_
+            = std::make_unique<NaviTouchableUpdater>(touch_handle_());
     }
 
     // Create track if user requested particle types
@@ -129,6 +124,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     }
 
     CELER_ENSURE(!detectors_.empty());
+    CELER_ENSURE(static_cast<bool>(update_touchable_) == locate_touchable);
 }
 
 //---------------------------------------------------------------------------//
@@ -182,8 +178,8 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
 void HitProcessor::operator()(DetectorStepOutput const& out) const
 {
     CELER_EXPECT(!out.detector.empty());
-    CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].pos.empty());
-    CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].dir.empty());
+    CELER_ASSERT(!update_touchable_ || !out.points[StepPoint::pre].pos.empty());
+    CELER_ASSERT(!update_touchable_ || !out.points[StepPoint::pre].dir.empty());
     CELER_ASSERT(tracks_.empty() || !out.particle.empty());
 
     ScopedProfiling profile_this{"process-hits"};
@@ -227,15 +223,14 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         }
 #undef HP_SET
 
-        if (navi_)
+        if (update_touchable_)
         {
             G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
 
             // Update navigation state
             constexpr auto sp = StepPoint::pre;
-            NaviTouchableUpdater update_touchable{navi_.get(), touch_handle_()};
 
-            bool success = update_touchable(
+            bool success = (*update_touchable_)(
                 out.points[sp].pos[i], out.points[sp].dir[i], lv);
             if (CELER_UNLIKELY(!success))
             {

@@ -7,9 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
+
+class G4Navigator;
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -33,32 +38,24 @@ class NaviTouchableUpdater
         return 1e-3 * units::millimeter;
     }
 
-    // Construct with thread-local navigator and touchable
-    inline NaviTouchableUpdater(G4Navigator* navi,
-                                GeantTouchableBase* touchable);
+    // Construct from touchable and navigator world
+    explicit NaviTouchableUpdater(GeantTouchableBase* touchable);
+
+    // Construct from touchable and explicit world
+    NaviTouchableUpdater(GeantTouchableBase* touchable,
+                         G4VPhysicalVolume const* world);
+
+    // Default external deleter
+    ~NaviTouchableUpdater();
 
     // Try to find the given point in the given logical volume
     bool
     operator()(Real3 const& pos, Real3 const& dir, G4LogicalVolume const* lv);
 
   private:
-    G4Navigator* navi_;
+    std::unique_ptr<G4Navigator> navi_;
     GeantTouchableBase* touchable_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with with thread-local navigator and touchable.
- */
-NaviTouchableUpdater::NaviTouchableUpdater(G4Navigator* navi,
-                                           GeantTouchableBase* touchable)
-    : navi_{navi}, touchable_{touchable}
-{
-    CELER_EXPECT(navi_);
-    CELER_EXPECT(touchable_);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -16,7 +16,6 @@
 #include "corecel/io/Repr.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/Repr.hh"
 #include "celeritas/ext/GeantUnits.hh"
 
@@ -24,6 +23,36 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with touchable and world.
+ */
+NaviTouchableUpdater::NaviTouchableUpdater(GeantTouchableBase* touchable,
+                                           G4VPhysicalVolume const* world)
+    : touchable_{touchable}
+{
+    CELER_EXPECT(touchable_);
+    CELER_EXPECT(world);
+
+    navi_ = std::make_unique<G4Navigator>();
+    navi_->SetWorldVolume(const_cast<G4VPhysicalVolume*>(world));
+
+    CELER_ENSURE(navi_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with touchable and automatic navigation world.
+ */
+NaviTouchableUpdater::NaviTouchableUpdater(GeantTouchableBase* touchable)
+    : NaviTouchableUpdater{touchable, geant_world_volume()}
+{
+}
+
+//---------------------------------------------------------------------------//
+//! Default external deleter
+NaviTouchableUpdater::~NaviTouchableUpdater() = default;
+
 //---------------------------------------------------------------------------//
 /*!
  * Try to find the given point in the given logical volume.

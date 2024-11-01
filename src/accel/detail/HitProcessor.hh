@@ -30,6 +30,8 @@ struct DetectorStepOutput;
 
 namespace detail
 {
+class NaviTouchableUpdater;
+
 //---------------------------------------------------------------------------//
 /*!
  * Transfer Celeritas sensitive detector hits to Geant4.
@@ -97,10 +99,10 @@ class HitProcessor
     std::unique_ptr<G4Step> step_;
     //! Tracks for each particle type
     std::vector<std::unique_ptr<G4Track>> tracks_;
-    //! Navigator for finding points
-    std::unique_ptr<G4Navigator> navi_;
     //! Geant4 reference-counted pointer to a G4VTouchable
     G4TouchableHandle touch_handle_;
+    //! Navigator for finding points
+    std::unique_ptr<NaviTouchableUpdater> update_touchable_;
 
     //! Post-step selection for copying to track
     StepPointSelection post_step_selection_;

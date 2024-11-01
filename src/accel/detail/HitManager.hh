@@ -64,7 +64,7 @@ class HitManager final : public StepInterface
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
 
-    CELER_DELETE_COPY_MOVE(HitManager);
+    CELER_DEFAULT_MOVE_DELETE_COPY(HitManager);
 
     // Default destructor
     ~HitManager();

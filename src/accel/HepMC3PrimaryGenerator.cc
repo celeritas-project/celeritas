@@ -8,7 +8,10 @@
 #include "HepMC3PrimaryGenerator.hh"
 
 #include <mutex>
+#include <G4LogicalVolume.hh>
 #include <G4PhysicalConstants.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4VSolid.hh>
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/GenParticle.h>
 #include <HepMC3/GenVertex.h>

@@ -50,12 +50,7 @@ class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
   protected:
     using TouchableUpdater = NaviTouchableUpdater;
 
-    void SetUp() override
-    {
-        auto const& geo = *this->geometry();
-        navi_.SetWorldVolume(const_cast<G4VPhysicalVolume*>(geo.world()));
-        touch_handle_ = new G4TouchableHistory;
-    }
+    void SetUp() override { touch_handle_ = new G4TouchableHistory; }
 
     SPConstGeo build_geometry() final
     {
@@ -74,11 +69,11 @@ class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
 
     TouchableUpdater make_touchable_updater()
     {
-        return TouchableUpdater{&navi_, touch_handle_()};
+        auto const& geo = *this->geometry();
+        return TouchableUpdater{touch_handle_(), geo.world()};
     }
 
   private:
-    G4Navigator navi_;
     G4TouchableHandle touch_handle_;
 };
 
