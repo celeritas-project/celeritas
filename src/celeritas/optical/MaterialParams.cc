@@ -50,17 +50,10 @@ MaterialParams::from_import(ImportData const& data,
 
     // Extract optical material properties
     inp.properties.reserve(data.optical_materials.size());
-    inp.rayleigh.reserve(data.optical_materials.size());
     for (ImportOpticalMaterial const& opt_mat : data.optical_materials)
     {
         inp.properties.push_back(opt_mat.properties);
-
-        OpticalRayleighMaterial rayl;
-        rayl.scale_factor = opt_mat.rayleigh.scale_factor;
-        rayl.compressibility = opt_mat.rayleigh.compressibility;
-        inp.rayleigh.push_back(std::move(rayl));
     }
-    CELER_ENSURE(inp.properties.size() == inp.rayleigh.size());
 
     // Construct volume-to-optical mapping
     inp.volume_to_mat.reserve(geo_mat.num_volumes());
@@ -74,10 +67,7 @@ MaterialParams::from_import(ImportData const& data,
             optmat = mat_view.optical_material_id();
             if (optmat)
             {
-                CELER_ASSERT(optmat < inp.properties.size());
-
                 has_opt_mat = true;
-                inp.rayleigh[optmat.get()].temperature = mat_view.temperature();
             }
         }
         inp.volume_to_mat.push_back(optmat);
@@ -95,11 +85,9 @@ MaterialParams::from_import(ImportData const& data,
  * Construct with optical property data.
  */
 MaterialParams::MaterialParams(Input const& inp)
-    : rayleigh_materials_(std::move(inp.rayleigh))
 {
     CELER_EXPECT(!inp.properties.empty());
     CELER_EXPECT(!inp.volume_to_mat.empty());
-    CELER_EXPECT(inp.properties.size() == rayleigh_materials_.size());
 
     HostVal<MaterialParamsData> data;
     CollectionBuilder refractive_index{&data.refractive_index};

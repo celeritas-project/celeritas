@@ -23,19 +23,23 @@ namespace optical
 /*!
  * Construct the model from imported data.
  */
-RayleighModel::RayleighModel(ActionId id,
-                             SPConstImported imported,
-                             SPConstMaterials materials)
+RayleighModel::RayleighModel(
+    ActionId id,
+    SPConstImported imported,
+    SPConstMaterials materials,
+    std::vector<OpticalRayleighMaterial> rayleigh_materials)
     : Model(id, "optical-rayleigh", "interact by optical Rayleigh")
     , imported_(ImportModelClass::rayleigh, imported)
     , materials_(std::move(materials))
+    , rayleigh_materials_(std::move(rayleigh_materials))
 {
     CELER_EXPECT(materials_);
     CELER_EXPECT(materials_->num_materials() == imported_.num_materials());
+    CELER_EXPECT(materials_->num_materials() == rayleigh_materials_.size());
 
     for (auto mat : range(OpticalMaterialId(materials_->num_materials())))
     {
-        CELER_EXPECT(imported_.mfp(mat) || materials_->rayleigh_material(mat));
+        CELER_EXPECT(imported_.mfp(mat) || rayleigh_materials_[mat.get()]);
     }
 }
 
@@ -55,7 +59,7 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
     {
         RayleighMfpCalculator calc_mfp(
             MaterialView(materials_->host_ref(), mat),
-            materials_->rayleigh_material(mat));
+            rayleigh_materials_[mat.get()]);
 
         // Use index of refraction energy grid as calculated MFP energy grid
         auto const& energy_grid = calc_mfp.grid();

@@ -21,22 +21,6 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Material properties used to calculate Rayleigh mean free paths.
- */
-struct OpticalRayleighMaterial
-{
-    real_type scale_factor{1};  //!< User scale for the scattering length
-    real_type compressibility{0};  //!< Isothermal compressibility
-    real_type temperature{0};  //!< Material temperature
-
-    operator bool() const
-    {
-        return scale_factor > 0 && compressibility > 0 && temperature > 0;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Shared optical material properties.
  */
 template<Ownership W, MemSpace M>

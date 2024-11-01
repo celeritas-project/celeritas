@@ -14,13 +14,35 @@
 #include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 
-#include "../MaterialData.hh"
 #include "../MaterialView.hh"
 
 namespace celeritas
 {
+class MaterialParams;
+class ImportOpticalRayleigh;
+
 namespace optical
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Material properties used to calculate Rayleigh mean free paths.
+ */
+struct OpticalRayleighMaterial
+{
+    real_type scale_factor{1};  //!< User scale for the scattering length
+    real_type compressibility{0};  //!< Isothermal compressibility
+    real_type temperature{0};  //!< Material temperature
+
+    operator bool() const
+    {
+        return scale_factor > 0 && compressibility > 0 && temperature > 0;
+    }
+
+    static std::vector<OpticalRayleighMaterial>
+    from_import(std::vector<ImportOpticalRayleigh> const& imported,
+                ::celeritas::MaterialParams const& mat);
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the Rayleigh MFP for a given set of material properties.

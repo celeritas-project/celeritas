@@ -6,6 +6,7 @@
 //! \file celeritas/optical/OpticalRayleigh.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/interactor/RayleighInteractor.hh"
+#include "celeritas/optical/model/RayleighMfpCalculator.hh"
 #include "celeritas/optical/model/RayleighModel.hh"
 
 #include "InteractorHostTestBase.hh"
@@ -49,9 +50,29 @@ class RayleighModelTest : public MockImportedData
     //! Create Rayleigh model from mock data
     std::shared_ptr<RayleighModel const> create_model(SPConstImported models)
     {
+        std::vector<OpticalRayleighMaterial> mats;
+        for (auto mat : MockImportedData::import_materials())
+        {
+            OpticalRayleighMaterial rayleigh;
+            rayleigh.scale_factor = mat.rayleigh.scale_factor;
+            rayleigh.compressibility = mat.rayleigh.compressibility;
+            mats.push_back(std::move(rayleigh));
+        }
+
+        static real_type const material_temperatures[]
+            = {283.15 * units::kelvin,
+               300.0 * units::kelvin,
+               283.15 * units::kelvin,
+               200 * units::kelvin,
+               300.0 * units::kelvin};
+        for (auto i : range(mats.size()))
+        {
+            mats[i].temperature = material_temperatures[i];
+        }
+
         import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
         return std::make_shared<RayleighModel const>(
-            ActionId{0}, models, this->optical_materials());
+            ActionId{0}, models, this->optical_materials(), std::move(mats));
     }
 
     ImportedModels::ImportedModelId import_model_id_;

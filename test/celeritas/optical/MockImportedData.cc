@@ -184,21 +184,6 @@ auto MockImportedData::build_optical_materials() const -> SPConstMaterials
     for (auto mat : MockImportedData::import_materials())
     {
         input.properties.push_back(mat.properties);
-
-        OpticalRayleighMaterial rayleigh;
-        rayleigh.scale_factor = mat.rayleigh.scale_factor;
-        rayleigh.compressibility = mat.rayleigh.compressibility;
-        input.rayleigh.push_back(std::move(rayleigh));
-    }
-
-    static real_type const material_temperatures[] = {283.15 * units::kelvin,
-                                                      300.0 * units::kelvin,
-                                                      283.15 * units::kelvin,
-                                                      200 * units::kelvin,
-                                                      300.0 * units::kelvin};
-    for (auto i : range(input.rayleigh.size()))
-    {
-        input.rayleigh[i].temperature = material_temperatures[i];
     }
 
     // Volume -> optical material mapping with some redundancies
