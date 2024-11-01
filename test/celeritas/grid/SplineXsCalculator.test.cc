@@ -197,7 +197,9 @@ TEST_F(SplineXsCalculatorTest, quadratic_simple)
 
         for (real_type e : {1e-2, 5e-2, 1e-1, 5e-1, 1.0, 5.0, 1e1, 5e1, 1e2})
         {
-            EXPECT_SOFT_EQ(reference_xs(e), calc(Energy{e}));
+            // Interpolation in the construction means small failures in
+            // single-precision mode
+            EXPECT_SOFT_NEAR(reference_xs(e), calc(Energy{e}), coarse_eps);
         }
 
         // Test access by index
