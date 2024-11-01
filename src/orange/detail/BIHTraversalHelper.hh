@@ -7,9 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
-
-#include "../BoundingBoxUtils.hh"
 #include "../OrangeData.hh"
 
 namespace celeritas
