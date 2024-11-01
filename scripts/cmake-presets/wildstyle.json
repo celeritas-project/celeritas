@@ -41,6 +41,7 @@
       "inherits": [".debug", ".base"],
       "cacheVariables": {
         "CELERITAS_CORE_GEO": "Geant4",
+        "CELERITAS_UNITS": "CLHEP",
         "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"}
       }
     },

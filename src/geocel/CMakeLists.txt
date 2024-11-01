@@ -16,6 +16,7 @@ list(APPEND SOURCES
   BoundingBoxIO.json.cc
   GeoParamsInterface.cc
   GeoParamsOutput.cc
+  GeoVolumeFinder.cc
   rasterize/Color.cc
   rasterize/Image.cc
   rasterize/ImageIO.json.cc

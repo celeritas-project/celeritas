@@ -22,6 +22,9 @@ namespace test
 //---------------------------------------------------------------------------//
 using OrangeTestBase = GenericGeoTestBase<OrangeParams>;
 
+extern template class CheckedGeoTrackView<OrangeTrackView>;
+extern template class GenericGeoTestBase<OrangeParams>;
+
 //---------------------------------------------------------------------------//
 extern template class CheckedGeoTrackView<OrangeTrackView>;
 extern template class GenericGeoTestBase<OrangeParams>;

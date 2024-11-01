@@ -16,11 +16,14 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// FIXME: rename this to something less confusing
 template<MemSpace M>
 struct StepState
 {
+    // TODO: step state params
     //! Host pointer to externally owned step state data reference
     StepStateData<Ownership::reference, M> const& steps;
+    // TODO: aux state vec
     //! Stream ID (local to each core state)
     StreamId stream_id;
 };
