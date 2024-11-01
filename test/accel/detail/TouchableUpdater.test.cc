@@ -5,8 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file accel/detail/TouchableUpdater.test.cc
 //---------------------------------------------------------------------------//
-#include "accel/detail/TouchableUpdater.hh"
-
 #include <cmath>
 #include <G4Navigator.hh>
 #include <G4TouchableHistory.hh>
@@ -19,6 +17,7 @@
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTestBase.hh"
 #include "celeritas/Units.hh"
+#include "accel/detail/NaviTouchableUpdater.hh"
 
 #include "celeritas_test.hh"
 
@@ -49,6 +48,8 @@ namespace test
 class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
 {
   protected:
+    using TouchableUpdater = NaviTouchableUpdater;
+
     void SetUp() override
     {
         auto const& geo = *this->geometry();

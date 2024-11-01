@@ -33,7 +33,7 @@
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
-#include "TouchableUpdater.hh"
+#include "NaviTouchableUpdater.hh"
 
 namespace celeritas
 {
@@ -233,7 +233,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
             // Update navigation state
             constexpr auto sp = StepPoint::pre;
-            TouchableUpdater update_touchable{navi_.get(), touch_handle_()};
+            NaviTouchableUpdater update_touchable{navi_.get(), touch_handle_()};
 
             bool success = update_touchable(
                 out.points[sp].pos[i], out.points[sp].dir[i], lv);

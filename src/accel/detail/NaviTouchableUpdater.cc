@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/TouchableUpdater.cc
+//! \file accel/detail/NaviTouchableUpdater.cc
 //---------------------------------------------------------------------------//
-#include "TouchableUpdater.hh"
+#include "NaviTouchableUpdater.hh"
 
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Navigator.hh>
@@ -33,9 +33,9 @@ namespace detail
  * If that's the case, try bumping forward and backward to see if we can enter
  * the correct volume.
  */
-bool TouchableUpdater::operator()(Real3 const& pos,
-                                  Real3 const& dir,
-                                  G4LogicalVolume const* lv)
+bool NaviTouchableUpdater::operator()(Real3 const& pos,
+                                      Real3 const& dir,
+                                      G4LogicalVolume const* lv)
 {
     auto g4pos = convert_to_geant(pos, clhep_length);
     auto g4dir = convert_to_geant(dir, 1);

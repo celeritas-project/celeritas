@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/TouchableUpdater.hh
+//! \file accel/detail/NaviTouchableUpdater.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,7 +21,7 @@ namespace detail
  *
  * This is a helper class for \c HitProcessor.
  */
-class TouchableUpdater
+class NaviTouchableUpdater
 {
   public:
     //! Maximum step to try within the current volume [len]
@@ -34,7 +34,8 @@ class TouchableUpdater
     }
 
     // Construct with thread-local navigator and touchable
-    inline TouchableUpdater(G4Navigator* navi, GeantTouchableBase* touchable);
+    inline NaviTouchableUpdater(G4Navigator* navi,
+                                GeantTouchableBase* touchable);
 
     // Try to find the given point in the given logical volume
     bool
@@ -51,8 +52,8 @@ class TouchableUpdater
 /*!
  * Construct with with thread-local navigator and touchable.
  */
-TouchableUpdater::TouchableUpdater(G4Navigator* navi,
-                                   GeantTouchableBase* touchable)
+NaviTouchableUpdater::NaviTouchableUpdater(G4Navigator* navi,
+                                           GeantTouchableBase* touchable)
     : navi_{navi}, touchable_{touchable}
 {
     CELER_EXPECT(navi_);
