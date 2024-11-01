@@ -25,13 +25,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with touchable and world.
+ * Construct with world.
  */
-NaviTouchableUpdater::NaviTouchableUpdater(GeantTouchableBase* touchable,
-                                           G4VPhysicalVolume const* world)
-    : touchable_{touchable}
+NaviTouchableUpdater::NaviTouchableUpdater(G4VPhysicalVolume const* world)
 {
-    CELER_EXPECT(touchable_);
     CELER_EXPECT(world);
 
     navi_ = std::make_unique<G4Navigator>();
@@ -42,10 +39,10 @@ NaviTouchableUpdater::NaviTouchableUpdater(GeantTouchableBase* touchable,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with touchable and automatic navigation world.
+ * Construct with automatic navigation world.
  */
-NaviTouchableUpdater::NaviTouchableUpdater(GeantTouchableBase* touchable)
-    : NaviTouchableUpdater{touchable, geant_world_volume()}
+NaviTouchableUpdater::NaviTouchableUpdater()
+    : NaviTouchableUpdater{geant_world_volume()}
 {
 }
 
@@ -64,7 +61,8 @@ NaviTouchableUpdater::~NaviTouchableUpdater() = default;
  */
 bool NaviTouchableUpdater::operator()(Real3 const& pos,
                                       Real3 const& dir,
-                                      G4LogicalVolume const* lv)
+                                      G4LogicalVolume const* lv,
+                                      GeantTouchableBase* touchable)
 {
     auto g4pos = convert_to_geant(pos, clhep_length);
     auto g4dir = convert_to_geant(dir, 1);
@@ -72,11 +70,11 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     // Locate pre-step point
     navi_->LocateGlobalPointAndUpdateTouchable(g4pos,
                                                g4dir,
-                                               touchable_,
+                                               touchable,
                                                /* relative_search = */ false);
 
     // Check whether physical and logical volumes are consistent
-    G4VPhysicalVolume* pv = touchable_->GetVolume(0);
+    G4VPhysicalVolume* pv = touchable->GetVolume(0);
     CELER_ASSERT(pv);
     if (pv->GetLogicalVolume() == lv)
     {
@@ -108,7 +106,7 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
             CELER_LOG_LOCAL(warning)
                 << "Bumping navigation state by " << repr(g4step)
                 << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
-                << " from " << PrintableNavHistory{touchable_->GetHistory()}
+                << " from " << PrintableNavHistory{touchable->GetHistory()}
                 << " to try to reach " << PrintableLV{lv};
         }
 
@@ -120,25 +118,25 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
         navi_->LocateGlobalPointAndUpdateTouchable(
             g4pos,
             g4dir,
-            touchable_,
+            touchable,
             /* relative_search = */ true);
 
         // Update volume and return whether it's correct
-        pv = touchable_->GetVolume(0);
+        pv = touchable->GetVolume(0);
         CELER_ASSERT(pv);
 
         if (g4step > g4max_quiet_step)
         {
             CELER_LOG_LOCAL(diagnostic)
                 << "...bumped to "
-                << PrintableNavHistory{touchable_->GetHistory()};
+                << PrintableNavHistory{touchable->GetHistory()};
         }
         else if (pv->GetLogicalVolume() == lv)
         {
             CELER_LOG_LOCAL(debug)
                 << "Bumped navigation state by " << repr(g4step) << " to "
                 << repr(g4pos) << " to enter "
-                << PrintableNavHistory{touchable_->GetHistory()};
+                << PrintableNavHistory{touchable->GetHistory()};
         }
 
         return pv->GetLogicalVolume() == lv;
@@ -181,7 +179,7 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
         << "Failed to bump navigation state up to a distance of " << g4max_step
         << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
         << " to try to reach " << PrintableLV{lv} << ": found "
-        << PrintableNavHistory{touchable_->GetHistory()};
+        << PrintableNavHistory{touchable->GetHistory()};
     return false;
 }
 

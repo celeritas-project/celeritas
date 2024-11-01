@@ -38,23 +38,23 @@ class NaviTouchableUpdater
         return 1e-3 * units::millimeter;
     }
 
-    // Construct from touchable and navigator world
-    explicit NaviTouchableUpdater(GeantTouchableBase* touchable);
+    // Construct from navigator world
+    NaviTouchableUpdater();
 
     // Construct from touchable and explicit world
-    NaviTouchableUpdater(GeantTouchableBase* touchable,
-                         G4VPhysicalVolume const* world);
+    explicit NaviTouchableUpdater(G4VPhysicalVolume const* world);
 
     // Default external deleter
     ~NaviTouchableUpdater();
 
     // Try to find the given point in the given logical volume
-    bool
-    operator()(Real3 const& pos, Real3 const& dir, G4LogicalVolume const* lv);
+    bool operator()(Real3 const& pos,
+                    Real3 const& dir,
+                    G4LogicalVolume const* lv,
+                    GeantTouchableBase* touchable);
 
   private:
     std::unique_ptr<G4Navigator> navi_;
-    GeantTouchableBase* touchable_;
 };
 
 //---------------------------------------------------------------------------//
