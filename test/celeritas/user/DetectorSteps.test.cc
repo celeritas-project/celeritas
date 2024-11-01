@@ -10,6 +10,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/Ref.hh"
 #include "celeritas/user/StepData.hh"
+#include "celeritas/user/detail/StepScratchCopyExecutor.hh"
 
 #include "celeritas_test.hh"
 
@@ -56,6 +57,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
             .insert_back(detectors.begin(), detectors.end());
 
         host_data.selection = this->selection();
+        host_data.volume_instance_depth = 4;
 
         params_ = CollectionMirror<StepParamsData>(std::move(host_data));
     }
@@ -69,8 +71,9 @@ class DetectorStepsTest : public ::celeritas::test::Test
             sp.time = true;
             sp.pos = true;
             sp.dir = true;
-            sp.volume_id = true;
             sp.energy = true;
+            sp.volume_id = true;
+            sp.volume_instance_ids = true;
         }
         result.event_id = true;
         result.track_step_count = true;
@@ -81,7 +84,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         return result;
     }
 
-    HostParamsRef params() { return params_.host_ref(); }
+    HostParamsRef params() const { return params_.host_ref(); }
 
     HostStates build_states(size_type count)
     {
@@ -89,6 +92,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         HostStates result;
         resize(&result, this->params(), StreamId{0}, count);
         auto& step = result.data;
+        result.volume_instance_depth = this->params().volume_instance_depth;
 
         // Fill with bogus data
         int i = 0;
@@ -107,6 +111,24 @@ class DetectorStepsTest : public ::celeritas::test::Test
                     state_point.volume_id[tid] = VolumeId(i++ % 4);
                 if (!state_point.energy.empty())
                     state_point.energy[tid] = units::MevEnergy(i++);
+
+                if (!state_point.volume_instance_ids.empty())
+                {
+                    using ViId = ItemId<VolumeInstanceId>;
+                    auto depth = tid.unchecked_get() % 4;
+                    for (auto j : range(result.volume_instance_depth))
+                    {
+                        VolumeInstanceId val;
+                        if (j <= depth)
+                        {
+                            val = VolumeInstanceId{(j + i) % 8};
+                        }
+                        ViId vi_id{result.volume_instance_depth
+                                       * tid.unchecked_get()
+                                   + j};
+                        state_point.volume_instance_ids[vi_id] = val;
+                    }
+                }
             }
             // Leave occasional gaps in the track IDs
             step.track_id[tid] = tid.get() % 5 == 0 ? TrackId{} : TrackId(i++);
@@ -180,11 +202,29 @@ TEST_F(DetectorStepsTest, host)
     EXPECT_EQ(num_tracks, pre.dir.size());
     EXPECT_EQ(num_tracks, pre.energy.size());
 
+    static int const expected_pre_volume_instance_ids[] = {
+        5,  6,  -1, -1, 6,  7,  0,  -1, 0,  -1, -1, -1, 1,  2,  3,  -1, 3,  -1,
+        -1, -1, 4,  5,  -1, -1, 6,  -1, -1, -1, 7,  0,  -1, -1, 0,  1,  2,  -1,
+        1,  -1, -1, -1, 2,  3,  -1, -1, 3,  4,  5,  -1, 5,  6,  -1, -1, 6,  7,
+        0,  -1, 0,  -1, -1, -1, 1,  2,  3,  -1, 3,  -1, -1, -1, 4,  5,  -1, -1,
+    };
+    EXPECT_VEC_EQ(expected_pre_volume_instance_ids,
+                  extract_ids(pre.volume_instance_ids));
+
     auto const& post = output.points[StepPoint::post];
     EXPECT_EQ(num_tracks, post.time.size());
     EXPECT_EQ(num_tracks, post.pos.size());
     EXPECT_EQ(num_tracks, post.dir.size());
     EXPECT_EQ(num_tracks, post.energy.size());
+
+    static int const expected_post_volume_instance_ids[] = {
+        2,  3,  -1, -1, 3,  4,  5,  -1, 5,  -1, -1, -1, 6,  7,  0,  -1, 0,  -1,
+        -1, -1, 1,  2,  -1, -1, 3,  -1, -1, -1, 4,  5,  -1, -1, 5,  6,  7,  -1,
+        6,  -1, -1, -1, 7,  0,  -1, -1, 0,  1,  2,  -1, 2,  3,  -1, -1, 3,  4,
+        5,  -1, 5,  -1, -1, -1, 6,  7,  0,  -1, 0,  -1, -1, -1, 1,  2,  -1, -1,
+    };
+    EXPECT_VEC_EQ(expected_post_volume_instance_ids,
+                  extract_ids(post.volume_instance_ids));
 }
 
 TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
@@ -219,6 +259,7 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_VEC_EQ(host_pre.pos, pre.pos);
     EXPECT_VEC_EQ(host_pre.dir, pre.dir);
     EXPECT_VEC_EQ(host_pre.energy, pre.energy);
+    EXPECT_VEC_EQ(host_pre.volume_instance_ids, pre.volume_instance_ids);
 
     auto const& host_post = host_output.points[StepPoint::post];
     auto const& post = output.points[StepPoint::post];
@@ -226,6 +267,7 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_VEC_EQ(host_post.pos, post.pos);
     EXPECT_VEC_EQ(host_post.dir, post.dir);
     EXPECT_VEC_EQ(host_post.energy, post.energy);
+    EXPECT_VEC_EQ(host_post.volume_instance_ids, post.volume_instance_ids);
 }
 
 TEST_F(SmallDetectorStepsTest, host)
@@ -253,12 +295,14 @@ TEST_F(SmallDetectorStepsTest, host)
     EXPECT_EQ(num_tracks, pre.pos.size());
     EXPECT_EQ(0, pre.dir.size());
     EXPECT_EQ(0, pre.energy.size());
+    EXPECT_EQ(0, pre.volume_instance_ids.size());
 
     auto const& post = output.points[StepPoint::post];
     EXPECT_EQ(0, post.time.size());
     EXPECT_EQ(num_tracks, post.pos.size());
     EXPECT_EQ(0, post.dir.size());
     EXPECT_EQ(0, post.energy.size());
+    EXPECT_EQ(0, post.volume_instance_ids.size());
 }
 
 TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
@@ -292,12 +336,14 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(num_tracks, pre.pos.size());
     EXPECT_EQ(0, pre.dir.size());
     EXPECT_EQ(0, pre.energy.size());
+    EXPECT_EQ(0, pre.volume_instance_ids.size());
 
     auto const& post = output.points[StepPoint::post];
     EXPECT_EQ(0, post.time.size());
     EXPECT_EQ(num_tracks, post.pos.size());
     EXPECT_EQ(0, post.dir.size());
     EXPECT_EQ(0, post.energy.size());
+    EXPECT_EQ(0, post.volume_instance_ids.size());
 }
 
 //---------------------------------------------------------------------------//

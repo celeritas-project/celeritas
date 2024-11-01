@@ -13,6 +13,7 @@
 #include "corecel/data/Collection.hh"
 
 #include "../CuHipRngData.hh"
+#include "../CuHipRngEngine.hh"
 
 namespace celeritas
 {
@@ -43,14 +44,43 @@ struct CuHipRngInitData
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Initialize the given track slot.
+ */
+struct RngSeedExecutor
+{
+    NativeCRef<CuHipRngParamsData> const params;
+    NativeRef<CuHipRngStateData> const state;
+    NativeCRef<CuHipRngInitData> const seeds;
+
+    //! Initialize the given track slot
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const
+    {
+        CELER_EXPECT(tid < state.size());
+        CuHipRngInitializer init;
+        init.seed = seeds.seeds[tid];
+        CuHipRngEngine rng{params, state, tid};
+        rng = init;
+    }
+
+    //! Initialize from the given thread
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        return (*this)(TrackSlotId{tid.unchecked_get()});
+    }
+};
+
+//---------------------------------------------------------------------------//
 // Initialize the RNG state on host/device
 void rng_state_init(DeviceCRef<CuHipRngParamsData> const& params,
                     DeviceRef<CuHipRngStateData> const& state,
-                    DeviceCRef<CuHipRngInitData> const& seeds);
+                    DeviceCRef<CuHipRngInitData> const& seeds,
+                    StreamId stream);
 
 void rng_state_init(HostCRef<CuHipRngParamsData> const& params,
                     HostRef<CuHipRngStateData> const& state,
-                    HostCRef<CuHipRngInitData> const& seeds);
+                    HostCRef<CuHipRngInitData> const& seeds,
+                    StreamId);
 
 #if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
@@ -59,7 +89,8 @@ void rng_state_init(HostCRef<CuHipRngParamsData> const& params,
  */
 inline void rng_state_init(DeviceCRef<CuHipRngParamsData> const&,
                            DeviceRef<CuHipRngStateData> const&,
-                           DeviceCRef<CuHipRngInitData> const&)
+                           DeviceCRef<CuHipRngInitData> const&,
+                           StreamId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

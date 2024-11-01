@@ -89,6 +89,7 @@ class VecgeomParams final : public GeoParamsInterface,
     LabelIdMultiMap<VolumeId> volumes_;
     VolInstanceMap vol_instances_;
     std::unordered_map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
+    std::vector<G4VPhysicalVolume const*> g4_pv_map_;
 
     BBox bbox_;
 

@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <unordered_set>
+#include <utility>
 #include <G4LogicalVolumeStore.hh>
 #include <G4PVDivision.hh>
 #include <G4PVPlacement.hh>
@@ -92,16 +93,22 @@ class DaughterPlacer
 {
   public:
     using VGLogicalVolume = vecgeom::LogicalVolume;
+    using VGPlacedVolume = vecgeom::VPlacedVolume;
+    using VecPv = Converter::VecPv;
 
     template<class F>
     DaughterPlacer(F&& build_vgdaughter,
                    Transformer const& trans,
+                   VecPv* placed_volumes,
                    G4LogicalVolume const* daughter_g4lv,
                    VGLogicalVolume* mother_lv)
-        : convert_transform_{trans}, mother_lv_{mother_lv}
+        : convert_transform_{trans}
+        , placed_pv_{placed_volumes}
+        , mother_lv_{mother_lv}
     {
-        CELER_EXPECT(mother_lv_);
+        CELER_EXPECT(placed_pv_);
         CELER_EXPECT(daughter_g4lv);
+        CELER_EXPECT(mother_lv_);
 
         // Test for reflection
         if (G4LogicalVolume const* unrefl_g4lv
@@ -135,10 +142,21 @@ class DaughterPlacer
             daughter_lv_,
             mother_lv_,
             g4pv->GetCopyNo());
+
+        // Add the newly placed daughter to the map
+        auto const& daughters = mother_lv_->GetDaughters();
+        CELER_ASSERT(daughters.size() > 0);
+        VGPlacedVolume const* vgpv = daughters[daughters.size() - 1];
+        CELER_ASSERT(vgpv);
+        auto id = vgpv->id();
+        placed_pv_->resize(std::max<std::size_t>(placed_pv_->size(), id + 1),
+                           nullptr);
+        (*placed_pv_)[id] = g4pv;
     }
 
   private:
     Transformer const& convert_transform_;
+    Converter::VecPv* placed_pv_{nullptr};
     VGLogicalVolume* mother_lv_{nullptr};
     VGLogicalVolume* daughter_lv_{nullptr};
     bool flip_z_{false};
@@ -196,10 +214,12 @@ auto Converter::operator()(arg_type g4world) -> result_type
 
     result_type result;
     result.world = world_lv->Place(g4world->GetName().c_str(), &trans);
-    result.volumes = convert_lv_->make_volume_map();
+    result.logical_volumes = convert_lv_->make_volume_map();
+    result.physical_volumes = std::move(placed_volumes_);
 
     CELER_ENSURE(result.world);
-    CELER_ENSURE(!result.volumes.empty());
+    CELER_ENSURE(!result.logical_volumes.empty());
+    CELER_ENSURE(!result.physical_volumes.empty());
     return result;
 }
 
@@ -242,6 +262,7 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
 
         DaughterPlacer place_daughter(convert_daughter,
                                       *convert_transform_,
+                                      &placed_volumes_,
                                       g4pv->GetLogicalVolume(),
                                       mother_lv);
 

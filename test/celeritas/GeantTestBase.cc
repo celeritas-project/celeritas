@@ -177,6 +177,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
         i.scoped_exceptions = std::make_unique<ScopedGeantExceptionHandler>();
         i.imported = (*i.import)(sel);
         i.options.verbose = false;
+        i.selection = sel;
     }
     else
     {
@@ -184,15 +185,14 @@ auto GeantTestBase::imported_data() const -> ImportData const&
         opts.verbose = false;
 
         static char const explanation[]
-            = " (Geant4 cannot be set up twice in one execution: see issue "
-              "#462)";
+            = R"( (Geant4 cannot be set up twice in one execution: see issue #462))";
         CELER_VALIDATE(this->geometry_basename() == i.geometry_basename,
                        << "cannot load new geometry '"
                        << this->geometry_basename() << "' when another '"
                        << i.geometry_basename << "' was already set up"
                        << explanation);
         CELER_VALIDATE(opts == i.options,
-                       << "cannot change physics options after "
+                       << "cannot change physics options after setup "
                        << explanation);
 
         if (sel != i.selection)
@@ -208,7 +208,10 @@ auto GeantTestBase::imported_data() const -> ImportData const&
 //---------------------------------------------------------------------------//
 GeantImportDataSelection GeantTestBase::build_import_data_selection() const
 {
-    return {};
+    // By default, don't try to import optical data
+    GeantImportDataSelection result;
+    result.processes &= (~GeantImportDataSelection::optical);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

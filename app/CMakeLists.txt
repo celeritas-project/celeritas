@@ -5,13 +5,6 @@
 #-----------------------------------------------------------------------------#
 
 if(BUILD_TESTING)
-  # Set environment variables from Geant4-exported configuration
-  set(CELER_G4ENV)
-  foreach(_ds IN LISTS Geant4_DATASETS)
-    list(APPEND CELER_G4ENV
-      "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
-  endforeach()
-
   if(CELERITAS_USE_Python)
     set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
     set(CELER_NEEDS_PYTHON)
