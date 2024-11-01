@@ -144,7 +144,7 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
     // True bounding indices of the grid that will be checked.
     // If the interpolation requests out-of-bounds indices, clip the
     // extents. This will reduce the order of the interpolation
-    // todo - instead of clipping the bounds, alter both the low and high
+    // TODO: instead of clipping the bounds, alter both the low and high
     // index to keep the range just shifted down
 
     size_type true_low_idx;
@@ -212,7 +212,7 @@ CELER_FUNCTION real_type SplineXsCalculator::get(size_type index) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the raw cross section data at a particular index.
+ * Interpolate the cross sections using spline.
  */
 CELER_FUNCTION real_type SplineXsCalculator::interpolate(
     real_type energy, size_type low_idx, size_type high_idx) const
@@ -238,7 +238,7 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(
                 denom *= (outer_e - inner_e);
             }
         }
-        real_type weighted_value = num / denom * this->get(outer_idx);
+        real_type weighted_value = (num / denom) * this->get(outer_idx);
         if (outer_idx >= data_.prime_index)
         {
             weighted_value /= outer_e;
