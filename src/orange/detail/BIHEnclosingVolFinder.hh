@@ -49,8 +49,6 @@ class BIHEnclosingVolFinder
 
   private:
     //// DATA ////
-    BIHTree const& tree_;
-    Storage const& storage_;
     BIHTraversalHelper helper_;
 
     //// HELPER FUNCTIONS ////
@@ -89,9 +87,8 @@ class BIHEnclosingVolFinder
 CELER_FUNCTION
 BIHEnclosingVolFinder::BIHEnclosingVolFinder(
     BIHTree const& tree, BIHEnclosingVolFinder::Storage const& storage)
-    : tree_(tree), storage_(storage), helper_(tree, storage)
+    : helper_(tree, storage)
 {
-    CELER_EXPECT(tree);
 }
 
 //---------------------------------------------------------------------------//
@@ -216,7 +213,7 @@ CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
 {
     for (auto i : range(leaf_node.vol_ids.size()))
     {
-        auto id = storage_.local_volume_ids[leaf_node.vol_ids[i]];
+        auto id = helper_.get_leaf_volid(leaf_node, i);
         if (this->visit_bbox(id, pos) && is_inside(id))
         {
             return id;
@@ -233,9 +230,9 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
 {
-    for (auto i : range(tree_.inf_volids.size()))
+    for (auto i : range(helper_.get_num_inf_volids()))
     {
-        auto id = storage_.local_volume_ids[tree_.inf_volids[i]];
+        auto id = helper_.get_inf_volid(i);
         if (is_inside(id))
         {
             return id;
@@ -252,7 +249,7 @@ CELER_FUNCTION
 bool BIHEnclosingVolFinder::visit_bbox(LocalVolumeId const& id,
                                        Real3 const& point) const
 {
-    return is_inside(storage_.bboxes[tree_.bboxes[id]], point);
+    return is_inside(helper_.get_bbox(id), point);
 }
 
 //---------------------------------------------------------------------------//

@@ -41,6 +41,19 @@ class BIHTraversalHelper
     // Get a leaf node for a given BIHNodeId
     inline CELER_FUNCTION BIHLeafNode const& get_leaf_node(BIHNodeId id) const;
 
+    // Get a bbox for a given vol_id
+    inline CELER_FUNCTION FastBBox const& get_bbox(LocalVolumeId vol_id) const;
+
+    // Get the vol_id of the ith volume on a given leaf node
+    inline CELER_FUNCTION LocalVolumeId get_leaf_volid(BIHLeafNode leaf,
+                                                       size_type i) const;
+
+    // Get the number of inf_volids on the tree
+    inline CELER_FUNCTION size_type get_num_inf_volids() const;
+
+    // Get the ith vol_id in inf_volids
+    inline CELER_FUNCTION LocalVolumeId get_inf_volid(size_type i) const;
+
   private:
     //// DATA ////
     BIHTree const& tree_;
@@ -93,6 +106,47 @@ BIHLeafNode const& BIHTraversalHelper::get_leaf_node(BIHNodeId id) const
     CELER_EXPECT(!this->is_inner(id));
     return storage_
         .leaf_nodes[tree_.leaf_nodes[id.unchecked_get() - leaf_offset_]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get a leaf node for a given BIHNodeId.
+ */
+CELER_FUNCTION FastBBox const&
+BIHTraversalHelper::get_bbox(LocalVolumeId vol_id) const
+{
+    CELER_EXPECT(vol_id.unchecked_get() < tree_.bboxes.size());
+    return storage_.bboxes[tree_.bboxes[vol_id]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get the vol_id of the ith volume on a given leaf node.
+ */
+CELER_FUNCTION LocalVolumeId
+BIHTraversalHelper::get_leaf_volid(BIHLeafNode leaf, size_type i) const
+{
+    CELER_EXPECT(i < leaf.vol_ids.size());
+    return storage_.local_volume_ids[leaf.vol_ids[i]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get the number of inf_volids on the tree.
+ */
+CELER_FUNCTION size_type BIHTraversalHelper::get_num_inf_volids() const
+{
+    return tree_.inf_volids.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get the ith vol_id in inf_volids.
+ */
+CELER_FUNCTION LocalVolumeId BIHTraversalHelper::get_inf_volid(size_type i) const
+{
+    CELER_EXPECT(i < tree_.inf_volids.size());
+    return storage_.local_volume_ids[tree_.inf_volids[i]];
 }
 
 //---------------------------------------------------------------------------//
