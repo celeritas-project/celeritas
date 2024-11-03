@@ -8,6 +8,8 @@
 #pragma once
 
 #include <VecGeom/base/Config.h>
+
+#include "corecel/Assert.hh"
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
@@ -16,8 +18,27 @@ namespace celeritas
 {
 namespace detail
 {
-#ifdef VECGEOM_USE_SURF
 //---------------------------------------------------------------------------//
+/*!
+ * Pointers to device data, obtained from a kernel launch or from runtime.
+ *
+ * The \c kernel data is copied from inside a kernel to global heap memory, and
+ * thence to this result. The \c symbol data is copied via \c
+ * cudaMemcpyFromSymbol .
+ */
+template<class T>
+struct CudaPointers
+{
+    T* kernel{nullptr};
+    T* symbol{nullptr};
+};
+
+//---------------------------------------------------------------------------//
+// Get pointers to the device BVH after setup, for consistency checking
+CudaPointers<VecGeom::cuda::BVH const> bvh_pointers_device();
+
+//---------------------------------------------------------------------------//
+#ifdef VECGEOM_USE_SURF
 // Set up surface tracking
 void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
 
@@ -29,8 +50,12 @@ void teardown_surface_tracking_device();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #ifndef VECGEOM_ENABLE_CUDA
+inline CudaPointers<VecGeom::cuda::BVH const> bvh_pointers_device()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
 #    ifdef VECGEOM_USE_SURF
-// Set up surface tracking
 inline void
 setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&)
 {

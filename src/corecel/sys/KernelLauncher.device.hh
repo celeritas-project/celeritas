@@ -106,7 +106,9 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
     if (!threads.empty())
     {
         using StreamT = CELER_DEVICE_PREFIX(Stream_t);
-        StreamT stream = celeritas::device().stream(stream_id).get();
+        StreamT stream = stream_id
+                             ? celeritas::device().stream(stream_id).get()
+                             : nullptr;
         auto config = calc_launch_params_(threads.size());
         detail::launch_action_impl<F>
             <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(

@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/detail/VecgeomSetup.cu
 //---------------------------------------------------------------------------//
+#include <VecGeom/management/BVHManager.h>
+
 #include "VecgeomSetup.cuda.hh"
 
 #ifdef VECGEOM_USE_SURF
@@ -12,6 +14,8 @@
 #endif
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 
 #ifdef VECGEOM_USE_SURF
 using BrepCudaManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
@@ -22,6 +26,49 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Access
+struct BvhGetter
+{
+    VecGeom::cuda::BVH const** dest{nullptr};
+
+    CELER_FUNCTION operator()(ThreadId tid)
+    {
+        CELER_EXPECT(tid == ThreadId{0});
+        *dest = vecgeom::cuda::BVHManager::GetBVH(0);
+    }
+};
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get pointers to the device BVH after setup, for consistency checking.
+ */
+CudaPointers<VecGeom::cuda::BVH const> bvh_pointers_device()
+{
+    CudaPointers<VecGeom::cuda::BVH const> result;
+
+    // Copy from kernel using 1-thread launch
+    {
+        DeviceVector<VecGeom::cuda::BVH const*> bvh_ptr{1, StreamId{}};
+        BvhGetter execute_thread{params, state, seeds};
+        static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+            "vecgeom-get-bvhptr");
+        launch_kernel(1u, StreamId{}, execute_thread);
+        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        bvh_ptr.copy_to_host({&result.kernel, 1});
+    }
+
+    // Copy from symbol using runtime API
+    CELER_CUDA_CALL(cudaMemcpyFromSymbol(
+        &result.symbol, vecgeom::cuda::dBVH, 1, 0, cudaMemcpyDeviceToHost));
+
+    // Return
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 // VECGEOM SURFACE
 //---------------------------------------------------------------------------//

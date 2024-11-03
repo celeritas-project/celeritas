@@ -448,9 +448,18 @@ void VecgeomParams::build_volume_tracking()
             vecgeom::cxx::BVHManager::DeviceInit();
             CELER_DEVICE_CHECK_ERROR();
         }
-#else
-        CELER_NOT_CONFIGURED("CUDA");
 #endif
+
+        // Check BVH pointers
+        auto ptrs = detail::bvh_pointers_device();
+        CELER_VALIDATE(ptrs.symbol,
+                       << "VecGeom device BVH is not correctly initialized: "
+                          "runtime symbol is null");
+        CELER_VALIDATE(
+            ptrs.kernel == ptrs.symbol,
+            << "inconsistenct VecGeom BVH device pointers: "
+            << static_cast<void*>(ptrs.kernel) << " from device kernel, "
+            << static_cast<void*>(ptrs.symbol) << " from runtime symbol");
     }
 }
 
