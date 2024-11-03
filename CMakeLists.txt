@@ -334,7 +334,7 @@ if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
       else()
         message(STATUS "Set ${Geant4_DATASET_${_ds}_ENVVAR}=$ENV{${Geant4_DATASET_${_ds}_ENVVAR}} from the environment")
         list(APPEND _CELER_G4ENV
-          "${Geant4_DATASET_${_ds}_ENVVAR}=$ENV{${Geant4_DATASET_${_ds}_ENVVAR}}}"
+          "${Geant4_DATASET_${_ds}_ENVVAR}=$ENV{${Geant4_DATASET_${_ds}_ENVVAR}}"
         )
       endif()
     endforeach()
