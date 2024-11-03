@@ -323,21 +323,9 @@ if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
       "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
     )
   endif()
-  # Set environment variables from Geant4-exported configuration
   if(NOT DEFINED CELER_G4ENV)
-    set(_CELER_G4ENV)
-    foreach(_ds IN LISTS Geant4_DATASETS)
-      set(_key ${Geant4_DATASET_${_ds}_ENVVAR})
-      set(_val ${Geant4_DATASET_${_ds}_PATH})
-      set(_env "$ENV{${_key}}")
-      if(_env AND NOT _env STREQUAL _val)
-        message(STATUS "Setting ${_key}=${_env} from user environment")
-        list(APPEND _CELER_G4ENV "${_key}=${_env}")
-      else()
-        list(APPEND _CELER_G4ENV "${_key}=${_val}")
-      endif()
-    endforeach()
-    set(CELER_G4ENV "${_CELER_G4ENV}" CACHE INTERNAL "Environment variables used to run the Geant4 apps")
+    # Set environment variables from Geant4-exported configuration
+    celeritas_set_celer_g4env()
   endif()
 endif()
 
