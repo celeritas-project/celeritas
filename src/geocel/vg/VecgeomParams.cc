@@ -49,10 +49,7 @@
 #include "VecgeomData.hh"  // IWYU pragma: associated
 
 #include "detail/VecgeomCompatibility.hh"
-
-#ifdef VECGEOM_USE_SURF
-#    include "VecgeomParams.surface.hh"
-#endif
+#include "detail/VecgeomSetup.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
@@ -80,12 +77,6 @@ namespace
         do                     \
         {                      \
         } while (0)
-#endif
-
-#if defined(VECGEOM_ENABLE_CUDA) && defined(VECGEOM_USE_SURF)
-#    define VG_CUDASURF_CALL(CODE) CODE
-#else
-#    define VG_CUDASURF_CALL(CODE) CELER_UNREACHABLE
 #endif
 
 //---------------------------------------------------------------------------//
@@ -197,7 +188,7 @@ VecgeomParams::~VecgeomParams()
         if (VecgeomParams::use_surface_tracking())
         {
             CELER_LOG(debug) << "Clearing VecGeom surface GPU data";
-            VG_CUDASURF_CALL(teardown_surface_tracking_device());
+            VG_SURF_CALL(detail::teardown_surface_tracking_device());
         }
         else
         {
@@ -367,8 +358,8 @@ void VecgeomParams::build_surface_tracking()
         ScopedTimeAndRedirect time_and_output_(
             "BrepCudaManager::TransferSurfData");
 
-        VG_CUDASURF_CALL(
-            setup_surface_tracking_device(brep_helper.GetSurfData()));
+        VG_SURF_CALL(
+            detail::setup_surface_tracking_device(brep_helper.GetSurfData()));
         CELER_DEVICE_CHECK_ERROR();
     }
 }
