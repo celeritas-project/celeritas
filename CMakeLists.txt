@@ -323,10 +323,10 @@ if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
       "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
     )
   endif()
-  if(NOT DEFINED CELER_G4ENV)
-    # Set environment variables from Geant4-exported configuration
-    celeritas_set_celer_g4env()
-  endif()
+endif()
+if(CELERITAS_USE_Geant4 AND NOT DEFINED CELER_G4ENV)
+  # Set environment variables from Geant4-exported configuration or environment
+  celeritas_set_celer_g4env()
 endif()
 
 if(CELERITAS_USE_HepMC3)
