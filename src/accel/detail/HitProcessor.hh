@@ -49,6 +49,14 @@ class NaviTouchableUpdater;
  * - Update step attributes based on hit selection for the detector (TODO:
  *   selection is global for now)
  * - Call the local detector (based on detector ID from map) with the step
+ *
+ * Compare to Geant4 updating step/track info:
+ * - \c G4VParticleChange::UpdateStepInfo
+ * - \c G4ParticleChangeForTransport::UpdateStepForAlongStep
+ * - \c G4ParticleChangeForTransport::UpdateStepForPostStep
+ * - \c G4StackManager::PrepareNewEvent
+ * - \c G4SteppingManager::ProcessSecondariesFromParticleChange
+ * - \c G4Step::UpdateTrack
  */
 class HitProcessor
 {

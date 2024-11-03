@@ -200,7 +200,28 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         }                                            \
     } while (0)
 
+        G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
+
         HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
+
+        if (update_touchable_)
+        {
+            // Update navigation state
+            constexpr auto sp = StepPoint::pre;
+
+            bool success = (*update_touchable_)(out.points[sp].pos[i],
+                                                out.points[sp].dir[i],
+                                                lv,
+                                                touch_handle_());
+            if (CELER_UNLIKELY(!success))
+            {
+                // Inconsistent touchable: skip this energy deposition
+                CELER_LOG_LOCAL(error)
+                    << "Omitting energy deposition of "
+                    << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
+                continue;
+            }
+        }
 
         for (auto sp : range(StepPoint::size_))
         {
@@ -222,31 +243,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         }
 #undef HP_SET
 
-        if (update_touchable_)
-        {
-            G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
-
-            // Update navigation state
-            constexpr auto sp = StepPoint::pre;
-
-            bool success = (*update_touchable_)(out.points[sp].pos[i],
-                                                out.points[sp].dir[i],
-                                                lv,
-                                                touch_handle_());
-            if (CELER_UNLIKELY(!success))
-            {
-                // Inconsistent touchable: skip this energy deposition
-                CELER_LOG_LOCAL(error)
-                    << "Omitting energy deposition of "
-                    << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
-                continue;
-            }
-
-            // Copy attributes from logical volume
-            points[sp]->SetMaterial(lv->GetMaterial());
-            points[sp]->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
-            points[sp]->SetSensitiveDetector(lv->GetSensitiveDetector());
-        }
+        // Copy attributes from logical volume
+        points[StepPoint::pre]->SetMaterial(lv->GetMaterial());
+        points[StepPoint::pre]->SetMaterialCutsCouple(
+            lv->GetMaterialCutsCouple());
+        points[StepPoint::pre]->SetSensitiveDetector(
+            lv->GetSensitiveDetector());
 
         if (!tracks_.empty())
         {
