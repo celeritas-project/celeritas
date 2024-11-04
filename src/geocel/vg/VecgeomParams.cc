@@ -17,9 +17,9 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "corecel/Config.hh"
-#if CELERITAS_USE_CUDA
+#include "corecel/DeviceRuntimeApi.hh"
+#ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/management/CudaManager.h>
-#    include <cuda_runtime_api.h>
 #endif
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
@@ -27,8 +27,6 @@
 #ifdef VECGEOM_GDML
 #    include <VecGeom/gdml/Frontend.h>
 #endif
-
-#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -53,6 +51,8 @@
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
+
+using vecgeom::cxx::BVHManager;
 
 namespace celeritas
 {
@@ -385,7 +385,7 @@ void VecgeomParams::build_volume_tracking()
     }
 
     // Init the bounding volume hierarchy structure
-    vecgeom::cxx::BVHManager::Init();
+    BVHManager::Init();
 
     if (celeritas::device())
     {
@@ -421,22 +421,25 @@ void VecgeomParams::build_volume_tracking()
             set_cuda_heap_size(heap_size);
         }
 
-#if CELERITAS_USE_CUDA
+#ifdef VECGEOM_ENABLE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         cuda_manager.set_verbose(vecgeom_verbosity());
+#endif
         {
             CELER_LOG(debug) << "Converting to CUDA geometry";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.LoadGeometry");
 
-            cuda_manager.LoadGeometry();
+            VG_CUDA_CALL(cuda_manager.LoadGeometry());
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
         {
             CELER_LOG(debug) << "Transferring geometry to GPU";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.Synchronize");
-            auto world_top_devptr = cuda_manager.Synchronize();
+            void const* world_top_devptr{nullptr};
+            VG_CUDA_CALL(
+                world_top_devptr = cuda_manager.Synchronize().GetPtr());
             CELER_DEVICE_CHECK_ERROR();
             CELER_VALIDATE(world_top_devptr != nullptr,
                            << "VecGeom failed to copy geometry to GPU");
@@ -459,7 +462,6 @@ void VecgeomParams::build_volume_tracking()
 #endif
             CELER_DEVICE_CHECK_ERROR();
         }
-#endif
 
         // Check BVH pointers
         auto ptrs = detail::bvh_pointers_device();
@@ -522,7 +524,7 @@ void VecgeomParams::build_data()
 
     if (celeritas::device())
     {
-#if CELERITAS_USE_CUDA
+#ifdef VECGEOM_ENABLE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         device_ref_.world_volume = cuda_manager.world_gpu();
 #endif
