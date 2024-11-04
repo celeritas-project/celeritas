@@ -18,6 +18,7 @@
 #include "geocel/g4/Convert.hh"
 #include "geocel/g4/Repr.hh"
 #include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/user/DetectorSteps.hh"
 
 namespace celeritas
 {
@@ -25,13 +26,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with world.
+ * Construct with world and volumes.
  */
-NaviTouchableUpdater::NaviTouchableUpdater(G4VPhysicalVolume const* world)
+NaviTouchableUpdater::NaviTouchableUpdater(SPConstVecLV detector_volumes,
+                                           G4VPhysicalVolume const* world)
+    : navi_{std::make_unique<G4Navigator>()}
+    , detector_volumes_{std::move(detector_volumes)}
 {
     CELER_EXPECT(world);
+    CELER_EXPECT(detector_volumes_);
 
-    navi_ = std::make_unique<G4Navigator>();
     navi_->SetWorldVolume(const_cast<G4VPhysicalVolume*>(world));
 
     CELER_ENSURE(navi_);
@@ -41,14 +45,46 @@ NaviTouchableUpdater::NaviTouchableUpdater(G4VPhysicalVolume const* world)
 /*!
  * Construct with automatic navigation world.
  */
-NaviTouchableUpdater::NaviTouchableUpdater()
-    : NaviTouchableUpdater{geant_world_volume()}
+NaviTouchableUpdater::NaviTouchableUpdater(SPConstVecLV detector_volumes)
+    : NaviTouchableUpdater{std::move(detector_volumes), geant_world_volume()}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with explicit world.
+ */
+NaviTouchableUpdater::NaviTouchableUpdater(G4VPhysicalVolume const* world)
+    : NaviTouchableUpdater{
+          std::make_shared<std::vector<G4LogicalVolume const*>>(), world}
 {
 }
 
 //---------------------------------------------------------------------------//
 //! Default external deleter
 NaviTouchableUpdater::~NaviTouchableUpdater() = default;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update from a particular detector step.
+ */
+bool NaviTouchableUpdater::operator()(DetectorStepOutput const& out,
+                                      size_type i,
+                                      GeantTouchableBase* touchable)
+{
+    CELER_EXPECT(i < out.size());
+    CELER_EXPECT(!out.points[StepPoint::pre].pos.empty());
+    CELER_EXPECT(!out.points[StepPoint::pre].dir.empty());
+    CELER_EXPECT(!out.detector.empty());
+    CELER_EXPECT(detector_volumes_
+                 && out.detector[i] < detector_volumes_->size());
+
+    G4LogicalVolume const* lv
+        = (*detector_volumes_)[out.detector[i].unchecked_get()];
+
+    auto const& point = out.points[StepPoint::pre];
+    return (*this)(point.pos[i], point.dir[i], lv, touchable);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -64,6 +100,9 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
                                       G4LogicalVolume const* lv,
                                       GeantTouchableBase* touchable)
 {
+    CELER_EXPECT(lv);
+    CELER_EXPECT(touchable);
+
     auto g4pos = convert_to_geant(pos, clhep_length);
     auto g4dir = convert_to_geant(dir, 1);
 

@@ -8,16 +8,21 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
 class G4Navigator;
+class G4LogicalVolume;
 class G4VPhysicalVolume;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+struct DetectorStepOutput;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -29,6 +34,13 @@ namespace detail
 class NaviTouchableUpdater
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPConstVecLV
+        = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
+    //!@}
+
+  public:
     //! Maximum step to try within the current volume [len]
     static constexpr double max_step() { return 1 * units::millimeter; }
 
@@ -38,14 +50,23 @@ class NaviTouchableUpdater
         return 1e-3 * units::millimeter;
     }
 
-    // Construct from navigator world
-    NaviTouchableUpdater();
+    // Construct from detector LVs
+    explicit NaviTouchableUpdater(SPConstVecLV detector_volumes);
 
-    // Construct from touchable and explicit world
+    // Construct from explicit world without detectors for unit testing
     explicit NaviTouchableUpdater(G4VPhysicalVolume const* world);
+
+    // Construct from detector LVs and explicit world
+    NaviTouchableUpdater(SPConstVecLV detector_volumes,
+                         G4VPhysicalVolume const* world);
 
     // Default external deleter
     ~NaviTouchableUpdater();
+
+    // Update from a particular detector step
+    bool operator()(DetectorStepOutput const& out,
+                    size_type step_index,
+                    GeantTouchableBase* touchable);
 
     // Try to find the given point in the given logical volume
     bool operator()(Real3 const& pos,
@@ -55,6 +76,7 @@ class NaviTouchableUpdater
 
   private:
     std::unique_ptr<G4Navigator> navi_;
+    SPConstVecLV detector_volumes_;
 };
 
 //---------------------------------------------------------------------------//

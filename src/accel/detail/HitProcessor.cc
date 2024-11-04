@@ -96,7 +96,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         // Create navigator
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
-        update_touchable_ = std::make_unique<NaviTouchableUpdater>();
+        update_touchable_
+            = std::make_unique<NaviTouchableUpdater>(detector_volumes_);
     }
 
     // Create track if user requested particle types
@@ -207,12 +208,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         if (update_touchable_)
         {
             // Update navigation state
-            constexpr auto sp = StepPoint::pre;
+            bool success = (*update_touchable_)(out, i, touch_handle_());
 
-            bool success = (*update_touchable_)(out.points[sp].pos[i],
-                                                out.points[sp].dir[i],
-                                                lv,
-                                                touch_handle_());
             if (CELER_UNLIKELY(!success))
             {
                 // Inconsistent touchable: skip this energy deposition
