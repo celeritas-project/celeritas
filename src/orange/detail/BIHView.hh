@@ -42,15 +42,12 @@ class BIHView
     // Get the bbox for a given vol_id.
     inline CELER_FUNCTION FastBBox const& bbox(LocalVolumeId vol_id) const;
 
-    // Get the vol_id of the ith volume on a given leaf node
-    inline CELER_FUNCTION LocalVolumeId leaf_volid(BIHLeafNode leaf,
-                                                   size_type i) const;
+    // Get the volids on a given leaf node
+    inline CELER_FUNCTION Span<LocalVolumeId const>
+    leaf_volids(BIHLeafNode const& leaf) const;
 
-    // Get the number of inf_volids on the tree
-    inline CELER_FUNCTION size_type num_inf_volids() const;
-
-    // Get the ith vol_id in inf_volids
-    inline CELER_FUNCTION LocalVolumeId inf_volid(size_type i) const;
+    // Get the inf_volids
+    inline CELER_FUNCTION Span<LocalVolumeId const> inf_volids() const;
 
   private:
     //// DATA ////
@@ -116,32 +113,21 @@ CELER_FUNCTION FastBBox const& BIHView::bbox(LocalVolumeId vol_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- *  Get the vol_id of the ith volume on a given leaf node.
+ *  Get the volids on a given leaf node.
  */
-CELER_FUNCTION LocalVolumeId BIHView::leaf_volid(BIHLeafNode leaf,
-                                                 size_type i) const
+CELER_FUNCTION Span<LocalVolumeId const>
+BIHView::leaf_volids(BIHLeafNode const& leaf) const
 {
-    CELER_EXPECT(i < leaf.vol_ids.size());
-    return storage_.local_volume_ids[leaf.vol_ids[i]];
+    return storage_.local_volume_ids[leaf.vol_ids];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- *  Get the number of inf_volids on the tree.
+ *  Get the inf_volids.
  */
-CELER_FUNCTION size_type BIHView::num_inf_volids() const
+CELER_FUNCTION Span<LocalVolumeId const> BIHView::inf_volids() const
 {
-    return tree_.inf_volids.size();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- *  Get the ith vol_id in inf_volids.
- */
-CELER_FUNCTION LocalVolumeId BIHView::inf_volid(size_type i) const
-{
-    CELER_EXPECT(i < tree_.inf_volids.size());
-    return storage_.local_volume_ids[tree_.inf_volids[i]];
+    return storage_.local_volume_ids[tree_.inf_volids];
 }
 
 //---------------------------------------------------------------------------//

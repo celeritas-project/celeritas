@@ -209,9 +209,8 @@ template<class F>
 CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
     BIHLeafNode const& leaf_node, Real3 const& pos, F&& is_inside) const
 {
-    for (auto i : range(leaf_node.vol_ids.size()))
+    for (auto id : view_.leaf_volids(leaf_node))
     {
-        auto id = view_.leaf_volid(leaf_node, i);
         if (this->visit_bbox(id, pos) && is_inside(id))
         {
             return id;
@@ -228,9 +227,8 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
 {
-    for (auto i : range(view_.num_inf_volids()))
+    for (auto id : view_.inf_volids())
     {
-        auto id = view_.inf_volid(i);
         if (is_inside(id))
         {
             return id;
