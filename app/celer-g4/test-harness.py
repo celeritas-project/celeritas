@@ -116,6 +116,7 @@ with open(f"{problem_name}.inp.json", "w") as f:
     json.dump(inp, f, indent=1)
 
 print("Running", exe, inp_file, file=stderr)
+print(f"To run directly use: {exe} {problem_name}.inp.json", file=stderr)
 result = subprocess.run([exe, inp_file], **kwargs)
 
 if use_celeritas:
