@@ -13,10 +13,10 @@
 #include "corecel/Config.hh"
 
 #include "LoggerTypes.hh"
+
+#include "detail/LoggerMessage.hh"  // IWYU pragma: export
 #if CELER_DEVICE_COMPILE
 #    include "detail/NullLoggerMessage.hh"  // IWYU pragma: export
-#else
-#    include "detail/LoggerMessage.hh"  // IWYU pragma: export
 #endif
 
 //---------------------------------------------------------------------------//
@@ -62,9 +62,9 @@
 // Allow CELER_LOG to be present (but ignored) in device code
 #if CELER_DEVICE_COMPILE
 #    undef CELER_LOG
-#    define CELER_LOG(LEVEL) ::celeritas::NullLoggerMessage()
+#    define CELER_LOG(LEVEL) ::celeritas::detail::NullLoggerMessage()
 #    undef CELER_LOG_LOCAL
-#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::NullLoggerMessage()
+#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::detail::NullLoggerMessage()
 #endif
 
 namespace celeritas
