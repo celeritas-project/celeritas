@@ -56,7 +56,6 @@ class BIHView
     //// DATA ////
     BIHTree const& tree_;
     Storage const& storage_;
-    size_type leaf_offset_;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,7 +66,7 @@ class BIHView
  */
 CELER_FUNCTION
 BIHView::BIHView(BIHTree const& tree, BIHView::Storage const& storage)
-    : tree_(tree), storage_(storage), leaf_offset_(tree.inner_nodes.size())
+    : tree_(tree), storage_(storage)
 {
     CELER_EXPECT(tree);
 }
@@ -79,7 +78,7 @@ BIHView::BIHView(BIHTree const& tree, BIHView::Storage const& storage)
 CELER_FUNCTION
 bool BIHView::is_inner(BIHNodeId id) const
 {
-    return id.unchecked_get() < leaf_offset_;
+    return id.unchecked_get() < tree_.inner_nodes.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -101,8 +100,8 @@ CELER_FUNCTION
 BIHLeafNode const& BIHView::leaf_node(BIHNodeId id) const
 {
     CELER_EXPECT(!this->is_inner(id));
-    return storage_
-        .leaf_nodes[tree_.leaf_nodes[id.unchecked_get() - leaf_offset_]];
+    return storage_.leaf_nodes[tree_.leaf_nodes[id.unchecked_get()
+                                                - tree_.inner_nodes.size()]];
 }
 
 //---------------------------------------------------------------------------//
