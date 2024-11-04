@@ -39,7 +39,7 @@ struct BIHInnerNode
     struct Edge
     {
         //! The position of the bounding plane along the partition axis
-        real_type bounding_plane_pos;
+        real_type bounding_plane_pos{};
         //! The child node connected to this edge
         BIHNodeId child;
         //! Bbox created by clipping an inf bbox with the bounding planes
