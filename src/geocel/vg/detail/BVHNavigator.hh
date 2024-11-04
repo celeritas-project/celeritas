@@ -46,8 +46,6 @@ class BVHNavigator
                   bool top,
                   vecgeom::VPlacedVolume const* exclude = nullptr)
     {
-        CELER_EXPECT(vecgeom::BVHManager::GetBVH(0) != nullptr);
-
         if (top)
         {
             assert(vol != nullptr);
