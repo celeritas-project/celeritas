@@ -5,13 +5,6 @@
 #-----------------------------------------------------------------------------#
 
 if(BUILD_TESTING)
-  # Set environment variables from Geant4-exported configuration
-  set(CELER_G4ENV)
-  foreach(_ds IN LISTS Geant4_DATASETS)
-    list(APPEND CELER_G4ENV
-      "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
-  endforeach()
-
   if(CELERITAS_USE_Python)
     set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
     set(CELER_NEEDS_PYTHON)
@@ -72,11 +65,6 @@ celeritas_target_link_libraries(celer-dump-data
 add_subdirectory(celer-sim)
 add_subdirectory(celer-g4)
 add_subdirectory(celer-geo)
-
-if(CELERITAS_BUILD_DEMOS)
-  add_subdirectory(demo-interactor)
-  add_subdirectory(demo-geo-check)
-endif()
 
 #-----------------------------------------------------------------------------#
 # TESTS

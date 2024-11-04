@@ -15,35 +15,13 @@
 
 #include "corecel/Macros.hh"
 
-//---------------------------------------------------------------------------//
-// Forward declarations
-//---------------------------------------------------------------------------//
-
 namespace perfetto
 {
-//---------------------------------------------------------------------------//
-#if CELERITAS_USE_PERFETTO
 class TracingSession;
-#else
-//! Dummy as celeritas::TracingSession::~TracingSession needs a definition
-class TracingSession
-{
-};
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace perfetto
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-//! Supported tracing mode
-enum class TracingMode : uint32_t
-{
-    InProcess,  //!< Record in-process, writting to a file
-    System  //!< Record in a system daemon
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * RAII wrapper for a tracing session.
@@ -80,17 +58,18 @@ class TracingSession
     // Start the profiling session
     void start() noexcept;
 
-    //! Prevent copying but allow moving, following \c std::unique_ptr
-    //! semantics
-    TracingSession(TracingSession const&) = delete;
-    TracingSession& operator=(TracingSession const&) = delete;
-    TracingSession(TracingSession&&) noexcept;
-    TracingSession& operator=(TracingSession&&) noexcept;
+    CELER_DELETE_COPY_MOVE(TracingSession);
 
   private:
+    static inline constexpr int system_fd_{-1};
+    struct Deleter
+    {
+        void operator()(perfetto::TracingSession*);
+    };
+
     bool started_{false};
-    std::unique_ptr<perfetto::TracingSession> session_;
-    int fd_{-1};
+    std::unique_ptr<perfetto::TracingSession, Deleter> session_;
+    int fd_{system_fd_};
 };
 
 //---------------------------------------------------------------------------//
@@ -100,17 +79,17 @@ class TracingSession
 #if !CELERITAS_USE_PERFETTO
 
 inline TracingSession::TracingSession() noexcept = default;
-
 inline TracingSession::TracingSession(std::string_view) noexcept {}
-
 inline TracingSession::~TracingSession() = default;
-
 inline void TracingSession::start() noexcept
 {
     CELER_DISCARD(started_);
     CELER_DISCARD(fd_);
 }
-
+inline void TracingSession::Deleter::operator()(perfetto::TracingSession*)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
 #endif
 
 //---------------------------------------------------------------------------//

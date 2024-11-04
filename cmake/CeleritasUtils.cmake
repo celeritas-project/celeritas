@@ -236,7 +236,7 @@ CMake configuration utility functions for Celeritas.
   found. If ``<version_prefix>_MAJOR`` is defined it will use that; otherwise
   it will try to split the version into major/minor/patch.
 
-.. command:: celeritas_get_geant_libs
+.. command:: celeritas_get_g4libs
 
   Construct a list of Geant4 libraries for linking by adding a ``Geant4::G4``
   prefix and the necessary suffix::
@@ -249,6 +249,12 @@ CMake configuration utility functions for Celeritas.
     target_link_library(foo ${_g4libs})
 
   If Geant4 is unavailable, the result will be empty.
+
+.. command:: celeritas_set_celer_g4env
+
+  Set the ``CELER_G4ENV`` cache variable from the Geant4 library CMake's
+  configured data location, overriding from environment variables if present.
+  This variable is persistent across configurations.
 
 #]=======================================================================]
 include_guard(GLOBAL)
@@ -745,6 +751,24 @@ function(celeritas_get_g4libs var)
     list(REMOVE_DUPLICATES _result)
   endif()
   set(${var} "${_result}" PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_set_celer_g4env)
+  set(_CELER_G4ENV)
+  foreach(_ds IN LISTS Geant4_DATASETS)
+    set(_key ${Geant4_DATASET_${_ds}_ENVVAR})
+    set(_val ${Geant4_DATASET_${_ds}_PATH})
+    set(_env "$ENV{${_key}}")
+    if(_env AND NOT _env STREQUAL _val)
+      message(VERBOSE "CELER_G4ENV: using ${_key}=${_env} from user environment")
+      list(APPEND _CELER_G4ENV "${_key}=${_env}")
+    else()
+      list(APPEND _CELER_G4ENV "${_key}=${_val}")
+    endif()
+  endforeach()
+  set(CELER_G4ENV "${_CELER_G4ENV}" CACHE INTERNAL "Environment variables used for CTest")
 endfunction()
 
 #-----------------------------------------------------------------------------#

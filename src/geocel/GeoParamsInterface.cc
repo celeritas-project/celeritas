@@ -1,24 +1,21 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-interactor/LoadXs.hh
+//! \file geocel/GeoParamsInterface.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include <memory>
-
-#include "XsGridParams.hh"
+#include "GeoParamsInterface.hh"
 
 namespace celeritas
 {
-namespace app
-{
 //---------------------------------------------------------------------------//
-
-std::shared_ptr<XsGridParams> load_xs();
+//! Default virtual destructor
+GeoParamsInterface::~GeoParamsInterface() = default;
 
 //---------------------------------------------------------------------------//
-}  // namespace app
+//! Default virtual destructor
+GeoParamsSurfaceInterface::~GeoParamsSurfaceInterface() = default;
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

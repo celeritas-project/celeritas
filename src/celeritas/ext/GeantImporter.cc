@@ -1304,7 +1304,7 @@ GeantImporter::import_volumes(bool unique_volumes) const
                 volume.name = make_gdml_name(lv);
             }
         },
-        *world_->GetLogicalVolume());
+        *world_);
 
     CELER_LOG(debug) << "Loaded " << count << " volumes with "
                      << (unique_volumes ? "uniquified" : "original")

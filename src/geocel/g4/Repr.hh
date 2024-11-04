@@ -3,29 +3,37 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/Counter.hh
-//! \brief Numeric tracing counter
+//! \file geocel/g4/Repr.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Config.hh"
+#include <G4ThreeVector.hh>
 
-#include "corecel/Macros.hh"
+#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {
-#if CELERITAS_USE_PERFETTO
 //---------------------------------------------------------------------------//
-// Simple tracing counter
-template<class T>
-CELER_FUNCTION void trace_counter(char const* name, T value);
-#else
-//! No tracing backend - noop
-template<class T>
-CELER_FUNCTION inline void trace_counter(char const*, T)
+template<>
+struct ReprTraits<G4ThreeVector>
 {
-}
-#endif
+    using value_type = std::decay_t<G4ThreeVector>;
+
+    static void print_type(std::ostream& os, char const* name = nullptr)
+    {
+        os << "G4ThreeVector";
+        if (name)
+        {
+            os << ' ' << name;
+        }
+    }
+    static void init(std::ostream& os) { ReprTraits<double>::init(os); }
+
+    static void print_value(std::ostream& os, G4ThreeVector const& vec)
+    {
+        os << '{' << vec[0] << ", " << vec[1] << ", " << vec[2] << '}';
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

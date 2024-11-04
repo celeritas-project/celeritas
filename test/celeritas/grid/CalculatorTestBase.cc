@@ -64,10 +64,12 @@ void CalculatorTestBase::build(Real2 bounds, size_type count, XsFunc calc_xs)
     CELER_ASSERT(loge.size() == count);
 
     std::vector<real_type> temp_xs(loge.size());
-    for (auto i : range(loge.size()))
+    temp_xs.front() = calc_xs(bounds[0]);
+    for (auto i : range<std::size_t>(1, loge.size() - 1))
     {
         temp_xs[i] = calc_xs(std::exp(loge[i]));
     }
+    temp_xs.back() = calc_xs(bounds[1]);
 
     value_storage_ = {};
     data_.value = make_builder(&value_storage_)

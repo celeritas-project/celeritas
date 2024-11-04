@@ -15,11 +15,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackDataFwd.hh"
 
-#include "StepStorage.hh"
+#include "StepParams.hh"
 #include "../StepData.hh"
 #include "../StepInterface.hh"
 
@@ -39,14 +38,16 @@ class StepGatherAction final : public CoreStepActionInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPStepStorage = std::shared_ptr<StepStorage>;
+    using SPConstStepParams = std::shared_ptr<StepParams const>;
     using SPStepInterface = std::shared_ptr<StepInterface>;
     using VecInterface = std::vector<SPStepInterface>;
     //!@}
 
   public:
     // Construct with action ID and storage
-    StepGatherAction(ActionId id, SPStepStorage storage, VecInterface callbacks);
+    StepGatherAction(ActionId id,
+                     SPConstStepParams params,
+                     VecInterface callbacks);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -80,7 +81,7 @@ class StepGatherAction final : public CoreStepActionInterface
     //// DATA ////
 
     ActionId id_;
-    SPStepStorage storage_;
+    SPConstStepParams params_;
     VecInterface callbacks_;
     std::string description_;
 };

@@ -19,6 +19,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
+#include <G4NavigationHistory.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4RegionStore.hh>
@@ -119,20 +120,22 @@ void free_and_clear(std::vector<T*>* table)
 //---------------------------------------------------------------------------//
 /*!
  * Print detailed information about the touchable history.
+ *
+ * For brevity, this does not print the world volume.
  */
 std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 {
-    CELER_EXPECT(pnh.touch);
+    CELER_EXPECT(pnh.nav);
     os << '{';
 
-    auto& touch = const_cast<GeantTouchableBase&>(*pnh.touch);
-    for (int depth : range(touch.GetHistoryDepth()))
+    int depth = pnh.nav->GetDepth();
+    for (int level : range(depth))
     {
-        G4VPhysicalVolume* vol = touch.GetVolume(depth);
+        G4VPhysicalVolume* vol = pnh.nav->GetVolume(depth - level);
         CELER_ASSERT(vol);
         G4LogicalVolume* lv = vol->GetLogicalVolume();
         CELER_ASSERT(lv);
-        if (depth != 0)
+        if (level != 0)
         {
             os << " -> ";
         }
@@ -360,6 +363,69 @@ std::string make_gdml_name(G4LogicalVolume const& lv)
     }
 
     return temp_writer.GenerateName(lv.GetName(), &lv);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update a nav history to match the given pv stack.
+ *
+ * \warning The stack cannot have a parameterized/replicated volume.
+ *
+ * \note The stack should have the same semantics as \c LevelId, i.e. the
+ * initial entry is the "most global" level.
+ */
+void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
+{
+    CELER_EXPECT(!stack.empty());
+    CELER_EXPECT(std::all_of(
+        stack.begin(), stack.end(), [](auto* v) -> bool { return v; }));
+    CELER_EXPECT(nav);
+
+    size_type level = 0;
+    auto nav_stack_size
+        = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
+
+    // Loop deeper until stack and nav disagree
+    for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());
+         level != end_level;
+         ++level)
+    {
+        if (nav->GetVolume(level) != stack[level])
+        {
+            break;
+        }
+    }
+
+    if (CELER_UNLIKELY(level == 0))
+    {
+        // Top level disagrees (rare? should always be world):
+        // reset to top level
+        nav->Reset();
+        nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0]));
+        ++level;
+    }
+    else if (level < nav_stack_size())
+    {
+        // Decrease nav stack to the parent's level
+        nav->BackLevel(nav_stack_size() - level);
+        CELER_ASSERT(nav_stack_size() == level);
+    }
+
+    // Add all remaining levels
+    for (auto end_level = stack.size(); level != end_level; ++level)
+    {
+        G4VPhysicalVolume const* pv = stack[level];
+        constexpr auto volume_type = EVolume::kNormal;
+        CELER_VALIDATE(pv->VolumeType() == volume_type,
+                       << "sensitive detectors inside of "
+                          "replica/parameterized volumes are not supported: '"
+                       << pv->GetName() << "' inside "
+                       << PrintableNavHistory{nav});
+        nav->NewLevel(
+            const_cast<G4VPhysicalVolume*>(pv), volume_type, pv->GetCopyNo());
+    }
+
+    CELER_ENSURE(nav_stack_size() == stack.size());
 }
 
 //---------------------------------------------------------------------------//

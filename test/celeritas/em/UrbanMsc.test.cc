@@ -24,8 +24,6 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
-#include "celeritas/track/SimParams.hh"
-#include "celeritas/track/SimTrackView.hh"
 
 #include "MscTestBase.hh"
 #include "celeritas_test.hh"

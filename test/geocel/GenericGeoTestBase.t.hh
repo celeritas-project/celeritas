@@ -14,6 +14,7 @@
 
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "geocel/UnitUtils.hh"
 
 #include "TestMacros.hh"
@@ -55,7 +56,13 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
         std::string key = this->geometry_basename() + "/"
                           + std::string{TraitsT::name};
         // Construct via LazyGeoManager
-        geo_ = std::dynamic_pointer_cast<HP const>(this->get_geometry(key));
+        auto geo = this->get_geometry(key);
+        EXPECT_TRUE(geo);
+        geo_ = std::dynamic_pointer_cast<HP const>(geo);
+        CELER_VALIDATE(geo_,
+                       << "failed to cast geometry from "
+                       << demangled_type(*geo) << " to "
+                       << TypeDemangler<HP const>()());
     }
     CELER_ENSURE(geo_);
     return geo_;
@@ -98,6 +105,32 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
 
     // Only call this function if the geometry supports surfaces
     return ptr->surfaces().at(geo.surface_id()).name;
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
+std::string
+GenericGeoTestBase<HP>::all_volume_instance_names(GeoTrackView const& geo) const
+{
+    if (geo.is_outside())
+    {
+        return "[OUTSIDE]";
+    }
+
+    auto level = geo.level();
+    CELER_ASSERT(level && level >= LevelId{0});
+
+    std::vector<VolumeInstanceId> ids(level.get() + 1);
+    geo.volume_instance_id(make_span(ids));
+
+    auto const& vol_inst = this->geometry()->volume_instances();
+    std::ostringstream os;
+    os << vol_inst.at(ids[0]);
+    for (auto i : range(std::size_t{1}, ids.size()))
+    {
+        os << '/' << vol_inst.at(ids[i]);
+    }
+    return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//
@@ -238,6 +271,13 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
+auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view) -> SPConstGeoI
+{
+    return this->build_geometry();
 }
 
 //---------------------------------------------------------------------------//

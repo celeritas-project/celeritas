@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/user/StepCollector.hh"
 
+#include <algorithm>
+
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -21,6 +23,7 @@
 #include "celeritas/user/SimpleCalo.hh"
 
 #include "CaloTestBase.hh"
+#include "ExampleInstanceCalo.hh"
 #include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
@@ -123,10 +126,50 @@ class TestEm3MctruthTest : public TestEm3CollectorTestBase,
 #define TestEm3CaloTest TEST_IF_CELERITAS_GEANT(TestEm3CaloTest)
 class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 {
+  public:
     VecString get_detector_names() const final
     {
         return {"gap_0", "gap_1", "gap_2"};
     }
+};
+
+#define TestMultiEm3InstanceCaloTest \
+    TEST_IF_CELERITAS_GEANT(TestMultiEm3InstanceCaloTest)
+class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
+{
+  public:
+    SPConstAction build_along_step() override
+    {
+        // Don't use magnetic field
+        return TestEm3Base::build_along_step();
+    }
+
+    std::string_view geometry_basename() const override
+    {
+        // NOTE that this is not the flat one, it's the multi-level one.
+        return "testem3";
+    }
+
+    void SetUp() override
+    {
+        ExampleInstanceCalo::VecLabel labels = {"lar", "calorimeter", "world"};
+        calo_ = std::make_shared<ExampleInstanceCalo>(this->geometry(),
+                                                      std::move(labels));
+        collector_ = StepCollector::make_and_insert(*this->core(), {calo_});
+    }
+
+    template<MemSpace M>
+    ExampleInstanceCalo::Result run(size_type num_tracks, size_type num_steps)
+    {
+        this->run_impl<M>(num_tracks, num_steps);
+
+        CELER_EXPECT(calo_);
+        return calo_->result();
+    }
+
+  private:
+    std::shared_ptr<ExampleInstanceCalo> calo_;
+    std::shared_ptr<StepCollector> collector_;
 };
 
 //---------------------------------------------------------------------------//
@@ -141,9 +184,9 @@ TEST_F(KnSimpleLoopTestBase, mixing_types)
 
     StepCollector::VecInterface interfaces = {calo, mctruth};
 
-    EXPECT_THROW((StepCollector{std::move(interfaces),
-                                this->geometry(),
-                                /* num_streams = */ 1,
+    EXPECT_THROW((StepCollector{this->geometry(),
+                                std::move(interfaces),
+                                this->aux_reg().get(),
                                 this->action_reg().get()}),
                  celeritas::RuntimeError);
 }
@@ -152,11 +195,8 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
 {
     // Add mctruth twice so each step is doubly written
     auto mctruth = std::make_shared<ExampleMctruth>();
-    StepCollector::VecInterface interfaces = {mctruth, mctruth};
-    auto collector = std::make_shared<StepCollector>(std::move(interfaces),
-                                                     this->geometry(),
-                                                     /* num_streams = */ 1,
-                                                     this->action_reg().get());
+    auto collector
+        = StepCollector::make_and_insert(*this->core(), {mctruth, mctruth});
 
     // Do one step with two tracks
     {
@@ -330,6 +370,38 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 
     static double const expected_edep[] = {1557.5843684091, 0, 0};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TestMultiEm3InstanceCaloTest, step_host)
+{
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
+    }
+
+    auto result = this->run<MemSpace::host>(128, 256);
+
+    auto iter = std::find(result.instance.begin(),
+                          result.instance.end(),
+                          "lar:world_PV/Calorimeter/Layer@01/lar_pv");
+    EXPECT_TRUE(iter != result.instance.end()) << repr(result.instance);
+}
+
+TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
+{
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
+    }
+
+    auto result = this->run<MemSpace::device>(1024, 32);
+
+    auto iter = std::find(result.instance.begin(),
+                          result.instance.end(),
+                          "lar:world_PV/Calorimeter/Layer@01/lar_pv");
+    EXPECT_TRUE(iter != result.instance.end()) << repr(result.instance);
 }
 
 //---------------------------------------------------------------------------//

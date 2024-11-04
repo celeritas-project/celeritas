@@ -108,6 +108,10 @@ if(CELERITAS_USE_ROOT)
   find_dependency(ROOT @ROOT_VERSION@ REQUIRED)
 endif()
 
+if(CELERITAS_USE_Thrust)
+  find_dependency(Thrust)
+endif()
+
 if(CELERITAS_USE_VecGeom)
   find_dependency(VecGeom @VecGeom_VERSION@ REQUIRED)
 

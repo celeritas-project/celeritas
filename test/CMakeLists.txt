@@ -84,20 +84,6 @@ function(celeritas_add_device_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
-if(CELERITAS_USE_Geant4)
-  # Optional dependence on low-energy EM data and neutron data
-  set(CELERITASTEST_G4ENV)
-  foreach(_ds G4EMLOW G4ENSDFSTATE G4PARTICLEXS)
-    if(NOT DEFINED ENV{${Geant4_DATASET_${_ds}_ENVVAR}})
-      list(APPEND CELERITASTEST_G4ENV
-         "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
-       )
-    else()
-      message(STATUS "Value for ${Geant4_DATASET_${_ds}_ENVVAR} taken from the environment rather than the Geant4 cmake fragment")
-    endif()
-  endforeach()
-endif()
-
 if(CELERITAS_UNITS STREQUAL "CGS")
   set(_fixme_cgs)
 else()
