@@ -132,7 +132,6 @@ void KernelLauncher<F>::operator()(size_type num_threads,
                                    StreamId stream_id,
                                    F const& execute_thread) const
 {
-    CELER_EXPECT(stream_id);
     (*this)(range(ThreadId{num_threads}), stream_id, execute_thread);
 }
 

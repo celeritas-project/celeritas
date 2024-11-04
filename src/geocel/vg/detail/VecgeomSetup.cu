@@ -5,9 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/detail/VecgeomSetup.cu
 //---------------------------------------------------------------------------//
+#include "VecgeomSetup.hh"
+
 #include <VecGeom/management/BVHManager.h>
 
-#include "VecgeomSetup.cuda.hh"
+#include "corecel/data/DeviceVector.hh"
 
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/cuda/BrepCudaManager.h>
@@ -32,9 +34,9 @@ namespace
 //! Access
 struct BvhGetter
 {
-    VecGeom::cuda::BVH const** dest{nullptr};
+    vecgeom::cuda::BVH const** dest{nullptr};
 
-    CELER_FUNCTION operator()(ThreadId tid)
+    CELER_FUNCTION void operator()(ThreadId tid)
     {
         CELER_EXPECT(tid == ThreadId{0});
         *dest = vecgeom::cuda::BVHManager::GetBVH(0);
@@ -46,14 +48,14 @@ struct BvhGetter
 /*!
  * Get pointers to the device BVH after setup, for consistency checking.
  */
-CudaPointers<VecGeom::cuda::BVH const> bvh_pointers_device()
+CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
 {
-    CudaPointers<VecGeom::cuda::BVH const> result;
+    CudaPointers<vecgeom::cuda::BVH const> result;
 
     // Copy from kernel using 1-thread launch
     {
-        DeviceVector<VecGeom::cuda::BVH const*> bvh_ptr{1, StreamId{}};
-        BvhGetter execute_thread{params, state, seeds};
+        DeviceVector<vecgeom::cuda::BVH const*> bvh_ptr{1, StreamId{}};
+        BvhGetter execute_thread{bvh_ptr.data()};
         static KernelLauncher<decltype(execute_thread)> const launch_kernel(
             "vecgeom-get-bvhptr");
         launch_kernel(1u, StreamId{}, execute_thread);
@@ -64,8 +66,8 @@ CudaPointers<VecGeom::cuda::BVH const> bvh_pointers_device()
     // Copy from symbol using runtime API
     CELER_CUDA_CALL(cudaMemcpyFromSymbol(
         &result.symbol, vecgeom::cuda::dBVH, 1, 0, cudaMemcpyDeviceToHost));
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 
-    // Return
     return result;
 }
 

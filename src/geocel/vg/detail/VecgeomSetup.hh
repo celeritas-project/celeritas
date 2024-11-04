@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <VecGeom/base/BVH.h>
 #include <VecGeom/base/Config.h>
 
 #include "corecel/Assert.hh"
@@ -35,7 +36,7 @@ struct CudaPointers
 
 //---------------------------------------------------------------------------//
 // Get pointers to the device BVH after setup, for consistency checking
-CudaPointers<VecGeom::cuda::BVH const> bvh_pointers_device();
+CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
 #ifdef VECGEOM_USE_SURF
@@ -50,7 +51,7 @@ void teardown_surface_tracking_device();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #ifndef VECGEOM_ENABLE_CUDA
-inline CudaPointers<VecGeom::cuda::BVH const> bvh_pointers_device()
+inline CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
 {
     CELER_ASSERT_UNREACHABLE();
 }

@@ -452,14 +452,48 @@ void VecgeomParams::build_volume_tracking()
 
         // Check BVH pointers
         auto ptrs = detail::bvh_pointers_device();
-        CELER_VALIDATE(ptrs.symbol,
-                       << "VecGeom device BVH is not correctly initialized: "
-                          "runtime symbol is null");
-        CELER_VALIDATE(
-            ptrs.kernel == ptrs.symbol,
-            << "inconsistenct VecGeom BVH device pointers: "
-            << static_cast<void*>(ptrs.kernel) << " from device kernel, "
-            << static_cast<void*>(ptrs.symbol) << " from runtime symbol");
+
+        vecgeom::cuda::BVH const* bvh_symbol_ptr{nullptr};
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+        bvh_symbol_ptr = BVHManager::GetDeviceBVH();
+#endif
+        if (ptrs.kernel == nullptr || ptrs.kernel != ptrs.symbol
+            || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
+        {
+            // It's very bad if the kernel-viewed BVH pointer is null or
+            // inconsistent with the VecGeom-provided BVH pointer (only
+            // available in very recent VecGeom). It's bad (but not really
+            // necessary?) if cudaMemcpyFromSymbol fails when accessed from
+            // Celeritas
+            auto msg = world_logger()(
+                CELER_CODE_PROVENANCE,
+                (ptrs.kernel == nullptr
+                 || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
+                    ? LogLevel::error
+                    : LogLevel::debug);
+            auto msg_pointer = [&msg](auto* p) {
+                if (p)
+                {
+                    msg << p;
+                }
+                else
+                {
+                    msg << "nullptr";
+                }
+            };
+            msg << "VecGeom CUDA may not be correctly linked or initialized ("
+                   "BVH device pointers are null or inconsistent: ";
+            msg_pointer(ptrs.kernel);
+            msg << " from Celeritas device kernel, ";
+            msg_pointer(ptrs.symbol);
+            msg << " from Celeritas runtime symbol, ";
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+            msg_pointer(bvh_symbol_ptr);
+#else
+            msg << "unavailable";
+#endif
+            msg << " from VecGeom runtime symbol)";
+        }
     }
 }
 
