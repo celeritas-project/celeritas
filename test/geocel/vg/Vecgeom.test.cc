@@ -512,7 +512,8 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-13, to_cm(next.distance));
+    EXPECT_SOFT_EQ(vecgeom_version < Version(2) ? 1.e-8 : 1.e-13,
+        to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
