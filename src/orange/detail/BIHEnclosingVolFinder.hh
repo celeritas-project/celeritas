@@ -83,8 +83,8 @@ class BIHEnclosingVolFinder
  * Construct from vector of bounding boxes and storage.
  */
 CELER_FUNCTION
-BIHEnclosingVolFinder::BIHEnclosingVolFinder(
-    BIHTree const& tree, BIHEnclosingVolFinder::Storage const& storage)
+BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTree const& tree,
+                                             Storage const& storage)
     : helper_(tree, storage)
 {
 }
