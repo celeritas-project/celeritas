@@ -15,7 +15,7 @@ namespace celeritas
 namespace optical
 {
 class MaterialParams;
-class OpticalRayleighMaterial;
+struct OpticalRayleighMaterial;
 
 //---------------------------------------------------------------------------//
 /*!
