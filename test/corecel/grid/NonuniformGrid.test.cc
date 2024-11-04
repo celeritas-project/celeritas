@@ -64,6 +64,19 @@ TEST_F(NonuniformGridTest, find)
     EXPECT_THROW(grid.find(10), DebugError);
 #endif
 }
+
+TEST_F(NonuniformGridTest, values)
+{
+    GridT grid(irange, ref);
+
+    auto values = grid.values();
+    ASSERT_EQ(grid.size(), values.size());
+
+    for (auto i : range(grid.size()))
+    {
+        EXPECT_EQ(grid[i], values[i]);
+    }
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

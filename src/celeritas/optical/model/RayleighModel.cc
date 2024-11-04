@@ -62,19 +62,16 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
             rayleigh_materials_[mat.get()]);
 
         // Use index of refraction energy grid as calculated MFP energy grid
-        auto const& energy_grid = calc_mfp.grid();
+        auto const& energy_grid = calc_mfp.grid().values();
 
-        ImportPhysicsVector result{ImportPhysicsVectorType::free,
-                                   std::vector<double>(energy_grid.size()),
-                                   std::vector<double>(energy_grid.size())};
-
-        for (auto i : range(energy_grid.size()))
+        std::vector<real_type> mfp_grid;
+        mfp_grid.reserve(energy_grid.size());
+        for (real_type energy : energy_grid)
         {
-            result.x[i] = energy_grid[i];
-            result.y[i] = calc_mfp(celeritas::units::MevEnergy{result.x[i]});
+            mfp_grid.push_back(calc_mfp(celeritas::units::MevEnergy{energy}));
         }
 
-        build(result);
+        build(energy_grid, make_span(mfp_grid));
     }
 }
 

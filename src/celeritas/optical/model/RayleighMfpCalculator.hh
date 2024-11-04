@@ -19,7 +19,7 @@
 namespace celeritas
 {
 class MaterialParams;
-class ImportOpticalRayleigh;
+struct ImportOpticalRayleigh;
 
 namespace optical
 {

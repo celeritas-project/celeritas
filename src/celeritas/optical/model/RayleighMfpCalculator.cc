@@ -42,7 +42,7 @@ std::vector<OpticalRayleighMaterial> OpticalRayleighMaterial::from_import(
         if (OpticalMaterialId opt_mat = mat_view.optical_material_id())
         {
             CELER_VALIDATE(opt_mat < rayleigh.size(),
-                           << "mimatch between number of optical materials "
+                           << "mismatch between number of optical materials "
                               "and number of imported optical Rayleigh "
                               "properties");
 
