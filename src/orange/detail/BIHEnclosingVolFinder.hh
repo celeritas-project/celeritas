@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "BIHTraversalHelper.hh"
+#include "BIHView.hh"
 
 namespace celeritas
 {
@@ -47,7 +47,7 @@ class BIHEnclosingVolFinder
 
   private:
     //// DATA ////
-    BIHTraversalHelper helper_;
+    BIHView view_;
 
     //// HELPER FUNCTIONS ////
 
@@ -85,7 +85,7 @@ class BIHEnclosingVolFinder
 CELER_FUNCTION
 BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTree const& tree,
                                              Storage const& storage)
-    : helper_(tree, storage)
+    : view_(tree, storage)
 {
 }
 
@@ -104,10 +104,10 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
     // Depth-first search
     do
     {
-        if (!helper_.is_inner(current_node))
+        if (!view_.is_inner(current_node))
         {
             id = this->visit_leaf(
-                helper_.get_leaf_node(current_node), pos, is_inside);
+                view_.leaf_node(current_node), pos, is_inside);
 
             if (id)
             {
@@ -138,9 +138,9 @@ BIHNodeId BIHEnclosingVolFinder::next_node(BIHNodeId const& current_id,
 
     BIHNodeId next_id;
 
-    if (helper_.is_inner(current_id))
+    if (view_.is_inner(current_id))
     {
-        auto const& current_node = helper_.get_inner_node(current_id);
+        auto const& current_node = view_.inner_node(current_id);
         if (previous_id == current_node.parent)
         {
             // Visiting this inner node for the first time; go down either left
@@ -177,7 +177,7 @@ BIHNodeId BIHEnclosingVolFinder::next_node(BIHNodeId const& current_id,
     else
     {
         // Leaf node; return to parent
-        CELER_EXPECT(previous_id == helper_.get_leaf_node(current_id).parent);
+        CELER_EXPECT(previous_id == view_.leaf_node(current_id).parent);
         next_id = previous_id;
     }
 
@@ -211,7 +211,7 @@ CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
 {
     for (auto i : range(leaf_node.vol_ids.size()))
     {
-        auto id = helper_.get_leaf_volid(leaf_node, i);
+        auto id = view_.leaf_volid(leaf_node, i);
         if (this->visit_bbox(id, pos) && is_inside(id))
         {
             return id;
@@ -228,9 +228,9 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
 {
-    for (auto i : range(helper_.get_num_inf_volids()))
+    for (auto i : range(view_.num_inf_volids()))
     {
-        auto id = helper_.get_inf_volid(i);
+        auto id = view_.inf_volid(i);
         if (is_inside(id))
         {
             return id;
@@ -247,7 +247,7 @@ CELER_FUNCTION
 bool BIHEnclosingVolFinder::visit_bbox(LocalVolumeId const& id,
                                        Real3 const& point) const
 {
-    return is_inside(helper_.get_bbox(id), point);
+    return is_inside(view_.bbox(id), point);
 }
 
 //---------------------------------------------------------------------------//
