@@ -445,7 +445,18 @@ void VecgeomParams::build_volume_tracking()
             CELER_LOG(debug) << "Initializing BVH on GPU";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::BVHManager::DeviceInit");
-            vecgeom::cxx::BVHManager::DeviceInit();
+#if defined(VECGEOM_BVHMANAGER_DEVICE)
+            auto* bvh_ptr = BVHManager::DeviceInit();
+#elif defined(VECGEOM_ENABLE_CUDA)
+            BVHManager::DeviceInit();
+#endif
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+            auto* bvh_symbol_ptr = BVHManager::GetDeviceBVH();
+            CELER_VALIDATE(bvh_ptr && bvh_ptr == bvh_symbol_ptr,
+                           << "inconsistent BVH device pointer: allocated "
+                           << bvh_ptr << " but copy-from-symbol returned "
+                           << bvh_symbol_ptr);
+#endif
             CELER_DEVICE_CHECK_ERROR();
         }
 #endif
