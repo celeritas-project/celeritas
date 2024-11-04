@@ -25,6 +25,8 @@ namespace detail
  * volumes based on more stringent criteria. For example, for surface crossing
  * operations, a predicate that excludes the volume a particle is in prior to
  * the crossing may be used.
+ *
+ * \todo move to top-level orange directory out of detail namespace
  */
 class BIHEnclosingVolFinder
 {
