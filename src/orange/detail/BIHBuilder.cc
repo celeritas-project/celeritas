@@ -151,13 +151,13 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.edges[Side::right].bbox = get_shrunk_bbox(Bound::lo, right_pos);
 
         // Recursively construct the left and right branches
-        for (auto edge : range(Side::size_))
+        for (auto side : range(Side::size_))
         {
-            node.edges[edge].child = BIHNodeId(nodes->size());
-            this->construct_tree(p.indices[edge],
+            node.edges[side].child = BIHNodeId(nodes->size());
+            this->construct_tree(p.indices[side],
                                  nodes,
                                  BIHNodeId(current_index),
-                                 node.edges[edge].bbox);
+                                 node.edges[side].bbox);
         }
 
         CELER_EXPECT(node);
