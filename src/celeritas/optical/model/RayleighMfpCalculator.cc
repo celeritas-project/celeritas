@@ -5,8 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/model/RayleighMfpCalculator.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
 #include "RayleighMfpCalculator.hh"
 
 #include "celeritas/io/ImportOpticalMaterial.hh"
