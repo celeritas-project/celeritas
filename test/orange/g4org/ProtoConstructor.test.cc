@@ -317,7 +317,7 @@ TEST_F(ProtoConstructorTest, testem3)
     auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
-    static std::string const expected_proto_names[] = {"World0x0", "Layer0x0"};
+    static std::string const expected_proto_names[] = {"world0x0", "layer0x0"};
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(2, protos.size());
@@ -377,9 +377,9 @@ TEST_F(ProtoConstructorTest, testem3)
             "",
             "Absorber1",
             "Absorber2",
-            "Layer0x0.children",
+            "layer0x0.children",
             "",
-            "Layer0x0",
+            "layer0x0",
         };
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));

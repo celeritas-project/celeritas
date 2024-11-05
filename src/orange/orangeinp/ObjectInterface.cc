@@ -1,28 +1,20 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/StepStorage.hh
+//! \file orange/orangeinp/ObjectInterface.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "corecel/data/StreamStore.hh"
-
-#include "../StepData.hh"
+#include "ObjectInterface.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
-struct StepStorage
-{
-    using StoreT = StreamStore<StepParamsData, StepStateData>;
-
-    StoreT obj;
-};
+//! Anchored default destructor
+ObjectInterface::~ObjectInterface() = default;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace orangeinp
 }  // namespace celeritas

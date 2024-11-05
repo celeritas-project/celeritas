@@ -26,8 +26,8 @@ list(APPEND SOURCES
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
   detail/HitProcessor.cc
+  detail/NaviTouchableUpdater.cc
   detail/SensDetInserter.cc
-  detail/TouchableUpdater.cc
 )
 
 celeritas_polysource(ExceptionConverter)

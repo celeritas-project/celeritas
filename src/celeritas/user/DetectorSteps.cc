@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "StepData.hh"
 
@@ -17,12 +18,16 @@ namespace celeritas
 {
 namespace
 {
-using DetectorRef
-    = celeritas::StateCollection<DetectorId, Ownership::reference, MemSpace::host>;
-
+//---------------------------------------------------------------------------//
 template<class T>
 using StateRef
-    = celeritas::StateCollection<T, Ownership::reference, MemSpace::host>;
+    = celeritas::StateCollection<T, Ownership::reference, MemSpace::native>;
+
+template<class T>
+using ItemRef
+    = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
+
+using DetectorRef = StateRef<DetectorId>;
 
 //---------------------------------------------------------------------------//
 size_type count_num_valid(DetectorRef const& detector)
@@ -40,7 +45,7 @@ size_type count_num_valid(DetectorRef const& detector)
 
 //---------------------------------------------------------------------------//
 template<class T>
-void assign_field(DetectorStepOutput::vector<T>* dst,
+void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
                   StateRef<T> const& src,
                   DetectorRef const& detector,
                   size_type size)
@@ -57,11 +62,44 @@ void assign_field(DetectorStepOutput::vector<T>* dst,
     dst->resize(size);
 
     auto iter = dst->begin();
-    for (TrackSlotId tid : range(TrackSlotId{src.size()}))
+    for (TrackSlotId tid : range(TrackSlotId{detector.size()}))
     {
         if (detector[tid])
         {
             *iter++ = src[tid];
+        }
+    }
+    CELER_ASSERT(iter == dst->end());
+}
+
+//---------------------------------------------------------------------------//
+template<class T>
+void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
+                  ItemRef<T> const& src,
+                  DetectorRef const& detector,
+                  size_type size,
+                  size_type per_thread)
+
+{
+    if (src.empty())
+    {
+        // This attribute is not in use
+        dst->clear();
+        return;
+    }
+
+    // Copy all items from valid threads
+    dst->resize(size * per_thread);
+
+    auto iter = dst->begin();
+    for (TrackSlotId tid : range(TrackSlotId{detector.size()}))
+    {
+        if (detector[tid])
+        {
+            for (size_type i = 0; i != per_thread; ++i)
+            {
+                *iter++ = src[ItemId<T>{per_thread * tid.unchecked_get() + i}];
+            }
         }
     }
     CELER_ASSERT(iter == dst->end());
@@ -81,6 +119,8 @@ void copy_steps<MemSpace::host>(
 {
     CELER_EXPECT(output);
 
+    ScopedProfiling profile_this{"copy-steps"};
+
     // Get the number of threads that are active and in a detector
     size_type size = count_num_valid(state.data.detector);
 
@@ -97,6 +137,14 @@ void copy_steps<MemSpace::host>(
         DS_ASSIGN(points[sp].pos);
         DS_ASSIGN(points[sp].dir);
         DS_ASSIGN(points[sp].energy);
+        if (state.volume_instance_depth > 0)
+        {
+            assign_field(&(output->points[sp].volume_instance_ids),
+                         state.data.points[sp].volume_instance_ids,
+                         state.data.detector,
+                         size,
+                         state.volume_instance_depth);
+        }
     }
 
     DS_ASSIGN(event_id);
@@ -105,6 +153,9 @@ void copy_steps<MemSpace::host>(
     DS_ASSIGN(step_length);
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
+
+    output->volume_instance_depth = state.volume_instance_depth;
+
 #undef DS_ASSIGN
 
     CELER_ENSURE(output->detector.size() == size);

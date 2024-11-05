@@ -53,8 +53,10 @@ void resize(CuHipRngStateData<Ownership::value, M>* state,
     resize(&state->rng, size);
     detail::CuHipRngInitData<Ownership::value, M> init_data;
     init_data.seeds = host_seeds;
-    detail::rng_state_init(
-        make_const_ref(data), make_ref(*state), make_const_ref(init_data));
+    detail::rng_state_init(make_const_ref(data),
+                           make_ref(*state),
+                           make_const_ref(init_data),
+                           stream);
 }
 
 //---------------------------------------------------------------------------//

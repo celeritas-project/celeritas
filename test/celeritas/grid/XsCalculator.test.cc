@@ -122,8 +122,7 @@ TEST_F(XsCalculatorTest, scaled_middle)
     EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
     EXPECT_SOFT_EQ(3, calc(Energy{5}));
 
-    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
-    // this might not be the right behavior for
+    // Test out-of-bounds: cross section still scales according to 1/E
     EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
 

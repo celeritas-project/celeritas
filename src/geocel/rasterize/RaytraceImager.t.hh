@@ -17,7 +17,7 @@
 #include "RaytraceImager.hh"
 
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
+#include "corecel/sys/KernelLauncher.hh"
 
 #include "Image.hh"
 
@@ -131,20 +131,10 @@ void RaytraceImager<G>::launch_raytrace_kernel(
 {
     using CalcId = detail::VolumeIdCalculator;
     using Executor = detail::RaytraceExecutor<GeoTrackView, CalcId>;
-    Executor execute_thread{
-        geo_params, geo_states, img_params, img_state, CalcId{}};
 
-    size_type const num_threads = geo_states.size();
-
-    MultiExceptionHandler capture_exception;
-#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
-#    pragma omp parallel for
-#endif
-    for (size_type i = 0; i < num_threads; ++i)
-    {
-        CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
-    }
-    log_and_rethrow(std::move(capture_exception));
+    launch_kernel(
+        geo_states.size(),
+        Executor{geo_params, geo_states, img_params, img_state, CalcId{}});
 }
 
 //---------------------------------------------------------------------------//

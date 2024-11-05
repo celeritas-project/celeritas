@@ -41,6 +41,9 @@ struct AlongStepFactoryInput;
  *   when the combination of options is enabled
  * - Track and Parent IDs will \em never be a valid value since Celeritas track
  *   counters are independent from Geant4 track counters.
+ * - Some within-step properties (material, material cuts couple, and
+ *   sensitive detector) are always updated. Post-step values for those are not
+ *   set.
  */
 struct SDSetupOptions
 {
@@ -123,8 +126,10 @@ struct SetupOptions
     size_type max_num_tracks{};
     //! Maximum number of events in use (DEPRECATED: remove in v0.6)
     size_type max_num_events{};
-    //! Limit on number of step iterations before aborting
+    //! Limit on number of steps per track before killing
     size_type max_steps = no_max_steps();
+    //! Limit on number of step iterations before aborting
+    size_type max_step_iters = no_max_steps();
     //! Maximum number of track initializers (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
@@ -149,7 +154,7 @@ struct SetupOptions
 
     //!@{
     //! \name Field options
-    short int max_field_substeps{100};
+    size_type max_field_substeps{100};
     //!@}
 
     //! Sensitive detector options

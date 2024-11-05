@@ -39,6 +39,9 @@ class GeoParamsInterface
     //!@}
 
   public:
+    // Anchor virtual destructor
+    virtual ~GeoParamsInterface() = 0;
+
     //! Whether safety distance calculations are accurate and precise
     virtual bool supports_safety() const = 0;
 
@@ -104,9 +107,6 @@ class GeoParamsInterface
     }
 
   protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~GeoParamsInterface() = default;
-
     GeoParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);
 };
@@ -126,6 +126,9 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
     //!@}
 
   public:
+    // Default destructor
+    virtual ~GeoParamsSurfaceInterface() = 0;
+
     using GeoParamsInterface::id_to_label;
 
     //! Get surface metadata
@@ -153,6 +156,10 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
     {
         return this->surfaces().size();
     }
+
+  protected:
+    GeoParamsSurfaceInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(GeoParamsSurfaceInterface);
 };
 
 //---------------------------------------------------------------------------//

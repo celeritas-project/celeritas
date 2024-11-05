@@ -34,6 +34,7 @@ void to_json(nlohmann::json& j, Device const& d)
             CELER_DIO_PAIR(max_threads_per_cu),
             CELER_DIO_PAIR(threads_per_warp),
             CELER_DIO_PAIR(eu_per_cu),
+            CELER_DIO_PAIR(capability),
             CELER_DIO_PAIR(can_map_host_memory),
             // Static data
             CELER_DIO_PAIR(debug),

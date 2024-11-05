@@ -44,7 +44,7 @@ struct RootTreeAutoSaveDeleter
  * downstream the code.
  */
 template<class T>
-struct ExternDeleter
+struct RootExternDeleter
 {
     void operator()(T* ptr);
 };
@@ -55,7 +55,7 @@ using UPRootFileWritable = std::unique_ptr<TFile, RootFileWritableDeleter>;
 using UPRootTreeWritable = std::unique_ptr<TTree, RootTreeAutoSaveDeleter>;
 
 template<class T>
-using UPExtern = std::unique_ptr<T, ExternDeleter<T>>;
+using UPExtern = std::unique_ptr<T, RootExternDeleter<T>>;
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
@@ -70,7 +70,7 @@ inline void RootTreeAutoSaveDeleter::operator()(TTree*)
 }
 
 template<class T>
-void ExternDeleter<T>::operator()(T*)
+void RootExternDeleter<T>::operator()(T*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

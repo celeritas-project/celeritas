@@ -24,23 +24,30 @@ namespace detail
 /*!
  * Data for a single inner node in a Bounding Interval Hierarchy.
  *
- * Note that the LEFT bounding plane position is the far right boundary of the
- * left side of the tree, and the RIGHT bounding plane position is the far left
- * boundary of the right side of the tree. Since the halfspaces of created by
- * the bounding planes may overlap, the LEFT bounding plane position could be
- * either left or right of the RIGHT bounding plane position.
+ * As a convention, a node's LEFT edge corresponds to the half space that is
+ * less than the partition value. In other words, the LEFT bounding plane
+ * position is the far right boundary of the left side of the tree, and the
+ * RIGHT bounding plane position is the far left boundary of the right side of
+ * the tree. Since the halfspaces created by the bounding planes may overlap,
+ * the LEFT bounding plane position could be either left or right of the RIGHT
+ * bounding plane position.
  */
 struct BIHInnerNode
 {
     using real_type = fast_real_type;
 
-    struct BoundingPlane
+    struct Edge
     {
-        real_type position;
+        //! The position of the bounding plane along the partition axis
+        real_type bounding_plane_pos{};
+        //! The child node connected to this edge
         BIHNodeId child;
+        //! Bbox created by clipping an inf bbox with the bounding planes
+        //! between this edge (inclusive) and the root.
+        FastBBox bbox;
     };
 
-    enum class Edge
+    enum class Side
     {
         left,
         right,
@@ -48,13 +55,12 @@ struct BIHInnerNode
     };
 
     BIHNodeId parent;  //!< Parent node ID
-    Axis axis;  //!< Axis for "left" and "right"
-    EnumArray<Edge, BoundingPlane> bounding_planes;  //!< Lower and upper bound
+    Axis axis;  //!< Axis that the partition is peformed on
+    EnumArray<Side, Edge> edges;  //!< Left/right edges
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->bounding_planes[Edge::left].child
-               && this->bounding_planes[Edge::right].child;
+        return this->edges[Side::left].child && this->edges[Side::right].child;
     }
 };
 

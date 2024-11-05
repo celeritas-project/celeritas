@@ -209,4 +209,17 @@ OrangeParams::OrangeParams(OrangeInput&& input)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Default destructor to define vtable externally.
+ *
+ * Needed due to a buggy LLVM optimization that causes dynamic-casts in
+ * downstream libraries to fail: see
+ * https://github.com/celeritas-project/celeritas/pull/1436 .
+ */
+OrangeParams::~OrangeParams() = default;
+
+template class CollectionMirror<OrangeParamsData>;
+template class ParamsDataInterface<OrangeParamsData>;
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -223,6 +223,72 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the distance to the inside of the bbox from a pos and dir.
+ *
+ * The supplied position is expected to be outside of the bbox. If there is no
+ * intersection, the result will be inf.
+ */
+template<class T, class U>
+inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
+                             Array<U, 3> const& pos,
+                             Array<U, 3> const& dir)
+{
+    CELER_EXPECT(!is_inside(bbox, pos));
+
+    // Test if an intersection is outside the bbox for a given axis
+    auto out_of_bounds = [&bbox](U intersect, int ax) {
+        return !(intersect >= bbox.lower()[ax]
+                 && intersect <= bbox.upper()[ax]);
+    };
+
+    // Check that the intersection point occurs within the region
+    // bounded by the planes of the other two axes
+    auto in_bounds = [&](int ax, U dist) {
+        for (auto other_ax : range(to_int(Axis::size_)))
+        {
+            if (other_ax == ax)
+                continue;
+
+            auto intersect = pos[other_ax] + dist * dir[other_ax];
+            if (out_of_bounds(intersect, other_ax))
+                return false;
+        }
+        return true;
+    };
+
+    // Loop over all 6 planes to find the minimum intersection
+    U min_dist = numeric_limits<U>::infinity();
+    for (auto bound : range(to_int(Bound::size_)))
+    {
+        for (auto ax : range(to_int(Axis::size_)))
+        {
+            if (dir[ax] == 0)
+            {
+                // Short circut if there is not movement in this dir
+                continue;
+            }
+
+            U dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
+                     / dir[ax];
+
+            if (dist < 0)
+            {
+                // Short circut if the plane is behind us
+                continue;
+            }
+
+            if (in_bounds(ax, dist))
+            {
+                min_dist = celeritas::min(min_dist, dist);
+            }
+        }
+    }
+
+    return min_dist;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Bump a bounding box outward and possibly convert to another type.
  * \tparam T destination type
  * \tparam U source type

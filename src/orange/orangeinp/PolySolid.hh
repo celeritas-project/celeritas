@@ -119,6 +119,9 @@ auto PolySegments::z(size_type i) const -> Real2
 class PolySolidBase : public ObjectInterface
 {
   public:
+    // Anchored default virtual destructor
+    virtual ~PolySolidBase();
+
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
 
@@ -135,7 +138,6 @@ class PolySolidBase : public ObjectInterface
 
     //!@{
     //! Allow construction and assignment only through daughter classes
-    virtual ~PolySolidBase() = default;
     CELER_DEFAULT_COPY_MOVE(PolySolidBase);
     //!@}
 

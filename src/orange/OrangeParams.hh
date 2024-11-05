@@ -54,6 +54,12 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(OrangeInput&& input);
 
+    // Default destructor to anchor vtable
+    ~OrangeParams();
+
+    // Moving would leave the class in an unspecified state
+    CELER_DELETE_COPY_MOVE(OrangeParams);
+
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return supports_safety_; }
 
@@ -130,6 +136,11 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
 };
+
+//---------------------------------------------------------------------------//
+
+extern template class CollectionMirror<OrangeParamsData>;
+extern template class ParamsDataInterface<OrangeParamsData>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

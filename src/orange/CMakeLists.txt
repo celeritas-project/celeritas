@@ -35,6 +35,7 @@ list(APPEND SOURCES
   orangeinp/InputBuilder.cc
   orangeinp/IntersectRegion.cc
   orangeinp/IntersectSurfaceBuilder.cc
+  orangeinp/ObjectInterface.cc
   orangeinp/ObjectIO.json.cc
   orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
