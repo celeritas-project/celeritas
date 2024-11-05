@@ -5,8 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file accel/detail/TouchableUpdater.test.cc
 //---------------------------------------------------------------------------//
-#include "accel/detail/TouchableUpdater.hh"
-
 #include <cmath>
 #include <G4Navigator.hh>
 #include <G4TouchableHistory.hh>
@@ -19,6 +17,7 @@
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTestBase.hh"
 #include "celeritas/Units.hh"
+#include "accel/detail/NaviTouchableUpdater.hh"
 
 #include "celeritas_test.hh"
 
@@ -49,12 +48,9 @@ namespace test
 class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
 {
   protected:
-    void SetUp() override
-    {
-        auto const& geo = *this->geometry();
-        navi_.SetWorldVolume(const_cast<G4VPhysicalVolume*>(geo.world()));
-        touch_handle_ = new G4TouchableHistory;
-    }
+    using TouchableUpdater = NaviTouchableUpdater;
+
+    void SetUp() override { touch_handle_ = new G4TouchableHistory; }
 
     SPConstGeo build_geometry() final
     {
@@ -73,11 +69,13 @@ class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
 
     TouchableUpdater make_touchable_updater()
     {
-        return TouchableUpdater{&navi_, touch_handle_()};
+        auto const& geo = *this->geometry();
+        return TouchableUpdater{geo.world()};
     }
 
+    G4VTouchable* touchable_history() { return touch_handle_(); }
+
   private:
-    G4Navigator navi_;
     G4TouchableHandle touch_handle_;
 };
 
@@ -85,7 +83,10 @@ TEST_F(TouchableUpdaterTest, correct)
 {
     TouchableUpdater update = this->make_touchable_updater();
     auto update_cm = [&](Real3 const& pos_cm, std ::string lv_name) {
-        return update(from_cm(pos_cm), Real3{1, 0, 0}, this->find_lv(lv_name));
+        return update(from_cm(pos_cm),
+                      Real3{1, 0, 0},
+                      this->find_lv(lv_name),
+                      this->touchable_history());
     };
 
     EXPECT_TRUE(update_cm({15, 0, 0}, "vacuum_tube"));
@@ -99,15 +100,16 @@ TEST_F(TouchableUpdaterTest, just_inside)
     real_type const eps = 0.5 * TouchableUpdater::max_quiet_step();
     auto const* tracker_lv = this->find_lv("si_tracker");
     auto const* calo_lv = this->find_lv("em_calorimeter");
+    auto* th = this->touchable_history();
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    EXPECT_TRUE(update({from_cm(30) + eps, 0, 0}, {1, 0, 0}, tracker_lv));
-    EXPECT_TRUE(update({from_cm(125) - eps, 0, 0}, {1, 0, 0}, tracker_lv));
+    EXPECT_TRUE(update({from_cm(30) + eps, 0, 0}, {1, 0, 0}, tracker_lv, th));
+    EXPECT_TRUE(update({from_cm(125) - eps, 0, 0}, {1, 0, 0}, tracker_lv, th));
 
-    EXPECT_TRUE(update({from_cm(125) + eps, 0, 0}, {-1, 0, 0}, calo_lv));
-    EXPECT_TRUE(update({from_cm(175) - eps, 0, 0}, {-1, 0, 0}, calo_lv));
+    EXPECT_TRUE(update({from_cm(125) + eps, 0, 0}, {-1, 0, 0}, calo_lv, th));
+    EXPECT_TRUE(update({from_cm(175) - eps, 0, 0}, {-1, 0, 0}, calo_lv, th));
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
@@ -115,15 +117,20 @@ TEST_F(TouchableUpdaterTest, just_inside)
 TEST_F(TouchableUpdaterTest, coincident)
 {
     TouchableUpdater update = this->make_touchable_updater();
+    auto* th = this->touchable_history();
+    auto update_x = [&](real_type xpos, real_type xdir, char const* name) {
+        return update({xpos, 0, 0}, {xdir, 0, 0}, this->find_lv(name), th);
+    };
+
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
     // Coincident point should work in either volume, in or out
     real_type const r = from_cm(125);
-    for (char const* lv : {"si_tracker", "em_calorimeter"})
+    for (char const* lvname : {"si_tracker", "em_calorimeter"})
     {
-        EXPECT_TRUE(update({r, 0, 0}, {1, 0, 0}, this->find_lv(lv)));
-        EXPECT_TRUE(update({r, 0, 0}, {-1, 0, 0}, this->find_lv(lv)));
+        EXPECT_TRUE(update_x(r, 1, lvname));
+        EXPECT_TRUE(update_x(r, -1, lvname));
     }
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
@@ -139,8 +146,10 @@ TEST_F(TouchableUpdaterTest, coincident_tangent)
     // TODO: we can't seem to test the volume on the other side of an exact
     // coincident surface on a tangent
     real_type const r = from_cm(125);
-    EXPECT_FALSE(update({r, 0, 0}, {0, 1, 0}, this->find_lv("si_tracker")));
-    EXPECT_TRUE(update({r, 0, 0}, {0, 1, 0}, this->find_lv("em_calorimeter")));
+    auto* th = this->touchable_history();
+    EXPECT_FALSE(update({r, 0, 0}, {0, 1, 0}, this->find_lv("si_tracker"), th));
+    EXPECT_TRUE(
+        update({r, 0, 0}, {0, 1, 0}, this->find_lv("em_calorimeter"), th));
 
     static char const* const expected_log_messages[] = {
         "Failed to bump navigation state up to a distance of 1 [mm] at {1250, "
@@ -156,16 +165,18 @@ TEST_F(TouchableUpdaterTest, just_outside_nowarn)
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.1 * TouchableUpdater::max_quiet_step();
     auto const* tracker_lv = this->find_lv("si_tracker");
+    auto* th = this->touchable_history();
+    auto update_x = [&](real_type xpos, real_type xdir) {
+        return update({xpos, 0, 0}, {xdir, 0, 0}, tracker_lv, th);
+    };
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
     for (real_type xdir : {1.0, -1.0})
     {
-        EXPECT_TRUE(
-            update({from_cm(30) - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
-        EXPECT_TRUE(
-            update({from_cm(125) + 2 * eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(update_x(from_cm(30) - eps, xdir));
+        EXPECT_TRUE(update_x(from_cm(125) + 2 * eps, -xdir));
     }
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
@@ -176,16 +187,18 @@ TEST_F(TouchableUpdaterTest, just_outside_warn)
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.1 * TouchableUpdater::max_step();
     auto const* tracker_lv = this->find_lv("si_tracker");
+    auto* th = this->touchable_history();
+    auto update_x = [&](real_type xpos, real_type xdir) {
+        return update({xpos, 0, 0}, {xdir, 0, 0}, tracker_lv, th);
+    };
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
     for (real_type xdir : {1.0, -1.0})
     {
-        EXPECT_TRUE(
-            update({from_cm(30) - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
-        EXPECT_TRUE(
-            update({from_cm(125) + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(update_x(from_cm(30) - eps, xdir));
+        EXPECT_TRUE(update_x(from_cm(125) + eps, -xdir));
     }
 
     static char const* const expected_log_messages[]
@@ -225,31 +238,26 @@ TEST_F(TouchableUpdaterTest, too_far)
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 10 * TouchableUpdater::max_step();
     auto const* tracker_lv = this->find_lv("si_tracker");
+    auto* th = this->touchable_history();
+    auto update_x = [&](real_type xpos, real_type xdir) {
+        return update({xpos, 0, 0}, {xdir, 0, 0}, tracker_lv, th);
+    };
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
     for (real_type xdir : {1.0, -1.0})
     {
-        EXPECT_FALSE(
-            update({from_cm(30) - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
-        EXPECT_FALSE(
-            update({from_cm(125) + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+        EXPECT_FALSE(update_x(from_cm(30) - eps, xdir));
+        EXPECT_FALSE(update_x(from_cm(125) + eps, -xdir));
     }
 
     static char const* const expected_log_messages[] = {
-        "Failed to bump navigation state up to a distance of 1 [mm] at {290, "
-        "0, 0} [mm] along {1, 0, 0} to try to reach \"si_tracker\"@0x0 "
-        "(ID=1): found {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
-        "Failed to bump navigation state up to a distance of 1 [mm] at {1260, "
-        "0, 0} [mm] along {-1, 0, 0} to try to reach \"si_tracker\"@0x0 "
-        "(ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}",
-        "Failed to bump navigation state up to a distance of 1 [mm] at {290, "
-        "0, 0} [mm] along {-1, 0, 0} to try to reach \"si_tracker\"@0x0 "
-        "(ID=1): found {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
-        "Failed to bump navigation state up to a distance of 1 [mm] at {1260, "
-        "0, 0} [mm] along {1, 0, 0} to try to reach \"si_tracker\"@0x0 "
-        "(ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}"};
+        R"(Failed to bump navigation state up to a distance of 1 [mm] at {290, 0, 0} [mm] along {1, 0, 0} to try to reach "si_tracker"@0x0 (ID=1): found {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}})",
+        R"(Failed to bump navigation state up to a distance of 1 [mm] at {1260, 0, 0} [mm] along {-1, 0, 0} to try to reach "si_tracker"@0x0 (ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}})",
+        R"(Failed to bump navigation state up to a distance of 1 [mm] at {290, 0, 0} [mm] along {-1, 0, 0} to try to reach "si_tracker"@0x0 (ID=1): found {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}})",
+        R"(Failed to bump navigation state up to a distance of 1 [mm] at {1260, 0, 0} [mm] along {1, 0, 0} to try to reach "si_tracker"@0x0 (ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}})",
+    };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[]
         = {"warning", "warning", "warning", "warning"};
@@ -261,6 +269,7 @@ TEST_F(TouchableUpdaterTest, regression)
     using Real2 = Array<real_type, 2>;
 
     TouchableUpdater update = this->make_touchable_updater();
+    auto* th = this->touchable_history();
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
@@ -296,8 +305,8 @@ TEST_F(TouchableUpdaterTest, regression)
         radius.push_back(std::hypot(v.pos[0], v.pos[1]));
         ndot.push_back(dot_product(make_unit_vector(Real2{v.pos[0], v.pos[1]}),
                                    Real2{v.dir[0], v.dir[1]}));
-        EXPECT_TRUE(
-            update(v.pos * units::millimeter, v.dir, this->find_lv(v.volume)))
+        EXPECT_TRUE(update(
+            v.pos * units::millimeter, v.dir, this->find_lv(v.volume), th))
             << "from " << repr(v.pos) << " along " << repr(v.dir);
     }
 

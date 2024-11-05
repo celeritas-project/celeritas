@@ -37,11 +37,11 @@ class HitProcessor;
  * - Finds *all* logical volumes that have SDs attached (TODO: add list of
  *   exclusions for SDs that are implemented natively on GPU)
  * - Maps those volumes to VecGeom geometry
- * - Creates a HitProcessor for each Geant4 thread
  *
- * \warning Because of low-level problems with Geant4 allocators, the hit
- * processors must be allocated and deallocated on the same thread in which
- * they're used.
+ * Because of low-level use of Geant4 allocators through the associated Geant4
+ * objects, the hit processors \em must be allocated and deallocated on the
+ * same thread in which they're used, so \c make_local_processor is deferred
+ * until after construction and called in the \c LocalTransporter constructor.
  */
 class HitManager final : public StepInterface
 {
@@ -64,11 +64,13 @@ class HitManager final : public StepInterface
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
 
-    // Create local hit processor
-    SPProcessor make_local_processor(StreamId sid);
+    CELER_DEFAULT_MOVE_DELETE_COPY(HitManager);
 
     // Default destructor
     ~HitManager();
+
+    // Create local hit processor
+    SPProcessor make_local_processor(StreamId sid);
 
     // Selection of data required for this interface
     Filters filters() const final;
