@@ -39,7 +39,10 @@ RayleighModel::RayleighModel(
 
     for (auto mat : range(OpticalMaterialId(materials_->num_materials())))
     {
-        CELER_EXPECT(imported_.mfp(mat) || rayleigh_materials_[mat.get()]);
+        CELER_VALIDATE(imported_.mfp(mat) || rayleigh_materials_[mat.get()],
+                       << "Rayleigh model requires either imported MFP or "
+                          "material parameters to build MFPs for each optical "
+                          "material");
     }
 }
 
