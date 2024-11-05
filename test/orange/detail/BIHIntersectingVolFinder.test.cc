@@ -16,48 +16,10 @@
 
 #include "celeritas_test.hh"
 
-using BIHBuilder = celeritas::detail::BIHBuilder;
-using BIHInnerNode = celeritas::detail::BIHInnerNode;
-using BIHLeafNode = celeritas::detail::BIHLeafNode;
-using BIHIntersectingVolFinder = celeritas::detail::BIHIntersectingVolFinder;
-using Intersection = celeritas::detail::Intersection;
-using Ray = celeritas::detail::BIHIntersectingVolFinder::Ray;
-
 namespace celeritas
 {
 namespace test
 {
-class BIHIntersectingVolFinderTest : public Test
-{
-  public:
-    // TYPES //
-    struct MockVisitVol
-    {
-        using DistMap = std::map<LocalVolumeId, real_type>;
-
-        MockVisitVol(DistMap distances) : distances_{distances} {};
-
-        detail::Intersection operator()(LocalVolumeId const& vol_id)
-        {
-            detail::OnLocalSurface on_surface{
-                LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};
-            return detail::Intersection{on_surface, distances_[vol_id]};
-        }
-
-        DistMap distances_;
-    };
-
-    void SetUp() {}
-
-  protected:
-    static constexpr auto inff_
-        = std::numeric_limits<fast_real_type>::infinity();
-    std::vector<FastBBox> bboxes_;
-
-    BIHTreeData<Ownership::value, MemSpace::host> storage_;
-    BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
-};
-
 //---------------------------------------------------------------------------//
 /* Simple test with partial and fully overlapping bounding boxes.
  *
@@ -76,36 +38,81 @@ class BIHIntersectingVolFinderTest : public Test
  *
  *        x=0                                                x=5
  */
+class BIHIntersectingVolFinderTest : public Test
+{
+  public:
+    using BIHBuilder = celeritas::detail::BIHBuilder;
+    using BIHIntersectingVolFinder
+        = celeritas::detail::BIHIntersectingVolFinder;
+    using Intersection = celeritas::detail::Intersection;
+    using Ray = celeritas::detail::BIHIntersectingVolFinder::Ray;
+    using DistMap = std::map<LocalVolumeId, real_type>;
+
+    struct MockVisitVol
+    {
+        detail::Intersection operator()(LocalVolumeId const& vol_id)
+        {
+            detail::OnLocalSurface on_surface{
+                LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};
+            return detail::Intersection{on_surface, distances[vol_id]};
+        }
+
+        DistMap distances;
+    };
+
+    void SetUp()
+    {
+        bboxes_.push_back(FastBBox::from_infinite());
+        bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
+        bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
+        bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
+        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
+        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
+
+        BIHBuilder builder(&storage_);
+        bih_tree_ = builder(std::move(bboxes_));
+
+        ref_storage_ = storage_;
+    }
+
+    void check_result(Ray const& ray,
+                      DistMap const& distances,
+                      LocalVolumeId vol_id,
+                      real_type dist)
+    {
+        MockVisitVol visit_vol;
+        visit_vol.distances = distances;
+
+        auto find_volume = BIHIntersectingVolFinder(bih_tree_, ref_storage_);
+        auto intersection = find_volume(ray, visit_vol);
+
+        EXPECT_SOFT_EQ(dist, intersection.distance);
+        EXPECT_EQ(vol_id.unchecked_get(),
+                  intersection.surface.id().unchecked_get());
+    }
+
+  protected:
+    static constexpr auto inff_
+        = std::numeric_limits<fast_real_type>::infinity();
+    std::vector<FastBBox> bboxes_;
+    detail::BIHTree bih_tree_;
+    BIHTreeData<Ownership::value, MemSpace::host> storage_;
+    BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
+};
+
 TEST_F(BIHIntersectingVolFinderTest, basic)
 {
-    bboxes_.push_back(FastBBox::from_infinite());
-    bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
-    bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
-    bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
-    bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
-    bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
-
-    BIHBuilder bih(&storage_);
-    auto bih_tree = bih(std::move(bboxes_));
-
-    ref_storage_ = storage_;
-    BIHIntersectingVolFinder find_volume(bih_tree, ref_storage_);
-
     {
         // Ray goes straight to V3
         Ray ray{{6, 0.5, 50.}, {-1., 0., 0.}};
+        DistMap distances{{LocalVolumeId{0}, inff_},
+                          {LocalVolumeId{1}, 4.4},
+                          {LocalVolumeId{2}, 3.2},
+                          {LocalVolumeId{3}, 1.},
+                          {LocalVolumeId{4}, inff_},
+                          {LocalVolumeId{5}, inff_}};
 
-        MockVisitVol::DistMap distances{{LocalVolumeId{0}, inff_},
-                                        {LocalVolumeId{1}, 4.4},
-                                        {LocalVolumeId{2}, 3.2},
-                                        {LocalVolumeId{3}, 1.},
-                                        {LocalVolumeId{4}, inff_},
-                                        {LocalVolumeId{5}, inff_}};
-
-        MockVisitVol visit_vol(distances);
-        auto intersection = find_volume(ray, visit_vol);
-        EXPECT_EQ(1.0, intersection.distance);
-        EXPECT_EQ(3, intersection.surface.id().unchecked_get());
+        this->check_result(ray, distances, LocalVolumeId{3}, 1.0);
     }
 }
 
