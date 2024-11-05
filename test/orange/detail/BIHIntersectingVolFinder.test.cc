@@ -33,24 +33,25 @@ class BIHIntersectingVolFinderTest : public Test
     // TYPES //
     struct MockVisitVol
     {
-        using DistMap = std::map<LocalVolumeId, double>;
+        using DistMap = std::map<LocalVolumeId, real_type>;
 
         MockVisitVol(DistMap distances) : distances_{distances} {};
 
-        detail::Intersection operator()(LocalVolumeId vol_id)
+        detail::Intersection operator()(LocalVolumeId const& vol_id)
         {
-            printf("HELLO %i", vol_id.unchecked_get());
             detail::OnLocalSurface on_surface{
                 LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};
-            return detail::Intersection{on_surface, 3.0};
+            return detail::Intersection{on_surface, distances_[vol_id]};
         }
 
-        std::map<LocalVolumeId, double> distances_;
+        DistMap distances_;
     };
 
     void SetUp() {}
 
   protected:
+    static constexpr auto inff_
+        = std::numeric_limits<fast_real_type>::infinity();
     std::vector<FastBBox> bboxes_;
 
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
@@ -90,24 +91,22 @@ TEST_F(BIHIntersectingVolFinderTest, basic)
     ref_storage_ = storage_;
     BIHIntersectingVolFinder find_volume(bih_tree, ref_storage_);
 
-    Ray ray{{6, 0.5, 50.}, {-1., 0., 0.}};
+    {
+        // Ray goes straight to V3
+        Ray ray{{6, 0.5, 50.}, {-1., 0., 0.}};
 
-    MockVisitVol::DistMap distances{{LocalVolumeId{0}, 5.0},
-                                    {LocalVolumeId{1}, 4.0},
-                                    {LocalVolumeId{2}, 3.0},
-                                    {LocalVolumeId{3}, 2.0},
-                                    {LocalVolumeId{4}, 1.2},
-                                    {LocalVolumeId{5}, 1.0}};
+        MockVisitVol::DistMap distances{{LocalVolumeId{0}, inff_},
+                                        {LocalVolumeId{1}, 4.4},
+                                        {LocalVolumeId{2}, 3.2},
+                                        {LocalVolumeId{3}, 1.},
+                                        {LocalVolumeId{4}, inff_},
+                                        {LocalVolumeId{5}, inff_}};
 
-    MockVisitVol visit_vol(distances);
-
-    auto x = find_volume(ray, visit_vol);
-
-    // EXPECT_EQ(LocalVolumeId{1}, find_volume({0.8, 0.5, 30}, valid_volid_));
-    // EXPECT_EQ(LocalVolumeId{2}, find_volume({2.0, 0.6, 40}, valid_volid_));
-    // EXPECT_EQ(LocalVolumeId{3}, find_volume({2.9, 0.7, 50}, valid_volid_));
-    // EXPECT_EQ(LocalVolumeId{4}, find_volume({2.9, -0.7, 50}, valid_volid_));
-    // EXPECT_EQ(LocalVolumeId{5}, find_volume({2.9, -0.7, 50}, odd_volid_));
+        MockVisitVol visit_vol(distances);
+        auto intersection = find_volume(ray, visit_vol);
+        EXPECT_EQ(1.0, intersection.distance);
+        EXPECT_EQ(3, intersection.surface.id().unchecked_get());
+    }
 }
 
 //---------------------------------------------------------------------------//
