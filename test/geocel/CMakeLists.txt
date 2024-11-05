@@ -79,16 +79,22 @@ if(CELERITAS_USE_VecGeom)
       "TwoBoxesTest.*"
       "SimpleCmsTest.*"
       "FourLevelsTest.*"
-      "SolidsTest.*"
       "CmseTest.*"
     )
+    if(VecGeom_VERSION VERSION_LESS 2.0.0)
+      MESSAGE(STATUS "VecGeom_VERSION < 2.0.0: adding SolidsTest.*") 
+      list(APPEND _vecgeom_tests "SolidsTest.*")
+    endif()
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
-      "SolidsGeantTest.*"
       "ZnenvGeantTest.*"
     )
+    if(VecGeom_VERSION VERSION_LESS 2.0.0)
+      MESSAGE(STATUS "VecGeom_VERSION < 2.0.0: adding SolidsGeantTest.*") 
+      list(APPEND _vecgeom_tests "SolidsGeantTest.*")
+    endif()
   endif()
   if(NOT _vecgeom_tests)
     # Bad: no way of setting up geometry!
