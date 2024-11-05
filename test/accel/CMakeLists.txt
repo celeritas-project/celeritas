@@ -33,12 +33,12 @@ celeritas_setup_tests(SERIAL
 celeritas_add_test(ExceptionConverter.test.cc)
 celeritas_add_test(HepMC3PrimaryGenerator.test.cc
   ${_needs_hepmc}
-  ENVIRONMENT "${CELERITASTEST_G4ENV}")
+  ENVIRONMENT "${CELER_G4ENV}")
 celeritas_add_test(RZMapMagneticField.test.cc)
 celeritas_add_test(detail/HitManager.test.cc
-  ENVIRONMENT "${CELERITASTEST_G4ENV}")
+  ENVIRONMENT "${CELER_G4ENV}")
 celeritas_add_test(detail/HitProcessor.test.cc
-  ENVIRONMENT "${CELERITASTEST_G4ENV}")
+  ENVIRONMENT "${CELER_G4ENV}")
 if(CELERITAS_REAL_TYPE STREQUAL "double")
   # This test requires Geant4 *geometry* which is incompatible
   # with single-precision

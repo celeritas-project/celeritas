@@ -117,7 +117,8 @@
       "description": "Build with Geant4 geometry",
       "inherits": ["spack"],
       "cacheVariables": {
-        "CELERITAS_CORE_GEO": "Geant4"
+        "CELERITAS_CORE_GEO": "Geant4",
+        "CELERITAS_UNITS": "CLHEP"
       }
     },
     {

@@ -110,7 +110,15 @@ StepParams::StepParams(AuxId aux_id,
 
             host_data.nonzero_energy_deposition = nonzero_energy_deposition;
 
-            // TODO: if volume instance IDs, save level here
+            if (selection.points[StepPoint::pre].volume_instance_ids
+                || selection.points[StepPoint::post].volume_instance_ids)
+            {
+                host_data.volume_instance_depth = geo.max_depth();
+                CELER_VALIDATE(host_data.volume_instance_depth > 0,
+                               << "geometry type does not support volume "
+                                  "instance IDs: max depth is "
+                               << host_data.volume_instance_depth);
+            }
         }
 
         return host_data;

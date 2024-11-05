@@ -106,11 +106,16 @@ class GeantImporter final : public ImporterInterface
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-inline bool operator==(GeantImporter::DataSelection const& lhs,
-                       GeantImporter::DataSelection const& rhs)
+inline constexpr bool operator==(GeantImporter::DataSelection const& lhs,
+                                 GeantImporter::DataSelection const& rhs)
 {
-    return lhs.particles == rhs.particles && lhs.processes == rhs.processes
+    // clang-format off
+    return    lhs.particles == rhs.particles
+           && lhs.materials == rhs.materials
+           && lhs.processes == rhs.processes
+           && lhs.unique_volumes == rhs.unique_volumes
            && lhs.reader_data == rhs.reader_data;
+    // clang-format on
 }
 
 inline bool operator!=(GeantImporter::DataSelection const& lhs,

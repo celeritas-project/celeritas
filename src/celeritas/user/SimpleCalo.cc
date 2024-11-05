@@ -19,54 +19,12 @@
 #include "corecel/io/Label.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/GeoParamsInterface.hh"  // IWYU pragma: keep
+#include "geocel/GeoVolumeFinder.hh"
 
 #include "detail/SimpleCaloImpl.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-VolumeId find_volume_fuzzy(GeoParamsInterface const& geo, Label const& label)
-{
-    auto const& vols = geo.volumes();
-    if (auto id = vols.find_exact(label))
-    {
-        // Exact match
-        return id;
-    }
-
-    // Fall back to skipping the extension: look for all possible matches
-    auto all_ids = vols.find_all(label.name);
-    if (all_ids.size() == 1)
-    {
-        if (!label.ext.empty())
-        {
-            CELER_LOG(warning)
-                << "Failed to exactly match " << celeritas_core_geo
-                << " volume from volume '" << label << "'; found '"
-                << vols.at(all_ids.front()) << "' by omitting the extension";
-        }
-        return all_ids.front();
-    }
-    if (all_ids.size() > 1)
-    {
-        CELER_LOG(warning) << "Multiple volumes '"
-                           << join(all_ids.begin(),
-                                   all_ids.end(),
-                                   "', '",
-                                   [&vols](VolumeId v) { return vols.at(v); })
-                           << "' match the name '" << label.name
-                           << "': returning the last one";
-        return all_ids.back();
-    }
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with sensitive regions.
@@ -83,10 +41,11 @@ SimpleCalo::SimpleCalo(std::string output_label,
 
     // Map labels to volume IDs
     volume_ids_.resize(volume_labels_.size());
-    std::vector<std::reference_wrapper<Label>> missing;
+    std::vector<std::reference_wrapper<Label const>> missing;
+    GeoVolumeFinder find_volume(geo);
     for (auto i : range(volume_labels_.size()))
     {
-        volume_ids_[i] = find_volume_fuzzy(geo, volume_labels_[i]);
+        volume_ids_[i] = find_volume(volume_labels_[i]);
         if (!volume_ids_[i])
         {
             missing.emplace_back(volume_labels_[i]);

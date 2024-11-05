@@ -61,7 +61,7 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "Use verbose debug assertions in device code" "OFF"
-  "_celeritas_use_device" OFF
+  "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
 
 # Secondary testing options (only applies to CTest)
@@ -323,6 +323,11 @@ if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
       "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
     )
   endif()
+endif()
+if(CELERITAS_USE_Geant4 AND BUILD_TESTING AND NOT DEFINED CELER_G4ENV)
+  # Set environment variables from Geant4-exported configuration or environment
+  # currently used only for CTest setup
+  celeritas_set_celer_g4env()
 endif()
 
 if(CELERITAS_USE_HepMC3)

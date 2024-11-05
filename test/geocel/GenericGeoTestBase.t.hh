@@ -14,6 +14,7 @@
 
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "geocel/UnitUtils.hh"
 
 #include "TestMacros.hh"
@@ -55,7 +56,13 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
         std::string key = this->geometry_basename() + "/"
                           + std::string{TraitsT::name};
         // Construct via LazyGeoManager
-        geo_ = std::dynamic_pointer_cast<HP const>(this->get_geometry(key));
+        auto geo = this->get_geometry(key);
+        EXPECT_TRUE(geo);
+        geo_ = std::dynamic_pointer_cast<HP const>(geo);
+        CELER_VALIDATE(geo_,
+                       << "failed to cast geometry from "
+                       << demangled_type(*geo) << " to "
+                       << TypeDemangler<HP const>()());
     }
     CELER_ENSURE(geo_);
     return geo_;
