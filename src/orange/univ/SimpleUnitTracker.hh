@@ -293,11 +293,11 @@ SimpleUnitTracker::intersect(LocalState const& state,
  * necessarily slow down the simulation.
  */
 CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
-                                                   LocalVolumeId volid) const
+                                                   LocalVolumeId vol_id) const
 {
-    CELER_EXPECT(volid);
+    CELER_EXPECT(vol_id);
 
-    VolumeView vol = this->make_local_volume(volid);
+    VolumeView vol = this->make_local_volume(vol_id);
     if (!vol.simple_safety())
     {
         // Has a tricky surface: we can't use the simple algorithm to calculate
