@@ -12,6 +12,7 @@
 #include "BIHView.hh"
 #include "../BoundingBoxUtils.hh"
 #include "../OrangeData.hh"
+#include "../univ/detail/Types.hh"
 
 namespace celeritas
 {
@@ -34,12 +35,6 @@ class BIHIntersectingVolFinder
     {
         Real3 pos;
         Real3 dir;
-    };
-
-    struct Intersection
-    {
-        LocalVolumeId vol_id;
-        double dist;
     };
 
     //!@}
@@ -108,7 +103,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray const& ray,
     BIHNodeId previous_node;
     BIHNodeId current_node{0};
 
-    Intersection intersection{LocalVolumeId{},
+    Intersection intersection{OnLocalSurface{},
                               std::numeric_limits<real_type>::infinity()};
 
     do
@@ -122,7 +117,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray const& ray,
         previous_node = exchange(
             current_node,
             this->next_node(
-                current_node, previous_node, ray, intersection.dist));
+                current_node, previous_node, ray, intersection.distance));
 
     } while (current_node);
 
@@ -202,20 +197,20 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
  * Determine if any leaf node volumes contain the point.
  */
 template<class F>
-CELER_FUNCTION auto BIHIntersectingVolFinder::visit_leaf(
-    BIHLeafNode const& leaf_node,
-    BIHIntersectingVolFinder::Ray const& ray,
-    BIHIntersectingVolFinder::Intersection min_intersection,
-    F&& visit_vol) const -> Intersection
+CELER_FUNCTION auto
+BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
+                                     BIHIntersectingVolFinder::Ray const& ray,
+                                     Intersection min_intersection,
+                                     F&& visit_vol) const -> Intersection
 {
     for (auto id : view_.leaf_volids(leaf_node))
     {
         auto const& bbox = view_.bbox(id);
 
-        if (this->visit_bbox(bbox, ray, min_intersection.dist))
+        if (this->visit_bbox(bbox, ray, min_intersection.distance))
         {
             auto intersection = visit_vol(id);
-            if (intersection.dist < min_intersection.dist)
+            if (intersection.distance < min_intersection.distance)
             {
                 min_intersection = intersection;
             }
@@ -229,14 +224,14 @@ CELER_FUNCTION auto BIHIntersectingVolFinder::visit_leaf(
  * Determine if any volumes in inf_vols contain the point.
  */
 template<class F>
-CELER_FUNCTION auto BIHIntersectingVolFinder::visit_inf_vols(
-    BIHIntersectingVolFinder::Intersection min_intersection,
-    F&& visit_vol) const -> Intersection
+CELER_FUNCTION auto
+BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
+                                         F&& visit_vol) const -> Intersection
 {
     for (auto id : view_.inf_volids())
     {
         auto intersection = visit_vol(id);
-        if (intersection.dist < min_intersection.dist)
+        if (intersection.distance < min_intersection.distance)
         {
             min_intersection = intersection;
         }

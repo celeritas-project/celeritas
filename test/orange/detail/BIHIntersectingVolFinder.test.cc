@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "orange/detail/BIHBuilder.hh"
 #include "orange/detail/BIHData.hh"
+#include "orange/univ/detail/Types.hh"
 #include "celeritas/Types.hh"
 
 #include "celeritas_test.hh"
@@ -19,7 +20,7 @@ using BIHBuilder = celeritas::detail::BIHBuilder;
 using BIHInnerNode = celeritas::detail::BIHInnerNode;
 using BIHLeafNode = celeritas::detail::BIHLeafNode;
 using BIHIntersectingVolFinder = celeritas::detail::BIHIntersectingVolFinder;
-using Intersection = celeritas::detail::BIHIntersectingVolFinder::Intersection;
+using Intersection = celeritas::detail::Intersection;
 using Ray = celeritas::detail::BIHIntersectingVolFinder::Ray;
 
 namespace celeritas
@@ -29,6 +30,24 @@ namespace test
 class BIHIntersectingVolFinderTest : public Test
 {
   public:
+    // TYPES //
+    struct MockVisitVol
+    {
+        using DistMap = std::map<LocalVolumeId, double>;
+
+        MockVisitVol(DistMap distances) : distances_{distances} {};
+
+        detail::Intersection operator()(LocalVolumeId vol_id)
+        {
+            printf("HELLO %i", vol_id.unchecked_get());
+            detail::OnLocalSurface on_surface{
+                LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};
+            return detail::Intersection{on_surface, 3.0};
+        }
+
+        std::map<LocalVolumeId, double> distances_;
+    };
+
     void SetUp() {}
 
   protected:
@@ -36,12 +55,6 @@ class BIHIntersectingVolFinderTest : public Test
 
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
-
-    static constexpr BIHIntersectingVolFinder::Intersection
-    visit_vol_(LocalVolumeId vol_id)
-    {
-        return Intersection{vol_id, 3.0};
-    };
 };
 
 //---------------------------------------------------------------------------//
@@ -77,9 +90,18 @@ TEST_F(BIHIntersectingVolFinderTest, basic)
     ref_storage_ = storage_;
     BIHIntersectingVolFinder find_volume(bih_tree, ref_storage_);
 
-    Ray ray{{0.8, 0.5, 110.}, {1., 0., 0.}};
+    Ray ray{{6, 0.5, 50.}, {-1., 0., 0.}};
 
-    auto x = find_volume(ray, visit_vol_);
+    MockVisitVol::DistMap distances{{LocalVolumeId{0}, 5.0},
+                                    {LocalVolumeId{1}, 4.0},
+                                    {LocalVolumeId{2}, 3.0},
+                                    {LocalVolumeId{3}, 2.0},
+                                    {LocalVolumeId{4}, 1.2},
+                                    {LocalVolumeId{5}, 1.0}};
+
+    MockVisitVol visit_vol(distances);
+
+    auto x = find_volume(ray, visit_vol);
 
     // EXPECT_EQ(LocalVolumeId{1}, find_volume({0.8, 0.5, 30}, valid_volid_));
     // EXPECT_EQ(LocalVolumeId{2}, find_volume({2.0, 0.6, 40}, valid_volid_));
