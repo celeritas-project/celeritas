@@ -97,7 +97,7 @@ HitManager::HitManager(GeoParams const& geo,
  *
  * Due to Geant4 multithread semantics, this \b must be done on the same CPU
  * thread on which the resulting processor used. It must be done once per
- * thread and can be done separtely.
+ * thread and can be done separately.
  */
 auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
 {
