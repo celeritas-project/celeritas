@@ -8,7 +8,6 @@
 #include "Logger.hh"
 
 #include <algorithm>
-#include <functional>
 #include <mutex>
 #include <string>
 #include <G4RunManager.hh>
@@ -23,7 +22,6 @@
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
-#include "corecel/sys/MpiCommunicator.hh"
 #include "geocel/GeantUtils.hh"
 
 namespace celeritas
@@ -107,8 +105,7 @@ void MtLogger::operator()(LogProvenance prov, LogLevel lev, std::string msg)
  */
 Logger MakeMTLogger(G4RunManager const& runman)
 {
-    Logger log(MpiCommunicator{}, MtLogger{get_geant_num_threads(runman)});
-
+    Logger log{MtLogger{get_geant_num_threads(runman)}};
     log.level(log_level_from_env("CELER_LOG_LOCAL"));
     return log;
 }

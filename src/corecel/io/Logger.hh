@@ -73,7 +73,7 @@ class MpiCommunicator;
 
 //---------------------------------------------------------------------------//
 /*!
- * Manage logging in serial and parallel.
+ * Create a log message to be printed based on output/verbosity sttings.
  *
  * This should generally be called by the \c world_logger and \c
  * self_logger functions below. The call \c operator() returns an object that
@@ -81,8 +81,12 @@ class MpiCommunicator;
  *
  * This object \em is assignable, so to replace the default log handler with a
  * different one, you can call \code
-   world_logger = Logger(celeritas::comm_world(), my_handler);
+   world_logger = Logger(my_handler);
  * \endcode
+ *
+ * When using with MPI, the \c world_logger global objects are different on
+ * each process: rank 0 will have a handler that outputs to screen, and the
+ * other ranks will have a "null" handler that suppresses all log output.
  */
 class Logger
 {
@@ -98,10 +102,6 @@ class Logger
 
     // Construct with default celeritas communicator
     explicit Logger(LogHandler handle);
-
-    // Construct with custom communicator (only rank zero is active) and
-    // handler
-    Logger(MpiCommunicator const& comm, LogHandler handle);
 
     // Create a logger that flushes its contents when it destructs
     inline Message operator()(LogProvenance&& prov, LogLevel lev);
