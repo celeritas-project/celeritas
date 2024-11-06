@@ -5,14 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHIntersectingVolFinder.test.cc
 //---------------------------------------------------------------------------//
+
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "orange/detail/BIHBuilder.hh"
-#include "orange/detail/BIHData.hh"
-#include "orange/univ/detail/Types.hh"
-#include "celeritas/Types.hh"
 
 #include "celeritas_test.hh"
 
@@ -21,7 +17,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-/* Simple test with partial and fully overlapping bounding boxes.
+/* The BIHIntersectingVolFinder class is tested with the following geometry,
+ * consisting of partial and fully overlapping bounding boxes.
  *
  *         0    V1    1.6
  *         |--------------|
@@ -48,6 +45,22 @@ class BIHIntersectingVolFinderTest : public Test
     using Ray = celeritas::detail::BIHIntersectingVolFinder::Ray;
     using DistMap = std::map<LocalVolumeId, real_type>;
 
+    void SetUp()
+    {
+        bboxes_.push_back(FastBBox::from_infinite());
+        bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
+        bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
+        bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
+        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
+        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
+
+        BIHBuilder builder(&storage_);
+        bih_tree_ = builder(std::move(bboxes_));
+        ref_storage_ = storage_;
+    }
+
+  protected:
+    // Mock class with operator() to serve as a visit_vol functor
     struct MockVisitVol
     {
         detail::Intersection operator()(LocalVolumeId const& vol_id)
@@ -60,21 +73,7 @@ class BIHIntersectingVolFinderTest : public Test
         DistMap dist_map;
     };
 
-    void SetUp()
-    {
-        bboxes_.push_back(FastBBox::from_infinite());
-        bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
-        bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
-        bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
-        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
-        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
-
-        BIHBuilder builder(&storage_);
-        bih_tree_ = builder(std::move(bboxes_));
-
-        ref_storage_ = storage_;
-    }
-
+    // Check result for a single ray
     void check_result(Ray const& ray,
                       DistMap const& dist_map,
                       LocalVolumeId vol_id,
@@ -91,7 +90,6 @@ class BIHIntersectingVolFinderTest : public Test
                   intersection.surface.id().unchecked_get());
     }
 
-  protected:
     static constexpr auto inff_
         = std::numeric_limits<fast_real_type>::infinity();
     std::vector<FastBBox> bboxes_;
@@ -100,7 +98,7 @@ class BIHIntersectingVolFinderTest : public Test
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 };
 
-// Test the case where the ray starts outside bbbox and the first bbox
+// Test the case where the ray starts outside the bbbox and the first bbox
 // intersection yields the first volume intersection.
 TEST_F(BIHIntersectingVolFinderTest, outside_first)
 {
@@ -158,7 +156,7 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     this->check_result(ray, dist_map, LocalVolumeId{5}, 1.2);
 }
 
-// Test the case there the ray starts somewhere inside a bbox and this bbox
+// Test the case where the ray starts somewhere inside a bbox and this bbox
 // contains first intersecting volume.
 TEST_F(BIHIntersectingVolFinderTest, inside_first)
 {
@@ -226,30 +224,42 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     this->check_result(ray, dist_map, LocalVolumeId{5}, 1.2);
 }
 
-// Test the case there the minimum bbox intersection does yeilds the minimum
-// volume colision
-TEST_F(BIHIntersectingVolFinderTest, not_min_bbox_col)
+// Test the case where the first intersection does not yeilds the first volume
+// collision
+TEST_F(BIHIntersectingVolFinderTest, not_first)
 {
     Ray ray;
+    DistMap dist_map;
 
-    //// Ray goes through V1 and intersects with V2
-    // ray = {{0.5, 0., 50.}, {0., 0., 0.}};
-    // dist_map = {{LocalVolumeId{0}, },
-    //             {LocalVolumeId{1}, },
-    //             {LocalVolumeId{2}, },
-    //             {LocalVolumeId{3}, },
-    //             {LocalVolumeId{4}, },
-    //             {LocalVolumeId{5}, }};
-    // this->check_result(ray, dist_map, LocalVolumeId{}, 0);
+    // Ray goes through V1 but intersects with V2 first
+    ray = {{-0.5, 0.5, 50.}, {1., 0., 0.}};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, 2.0},
+                {LocalVolumeId{2}, 1.7},
+                {LocalVolumeId{3}, 3.3},
+                {LocalVolumeId{4}, inff_},
+                {LocalVolumeId{5}, inff_}};
+    this->check_result(ray, dist_map, LocalVolumeId{2}, 1.7);
 
-    //    ray = {{0., 0., 50.}, {0., 0., 0.}};
-    //    dist_map = {{LocalVolumeId{0}, },
-    //                {LocalVolumeId{1}, },
-    //                {LocalVolumeId{2}, },
-    //                {LocalVolumeId{3}, },
-    //                {LocalVolumeId{4}, },
-    //                {LocalVolumeId{5}, }};
-    //    this->check_result(ray, dist_map, LocalVolumeId{}, 0);
+    // Ray goes all the way through V1, V2 and V3, interects V0
+    ray = {{-0.5, 0.5, 50.}, {1., 0., 0.}};
+    dist_map = {{LocalVolumeId{0}, 11.},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, inff_},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, inff_},
+                {LocalVolumeId{5}, inff_}};
+    this->check_result(ray, dist_map, LocalVolumeId{0}, 11.);
+
+    // Ray goes through V4 and V5 and intersects with V2
+    ray = {{1.5, -2, 50.}, {0., 1., 0.}};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, 1.5},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, inff_},
+                {LocalVolumeId{5}, inff_}};
+    this->check_result(ray, dist_map, LocalVolumeId{2}, 1.5);
 }
 
 //---------------------------------------------------------------------------//
