@@ -8,6 +8,7 @@
  * \brief Include CUDA or HIP runtime APIs for compiling with host/cc compiler.
  * \deprecated This file should be replaced by "corecel/DeviceRuntimeApi.hh".
  */
+// DEPRECATED: remove in Celeritas v1.0
 //---------------------------------------------------------------------------//
 #ifndef CELERITAS_DEVICE_RUNTIME_API_H
 #define CELERITAS_DEVICE_RUNTIME_API_H
@@ -21,6 +22,6 @@
         "corecel/device_runtime_api.h is deprecated and should be replaced by \"corecel/DeviceRuntimeApi.hh\""
 #endif
 
-#include "corecel/DeviceRuntimeApi.hh
+#include "corecel/DeviceRuntimeApi.hh"
 
 #endif /* CELERITAS_DEVICE_RUNTIME_API_H */

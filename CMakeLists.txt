@@ -408,7 +408,7 @@ if(CELERITAS_USE_VecGeom)
       AND NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
     message(WARNING "CUDA architecture types between "
       "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
-      "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match:"
+      "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
       "runtime errors may result"
     )
   endif()
