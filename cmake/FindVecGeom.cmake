@@ -31,7 +31,7 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
   endif()
   set_target_properties(VecGeom::vecgeom PROPERTIES
     CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-    CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+    CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda_static
     CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
   set_target_properties(VecGeom::vecgeomcuda PROPERTIES
@@ -56,7 +56,7 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
       VecGeom::vecgeomcuda_static)
     set_target_properties(${_lib} PROPERTIES
       CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-      CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+      CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda_static
       CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
     )
   endforeach()
