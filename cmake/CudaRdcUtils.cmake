@@ -771,7 +771,7 @@ function(cuda_rdc_target_link_libraries target)
         # Note: we might be able to move this to cuda_rdc_target_link_libraries
         CUDA_RESOLVE_DEVICE_SYMBOLS OFF
       )
-      get_target_property(_final_target_type ${target} TYPE)
+      get_target_property(_final_target_type ${_finallibs} TYPE)
 
       get_target_property(_final_runtime ${_finallibs} CUDA_RUNTIME_LIBRARY)
       if(_final_runtime STREQUAL "Shared")
