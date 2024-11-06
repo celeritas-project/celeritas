@@ -1105,11 +1105,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
  */
 G4VPhysicalVolume const* GeantImporter::get_world_volume()
 {
-    auto* man = G4TransportationManager::GetTransportationManager();
-    CELER_ASSERT(man);
-    auto* nav = man->GetNavigatorForTracking();
-    CELER_ASSERT(nav);
-    auto* world = nav->GetWorldVolume();
+    auto* world = celeritas::geant_world_volume();
     CELER_VALIDATE(world,
                    << "no world volume has been defined in the navigator");
     return world;

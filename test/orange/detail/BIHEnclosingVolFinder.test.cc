@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHTraverser.test.cc
+//! \file orange/detail/BIHEnclosingVolFinder.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/BIHTraverser.hh"
+#include "orange/detail/BIHEnclosingVolFinder.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
@@ -18,13 +18,13 @@
 using BIHBuilder = celeritas::detail::BIHBuilder;
 using BIHInnerNode = celeritas::detail::BIHInnerNode;
 using BIHLeafNode = celeritas::detail::BIHLeafNode;
-using BIHTraverser = celeritas::detail::BIHTraverser;
+using BIHEnclosingVolFinder = celeritas::detail::BIHEnclosingVolFinder;
 
 namespace celeritas
 {
 namespace test
 {
-class BIHTraverserTest : public Test
+class BIHEnclosingVolFinderTest : public Test
 {
   public:
     void SetUp() {}
@@ -63,7 +63,7 @@ class BIHTraverserTest : public Test
  *
  *        x=0                                                x=5
  */
-TEST_F(BIHTraverserTest, basic)
+TEST_F(BIHEnclosingVolFinderTest, basic)
 {
     bboxes_.push_back(FastBBox::from_infinite());
     bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
@@ -76,14 +76,14 @@ TEST_F(BIHTraverserTest, basic)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverse(bih_tree, ref_storage_);
+    BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverse({0.8, 0.5, 110}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, traverse({0.8, 0.5, 30}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{2}, traverse({2.0, 0.6, 40}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{3}, traverse({2.9, 0.7, 50}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{4}, traverse({2.9, -0.7, 50}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{5}, traverse({2.9, -0.7, 50}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.8, 0.5, 110}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.8, 0.5, 30}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{2}, find_volume({2.0, 0.6, 40}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{3}, find_volume({2.9, 0.7, 50}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{4}, find_volume({2.9, -0.7, 50}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{5}, find_volume({2.9, -0.7, 50}, odd_volid_));
 }
 
 //---------------------------------------------------------------------------//
@@ -101,7 +101,7 @@ TEST_F(BIHTraverserTest, basic)
  *                  0    1    2    3
  *                          x
  */
-TEST_F(BIHTraverserTest, grid)
+TEST_F(BIHEnclosingVolFinderTest, grid)
 {
     bboxes_.push_back(FastBBox::from_infinite());
     for (auto i : range(3))
@@ -118,9 +118,9 @@ TEST_F(BIHTraverserTest, grid)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverse(bih_tree, ref_storage_);
+    BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverse({0.8, 0.5, 110}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.8, 0.5, 110}, valid_volid_));
 
     size_type index{1};
     for (auto i : range(3))
@@ -129,7 +129,7 @@ TEST_F(BIHTraverserTest, grid)
         {
             constexpr real_type half{0.5};
             EXPECT_EQ(LocalVolumeId{index++},
-                      traverse({half + i, half + j, 30}, valid_volid_));
+                      find_volume({half + i, half + j, 30}, valid_volid_));
         }
     }
 }
@@ -138,7 +138,7 @@ TEST_F(BIHTraverserTest, grid)
 // Degenerate, single leaf cases
 //---------------------------------------------------------------------------//
 
-TEST_F(BIHTraverserTest, single_finite_volume)
+TEST_F(BIHEnclosingVolFinderTest, single_finite_volume)
 {
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
 
@@ -146,12 +146,12 @@ TEST_F(BIHTraverserTest, single_finite_volume)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverse(bih_tree, ref_storage_);
+    BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
 }
 
-TEST_F(BIHTraverserTest, multiple_nonpartitionable_volumes)
+TEST_F(BIHEnclosingVolFinderTest, multiple_nonpartitionable_volumes)
 {
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
@@ -160,13 +160,13 @@ TEST_F(BIHTraverserTest, multiple_nonpartitionable_volumes)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverse(bih_tree, ref_storage_);
+    BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, traverse({0.5, 0.5, 0.5}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_volid_));
 }
 
-TEST_F(BIHTraverserTest, single_infinite_volume)
+TEST_F(BIHEnclosingVolFinderTest, single_infinite_volume)
 {
     bboxes_.push_back(FastBBox::from_infinite());
 
@@ -174,12 +174,12 @@ TEST_F(BIHTraverserTest, single_infinite_volume)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverse(bih_tree, ref_storage_);
+    BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
 }
 
-TEST_F(BIHTraverserTest, multiple_infinite_volumes)
+TEST_F(BIHEnclosingVolFinderTest, multiple_infinite_volumes)
 {
     bboxes_.push_back(FastBBox::from_infinite());
     bboxes_.push_back(FastBBox::from_infinite());
@@ -188,10 +188,10 @@ TEST_F(BIHTraverserTest, multiple_infinite_volumes)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverse(bih_tree, ref_storage_);
+    BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, traverse({0.5, 0.5, 0.5}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_volid_));
 }
 
 //---------------------------------------------------------------------------//
