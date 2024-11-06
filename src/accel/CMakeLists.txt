@@ -26,6 +26,7 @@ list(APPEND SOURCES
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
   detail/HitProcessor.cc
+  detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc
   detail/SensDetInserter.cc
 )
