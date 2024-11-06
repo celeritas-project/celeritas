@@ -92,25 +92,11 @@ void set_log_level_from_env(Logger* log, std::string const& level_env)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with default communicator and handler.
+ * Construct with handler.
+ *
+ * A null handler will silence the logger.
  */
-Logger::Logger(LogHandler handle)
-    : Logger(celeritas::comm_world(), std::move(handle))
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with communicator (only rank zero is active) and handler.
- */
-Logger::Logger(MpiCommunicator const& comm, LogHandler handle)
-{
-    if (comm.rank() == 0)
-    {
-        // Accept handler, otherwise it is a "null" function pointer.
-        handle_ = std::move(handle);
-    }
-}
+Logger::Logger(LogHandler handle) : handle_{std::move(handle)} {}
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -143,11 +129,13 @@ LogLevel log_level_from_env(std::string const& level_env)
 /*!
  * Create a default logger using the world communicator.
  *
+ * The result prints only on one processor in the world communicator group.
  * This function can be useful when resetting a test harness.
  */
 Logger make_default_world_logger()
 {
-    Logger log{&default_global_handler};
+    Logger log{celeritas::comm_world().rank() == 0 ? &default_global_handler
+                                                   : nullptr};
     set_log_level_from_env(&log, "CELER_LOG");
     return log;
 }
@@ -155,14 +143,16 @@ Logger make_default_world_logger()
 //---------------------------------------------------------------------------//
 /*!
  * Create a default logger using the local communicator.
+ *
+ * If MPI is enabled, this will prepend the local process index to the message.
  */
 Logger make_default_self_logger()
 {
     auto const& comm = celeritas::comm_world();
-    auto handler = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-                       ? LocalHandler{comm}
-                       : LogHandler{&default_global_handler};
-    Logger log{comm, std::move(handler)};
+    auto handler = ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
+                       ? LogHandler{&default_global_handler}
+                       : LocalHandler{comm};
+    Logger log{std::move(handler)};
     set_log_level_from_env(&log, "CELER_LOG_LOCAL");
     return log;
 }

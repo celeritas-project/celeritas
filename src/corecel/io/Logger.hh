@@ -10,9 +10,14 @@
 #include <string>
 #include <utility>
 
+#include "corecel/Config.hh"
+
 #include "LoggerTypes.hh"
 
 #include "detail/LoggerMessage.hh"  // IWYU pragma: export
+#if CELER_DEVICE_COMPILE
+#    include "detail/NullLoggerMessage.hh"  // IWYU pragma: export
+#endif
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -44,16 +49,23 @@
     ::celeritas::world_logger()(CELER_CODE_PROVENANCE, \
                                 ::celeritas::LogLevel::LEVEL)
 
-//---------------------------------------------------------------------------//
 /*!
  * \def CELER_LOG_LOCAL
  *
  * Like \c CELER_LOG but for code paths that may only happen on a single
- * process. Use sparingly.
+ * process or thread. Use sparingly.
  */
 #define CELER_LOG_LOCAL(LEVEL)                        \
     ::celeritas::self_logger()(CELER_CODE_PROVENANCE, \
                                ::celeritas::LogLevel::LEVEL)
+
+// Allow CELER_LOG to be present (but ignored) in device code
+#if CELER_DEVICE_COMPILE
+#    undef CELER_LOG
+#    define CELER_LOG(LEVEL) ::celeritas::detail::NullLoggerMessage()
+#    undef CELER_LOG_LOCAL
+#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::detail::NullLoggerMessage()
+#endif
 
 namespace celeritas
 {
@@ -61,7 +73,7 @@ class MpiCommunicator;
 
 //---------------------------------------------------------------------------//
 /*!
- * Manage logging in serial and parallel.
+ * Create a log message to be printed based on output/verbosity sttings.
  *
  * This should generally be called by the \c world_logger and \c
  * self_logger functions below. The call \c operator() returns an object that
@@ -69,8 +81,12 @@ class MpiCommunicator;
  *
  * This object \em is assignable, so to replace the default log handler with a
  * different one, you can call \code
-   world_logger = Logger(celeritas::comm_world(), my_handler);
+   world_logger = Logger(my_handler);
  * \endcode
+ *
+ * When using with MPI, the \c world_logger global objects are different on
+ * each process: rank 0 will have a handler that outputs to screen, and the
+ * other ranks will have a "null" handler that suppresses all log output.
  */
 class Logger
 {
@@ -86,10 +102,6 @@ class Logger
 
     // Construct with default celeritas communicator
     explicit Logger(LogHandler handle);
-
-    // Construct with custom communicator (only rank zero is active) and
-    // handler
-    Logger(MpiCommunicator const& comm, LogHandler handle);
 
     // Create a logger that flushes its contents when it destructs
     inline Message operator()(LogProvenance&& prov, LogLevel lev);

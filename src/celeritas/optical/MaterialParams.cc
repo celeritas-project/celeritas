@@ -72,6 +72,7 @@ MaterialParams::from_import(ImportData const& data,
         }
         inp.volume_to_mat.push_back(optmat);
     }
+
     CELER_VALIDATE(has_opt_mat,
                    << "no volumes have associated optical materials");
 

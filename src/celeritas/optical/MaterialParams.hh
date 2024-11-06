@@ -24,7 +24,6 @@ class GeoMaterialParams;
 
 namespace optical
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Manage properties for optical materials.
@@ -65,11 +64,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // Construct with optical property data
     explicit MaterialParams(Input const& inp);
 
-    //! Number of optical materials
-    OpticalMaterialId::size_type num_materials() const
-    {
-        return this->host_ref().refractive_index.size();
-    }
+    // Number of optical materials
+    inline OpticalMaterialId::size_type num_materials() const;
 
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -80,6 +76,17 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
   private:
     CollectionMirror<MaterialParamsData> data_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Number of optical materials.
+ */
+OpticalMaterialId::size_type MaterialParams::num_materials() const
+{
+    return this->host_ref().refractive_index.size();
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

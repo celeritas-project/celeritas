@@ -16,6 +16,19 @@ namespace optical
 namespace test
 {
 //---------------------------------------------------------------------------//
+struct MeterCubedPerMeV
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return ipow<3>(units::meter) / units::Mev::value();
+    }
+
+    static char const* label() { return "m^3/MeV"; }
+};
+
+using IsothermalCompressibility = Quantity<MeterCubedPerMeV>;
+
+//---------------------------------------------------------------------------//
 /*!
  * Convert vector of some floating type to a vector of reals.
  */
@@ -41,9 +54,11 @@ std::vector<real_type> convert_to_reals(std::vector<T> const& xs)
  *
  * For y values:
  *  j = 0,1,2: size = 2
- *  j = 3,4: sie = 3
+ *  j = 3,4: size = 3
  */
-ImportPhysicsVector mock_vec(unsigned int i, unsigned int j)
+std::vector<ImportPhysicsVector>
+mock_vec(std::vector<unsigned int> const& grid_indices,
+         std::vector<unsigned int> const& value_indices)
 {
     static std::vector<std::vector<double>> grids{
         {1e-3, 1e2}, {1e-2, 3e2}, {2e-3, 5e-1, 1e2}, {1e-3, 2e-3, 5e-1}};
@@ -56,12 +71,22 @@ ImportPhysicsVector mock_vec(unsigned int i, unsigned int j)
         {1.3, 4.9, 9.4},
     };
 
-    CELER_EXPECT(i < grids.size());
-    CELER_EXPECT(j < values.size());
-    CELER_EXPECT(grids[i].size() == values[j].size());
+    std::vector<std::vector<double>> mock_grids;
+    for (auto i : grid_indices)
+    {
+        CELER_ASSERT(i < grids.size());
+        mock_grids.push_back(grids[i]);
+    }
 
-    return ImportPhysicsVector{
-        ImportPhysicsVectorType::free, grids[i], values[j]};
+    std::vector<std::vector<double>> mock_values;
+    for (auto j : value_indices)
+    {
+        CELER_ASSERT(j < values.size());
+        mock_values.push_back(values[j]);
+    }
+
+    return detail::convert_vector_units<units::Mev, units::Native>(
+        mock_grids, mock_values);
 }
 
 //---------------------------------------------------------------------------//
@@ -76,25 +101,9 @@ std::vector<ImportOpticalModel> const& MockImportedData::import_models()
     using IMC = ImportModelClass;
 
     static std::vector<ImportOpticalModel> models{
-        {IMC::absorption,
-         {mock_vec(0, 0),
-          mock_vec(1, 1),
-          mock_vec(1, 2),
-          mock_vec(2, 3),
-          mock_vec(3, 4)}},
-        {IMC::rayleigh,
-         {mock_vec(1, 0),
-          mock_vec(0, 1),
-          mock_vec(3, 3),
-          mock_vec(2, 3),
-          mock_vec(0, 2)}},
-        {IMC::wls,
-         {mock_vec(3, 4),
-          mock_vec(1, 0),
-          mock_vec(1, 1),
-          mock_vec(2, 4),
-          mock_vec(3, 4)}},
-    };
+        {IMC::absorption, mock_vec({0, 1, 1, 2, 3}, {0, 1, 2, 3, 4})},
+        {IMC::rayleigh, mock_vec({1, 0, 3, 2, 0}, {0, 1, 3, 3, 2})},
+        {IMC::wls, mock_vec({3, 1, 1, 2, 3}, {4, 0, 1, 4, 4})}};
 
     return models;
 }
@@ -102,15 +111,89 @@ std::vector<ImportOpticalModel> const& MockImportedData::import_models()
 //---------------------------------------------------------------------------//
 /*!
  * Construct vector of ImportOpticalMaterial from mock data.
- *
- * Currently returns a vector of 5 empty materials.
- * TODO: Reimplement with mock data for models that depend on material data.
  */
 std::vector<ImportOpticalMaterial> const& MockImportedData::import_materials()
 {
-    static std::vector<ImportOpticalMaterial> materials(
-        5, ImportOpticalMaterial());
+    using namespace celeritas::units;
+
+    static std::vector<std::vector<double>> mock_energies
+        = {{1.098177, 1.256172, 1.484130}, {1.098177, 6.812319}, {1, 2, 5}};
+
+    static std::vector<std::vector<double>> mock_rindex
+        = {{1.3235601610672, 1.3256740639273, 1.3280120256415},
+           {1.3235601610672, 1.4679465862259},
+           {1.3, 1.4, 1.5}};
+
+    auto properties
+        = detail::convert_vector_units<detail::ElectronVolt, units::Native>(
+            mock_energies, mock_rindex);
+
+    static ImportOpticalRayleigh mock_rayleigh[]
+        = {{1, 7.658e-23 * MeterCubedPerMeV::value()},
+           {1.7, 4.213e-24 * MeterCubedPerMeV::value()},
+           {2, 1e-20 * MeterCubedPerMeV::value()}};
+
+    static std::vector<ImportOpticalMaterial> materials{
+        ImportOpticalMaterial{ImportOpticalProperty{properties[0]},
+                              ImportScintData{},
+                              ImportOpticalRayleigh{mock_rayleigh[0]},
+                              ImportWavelengthShift{}},
+        ImportOpticalMaterial{ImportOpticalProperty{properties[0]},
+                              ImportScintData{},
+                              ImportOpticalRayleigh{mock_rayleigh[1]},
+                              ImportWavelengthShift{}},
+        ImportOpticalMaterial{ImportOpticalProperty{properties[1]},
+                              ImportScintData{},
+                              ImportOpticalRayleigh{mock_rayleigh[0]},
+                              ImportWavelengthShift{}},
+        ImportOpticalMaterial{ImportOpticalProperty{properties[2]},
+                              ImportScintData{},
+                              ImportOpticalRayleigh{mock_rayleigh[2]},
+                              ImportWavelengthShift{}},
+        ImportOpticalMaterial{ImportOpticalProperty{properties[1]},
+                              ImportScintData{},
+                              ImportOpticalRayleigh{mock_rayleigh[1]},
+                              ImportWavelengthShift{}}};
+
     return materials;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve optical materials constructed from mock imported data.
+ *
+ * Will only construct the materials when called, and only once.
+ */
+auto MockImportedData::optical_materials() const -> SPConstMaterials const&
+{
+    static SPConstMaterials materials = nullptr;
+    if (!materials)
+    {
+        materials = this->build_optical_materials();
+    }
+    return materials;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build optical material parameters from imported data.
+ */
+auto MockImportedData::build_optical_materials() const -> SPConstMaterials
+{
+    MaterialParams::Input input;
+    for (auto mat : MockImportedData::import_materials())
+    {
+        input.properties.push_back(mat.properties);
+    }
+
+    // Volume -> optical material mapping with some redundancies
+    for (auto opt_mat : range(8))
+    {
+        input.volume_to_mat.push_back(
+            OpticalMaterialId(opt_mat % input.properties.size()));
+    }
+
+    return std::make_shared<MaterialParams const>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
@@ -170,7 +253,8 @@ void MockImportedData::check_mfp(ImportPhysicsVector const& expected,
  * imported MFP table it was built from.
  */
 void MockImportedData::check_built_table(ImportedMfpTable const& expected_mfps,
-                                         ItemRange<Grid> const& table) const
+                                         ItemRange<Grid> const& table,
+                                         bool soft) const
 {
     // Each MFP has a built grid
     ASSERT_EQ(expected_mfps.size(), table.size());
@@ -196,9 +280,37 @@ void MockImportedData::check_built_table(ImportedMfpTable const& expected_mfps,
             = convert_to_reals(expected_mfp.y);
 
         // Built grid data should match expected grid data
-        EXPECT_VEC_EQ(expected_grid, reals[grid.grid]);
-        EXPECT_VEC_EQ(expected_value, reals[grid.value]);
+        if (soft)
+        {
+            EXPECT_VEC_SOFT_EQ(expected_grid, reals[grid.grid]);
+            EXPECT_VEC_SOFT_EQ(expected_value, reals[grid.value]);
+        }
+        else
+        {
+            EXPECT_VEC_EQ(expected_grid, reals[grid.grid]);
+            EXPECT_VEC_EQ(expected_value, reals[grid.value]);
+        }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check the built physics table with soft equality.
+ */
+void MockImportedData::check_built_table_soft(ImportedMfpTable const& expected,
+                                              ItemRange<Grid> const& table) const
+{
+    this->check_built_table(expected, table, true);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check the built physics table with exact equality.
+ */
+void MockImportedData::check_built_table_exact(
+    ImportedMfpTable const& expected, ItemRange<Grid> const& table) const
+{
+    this->check_built_table(expected, table, false);
 }
 
 //---------------------------------------------------------------------------//

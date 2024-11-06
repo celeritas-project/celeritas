@@ -118,7 +118,7 @@ struct ImportOpticalRayleigh
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return scale_factor >= 0 && compressibility >= 0;
+        return scale_factor > 0 && compressibility > 0;
     }
 };
 
