@@ -110,6 +110,7 @@ auto SimpleCmsTest::make_particles() -> VecParticle
 auto SimpleCmsTest::make_hit_processor() -> HitProcessor
 {
     return HitProcessor{this->make_detector_volumes(),
+                        this->geometry(),
                         this->make_particles(),
                         selection_,
                         locate_touchable_};

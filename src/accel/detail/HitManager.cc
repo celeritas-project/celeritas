@@ -89,7 +89,7 @@ HitManager::HitManager(SPConstGeo geo,
     }
 
     CELER_ENSURE(setup.track == !this->particles_.empty());
-    CELER_ENSURE(geant_vols_ && geant_vols_->size() == vecgeom_vols_.size());
+    CELER_ENSURE(geant_vols_ && geant_vols_->size() == celer_vols_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -106,7 +106,7 @@ auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
     CELER_EXPECT(!processors_[sid.get()]);
 
     auto result = std::make_shared<HitProcessor>(
-        geant_vols_, particles_, selection_, locate_touchable_);
+        geant_vols_, geo_, particles_, selection_, locate_touchable_);
     processor_weakptrs_[sid.get()] = result;
     processors_[sid.get()] = result.get();
     return result;
@@ -124,9 +124,9 @@ auto HitManager::filters() const -> Filters
 {
     Filters result;
 
-    for (auto didx : range<DetectorId::size_type>(vecgeom_vols_.size()))
+    for (auto didx : range<DetectorId::size_type>(celer_vols_.size()))
     {
-        result.detectors[vecgeom_vols_[didx]] = DetectorId{didx};
+        result.detectors[celer_vols_[didx]] = DetectorId{didx};
     }
 
     result.nonzero_energy_deposition = nonzero_energy_deposition_;
@@ -202,11 +202,11 @@ void HitManager::setup_volumes(GeoParams const& geo,
     // Unfold map into LV/ID vectors
     VecLV geant_vols;
     geant_vols.reserve(found_id_lv.size());
-    vecgeom_vols_.reserve(found_id_lv.size());
+    celer_vols_.reserve(found_id_lv.size());
     for (auto&& [id, lv] : found_id_lv)
     {
         geant_vols.push_back(lv);
-        vecgeom_vols_.push_back(id);
+        celer_vols_.push_back(id);
     }
     geant_vols_ = std::make_shared<VecLV>(std::move(geant_vols));
 }

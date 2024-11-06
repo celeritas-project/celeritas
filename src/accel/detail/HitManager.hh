@@ -91,7 +91,7 @@ class HitManager final : public StepInterface
     SPConstVecLV const& geant_vols() const { return geant_vols_; }
 
     //! Access the Celeritas volume IDs corresponding to the detectors
-    VecVolId const& celer_vols() const { return vecgeom_vols_; }
+    VecVolId const& celer_vols() const { return celer_vols_; }
 
     //! Access mapped particles if recreating G4Tracks later
     VecParticle const& geant_particles() const { return particles_; }
@@ -100,7 +100,7 @@ class HitManager final : public StepInterface
     using VecLV = std::vector<G4LogicalVolume const*>;
 
     bool nonzero_energy_deposition_{};
-    VecVolId vecgeom_vols_;
+    VecVolId celer_vols_;
 
     // Hit processor setup
     SPConstGeo geo_;

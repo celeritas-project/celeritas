@@ -44,12 +44,14 @@ namespace detail
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
+                           SPConstGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            bool locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
+    CELER_EXPECT(geo);
     CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
                    << "cannot set 'locate_touchable' because the pre-step "
                       "position is not being collected");
