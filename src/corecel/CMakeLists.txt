@@ -188,11 +188,13 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 if(CELERITAS_USE_CUDA)
-  # we currently depend on CUDA install including the nvtx header
+  # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
+  # NVTX requires `-ldl`
+  list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
 endif()
 
 if(CELERITAS_USE_HIP)

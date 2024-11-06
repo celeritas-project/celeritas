@@ -11,6 +11,7 @@
 #include <thread>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/detail/NullLoggerMessage.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -20,8 +21,22 @@
 
 namespace celeritas
 {
+namespace detail
+{
 namespace test
 {
+TEST(NullLoggerMessage, all)
+{
+    NullLoggerMessage() << "This should not print anything " << range(10)
+                        << std::setw(5) << 123;
+}
+
+}  // namespace test
+}  // namespace detail
+
+namespace test
+{
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -74,14 +89,14 @@ TEST_F(LoggerTest, global_handlers)
 
     // Replace 'local' with a null-op logger, so the log message will never
     // show
-    self_logger() = Logger(comm_self, nullptr);
+    self_logger() = Logger(nullptr);
     CELER_LOG_LOCAL(critical)
         << R"(It is pitch black. You are likely to be eaten by a grue.)";
 }
 
 TEST_F(LoggerTest, null)
 {
-    Logger log(comm_self, nullptr);
+    Logger log(nullptr);
 
     log({"<file>", 0}, LogLevel::info) << "This should be fine!";
 }
@@ -92,12 +107,11 @@ TEST_F(LoggerTest, custom_log)
     LogLevel last_lev = LogLevel::debug;
     std::string last_msg;
 
-    Logger log(comm_self,
-               [&](LogProvenance prov, LogLevel lev, std::string msg) {
-                   last_prov = prov;
-                   last_lev = lev;
-                   last_msg = std::move(msg);
-               });
+    Logger log([&](LogProvenance prov, LogLevel lev, std::string msg) {
+        last_prov = prov;
+        last_lev = lev;
+        last_msg = std::move(msg);
+    });
 
     // Update level
     EXPECT_EQ(LogLevel::status, log.level());
@@ -132,11 +146,9 @@ TEST_F(LoggerTest, DISABLED_performance)
 {
     // Construct a logger with an expensive output routine that will never be
     // called
-    Logger log(comm_self,
-               [&](LogProvenance prov, LogLevel lev, std::string msg) {
-                   cout << prov.file << prov.line << static_cast<int>(lev)
-                        << msg << endl;
-               });
+    Logger log([&](LogProvenance prov, LogLevel lev, std::string msg) {
+        cout << prov.file << prov.line << static_cast<int>(lev) << msg << endl;
+    });
     log.level(LogLevel::critical);
 
     // Even in debug this takes only 26ms

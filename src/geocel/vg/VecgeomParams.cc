@@ -17,9 +17,9 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "corecel/Config.hh"
-#if CELERITAS_USE_CUDA
+#include "corecel/DeviceRuntimeApi.hh"
+#ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/management/CudaManager.h>
-#    include <cuda_runtime_api.h>
 #endif
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
@@ -27,8 +27,6 @@
 #ifdef VECGEOM_GDML
 #    include <VecGeom/gdml/Frontend.h>
 #endif
-
-#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -49,13 +47,12 @@
 #include "VecgeomData.hh"  // IWYU pragma: associated
 
 #include "detail/VecgeomCompatibility.hh"
-
-#ifdef VECGEOM_USE_SURF
-#    include "VecgeomParams.surface.hh"
-#endif
+#include "detail/VecgeomSetup.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
+
+using vecgeom::cxx::BVHManager;
 
 namespace celeritas
 {
@@ -80,12 +77,6 @@ namespace
         do                     \
         {                      \
         } while (0)
-#endif
-
-#if defined(VECGEOM_ENABLE_CUDA) && defined(VECGEOM_USE_SURF)
-#    define VG_CUDASURF_CALL(CODE) CODE
-#else
-#    define VG_CUDASURF_CALL(CODE) CELER_UNREACHABLE
 #endif
 
 //---------------------------------------------------------------------------//
@@ -197,7 +188,7 @@ VecgeomParams::~VecgeomParams()
         if (VecgeomParams::use_surface_tracking())
         {
             CELER_LOG(debug) << "Clearing VecGeom surface GPU data";
-            VG_CUDASURF_CALL(teardown_surface_tracking_device());
+            VG_SURF_CALL(detail::teardown_surface_tracking_device());
         }
         else
         {
@@ -367,8 +358,8 @@ void VecgeomParams::build_surface_tracking()
         ScopedTimeAndRedirect time_and_output_(
             "BrepCudaManager::TransferSurfData");
 
-        VG_CUDASURF_CALL(
-            setup_surface_tracking_device(brep_helper.GetSurfData()));
+        VG_SURF_CALL(
+            detail::setup_surface_tracking_device(brep_helper.GetSurfData()));
         CELER_DEVICE_CHECK_ERROR();
     }
 }
@@ -394,7 +385,7 @@ void VecgeomParams::build_volume_tracking()
     }
 
     // Init the bounding volume hierarchy structure
-    vecgeom::cxx::BVHManager::Init();
+    BVHManager::Init();
 
     if (celeritas::device())
     {
@@ -430,22 +421,25 @@ void VecgeomParams::build_volume_tracking()
             set_cuda_heap_size(heap_size);
         }
 
-#if CELERITAS_USE_CUDA
+#ifdef VECGEOM_ENABLE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         cuda_manager.set_verbose(vecgeom_verbosity());
+#endif
         {
             CELER_LOG(debug) << "Converting to CUDA geometry";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.LoadGeometry");
 
-            cuda_manager.LoadGeometry();
+            VG_CUDA_CALL(cuda_manager.LoadGeometry());
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
         {
             CELER_LOG(debug) << "Transferring geometry to GPU";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.Synchronize");
-            auto world_top_devptr = cuda_manager.Synchronize();
+            void const* world_top_devptr{nullptr};
+            VG_CUDA_CALL(
+                world_top_devptr = cuda_manager.Synchronize().GetPtr());
             CELER_DEVICE_CHECK_ERROR();
             CELER_VALIDATE(world_top_devptr != nullptr,
                            << "VecGeom failed to copy geometry to GPU");
@@ -454,12 +448,65 @@ void VecgeomParams::build_volume_tracking()
             CELER_LOG(debug) << "Initializing BVH on GPU";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::BVHManager::DeviceInit");
-            vecgeom::cxx::BVHManager::DeviceInit();
+#if defined(VECGEOM_BVHMANAGER_DEVICE)
+            auto* bvh_ptr = BVHManager::DeviceInit();
+#elif defined(VECGEOM_ENABLE_CUDA)
+            BVHManager::DeviceInit();
+#endif
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+            auto* bvh_symbol_ptr = BVHManager::GetDeviceBVH();
+            CELER_VALIDATE(bvh_ptr && bvh_ptr == bvh_symbol_ptr,
+                           << "inconsistent BVH device pointer: allocated "
+                           << bvh_ptr << " but copy-from-symbol returned "
+                           << bvh_symbol_ptr);
+#endif
             CELER_DEVICE_CHECK_ERROR();
         }
-#else
-        CELER_NOT_CONFIGURED("CUDA");
+
+        // Check BVH pointers
+        auto ptrs = detail::bvh_pointers_device();
+
+        vecgeom::cuda::BVH const* bvh_symbol_ptr{nullptr};
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+        bvh_symbol_ptr = BVHManager::GetDeviceBVH();
 #endif
+        if (ptrs.kernel == nullptr || ptrs.kernel != ptrs.symbol
+            || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
+        {
+            // It's very bad if the kernel-viewed BVH pointer is null or
+            // inconsistent with the VecGeom-provided BVH pointer (only
+            // available in very recent VecGeom). It's bad (but not really
+            // necessary?) if cudaMemcpyFromSymbol fails when accessed from
+            // Celeritas
+            auto msg = world_logger()(
+                CELER_CODE_PROVENANCE,
+                (ptrs.kernel == nullptr
+                 || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
+                    ? LogLevel::error
+                    : LogLevel::debug);
+            auto msg_pointer = [&msg](auto* p) {
+                if (p)
+                {
+                    msg << p;
+                }
+                else
+                {
+                    msg << "nullptr";
+                }
+            };
+            msg << "VecGeom CUDA may not be correctly linked or initialized ("
+                   "BVH device pointers are null or inconsistent: ";
+            msg_pointer(ptrs.kernel);
+            msg << " from Celeritas device kernel, ";
+            msg_pointer(ptrs.symbol);
+            msg << " from Celeritas runtime symbol, ";
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+            msg_pointer(bvh_symbol_ptr);
+#else
+            msg << "unavailable";
+#endif
+            msg << " from VecGeom runtime symbol)";
+        }
     }
 }
 
@@ -477,7 +524,7 @@ void VecgeomParams::build_data()
 
     if (celeritas::device())
     {
-#if CELERITAS_USE_CUDA
+#ifdef VECGEOM_ENABLE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         device_ref_.world_volume = cuda_manager.world_gpu();
 #endif
