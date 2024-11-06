@@ -167,13 +167,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
     ScopedMem record_mem("GeantGeoParams.construct");
 
     // Verify consistency of the world volume
-    G4VPhysicalVolume const* nav_world = [] {
-        auto* man = G4TransportationManager::GetTransportationManager();
-        CELER_ASSERT(man);
-        auto* nav = man->GetNavigatorForTracking();
-        CELER_ENSURE(nav);
-        return nav->GetWorldVolume();
-    }();
+    G4VPhysicalVolume const* nav_world = geant_world_volume();
     if (world != nav_world)
     {
         auto msg = CELER_LOG(warning);

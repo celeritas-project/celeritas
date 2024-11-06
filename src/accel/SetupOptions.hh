@@ -41,6 +41,9 @@ struct AlongStepFactoryInput;
  *   when the combination of options is enabled
  * - Track and Parent IDs will \em never be a valid value since Celeritas track
  *   counters are independent from Geant4 track counters.
+ * - Some within-step properties (material, material cuts couple, and
+ *   sensitive detector) are always updated. Post-step values for those are not
+ *   set.
  */
 struct SDSetupOptions
 {
