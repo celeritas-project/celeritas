@@ -88,7 +88,6 @@ list(APPEND SOURCES
   optical/action/LocateVacanciesAction.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
-  optical/model/RayleighMfpCalculator.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc

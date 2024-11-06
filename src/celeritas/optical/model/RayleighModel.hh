@@ -12,10 +12,12 @@
 
 namespace celeritas
 {
+class MaterialParams;
+struct ImportOpticalRayleigh;
+
 namespace optical
 {
 class MaterialParams;
-struct OpticalRayleighMaterial;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -28,14 +30,20 @@ class RayleighModel : public Model
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedModels const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using SPConstCoreMaterials
+        = std::shared_ptr<::celeritas::MaterialParams const>;
     //!@}
 
   public:
     // Construct with imported data
+    RayleighModel(ActionId id, SPConstImported imported);
+
+    // Construct with imported data and imported material parameters
     RayleighModel(ActionId id,
                   SPConstImported imported,
                   SPConstMaterials materials,
-                  std::vector<OpticalRayleighMaterial> rayleigh_materials);
+                  SPConstCoreMaterials core_materials,
+                  std::vector<ImportOpticalRayleigh> rayleigh);
 
     // Build the mean free paths for this model
     void build_mfps(OpticalMaterialId, MfpBuilder&) const final;
@@ -49,7 +57,8 @@ class RayleighModel : public Model
   private:
     ImportedModelAdapter imported_;
     SPConstMaterials materials_;
-    std::vector<OpticalRayleighMaterial> rayleigh_materials_;
+    SPConstCoreMaterials core_materials_;
+    std::vector<ImportOpticalRayleigh> import_rayleigh_materials_;
 };
 
 //---------------------------------------------------------------------------//

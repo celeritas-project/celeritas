@@ -12,37 +12,16 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 
 #include "../MaterialView.hh"
 
 namespace celeritas
 {
-class MaterialParams;
-struct ImportOpticalRayleigh;
-
 namespace optical
 {
-//---------------------------------------------------------------------------//
-/*!
- * Material properties used to calculate Rayleigh mean free paths.
- */
-struct OpticalRayleighMaterial
-{
-    real_type scale_factor{1};  //!< User scale for the scattering length
-    real_type compressibility{0};  //!< Isothermal compressibility
-    real_type temperature{0};  //!< Material temperature
-
-    operator bool() const
-    {
-        return scale_factor > 0 && compressibility > 0 && temperature > 0;
-    }
-
-    static std::vector<OpticalRayleighMaterial>
-    from_import(std::vector<ImportOpticalRayleigh> const& imported,
-                ::celeritas::MaterialParams const& mat);
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the Rayleigh MFP for a given set of material properties.
@@ -92,7 +71,8 @@ class RayleighMfpCalculator
     // Construct from material and Rayleigh properties
     inline CELER_FUNCTION
     RayleighMfpCalculator(MaterialView const& material,
-                          OpticalRayleighMaterial const& rayleigh_material);
+                          ImportOpticalRayleigh const& rayleigh,
+                          ::celeritas::MaterialView const& core_material);
 
     // Calculate the MFP for the given energy
     inline CELER_FUNCTION real_type operator()(Energy) const;
@@ -119,14 +99,16 @@ class RayleighMfpCalculator
  */
 RayleighMfpCalculator::RayleighMfpCalculator(
     MaterialView const& material,
-    OpticalRayleighMaterial const& rayleigh_material)
+    ImportOpticalRayleigh const& rayleigh,
+    ::celeritas::MaterialView const& core_material)
     : calc_rindex_(material.make_refractive_index_calculator())
-    , density_fluctuation_(
-          rayleigh_material.scale_factor * rayleigh_material.compressibility
-          * rayleigh_material.temperature * celeritas::constants::k_boltzmann
-          / (6 * celeritas::constants::pi))
+    , density_fluctuation_(rayleigh.scale_factor * rayleigh.compressibility
+                           * core_material.temperature()
+                           * celeritas::constants::k_boltzmann
+                           / (6 * celeritas::constants::pi))
 {
-    CELER_EXPECT(rayleigh_material);
+    CELER_EXPECT(rayleigh);
+    CELER_EXPECT(material.material_id() == core_material.optical_material_id());
     CELER_EXPECT(density_fluctuation_ > 0);
 }
 

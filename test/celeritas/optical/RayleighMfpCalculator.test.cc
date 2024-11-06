@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/model/RayleighMfpCalculator.hh"
 
+#include "celeritas/mat/MaterialParams.hh"
+
 #include "MockImportedData.hh"
 #include "celeritas_test.hh"
 
@@ -24,7 +26,40 @@ using namespace ::celeritas::test;
 class RayleighMfpCalculatorTest : public MockImportedData
 {
   protected:
+    using SPConstCoreMaterials
+        = std::shared_ptr<::celeritas::MaterialParams const>;
+
     void SetUp() override {}
+
+    SPConstCoreMaterials build_core_materials() const
+    {
+        ::celeritas::MaterialParams::Input input;
+
+        static real_type const material_temperatures[]
+            = {283.15, 300.0, 283.15, 200, 300.0};
+
+        // Unused element - only to pass checks
+        input.elements.push_back(::celeritas::MaterialParams::ElementInput{
+            AtomicNumber{1}, units::AmuMass{1}, {}, "fake"});
+
+        for (auto i : range(size_type{5}))
+        {
+            // Only temperature is relevant information
+            input.materials.push_back(
+                ::celeritas::MaterialParams::MaterialInput{
+                    0,
+                    material_temperatures[i] * units::kelvin,
+                    MatterState::solid,
+                    {},
+                    std::to_string(i).c_str()});
+
+            // mock MaterialId == OpticalMaterialId
+            input.mat_to_optical.push_back(OpticalMaterialId{i});
+        }
+
+        return std::make_shared<::celeritas::MaterialParams const>(
+            std::move(input));
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -40,8 +75,7 @@ TEST_F(RayleighMfpCalculatorTest, mfp_table)
            {11510.805603078, 322.70360179716, 4.230373664558},
            {12005096.767467, 2801.539271218}};
 
-    static real_type const material_temperatures[]
-        = {283.15, 300.0, 283.15, 200, 300.0};
+    auto core_materials = this->build_core_materials();
 
     for (auto opt_mat : range(OpticalMaterialId(import_materials().size())))
     {
@@ -49,10 +83,9 @@ TEST_F(RayleighMfpCalculatorTest, mfp_table)
 
         RayleighMfpCalculator calc_mfp(
             MaterialView(this->optical_materials()->host_ref(), opt_mat),
-            OpticalRayleighMaterial{
-                rayleigh.scale_factor,
-                rayleigh.compressibility,
-                material_temperatures[opt_mat.get()] * units::kelvin});
+            rayleigh,
+            ::celeritas::MaterialView(core_materials->host_ref(),
+                                      ::celeritas::MaterialId(opt_mat.get())));
 
         auto energies = calc_mfp.grid().values();
         auto const& table = expected_tables[opt_mat.get()];

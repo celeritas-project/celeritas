@@ -48,31 +48,11 @@ class RayleighModelTest : public MockImportedData
     void SetUp() override {}
 
     //! Create Rayleigh model from mock data
-    std::shared_ptr<RayleighModel const> create_model(SPConstImported models)
+    std::shared_ptr<RayleighModel const> create_model()
     {
-        std::vector<OpticalRayleighMaterial> mats;
-        for (auto mat : MockImportedData::import_materials())
-        {
-            OpticalRayleighMaterial rayleigh;
-            rayleigh.scale_factor = mat.rayleigh.scale_factor;
-            rayleigh.compressibility = mat.rayleigh.compressibility;
-            mats.push_back(std::move(rayleigh));
-        }
-
-        static real_type const material_temperatures[]
-            = {283.15 * units::kelvin,
-               300.0 * units::kelvin,
-               283.15 * units::kelvin,
-               200 * units::kelvin,
-               300.0 * units::kelvin};
-        for (auto i : range(mats.size()))
-        {
-            mats[i].temperature = material_temperatures[i];
-        }
-
+        auto models = this->create_imported_models();
         import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
-        return std::make_shared<RayleighModel const>(
-            ActionId{0}, models, this->optical_materials(), std::move(mats));
+        return std::make_shared<RayleighModel const>(ActionId{0}, models);
     }
 
     ImportedModels::ImportedModelId import_model_id_;
@@ -166,7 +146,7 @@ TEST_F(RayleighInteractorTest, stress_test)
 // Check model name and description are properly initialized
 TEST_F(RayleighModelTest, description)
 {
-    auto model = create_model(this->create_imported_models());
+    auto model = create_model();
 
     EXPECT_EQ(ActionId{0}, model->action_id());
     EXPECT_EQ("optical-rayleigh", model->label());
@@ -177,7 +157,7 @@ TEST_F(RayleighModelTest, description)
 // Check Rayleigh model MFP tables match imported ones
 TEST_F(RayleighModelTest, interaction_mfp)
 {
-    auto model = create_model(this->create_imported_models());
+    auto model = create_model();
     auto builder = this->create_mfp_builder();
 
     for (auto mat : range(OpticalMaterialId(import_materials().size())))
@@ -188,41 +168,6 @@ TEST_F(RayleighModelTest, interaction_mfp)
     this->check_built_table_exact(
         this->import_models()[import_model_id_.get()].mfp_table,
         builder.grid_ids());
-}
-
-//---------------------------------------------------------------------------//
-// Check Rayleigh model MFP tables constructed from Einstein-Smoluchowski
-// formula based on material data
-TEST_F(RayleighModelTest, material_mfp)
-{
-    static std::vector<std::vector<double>> expected_energies = {
-        {1.098177, 1.256172, 1.484130},
-        {1.098177, 1.256172, 1.484130},
-        {1.098177, 6.812319},
-        {1, 2, 5},
-        {1.098177, 6.812319},
-    };
-
-    static std::vector<std::vector<double>> expected_mfps
-        = {{1189584.7068151, 682569.13017288, 343507.60086802},
-           {12005096.767467, 6888377.4406869, 3466623.2384762},
-           {1189584.7068151, 277.60444893823},
-           {11510.805603078, 322.70360179716, 4.230373664558},
-           {12005096.767467, 2801.539271218}};
-
-    auto expected_mfp_tables
-        = detail::convert_vector_units<detail::ElectronVolt, units::Centimeter>(
-            expected_energies, expected_mfps);
-
-    auto model = create_model(this->create_empty_imported_models());
-    auto builder = this->create_mfp_builder();
-
-    for (auto mat : range(OpticalMaterialId(import_materials().size())))
-    {
-        model->build_mfps(mat, builder);
-    }
-
-    this->check_built_table_soft(expected_mfp_tables, builder.grid_ids());
 }
 
 //---------------------------------------------------------------------------//
