@@ -53,11 +53,12 @@ void update_selection(StepPointSelection* selection,
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(GeoParams const& geo,
+HitManager::HitManager(SPConstGeo geo,
                        ParticleParams const& par,
                        SDSetupOptions const& setup,
                        StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
+    , geo_{std::move(geo)}
     , locate_touchable_(setup.locate_touchable)
 {
     CELER_EXPECT(setup.enabled);
@@ -80,7 +81,7 @@ HitManager::HitManager(GeoParams const& geo,
     processors_.resize(num_streams);
 
     // Map detector volumes
-    this->setup_volumes(geo, setup);
+    this->setup_volumes(*geo_, setup);
 
     if (setup.track)
     {

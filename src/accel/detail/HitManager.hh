@@ -53,13 +53,14 @@ class HitManager final : public StepInterface
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using SPProcessor = std::shared_ptr<HitProcessor>;
+    using SPConstGeo = std::shared_ptr<GeoParams const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}
 
   public:
     // Construct with Celeritas objects for mapping
-    HitManager(GeoParams const& geo,
+    HitManager(SPConstGeo geo,
                ParticleParams const& par,
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
@@ -102,6 +103,7 @@ class HitManager final : public StepInterface
     VecVolId vecgeom_vols_;
 
     // Hit processor setup
+    SPConstGeo geo_;
     SPConstVecLV geant_vols_;
     VecParticle particles_;
     StepSelection selection_;
