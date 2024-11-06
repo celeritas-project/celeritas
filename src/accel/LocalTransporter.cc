@@ -180,7 +180,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
 
-    event_id_ = UniqueEventId(id);
+    event_id_ = id_cast<UniqueEventId>(id);
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))

@@ -86,7 +86,8 @@ class BIHBuilder
     // Recursively construct BIH nodes for a vector of bbox indices
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
-                        BIHNodeId parent);
+                        BIHNodeId parent,
+                        FastBBox const& bbox);
 
     // Seperate nodes into inner and leaf vectors and renumber accordingly
     ArrangedNodes arrange_nodes(VecNodes const& nodes) const;

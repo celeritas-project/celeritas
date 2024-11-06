@@ -131,8 +131,6 @@ BIHPartitioner::make_partition(VecIndices const& indices,
 {
     CELER_EXPECT(indices.size() > 1);
 
-    using Edge = BIHInnerNode::Edge;
-
     Partition p;
     p.axis = axis;
     p.position = position;
@@ -143,19 +141,19 @@ BIHPartitioner::make_partition(VecIndices const& indices,
         if ((*centers_)[indices[i].unchecked_get()][to_int(p.axis)]
             < p.position)
         {
-            p.indices[Edge::left].push_back(indices[i]);
+            p.indices[Side::left].push_back(indices[i]);
         }
         else
         {
-            p.indices[Edge::right].push_back(indices[i]);
+            p.indices[Side::right].push_back(indices[i]);
         }
     }
 
-    CELER_ASSERT(!p.indices[Edge::left].empty());
-    CELER_ASSERT(!p.indices[Edge::right].empty());
+    CELER_ASSERT(!p.indices[Side::left].empty());
+    CELER_ASSERT(!p.indices[Side::right].empty());
 
-    p.bboxes[Edge::left] = calc_union(*bboxes_, p.indices[Edge::left]);
-    p.bboxes[Edge::right] = calc_union(*bboxes_, p.indices[Edge::right]);
+    p.bboxes[Side::left] = calc_union(*bboxes_, p.indices[Side::left]);
+    p.bboxes[Side::right] = calc_union(*bboxes_, p.indices[Side::right]);
 
     CELER_ENSURE(p);
     return p;
@@ -169,12 +167,10 @@ real_type BIHPartitioner::calc_cost(Partition const& p) const
 {
     CELER_EXPECT(p);
 
-    using Edge = BIHInnerNode::Edge;
-
-    return calc_surface_area(p.bboxes[Edge::left])
-               * p.indices[Edge::left].size()
-           + calc_surface_area(p.bboxes[Edge::right])
-                 * p.indices[Edge::right].size();
+    return calc_surface_area(p.bboxes[Side::left])
+               * p.indices[Side::left].size()
+           + calc_surface_area(p.bboxes[Side::right])
+                 * p.indices[Side::right].size();
 }
 
 //---------------------------------------------------------------------------//

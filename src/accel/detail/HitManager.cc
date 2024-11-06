@@ -96,7 +96,8 @@ HitManager::HitManager(GeoParams const& geo,
  * Create local hit processor.
  *
  * Due to Geant4 multithread semantics, this \b must be done on the same CPU
- * thread on which the resulting processor used.
+ * thread on which the resulting processor used. It must be done once per
+ * thread and can be done separately.
  */
 auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
 {
@@ -104,17 +105,9 @@ auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
     CELER_EXPECT(!processors_[sid.get()]);
 
     auto result = std::make_shared<HitProcessor>(
-        geant_vols_, particles_, selection_, locate_touchable_, sid);
-    {
-        static std::mutex mutex;
-        std::scoped_lock lock{mutex};
-
-        CELER_ASSERT(!processors_[sid.get()]);
-        processor_weakptrs_[sid.get()] = result;
-        processors_[sid.get()] = result.get();
-    }
-
-    CELER_ENSURE(processors_[sid.get()]);
+        geant_vols_, particles_, selection_, locate_touchable_);
+    processor_weakptrs_[sid.get()] = result;
+    processors_[sid.get()] = result.get();
     return result;
 }
 
