@@ -58,7 +58,7 @@ TEST_F(MuDecayInteractorTest, basic)
                                    this->secondary_allocator());
         auto result = interact(this->rng());
 
-        EXPECT_EQ(Interaction::Action::decay, result.action);
+        EXPECT_EQ(Interaction::Action::absorbed, result.action);
         auto const& sec = result.secondaries;
         EXPECT_EQ(1, sec.size());
         EXPECT_EQ(pdg::positron(), params.id_to_pdg(sec[0].particle_id));
@@ -74,7 +74,7 @@ TEST_F(MuDecayInteractorTest, basic)
                                    this->secondary_allocator());
         auto result = interact(this->rng());
 
-        EXPECT_EQ(Interaction::Action::decay, result.action);
+        EXPECT_EQ(Interaction::Action::absorbed, result.action);
         auto const& sec = result.secondaries;
         EXPECT_EQ(1, sec.size());
         EXPECT_EQ(pdg::electron(), params.id_to_pdg(sec[0].particle_id));
@@ -117,9 +117,9 @@ TEST_F(MuDecayInteractorTest, stress_test)
 
     // With only one secondary being returned, there is no expectation of
     // energy or momentum conservation
-    static double const expected_avg_sec_energies[] = {384.1448835314};
+    static double const expected_avg_sec_energies[] = {384.834176348064};
     static double const expected_avg_total_momentum[]
-        = {0.554857155437642, -0.113397931984889, 382.358304534532};
+        = {0.369721983532691, 0.109494401494642, 383.064043487629};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_sec_energies, avg_sec_energies);
     EXPECT_VEC_SOFT_EQ(expected_avg_total_momentum, avg_total_momentum);

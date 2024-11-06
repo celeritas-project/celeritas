@@ -38,25 +38,25 @@ namespace celeritas
  * \f].
  *
  * This interactor follows \c G4MuonDecayChannel::DecayIt and the Physics
- * Reference Manual, Release 11.2, section 4.2.3.
+ * Reference Manual, Release 11.2, section 4.2.3. The sampling happens at the
+ * muon's rest frame, with the result being uniformly rotated and finaly
+ * boosted to the lab frame.
  *
- * The resulting four vector is boosted to the lab frame using the muon's
- * incident energy and direction. Since only the charged lepton is being
- * returned, these steps are ommitted:
+ * As it is a three-body decay, the energy sampling happens for \f$ e^\pm \f$
+ * and \f$ \nu_e(\bar{\nu}_e) \f$, with the \f$ \nu_\mu(\bar{\nu}_\mu) \f$
+ * final energy directly calculated from energy conservation. The sampling loop
+ * selects fractional energies \f$[0,1)\f$ for the first two particles. For the
+ * electron neutrino, its energy fraction \f$ f_{E_{\nu_e}} \f$ is sampled from
+ * the unnormalized PDF \f$ f(x) = x(1-x), \ x \in [0,1) \f$, with a maximum
+ * acceptance probability of \f$ g(x) = 0.25 \f$. The charged lepton's
+ * fractional energy \f$ f_{E_e} \f$ is then selected uniformly (\f$[0,1)\f$)
+ * obeying \f$ f_{E_{\nu_e}} + f_{E_e} < 1 \f$ . The remaining fractional
+ * energy goes to the muon neutrino.
  *
- * - Calculate the angle between charged lepton and electron neutrino.
- * - Calculate the energies of the neutrinos.
- * - Calculate the final directions of the neutrinos using the aforementioned
- * angle and conservation of momentum.
- * - Sample a spherically uniform direction and rotate all three secondaries.
- * - Boost all particles to the lab frame
- *
- * \warning Neutrinos are currently not returned by this interactor as they
+ * \note Neutrinos are currently not returned by this interactor as they
  * are not tracked down or transported and would significantly increase
- * secondary memory allocation usage.
- *
- * \note The full three-body decay can be recovered from PR #1456, commit
- * `ecc4326`.
+ * secondary memory allocation usage. See discussion and commit history
+ * at https://github.com/celeritas-project/celeritas/pull/1456
  */
 class MuDecayInteractor
 {
@@ -95,8 +95,6 @@ class MuDecayInteractor
     ParticleId sec_id_;
     // Incident muon four vector
     FourVector inc_fourvec_;
-    // Max sampled fractional energy for the electron neutrino (not unity)
-    UniformRealDist sample_electron_nu_;
     // Maximum electron energy [MeV]
     real_type max_energy_;
 
@@ -136,12 +134,8 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
     , sec_id_((particle.particle_id() == shared_.mu_minus_id)
                   ? shared_.electron_id
                   : shared_.positron_id)
-    , inc_fourvec_({inc_direction_ * value_as<MevMomentum>(particle.momentum()),
-                    value_as<Energy>(particle.total_energy())})
-    , sample_electron_nu_(0,
-                          real_type{1}
-                              + ipow<2>(shared_.electron_mass.value()
-                                        / shared_.muon_mass.value()))
+    , inc_fourvec_{inc_direction_ * value_as<MevMomentum>(particle.momentum()),
+                   value_as<Energy>(particle.total_energy())}
     , max_energy_(real_type{0.5} * shared_.muon_mass.value()
                   - shared_.electron_mass.value())
 {
@@ -171,28 +165,25 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     {
         do
         {
-            electron_nu_energy_frac = sample_electron_nu_(rng);
-        } while (generate_canonical(rng)
-                 > electron_nu_energy_frac
-                       * (real_type{1} - electron_nu_energy_frac));
+            electron_nu_energy_frac = generate_canonical(rng);
+        } while (RejectionSampler(
+            electron_nu_energy_frac * (real_type{1} - electron_nu_energy_frac),
+            0.25)(rng));
 
         electron_energy_frac = generate_canonical(rng);
-    } while (electron_nu_energy_frac < real_type{1} - electron_energy_frac);
+    } while (electron_nu_energy_frac + electron_energy_frac < real_type{1});
 
     // Momentum of secondaries at rest frame
     auto charged_lep_energy
         = this->calc_momentum(electron_energy_frac, shared_.electron_mass);
 
-    // Apply a spherically uniform rotation to the decay
-    IsotropicDistribution rotate;
-    Real3 charged_lep_dir = rotate(rng);
+    // Decay isotropically in rest frame and boost secondaries to the lab frame
+    auto charged_lep_4vec = this->to_lab_frame(IsotropicDistribution{}(rng),
+                                               charged_lep_energy,
+                                               shared_.electron_mass);
 
-    // Boost secondaries to the lab frame
-    auto charged_lep_4vec = this->to_lab_frame(
-        charged_lep_dir, charged_lep_energy, shared_.electron_mass);
-
-    // Return electron only
-    Interaction result = Interaction::from_decay();
+    // Return charged lepton only
+    Interaction result = Interaction::from_absorption();
     result.secondaries = {secondaries, 1};
     result.secondaries[0].particle_id = sec_id_;
     // Interaction stores kinetic energy; FourVector stores total energy
