@@ -141,6 +141,7 @@ auto Logger::operator()(LogProvenance&& prov, LogLevel lev) -> Message
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Get the log level from an environment variable
+LogLevel log_level_from_env(std::string const&, LogLevel default_lev);
 LogLevel log_level_from_env(std::string const&);
 
 // Create loggers with reasonable default behaviors.
