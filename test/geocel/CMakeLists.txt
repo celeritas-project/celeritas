@@ -56,7 +56,7 @@ celeritas_target_link_libraries(testcel_geocel
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL
-  LINK_LIBRARIES testcel_geocel testcel_core Celeritas::geocel
+  LINK_LIBRARIES testcel_geocel testcel_core Celeritas::geocel Celeritas::corecel
 )
 
 #-----------------------------------------------------------------------------#
