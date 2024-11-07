@@ -52,12 +52,12 @@ InteractorHostTestBase::InteractorHostTestBase()
          pdg::mu_minus(),
          mumass,
          ElementaryCharge{-1},
-         mu_decay_constant.value()},
+         native_value_from(mu_decay_constant)},
         {"mu_plus",
          pdg::mu_plus(),
          mumass,
          ElementaryCharge{1},
-         mu_decay_constant.value()},
+         native_value_from(mu_decay_constant)},
     };
     this->set_particle_params(std::move(par_inp));
 
