@@ -45,14 +45,15 @@ namespace celeritas
  * and \f$ \nu_e(\bar{\nu}_e) \f$, with the \f$ \nu_\mu(\bar{\nu}_\mu) \f$
  * final energy directly calculated from energy conservation. The sampling loop
  * selects fractional energies \f$[0,1)\f$ for the first two particles. A
- * fraction of 1 yields the maximum possible kinetic energy for said
- * particle, defined as \f$ E_\text{max} = \frac{m_\mu}{2} - m_e \f$. For the
- * electron neutrino, its energy fraction \f$ f_{E_{\nu_e}} \f$ is sampled from
- * the unnormalized PDF \f$ f(x) = x(1-x), \ x \in [0,1) \f$, with a maximum
- * acceptance probability of \f$ g(x) = 0.25 \f$. The charged lepton's
- * fractional energy \f$ f_{E_e} \f$ is then selected uniformly obeying
- * \f$ f_{E_{\nu_e}} + f_{E_e} >= 1 \f$ . The remaining fractional energy for
- * the muon neutrino is \f$ f_{E_{\nu_\mu}} = 2 - f_{E_e} - f_{E_{\nu_e}} \f$.
+ * fraction of 1 yields the maximum possible kinetic energy for said particle,
+ * defined as \f$ E_\text{max} = \frac{m_\mu}{2} - m_e \f$. For the electron
+ * neutrino, its energy fraction \f$ f_{E_{\nu_e}} \f$ is sampled from the PDF
+ * \f$ f(x) = 6x(1-x), \ x \in [0,1) \f$, using the rejection method, with
+ * proposal distribution PDF \f$ g(x) = U(0,1) \f$ and bounding constant
+ * \f$ M = 1.5 \f$. The charged lepton's fractional energy \f$ f_{E_e} \f$ is
+ * then selected uniformly obeying \f$ f_{E_{\nu_e}} + f_{E_e} >= 1 \f$ . The
+ * remaining fractional energy for the muon neutrino is
+ * \f$ f_{E_{\nu_\mu}} = 2 - f_{E_e} - f_{E_{\nu_e}} \f$.
  *
  * \note Neutrinos are currently not returned by this interactor as they
  * are not tracked down or transported and would significantly increase
