@@ -64,8 +64,11 @@ CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
     }
 
     // Copy from symbol using runtime API
-    CELER_CUDA_CALL(cudaMemcpyFromSymbol(
-        &result.symbol, vecgeom::cuda::dBVH, 1, 0, cudaMemcpyDeviceToHost));
+    CELER_CUDA_CALL(cudaMemcpyFromSymbol(&result.symbol,
+                                         vecgeom::cuda::dBVH,
+                                         sizeof(vecgeom::cuda::dBVH),
+                                         0,
+                                         cudaMemcpyDeviceToHost));
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     return result;
