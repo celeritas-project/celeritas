@@ -32,6 +32,7 @@ class NonuniformGrid
     using Storage
         = Collection<value_type, Ownership::const_reference, MemSpace::native>;
     using ItemRangeT = ItemRange<value_type>;
+    using SpanConstT = typename Storage::SpanConstT;
     //!@}
 
   public:
@@ -65,6 +66,9 @@ class NonuniformGrid
 
     //! Low-level access to offsets for downstream utilities
     CELER_FORCEINLINE_FUNCTION ItemRangeT offset() const { return offset_; }
+
+    // Construct a span referring to the grid points
+    inline CELER_FUNCTION SpanConstT values() const;
 
   private:
     Storage const& storage_;
@@ -129,6 +133,16 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
     }
 
     return iter - offset_.begin();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a span referring to the grid points.
+ */
+template<class T>
+CELER_FUNCTION auto NonuniformGrid<T>::values() const -> SpanConstT
+{
+    return storage_[offset_];
 }
 
 //---------------------------------------------------------------------------//
