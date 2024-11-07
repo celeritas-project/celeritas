@@ -106,7 +106,11 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // Create launch action with optical params+state and access to gen data
     launch_action_ = detail::OpticalLaunchAction::make_and_insert(
-        core, inp.material, offload_params_, inp.primary_capacity);
+        core,
+        inp.material,
+        offload_params_,
+        inp.num_track_slots,
+        inp.initializer_capacity);
 
     // Launch action must be *after* offload and generator actions
     CELER_ENSURE(!cerenkov_action_

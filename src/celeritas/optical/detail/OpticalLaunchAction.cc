@@ -34,7 +34,8 @@ std::shared_ptr<OpticalLaunchAction>
 OpticalLaunchAction::make_and_insert(CoreParams const& core,
                                      SPConstMaterial material,
                                      SPOffloadParams offload,
-                                     size_type primary_capacity)
+                                     size_type num_track_slots,
+                                     size_type initializer_capacity)
 {
     CELER_EXPECT(material);
     CELER_EXPECT(offload);
@@ -45,7 +46,8 @@ OpticalLaunchAction::make_and_insert(CoreParams const& core,
                                                         core,
                                                         std::move(material),
                                                         std::move(offload),
-                                                        primary_capacity);
+                                                        num_track_slots,
+                                                        initializer_capacity);
 
     actions.insert(result);
     aux.insert(result);
@@ -61,14 +63,17 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
                                          CoreParams const& core,
                                          SPConstMaterial material,
                                          SPOffloadParams offload,
-                                         size_type primary_capacity)
+                                         size_type num_track_slots,
+                                         size_type initializer_capacity)
     : action_id_{action_id}
     , aux_id_{data_id}
     , offload_params_{std::move(offload)}
+    , num_track_slots_{num_track_slots}
 {
     CELER_EXPECT(material);
     CELER_EXPECT(offload_params_);
-    CELER_EXPECT(primary_capacity > 0);
+    CELER_EXPECT(num_track_slots_ > 0);
+    CELER_EXPECT(initializer_capacity > 0);
 
     // Create optical core params
     optical_params_ = std::make_shared<optical::CoreParams>([&] {
@@ -77,7 +82,8 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         inp.material = std::move(material);
         // TODO: unique RNG streams for optical loop
         inp.rng = core.rng();
-        inp.init = std::make_shared<optical::TrackInitParams>(primary_capacity);
+        inp.init
+            = std::make_shared<optical::TrackInitParams>(initializer_capacity);
         inp.action_reg = std::make_shared<ActionRegistry>();
         inp.max_streams = core.max_streams();
         CELER_ENSURE(inp);
@@ -107,19 +113,18 @@ std::string_view OpticalLaunchAction::description() const
 /*!
  * Build state data for a stream.
  */
-auto OpticalLaunchAction::create_state(MemSpace m,
-                                       StreamId sid,
-                                       size_type size) const -> UPState
+auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) const
+    -> UPState
 {
     if (m == MemSpace::host)
     {
         return std::make_unique<optical::CoreState<MemSpace::host>>(
-            *optical_params_, sid, size);
+            *optical_params_, sid, num_track_slots_);
     }
     else if (m == MemSpace::device)
     {
         return std::make_unique<optical::CoreState<MemSpace::device>>(
-            *optical_params_, sid, size);
+            *optical_params_, sid, num_track_slots_);
     }
     CELER_ASSERT_UNREACHABLE();
 }

@@ -103,7 +103,8 @@ void ScintGeneratorAction::step_impl(CoreParams const& core_params,
                    << "insufficient capacity (" << initializers_size
                    << ") for optical photon initializers (total capacity "
                       "requirement of "
-                   << num_photons + num_new_photons << ")");
+                   << num_photons + num_new_photons << " and current size "
+                   << num_photons << ")");
 
     auto& offload = offload_state.store.ref();
     auto& buffer_size = offload_state.buffer_size.scintillation;

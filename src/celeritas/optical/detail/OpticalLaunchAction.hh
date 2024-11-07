@@ -60,7 +60,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
     make_and_insert(CoreParams const& core,
                     SPConstMaterial material,
                     SPOffloadParams offload,
-                    size_type primary_capacity);
+                    size_type num_track_slots,
+                    size_type initializer_capacity);
 
     // Construct with IDs, core for copying params, offload gen data
     OpticalLaunchAction(ActionId id,
@@ -68,7 +69,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
                         CoreParams const& core,
                         SPConstMaterial material,
                         SPOffloadParams offload,
-                        size_type primary_capacity);
+                        size_type num_track_slots,
+                        size_type iniitializer_capacity);
 
     //!@{
     //! \name Aux/action metadata interface
@@ -112,6 +114,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     SPOffloadParams offload_params_;
     SPOpticalParams optical_params_;
     SPActionGroups optical_actions_;
+    size_type num_track_slots_;
 
     //// HELPERS ////
 
