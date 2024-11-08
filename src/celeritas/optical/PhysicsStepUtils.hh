@@ -19,7 +19,13 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * Calculate the discrete physics step limit for the given track.
+ *
+ * Cross sections for each model are calculated and cached in the
+ * \c PhysicsStepView scratch space. The total cross section is also
+ * calculated and cached.
+ */
 inline CELER_FUNCTION StepLimit
 calc_physics_step_limit(ParticleTrackView const& particle,
                         PhysicsTrackView const& physics,
@@ -45,12 +51,17 @@ calc_physics_step_limit(ParticleTrackView const& particle,
     return limit;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Randomly sample a discrete interaction by their cross sections.
+ *
+ * Should be performed after discrete select action has reset the MFP,
+ * and the macroscopic cross sections have been built.
+ */
 template<class Engine>
 CELER_FUNCTION ActionId select_discrete_interaction(
     PhysicsTrackView const& physics, PhysicsStepView const& pstep, Engine& rng)
 {
-    // Should be called after discrete select action has reset the MFP and the
-    // macroscopic cross sections have bene built.
     CELER_EXPECT(!physics.has_interaction_mfp());
     CELER_EXPECT(pstep.macro_xs() > 0);
 
