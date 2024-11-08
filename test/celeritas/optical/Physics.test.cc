@@ -9,8 +9,11 @@
 #include <random>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/optical/Model.hh"
+#include "celeritas/optical/ModelBuilder.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
+#include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/PhysicsStepUtils.hh"
 #include "celeritas/optical/PhysicsStepView.hh"
 #include "celeritas/optical/PhysicsTrackView.hh"
@@ -25,6 +28,32 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
+
+class MockModel : public Model
+{
+  public:
+    MockModel(ActionId id)
+        : Model(id,
+                "mock-" + std::to_string(id.get()),
+                "mock desc " + std::to_string(id.get()))
+    {
+    }
+
+    void build_mfps(OpticalMaterialId, MfpBuilder&) const final {}
+
+    void step(CoreParams const&, CoreStateHost&) const final {}
+
+    void step(CoreParams const&, CoreStateDevice&) const final {}
+};
+
+struct MockModelBuilder : public ModelBuilder
+{
+    SPModel operator()(ActionId id) const override
+    {
+        return std::make_shared<MockModel>(id);
+    }
+};
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -33,11 +62,14 @@ class DiscreteSelectActionTest : public ::celeritas::test::Test
 {
   protected:
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+    using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
 
     void SetUp() override
     {
         particle_state_
             = CollectionStateStore<ParticleStateData, MemSpace::host>(1);
+        physics_state_
+            = CollectionStateStore<PhysicsStateData, MemSpace::host>(1);
     }
 
     RandomEngine& rng()
@@ -46,7 +78,31 @@ class DiscreteSelectActionTest : public ::celeritas::test::Test
         return rng_;
     }
 
+    SPConstPhysics const& physics_params() const
+    {
+        static SPConstPhysics p = nullptr;
+        if (!p)
+        {
+            p = this->build_physics_params();
+        }
+        return p;
+    }
+
+    SPConstPhysics build_physics_params() const
+    {
+        PhysicsParams::Input input;
+
+        for ([[maybe_unused]] auto i : range(4))
+        {
+            input.model_builders.push_back(
+                std::make_shared<MockModelBuilder const>());
+        }
+
+        return std::make_shared<PhysicsParams const>(std::move(input));
+    }
+
     CollectionStateStore<ParticleStateData, MemSpace::host> particle_state_;
+    CollectionStateStore<PhysicsStateData, MemSpace::host> physics_state_;
 
   private:
     RandomEngine rng_;
@@ -58,8 +114,11 @@ class DiscreteSelectActionTest : public ::celeritas::test::Test
 // Test sampling discrete interactions by per model cross sections
 TEST_F(DiscreteSelectActionTest, select_discrete)
 {
-    PhysicsTrackView physics(OpticalMaterialId{0}, TrackSlotId{0});
-    PhysicsStepView pstep(TrackSlotId{0});
+    PhysicsTrackView physics(this->physics_params()->host_ref(),
+                             physics_state_.ref(),
+                             OpticalMaterialId{0},
+                             TrackSlotId{0});
+    PhysicsStepView pstep(physics_state_.ref(), TrackSlotId{0});
     auto& rng_engine = this->rng();
 
     physics.interaction_mfp() = 0;
@@ -88,8 +147,11 @@ TEST_F(DiscreteSelectActionTest, select_discrete)
 // Test expected step limits and calculation cross sections
 TEST_F(DiscreteSelectActionTest, calc_step_limits)
 {
-    PhysicsTrackView physics(OpticalMaterialId{0}, TrackSlotId{0});
-    PhysicsStepView pstep(TrackSlotId{0});
+    PhysicsTrackView physics(this->physics_params()->host_ref(),
+                             physics_state_.ref(),
+                             OpticalMaterialId{0},
+                             TrackSlotId{0});
+    PhysicsStepView pstep(physics_state_.ref(), TrackSlotId{0});
     ParticleTrackView particle(particle_state_.ref(), TrackSlotId(0));
 
     static std::vector<real_type> energies{0.1, 1, 10};
@@ -127,7 +189,10 @@ TEST_F(DiscreteSelectActionTest, calc_step_limits)
 // Test physics track view utilities
 TEST_F(DiscreteSelectActionTest, track_view)
 {
-    PhysicsTrackView physics(OpticalMaterialId{0}, TrackSlotId{0});
+    PhysicsTrackView physics(this->physics_params()->host_ref(),
+                             physics_state_.ref(),
+                             OpticalMaterialId{0},
+                             TrackSlotId{0});
 
     // Interaction MFP
 
@@ -166,11 +231,16 @@ TEST_F(DiscreteSelectActionTest, track_view)
 TEST_F(DiscreteSelectActionTest, many_track_view)
 {
     TrackSlotId::size_type num_tracks = 10;
+    physics_state_
+        = CollectionStateStore<PhysicsStateData, MemSpace::host>(num_tracks);
 
     // Set all of the data
     for (auto track_id : range(TrackSlotId{num_tracks}))
     {
-        PhysicsTrackView physics(OpticalMaterialId{0}, track_id);
+        PhysicsTrackView physics(this->physics_params()->host_ref(),
+                                 physics_state_.ref(),
+                                 OpticalMaterialId{0},
+                                 track_id);
 
         physics.interaction_mfp() = static_cast<real_type>(track_id.get());
     }
@@ -178,7 +248,10 @@ TEST_F(DiscreteSelectActionTest, many_track_view)
     // Check all of the data
     for (auto track_id : range(TrackSlotId{num_tracks}))
     {
-        PhysicsTrackView const physics(OpticalMaterialId{0}, track_id);
+        PhysicsTrackView const physics(this->physics_params()->host_ref(),
+                                       physics_state_.ref(),
+                                       OpticalMaterialId{0},
+                                       track_id);
 
         EXPECT_SOFT_EQ(static_cast<real_type>(track_id.get()),
                        physics.interaction_mfp());
@@ -190,13 +263,17 @@ TEST_F(DiscreteSelectActionTest, many_track_view)
 TEST_F(DiscreteSelectActionTest, many_step_view)
 {
     TrackSlotId::size_type num_tracks = 10;
+    physics_state_
+        = CollectionStateStore<PhysicsStateData, MemSpace::host>(num_tracks);
 
     // Set all of the data
     for (auto track_id : range(TrackSlotId{num_tracks}))
     {
-        PhysicsTrackView const physics(OpticalMaterialId{0}, track_id);
-
-        PhysicsStepView pstep(track_id);
+        PhysicsTrackView const physics(this->physics_params()->host_ref(),
+                                       physics_state_.ref(),
+                                       OpticalMaterialId{0},
+                                       track_id);
+        PhysicsStepView pstep(physics_state_.ref(), track_id);
 
         for (auto model : range(ModelId{physics.num_models()}))
         {
@@ -209,9 +286,11 @@ TEST_F(DiscreteSelectActionTest, many_step_view)
     // Check all of the data
     for (auto track_id : range(TrackSlotId{num_tracks}))
     {
-        PhysicsTrackView const physics(OpticalMaterialId{0}, track_id);
-
-        PhysicsStepView const pstep(track_id);
+        PhysicsTrackView const physics(this->physics_params()->host_ref(),
+                                       physics_state_.ref(),
+                                       OpticalMaterialId{0},
+                                       track_id);
+        PhysicsStepView const pstep(physics_state_.ref(), track_id);
 
         for (auto model : range(ModelId{physics.num_models()}))
         {

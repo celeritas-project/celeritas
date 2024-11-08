@@ -11,6 +11,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
+#include "PhysicsData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -25,9 +26,14 @@ using ValueGridId = OpaqueId<struct ValueGrid>;
 class PhysicsTrackView
 {
   public:
+    using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
+    using PhysicsStateRef = NativeRef<PhysicsStateData>;
     using Energy = units::MevEnergy;
 
-    inline CELER_FUNCTION PhysicsTrackView(OpticalMaterialId, TrackSlotId);
+    inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const&,
+                                           PhysicsStateRef const&,
+                                           OpticalMaterialId,
+                                           TrackSlotId);
 
     inline CELER_FUNCTION void reset_interaction_mfp();
     inline CELER_FUNCTION real_type& interaction_mfp();
@@ -44,7 +50,12 @@ class PhysicsTrackView
 };
 
 CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(OpticalMaterialId, TrackSlotId) {}
+PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const&,
+                                   PhysicsStateRef const&,
+                                   OpticalMaterialId,
+                                   TrackSlotId)
+{
+}
 
 CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp() {}
 

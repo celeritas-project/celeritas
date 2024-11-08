@@ -307,6 +307,7 @@ celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/MockValidation.test.cc)
+celeritas_add_test(optical/Physics.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
