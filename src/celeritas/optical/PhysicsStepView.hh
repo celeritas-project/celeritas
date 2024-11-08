@@ -10,6 +10,9 @@
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
 
+#include "PhysicsData.hh"
+#include "Types.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -20,7 +23,9 @@ namespace optical
 class PhysicsStepView
 {
   public:
-    inline CELER_FUNCTION PhysicsStepView(TrackSlotId);
+    using PhysicsStateRef = NativeRef<PhysicsStateData>;
+
+    inline CELER_FUNCTION PhysicsStepView(PhysicsStateRef const&, TrackSlotId);
 
     inline CELER_FUNCTION real_type& per_model_xs(ModelId mid);
     inline CELER_FUNCTION real_type per_model_xs(ModelId mid) const;
@@ -28,7 +33,8 @@ class PhysicsStepView
     inline CELER_FUNCTION void macro_xs(real_type xs);
 };
 
-CELER_FUNCTION PhysicsStepView::PhysicsStepView(TrackSlotId) {}
+CELER_FUNCTION
+PhysicsStepView::PhysicsStepView(PhysicsStateRef const&, TrackSlotId) {}
 
 CELER_FUNCTION real_type& PhysicsStepView::per_model_xs(ModelId)
 {
