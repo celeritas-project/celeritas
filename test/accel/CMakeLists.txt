@@ -42,7 +42,7 @@ celeritas_add_test(detail/HitProcessor.test.cc
 if(CELERITAS_REAL_TYPE STREQUAL "double")
   # This test requires Geant4 *geometry* which is incompatible
   # with single-precision
-  celeritas_add_test(detail/TouchableUpdater.test.cc
+  celeritas_add_test(detail/NaviTouchableUpdater.test.cc
     LINK_LIBRARIES testcel_geocel)
 endif()
 

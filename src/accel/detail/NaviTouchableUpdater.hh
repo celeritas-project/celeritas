@@ -53,9 +53,6 @@ class NaviTouchableUpdater
     // Construct from detector LVs
     explicit NaviTouchableUpdater(SPConstVecLV detector_volumes);
 
-    // Construct from explicit world without detectors for unit testing
-    explicit NaviTouchableUpdater(G4VPhysicalVolume const* world);
-
     // Construct from detector LVs and explicit world
     NaviTouchableUpdater(SPConstVecLV detector_volumes,
                          G4VPhysicalVolume const* world);
