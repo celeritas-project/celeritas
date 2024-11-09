@@ -151,7 +151,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     CELER_ASSERT(offload_state);
     CELER_ASSERT(optical_state.size() > 0);
 
-    constexpr size_type max_steps{2};
+    constexpr size_type max_steps{1};
     size_type remaining_steps = max_steps;
 
     // Loop while photons are yet to be tracked
