@@ -12,17 +12,16 @@
   <structure>
     <volume name="sph">
       <solidref ref="sph"/>
-        <position unit="mm" x="5" y="5"/>
     </volume>
     <volume name="box">
       <solidref ref="box"/>
       <physvol copynumber="31" name="boxsph1">
         <volumeref ref="sph"/>
-        <position unit="mm" x="25" y="25"/>
+        <position unit="mm" x="25.0" y="25.0" z="0.0"/>
       </physvol>
       <physvol copynumber="32" name="boxsph2">
         <volumeref ref="sph"/>
-        <position unit="mm" x="-25" y="-25"/>
+        <position unit="mm" x="-25.0" y="-25.0" z="0.0"/>
       </physvol>
     </volume>
     <volume name="world">
@@ -32,19 +31,19 @@
       </physvol>
       <physvol copynumber="21" name="topbox1">
         <volumeref ref="box"/>
-        <position unit="mm" x="100" y="100"/>
+        <position unit="mm" x="100.0" y="100.0" z="0.0"/>
       </physvol>
       <physvol copynumber="22" name="topbox2">
         <volumeref ref="box"/>
-        <position unit="mm" x="-100" y="100"/>
+        <position unit="mm" x="-100.0" y="100.0" z="0.0"/>
       </physvol>
       <physvol copynumber="23" name="topbox3">
         <volumeref ref="box"/>
-        <position unit="mm" x="-100" y="-100"/>
+        <position unit="mm" x="-100.0" y="-100.0" z="0.0"/>
       </physvol>
       <physvol copynumber="12" name="topsph2">
         <volumeref ref="box"/>
-        <position unit="mm" x="100" y="-100"/>
+        <position unit="mm" x="100.0" y="-100.0" z="0.0"/>
       </physvol>
     </volume>
   </structure>

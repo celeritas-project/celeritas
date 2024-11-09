@@ -616,6 +616,49 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
+// MULTI-LEVEL TEST
+//---------------------------------------------------------------------------//
+
+class MultiLevelTest : public VecgeomVgdmlTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_vgdml("multi-level.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MultiLevelTest, accessors)
+{
+    auto const& geo = *this->geometry();
+    EXPECT_EQ(3, geo.max_depth());
+
+    auto vol_names = [&geo] {
+        auto const& vols = geo.volumes();
+        std::vector<std::string> result;
+        for (auto vid : range(VolumeId{vols.size()}))
+        {
+            result.push_back(vols.at(vid).name);
+        }
+        return result;
+    }();
+    PRINT_EXPECTED(vol_names);
+
+    auto vol_inst_names = [&geo] {
+        auto const& vols = geo.volume_instances();
+        std::vector<std::string> result;
+        for (auto viid : range(VolumeInstanceId{vols.size()}))
+        {
+            result.push_back(vols.at(viid).name);
+        }
+        return result;
+    }();
+    PRINT_EXPECTED(vol_inst_names);
+}
+
+//---------------------------------------------------------------------------//
 // SOLIDS TEST
 //---------------------------------------------------------------------------//
 
@@ -1213,6 +1256,58 @@ TEST_F(FourLevelsGeantTest, levels)
     geo.cross_boundary();
 
     EXPECT_EQ("[OUTSIDE]", this->all_volume_instance_names(geo));
+}
+
+//---------------------------------------------------------------------------//
+
+class MultiLevelGeantTest : public VecgeomGeantTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml("multi-level.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MultiLevelGeantTest, accessors)
+{
+    auto const& geo = *this->geometry();
+    EXPECT_EQ(3, geo.max_depth());
+
+    auto vol_names = [&geo] {
+        auto const& vols = geo.volumes();
+        std::vector<std::string> result;
+        for (auto vid : range(VolumeId{vols.size()}))
+        {
+            result.push_back(vols.at(vid).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_names[] = {"sph", "box", "world"};
+    EXPECT_VEC_EQ(expected_vol_names, vol_names);
+
+    auto vol_inst_names = [&geo] {
+        auto const& vols = geo.volume_instances();
+        std::vector<std::string> result;
+        for (auto viid : range(VolumeInstanceId{vols.size()}))
+        {
+            result.push_back(vols.at(viid).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_inst_names[] = {
+        "topsph1",
+        "boxsph1",
+        "boxsph2",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topsph2",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
 }
 
 //---------------------------------------------------------------------------//

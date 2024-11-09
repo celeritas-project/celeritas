@@ -957,6 +957,45 @@ class MultiLevelTest : public GeantGeoTest
     std::string geometry_basename() const override { return "multi-level"; }
 };
 
+TEST_F(MultiLevelTest, accessors)
+{
+    auto const& geo = *this->geometry();
+    EXPECT_EQ(3, geo.max_depth());
+
+    auto vol_names = [&geo] {
+        auto const& vols = geo.volumes();
+        std::vector<std::string> result;
+        for (auto vid : range(VolumeId{vols.size()}))
+        {
+            result.push_back(vols.at(vid).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_names[] = {"sph", "box", "world"};
+    EXPECT_VEC_EQ(expected_vol_names, vol_names);
+
+    auto vol_inst_names = [&geo] {
+        auto const& vols = geo.volume_instances();
+        std::vector<std::string> result;
+        for (auto viid : range(VolumeInstanceId{vols.size()}))
+        {
+            result.push_back(vols.at(viid).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_inst_names[] = {
+        "boxsph1",
+        "boxsph2",
+        "topsph1",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topsph2",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+}
+
 TEST_F(MultiLevelTest, DISABLED_level_strings)
 {
     using R2 = Array<real_type, 2>;
