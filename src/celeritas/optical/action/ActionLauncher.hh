@@ -41,7 +41,7 @@ void launch_action(CoreState<MemSpace::host>& state, F&& execute_thread)
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
-    for (size_type i = 0, size = state.size(); i != size; ++i)
+    for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
     }

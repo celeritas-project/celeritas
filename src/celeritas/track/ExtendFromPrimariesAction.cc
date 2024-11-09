@@ -223,7 +223,7 @@ void ExtendFromPrimariesAction::process_primaries(
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
-    for (size_type i = 0, size = primaries.size(); i != size; ++i)
+    for (size_type i = 0; i < primaries.size(); ++i)
     {
         CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
     }
