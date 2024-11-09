@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <G4Navigator.hh>
+#include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
 
 #include "corecel/ScopedLogStorer.hh"
