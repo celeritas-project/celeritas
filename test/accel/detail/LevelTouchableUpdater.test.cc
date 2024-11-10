@@ -11,6 +11,7 @@
 #include <G4TouchableHistory.hh>
 
 #include "corecel/cont/Span.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
@@ -42,6 +43,16 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
     std::string_view geometry_basename() const override
     {
         return "multi-level";
+    }
+
+    // We *must* build from a Geant4 geometry when using vecgeom/ORANGE:
+    // otherwise PV pointers won't be set
+    SPConstGeoI build_fresh_geometry(std::string_view basename) override
+    {
+        auto* world_volume = ::celeritas::load_geant_geometry_native(
+            this->test_data_path("geocel", std::string(basename) + ".gdml"));
+
+        return std::make_shared<GeoParams>(world_volume);
     }
 
     TouchableUpdater make_touchable_updater()
