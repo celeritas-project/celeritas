@@ -644,7 +644,8 @@ TEST_F(MultiLevelTest, accessors)
         }
         return result;
     }();
-    PRINT_EXPECTED(vol_names);
+    static std::string const expected_vol_names[] = {"sph", "box", "world"};
+    EXPECT_VEC_EQ(expected_vol_names, vol_names);
 
     auto vol_inst_names = [&geo] {
         auto const& vols = geo.volume_instances();
@@ -655,7 +656,17 @@ TEST_F(MultiLevelTest, accessors)
         }
         return result;
     }();
-    PRINT_EXPECTED(vol_inst_names);
+    static std::string const expected_vol_inst_names[] = {
+        "boxsph1",
+        "boxsph2",
+        "topsph1",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topsph2",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
 }
 
 //---------------------------------------------------------------------------//
