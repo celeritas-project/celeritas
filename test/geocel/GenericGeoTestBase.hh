@@ -26,6 +26,7 @@ namespace test
 struct GenericGeoTrackingResult
 {
     std::vector<std::string> volumes;
+    std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]
     std::vector<real_type> halfway_safeties;  //!< [cm]
 

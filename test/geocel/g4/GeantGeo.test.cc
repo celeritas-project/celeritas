@@ -996,6 +996,62 @@ TEST_F(MultiLevelTest, accessors)
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
 }
 
+TEST_F(MultiLevelTest, trace)
+{
+    {
+        auto result = this->track({-19.9, 7.5, 0}, {1, 0, 0});
+
+        static char const* const expected_volumes[] = {
+            "world",
+            "box",
+            "sph",
+            "box",
+            "world",
+            "box",
+            "sph",
+            "box",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static char const* const expected_volume_instances[] = {
+            "world_PV",
+            "topbox2",
+            "boxsph2",
+            "topbox2",
+            "world_PV",
+            "topbox1",
+            "boxsph2",
+            "topbox1",
+            "world_PV",
+        };
+        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        static real_type const expected_distances[] = {
+            2.4,
+            3,
+            4,
+            8,
+            5,
+            3,
+            4,
+            8,
+            6.5,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            1.2,
+            1.5,
+            2,
+            3.0990195135928,
+            2.5,
+            1.5,
+            2,
+            3.0990195135928,
+            3.25,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
 TEST_F(MultiLevelTest, DISABLED_level_strings)
 {
     using R2 = Array<real_type, 2>;
