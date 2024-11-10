@@ -12,6 +12,7 @@
 #include <G4VTouchable.hh>
 
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeoTraits.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/user/DetectorSteps.hh"
 
@@ -24,7 +25,7 @@ namespace detail
  * Construct with the geometry.
  */
 LevelTouchableUpdater::LevelTouchableUpdater(SPConstGeo geo)
-    : geo_{std::move(geo)}
+    : geo_{std::move(geo)}, nav_hist_{std::make_unique<G4NavigationHistory>()}
 {
     CELER_EXPECT(geo_);
 }
@@ -66,8 +67,13 @@ bool LevelTouchableUpdater::operator()(SpanVolInst ids,
     {
         if (!vi_id)
             break;
-        phys_vol_.push_back(geo_->id_to_pv(vi_id));
-        CELER_ASSERT(phys_vol_.back());
+        auto pv = geo_->id_to_pv(vi_id);
+        CELER_VALIDATE(
+            pv,
+            << "no Geant4 physical volume is attached to volume instance "
+            << vi_id.get() << "='" << geo_->volume_instances().at(vi_id)
+            << "' (geometry type: " << GeoTraits<GeoParams>::name << ')');
+        phys_vol_.push_back(pv);
     }
     CELER_ASSERT(!phys_vol_.empty());
 

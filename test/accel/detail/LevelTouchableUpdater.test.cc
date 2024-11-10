@@ -26,7 +26,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test with multi-level geometry.
+ * Test with multi-level geometry using "core" implementation.
  */
 class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
                                   public ::celeritas::test::OnlyGeoTestBase,
