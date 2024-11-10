@@ -478,12 +478,7 @@ void VecgeomParams::build_volume_tracking()
             // available in very recent VecGeom). It's bad (but not really
             // necessary?) if cudaMemcpyFromSymbol fails when accessed from
             // Celeritas
-            auto msg = world_logger()(
-                CELER_CODE_PROVENANCE,
-                (ptrs.kernel == nullptr
-                 || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
-                    ? LogLevel::error
-                    : LogLevel::debug);
+            auto msg = CELER_LOG(error);
             auto msg_pointer = [&msg](auto* p) {
                 if (p)
                 {
