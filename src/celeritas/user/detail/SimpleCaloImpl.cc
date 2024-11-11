@@ -29,10 +29,11 @@ void simple_calo_accum(HostRef<StepStateData> const& step,
     CELER_EXPECT(step && calo);
     MultiExceptionHandler capture_exception;
     SimpleCaloExecutor execute{step, calo};
+    size_type const size = step.size();
 #if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
-    for (ThreadId::size_type i = 0; i < step.size(); ++i)
+    for (ThreadId::size_type i = 0; i < size; ++i)
     {
         CELER_TRY_HANDLE(execute(ThreadId{i}), capture_exception);
     }
