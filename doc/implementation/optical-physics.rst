@@ -47,11 +47,11 @@ tracking loop:
 
 
      photons["Optical tracking loop"]
-     gun -->|primaries| photons
+     gun -->|inits| photons
 
-     geant4-direct -->|primaries| photons
-     scintillation-gen -->|primaries| photons
-     cerenkov-gen -->|primaries| photons
+     geant4-direct -->|inits| photons
+     scintillation-gen -->|inits| photons
+     cerenkov-gen -->|inits| photons
 
 
 Optical materials
@@ -85,7 +85,8 @@ Generating
 
 Depending on the process that emitted a photon, the "generator" classes
 sample from the distribution of photons specified by the
-"generator distribution" to create optical photon *primaries*.
+"generator distribution" to create optical photon *initializers* which are
+analogous to secondary particles in Geant4.
 
 .. doxygenclass:: celeritas::optical::CerenkovGenerator
 .. doxygenclass:: celeritas::optical::ScintillationGenerator
