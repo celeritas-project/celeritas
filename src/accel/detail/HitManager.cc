@@ -73,8 +73,8 @@ HitManager::HitManager(SPConstGeo geo,
     {
         if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
-            CELER_LOG(warning) << "Using location-based reconstruction since "
-                                  "ORANGE is active";
+            CELER_LOG(warning) << "Using less accurate navigator-based "
+                                  "reconstruction for ORANGE geometry";
             selection_.points[StepPoint::pre].pos = true;
             selection_.points[StepPoint::pre].dir = true;
         }
