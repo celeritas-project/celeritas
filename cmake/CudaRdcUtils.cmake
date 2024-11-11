@@ -880,6 +880,12 @@ function(cuda_rdc_target_link_libraries target)
            # enforces a more strict view of what is available.
            target_link_libraries(${_target_final} ${_lib})
         endif()
+        # if the target is a shared library and the dependent library is static we need to
+        # list it explicitly so that the content is properly linked to.
+        if(_target_type STREQUAL "SHARED_LIBRARY" AND _lib_target_type STREQUAL "STATIC_LIBRARY")
+           set_property(TARGET ${_target_final} APPEND
+             PROPERTY LINK_LIBRARIES ${_lib})
+        endif()
         if(TARGET ${_libstatic})
           target_link_options(${_target_final}
             PRIVATE
