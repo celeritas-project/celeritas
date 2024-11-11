@@ -103,15 +103,26 @@ Logger::Logger(LogHandler handle) : handle_{std::move(handle)} {}
 //---------------------------------------------------------------------------//
 /*!
  * Get the log level from an environment variable.
+ *
+ * Default to \c Logger::default_level, which is 'info'.
  */
 LogLevel log_level_from_env(std::string const& level_env)
+{
+    return log_level_from_env(level_env, Logger::default_level());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the log level from an environment variable.
+ */
+LogLevel log_level_from_env(std::string const& level_env, LogLevel default_lev)
 {
     // Search for the provided environment variable to set the default
     // logging level using the `to_cstring` function in LoggerTypes.
     std::string const& env_value = celeritas::getenv(level_env);
     if (env_value.empty())
     {
-        return Logger::default_level();
+        return default_lev;
     }
 
     auto levels = range(LogLevel::size_);

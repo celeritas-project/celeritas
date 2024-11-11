@@ -82,6 +82,7 @@ if(CELERITAS_USE_VecGeom)
       # TODO: vecgeom surface doesn't support some of these shapes
       list(APPEND _vecgeom_tests
         "FourLevelsTest.*"
+        "MultiLevelTest.*"
         "SolidsTest.*"
         "CmseTest.*"
       )
@@ -90,6 +91,7 @@ if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
+      "MultiLevelGeantTest.*"
       "SolidsGeantTest.*"
       "ZnenvGeantTest.*"
     )

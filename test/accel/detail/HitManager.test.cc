@@ -155,9 +155,9 @@ TEST_F(SimpleCmsTest, delete_one)
 TEST_F(SimpleCmsTest, add_duplicate)
 {
     sd_setup_.force_volumes = find_geant_volumes({"em_calorimeter"});
-    celeritas::world_logger().level(LogLevel::debug);
+    scoped_log_.level(LogLevel::debug);
     HitManager man = this->make_hit_manager();
-    celeritas::world_logger().level(Logger::default_level());
+    scoped_log_.level(Logger::default_level());
 
     EXPECT_EQ(2, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
