@@ -177,6 +177,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
+    auto const& vol_inst = this->geometry()->volume_instances();
     real_type const inv_length = 1 / this->unit_length();
 
     if (geo.is_outside())
@@ -197,6 +198,17 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     while (!geo.is_outside() && max_step > 0)
     {
         result.volumes.push_back(this->volume_name(geo));
+        if (vol_inst)
+        {
+            if (auto vi_id = geo.volume_instance_id())
+            {
+                result.volume_instances.push_back(vol_inst.at(vi_id).name);
+            }
+            else
+            {
+                result.volume_instances.push_back("---");
+            }
+        }
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance * inv_length);
         if (!next.boundary)

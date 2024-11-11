@@ -957,6 +957,103 @@ class MultiLevelTest : public GeantGeoTest
     std::string geometry_basename() const override { return "multi-level"; }
 };
 
+TEST_F(MultiLevelTest, accessors)
+{
+    auto const& geo = *this->geometry();
+    EXPECT_EQ(3, geo.max_depth());
+
+    auto vol_names = [&geo] {
+        size_type const offset = 72;
+        auto const& vols = geo.volumes();
+        std::vector<std::string> result;
+        for (auto vid : range(offset, vols.size()))
+        {
+            result.push_back(vols.at(VolumeId{vid}).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_names[] = {"sph", "box", "world"};
+    EXPECT_VEC_EQ(expected_vol_names, vol_names);
+
+    auto vol_inst_names = [&geo] {
+        size_type const offset = 92;
+        auto const& vols = geo.volume_instances();
+        std::vector<std::string> result;
+        for (auto viid : range(offset, vols.size()))
+        {
+            result.push_back(vols.at(VolumeInstanceId{viid}).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_inst_names[] = {
+        "boxsph1",
+        "boxsph2",
+        "topsph1",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topsph2",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+}
+
+TEST_F(MultiLevelTest, trace)
+{
+    {
+        auto result = this->track({-19.9, 7.5, 0}, {1, 0, 0});
+
+        static char const* const expected_volumes[] = {
+            "world",
+            "box",
+            "sph",
+            "box",
+            "world",
+            "box",
+            "sph",
+            "box",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static char const* const expected_volume_instances[] = {
+            "world_PV",
+            "topbox2",
+            "boxsph2",
+            "topbox2",
+            "world_PV",
+            "topbox1",
+            "boxsph2",
+            "topbox1",
+            "world_PV",
+        };
+        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        static real_type const expected_distances[] = {
+            2.4,
+            3,
+            4,
+            8,
+            5,
+            3,
+            4,
+            8,
+            6.5,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            1.2,
+            1.5,
+            2,
+            3.0990195135928,
+            2.5,
+            1.5,
+            2,
+            3.0990195135928,
+            3.25,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
 TEST_F(MultiLevelTest, DISABLED_level_strings)
 {
     using R2 = Array<real_type, 2>;
