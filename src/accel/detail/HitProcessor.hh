@@ -17,9 +17,10 @@
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
+#include "TouchableUpdaterInterface.hh"
+
 class G4LogicalVolume;
 class G4Step;
-class G4Navigator;
 class G4ParticleDefinition;
 class G4Track;
 class G4VSensitiveDetector;
@@ -31,8 +32,6 @@ struct DetectorStepOutput;
 
 namespace detail
 {
-class NaviTouchableUpdater;
-
 //---------------------------------------------------------------------------//
 /*!
  * Transfer Celeritas sensitive detector hits to Geant4.
@@ -113,7 +112,7 @@ class HitProcessor
     //! Geant4 reference-counted pointer to a G4VTouchable
     G4TouchableHandle touch_handle_;
     //! Navigator for finding points
-    std::unique_ptr<NaviTouchableUpdater> update_touchable_;
+    std::unique_ptr<TouchableUpdaterInterface> update_touchable_;
 
     //! Post-step selection for copying to track
     StepPointSelection post_step_selection_;

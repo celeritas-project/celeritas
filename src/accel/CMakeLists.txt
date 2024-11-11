@@ -29,6 +29,7 @@ list(APPEND SOURCES
   detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc
   detail/SensDetInserter.cc
+  detail/TouchableUpdaterInterface.cc
 )
 
 celeritas_polysource(ExceptionConverter)

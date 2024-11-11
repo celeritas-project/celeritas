@@ -15,6 +15,8 @@
 #include "celeritas/Units.hh"
 #include "celeritas/geo/GeoFwd.hh"
 
+#include "TouchableUpdaterInterface.hh"
+
 class G4Navigator;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -31,7 +33,7 @@ namespace detail
 /*!
  * Update a "touchable" using volume instances at each level.
  */
-class LevelTouchableUpdater
+class LevelTouchableUpdater final : public TouchableUpdaterInterface
 {
   public:
     //!@{
@@ -50,7 +52,7 @@ class LevelTouchableUpdater
     // Update from a particular detector step
     bool operator()(DetectorStepOutput const& out,
                     size_type step_index,
-                    GeantTouchableBase* touchable);
+                    GeantTouchableBase* touchable) final;
 
     // Initialize from a span of volume instances
     bool operator()(SpanVolInst ids, GeantTouchableBase* touchable);

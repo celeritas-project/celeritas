@@ -95,7 +95,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         CELER_ASSERT(selection.points[StepPoint::pre].pos
                      && selection.points[StepPoint::pre].dir);
 
-        // Create navigator
+        // Create touchable updater
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
         update_touchable_
