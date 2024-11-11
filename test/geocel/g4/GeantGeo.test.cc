@@ -963,11 +963,12 @@ TEST_F(MultiLevelTest, accessors)
     EXPECT_EQ(3, geo.max_depth());
 
     auto vol_names = [&geo] {
+        size_type const offset = 72;
         auto const& vols = geo.volumes();
         std::vector<std::string> result;
-        for (auto vid : range(VolumeId{vols.size()}))
+        for (auto vid : range(offset, vols.size()))
         {
-            result.push_back(vols.at(vid).name);
+            result.push_back(vols.at(VolumeId{vid}).name);
         }
         return result;
     }();
@@ -975,11 +976,12 @@ TEST_F(MultiLevelTest, accessors)
     EXPECT_VEC_EQ(expected_vol_names, vol_names);
 
     auto vol_inst_names = [&geo] {
+        size_type const offset = 92;
         auto const& vols = geo.volume_instances();
         std::vector<std::string> result;
-        for (auto viid : range(VolumeInstanceId{vols.size()}))
+        for (auto viid : range(offset, vols.size()))
         {
-            result.push_back(vols.at(viid).name);
+            result.push_back(vols.at(VolumeInstanceId{viid}).name);
         }
         return result;
     }();

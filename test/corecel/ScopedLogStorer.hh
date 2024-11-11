@@ -83,6 +83,12 @@ class ScopedLogStorer
         levels_.clear();
     }
 
+    //! Get the minimum level being recorded
+    LogLevel level() const { return min_level_; }
+
+    //! Change the level to record
+    void level(LogLevel lev) { min_level_ = lev; }
+
   private:
     Logger* logger_{nullptr};
     std::unique_ptr<Logger> saved_logger_;
