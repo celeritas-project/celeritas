@@ -13,7 +13,7 @@ See more details on the [code README](https://github.com/celeritas-project/celer
 # For contributors
 
 - Find an interesting [potential project](https://github.com/celeritas-project/celeritas/issues/1406)
-- Before writing new code, read the [development guide](user/appendix/development.html)
+- Before writing new code, read the [development](user/development/coding.html), [style](user/development/style.html), and [contributing](user/development/contributing.html) guidelines
 - Explore the codebase with [detailed Doxygen code documentation](dev/index.html)
 
 {% include_relative publications.md %}
