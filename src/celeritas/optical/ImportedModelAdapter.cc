@@ -49,12 +49,10 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
         CELER_VALIDATE(model.model_class != IMC::size_,
                        << "Invalid imported model class for optical model id '"
                        << model_id << "'");
-        CELER_VALIDATE(
-            std::all_of(model.mfp_table.begin(),
-                        model.mfp_table.end(),
-                        [](auto const& v) { return static_cast<bool>(v); }),
-            << "Import optical model id '" << model_id << "' ("
-            << to_cstring(model.model_class) << ") has invalid MFP vectors");
+
+        // Model MFP vectors may be empty, indicating the model should attempt
+        // to build from optical material data.
+
         CELER_VALIDATE(
             model.mfp_table.size() == models_.front().mfp_table.size(),
             << "Imported optical model id '" << model_id << "' ("

@@ -58,15 +58,22 @@ class BVHNavigator
         Vector3D currentpoint(point);
         Vector3D daughterlocalpoint;
 
-        for (auto v = vol; v->GetDaughters().size() > 0;)
+        while (vol->GetDaughters().size() > 0)
         {
-            auto bvh = vecgeom::BVHManager::GetBVH(v->GetLogicalVolume()->id());
+            auto* bvh
+                = vecgeom::BVHManager::GetBVH(vol->GetLogicalVolume()->id());
+            CELER_ASSERT(bvh);
 
-            if (!bvh->LevelLocate(exclude, currentpoint, v, daughterlocalpoint))
+            // Note: vol is updated by this call
+            if (!bvh->LevelLocate(
+                    exclude, currentpoint, vol, daughterlocalpoint))
+            {
+                // Not inside any daughter
                 break;
+            }
 
             currentpoint = daughterlocalpoint;
-            path.Push(v);
+            path.Push(vol);
             // Only exclude the placed volume once since we could enter it
             // again via a different volume history.
             exclude = nullptr;

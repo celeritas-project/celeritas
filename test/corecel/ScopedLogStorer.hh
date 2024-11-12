@@ -27,6 +27,9 @@ namespace test
  * Temporarily replace the given logger with this function. This removes ANSI
  * sequences and replaces pointer-like strings with 0x0.
  *
+ * You can use the \c CELER_LOG_SCOPED environment variable to print the
+ * captured log messages as they are written.
+ *
  * \code
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
     CELER_LOG(info) << "captured";
@@ -80,9 +83,16 @@ class ScopedLogStorer
         levels_.clear();
     }
 
+    //! Get the minimum level being recorded
+    LogLevel level() const { return min_level_; }
+
+    //! Change the level to record
+    void level(LogLevel lev) { min_level_ = lev; }
+
   private:
     Logger* logger_{nullptr};
     std::unique_ptr<Logger> saved_logger_;
+    LogLevel min_level_;
     VecString messages_;
     VecString levels_;
 };

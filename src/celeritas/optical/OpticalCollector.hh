@@ -75,11 +75,14 @@ class OpticalCollector
         SPConstCerenkov cerenkov;
         SPConstScintillation scintillation;
 
+        //! Number track slots in the optical loop
+        size_type num_track_slots{};
+
         //! Number of steps that have created optical particles
         size_type buffer_capacity{};
 
         //! Maximum number of buffered initializers in optical tracking loop
-        size_type primary_capacity{};
+        size_type initializer_capacity{};
 
         //! Threshold number of initializers for launching optical loop
         size_type auto_flush{};
@@ -88,8 +91,8 @@ class OpticalCollector
         explicit operator bool() const
         {
             return material && (scintillation || cerenkov)
-                   && buffer_capacity > 0 && primary_capacity > 0
-                   && auto_flush > 0;
+                   && num_track_slots > 0 && buffer_capacity > 0
+                   && initializer_capacity > 0 && auto_flush > 0;
         }
     };
 

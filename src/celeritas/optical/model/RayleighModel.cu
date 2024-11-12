@@ -1,22 +1,27 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+//---------------------------------*-CUDA-*----------------------------------//
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/vg/VecgeomParams.surface.hh
+//! \file celeritas/optical/model/RayleighModel.cu
 //---------------------------------------------------------------------------//
-#pragma once
+#include "RayleighModel.hh"
 
-#include <VecGeom/surfaces/BrepHelper.h>
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
-// Set up surface tracking
-void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
-
-// Tear down surface tracking
-void teardown_surface_tracking_device();
+/*!
+ * Interact with device data.
+ */
+void RayleighModel::step(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_IMPLEMENTED("optical core physics");
+}
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

@@ -304,6 +304,12 @@ void GeantGeoParams::build_metadata()
         CELER_ASSERT(pv_store && !pv_store->empty());
         return pv_store->front()->GetInstanceID();
     }();
+    if (lv_offset_ != 0 || pv_offset_ != 0)
+    {
+        CELER_LOG(debug) << "Building after volume stores were cleared: "
+                         << "lv_offset=" << lv_offset_
+                         << ", pv_offset=" << pv_offset_;
+    }
 
     // Construct volume labels
     volumes_ = VolumeMap{"volume",

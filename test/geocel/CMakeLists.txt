@@ -56,7 +56,7 @@ celeritas_target_link_libraries(testcel_geocel
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL
-  LINK_LIBRARIES testcel_geocel testcel_core Celeritas::geocel
+  LINK_LIBRARIES testcel_geocel testcel_core Celeritas::geocel Celeritas::corecel
 )
 
 #-----------------------------------------------------------------------------#
@@ -82,6 +82,7 @@ if(CELERITAS_USE_VecGeom)
       # TODO: vecgeom surface doesn't support some of these shapes
       list(APPEND _vecgeom_tests
         "FourLevelsTest.*"
+        "MultiLevelTest.*"
         "SolidsTest.*"
         "CmseTest.*"
       )
@@ -90,6 +91,7 @@ if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
+      "MultiLevelGeantTest.*"
       "SolidsGeantTest.*"
       "ZnenvGeantTest.*"
     )

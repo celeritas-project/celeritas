@@ -54,21 +54,28 @@ class OpticalLaunchAction : public AuxParamsInterface,
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     //!@}
 
+    struct Input
+    {
+        SPConstMaterial material;
+        SPOffloadParams offload;
+        size_type num_track_slots{};
+        size_type initializer_capacity{};
+
+        //! True if all input is assigned and valid
+        explicit operator bool() const
+        {
+            return material && offload && num_track_slots > 0
+                   && initializer_capacity > 0;
+        }
+    };
+
   public:
     // Construct and add to core params
     static std::shared_ptr<OpticalLaunchAction>
-    make_and_insert(CoreParams const& core,
-                    SPConstMaterial material,
-                    SPOffloadParams offload,
-                    size_type primary_capacity);
+    make_and_insert(CoreParams const&, Input&&);
 
     // Construct with IDs, core for copying params, offload gen data
-    OpticalLaunchAction(ActionId id,
-                        AuxId data_id,
-                        CoreParams const& core,
-                        SPConstMaterial material,
-                        SPOffloadParams offload,
-                        size_type primary_capacity);
+    OpticalLaunchAction(ActionId, AuxId, CoreParams const&, Input&&);
 
     //!@{
     //! \name Aux/action metadata interface
@@ -112,6 +119,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     SPOffloadParams offload_params_;
     SPOpticalParams optical_params_;
     SPActionGroups optical_actions_;
+    size_type state_size_;
 
     //// HELPERS ////
 

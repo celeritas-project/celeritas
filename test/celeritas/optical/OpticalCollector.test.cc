@@ -93,8 +93,9 @@ class LArSphereOffloadTest : public LArSphereBase
     // Optical collector options
     bool use_scintillation_{true};
     bool use_cerenkov_{true};
+    size_type num_track_slots_{4096};
     size_type buffer_capacity_{256};
-    size_type primary_capacity_{8192};
+    size_type initializer_capacity_{8192};
     size_type auto_flush_{4096};
 
     std::shared_ptr<OpticalCollector> collector_;
@@ -180,8 +181,9 @@ void LArSphereOffloadTest::build_optical_collector()
     {
         inp.scintillation = this->scintillation();
     }
+    inp.num_track_slots = num_track_slots_;
     inp.buffer_capacity = buffer_capacity_;
-    inp.primary_capacity = primary_capacity_;
+    inp.initializer_capacity = initializer_capacity_;
     inp.auto_flush = auto_flush_;
 
     collector_
@@ -310,9 +312,10 @@ template LArSphereOffloadTest::RunResult
 TEST_F(LArSphereOffloadTest, host_distributions)
 {
     auto_flush_ = size_type(-1);
+    num_track_slots_ = 4;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, 4, 64);
+    auto result = this->run<MemSpace::host>(4, num_track_slots_, 64);
 
     EXPECT_EQ(result.cerenkov.total_num_photons
                   + result.scintillation.total_num_photons,
@@ -370,9 +373,10 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 {
     auto_flush_ = size_type(-1);
+    num_track_slots_ = 8;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::device>(8, 8, 32);
+    auto result = this->run<MemSpace::device>(8, num_track_slots_, 32);
 
     EXPECT_EQ(result.cerenkov.total_num_photons
                   + result.scintillation.total_num_photons,
@@ -446,9 +450,10 @@ TEST_F(LArSphereOffloadTest, cerenkov_distributiona)
 {
     use_scintillation_ = false;
     auto_flush_ = size_type(-1);
+    num_track_slots_ = 4;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, 4, 16);
+    auto result = this->run<MemSpace::host>(4, num_track_slots_, 16);
 
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.scintillation.num_photons.size());
@@ -469,9 +474,10 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
 {
     use_cerenkov_ = false;
     auto_flush_ = size_type(-1);
+    num_track_slots_ = 4;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, 4, 16);
+    auto result = this->run<MemSpace::host>(4, num_track_slots_, 16);
 
     EXPECT_EQ(0, result.cerenkov.total_num_photons);
     EXPECT_EQ(0, result.cerenkov.num_photons.size());
@@ -490,18 +496,20 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
 
 TEST_F(LArSphereOffloadTest, host_generate)
 {
+    num_track_slots_ = 1 << 18;
     buffer_capacity_ = 1024;
-    primary_capacity_ = 524288;
+    initializer_capacity_ = 524288;
     auto_flush_ = 16384;
     this->build_optical_collector();
 
+    // Run with 512 core track slots and 2^18 optical track slots
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::host>(4, 512, 16);
 
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        R"(Exceeded step count of 2: aborting optical transport loop with 512 active tracks, 512 alive tracks, 0 vacancies, and 323681 queued)",
+        R"(Exceeded step count of 1: aborting optical transport loop with 262144 active tracks, 0 alive tracks, 262144 vacancies, and 62049 queued)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
@@ -518,13 +526,14 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 {
+    num_track_slots_ = 1024;
     buffer_capacity_ = 2048;
-    primary_capacity_ = 524288;
+    initializer_capacity_ = 524288;
     auto_flush_ = 262144;
     this->build_optical_collector();
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
-    auto result = this->run<MemSpace::device>(1, 1024, 16);
+    auto result = this->run<MemSpace::device>(1, num_track_slots_, 16);
     static char const* const expected_log_levels[]
         = {"status", "status", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
