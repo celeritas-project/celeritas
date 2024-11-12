@@ -67,6 +67,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. V. Chekanov, S. Eno, S. Magill, C. Palmer, L. Wu, *et al*. "Geant4 simulations of sampling and homogeneous hadronic calorimeters with dual readout for future colliders". Nov 2023. [arxiv.org](http://arxiv.org/abs/2311.03539)
 - A. Howard. "Electromagnetic physics II - Optical Photons". CERN, Oct 2023. [indico.cern.ch](https://indico.cern.ch/event/1304769/contributions/5487618/)
 - M. Novák. "On Geant4 and differentiable programming". Sep 2023.
+- A. C. S. Davis, S. Barré, Y. Cui, K. L. Evans, M. Gersabeck, *et al*. "Optical Photon Simulation with Mitsuba3". Sep 2023. [arxiv.org](http://arxiv.org/abs/2309.12496)
 -  Alastair Dewhurst. "HEPScore ...and why you should care!". Mar 2023.
 - G. Amadio, J. Apostolakis, P. Buncic, G. Cosmo, D. Dosaru, *et al*. "Offloading electromagnetic shower transport to GPUs". *Journal of Physics: Conference Series*, Feb 2023. [10.1088/1742-6596/2438/1/012055](https://doi.org/10.1088/1742-6596/2438/1/012055)
 - A. Salzburger, J. Niermann, B. Yeo, A. Krasznahorkay. "Detray: a compile time polymorphic tracking geometry description". *Journal of Physics: Conference Series*, Feb 2023. [10.1088/1742-6596/2438/1/012026](https://doi.org/10.1088/1742-6596/2438/1/012026)

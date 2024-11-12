@@ -14,6 +14,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- B. Morgan. "Summary/Updates on Integration of AdePT/Celeritas in Experiments". *SWIFT-HEP Workshop*, 12 Nov 2024.
 - S. R. Johnson. "Accelerating detector simulations with Celeritas: Performance improvements and new capabilities". *Conference on Computing in High Energy and Nuclear Physics (CHEP) 2024*, 21 Oct 2024. [presentation](https://indico.cern.ch/event/1338689/contributions/6015932/attachments/2951364/5189225/celeritas-srj.pdf)
 - S. R. Johnson. "Continuing advancements in Celeritas for EM physics". *29th Geant4 Collaboration Meeting*, 09 Oct 2024. [presentation](https://indico.cern.ch/event/1455551/contributions/6149900/attachments/2943707/5172533/celeritas-g4-2024.pdf)
 - S. R. Johnson. "Achievements and challenges in ORANGE surface geometry". *29th Geant4 Collaboration Meeting*, 08 Oct 2024. [presentation](https://indico.cern.ch/event/1455551/contributions/6153015/attachments/2942316/5170093/orange-g4-2024.pdf)
