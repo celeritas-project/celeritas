@@ -122,8 +122,9 @@ void ScintGeneratorAction::step_impl(CoreParams const& core_params,
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);
 
-    CELER_LOG(debug) << "Generated " << count << " Scintillation photons from "
-                     << buffer_size << " distributions";
+    CELER_LOG_LOCAL(debug) << "Generated " << count
+                           << " Scintillation photons from " << buffer_size
+                           << " distributions";
 
     num_photons += count;
     num_new_photons -= count;
