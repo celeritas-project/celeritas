@@ -209,7 +209,7 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
 
     Real3 p = dir * momentum.value();
     FourVector lepton_4vec{
-        p, std::sqrt(dot_product(p, p) + ipow<2>(mass.value()))};
+        p, std::sqrt(ipow<2>(momentum.value()) + ipow<2>(mass.value()))};
     boost(boost_vector(inc_fourvec_), &lepton_4vec);
 
     return lepton_4vec;
