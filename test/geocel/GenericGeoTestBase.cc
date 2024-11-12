@@ -38,6 +38,11 @@ void GenericGeoTrackingResult::print_expected()
         << repr(this->volumes)
         << ";\n"
            "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
+           "static char const* const expected_volume_instances[] = "
+        << repr(this->volume_instances)
+        << ";\n"
+           "EXPECT_VEC_EQ(expected_volume_instances, "
+           "result.volume_instances);\n"
            "static real_type const expected_distances[] = "
         << repr(this->distances)
         << ";\n"
