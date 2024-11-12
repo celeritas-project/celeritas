@@ -36,6 +36,36 @@ class MuDecayInteractorTest : public InteractorHostTestBase
 
   protected:
     MuDecayData data_;
+
+    struct TestResult
+    {
+        double avg_sec_energy{};  // Avg energy of the outgoing electron
+        Real3 avg_total_momentum{};  // Avg total momentum per decay
+    };
+
+    TestResult loop(size_type num_samples, MevEnergy energy)
+    {
+        this->resize_secondaries(num_samples);
+        this->set_inc_particle(pdg::mu_minus(), energy);
+        MuDecayInteractor interact(data_,
+                                   this->particle_track(),
+                                   this->direction(),
+                                   this->secondary_allocator());
+
+        TestResult tr;
+        for ([[maybe_unused]] auto sample : range(num_samples))
+        {
+            auto result = interact(this->rng());
+            auto const& part = result.secondaries[0];
+
+            tr.avg_sec_energy += part.energy.value();
+            axpy(part.energy.value(), part.direction, &tr.avg_total_momentum);
+        }
+        tr.avg_sec_energy /= num_samples;
+        tr.avg_total_momentum /= num_samples;
+
+        return tr;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -85,44 +115,32 @@ TEST_F(MuDecayInteractorTest, basic)
 //---------------------------------------------------------------------------//
 TEST_F(MuDecayInteractorTest, stress_test)
 {
-    size_type const num_secondaries = 1;
-    size_type const num_samples = 10000;
-    MevEnergy const one_gev{1000};
-
-    this->resize_secondaries(num_secondaries * num_samples);
-    this->set_inc_particle(pdg::mu_minus(), one_gev);
-    MuDecayInteractor interact(data_,
-                               this->particle_track(),
-                               this->direction(),
-                               this->secondary_allocator());
-
-    Array<double, num_secondaries> avg_sec_energies{};  // Avg energy per sec
-    Real3 avg_total_momentum{};  // Avg total momentum per decay
-
-    for ([[maybe_unused]] auto sample : range(num_samples))
-    {
-        auto result = interact(this->rng());
-        auto const& sec = result.secondaries;
-
-        for (auto i : range(sec.size()))
-        {
-            auto const& part = sec[i];
-            avg_sec_energies[i] += part.energy.value();
-            axpy(part.energy.value(), part.direction, &avg_total_momentum);
-        }
-    }
-
-    avg_sec_energies /= num_samples;
-    avg_total_momentum /= num_samples;
-
     // With only one secondary being returned, there is no expectation of
     // energy or momentum conservation
-    static double const expected_avg_sec_energies[] = {384.834176348064};
-    static double const expected_avg_total_momentum[]
-        = {0.369721983532691, 0.109494401494642, 383.064043487629};
 
-    EXPECT_VEC_SOFT_EQ(expected_avg_sec_energies, avg_sec_energies);
-    EXPECT_VEC_SOFT_EQ(expected_avg_total_momentum, avg_total_momentum);
+    size_type const num_samples = 10000;
+
+    // Muon with 1 GeV
+    auto res_1gev = this->loop(num_samples, MevEnergy{1000});
+
+    static double const expected_one_gev_avg_sec_energy = 384.834176348064;
+    static double const expected_one_gev_avg_total_momentum[]
+        = {0.36972198353269, 0.10949440149464, 383.06404348763};
+
+    EXPECT_REAL_EQ(expected_one_gev_avg_sec_energy, res_1gev.avg_sec_energy);
+    EXPECT_VEC_SOFT_EQ(expected_one_gev_avg_total_momentum,
+                       res_1gev.avg_total_momentum);
+
+    // Muon with 1 MeV
+    auto res_1mev = this->loop(num_samples, MevEnergy{1});
+
+    static double const expected_one_mev_avg_sec_energy = 36.891223054430647;
+    static double const expected_one_mev_avg_total_momentum[]
+        = {0.31976610917125, -0.13376923570472, 5.5275940366016};
+
+    EXPECT_REAL_EQ(expected_one_mev_avg_sec_energy, res_1mev.avg_sec_energy);
+    EXPECT_VEC_SOFT_EQ(expected_one_mev_avg_total_momentum,
+                       res_1mev.avg_total_momentum);
 }
 
 //---------------------------------------------------------------------------//

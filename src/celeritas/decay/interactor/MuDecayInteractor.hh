@@ -38,7 +38,7 @@ namespace celeritas
  *
  * This interactor follows \c G4MuonDecayChannel::DecayIt and the Physics
  * Reference Manual, Release 11.2, section 4.2.3. The sampling happens at the
- * muon's rest frame, with the result being uniformly rotated and finaly
+ * muon's rest frame, with the result being uniformly rotated and finally
  * boosted to the lab frame.
  *
  * As it is a three-body decay, the energy sampling happens for \f$ e^\pm \f$
@@ -55,10 +55,10 @@ namespace celeritas
  * remaining fractional energy for the muon neutrino is
  * \f$ f_{E_{\nu_\mu}} = 2 - f_{E_e} - f_{E_{\nu_e}} \f$.
  *
- * \note Neutrinos are currently not returned by this interactor as they
- * are not tracked down or transported and would significantly increase
- * secondary memory allocation usage. See discussion and commit history
- * at https://github.com/celeritas-project/celeritas/pull/1456
+ * \note Neutrinos are currently not returned by this interactor as they are
+ * not tracked down or transported and would significantly increase secondary
+ * memory allocation usage. See discussion and commit history at
+ * https://github.com/celeritas-project/celeritas/pull/1456
  */
 class MuDecayInteractor
 {
@@ -174,14 +174,11 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         electron_energy_frac = generate_canonical(rng);
     } while (electron_nu_energy_frac + electron_energy_frac < real_type{1});
 
-    // Momentum of secondaries at rest frame
-    auto charged_lep_energy
-        = this->calc_momentum(electron_energy_frac, shared_.electron_mass);
-
     // Decay isotropically in rest frame and boost secondaries to the lab frame
-    auto charged_lep_4vec = this->to_lab_frame(IsotropicDistribution{}(rng),
-                                               charged_lep_energy,
-                                               shared_.electron_mass);
+    auto charged_lep_4vec = this->to_lab_frame(
+        IsotropicDistribution{}(rng),
+        this->calc_momentum(electron_energy_frac, shared_.electron_mass),
+        shared_.electron_mass);
 
     // Return charged lepton only
     Interaction result = Interaction::from_absorption();
@@ -212,7 +209,7 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
 
     Real3 p = dir * momentum.value();
     FourVector lepton_4vec{
-        p, std::sqrt(ipow<2>(norm(p)) + ipow<2>(mass.value()))};
+        p, std::sqrt(dot_product(p, p) + ipow<2>(mass.value()))};
     boost(boost_vector(inc_fourvec_), &lepton_4vec);
 
     return lepton_4vec;
