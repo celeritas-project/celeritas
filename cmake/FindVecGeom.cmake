@@ -57,7 +57,7 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
   endforeach()
 
   if(NOT _vecgeom_lib_rdc_final)
-    # Inform celeritas_add_library code
+    # Inform cuda_rdc_add_library code
     foreach(_lib VecGeom::vecgeom VecGeom::vecgeomcuda
         VecGeom::vecgeomcuda_static)
       set_target_properties(${_lib} PROPERTIES
