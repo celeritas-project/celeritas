@@ -26,7 +26,7 @@ struct ImportScintComponent
 {
     double yield_frac{};  //!< Fraction of total scintillation yield
     double lambda_mean{};  //!< Mean wavelength [len]
-    double lambda_sigma{};  //!< Standard deviation of wavelength
+    double lambda_sigma{};  //!< Standard deviation of wavelength [len]
     double rise_time{};  //!< Rise time [time]
     double fall_time{};  //!< Decay time [time]
 
@@ -41,13 +41,14 @@ struct ImportScintComponent
 //---------------------------------------------------------------------------//
 /*!
  * Store material-only scintillation spectrum information.
- * TODO: Components are not necessary in Geant4, but are in our generator.
+ *
+ * In contrast to Geant4, we can have an arbitrary number of components for
+ * scintillation spectra.
  */
 struct ImportMaterialScintSpectrum
 {
-    double yield_per_energy{};  //!< Light yield of the material [1/MeV]
-    std::vector<ImportScintComponent> components;  //!< Scintillation
-                                                   //!< components
+    double yield_per_energy{};  //!< Expected num photons per eloss [1/MeV]
+    std::vector<ImportScintComponent> components;
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
