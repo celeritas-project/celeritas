@@ -82,4 +82,21 @@ ImageWriter::~ImageWriter()
 }
 
 //---------------------------------------------------------------------------//
+#if !CELERITAS_USE_PNG
+inline ImageWriter::ImageWriter(std::string const&, Size2)
+{
+    CELER_DISCARD(size_);
+    CELER_DISCARD(rows_written_);
+    CELER_DISCARD(row_buffer_);
+    CELER_NOT_CONFIGURED("PNG");
+}
+inline void ImageWriter::operator()(Span<Color const>)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline void ImageWriter::close_impl(bool) {}
+inline void ImageWriter::ImplDeleter::operator()(Impl*) {}
+#endif
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
