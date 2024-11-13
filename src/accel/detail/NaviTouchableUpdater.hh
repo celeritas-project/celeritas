@@ -10,9 +10,10 @@
 #include <memory>
 #include <vector>
 
-#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
+
+#include "TouchableUpdaterInterface.hh"
 
 class G4Navigator;
 class G4LogicalVolume;
@@ -20,9 +21,6 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-struct DetectorStepOutput;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -31,7 +29,7 @@ namespace detail
  *
  * This is a helper class for \c HitProcessor.
  */
-class NaviTouchableUpdater
+class NaviTouchableUpdater final : public TouchableUpdaterInterface
 {
   public:
     //!@{
@@ -53,9 +51,6 @@ class NaviTouchableUpdater
     // Construct from detector LVs
     explicit NaviTouchableUpdater(SPConstVecLV detector_volumes);
 
-    // Construct from explicit world without detectors for unit testing
-    explicit NaviTouchableUpdater(G4VPhysicalVolume const* world);
-
     // Construct from detector LVs and explicit world
     NaviTouchableUpdater(SPConstVecLV detector_volumes,
                          G4VPhysicalVolume const* world);
@@ -66,7 +61,7 @@ class NaviTouchableUpdater
     // Update from a particular detector step
     bool operator()(DetectorStepOutput const& out,
                     size_type step_index,
-                    GeantTouchableBase* touchable);
+                    GeantTouchableBase* touchable) final;
 
     // Try to find the given point in the given logical volume
     bool operator()(Real3 const& pos,

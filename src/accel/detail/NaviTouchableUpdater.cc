@@ -51,16 +51,6 @@ NaviTouchableUpdater::NaviTouchableUpdater(SPConstVecLV detector_volumes)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Construct with explicit world.
- */
-NaviTouchableUpdater::NaviTouchableUpdater(G4VPhysicalVolume const* world)
-    : NaviTouchableUpdater{
-          std::make_shared<std::vector<G4LogicalVolume const*>>(), world}
-{
-}
-
-//---------------------------------------------------------------------------//
 //! Default external deleter
 NaviTouchableUpdater::~NaviTouchableUpdater() = default;
 

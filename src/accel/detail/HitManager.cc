@@ -53,11 +53,12 @@ void update_selection(StepPointSelection* selection,
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(GeoParams const& geo,
+HitManager::HitManager(SPConstGeo geo,
                        ParticleParams const& par,
                        SDSetupOptions const& setup,
                        StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
+    , geo_{std::move(geo)}
     , locate_touchable_(setup.locate_touchable)
 {
     CELER_EXPECT(setup.enabled);
@@ -70,8 +71,17 @@ HitManager::HitManager(GeoParams const& geo,
     update_selection(&selection_.points[StepPoint::post], setup.post);
     if (locate_touchable_)
     {
-        selection_.points[StepPoint::pre].pos = true;
-        selection_.points[StepPoint::pre].dir = true;
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            CELER_LOG(warning) << "Using less accurate navigator-based "
+                                  "reconstruction for ORANGE geometry";
+            selection_.points[StepPoint::pre].pos = true;
+            selection_.points[StepPoint::pre].dir = true;
+        }
+        else
+        {
+            selection_.points[StepPoint::pre].volume_instance_ids = true;
+        }
     }
 
     // Hit processors *must* be allocated on the thread they're used because of
@@ -80,7 +90,7 @@ HitManager::HitManager(GeoParams const& geo,
     processors_.resize(num_streams);
 
     // Map detector volumes
-    this->setup_volumes(geo, setup);
+    this->setup_volumes(*geo_, setup);
 
     if (setup.track)
     {
@@ -88,7 +98,7 @@ HitManager::HitManager(GeoParams const& geo,
     }
 
     CELER_ENSURE(setup.track == !this->particles_.empty());
-    CELER_ENSURE(geant_vols_ && geant_vols_->size() == vecgeom_vols_.size());
+    CELER_ENSURE(geant_vols_ && geant_vols_->size() == celer_vols_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -105,7 +115,7 @@ auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
     CELER_EXPECT(!processors_[sid.get()]);
 
     auto result = std::make_shared<HitProcessor>(
-        geant_vols_, particles_, selection_, locate_touchable_);
+        geant_vols_, geo_, particles_, selection_, locate_touchable_);
     processor_weakptrs_[sid.get()] = result;
     processors_[sid.get()] = result.get();
     return result;
@@ -123,9 +133,9 @@ auto HitManager::filters() const -> Filters
 {
     Filters result;
 
-    for (auto didx : range<DetectorId::size_type>(vecgeom_vols_.size()))
+    for (auto didx : range<DetectorId::size_type>(celer_vols_.size()))
     {
-        result.detectors[vecgeom_vols_[didx]] = DetectorId{didx};
+        result.detectors[celer_vols_[didx]] = DetectorId{didx};
     }
 
     result.nonzero_energy_deposition = nonzero_energy_deposition_;
@@ -201,11 +211,11 @@ void HitManager::setup_volumes(GeoParams const& geo,
     // Unfold map into LV/ID vectors
     VecLV geant_vols;
     geant_vols.reserve(found_id_lv.size());
-    vecgeom_vols_.reserve(found_id_lv.size());
+    celer_vols_.reserve(found_id_lv.size());
     for (auto&& [id, lv] : found_id_lv)
     {
         geant_vols.push_back(lv);
-        vecgeom_vols_.push_back(id);
+        celer_vols_.push_back(id);
     }
     geant_vols_ = std::make_shared<VecLV>(std::move(geant_vols));
 }

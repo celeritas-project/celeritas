@@ -3,10 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/TouchableUpdater.test.cc
+//! \file accel/detail/NaviTouchableUpdater.test.cc
 //---------------------------------------------------------------------------//
+#include "accel/detail/NaviTouchableUpdater.hh"
+
 #include <cmath>
 #include <G4Navigator.hh>
+#include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
 
 #include "corecel/ScopedLogStorer.hh"
@@ -17,7 +20,6 @@
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTestBase.hh"
 #include "celeritas/Units.hh"
-#include "accel/detail/NaviTouchableUpdater.hh"
 
 #include "celeritas_test.hh"
 
@@ -45,7 +47,7 @@ namespace test
  * |        700  | fe_muon_chambers |
  * |             | world |
  */
-class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
+class NaviTouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
 {
   protected:
     using TouchableUpdater = NaviTouchableUpdater;
@@ -70,7 +72,9 @@ class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
     TouchableUpdater make_touchable_updater()
     {
         auto const& geo = *this->geometry();
-        return TouchableUpdater{geo.world()};
+        return TouchableUpdater{
+            std::make_shared<std::vector<G4LogicalVolume const*>>(),
+            geo.world()};
     }
 
     G4VTouchable* touchable_history() { return touch_handle_(); }
@@ -79,7 +83,7 @@ class TouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
     G4TouchableHandle touch_handle_;
 };
 
-TEST_F(TouchableUpdaterTest, correct)
+TEST_F(NaviTouchableUpdaterTest, correct)
 {
     TouchableUpdater update = this->make_touchable_updater();
     auto update_cm = [&](Real3 const& pos_cm, std ::string lv_name) {
@@ -94,7 +98,7 @@ TEST_F(TouchableUpdaterTest, correct)
     EXPECT_TRUE(update_cm({150, 0, 0}, "em_calorimeter"));
 }
 
-TEST_F(TouchableUpdaterTest, just_inside)
+TEST_F(NaviTouchableUpdaterTest, just_inside)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.5 * TouchableUpdater::max_quiet_step();
@@ -114,7 +118,7 @@ TEST_F(TouchableUpdaterTest, just_inside)
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(TouchableUpdaterTest, coincident)
+TEST_F(NaviTouchableUpdaterTest, coincident)
 {
     TouchableUpdater update = this->make_touchable_updater();
     auto* th = this->touchable_history();
@@ -136,7 +140,7 @@ TEST_F(TouchableUpdaterTest, coincident)
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(TouchableUpdaterTest, coincident_tangent)
+TEST_F(NaviTouchableUpdaterTest, coincident_tangent)
 {
     TouchableUpdater update = this->make_touchable_updater();
 
@@ -160,7 +164,7 @@ TEST_F(TouchableUpdaterTest, coincident_tangent)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(TouchableUpdaterTest, just_outside_nowarn)
+TEST_F(NaviTouchableUpdaterTest, just_outside_nowarn)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.1 * TouchableUpdater::max_quiet_step();
@@ -182,7 +186,7 @@ TEST_F(TouchableUpdaterTest, just_outside_nowarn)
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(TouchableUpdaterTest, just_outside_warn)
+TEST_F(NaviTouchableUpdaterTest, just_outside_warn)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.1 * TouchableUpdater::max_step();
@@ -233,7 +237,7 @@ TEST_F(TouchableUpdaterTest, just_outside_warn)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(TouchableUpdaterTest, too_far)
+TEST_F(NaviTouchableUpdaterTest, too_far)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 10 * TouchableUpdater::max_step();
@@ -264,7 +268,7 @@ TEST_F(TouchableUpdaterTest, too_far)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(TouchableUpdaterTest, regression)
+TEST_F(NaviTouchableUpdaterTest, regression)
 {
     using Real2 = Array<real_type, 2>;
 

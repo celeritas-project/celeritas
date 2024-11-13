@@ -11,6 +11,7 @@
 
 #include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
@@ -109,7 +110,20 @@ auto SimpleCmsTest::make_particles() -> VecParticle
 
 auto SimpleCmsTest::make_hit_processor() -> HitProcessor
 {
+    if (locate_touchable_)
+    {
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            selection_.points[StepPoint::pre].dir = true;
+            selection_.points[StepPoint::pre].pos = true;
+        }
+        else
+        {
+            selection_.points[StepPoint::pre].volume_instance_ids = true;
+        }
+    }
     return HitProcessor{this->make_detector_volumes(),
+                        this->geometry(),
                         this->make_particles(),
                         selection_,
                         locate_touchable_};
@@ -180,6 +194,19 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             ParticleId{0},
         };
     }
+    if (selection_.points[StepPoint::pre].volume_instance_ids)
+    {
+        // Note: the volumes correspond to simple-cms and the detector IDs
+        // above
+        dso.volume_instance_depth = 2;
+        auto const& vi_names = this->geometry()->volume_instances();
+        auto wovi = vi_names.find_unique("world_PV");
+        auto emvi = vi_names.find_unique("em_calorimeter_pv");
+        auto havi = vi_names.find_unique("had_calorimeter_pv");
+        auto sivi = vi_names.find_unique("si_tracker_pv");
+        dso.points[StepPoint::pre].volume_instance_ids
+            = {wovi, sivi, wovi, emvi, wovi, havi};
+    }
     return dso;
 }
 
@@ -242,7 +269,6 @@ TEST_F(SimpleCmsTest, no_touchable)
 TEST_F(SimpleCmsTest, touchable_midvol)
 {
     selection_.particle = false;
-    selection_.points[StepPoint::pre].dir = true;
     locate_touchable_ = true;
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
@@ -272,7 +298,6 @@ TEST_F(SimpleCmsTest, touchable_midvol)
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_edgecase)
 {
-    selection_.points[StepPoint::pre].dir = true;
     locate_touchable_ = true;
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
