@@ -130,9 +130,11 @@ celeritas_add_test(rasterize/Color.test.cc)
 celeritas_add_test(rasterize/Image.test.cc)
 celeritas_add_test(rasterize/Raytracer.test.cc)
 
-# In that very specific case (which is the one used in Athena integration) this test fails to link
-# as geocel seems to be removed by the linker (--no-as-needed default?) 
-if( NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA AND NOT CELERITAS_USE_PNG AND NOT BUILD_SHARED_LIBS))
+# In that very specific case (which is the one used in Athena integration) 
+# this test fails to link as geocel seems to be removed by the linker
+# https://github.com/celeritas-project/celeritas/pull/1498
+if( NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA 
+    AND NOT CELERITAS_USE_PNG AND NOT BUILD_SHARED_LIBS))
   celeritas_add_test(rasterize/ImageWriter.test.cc ${_needs_png})
 endif()
 #-----------------------------------------------------------------------------#
