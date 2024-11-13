@@ -23,10 +23,8 @@ namespace celeritas
  */
 struct FourVector
 {
-    //// DATA ////
-
     Real3 mom{0, 0, 0};  //!< Particle momentum
-    real_type energy{0};  //!< Particle energy
+    real_type energy{0};  //!< Particle total energy (\f$\sqrt{p^2 + m^2}\f$)
 
     // Assignment operator (+=)
     inline CELER_FUNCTION FourVector& operator+=(FourVector const& v)
@@ -91,4 +89,5 @@ inline CELER_FUNCTION real_type norm(FourVector const& a)
     return std::sqrt(std::fabs(ipow<2>(a.energy) - dot_product(a.mom, a.mom)));
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

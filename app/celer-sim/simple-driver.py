@@ -83,8 +83,9 @@ if not use_device:
 
 # TODO: Update once tracking loop is implemented
 optical_options = {
+    'num_track_slots': num_tracks,
     'buffer_capacity': 3 * max_steps * num_tracks,
-    'primary_capacity': num_tracks,
+    'initializer_capacity': num_tracks,
     'auto_flush': 2**31, # Large enough to never launch optical loop
 }
 
