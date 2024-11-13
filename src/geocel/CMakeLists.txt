@@ -26,15 +26,19 @@ list(APPEND SOURCES
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
 
+set(_geocel_imgwriter_libs Celeritas::corecel)
+set(_geocel_imgwriter_src)
 if(CELERITAS_USE_PNG)
-  celeritas_add_object_library(geocel_png
-    rasterize/ImageWriter.libpng.cc
-  )
-  celeritas_target_link_libraries(geocel_png PRIVATE PNG::PNG Celeritas::corecel)
+  list(APPEND _geocel_imgwriter_src rasterize/ImageWriter.libpng.cc)
+  list(APPEND _geocel_imgwriter_libs PNG::PNG)
 
-  list(APPEND SOURCES $<TARGET_OBJECTS:geocel_png>)
-  list(APPEND PRIVATE_DEPS geocel_png)
+else()
+  list(APPEND _geocel_imgwriter_src rasterize/ImageWriter.cc)
 endif()
+celeritas_add_object_library(geocel_imgwriter ${_geocel_imgwriter_src})
+celeritas_target_link_libraries(geocel_imgwriter PRIVATE ${_geocel_imgwriter_libs})
+list(APPEND SOURCES $<TARGET_OBJECTS:geocel_imgwriter>)
+list(APPEND PRIVATE_DEPS geocel_imgwriter)
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
   celeritas_add_object_library(geocel_g4vg
