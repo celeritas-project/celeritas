@@ -205,8 +205,9 @@ void HitManager::setup_volumes(GeoParams const& geo,
                            os << '"' << lv->GetName() << '"';
                        })
         << " while mapping sensitive detectors");
-    CELER_VALIDATE(!found_id_lv.empty(),
-                   << "no sensitive detectors were found");
+    CELER_VALIDATE(
+        !found_id_lv.empty(),
+        << R"(no G4 sensitive detectors are defined: set `SetupOptions.sd.enabled` to `false` if this is expected)");
 
     // Unfold map into LV/ID vectors
     VecLV geant_vols;

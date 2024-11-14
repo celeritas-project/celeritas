@@ -40,6 +40,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
     {
         sd_setup_.enabled = true;
         sd_setup_.ignore_zero_deposition = false;
+        sd_setup_.track = false;
     }
 
     SPConstGeoI build_fresh_geometry(std::string_view basename) override

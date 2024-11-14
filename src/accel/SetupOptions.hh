@@ -49,22 +49,22 @@ struct SDSetupOptions
 {
     struct StepPoint
     {
-        bool global_time{false};
-        bool position{false};
-        bool direction{false};  //!< AKA momentum direction
-        bool kinetic_energy{false};
+        bool global_time{true};
+        bool position{true};
+        bool direction{true};  //!< AKA momentum direction
+        bool kinetic_energy{true};
     };
 
     //! Call back to Geant4 sensitive detectors
-    bool enabled{false};
+    bool enabled{true};
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
     //! Save energy deposition
     bool energy_deposition{true};
     //! Set TouchableHandle for PreStepPoint
-    bool locate_touchable{false};
+    bool locate_touchable{true};
     //! Create a track with the dynamic particle type and post-step data
-    bool track{false};
+    bool track{true};
     //! Options for saving and converting beginning-of-step data
     StepPoint pre;
     //! Options for saving and converting end-of-step data
