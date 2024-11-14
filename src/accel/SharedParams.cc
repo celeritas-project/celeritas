@@ -613,7 +613,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
     if (options.sd)
     {
         hit_manager_
-            = std::make_shared<detail::HitManager>(*params_->geometry(),
+            = std::make_shared<detail::HitManager>(params_->geometry(),
                                                    *params_->particle(),
                                                    options.sd,
                                                    params_->max_streams());

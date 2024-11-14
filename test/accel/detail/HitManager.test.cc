@@ -90,7 +90,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
     HitManager make_hit_manager(bool make_hit_proc = true)
     {
         CELER_EXPECT(!processor_);
-        HitManager result(*this->geometry(), *this->particle(), sd_setup_, 1);
+        HitManager result(this->geometry(), *this->particle(), sd_setup_, 1);
 
         if (make_hit_proc)
         {

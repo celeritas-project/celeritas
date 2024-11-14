@@ -33,6 +33,7 @@
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
+#include "LevelTouchableUpdater.hh"
 #include "NaviTouchableUpdater.hh"
 
 namespace celeritas
@@ -44,18 +45,14 @@ namespace detail
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
+                           SPConstGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            bool locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
-    CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
-                   << "cannot set 'locate_touchable' because the pre-step "
-                      "position is not being collected");
-    CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
-                   << "cannot set 'locate_touchable' because the pre-step "
-                      "position is not being collected");
+    CELER_EXPECT(geo);
 
     CELER_LOG_LOCAL(debug) << "Setting up hit processor for "
                            << detector_volumes_->size()
@@ -90,14 +87,23 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 #undef HP_CLEAR_STEP_POINT
     if (locate_touchable)
     {
-        CELER_ASSERT(selection.points[StepPoint::pre].pos
-                     && selection.points[StepPoint::pre].dir);
-
-        // Create navigator
+        // Create touchable updater
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
-        update_touchable_
-            = std::make_unique<NaviTouchableUpdater>(detector_volumes_);
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            // ORANGE doesn't yet support level reconstruction: see
+            // HitManager.cc
+            CELER_EXPECT(selection.points[StepPoint::pre].pos
+                         && selection.points[StepPoint::pre].dir);
+            update_touchable_
+                = std::make_unique<NaviTouchableUpdater>(detector_volumes_);
+        }
+        else
+        {
+            CELER_EXPECT(selection.points[StepPoint::pre].volume_instance_ids);
+            update_touchable_ = std::make_unique<LevelTouchableUpdater>(geo);
+        }
     }
 
     // Create track if user requested particle types
@@ -178,8 +184,6 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
 void HitProcessor::operator()(DetectorStepOutput const& out) const
 {
     CELER_EXPECT(!out.detector.empty());
-    CELER_ASSERT(!update_touchable_ || !out.points[StepPoint::pre].pos.empty());
-    CELER_ASSERT(!update_touchable_ || !out.points[StepPoint::pre].dir.empty());
     CELER_ASSERT(tracks_.empty() || !out.particle.empty());
 
     ScopedProfiling profile_this{"process-hits"};

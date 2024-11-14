@@ -211,9 +211,13 @@ auto Converter::operator()(arg_type g4world) -> result_type
     VGLogicalVolume* world_lv
         = this->build_with_daughters(g4world->GetLogicalVolume());
     auto trans = build_transform(*convert_transform_, *g4world);
+    auto* world_pv = world_lv->Place(g4world->GetName().c_str(), &trans);
+    CELER_ASSERT(world_pv);
+    CELER_ASSERT(world_pv->id() == placed_volumes_.size());
+    placed_volumes_.push_back(g4world);
 
     result_type result;
-    result.world = world_lv->Place(g4world->GetName().c_str(), &trans);
+    result.world = world_pv;
     result.logical_volumes = convert_lv_->make_volume_map();
     result.physical_volumes = std::move(placed_volumes_);
 

@@ -101,7 +101,7 @@ if(CELERITAS_USE_VecGeom)
     set(_vecgeom_tests DISABLE)
   endif()
   celeritas_add_device_test(vg/Vecgeom
-    LINK_LIBRARIES VecGeom::vecgeom
+    LINK_LIBRARIES VecGeom::vecgeom ${_g4_geo_libs}
     FILTER ${_vecgeom_tests}
     ${_fixme_cgs}
   )

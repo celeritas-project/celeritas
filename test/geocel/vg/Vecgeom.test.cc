@@ -29,6 +29,10 @@
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
 
+#if CELERITAS_USE_GEANT4
+#    include <G4VPhysicalVolume.hh>
+#endif
+
 namespace celeritas
 {
 namespace test
@@ -1376,6 +1380,25 @@ TEST_F(MultiLevelGeantTest, accessors)
         "world_PV",
     };
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+
+    auto g4names = [&geo] {
+        std::vector<std::string> result;
+        for (auto viid : range(VolumeInstanceId{geo.volume_instances().size()}))
+        {
+#if CELERITAS_USE_GEANT4
+            if (auto* g4pv = geo.id_to_pv(viid))
+            {
+                result.push_back(g4pv->GetName());
+            }
+            else
+#endif
+            {
+                result.push_back("<NULL>");
+            }
+        }
+        return result;
+    }();
+    EXPECT_VEC_EQ(expected_vol_inst_names, g4names);
 }
 
 //---------------------------------------------------------------------------//
