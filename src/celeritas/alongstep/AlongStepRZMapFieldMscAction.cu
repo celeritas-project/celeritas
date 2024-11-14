@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/AlongStepRZMapFieldMscAction.cu
+//! \file celeritas/alongstep/AlongStepRZMapFieldMscAction.cu
 //---------------------------------------------------------------------------//
 #include "AlongStepRZMapFieldMscAction.hh"
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/AlongStep.hh
+//! \file celeritas/alongstep/AlongStep.hh
 //! \brief Along-step function and helper classes
 //---------------------------------------------------------------------------//
 #pragma once

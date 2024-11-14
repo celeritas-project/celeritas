@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/UniformFieldPropagatorFactory.hh
+//! \file celeritas/alongstep/detail/UniformFieldPropagatorFactory.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
