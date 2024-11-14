@@ -15,12 +15,12 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
+#include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 

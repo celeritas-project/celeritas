@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/AlongStepGeneralLinearAction.hh
+//! \file celeritas/alongstep/AlongStepRZMapFieldMscAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,6 +15,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/field/RZMapFieldData.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas
@@ -24,39 +26,36 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
+struct RZMapFieldInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Along-step kernel for particles without fields.
- *
- * This kernel is for problems without EM fields, for particle types that may
- * have (but do not *need* to have) along-step energy loss, optional energy
- * fluctuation, and optional multiple scattering.
+ * Along-step kernel with MSC, energy loss fluctuations, and a RZMapField.
  */
-class AlongStepGeneralLinearAction final : public CoreStepActionInterface
+class AlongStepRZMapFieldMscAction final : public CoreStepActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
+    using SPConstFieldParams = std::shared_ptr<RZMapFieldParams const>;
     //!@}
 
   public:
-    static std::shared_ptr<AlongStepGeneralLinearAction>
+    static std::shared_ptr<AlongStepRZMapFieldMscAction>
     from_params(ActionId id,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
+                RZMapFieldInput const& field_input,
                 SPConstMsc const& msc,
                 bool eloss_fluctuation);
 
-    // Construct with next action ID, and optional EM energy fluctuation
-    AlongStepGeneralLinearAction(ActionId id,
+    // Construct with next action ID and physics properties
+    AlongStepRZMapFieldMscAction(ActionId id,
+                                 RZMapFieldInput const& input,
                                  SPConstFluctuations fluct,
                                  SPConstMsc msc);
-
-    // Default destructor
-    ~AlongStepGeneralLinearAction();
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -67,16 +66,13 @@ class AlongStepGeneralLinearAction final : public CoreStepActionInterface
     //! ID of the model
     ActionId action_id() const final { return id_; }
 
-    //! Short name for the along-step kernel
-    std::string_view label() const final
-    {
-        return "along-step-general-linear";
-    }
+    //! Short name for the interaction kernel
+    std::string_view label() const final { return "along-step-rzmap-msc"; }
 
     //! Short description of the action
     std::string_view description() const final
     {
-        return "apply along-step for particles with no field";
+        return "apply along-step in a R-Z map field with Urban MSC";
     }
 
     //! Dependency ordering of the action
@@ -90,23 +86,15 @@ class AlongStepGeneralLinearAction final : public CoreStepActionInterface
     //! Whether MSC is in use
     bool has_msc() const { return static_cast<bool>(msc_); }
 
+    //! Field map data
+    SPConstFieldParams const& field() const { return field_; }
+
   private:
     ActionId id_;
+    SPConstFieldParams field_;
     SPConstFluctuations fluct_;
     SPConstMsc msc_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
-#if !CELER_USE_DEVICE
-inline void
-AlongStepGeneralLinearAction::step(CoreParams const&, CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

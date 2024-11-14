@@ -3,14 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/RZMapFieldPropagatorFactory.hh
+//! \file celeritas/alongstep/detail/UniformFieldPropagatorFactory.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/MakeMagFieldPropagator.hh"
-#include "celeritas/field/RZMapField.hh"  // IWYU pragma: associated
-#include "celeritas/field/RZMapFieldData.hh"  // IWYU pragma: associated
+#include "corecel/Macros.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"  // IWYU pragma: associated
+#include "celeritas/field/MakeMagFieldPropagator.hh"  // IWYU pragma: associated
+#include "celeritas/field/UniformField.hh"  // IWYU pragma: associated
+#include "celeritas/field/UniformFieldData.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -18,14 +19,18 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Propagate a track in an RZ map magnetic field.
+ * Propagate a track in a uniform magnetic field.
  */
-struct RZMapFieldPropagatorFactory
+struct UniformFieldPropagatorFactory
 {
+#if CELER_USE_DEVICE
+    inline static constexpr int max_block_size = 256;
+#endif
+
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
         return make_mag_field_propagator<DormandPrinceStepper>(
-            RZMapField{field},
+            UniformField(field.field),
             field.options,
             track.make_particle_view(),
             track.make_geo_view());
@@ -35,7 +40,7 @@ struct RZMapFieldPropagatorFactory
 
     //// DATA ////
 
-    NativeCRef<RZMapFieldParamsData> field;
+    UniformFieldParams field;
 };
 
 //---------------------------------------------------------------------------//
