@@ -84,6 +84,7 @@ list(APPEND SOURCES
   optical/ImportedModelAdapter.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
+  optical/PhysicsParams.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/WavelengthShiftParams.cc
