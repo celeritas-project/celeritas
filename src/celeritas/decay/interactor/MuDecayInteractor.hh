@@ -117,11 +117,12 @@ class MuDecayInteractor
 /*!
  * Construct with shared and state data.
  *
- * \note Geant4 physics manual defines E_{max} = m_\mu / 2, while the source
- * code (since v10.2.0 at least) defines E_{max} = m_\mu / 2 - m_e . The source
- * code implementation leads to a total CM energy of ~104.6 MeV instead of the
- * expected 105.7 MeV (muon mass), which is achieved by using the physics
- * manual definition.
+ * \note Geant4 physics manual defines \f$ E_{max} = m_\mu / 2 \f$,
+ * while the source code (since v10.2.0 at least) defines
+ * \f$ E_{max} = m_\mu / 2 - m_e \f$ .
+ * The source code implementation leads to a total CM energy of ~104.6
+ * MeV instead of the expected 105.7 MeV (muon mass), which is achieved by
+ * using the physics manual definition.
  */
 CELER_FUNCTION
 MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,

@@ -46,7 +46,7 @@ class ProtoConstructorTest : public ::celeritas::test::Test
 
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
-        return std::move(*world.lv);
+        return *world.lv;
     }
 
     LogicalVolume load(std::string const& filename)

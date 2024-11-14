@@ -22,8 +22,8 @@ The following table summarizes the EM processes and models in Celeritas.
    .. table:: Electromagnetic physics processes and models available in Celeritas.
 
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | **Particle**   | **Processes**       |  **Models**                 | **Celeritas Implementation**                        | **Applicability**        |
-      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | Particle       | Processes           |  Models                     | Celeritas Implementation                            | Applicability            |
+      +================+=====================+=============================+=====================================================+==========================+
       | :math:`e^-`    | Ionization          |  Møller                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Seltzer--Berger            | :cpp:class:`celeritas::SeltzerBergerInteractor`     |       0--1 GeV           |
@@ -78,10 +78,10 @@ The following table summarizes the EM processes and models in Celeritas.
       \begin{table}[h]
         \caption{Electromagnetic physics processes and models available in Celeritas.}
         \begin{threeparttable}
-        \begin{tabular}{| l | l | l | l | r | }
-          \hline
-          \textbf{Particle}         & \textbf{Processes}                  & \textbf{Models}      & \textbf{Celeritas Implementation}                           & \textbf{Applicability} \\
-          \hline
+        \begin{tabular}{llllr}
+          \toprule
+          Particle         & Processes                  & Models      & Celeritas Implementation                           & Applicability \\
+          \midrule
           \multirow{4}{*}{$e^-$}    & Ionization                          & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
                                     \cline{2-5}
                                     & \multirow{2}{*}{Bremsstrahlung}     & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}     & 0--1 GeV \\
@@ -128,7 +128,7 @@ The following table summarizes the EM processes and models in Celeritas.
                                     &                                     & Mu Bethe--Bloch      & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 200 keV -- 100 TeV \\
                                     \cline{2-5}
                                     & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
-          \hline
+          \bottomrule
         \end{tabular}
         \end{threeparttable}
       \end{table}
