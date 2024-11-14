@@ -48,6 +48,8 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
     CELER_ASSERT(sim.status() == TrackStatus::initializing
                  || sim.status() == TrackStatus::alive);
     sim.status(TrackStatus::alive);
+
+    // TODO: Calculate physics step limits and total macro xs
 }
 
 //---------------------------------------------------------------------------//

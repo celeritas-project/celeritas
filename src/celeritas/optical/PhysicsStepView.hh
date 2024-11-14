@@ -26,12 +26,15 @@ class PhysicsStepView
   public:
     //!@{
     //! \name Type aliases
+    using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
     using PhysicsStateRef = NativeRef<PhysicsStateData>;
     //!@}
 
   public:
     // Construct from state data for a given track
-    inline CELER_FUNCTION PhysicsStepView(PhysicsStateRef const&, TrackSlotId);
+    inline CELER_FUNCTION PhysicsStepView(PhysicsParamsRef const&,
+                                          PhysicsStateRef const&,
+                                          TrackSlotId);
 
     //// Cross section scrach space ////
 
@@ -46,6 +49,16 @@ class PhysicsStepView
 
     // Retrieve total cross section
     inline CELER_FUNCTION real_type macro_xs() const;
+
+  private:
+    PhysicsParamsRef const& params_;
+    PhysicsStateRef const& state_;
+    TrackSlotId track_id_;
+
+    ItemId<real_type> per_model_xs_id(ModelId) const;
+
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackState const& state() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -55,25 +68,43 @@ class PhysicsStepView
  * Construct from state data for a given track.
  */
 CELER_FUNCTION
-PhysicsStepView::PhysicsStepView(PhysicsStateRef const&, TrackSlotId) {}
+PhysicsStepView::PhysicsStepView(PhysicsParamsRef const& params,
+                                 PhysicsStateRef const& state,
+                                 TrackSlotId track)
+    : params_(params), state_(state), track_id_(track)
+{
+    CELER_EXPECT(track_id_ < state_.states.size());
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Set cross section for a given model.
  */
-CELER_FUNCTION real_type& PhysicsStepView::per_model_xs(ModelId)
+CELER_FUNCTION real_type& PhysicsStepView::per_model_xs(ModelId model)
 {
-    static real_type x;
-    return x;
+    return state_.per_model_xs[this->per_model_xs_id(model)];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Retrieve cross section for a given model.
  */
-CELER_FUNCTION real_type PhysicsStepView::per_model_xs(ModelId) const
+CELER_FUNCTION real_type PhysicsStepView::per_model_xs(ModelId model) const
 {
-    return 0;
+    return state_.per_model_xs[this->per_model_xs_id(model)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the index for per model cross section scratch space.
+ */
+CELER_FUNCTION ItemId<real_type>
+PhysicsStepView::per_model_xs_id(ModelId model) const
+{
+    CELER_EXPECT(model < params_.scalars.num_models);
+    size_type idx = track_id_.get() * params_.scalars.num_models + model.get();
+    CELER_EXPECT(idx < state_.per_model_xs.size());
+    return ItemId<real_type>{idx};
 }
 
 //---------------------------------------------------------------------------//
@@ -82,14 +113,30 @@ CELER_FUNCTION real_type PhysicsStepView::per_model_xs(ModelId) const
  */
 CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
 {
-    return 0;
+    return this->state().macro_xs;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set total cross section.
  */
-CELER_FUNCTION void PhysicsStepView::macro_xs(real_type) {}
+CELER_FUNCTION void PhysicsStepView::macro_xs(real_type xs)
+{
+    this->state().macro_xs = xs;
+}
+
+//---------------------------------------------------------------------------//
+//! Access the state associated with the track
+CELER_FUNCTION PhysicsTrackState& PhysicsStepView::state()
+{
+    return state_.states[track_id_];
+}
+
+//! Access the state associated with the track
+CELER_FUNCTION PhysicsTrackState const& PhysicsStepView::state() const
+{
+    return state_.states[track_id_];
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

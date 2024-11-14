@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/GenericCalculator.hh"
 
 #include "PhysicsData.hh"
 #include "Types.hh"
@@ -18,8 +19,6 @@ namespace celeritas
 {
 namespace optical
 {
-using ValueGridId = OpaqueId<struct ValueGrid>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Optical physics data for a track.
@@ -85,6 +84,9 @@ class PhysicsTrackView
     PhysicsStateRef const& states_;
     OpticalMaterialId const opt_material_;
     TrackSlotId const track_id_;
+
+    inline CELER_FUNCTION PhysicsTrackState& state();
+    inline CELER_FUNCTION PhysicsTrackState const& state() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,14 +105,17 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
     , opt_material_(opt_mat)
     , track_id_(track_id)
 {
-    CELER_EXPECT(track_id_);
+    CELER_EXPECT(track_id_ < states_.states.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Reset the currently calculated interaction MFP.
  */
-CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp() {}
+CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
+{
+    this->state().interaction_mfp = 0;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -118,8 +123,7 @@ CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp() {}
  */
 CELER_FUNCTION real_type& PhysicsTrackView::interaction_mfp()
 {
-    static real_type x;
-    return x;
+    return this->state().interaction_mfp;
 }
 
 //---------------------------------------------------------------------------//
@@ -128,7 +132,7 @@ CELER_FUNCTION real_type& PhysicsTrackView::interaction_mfp()
  */
 CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
 {
-    return 0;
+    return this->state().interaction_mfp;
 }
 
 //---------------------------------------------------------------------------//
@@ -137,7 +141,7 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
  */
 CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
 {
-    return false;
+    return this->state().interaction_mfp > 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -146,25 +150,36 @@ CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
  */
 CELER_FUNCTION ModelId::size_type PhysicsTrackView::num_models() const
 {
-    return 0;
+    return params_.scalars.num_models;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert a model ID to an action ID.
  */
-CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId) const
+CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId mid) const
 {
-    return ActionId{};
+    CELER_EXPECT(mid < this->num_models());
+    return ActionId{mid.get() + params_.scalars.model_to_action};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert an action ID to a model ID.
  */
-CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId) const
+CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId aid) const
 {
-    return ModelId{};
+    if (!aid)
+        return ModelId{};
+
+    // Rely on unsigned rollover if action ID is less than the first model
+    ModelId::size_type result = aid.unchecked_get()
+                                - params_.scalars.model_to_action;
+
+    if (result >= this->num_models())
+        return ModelId{};
+
+    return ModelId{result};
 }
 
 //---------------------------------------------------------------------------//
@@ -173,7 +188,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId) const
  */
 CELER_FUNCTION ActionId PhysicsTrackView::discrete_action() const
 {
-    return ActionId{};
+    return params_.scalars.discrete_action();
 }
 
 //---------------------------------------------------------------------------//
@@ -183,9 +198,15 @@ CELER_FUNCTION ActionId PhysicsTrackView::discrete_action() const
  * The grid corresponds to the optical material this track view was
  * constructed with.
  */
-CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId) const
+CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 {
-    return ValueGridId{};
+    CELER_EXPECT(model < params_.mfp_tables.size());
+
+    ValueTable const& table = params_.mfp_tables[model];
+    CELER_EXPECT(opt_material_ < table.size());
+    auto grid_id = table[opt_material_.get()];
+    CELER_ENSURE(grid_id < params_.grids.size());
+    return grid_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -195,9 +216,26 @@ CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId) const
  * Energy is interpolated using \c GenericGridCalculator for the model's
  * MFP grid.
  */
-CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId, Energy) const
+CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
+                                                    Energy energy) const
 {
-    return 0;
+    GenericCalculator calc{params_.grids[this->mfp_grid(model)], params_.reals};
+    real_type result = calc(value_as<Energy>(energy));
+    CELER_ENSURE(result > 0);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Access the state associated with the track
+CELER_FUNCTION PhysicsTrackState& PhysicsTrackView::state()
+{
+    return states_.states[track_id_];
+}
+
+//! Access the state associated with the track
+CELER_FUNCTION PhysicsTrackState const& PhysicsTrackView::state() const
+{
+    return states_.states[track_id_];
 }
 
 //---------------------------------------------------------------------------//
