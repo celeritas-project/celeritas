@@ -149,7 +149,8 @@ TEST_F(WavelengthShiftTest, wls_stress)
     int const num_samples = 128;
 
     ScalarPropertyWLS wls_scalars = data_.wls_scalars[material_id_];
-    this->resize_secondaries(num_samples * wls_scalars.mean_num_photons * 4);
+    this->resize_secondaries(
+        num_samples * static_cast<int>(wls_scalars.mean_num_photons) * 4);
     auto& rng_engine = this->rng();
     Real3 const inc_dir = {0, 0, 1};
 
