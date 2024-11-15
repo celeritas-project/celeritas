@@ -16,6 +16,11 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Find volumes by name for SDSetupOptions.
+ *
+ * Example:
+ * \code
+   setup.sd.force_volumes = FindVolumes({"foo", "bar"});
+ * \endcode
  */
 std::unordered_set<G4LogicalVolume const*>
 FindVolumes(std::unordered_set<std::string> names)

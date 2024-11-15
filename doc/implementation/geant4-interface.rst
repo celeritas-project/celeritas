@@ -18,10 +18,12 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
 High-level interface
 --------------------
 
-The SimpleOffload class is an extremely easy-to-use interface for
+The :cpp:class:`celeritas::SimpleOffload` class is an extremely easy-to-use
+interface for
 offloading tracks to Celeritas in a multithreaded or serial application. The
-class names correspond to user actions and ActionInitialization. It requires a
-few app-owned pieces such as SharedParams and LocalTransporter to be owned by
+class names correspond to user actions and ``ActionInitialization``. It
+requires a few app-owned pieces such as :cpp:class:`celeritas::SharedParams`
+and :cpp:class:`celeritas::LocalTransporter` to be owned by
 the calling application; the options described below must also be set up and
 provided.
 
@@ -29,9 +31,9 @@ provided.
    :members:
    :no-link:
 
-The SetupOptionsMessenger can be instantiated with a reference to a global
-SetupOptions instance in order to provide a Geant4 "UI" macro interface to an
-app's Celeritas options.
+The :cpp:class:`SetupOptionsMessenger` can be instantiated with a reference to
+a global :cpp:class:`SetupOptions` instance in order to provide a Geant4 "UI"
+macro interface to an app's Celeritas options.
 
 .. doxygenclass:: celeritas::SetupOptionsMessenger
 
@@ -50,6 +52,8 @@ settings.
 .. doxygenstruct:: celeritas::SDSetupOptions
    :members:
    :no-link:
+
+.. doxygenfunction:: celeritas::FindVolumes
 
 .. doxygenclass:: celeritas::UniformAlongStepFactory
 
