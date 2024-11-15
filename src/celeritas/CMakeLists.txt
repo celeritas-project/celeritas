@@ -84,6 +84,7 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
+  optical/WavelengthShiftParams.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OffloadParams.cc
