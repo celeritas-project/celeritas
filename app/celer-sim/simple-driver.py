@@ -8,7 +8,7 @@
 import json
 import re
 import subprocess
-from os import environ, path
+from os import environ, getcwd, path
 from sys import exit, argv, stderr
 
 try:
@@ -51,11 +51,16 @@ physics_options = {
 
 if geant_exp_exe:
     physics_filename = run_name + ".root"
-    print("Running", geant_exp_exe, file=stderr)
-    result_ge = subprocess.run(
-        [geant_exp_exe, geometry_filename, "-", physics_filename],
-        input=json.dumps(physics_options).encode()
-    )
+    inp_file = f'{run_name}.geant.json'
+    with open(inp_file, 'w') as f:
+        json.dump(physics_options, f, indent=1)
+
+    args = [geant_exp_exe, geometry_filename, inp_file, physics_filename]
+    print("Running", args, file=stderr)
+
+    # Test using stdin instead of filename
+    args[2] = "-"
+    result_ge = subprocess.run(args, input=json.dumps(physics_options).encode())
 
     if result_ge.returncode:
         print(f"fatal: {geant_exp_exe} failed with error {result_ge.returncode}")
@@ -72,7 +77,7 @@ simple_calo = []
 if not rootout_filename and "cms" in geometry_filename:
     simple_calo = ["si_tracker", "em_calorimeter"]
 
-num_tracks = 128*32 if use_device else 32
+num_tracks = 128 * 32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
 max_steps = 512 if physics_options['msc'] else 128
 
@@ -115,14 +120,17 @@ inp = {
     'slot_diagnostic_prefix': f"slot-diag-{run_name}-",
 }
 
-with open(f'{run_name}.inp.json', 'w') as f:
+inp_file = f'{run_name}.inp.json'
+with open(inp_file, 'w') as f:
     json.dump(inp, f, indent=1)
 
 exe = environ.get('CELERITAS_EXE', './celer-sim')
-print("Running", exe, file=stderr)
-result = subprocess.run([exe, '-'],
-                        input=json.dumps(inp).encode(),
-                        stdout=subprocess.PIPE)
+print("Running", exe, inp_file, "from", getcwd(), file=stderr)
+result = subprocess.run(
+    [exe, '-'],
+    input=json.dumps(inp).encode(),
+    stdout=subprocess.PIPE
+)
 if result.returncode:
     print("fatal: run failed with error", result.returncode)
     try:
@@ -130,10 +138,10 @@ if result.returncode:
     except:
         pass
     else:
-        outfilename = f'{run_name}.out.failed.json'
-        with open(outfilename, 'w') as f:
+        out_file = f'{run_name}.out.failed.json'
+        with open(out_file, 'w') as f:
             json.dump(j, f, indent=1)
-        print("Failure written to", outfilename, file=stderr)
+        print("Failure written to", out_file, file=stderr)
 
     exit(result.returncode)
 
@@ -147,10 +155,10 @@ except json.decoder.JSONDecodeError as e:
     print("fatal:", str(e))
     exit(1)
 
-outfilename = f'{run_name}.out.json'
-with open(outfilename, 'w') as f:
+out_file = f'{run_name}.out.json'
+with open(out_file, 'w') as f:
     json.dump(j, f, indent=1)
-print("Results written to", outfilename, file=stderr)
+print("Results written to", out_file, file=stderr)
 
 run_output =j['result']['runner']
 time = run_output['time'].copy()
@@ -161,4 +169,5 @@ if use_device:
 else:
     # Step times disabled on CPU from input
     assert steps is None
+
 print(json.dumps(time, indent=1))

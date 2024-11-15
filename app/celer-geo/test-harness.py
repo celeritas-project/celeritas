@@ -7,8 +7,8 @@
 """
 import json
 import subprocess
-from os import environ
-from sys import exit, argv
+from os import environ, getcwd
+from sys import exit, argv, stderr
 from pathlib import Path
 
 try:
@@ -65,9 +65,8 @@ with open(filename, 'w') as f:
     for c in commands:
         json.dump(c, f)
         f.write('\n')
-print("Wrote input to", filename)
 
-print("Running", exe)
+print("Running", exe, filename, "from", getcwd(), file=stderr)
 result = subprocess.run([exe, filename],
                         stdout=subprocess.PIPE)
 if result.returncode:
