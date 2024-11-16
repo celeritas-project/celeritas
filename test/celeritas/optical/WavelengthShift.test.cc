@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/WavelengthShiftParams.hh"
@@ -22,6 +24,24 @@ namespace optical
 {
 namespace test
 {
+using TimeSecond = celeritas::Quantity<celeritas::units::Second>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Tabulated spectrum as a function of the reemitted photon energy [MeV].
+ */
+Span<real_type const> get_energy()
+{
+    static real_type const energy[] = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
+    return make_span(energy);
+}
+
+Span<real_type const> get_spectrum()
+{
+    static real_type const spectrum[] = {0.15, 0.25, 0.50, 0.40, 0.02};
+    return make_span(spectrum);
+}
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -36,11 +56,11 @@ class WavelengthShiftTest : public InteractorHostTestBase
         // Build wavelength shift (WLS) property data from a test input
         ImportWavelengthShift wls;
         wls.mean_num_photons = 2;
-        wls.time_constant = 1 * units::nanosecond;
+        wls.time_constant = native_value_from(TimeSecond(1e-9));
         // Reemitted photon energy range (visible light)
-        wls.component.x = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
+        wls.component.x = {get_energy().begin(), get_energy().end()};
         // Reemitted photon energy spectrum
-        wls.component.y = {0.15, 0.25, 0.50, 0.40, 0.02};
+        wls.component.y = {get_spectrum().begin(), get_spectrum().end()};
         wls.component.vector_type = ImportPhysicsVectorType::free;
 
         WavelengthShiftParams::Input input;
