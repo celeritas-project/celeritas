@@ -80,10 +80,10 @@ class WavelengthShiftTest : public InteractorHostTestBase
 
 TEST_F(WavelengthShiftTest, data)
 {
-    // Test the scalar properties of WLS
-    ScalarPropertyWLS wls_scalars = data_.wls_scalars[material_id_];
-    EXPECT_SOFT_EQ(2, wls_scalars.mean_num_photons);
-    EXPECT_SOFT_EQ(1 * units::nanosecond, wls_scalars.time_constant);
+    // Test the material properties of WLS
+    WlsMaterialRecord wls_record = data_.wls_record[material_id_];
+    EXPECT_SOFT_EQ(2, wls_record.mean_num_photons);
+    EXPECT_SOFT_EQ(1 * units::nanosecond, wls_record.time_constant);
 
     // Test the vector property (emission spectrum) of WLS
     auto const& grid = data_.energy_cdf[material_id_];
@@ -168,9 +168,9 @@ TEST_F(WavelengthShiftTest, wls_stress)
 {
     int const num_samples = 128;
 
-    ScalarPropertyWLS wls_scalars = data_.wls_scalars[material_id_];
+    WlsMaterialRecord wls_record = data_.wls_record[material_id_];
     this->resize_secondaries(
-        num_samples * static_cast<int>(wls_scalars.mean_num_photons) * 4);
+        num_samples * static_cast<int>(wls_record.mean_num_photons) * 4);
     auto& rng_engine = this->rng();
     Real3 const inc_dir = {0, 0, 1};
 

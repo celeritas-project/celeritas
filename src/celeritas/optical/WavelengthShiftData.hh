@@ -21,10 +21,10 @@ namespace optical
 /*!
  * Material dependent scalar property of wavelength shift (WLS).
  */
-struct ScalarPropertyWLS
+struct WlsMaterialRecord
 {
     real_type mean_num_photons{};  //!< Mean number of reemitted photons
-    real_type time_constant{};  //!< Time delay of WLS // units::nanosecond
+    real_type time_constant{};  //!< Time delay of WLS [time]
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -47,7 +47,7 @@ struct WavelengthShiftData
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<ScalarPropertyWLS> wls_scalars;
+    OpticalMaterialItems<WlsMaterialRecord> wls_record;
 
     // Grid energy tabulated as a function of the cumulative probability.
     OpticalMaterialItems<GenericGridRecord> energy_cdf;
@@ -60,7 +60,7 @@ struct WavelengthShiftData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !wls_scalars.empty() && !energy_cdf.empty() && !reals.empty();
+        return !wls_record.empty() && !energy_cdf.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -68,7 +68,7 @@ struct WavelengthShiftData
     WavelengthShiftData& operator=(WavelengthShiftData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        wls_scalars = other.wls_scalars;
+        wls_record = other.wls_record;
         energy_cdf = other.energy_cdf;
         reals = other.reals;
         return *this;

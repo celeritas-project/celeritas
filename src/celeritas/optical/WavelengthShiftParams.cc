@@ -54,7 +54,7 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
     CELER_EXPECT(input.data.size() > 0);
     HostVal<WavelengthShiftData> data;
 
-    CollectionBuilder wls_scalars{&data.wls_scalars};
+    CollectionBuilder wls_record{&data.wls_record};
     GenericGridInserter insert_energy_cdf(&data.reals, &data.energy_cdf);
     for (auto const& wls : input.data)
     {
@@ -74,11 +74,11 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
                        << "invalid time_constant=" << wls.time_constant
                        << " (should be positive)");
 
-        // Scalar properties
-        ScalarPropertyWLS scalars;
-        scalars.mean_num_photons = wls.mean_num_photons;
-        scalars.time_constant = wls.time_constant;
-        wls_scalars.push_back(scalars);
+        // WLS material properties
+        WlsMaterialRecord record;
+        record.mean_num_photons = wls.mean_num_photons;
+        record.time_constant = wls.time_constant;
+        wls_record.push_back(record);
 
         // Calculate the WLS cumulative probability of the emission spectrum
         std::vector<real_type> cdf(comp_vec.x.size());
