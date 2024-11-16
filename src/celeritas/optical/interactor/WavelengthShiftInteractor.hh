@@ -30,6 +30,16 @@ namespace optical
 /*!
  * Apply the wavelength shift (WLS) to optical photons.
  *
+ * A wavelength shifter absorbs an incident light and reemits secondary lights
+ * isotropically at longer wavelengths. It usually shifts the ultraviolet
+ * region of the radiation spectrum to the visible region, which enhances the
+ * light collection or reduces the self-absorption of the optical production.
+ * The number of the reemited lights follows the Poisson distribution with the
+ * mean number of the characteristic light production which depends on the
+ * optical property of wavelength shifters. The polarization of the reemitted
+ * lights is assumed to be incoherent with respect to the polarization of the
+ * primary optical photon.
+ *
  * \note This performs the same sampling routine as in the G4OpWLS class of
  * the Geant4 release 11.2.
  */
@@ -39,14 +49,14 @@ class WavelengthShiftInteractor
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
-    using WLSDataCRef = NativeCRef<WavelengthShiftData>;
+    using ParamsRef = NativeCRef<WavelengthShiftData>;
     using SecondaryAllocator = StackAllocator<TrackInitializer>;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    WavelengthShiftInteractor(WLSDataCRef const& shared,
+    WavelengthShiftInteractor(ParamsRef const& shared,
                               ParticleTrackView const& particle,
                               OpticalMaterialId const& mat_id,
                               SecondaryAllocator& allocate);
@@ -78,13 +88,13 @@ class WavelengthShiftInteractor
  */
 CELER_FUNCTION
 WavelengthShiftInteractor::WavelengthShiftInteractor(
-    WLSDataCRef const& shared,
+    ParamsRef const& shared,
     ParticleTrackView const& particle,
     OpticalMaterialId const& mat_id,
     SecondaryAllocator& allocate)
     : inc_energy_(particle.energy())
-    , sample_num_photons_(shared.wls_scalars[mat_id].mean_num_photons)
-    , sample_time_(real_type{1} / shared.wls_scalars[mat_id].time_constant)
+    , sample_num_photons_(shared.wls_record[mat_id].mean_num_photons)
+    , sample_time_(real_type{1} / shared.wls_record[mat_id].time_constant)
     , calc_energy_(shared.energy_cdf[mat_id], shared.reals)
     , calc_cdf_(GenericCalculator::from_inverse(shared.energy_cdf[mat_id],
                                                 shared.reals))
@@ -97,8 +107,8 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Sample the wavelength shift (WLS) photons as in G4OpWLS of the Geant4
- * release 11.2.
+ * Sampling the wavelength shift (WLS) photons as in G4OpWLS of the Geant4
+ * release 11.2 with a modification in sampling the reemission spectrum.
  */
 template<class Engine>
 CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
