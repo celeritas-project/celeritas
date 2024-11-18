@@ -14,23 +14,23 @@
 #include "MaterialParams.hh"
 #include "MfpBuilder.hh"
 #include "Model.hh"
+#include "action/DiscreteSelectAction.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 //---------------------------------------------------------------------------//
-class DiscreteSelectAction : public ConcreteAction
-{
-  public:
-    DiscreteSelectAction(ActionId id)
-        : ConcreteAction(id,
-                         "optical-discrete-select",
-                         "Optical discrete selection action")
-    {
-    }
-};
-
+/*!
+ * Construct from imported and shared data.
+ *
+ * The following models are first constructed:
+ *  - "discrete-select": sample models by XS for discrete interactions
+ *
+ * Optical models provided by the model builders input are then constructed and
+ * registered in the action registry. Finally, scalar data and MFP tables are
+ * constructed on the physics storage data.
+ */
 PhysicsParams::PhysicsParams(Input input)
 {
     CELER_EXPECT(!input.model_builders.empty());
@@ -57,9 +57,15 @@ PhysicsParams::PhysicsParams(Input input)
 
     this->build_mfps(*input.materials, data);
 
+    CELER_ENSURE(data);
+
     data_ = CollectionMirror<PhysicsParamsData>{std::move(data)};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct optical models and register them in the given registry.
+ */
 auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
                                  ActionRegistry& action_reg) const -> VecModels
 {
@@ -82,18 +88,24 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
     return models;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Build MFP tables for each model in the host data.
+ */
 void PhysicsParams::build_mfps(MaterialParams const& mats, HostValue& data) const
 {
     auto build_table = make_builder(&data.mfp_tables);
 
     for (auto const& model : models_)
     {
+        // Build all MFP tables for the model
         MfpBuilder builder(&data.reals, &data.grids);
         for (auto opt_mat : range(OpticalMaterialId{mats.num_materials()}))
         {
             model->build_mfps(opt_mat, builder);
         }
 
+        // Build the MFP table from the grid IDs
         ValueTable table = builder.grid_ids();
         CELER_ASSERT(table.size() == mats.num_materials());
 
