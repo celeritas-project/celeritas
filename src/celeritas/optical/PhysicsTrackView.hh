@@ -36,6 +36,11 @@ class PhysicsTrackView
     using Energy = units::MevEnergy;
     //!@}
 
+    //! Data for initializing a physics track
+    struct Initializer
+    {
+    };
+
   public:
     // Construct from params, state, and material ID for a given track
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const&,
@@ -43,13 +48,16 @@ class PhysicsTrackView
                                            OpticalMaterialId,
                                            TrackSlotId);
 
+    // Initialize the physics for the track
+    inline CELER_FUNCTION PhysicsTrackView& operator=(Initializer const&);
+
     //// Discrete interaction mean free path ////
 
     // Reset the currently calculated MFP
     inline CELER_FUNCTION void reset_interaction_mfp();
 
-    // Get the current MFP
-    inline CELER_FUNCTION real_type& interaction_mfp();
+    // Change the interaction MFP
+    inline CELER_FUNCTION void interaction_mfp(real_type);
 
     // Get the current MFP
     inline CELER_FUNCTION real_type interaction_mfp() const;
@@ -110,6 +118,16 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize the physics for the given track.
+ */
+CELER_FUNCTION PhysicsTrackView& PhysicsTrackView::operator=(Initializer const&)
+{
+    this->reset_interaction_mfp();
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset the currently calculated interaction MFP.
  */
 CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
@@ -121,9 +139,9 @@ CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
 /*!
  * Retrieve the interaction mean free path.
  */
-CELER_FUNCTION real_type& PhysicsTrackView::interaction_mfp()
+CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type mfp)
 {
-    return this->state().interaction_mfp;
+    this->state().interaction_mfp = mfp;
 }
 
 //---------------------------------------------------------------------------//

@@ -32,7 +32,10 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
-
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+// Mock grids for 4 models and 7 optical materials.
 template<class Functor>
 std::vector<std::vector<std::vector<real_type>>>
 build_expected_grids(Functor const& f)
@@ -62,6 +65,7 @@ build_expected_grids(Functor const& f)
     return grids;
 }
 
+// Mock MFP grid energies for given material and model
 Span<real_type const>
 expected_mfp_energy_grid(OpticalMaterialId mat, ModelId model)
 {
@@ -80,6 +84,7 @@ expected_mfp_energy_grid(OpticalMaterialId mat, ModelId model)
     return make_span(grids[model.get()][mat.get()]);
 }
 
+// Mock MFP grid values (the path lenghts) for given material and model
 Span<real_type const>
 expected_mfp_value_grid(OpticalMaterialId mat, ModelId model)
 {
@@ -97,13 +102,14 @@ expected_mfp_value_grid(OpticalMaterialId mat, ModelId model)
     return make_span(grids[model.get()][mat.get()]);
 }
 
+// Mock model that builds MFP grids from the above test data
 class MockModel : public Model
 {
   public:
     MockModel(ActionId id)
         : Model(id,
                 "mock-" + std::to_string(id.get()),
-                "mock desc " + std::to_string(id.get()))
+                "mock-description-" + std::to_string(id.get()))
     {
     }
 
@@ -131,13 +137,16 @@ struct MockModelBuilder : public ModelBuilder
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class DiscreteSelectActionTest : public ::celeritas::test::Test
+class OpticalPhysicsTest : public ::celeritas::test::Test
 {
   protected:
+    //!@{
+    //! \name Type aliases
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    //!@}
 
     ModelId::size_type const num_models = 4;
     OpticalMaterialId::size_type const num_materials = 7;
@@ -198,6 +207,8 @@ class DiscreteSelectActionTest : public ::celeritas::test::Test
 
     SPConstMaterials build_material_params() const
     {
+        // Only need MaterialParams for number of materials;
+        // refractive indices will be unused.
         MaterialParams::Input input;
         ImportPhysicsVector v{ImportPhysicsVectorType::free,
                               std::vector<double>{1, 2},
@@ -261,15 +272,58 @@ class DiscreteSelectActionTest : public ::celeritas::test::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+// Test optical physics parameter accessors.
+TEST_F(OpticalPhysicsTest, physics_params)
+{
+    auto const& params = *this->physics_params();
+
+    EXPECT_EQ(num_models, params.num_models());
+
+    // Collect built model metadata
+    std::vector<std::string_view> model_names;
+    std::vector<std::string_view> model_descs;
+    std::set<ActionId> action_ids;
+    for (auto m_id : range(ModelId{params.num_models()}))
+    {
+        auto const& model = params.model(m_id);
+
+        ASSERT_TRUE(model);
+
+        model_names.push_back(model->label());
+        model_descs.push_back(model->description());
+        action_ids.insert(model->action_id());
+    }
+
+    // Check model names
+    static std::string_view expected_names[]
+        = {"mock-1", "mock-2", "mock-3", "mock-4"};
+    EXPECT_VEC_EQ(expected_names, model_names);
+
+    // Check model descriptions
+    static std::string_view expected_descs[] = {"mock-description-1",
+                                                "mock-description-2",
+                                                "mock-description-3",
+                                                "mock-description-4"};
+    EXPECT_VEC_EQ(expected_descs, model_descs);
+
+    // Check model actions
+    EXPECT_EQ(params.num_models(), action_ids.size());
+    for (auto action_id : params.model_actions())
+    {
+        EXPECT_EQ(1, action_ids.count(action_id));
+    }
+}
+
+//---------------------------------------------------------------------------//
 // Test sampling discrete interactions by per model cross sections
-TEST_F(DiscreteSelectActionTest, select_discrete)
+TEST_F(OpticalPhysicsTest, select_discrete)
 {
     PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{3});
     PhysicsStepView pstep = this->make_step_view();
     auto& rng_engine = this->rng();
 
     // Populate XS scratch space used for each model
-    physics.interaction_mfp() = 0;
+    physics = PhysicsTrackView::Initializer{};
     real_type total_xs = 0;
     static real_type model_xs[] = {1.3, 4.7, 2.1, 3.2};
     for (auto model : range(ModelId{num_models}))
@@ -308,7 +362,7 @@ TEST_F(DiscreteSelectActionTest, select_discrete)
 
 //---------------------------------------------------------------------------//
 // Test expected step limits and calculation cross sections
-TEST_F(DiscreteSelectActionTest, calc_step_limits)
+TEST_F(OpticalPhysicsTest, calc_step_limits)
 {
     PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{2});
     PhysicsStepView pstep = this->make_step_view();
@@ -333,7 +387,7 @@ TEST_F(DiscreteSelectActionTest, calc_step_limits)
          0.0010868566672318657,
          0.0006310511934242025}};
 
-    physics.interaction_mfp() = 100;
+    physics.interaction_mfp(100);
 
     for (auto i : range(energies.size()))
     {
@@ -362,7 +416,7 @@ TEST_F(DiscreteSelectActionTest, calc_step_limits)
 
 //---------------------------------------------------------------------------//
 // Test model-action accessors of track views
-TEST_F(DiscreteSelectActionTest, track_view_actions)
+TEST_F(OpticalPhysicsTest, track_view_actions)
 {
     // Note that there shouldn't be material or track dependence on the
     // model-action accessors
@@ -381,7 +435,7 @@ TEST_F(DiscreteSelectActionTest, track_view_actions)
 
 //---------------------------------------------------------------------------//
 // Test interaction MFP methods of track view
-TEST_F(DiscreteSelectActionTest, track_view_interaction_mfp)
+TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
 {
     TrackSlotId::size_type num_tracks = 10;
     this->initialize_states(num_tracks);
@@ -407,7 +461,7 @@ TEST_F(DiscreteSelectActionTest, track_view_interaction_mfp)
     for (auto track : range(TrackSlotId{num_tracks}))
     {
         auto physics = this->make_track_view(cycle_material_id(track), track);
-        physics.interaction_mfp() = expected_interaction_mfps[track.get()];
+        physics.interaction_mfp(expected_interaction_mfps[track.get()]);
     }
 
     std::vector<real_type> interaction_mfps;
@@ -439,7 +493,7 @@ TEST_F(DiscreteSelectActionTest, track_view_interaction_mfp)
 
 //---------------------------------------------------------------------------//
 // Test physics step view cross section scratch space
-TEST_F(DiscreteSelectActionTest, step_view_xs_scratch)
+TEST_F(OpticalPhysicsTest, step_view_xs_scratch)
 {
     TrackSlotId::size_type num_tracks = 10;
     this->initialize_states(num_tracks);
@@ -501,12 +555,12 @@ TEST_F(DiscreteSelectActionTest, step_view_xs_scratch)
 }
 
 //---------------------------------------------------------------------------//
-/* Test MFP grid ID access by track views
+/* Test MFP grid ID access by track views.
  *
  * Valid grid construction tested by \c MfpBuilder tests. Here we just check
  * that grids retrieved by the track view correspond to the expected data.
  */
-TEST_F(DiscreteSelectActionTest, track_view_grids)
+TEST_F(OpticalPhysicsTest, track_view_grids)
 {
     TrackSlotId::size_type num_tracks = 10;
     this->initialize_states(num_tracks);

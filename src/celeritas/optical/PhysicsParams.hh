@@ -17,7 +17,6 @@
 namespace celeritas
 {
 class ActionRegistry;
-class ConcreteAction;
 
 namespace optical
 {
@@ -47,7 +46,17 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     };
 
   public:
+    // Construct from models
     explicit PhysicsParams(Input input);
+
+    //! Number of optical models
+    inline ModelId::size_type num_models() const { return models_.size(); }
+
+    // Get an optical model
+    inline SPConstModel model(ModelId mid) const;
+
+    // Get the action IDs for all models
+    inline ActionIdRange model_actions() const;
 
     //! Access optical physics data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -56,7 +65,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    using SPAction = std::shared_ptr<ConcreteAction const>;
+    using SPAction = std::shared_ptr<StaticConcreteAction const>;
     using HostValue = HostVal<PhysicsParamsData>;
 
     // Actions
@@ -73,6 +82,28 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     void build_mfps(MaterialParams const& mats, HostValue& data) const;
     //!@}
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get an optical model associated with the given model identifier.
+ */
+auto PhysicsParams::model(ModelId mid) const -> SPConstModel
+{
+    CELER_EXPECT(mid < this->num_models());
+    return models_[mid.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action identifierss for all optical models.
+ */
+auto PhysicsParams::model_actions() const -> ActionIdRange
+{
+    auto offset = host_ref().scalars.model_to_action;
+    return {ActionId{offset}, ActionId{offset + this->num_models()}};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
