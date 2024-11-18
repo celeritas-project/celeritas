@@ -8,7 +8,7 @@ Run celer-g4.
 import json
 import re
 import subprocess
-from os import environ, path
+from os import environ, getcwd, path
 from pprint import pprint
 from sys import exit, argv, stderr
 
@@ -96,10 +96,11 @@ if ext == "cpu-nonfatal":
     })
 
 kwargs = {}
+args = [exe, inp_file]
 if use_celeritas:
     # IO through streams should work with celeritas or g4 as driver, but just
     # do it here as an example
-    inp_file = "-"
+    args = [exe, inp_file]
     inp["output_file"] = "-"
     inp["slot_diagnostic_prefix"] = f"slot-diag-{ext}-"
 
@@ -110,13 +111,11 @@ if use_celeritas:
         env=env,
     )
 
-print(inp)
-
-with open(f"{problem_name}.inp.json", "w") as f:
+with open(inp_file, "w") as f:
     json.dump(inp, f, indent=1)
 
-print("Running", exe, inp_file, file=stderr)
-result = subprocess.run([exe, inp_file], **kwargs)
+print("Running", exe, inp_file, "from", getcwd(), file=stderr)
+result = subprocess.run(args, **kwargs)
 
 if use_celeritas:
     # Decode the output, fail if the run failed
@@ -139,10 +138,10 @@ if result.returncode:
         except:
             pass
         else:
-            outfilename = f'{problem_name}.out.failed.json'
-            with open(outfilename, 'w') as f:
+            out_file = f'{problem_name}.out.failed.json'
+            with open(out_file, 'w') as f:
                 json.dump(j, f, indent=1)
-            print("Failure written to", outfilename, file=stderr)
+            print("Failure written to", out_file, file=stderr)
             j = {}
 
     exit(result.returncode)
