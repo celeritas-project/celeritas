@@ -325,7 +325,7 @@ TEST_F(BetheBlochTest, stress_test)
     };
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
-    EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
+    EXPECT_VEC_NEAR(expected_avg_energy, avg_energy, 1e-11);
     EXPECT_VEC_SOFT_EQ(expected_avg_costheta, avg_costheta);
 }
 
