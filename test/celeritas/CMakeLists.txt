@@ -124,6 +124,7 @@ celeritas_add_test(Units.test.cc)
 
 # Distributions
 celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
+celeritas_add_test(em/distribution/MuBremsPPAngularDistribution.test.cc ${_needs_double})
 celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Cross section calculation

@@ -14,6 +14,7 @@
 
 namespace celeritas
 {
+struct ImportPhysics2DVector;
 //---------------------------------------------------------------------------//
 /*!
  * Construct a generic 2D grid.
@@ -43,6 +44,9 @@ class TwodGridBuilder
     // Add a 2D grid of generic data with linear interpolation
     TwodGrid
     operator()(SpanConstDbl grid_x, SpanConstDbl grid_y, SpanConstDbl values);
+
+    // Add a grid from an imported physics vector
+    TwodGrid operator()(ImportPhysics2DVector const&);
 
   private:
     DedupeCollectionBuilder<real_type> reals_;

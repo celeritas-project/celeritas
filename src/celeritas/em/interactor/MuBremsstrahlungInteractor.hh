@@ -14,6 +14,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
+#include "celeritas/em/distribution/MuBremsPPAngularDistribution.hh"
 #include "celeritas/em/xs/MuBremsDiffXsCalculator.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -84,14 +85,6 @@ class MuBremsstrahlungInteractor
     ReciprocalDistribution<> sample_energy_;
     // Envelope distribution for rejection sampling of gamma energy
     real_type envelope_;
-
-    //// CONSTANTS ////
-
-    //// HELPER FUNCTIONS ////
-
-    template<class Engine>
-    inline CELER_FUNCTION real_type sample_cos_theta(real_type gamma_energy,
-                                                     Engine& rng) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -151,33 +144,17 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     } while (RejectionSampler{gamma_energy * calc_dcs_(Energy{gamma_energy}),
                               envelope_}(rng));
 
+    MuBremsPPAngularDistribution sample_costheta(
+        particle_.energy(), particle_.mass(), Energy{gamma_energy});
+
     // Update kinematics of the final state and return this interaction
-    return detail::BremFinalStateHelper(
-        particle_.energy(),
-        inc_direction_,
-        particle_.momentum(),
-        shared_.gamma,
-        Energy{gamma_energy},
-        this->sample_cos_theta(gamma_energy, rng),
-        secondary)(rng);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sample cosine of the angle between incident and secondary particles.
- */
-template<class Engine>
-CELER_FUNCTION real_type MuBremsstrahlungInteractor::sample_cos_theta(
-    real_type gamma_energy, Engine& rng) const
-{
-    real_type gamma = particle_.lorentz_factor();
-    real_type r_max_sq = ipow<2>(
-        gamma * constants::pi * real_type(0.5)
-        * min(real_type(1.0),
-              gamma * value_as<Mass>(particle_.mass()) / gamma_energy - 1));
-    real_type a = generate_canonical(rng) * r_max_sq / (1 + r_max_sq);
-
-    return std::cos(std::sqrt(a / (1 - a)) / gamma);
+    return detail::BremFinalStateHelper(particle_.energy(),
+                                        inc_direction_,
+                                        particle_.momentum(),
+                                        shared_.gamma,
+                                        Energy{gamma_energy},
+                                        sample_costheta(rng),
+                                        secondary)(rng);
 }
 
 //---------------------------------------------------------------------------//
