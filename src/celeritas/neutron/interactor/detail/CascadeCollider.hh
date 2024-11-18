@@ -47,7 +47,6 @@ class CascadeCollider
     //!@{
     //! \name Type aliases
     using FinalState = Array<CascadeParticle, 2>;
-    using MevMass = units::MevMass;
     //!@}
 
   public:
@@ -63,6 +62,8 @@ class CascadeCollider
   private:
     //// TYPES ////
 
+    using Mass = units::MevMass;
+    using Momentum = units::MevMomentum;
     using Grid = NonuniformGrid<real_type>;
     using UniformRealDist = UniformRealDistribution<real_type>;
 
@@ -168,12 +169,11 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     }
 
     // Sample the momentum of outgoing particles in the center of mass frame
-    Real3 mom = cm_p_ * from_spherical(cos_theta, sample_phi_(rng));
-
     // Rotate the momentum along the reference z-axis
-    FourVector fv = {mom,
-                     std::sqrt(dot_product(mom, mom)
-                               + ipow<2>(value_as<MevMass>(bullet_.mass)))};
+    auto fv = FourVector::from_mass_momentum(
+        bullet_.mass,
+        Momentum{cm_p_},
+        from_spherical(cos_theta, sample_phi_(rng)));
 
     // Find the final state of outgoing particles
     FinalState result = {bullet_, target_};
@@ -204,14 +204,13 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     }
     else
     {
-        // Degenerated if velocity perpendicular to the c.m. momentum is small
+        // Degenerate if velocity perpendicular to the c.m. momentum is small
         result[0].four_vec = fv;
     }
 
     result[1].four_vec
         = {{-result[0].four_vec.mom},
-           std::sqrt(dot_product(mom, mom)
-                     + ipow<2>(value_as<MevMass>(target_.mass)))};
+           std::sqrt(ipow<2>(cm_p_) + ipow<2>(value_as<Mass>(target_.mass)))};
 
     // Convert the final state to the lab frame
     for (auto i : range(2))
@@ -232,8 +231,8 @@ CELER_FUNCTION real_type CascadeCollider::calc_cm_p(FourVector const& v) const
     // The total energy in c.m.
     real_type m0 = norm(v);
 
-    real_type m1 = value_as<MevMass>(bullet_.mass);
-    real_type m2 = value_as<MevMass>(target_.mass);
+    real_type m1 = value_as<Mass>(bullet_.mass);
+    real_type m2 = value_as<Mass>(target_.mass);
 
     real_type pc_sq = diffsq(m0, m1 - m2) * diffsq(m0, m1 + m2);
 
