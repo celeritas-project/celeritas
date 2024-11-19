@@ -90,12 +90,6 @@ CMake configuration utility functions for Celeritas.
   Install library that correctly deal with CUDA relocatable device code extra
   libraries.
 
-.. command:: celeritas_add_library
-
-  Add a library that correctly links against CUDA relocatable device code, has
-  the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
-  directory.
-
 .. command:: celeritas_add_object_library
 
   Add an OBJECT library to reduce dependencies (e.g. includes) from other libraries.
