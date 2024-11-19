@@ -130,6 +130,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 # Distributions
 celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
+celeritas_add_test(em/distribution/MuBremsPPAngularDistribution.test.cc ${_needs_double})
 celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Cross section calculation

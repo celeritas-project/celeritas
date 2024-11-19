@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "TwodGridBuilder.hh"
 
+#include "celeritas/io/ImportPhysicsVector.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -38,6 +40,16 @@ auto TwodGridBuilder::operator()(SpanConstDbl grid_x,
                                  SpanConstDbl values) -> TwodGrid
 {
     return this->insert_impl(grid_x, grid_y, values);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid from an imported physics vector.
+ */
+auto TwodGridBuilder::operator()(ImportPhysics2DVector const& pvec) -> TwodGrid
+{
+    return this->insert_impl(
+        make_span(pvec.x), make_span(pvec.y), make_span(pvec.value));
 }
 
 //---------------------------------------------------------------------------//

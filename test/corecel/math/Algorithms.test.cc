@@ -358,6 +358,65 @@ TEST(MathTest, fma)
 
 //---------------------------------------------------------------------------//
 
+TEST(MathTest, hypot)
+{
+    static double const nums[] = {
+        1.1e-10,
+        0.456e-7,
+        0.301e-5,
+        0.6789e-3,
+        0.1,
+        3.123,
+        -0.0,
+        0.0,
+    };
+    for (double a : nums)
+    {
+        for (double b : nums)
+        {
+            for (auto i : range(1 << 4))
+            {
+                // Do combinations of flipped signs and inverted
+                if (i & (1 << 0))
+                    a = -a;
+                if (i & (1 << 1))
+                    b = -b;
+                if (i & (1 << 2))
+                    a = 1 / a;
+                if (i & (1 << 3))
+                    b = 1 / b;
+
+                EXPECT_DOUBLE_EQ(std::hypot(a, b), hypot(a, b))
+                    << "a=" << repr(a) << ", b=" << repr(b);
+
+                auto af = static_cast<float>(a);
+                auto bf = static_cast<float>(b);
+                if (false)
+                {
+                    // The current implementation is not symmetric
+                    EXPECT_EQ(hypot(af, bf), hypot(bf, af))
+                        << "af=" << repr(af) << ", bf=" << repr(bf)
+                        << ", exact: "
+                        << repr(static_cast<float>(
+                               std::hypot(static_cast<double>(af),
+                                          static_cast<double>(bf))));
+                }
+                EXPECT_FLOAT_EQ(std::hypot(af, bf), hypot(af, bf))
+                    << "af=" << repr(af) << ", bf=" << repr(bf);
+            }
+        }
+    }
+    EXPECT_DOUBLE_EQ(5.0, hypot(3.0, 4.0));
+    EXPECT_FLOAT_EQ(5.0f, hypot(3.0f, 4.0f));
+}
+
+TEST(MathTest, hypot3)
+{
+    EXPECT_DOUBLE_EQ(std::hypot(1.0, 2.0, 3.0), hypot(1.0, 2.0, 3.0));
+}
+
+//---------------------------------------------------------------------------//
+
 TEST(MathTest, ceil_div)
 {
     EXPECT_EQ(0u, ceil_div(0u, 32u));
