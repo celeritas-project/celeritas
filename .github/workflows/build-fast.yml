@@ -121,7 +121,7 @@ jobs:
                 || steps.unittest.outcome == 'failure')
           }}
         with:
-          name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
+          name: test-results-fast-${{env.GHA_JOB_NAME}}
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
