@@ -450,18 +450,24 @@ function(celeritas_check_python_module varname module)
 endfunction()
 
 
-#-----------------------------------------------------------------------------#
-
 function(celeritas_add_library target)
+function(celeritas_get_cuda_source_args _cuda_sources ${ARGN})
   cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
   cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
-  if(CELERITAS_USE_HIP AND _cuda_sources)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+  if(CELERITAS_USE_HIP)
+    celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
+    if(_cuda_sources)
     # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
     # suffixed files. Override the language if using HIP.
     set_source_files_properties(
       ${_cuda_sources}
       PROPERTIES LANGUAGE HIP
     )
+  endif()
   endif()
 
   celeritas_cuda_rdc_wrapper_add_library(${target} ${ARGN})
