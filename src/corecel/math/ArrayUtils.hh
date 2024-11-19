@@ -73,6 +73,9 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
 //---------------------------------------------------------------------------//
 /*!
  * Increment a vector by another vector multiplied by a scalar.
+ *
+ * Note that this uses \c celeritas::fma which supports types other than
+ * floating point.
  */
 template<class T, size_type N>
 CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
@@ -87,6 +90,9 @@ CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
 //---------------------------------------------------------------------------//
 /*!
  * Dot product of two vectors.
+ *
+ * Note that this uses \c celeritas::fma which supports types other than
+ * floating point.
  */
 template<class T, size_type N>
 CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y)
