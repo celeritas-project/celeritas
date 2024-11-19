@@ -15,6 +15,7 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "MaterialData.hh"
+#include "MaterialView.hh"
 
 namespace celeritas
 {
@@ -67,6 +68,9 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // Number of optical materials
     inline OpticalMaterialId::size_type num_materials() const;
 
+    // Construct a material view for the given identifier
+    inline MaterialView get(OpticalMaterialId mat) const;
+
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
@@ -86,6 +90,15 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 OpticalMaterialId::size_type MaterialParams::num_materials() const
 {
     return this->host_ref().refractive_index.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a material view for the given identifier.
+ */
+MaterialView MaterialParams::get(OpticalMaterialId mat) const
+{
+    return MaterialView(this->host_ref(), mat);
 }
 
 //---------------------------------------------------------------------------//

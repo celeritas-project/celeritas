@@ -52,7 +52,8 @@ class RayleighModelTest : public MockImportedData
     {
         auto models = this->create_imported_models();
         import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
-        return std::make_shared<RayleighModel const>(ActionId{0}, models);
+        return std::make_shared<RayleighModel const>(
+            ActionId{0}, models, RayleighModel::Input{});
     }
 
     ImportedModels::ImportedModelId import_model_id_;

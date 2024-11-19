@@ -80,8 +80,10 @@ list(APPEND SOURCES
   optical/CoreState.cc
   optical/CoreTrackData.cc
   optical/ImportedModelAdapter.cc
+  optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
+  optical/ModelImporter.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/action/ActionGroups.cc

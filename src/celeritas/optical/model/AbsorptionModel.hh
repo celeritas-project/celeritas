@@ -14,6 +14,7 @@ namespace celeritas
 {
 namespace optical
 {
+struct ModelBuilder;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical absorption model interaction.
@@ -27,6 +28,9 @@ class AbsorptionModel final : public Model
     //!@}
 
   public:
+    // Create a model builder for absorption
+    static std::shared_ptr<ModelBuilder> make_builder(SPConstImported);
+
     // Construct with imported data
     AbsorptionModel(ActionId id, SPConstImported imported);
 

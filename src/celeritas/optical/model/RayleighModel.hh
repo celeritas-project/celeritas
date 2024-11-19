@@ -8,6 +8,7 @@
 #pragma once
 
 #include "../ImportedModelAdapter.hh"
+#include "../MaterialParams.hh"
 #include "../Model.hh"
 
 namespace celeritas
@@ -17,8 +18,8 @@ struct ImportOpticalRayleigh;
 
 namespace optical
 {
-class MaterialParams;
-
+struct ModelBuilder;
+class ImportedMaterials;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical Rayleigh scattering model interaction.
@@ -29,21 +30,31 @@ class RayleighModel : public Model
     //!@{
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedModels const>;
+    using SPConstImportedMaterials = std::shared_ptr<ImportedMaterials const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstCoreMaterials
         = std::shared_ptr<::celeritas::MaterialParams const>;
     //!@}
 
+    //! Optional input for calculating MFP tables from material parameters
+    struct Input
+    {
+        SPConstMaterials materials;
+        SPConstCoreMaterials core_materials;
+        SPConstImportedMaterials imported_materials;
+
+        explicit operator bool() const
+        {
+            return materials && core_materials && imported_materials;
+        }
+    };
+
   public:
-    // Construct with imported data
-    RayleighModel(ActionId id, SPConstImported imported);
+    // Create a model builder from imported data and material parameters
+    static std::shared_ptr<ModelBuilder> make_builder(SPConstImported, Input);
 
     // Construct with imported data and imported material parameters
-    RayleighModel(ActionId id,
-                  SPConstImported imported,
-                  SPConstMaterials materials,
-                  SPConstCoreMaterials core_materials,
-                  std::vector<ImportOpticalRayleigh> rayleigh);
+    RayleighModel(ActionId id, SPConstImported imported, Input input);
 
     // Build the mean free paths for this model
     void build_mfps(OpticalMaterialId, MfpBuilder&) const final;
@@ -56,9 +67,7 @@ class RayleighModel : public Model
 
   private:
     ImportedModelAdapter imported_;
-    SPConstMaterials materials_;
-    SPConstCoreMaterials core_materials_;
-    std::vector<ImportOpticalRayleigh> import_rayleigh_materials_;
+    Input input_;
 };
 
 //---------------------------------------------------------------------------//
