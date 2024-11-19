@@ -13,7 +13,8 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
-#include "celeritas/optical/ImportedModelAdapter.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/ImportedModels.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 
@@ -47,6 +48,8 @@ class MockImportedData : public ::celeritas::test::Test
     using ImportedModelId = typename ImportedModels::ImportedModelId;
     using SPConstImported = std::shared_ptr<ImportedModels const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using SPConstCoreMaterials
+        = std::shared_ptr<::celeritas::MaterialParams const>;
 
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
@@ -57,7 +60,9 @@ class MockImportedData : public ::celeritas::test::Test
     //! \name Access mock data
     static std::vector<ImportOpticalModel> const& import_models();
     static std::vector<ImportOpticalMaterial> const& import_materials();
-    std::shared_ptr<MaterialParams const> const& optical_materials() const;
+
+    SPConstMaterials const& optical_materials() const;
+    SPConstCoreMaterials const& core_materials() const;
     //!@}
 
     //!@{
@@ -65,7 +70,9 @@ class MockImportedData : public ::celeritas::test::Test
     SPConstImported create_empty_imported_models() const;
     SPConstImported create_imported_models() const;
     MfpBuilder create_mfp_builder();
+
     SPConstMaterials build_optical_materials() const;
+    SPConstCoreMaterials build_core_materials() const;
     //!@}
 
     //!@{

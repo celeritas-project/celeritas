@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "ModelImporter.hh"
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "ImportedMaterials.hh"
-#include "ImportedModelAdapter.hh"
+#include "ImportedModels.hh"
 #include "MaterialParams.hh"
 #include "ModelBuilder.hh"
 #include "model/AbsorptionModel.hh"
@@ -39,7 +40,7 @@ ModelImporter::ModelImporter(ImportData const& data,
 
     input_.imported = ImportedModels::from_import(data);
     input_.import_material
-        = ImportedMaterials::from_import(data, *core_material);
+        = ImportedMaterials::from_import(data, *input_.core_material);
 
     CELER_ENSURE(input_.imported);
     CELER_ENSURE(input_.import_material);
@@ -114,6 +115,17 @@ auto ModelImporter::build_rayleigh() const -> SPModelBuilder
         this->imported(),
         RayleighModel::Input{
             this->material(), this->core_material(), this->import_material()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Warn the model is missing and return a null result.
+ */
+auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const -> SPModelBuilder
+{
+    CELER_LOG(warning) << "Omitting '" << to_cstring(model)
+                       << "' from the optical physics model list";
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//

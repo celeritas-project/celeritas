@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../ImportedModelAdapter.hh"
+#include "../ImportedModels.hh"
 #include "../Model.hh"
 
 namespace celeritas

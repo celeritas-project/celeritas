@@ -79,7 +79,7 @@ list(APPEND SOURCES
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
-  optical/ImportedModelAdapter.cc
+  optical/ImportedModels.cc
   optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc

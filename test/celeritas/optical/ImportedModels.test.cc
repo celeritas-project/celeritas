@@ -3,15 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ImportedModelAdapter.test.cc
+//! \file celeritas/optical/ImportedModels.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/ImportedModelAdapter.hh"
+#include "celeritas/optical/ImportedModels.hh"
 
 #include <array>
-
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/io/ImportData.hh"
 
 #include "MockImportedData.hh"
 #include "celeritas_test.hh"
@@ -27,7 +23,7 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedModelAdapterTest : public MockImportedData
+class ImportedModelsTest : public MockImportedData
 {
   protected:
     void SetUp() override {}
@@ -50,7 +46,7 @@ class ImportedModelAdapterTest : public MockImportedData
 // TESTS
 //---------------------------------------------------------------------------//
 // Create ImportedModels from mock data
-TEST_F(ImportedModelAdapterTest, build_mock)
+TEST_F(ImportedModelsTest, build_mock)
 {
     auto const& expected_models = this->import_models();
     auto imported_models = this->create_imported_models();
@@ -65,7 +61,7 @@ TEST_F(ImportedModelAdapterTest, build_mock)
 
 //---------------------------------------------------------------------------//
 // Check built-in map properly created
-TEST_F(ImportedModelAdapterTest, builtin_map)
+TEST_F(ImportedModelsTest, builtin_map)
 {
     using IMC = ImportModelClass;
     std::array<IMC, 3> expected_builtin_imcs{
@@ -87,7 +83,7 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
 
 //---------------------------------------------------------------------------//
 // Check adapters correctly match MFPs
-TEST_F(ImportedModelAdapterTest, adapter_mfps)
+TEST_F(ImportedModelsTest, adapter_mfps)
 {
     auto const& expected_models = this->import_models();
     auto imported_models = this->create_imported_models();

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ImportedModelAdapter.hh
+//! \file celeritas/optical/ImportedModels.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

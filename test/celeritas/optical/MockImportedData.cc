@@ -198,6 +198,55 @@ auto MockImportedData::build_optical_materials() const -> SPConstMaterials
 
 //---------------------------------------------------------------------------//
 /*!
+ * Retrieve core materials constructed from mock imported data.
+ *
+ * Will only construct the materials when called, and only once.
+ */
+auto MockImportedData::core_materials() const -> SPConstCoreMaterials const&
+{
+    static SPConstCoreMaterials materials = nullptr;
+    if (!materials)
+    {
+        materials = this->build_core_materials();
+    }
+    return materials;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build core material parameters from mock data.
+ */
+auto MockImportedData::build_core_materials() const -> SPConstCoreMaterials
+{
+    ::celeritas::MaterialParams::Input input;
+
+    static real_type const material_temperatures[]
+        = {283.15, 300.0, 283.15, 200, 300.0};
+
+    // Unused element - only to pass checks
+    input.elements.push_back(::celeritas::MaterialParams::ElementInput{
+        AtomicNumber{1}, units::AmuMass{1}, {}, "fake"});
+
+    for (auto i : range(size_type{5}))
+    {
+        // Only temperature is relevant information
+        input.materials.push_back(::celeritas::MaterialParams::MaterialInput{
+            0,
+            material_temperatures[i] * units::kelvin,
+            MatterState::solid,
+            {},
+            std::to_string(i).c_str()});
+
+        // mock MaterialId == OpticalMaterialId
+        input.mat_to_optical.push_back(OpticalMaterialId{i});
+    }
+
+    return std::make_shared<::celeritas::MaterialParams const>(
+        std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create ImportedModels all with empty MFP grids.
  *
  * Useful for testing optical models which build their MFPs from material data.

@@ -96,11 +96,25 @@ class ModelImporter
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Warn about a missing optical model and deliberately skip it.
+ *
+ * May be provided as a custom user build function to \c ModelImporter to
+ * skip the construction of an optical model builder.
+ */
 struct WarnAndIgnoreModel
 {
     //!@{
     //! \name Type aliases
+    using UserBuildInput = ModelImporter::UserBuildInput;
+    using SPModelBuilder = typename ModelImporter::SPModelBuilder;
     //!@}
+
+    // Warn about a missing optical model and ignore it
+    SPModelBuilder operator()(UserBuildInput const&) const;
+
+    //! Missing optical model to warn about
+    ImportModelClass model;
 };
 
 //---------------------------------------------------------------------------//

@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../ImportedModelAdapter.hh"
-#include "../MaterialParams.hh"
+#include "../ImportedModels.hh"
 #include "../Model.hh"
 
 namespace celeritas
@@ -20,6 +19,7 @@ namespace optical
 {
 struct ModelBuilder;
 class ImportedMaterials;
+class MaterialParams;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical Rayleigh scattering model interaction.
