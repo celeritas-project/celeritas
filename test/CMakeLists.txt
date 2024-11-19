@@ -23,10 +23,8 @@ function(celeritas_add_test_library target)
 
   celeritas_add_library(${target} ${ARGN})
 
-  # We could hide this behind `if (CELERITAS_USE_ROOT)`
-  get_target_property(_tgt ${target} CUDA_RDC_OBJECT_LIBRARY)
-  if(_tgt)
-    set_target_properties(${_tgt} PROPERTIES
+  if(CELERITAS_USE_ROOT)
+    celeritas_set_target_properties(${target} PROPERTIES
       POSITION_INDEPENDENT_CODE ON
     )
   endif()
