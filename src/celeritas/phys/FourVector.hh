@@ -67,7 +67,8 @@ CELER_FUNCTION FourVector FourVector::from_mass_momentum(Mass m,
                                                          Momentum p,
                                                          Real3 const& direction)
 {
-    return {p.value() * direction, std::hypot(p.value(), m.value())};
+    return {p.value() * direction,
+            std::sqrt(ipow<2>(p.value()) + ipow<2>(m.value()))};
 }
 
 //---------------------------------------------------------------------------//
