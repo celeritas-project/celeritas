@@ -21,7 +21,7 @@ function(celeritas_add_test_library target)
     endif()
   endif()
 
-  celeritas_cuda_rdc_wrapper_add_library(${target} ${ARGN})
+  celeritas_add_library(${target} ${ARGN})
 
   # We could hide this behind `if (CELERITAS_USE_ROOT)`
   get_target_property(_tgt ${target} CUDA_RDC_OBJECT_LIBRARY)

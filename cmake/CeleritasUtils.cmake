@@ -266,7 +266,7 @@ set(CELERITAS_EXTERNAL FALSE)
 
 if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
   # Forward all arguments direcly to CMake builtins
-  macro(celeritas_cuda_rdc_wrapper_add_library)
+  macro(celeritas_add_library)
     add_library(${ARGV})
   endmacro()
   macro(celeritas_set_target_properties)
@@ -283,7 +283,7 @@ if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
   endmacro()
 else()
   # Forward all arguments to RDC utility wrappers
-  macro(celeritas_cuda_rdc_wrapper_add_library)
+  macro(celeritas_add_library)
     cuda_rdc_add_library(${ARGV})
   endmacro()
   macro(celeritas_set_target_properties)
@@ -450,7 +450,6 @@ function(celeritas_check_python_module varname module)
 endfunction()
 
 
-function(celeritas_add_library target)
 function(celeritas_get_cuda_source_args _cuda_sources ${ARGN})
   cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
   cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
@@ -458,22 +457,23 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
+function(celeritas_add_src_library target)
   if(CELERITAS_USE_HIP)
     celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
     if(_cuda_sources)
-    # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
-    # suffixed files. Override the language if using HIP.
-    set_source_files_properties(
-      ${_cuda_sources}
-      PROPERTIES LANGUAGE HIP
-    )
-  endif()
+      # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
+      # suffixed files. Override the language if using HIP.
+      set_source_files_properties(
+        ${_cuda_sources}
+        PROPERTIES LANGUAGE HIP
+      )
+    endif()
   endif()
 
-  celeritas_cuda_rdc_wrapper_add_library(${target} ${ARGN})
+  celeritas_add_library(${target} ${ARGN})
 
   # Add Celeritas:: namespace alias
-  celeritas_cuda_rdc_wrapper_add_library(Celeritas::${target} ALIAS ${target})
+  celeritas_add_library(Celeritas::${target} ALIAS ${target})
 
   # Build all targets in lib/
   celeritas_set_target_properties(${target} PROPERTIES
