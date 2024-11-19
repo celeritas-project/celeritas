@@ -60,8 +60,11 @@ struct FourVector
 /*!
  * Construct from rest mass, momentum, direction.
  *
- * Note that this uses \c std::hypot which yields more accurate answers if the
- * magnitudes of the momentum and mass are very different.
+ * Note that this could be improved by using \c std::hypot which yields more
+ * accurate answers if the magnitudes of the momentum and mass are very
+ * different. However, differences in the implementation of that function can
+ * lead to differences across platforms, compilers, and architectures, so for
+ * now we use a naive sqrt+ipow.
  */
 CELER_FUNCTION FourVector FourVector::from_mass_momentum(Mass m,
                                                          Momentum p,
