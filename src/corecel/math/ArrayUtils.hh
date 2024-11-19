@@ -248,7 +248,7 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
     else if (sintheta > 0)
     {
         // Avoid catastrophic roundoff error by normalizing x/y components
-        cosphi = rot[X] / std::sqrt(ipow<2>(rot[X]) + ipow<2>(rot[Y]));
+        cosphi = rot[X] / hypot(rot[X], rot[Y]);
         sinphi = std::sqrt(1 - ipow<2>(cosphi));
     }
     else

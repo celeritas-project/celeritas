@@ -12,6 +12,7 @@
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/grid/TwodGridData.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
@@ -208,9 +209,8 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
         result[0].four_vec = fv;
     }
 
-    result[1].four_vec
-        = {{-result[0].four_vec.mom},
-           std::sqrt(ipow<2>(cm_p_) + ipow<2>(value_as<Mass>(target_.mass)))};
+    result[1].four_vec = {{-result[0].four_vec.mom},
+                          hypot(cm_p_, value_as<Mass>(target_.mass))};
 
     // Convert the final state to the lab frame
     for (auto i : range(2))

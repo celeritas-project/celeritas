@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
