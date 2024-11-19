@@ -356,7 +356,7 @@ function(celeritas_add_test SOURCE_FILE)
     endif()
   endif()
   if(PARSE_SOURCES AND CELERITAS_USE_HIP)
-    celeritas_sources_contains_cuda(_cuda_sources ${PARSE_SOURCES})
+    celeritas_get_cuda_source_args(_cuda_sources ${PARSE_SOURCES})
     if(_cuda_sources)
       # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
       # suffixed files. Override the language if using HIP.

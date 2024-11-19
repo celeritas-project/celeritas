@@ -14,8 +14,18 @@ CMake or alternatively to CudaRdc.
 .. command:: celeritas_add_src_library
 
   Add a library that correctly links against CUDA relocatable device code, has
-  the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
-  directory.
+  the ``Celeritas::`` aliases, is generated into the ``lib/`` build
+  directory, and is installed with the project.
+
+.. command:: celeritas_add_test_library
+
+  Add a test-only library that uses RDC but does not get installed.
+
+.. command:: celeritas_get_cuda_source_args
+
+  Get a list of all source files in the argument that are CUDA language.
+
+    celeritas_get_cuda_source_args(<var> [<source> ...])
 
 .. command:: celeritas_add_library
 
@@ -173,6 +183,16 @@ endif()
 
 #-----------------------------------------------------------------------------#
 
+function(celeritas_get_cuda_source_args var ${ARGN})
+  # NOTE: this is the only function that uses CudaRdcUtils if VecGeom+CUDA is
+  # disabled: it's only needed when building with HIP
+  cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
+  cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
+  set(var ${_cuda_sources} PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
 function(celeritas_add_src_library target)
   if(CELERITAS_USE_HIP)
     celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
@@ -192,18 +212,19 @@ function(celeritas_add_src_library target)
   celeritas_add_library(Celeritas::${target} ALIAS ${target})
 
   # Build all targets in lib/
-  celeritas_set_target_properties(${target} PROPERTIES
+  set(_props
     ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
   )
 
-  # We could hide this behind `if (CELERITAS_USE_ROOT)`
-  get_target_property(_tgt ${target} CUDA_RDC_OBJECT_LIBRARY)
-  if(_tgt)
-    set_target_properties(${_tgt} PROPERTIES
+  if(CELERITAS_USE_ROOT)
+    # Require PIC for static libraries, including "object" RDC lib
+    list(APPEND _props
       POSITION_INDEPENDENT_CODE ON
     )
   endif()
+
+  celeritas_set_target_properties(${target} PROPERTIES ${_props})
 
   # Install all targets to lib/
   celeritas_install(TARGETS ${target}
@@ -216,9 +237,28 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-macro(celeritas_sources_contains_cuda)
-  cuda_rdc_sources_contains_cuda(${ARGV})
-endmacro()
+function(celeritas_add_test_library target)
+  if(CELERITAS_USE_HIP)
+    celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
+    if(_cuda_sources)
+      # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
+      # suffixed files. Override the language if using HIP.
+      set_source_files_properties(
+        ${_cuda_sources}
+        PROPERTIES LANGUAGE HIP
+      )
+    endif()
+  endif()
+
+  celeritas_add_library(${target} ${ARGN})
+
+  if(CELERITAS_USE_ROOT)
+    # Require PIC for static libraries, including "object" RDC lib
+    celeritas_set_target_properties(${target} PROPERTIES
+      POSITION_INDEPENDENT_CODE ON
+    )
+  endif()
+endfunction()
 
 #-----------------------------------------------------------------------------#
 # Add an object library to limit the propagation of includes to the rest of the

@@ -7,30 +7,6 @@
 include(CeleritasAddTest)
 
 #-----------------------------------------------------------------------------#
-
-function(celeritas_add_test_library target)
-  if(CELERITAS_USE_HIP)
-    celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
-    if(_cuda_sources)
-      # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
-      # suffixed files. Override the language if using HIP.
-      set_source_files_properties(
-        ${_cuda_sources}
-        PROPERTIES LANGUAGE HIP
-      )
-    endif()
-  endif()
-
-  celeritas_add_library(${target} ${ARGN})
-
-  if(CELERITAS_USE_ROOT)
-    celeritas_set_target_properties(${target} PROPERTIES
-      POSITION_INDEPENDENT_CODE ON
-    )
-  endif()
-endfunction()
-
-#-----------------------------------------------------------------------------#
 # TEST HARNESS
 #-----------------------------------------------------------------------------#
 
