@@ -262,6 +262,45 @@ set(CELERITAS_DEFAULT_VARIABLES)
 set(CELERITAS_EXTERNAL FALSE)
 
 #-----------------------------------------------------------------------------#
+# Wrapper functions
+
+if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
+  # Forward all arguments direcly to CMake builtins
+  macro(celeritas_cuda_rdc_wrapper_add_library)
+    add_library(${ARGV})
+  endmacro()
+  macro(celeritas_set_target_properties)
+    set_target_properties(${ARGV})
+  endmacro()
+  macro(celeritas_install)
+    install(${ARGV})
+  endmacro()
+  macro(celeritas_target_link_libraries)
+    target_link_libraries(${ARGV})
+  endmacro()
+  macro(celeritas_target_include_directories)
+    target_include_directories(${ARGV})
+  endmacro()
+else()
+  # Forward all arguments to RDC utility wrappers
+  macro(celeritas_cuda_rdc_wrapper_add_library)
+    cuda_rdc_add_library(${ARGV})
+  endmacro()
+  macro(celeritas_set_target_properties)
+    cuda_rdc_set_target_properties(${ARGV})
+  endmacro()
+  macro(celeritas_install)
+    cuda_rdc_install(${ARGV})
+  endmacro()
+  macro(celeritas_target_link_libraries)
+    cuda_rdc_target_link_libraries(${ARGV})
+  endmacro()
+  macro(celeritas_target_compile_options)
+    cuda_rdc_target_compile_options(${ARGV})
+  endmacro()
+endif()
+
+#-----------------------------------------------------------------------------#
 
 function(celeritas_optional_language lang)
   set(_var "CELERITAS_USE_${lang}")
@@ -451,66 +490,6 @@ function(celeritas_add_library target)
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     COMPONENT runtime
   )
-endfunction()
-
-#-----------------------------------------------------------------------------#
-
-function(celeritas_cuda_rdc_wrapper_add_library)
-  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
-    add_library(${ARGV})
-  else()
-    cuda_rdc_add_library(${ARGV})
-  endif()
-endfunction()
-
-#-----------------------------------------------------------------------------#
-
-function(celeritas_set_target_properties)
-  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
-    set_target_properties(${ARGV})
-  else()
-    cuda_rdc_set_target_properties(${ARGV})
-  endif()
-endfunction()
-
-#-----------------------------------------------------------------------------#
-
-function(celeritas_install)
-  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
-    install(${ARGV})
-  else()
-    cuda_rdc_install(${ARGV})
-  endif()
-endfunction()
-
-#-----------------------------------------------------------------------------#
-
-function(celeritas_target_link_libraries)
-  if(NOT CELERITAS_USE_VecGeom)
-    target_link_libraries(${ARGV})
-  else()
-    cuda_rdc_target_link_libraries(${ARGV})
-  endif()
-endfunction()
-
-#-----------------------------------------------------------------------------#
-
-function(celeritas_target_include_directories)
-  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
-    target_include_directories(${ARGV})
-  else()
-    cuda_rdc_target_include_directories(${ARGV})
-  endif()
-endfunction()
-
-#-----------------------------------------------------------------------------#
-
-function(celeritas_target_compile_options)
-  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
-    target_compile_options(${ARGV})
-  else()
-    cuda_rdc_target_compile_options(${ARGV})
-  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#
