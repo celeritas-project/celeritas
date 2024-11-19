@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   linux:
-    name: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}"
+    name: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
     strategy:
       matrix:
         include:
@@ -23,6 +23,10 @@ jobs:
           - runner: noble
             compiler: gcc
             version: 14
+          - runner: noble
+            compiler: gcc
+            version: 14
+            cxxstd: 20
           - runner: focal
             compiler: clang
             version: 10
@@ -32,8 +36,12 @@ jobs:
           - runner: noble
             compiler: clang
             version: 18
+          - runner: noble
+            compiler: clang
+            version: 18
+            cxxstd: 20
     env:
-      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}"
+      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: fast
@@ -73,6 +81,7 @@ jobs:
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET} \
+            ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
               || format(';-{0};', github.ref_name)}}"
@@ -111,7 +120,7 @@ jobs:
                 || steps.unittest.outcome == 'failure')
           }}
         with:
-          name: test-results-fast-${{matrix.compiler}}-${{matrix.version}}
+          name: test-results-fast-${{env.GHA_JOB_NAME}}
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
