@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   linux:
-    name: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}"
+    name: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{ (matrix.cxx_std && matrix.cxx_std != '17') && format('-c++{0}', matrix.cxx_std) || ''}}"
     strategy:
       matrix:
         include:
@@ -23,7 +23,11 @@ jobs:
           - runner: noble
             compiler: gcc
             version: 14
-            cxx_std: [17, 20]
+            cxx_std: 17
+          - runner: noble
+            compiler: gcc
+            version: 14
+            cxx_std: 20
           - runner: focal
             compiler: clang
             version: 10
@@ -33,9 +37,13 @@ jobs:
           - runner: noble
             compiler: clang
             version: 18
-            cxx_std: [17, 20]
+            cxx_std: 17
+          - runner: noble
+            compiler: clang
+            version: 18
+            cxx_std: 20
     env:
-      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxx_std != '17' && format('-c++{0}', matrix.cxx_std) || ''}}"
+      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{ (matrix.cxx_std && matrix.cxx_std != '17') && format('-c++{0}', matrix.cxx_std) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: fast
