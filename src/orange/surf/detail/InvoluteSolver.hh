@@ -170,7 +170,7 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Conversion constant for 2-D distance to 3-D distance
 
-    real_type convert = 1 / std::sqrt(ipow<2>(v) + ipow<2>(u));
+    real_type convert = 1 / hypot(v, u);
     u *= convert;
     v *= convert;
 

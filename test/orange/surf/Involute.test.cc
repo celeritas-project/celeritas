@@ -106,14 +106,14 @@ TEST(Involute, solve_intersect)
 {
     // Only testing call of solver, more extensive test in InvoluteSolver
 
-    // CCW Involute  Test
+    // CCW Involute Test
     {
         Involute invo{{1, 1}, 1.1, 1.5 * pi, ccw, 0, 1.99 * pi};
 
         real_type u = 0.9933558377574788 * std::sin(1);
         real_type v = -0.11508335932330707 * std::sin(1);
         real_type w = std::cos(1);
-        real_type convert = 1 / std::sqrt(ipow<2>(v) + ipow<2>(u));
+        real_type convert = 1 / hypot(v, u);
 
         auto dist = invo.calc_intersections(
             Real3{-5.8653259986571326, -0.30468105643505367 + 1, 0},
