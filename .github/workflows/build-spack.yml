@@ -146,7 +146,7 @@ jobs:
         if: ${{matrix.geant == '11.0'}}
         working-directory: build
         run: |
-          ninja -v -k0 update-root-test-data
+          ninja -v -k0 force-update-root-test-data
       - name: Run unit tests
         id: unittest
         if: ${{matrix.special != 'clang-tidy'}}
