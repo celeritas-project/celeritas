@@ -16,6 +16,7 @@
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/grid/SplineXsCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -646,6 +647,30 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
                                     3.016582857143,
                                     3.016582857143};
     EXPECT_VEC_SOFT_EQ(expected_step, step);
+}
+
+TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
+{
+    // Cross sections: same across particle types, constant in energy, scale
+    // according to material number density
+    std::vector<real_type> xs;
+    for (char const* particle : {"gamma", "celeriton"})
+    {
+        for (auto mat_id : range(MaterialId{this->material()->size()}))
+        {
+            PhysicsTrackView const phys
+                = this->make_track_view(particle, mat_id);
+            auto scat_ppid = this->find_ppid(phys, "scattering");
+            auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
+            ASSERT_TRUE(id);
+            auto calc_xs = phys.make_calculator<SplineXsCalculator>(id, 2);
+            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
+        }
+    }
+
+    double const expected_xs[]
+        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
+    EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
 //---------------------------------------------------------------------------//
