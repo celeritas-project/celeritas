@@ -13,7 +13,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "ImportedMaterials.hh"
-#include "ImportedModels.hh"
+#include "ImportedModelAdapter.hh"
 #include "MaterialParams.hh"
 #include "ModelBuilder.hh"
 #include "model/AbsorptionModel.hh"

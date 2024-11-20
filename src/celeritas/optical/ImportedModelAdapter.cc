@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ImportedModels.cc
+//! \file celeritas/optical/ImportedModelAdapter.cc
 //---------------------------------------------------------------------------//
-#include "ImportedModels.hh"
+#include "ImportedModelAdapter.hh"
 
 #include <algorithm>
 

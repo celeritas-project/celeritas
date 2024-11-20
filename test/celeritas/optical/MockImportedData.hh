@@ -14,7 +14,7 @@
 #include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/ImportedModels.hh"
+#include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 

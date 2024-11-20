@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ImportedModels.test.cc
+//! \file celeritas/optical/ImportedModelAdapter.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/ImportedModels.hh"
+#include "celeritas/optical/ImportedModelAdapter.hh"
 
 #include <array>
 
@@ -23,7 +23,7 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedModelsTest : public MockImportedData
+class ImportedModelAdapterTest : public MockImportedData
 {
   protected:
     void SetUp() override {}
@@ -46,7 +46,7 @@ class ImportedModelsTest : public MockImportedData
 // TESTS
 //---------------------------------------------------------------------------//
 // Create ImportedModels from mock data
-TEST_F(ImportedModelsTest, build_mock)
+TEST_F(ImportedModelAdapterTest, build_mock)
 {
     auto const& expected_models = this->import_models();
     auto imported_models = this->create_imported_models();
@@ -61,7 +61,7 @@ TEST_F(ImportedModelsTest, build_mock)
 
 //---------------------------------------------------------------------------//
 // Check built-in map properly created
-TEST_F(ImportedModelsTest, builtin_map)
+TEST_F(ImportedModelAdapterTest, builtin_map)
 {
     using IMC = ImportModelClass;
     std::array<IMC, 3> expected_builtin_imcs{
@@ -83,7 +83,7 @@ TEST_F(ImportedModelsTest, builtin_map)
 
 //---------------------------------------------------------------------------//
 // Check adapters correctly match MFPs
-TEST_F(ImportedModelsTest, adapter_mfps)
+TEST_F(ImportedModelAdapterTest, adapter_mfps)
 {
     auto const& expected_models = this->import_models();
     auto imported_models = this->create_imported_models();

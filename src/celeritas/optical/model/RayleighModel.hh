@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../ImportedModels.hh"
+#include "../ImportedModelAdapter.hh"
 #include "../Model.hh"
 
 namespace celeritas
@@ -43,6 +43,7 @@ class RayleighModel : public Model
         SPConstCoreMaterials core_materials;
         SPConstImportedMaterials imported_materials;
 
+        //! Whether data is available to calculate material MFP tables
         explicit operator bool() const
         {
             return materials && core_materials && imported_materials;
