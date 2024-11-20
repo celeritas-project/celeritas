@@ -458,4 +458,11 @@ add_custom_target(update-root-test-data
   DEPENDS ${_root_data}
 )
 
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+  # MscTestBase and other tests require ROOT data to be generated. If they're
+  # deleted by `ninja clean`, then this dependency reconstructs them if any
+  # test in this directory is built.
+  add_dependencies(testcel_celeritas update-root-test-data)
+endif()
+
 #-----------------------------------------------------------------------------#
