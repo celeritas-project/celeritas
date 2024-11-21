@@ -315,6 +315,7 @@ celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/MockValidation.test.cc)
+celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 
 #-----------------------------------------------------------------------------#
 # Mat
