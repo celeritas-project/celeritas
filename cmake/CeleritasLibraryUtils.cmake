@@ -191,7 +191,7 @@ function(celeritas_get_cuda_source_args var ${ARGN})
   # disabled: it's only needed when building with HIP
   cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
   cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
-  set(var ${_cuda_sources} PARENT_SCOPE)
+  set(${var} ${_cuda_sources} PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#
