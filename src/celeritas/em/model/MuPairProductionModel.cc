@@ -37,7 +37,7 @@ MuPairProductionModel::MuPairProductionModel(
     ActionId id,
     ParticleParams const& particles,
     SPConstImported data,
-    ImportMuPairProductionTable const& imported)
+    ImportMuPairProdTable const& imported)
     : StaticConcreteAction(
         id, "pair-prod-muon", "interact by e-/e+ pair production by muons")
     , imported_(data,
@@ -49,8 +49,8 @@ MuPairProductionModel::MuPairProductionModel(
     CELER_EXPECT(id);
 
     CELER_VALIDATE(imported,
-                   << "sampling table (required for " << this->description()
-                   << ") is empty");
+                   << "sampling table (required for '" << this->description()
+                   << "') is empty");
 
     ScopedMem record_mem("MuPairProductionModel.construct");
 
@@ -62,8 +62,8 @@ MuPairProductionModel::MuPairProductionModel(
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
     CELER_VALIDATE(host_data.ids,
-                   << "missing particles (required for " << this->description()
-                   << ")");
+                   << "missing particles (required for '"
+                   << this->description() << "')");
 
     // Save particle properties
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
@@ -132,8 +132,8 @@ void MuPairProductionModel::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Construct sampling table.
  */
-void MuPairProductionModel::build_table(
-    ImportMuPairProductionTable const& imported, HostTable* table) const
+void MuPairProductionModel::build_table(ImportMuPairProdTable const& imported,
+                                        HostTable* table) const
 {
     CELER_EXPECT(imported);
     CELER_EXPECT(table);
@@ -144,8 +144,8 @@ void MuPairProductionModel::build_table(
     for (auto const& pvec : imported.physics_vectors)
     {
         CELER_VALIDATE(pvec,
-                       << "invalid grid in sampling table for "
-                       << this->description());
+                       << "invalid grid in sampling table for '"
+                       << this->description() << "'");
 
         // Normalize the CDF
         std::vector<double> cdf(pvec.value.size());

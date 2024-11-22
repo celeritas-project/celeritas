@@ -1038,7 +1038,7 @@ ImportEmParameters import_em_parameters()
 /*!
  * Get the sampling table for electron-positron pair production by muons.
  */
-ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
+ImportMuPairProdTable import_mupp_table(PDGNumber pdg)
 {
     CELER_EXPECT(pdg == pdg::mu_minus() || pdg == pdg::mu_plus());
 
@@ -1060,7 +1060,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
     G4ElementData* el_data = model->GetElementData();
     CELER_ASSERT(el_data);
 
-    ImportMuPairProductionTable result;
+    ImportMuPairProdTable result;
     if (G4VERSION_NUMBER < 1120)
     {
         constexpr int element_data_size = 99;
@@ -1199,7 +1199,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                         && mu_minus.physics_vectors == mu_plus.physics_vectors,
                     << "muon pair production sampling tables for "
                        "mu- and mu+ differ");
-                imported.mu_pair_production_data = std::move(mu_minus);
+                imported.mu_pair_prod_data = std::move(mu_minus);
             }
         }
         imported.regions = import_regions();

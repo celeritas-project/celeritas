@@ -49,6 +49,14 @@ void trim(ImportPhysicsVector* ipv)
     trim(&ipv->y);
 }
 
+void trim(ImportPhysics2DVector* ipv)
+{
+    CELER_EXPECT(ipv);
+    trim(&ipv->x);
+    trim(&ipv->y);
+    trim(&ipv->value);
+}
+
 void trim(ImportPhysicsTable* ipt)
 {
     CELER_EXPECT(ipt);
@@ -128,6 +136,10 @@ TEST_F(RootJsonDumperTest, all)
     trim(&imported.volumes);
     imported.sb_data = {};
     imported.livermore_pe_data = {};
+    for (auto& pv : imported.mu_pair_prod_data.physics_vectors)
+    {
+        trim(&pv);
+    }
 
     std::ostringstream os;
     {
@@ -202,7 +214,7 @@ TEST_F(RootJsonDumperTest, all)
   "name" : "G4_STAINLESS-STEEL",
   "state" : 1,
   "temperature" : 293.15,
-  "number_density" : 86993489258991547580416,
+  "number_density" : 86993489258991530803200,
   "elements" : [{
     "_typename" : "celeritas::ImportMatElemComponent",
     "element_id" : 0,
@@ -263,8 +275,6 @@ TEST_F(RootJsonDumperTest, all)
     "range" : 0.1
   }}]
 }],
-"optical_models" : [],
-"optical_materials" : [],
 "regions" : [{
   "_typename" : "celeritas::ImportRegion",
   "name" : "DefaultRegionForTheWorld",
@@ -387,7 +397,7 @@ TEST_F(RootJsonDumperTest, all)
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [1e-4, 100],
-      "y" : [0.0919755519795959, 128.588033594672]
+      "y" : [0.0919755519795958, 128.588033594672]
     }]
   }
 }, {
@@ -416,10 +426,35 @@ TEST_F(RootJsonDumperTest, all)
 "livermore_pe_data" : [],
 "neutron_elastic_data" : [],
 "atomic_relaxation_data" : [],
-"mu_pair_production_data" : {
-  "_typename" : "celeritas::ImportMuPairProductionTable",
-  "atomic_number" : [],
-  "physics_vectors" : []
+"mu_pair_prod_data" : {
+  "_typename" : "celeritas::ImportMuPairProdTable",
+  "atomic_number" : [1, 4, 13, 29, 92],
+  "physics_vectors" : [{
+    "_typename" : "celeritas::ImportPhysics2DVector",
+    "x" : [6.90775527898214, 18.4206807439524],
+    "y" : [-6.19284873971536, 0],
+    "value" : [0, 2.43638436260562e-25]
+  }, {
+    "_typename" : "celeritas::ImportPhysics2DVector",
+    "x" : [6.90775527898214, 18.4206807439524],
+    "y" : [-6.19284873971536, 0],
+    "value" : [0, 2.25768385581701e-24]
+  }, {
+    "_typename" : "celeritas::ImportPhysics2DVector",
+    "x" : [6.90775527898214, 18.4206807439524],
+    "y" : [-6.19284873971536, 0],
+    "value" : [0, 1.89837758987408e-23]
+  }, {
+    "_typename" : "celeritas::ImportPhysics2DVector",
+    "x" : [6.90775527898214, 18.4206807439524],
+    "y" : [-6.19284873971536, 0],
+    "value" : [0, 8.65855291759754e-23]
+  }, {
+    "_typename" : "celeritas::ImportPhysics2DVector",
+    "x" : [6.90775527898214, 18.4206807439524],
+    "y" : [-6.19284873971536, 0],
+    "value" : [0, 7.93413967608228e-22]
+  }]
 },
 "em_params" : {
   "_typename" : "celeritas::ImportEmParameters",
@@ -468,6 +503,8 @@ TEST_F(RootJsonDumperTest, all)
   "_typename" : "celeritas::ImportOpticalParameters",
   "scintillation_by_particle" : false
 },
+"optical_models" : [],
+"optical_materials" : [],
 "units" : "cgs"
 })json",
             os.str());

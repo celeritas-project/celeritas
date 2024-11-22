@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/ImportMuPairProductionTable.hh
+//! \file celeritas/io/ImportMuPairProdTable.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,7 +24,7 @@ namespace celeritas
  * in\f$ \log T \f$; the y grid stores the ratio \f$ \log \epsilon_p / T \f$.
  * The values are the unnormalized CDF.
  */
-struct ImportMuPairProductionTable
+struct ImportMuPairProdTable
 {
     //!@{
     //! \name Type aliases
