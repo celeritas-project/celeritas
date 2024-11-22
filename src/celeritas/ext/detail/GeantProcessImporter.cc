@@ -433,6 +433,8 @@ import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
  * [y][x]. Because the Celeritas \c TwodGridCalculator and \c
  * TwodSubgridCalculator expect the y grid values to be on the inner dimension,
  * the table is inverted during import so that the x and y grids are swapped.
+ *
+ * TODO: should we swap the grids after they're imported instead of here?
  */
 ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
                                               Array<ImportUnits, 3> units)
