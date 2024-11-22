@@ -20,8 +20,7 @@ cmake_policy(VERSION 3.18...3.28)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(GNUInstallDirs)
-include(CudaRdcUtils)
-include(CeleritasUtils)
+include(CeleritasOptionUtils)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
@@ -281,6 +280,8 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # DEPENDENCIES
 #----------------------------------------------------------------------------#
 
+include(CeleritasUtils)
+
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
   include(CTest)
@@ -488,6 +489,8 @@ endif()
 # LIBRARY
 #----------------------------------------------------------------------------#
 
+include(CeleritasLibraryUtils)
+
 # Define an interface library for propagating include paths for GPU compilers.
 # This allow API calls, so long as the compiler or linker implicitly bring in
 # the correct CUDA/ROCM libraries. Those libraries are *not* explicitly linked
@@ -587,9 +590,15 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
+  # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
+if(NOT CELERITAS_USE_VecGeom OR VecGeom_VERSION VERSION_LESS 1.2.10)
+  # Only install RDC utils if not available through vecgeom
+  list(APPEND _cmake_files
+    "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
+  )
+endif()
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
