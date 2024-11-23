@@ -54,25 +54,14 @@ class MuPairProductionTest : public InteractorHostBase,  public RootTestBase
         cut_inp.cutoffs = {{pdg::positron(), {{MevEnergy{0.001}, 0.1234}}}};
         this->set_cutoff_params(cut_inp);
 
-        // Create mock import data
-        {
-            ImportProcess ip_mu_plus = this->make_import_process(
-                pdg::mu_plus(),
-                pdg::positron(),
-                ImportProcessClass::mu_pair_prod,
-                {ImportModelClass::mu_pair_prod});
-            ImportProcess ip_mu_minus = ip_mu_plus;
-            ip_mu_minus.particle_pdg = pdg::mu_minus().get();
-            this->set_imported_processes(
-                {std::move(ip_mu_minus), std::move(ip_mu_plus)});
-        }
-
         // Construct model
+        auto imported = std::make_shared<ImportedProcesses>(
+            this->imported_data().processes);
         model_ = std::make_shared<MuPairProductionModel>(
             ActionId{0},
             *this->particle_params(),
-            this->imported_processes(),
-            this->imported_data().mu_pair_prod_data);
+            imported,
+            this->imported_data().mu_pair_production_data);
 
         // Set default particle to 10 GeV muon
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{1e4});
@@ -182,11 +171,11 @@ TEST_F(MuPairProductionTest, distribution)
     }
 
     static int const expected_counters[] = {
-        69,  1047, 2259, 2677, 2089, 1147, 462,  177, 57,  13, 3, 0,
-        205, 987,  1917, 2448, 2144, 1410, 632,  196, 52,  8,  1, 0,
-        181, 858,  1629, 2103, 2224, 1667, 885,  355, 85,  11, 2, 0,
-        167, 789,  1480, 2081, 2005, 1752, 1085, 465, 155, 20, 1, 0,
-        159, 728,  1563, 2038, 1967, 1623, 1140, 575, 179, 25, 3, 0,
+        81,  1008, 2263, 2737, 2030, 1137, 489,  179, 61,  10, 5, 0,
+        211, 932,  1925, 2521, 2144, 1458, 553,  194, 42,  16, 4, 0,
+        175, 824,  1609, 2169, 2125, 1657, 972,  352, 94,  19, 3, 1,
+        166, 809,  1542, 2019, 2029, 1732, 1071, 464, 144, 18, 6, 0,
+        166, 795,  1527, 1973, 1973, 1622, 1136, 570, 198, 36, 4, 0,
     };
     static double const expected_min_energy[] = {
         1.0219978922,
@@ -203,18 +192,18 @@ TEST_F(MuPairProductionTest, distribution)
         9999703.2353964,
     };
     static double const expected_avg_energy[] = {
-        11.299203914013,
-        40.70377549642,
-        187.00086829148,
-        967.1906047889,
-        5144.3602813293,
+        11.385403357084,
+        41.361523802727,
+        206.98208714495,
+        1020.1219188343,
+        5577.8316473924,
     };
     static double const expected_avg_energy_fraction[] = {
-        0.50421423445853,
-        0.5020054262725,
-        0.50141858602543,
-        0.50202779721782,
-        0.49670572239623,
+        0.50423912447367,
+        0.50100207981952,
+        0.49755643023702,
+        0.50541882095067,
+        0.50104378127586,
     };
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
@@ -271,17 +260,16 @@ TEST_F(MuPairProductionTest, basic)
     // Note: these are "gold" values based on the host RNG.
     static double const expected_pair_energy[] = {
         5.2112020993966,
-        6.5651926517886,
-        4.57949851351,
-        78.389480181261,
+        21.243525659788,
+        38.579822017652,
+        1.5718174636183,
     };
     static double const expected_costheta[] = {
-        0.99982940879058,
-        0.99574599017831,
-        0.99984416875468,
-        0.99978556512627,
+        0.99992128683238,
+        0.97331314773255,
+        0.9996196536095,
+        0.99925389709579,
     };
-
     EXPECT_VEC_SOFT_EQ(expected_pair_energy, pair_energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
 
@@ -297,7 +285,8 @@ TEST_F(MuPairProductionTest, stress_test)
 {
     unsigned int const num_samples = 10000;
     std::vector<double> avg_engine_samples;
-    std::vector<double> avg_pair_energy;
+    std::vector<double> avg_electron_energy;
+    std::vector<double> avg_positron_energy;
     std::vector<double> avg_costheta;
 
     // Get view to the current element
@@ -315,7 +304,8 @@ TEST_F(MuPairProductionTest, stress_test)
 
         RandomEngine& rng = InteractorHostBase::rng();
         RandomEngine::size_type num_particles_sampled = 0;
-        double pair_energy = 0;
+        double electron_energy = 0;
+        double positron_energy = 0;
         double costheta = 0;
 
         // Loop over several incident directions
@@ -340,9 +330,10 @@ TEST_F(MuPairProductionTest, stress_test)
                 Interaction result = interact(rng);
                 this->sanity_check(result);
 
-                pair_energy
-                    += value_as<MevEnergy>(result.secondaries[0].energy
-                                           + result.secondaries[1].energy);
+                electron_energy
+                    += value_as<MevEnergy>(result.secondaries[0].energy);
+                positron_energy
+                    += value_as<MevEnergy>(result.secondaries[1].energy);
                 costheta += dot_product(result.secondaries[0].direction,
                                         result.secondaries[1].direction);
             }
@@ -352,28 +343,37 @@ TEST_F(MuPairProductionTest, stress_test)
         }
         avg_engine_samples.push_back(real_type(rng.count())
                                      / num_particles_sampled);
-        avg_pair_energy.push_back(pair_energy / num_particles_sampled);
+        avg_electron_energy.push_back(electron_energy / num_particles_sampled);
+        avg_positron_energy.push_back(positron_energy / num_particles_sampled);
         avg_costheta.push_back(costheta / num_particles_sampled);
     }
 
     // Gold values for average number of calls to RNG
-    static double const expected_avg_engine_samples[] = {12, 12, 12, 12, 12};
-    static double const expected_avg_pair_energy[] = {
-        11.446482879265,
-        40.966469380591,
-        197.13225677745,
-        1026.3457936559,
-        5462.6262903555,
+    static double const expected_avg_engine_samples[] = {10, 10, 10, 10, 10};
+    static double const expected_avg_electron_energy[] = {
+        5.8576412144715,
+        20.252555954228,
+        94.180558565793,
+        520.94052936516,
+        2639.6476941083,
+    };
+    static double const expected_avg_positron_energy[] = {
+        5.7794889335716,
+        20.927588166876,
+        96.754501610176,
+        514.01049205226,
+        2615.657078881,
     };
     static double const expected_avg_costheta[] = {
-        0.94168731844387,
-        0.99878887293556,
-        0.99998602856327,
-        0.99999984395206,
-        0.99999999809332,
+        0.94178280083313,
+        0.99880165150942,
+        0.99998776687485,
+        0.99999983141391,
+        0.99999999832285,
     };
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
-    EXPECT_VEC_SOFT_EQ(expected_avg_pair_energy, avg_pair_energy);
+    EXPECT_VEC_SOFT_EQ(expected_avg_electron_energy, avg_electron_energy);
+    EXPECT_VEC_SOFT_EQ(expected_avg_positron_energy, avg_positron_energy);
     EXPECT_VEC_SOFT_EQ(expected_avg_costheta, avg_costheta);
 }
 

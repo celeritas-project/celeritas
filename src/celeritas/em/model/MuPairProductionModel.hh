@@ -13,7 +13,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuPairProductionData.hh"
-#include "celeritas/io/ImportMuPairProdTable.hh"
+#include "celeritas/io/ImportMuPairProductionTable.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -42,7 +42,7 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
     MuPairProductionModel(ActionId,
                           ParticleParams const&,
                           SPConstImported,
-                          ImportMuPairProdTable const&);
+                          ImportMuPairProductionTable const&);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -67,7 +67,7 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
     ImportedModelAdapter imported_;
 
     using HostTable = HostVal<MuPairProductionTableData>;
-    void build_table(ImportMuPairProdTable const&, HostTable*) const;
+    void build_table(ImportMuPairProductionTable const&, HostTable*) const;
 };
 
 //---------------------------------------------------------------------------//

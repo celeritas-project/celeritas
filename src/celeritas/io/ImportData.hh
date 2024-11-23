@@ -14,7 +14,7 @@
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
-#include "ImportMuPairProdTable.hh"
+#include "ImportMuPairProductionTable.hh"
 #include "ImportOpticalMaterial.hh"
 #include "ImportOpticalModel.hh"
 #include "ImportParameters.hh"
@@ -87,7 +87,7 @@ struct ImportData
     ImportLivermorePEMap livermore_pe_data;
     ImportNeutronElasticMap neutron_elastic_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;
-    ImportMuPairProdTable mu_pair_prod_data;
+    ImportMuPairProductionTable mu_pair_production_data;
     //!@}
 
     //!@{

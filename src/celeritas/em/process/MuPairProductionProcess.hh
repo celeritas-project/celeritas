@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "celeritas/io/ImportMuPairProdTable.hh"
+#include "celeritas/io/ImportMuPairProductionTable.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -29,7 +29,8 @@ class MuPairProductionProcess : public Process
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using SPConstImportTable = std::shared_ptr<ImportMuPairProdTable const>;
+    using SPConstImportTable
+        = std::shared_ptr<ImportMuPairProductionTable const>;
     //!@}
 
     // Options for the pair production process

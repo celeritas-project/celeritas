@@ -707,7 +707,7 @@ void print_livermore_pe_data(ImportData::ImportLivermorePEMap const& lpe_map)
 /*!
  * Print muon pair production sampling table.
  */
-void print_mupp_data(ImportMuPairProdTable const& mupp_data)
+void print_mupp_data(ImportMuPairProductionTable const& mupp_data)
 {
     if (!mupp_data)
     {
@@ -1026,7 +1026,7 @@ int main(int argc, char* argv[])
 
     print_sb_data(data.sb_data);
     print_livermore_pe_data(data.livermore_pe_data);
-    print_mupp_data(data.mu_pair_prod_data);
+    print_mupp_data(data.mu_pair_production_data);
     print_atomic_relaxation_data(data.atomic_relaxation_data);
 
     print_em_params(data.em_params);

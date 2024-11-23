@@ -1099,7 +1099,7 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& data = import_data.mu_pair_prod_data;
+    auto const& data = import_data.mu_pair_production_data;
 
     int const expected_atomic_number[] = {1, 4, 13, 29, 92};
     EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);

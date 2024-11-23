@@ -37,7 +37,7 @@ MuPairProductionModel::MuPairProductionModel(
     ActionId id,
     ParticleParams const& particles,
     SPConstImported data,
-    ImportMuPairProdTable const& imported)
+    ImportMuPairProductionTable const& imported)
     : StaticConcreteAction(
         id, "pair-prod-muon", "interact by e-/e+ pair production by muons")
     , imported_(data,
@@ -47,10 +47,6 @@ MuPairProductionModel::MuPairProductionModel(
                 {pdg::mu_minus(), pdg::mu_plus()})
 {
     CELER_EXPECT(id);
-
-    CELER_VALIDATE(imported,
-                   << "sampling table (required for '" << this->description()
-                   << "') is empty");
 
     ScopedMem record_mem("MuPairProductionModel.construct");
 
@@ -69,6 +65,9 @@ MuPairProductionModel::MuPairProductionModel(
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Build sampling table
+    CELER_VALIDATE(imported,
+                   << "sampling table (required for '" << this->description()
+                   << "') is empty");
     this->build_table(imported, &host_data.table);
 
     // Move to mirrored data, copying to device
@@ -85,7 +84,6 @@ auto MuPairProductionModel::applicability() const -> SetApplicability
 {
     Applicability mu_minus_applic;
     mu_minus_applic.particle = this->host_ref().ids.mu_minus;
-    // TODO: is it ok to set the lower limit to zero?
     mu_minus_applic.lower = zero_quantity();
     mu_minus_applic.upper = detail::high_energy_limit();
 
@@ -132,8 +130,8 @@ void MuPairProductionModel::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Construct sampling table.
  */
-void MuPairProductionModel::build_table(ImportMuPairProdTable const& imported,
-                                        HostTable* table) const
+void MuPairProductionModel::build_table(
+    ImportMuPairProductionTable const& imported, HostTable* table) const
 {
     CELER_EXPECT(imported);
     CELER_EXPECT(table);

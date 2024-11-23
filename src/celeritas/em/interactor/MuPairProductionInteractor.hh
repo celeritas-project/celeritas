@@ -117,11 +117,6 @@ CELER_FUNCTION MuPairProductionInteractor::MuPairProductionInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
 {
-    if (sample_energy_.min_energy() >= sample_energy_.max_pair_energy())
-    {
-        return Interaction::from_unchanged();
-    }
-
     // Allocate secondary electron and positron
     Secondary* secondaries = allocate_(2);
     if (secondaries == nullptr)

@@ -43,9 +43,7 @@ struct MuPairProductionIds
  * - x: logarithm of the energy [MeV] of the incident charged particle
  * - y: logarithm of the ratio of the energy transfer to the incident particle
  *   energy
- * - value: CDF calculated from the differential cross section [MeV * len^2]
- * The value is only used for sampling the pair energy, so the magnitude is not
- * important.
+ * - value: CDF calculated from the differential cross section
  */
 template<Ownership W, MemSpace M>
 struct MuPairProductionTableData

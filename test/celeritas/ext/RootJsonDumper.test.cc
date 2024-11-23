@@ -136,7 +136,7 @@ TEST_F(RootJsonDumperTest, all)
     trim(&imported.volumes);
     imported.sb_data = {};
     imported.livermore_pe_data = {};
-    for (auto& pv : imported.mu_pair_prod_data.physics_vectors)
+    for (auto& pv : imported.mu_pair_production_data.physics_vectors)
     {
         trim(&pv);
     }
@@ -426,8 +426,8 @@ TEST_F(RootJsonDumperTest, all)
 "livermore_pe_data" : [],
 "neutron_elastic_data" : [],
 "atomic_relaxation_data" : [],
-"mu_pair_prod_data" : {
-  "_typename" : "celeritas::ImportMuPairProdTable",
+"mu_pair_production_data" : {
+  "_typename" : "celeritas::ImportMuPairProductionTable",
   "atomic_number" : [1, 4, 13, 29, 92],
   "physics_vectors" : [{
     "_typename" : "celeritas::ImportPhysics2DVector",

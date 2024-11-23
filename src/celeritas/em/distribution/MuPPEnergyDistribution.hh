@@ -24,7 +24,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample electron-positron pair energy for muon pair production.
+ * Sample the electron and positron energies for muon pair production.
+ *
+ * The energy transfer to the electron-positron pair is sampled using inverse
+ * transform sampling on a tabulated CDF. The CDF is calculated on a 2D grid,
+ * where the x-axis is the log of the incident muon energy and the y-axis is
+ * the log of the ratio of the energy transfer to the incident particle energy.
+ * Because the shape of the distribution depends only weakly on the atomic
+ * number, the CDF is calculated for a hardcoded set of points equally spaced
+ * in \f$ \log Z \f$ and linearly interpolated.
  */
 class MuPPEnergyDistribution
 {
@@ -65,22 +73,17 @@ class MuPPEnergyDistribution
         return Energy(max_pair_energy_);
     }
 
-    //! Minimum incident particle kinetic energy [MeV].
-    CELER_FUNCTION Energy min_energy() const { return Energy(min_energy_); }
-
   private:
     //// DATA ////
 
-    // Table for sampling the pair energy
+    // CDF table for sampling the pair energy
     NativeCRef<MuPairProductionTableData> const& table_;
     // Incident particle energy [MeV]
     real_type inc_energy_;
-    // Log of incident particle energy
-    real_type log_energy_;
-    // Square of the muon mass
-    real_type inc_mass_sq_;
     // Incident particle total energy [MeV]
     real_type total_energy_;
+    // Square of the muon mass
+    real_type inc_mass_sq_;
     // Secondary mass
     real_type electron_mass_;
     // Minimum energy transfer to electron/positron pair [MeV]
@@ -104,10 +107,9 @@ class MuPPEnergyDistribution
     template<class Engine>
     inline CELER_FUNCTION real_type sample_scaled_energy(Engine& rng) const;
 
-    // Sample the scaled energy for a given Z
-    template<class Engine>
-    inline CELER_FUNCTION real_type sample_scaled_energy(size_type z_idx,
-                                                         Engine& rng) const;
+    // Calculate the scaled energy for a given Z grid and sampled CDF
+    inline CELER_FUNCTION real_type calc_scaled_energy(size_type z_idx,
+                                                       real_type u) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -116,8 +118,7 @@ class MuPPEnergyDistribution
 /*!
  * Construct from shared and incident particle data.
  *
- * The incident energy *must* be within the bounds of the sampling table data,
- * so the model's applicability must be consistent with the table data.
+ * The incident energy *must* be within the bounds of the sampling table data.
  */
 CELER_FUNCTION
 MuPPEnergyDistribution::MuPPEnergyDistribution(
@@ -127,9 +128,8 @@ MuPPEnergyDistribution::MuPPEnergyDistribution(
     ElementView const& element)
     : table_(shared.table)
     , inc_energy_(value_as<Energy>(particle.energy()))
-    , log_energy_(std::log(inc_energy_))
-    , inc_mass_sq_(ipow<2>(value_as<Mass>(particle.mass())))
     , total_energy_(value_as<Energy>(particle.total_energy()))
+    , inc_mass_sq_(ipow<2>(value_as<Mass>(particle.mass())))
     , electron_mass_(value_as<Mass>(shared.electron_mass))
     , min_pair_energy_(4 * value_as<Mass>(shared.electron_mass))
     , max_pair_energy_(inc_energy_
@@ -140,7 +140,7 @@ MuPPEnergyDistribution::MuPPEnergyDistribution(
     , min_energy_(max(value_as<Energy>(cutoffs.energy(shared.ids.positron)),
                       min_pair_energy_))
 {
-    CELER_EXPECT(max_pair_energy_ > min_pair_energy_);
+    CELER_EXPECT(max_pair_energy_ > min_energy_);
 
     NonuniformGrid logz_grid(table_.logz_grid, table_.reals);
     logz_interp_ = find_interp(logz_grid, element.log_z());
@@ -152,6 +152,13 @@ MuPPEnergyDistribution::MuPPEnergyDistribution(
     // Compute the bounds on the ratio of the pair energy to incident energy
     y_min_ = std::log(min_energy_ / inc_energy_) / coeff_;
     y_max_ = std::log(max_pair_energy_ / inc_energy_) / coeff_;
+
+    // Check that the bounds are within the grid bounds
+    CELER_ASSERT(y_min_ >= y_grid.front()
+                 || soft_equal(y_grid.front(), y_min_));
+    CELER_ASSERT(y_max_ <= y_grid.back() || soft_equal(y_grid.back(), y_max_));
+    y_min_ = max(y_min_, y_grid.front());
+    y_max_ = min(y_max_, y_grid.back());
 }
 
 //---------------------------------------------------------------------------//
@@ -174,11 +181,11 @@ CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
                       * std::sqrt(1 - min_pair_energy_ / pair_energy);
     real_type r = UniformRealDistribution(-r_max, r_max)(rng);
 
+    // Calculate the electron and positron energies
     PairEnergy result;
-    result.electron
-        = Energy((1 - r) * pair_energy * real_type(0.5) - electron_mass_);
-    result.positron
-        = Energy((1 + r) * pair_energy * real_type(0.5) - electron_mass_);
+    real_type half_energy = pair_energy * real_type(0.5);
+    result.electron = Energy((1 - r) * half_energy - electron_mass_);
+    result.positron = Energy((1 + r) * half_energy - electron_mass_);
 
     CELER_ENSURE(result.electron > zero_quantity());
     CELER_ENSURE(result.positron > zero_quantity());
@@ -193,43 +200,49 @@ template<class Engine>
 CELER_FUNCTION real_type
 MuPPEnergyDistribution::sample_scaled_energy(Engine& rng) const
 {
-    real_type y_lower = this->sample_scaled_energy(logz_interp_.index, rng);
-    real_type y_upper = this->sample_scaled_energy(logz_interp_.index + 1, rng);
+    real_type u = generate_canonical(rng);
+    real_type y_lower = this->calc_scaled_energy(logz_interp_.index, u);
+    real_type y_upper = this->calc_scaled_energy(logz_interp_.index + 1, u);
     return y_lower + (y_upper - y_lower) * logz_interp_.fraction;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the scaled energy for a given Z.
+ * Calculate the scaled energy for a given Z grid and sampled CDF value.
  */
-template<class Engine>
 CELER_FUNCTION real_type
-MuPPEnergyDistribution::sample_scaled_energy(size_type z_idx, Engine& rng) const
+MuPPEnergyDistribution::calc_scaled_energy(size_type z_idx, real_type u) const
 {
     CELER_EXPECT(z_idx < table_.grids.size());
 
     TwodGridData const& cdf_grid = table_.grids[ItemId<TwodGridData>(z_idx)];
-    auto calc_cdf = TwodGridCalculator(cdf_grid, table_.reals)(log_energy_);
+    auto calc_cdf
+        = TwodGridCalculator(cdf_grid, table_.reals)(std::log(inc_energy_));
 
-    // Sample the CDF value between the y bounds
-    UniformRealDistribution sample_cdf(calc_cdf(y_min_), calc_cdf(y_max_));
-    real_type cdf = sample_cdf(rng);
+    // Get the sampled CDF value between the y bounds
+    real_type cdf_min = calc_cdf(y_min_);
+    real_type cdf = std::fma(calc_cdf(y_max_) - cdf_min, u, cdf_min);
 
+    // Find the grid index of the sampled CDF value
     NonuniformGrid y_grid(cdf_grid.y, table_.reals);
+    Range indices(y_grid.size());
+    auto iter = celeritas::lower_bound(
+        indices.begin(),
+        indices.end(),
+        cdf,
+        [&calc_cdf, &y_grid](size_type i, real_type v) {
+            return calc_cdf(y_grid[i]) < v;
+        });
+    CELER_ASSERT(iter != indices.end());
+    size_type idx = iter - indices.begin();
+    CELER_ASSERT(idx > 0);
 
-    // Find the y value corresponding to the sampled CDF value
-    // TODO: refactor as CDF sampler and use a binary search
-    size_type idx = y_grid.size() - 2;
-    real_type cdf_lower = 1;
-    real_type cdf_upper;
-    do
-    {
-        cdf_upper = cdf_lower;
-        cdf_lower = calc_cdf(y_grid[idx]);
-    } while (cdf_lower > cdf && idx-- > 0);
-
-    real_type frac = (cdf - cdf_lower) / (cdf_upper - cdf_lower);
-    return fma(frac, y_grid[idx + 1] - y_grid[idx], y_grid[idx]);
+    // Calculate the y value corresponding to the sampled CDF value
+    real_type y_upper = y_grid[idx];
+    real_type y_lower = y_grid[idx - 1];
+    real_type cdf_lower = calc_cdf(y_lower);
+    real_type frac = (cdf - cdf_lower) / (calc_cdf(y_upper) - cdf_lower);
+    return fma<real_type>(frac, y_upper - y_lower, y_lower);
 }
 
 //---------------------------------------------------------------------------//
