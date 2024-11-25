@@ -38,7 +38,7 @@ template<class UnitType, class... Args>
 std::array<real_type, sizeof...(Args)> constexpr expressed_as(Args const&... args)
 {
     return std::array<real_type, sizeof...(Args)>{
-        native_value_from(UnitType{args})...};
+        native_value_from(UnitType(args))...};
 }
 
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ std::array<real_type, sizeof...(Args)> constexpr expressed_as(Args const&... arg
 template<class UnitType, class... Args>
 std::vector<real_type> vector_expressed_as(Args const&... args)
 {
-    return std::vector<real_type>{native_value_from(UnitType{args})...};
+    return std::vector<real_type>{native_value_from(UnitType(args))...};
 }
 
 //---------------------------------------------------------------------------//

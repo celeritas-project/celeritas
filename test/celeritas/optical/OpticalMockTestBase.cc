@@ -66,12 +66,12 @@ physics_vector_expressed_as(std::vector<double> xs, std::vector<double> ys)
     for (double& x : v.x)
     {
         x = value_as<units::MevEnergy>(native_value_to<units::MevEnergy>(
-            native_value_from(Quantity<GridUnit>{x})));
+            native_value_from(Quantity<GridUnit>(x))));
     }
 
     for (double& y : v.y)
     {
-        y = native_value_from(Quantity<ValueUnit>{y});
+        y = native_value_from(Quantity<ValueUnit>(y));
     }
 
     return v;
@@ -149,7 +149,7 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
             std::to_string(i).c_str()});
 
         // mock MaterialId == OpticalMaterialId
-        input.mat_to_optical.push_back(OpticalMaterialId{i});
+        input.mat_to_optical.push_back(OpticalMaterialId(i));
     }
 
     return std::make_shared<::celeritas::MaterialParams const>(
