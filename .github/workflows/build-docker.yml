@@ -83,7 +83,7 @@ jobs:
         # Revert when we update the CI images
         run: |
           if [ -e test ]; then
-            ninja -v -k0 force-update-root-test-data
+            ninja -v -k0 update-root-test-data
           fi
       - name: Test Celeritas
         id: test

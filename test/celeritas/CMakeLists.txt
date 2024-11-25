@@ -427,73 +427,33 @@ celeritas_add_test(user/StepCollector.test.cc
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-set(_root_data)
-set(_force_update_root_data)
+add_custom_target(update-root-test-data
+  COMMENT "Regenerate ROOT test data"
+)
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")
-    set(_target_name "root-test-data-${_filename}")
-
-    set(_update_script
-      "${CMAKE_CURRENT_BINARY_DIR}/update-${_target_name}-$<CONFIG>.cmake")
-    set(_update_deps
-      "${_update_script}" 
-      celer-export-geant
-      "${_gdml}"
-      "${_basename}.geant.json"
-      "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
-    )
-
-    # Defer update call to a script so that root files aren't targeted by
-    # cmake-clean
-
-    file(GENERATE
-      OUTPUT "${_update_script}"
-      CONTENT
-        "if(NOT EXISTS \"${_output}\")
-           execute_process(
-             COMMAND
-               \"${CMAKE_COMMAND}\" \"-E\" \"env\" ${CELER_G4ENV}
-               \"$<TARGET_FILE:celer-export-geant>\"
-               \"${_gdml}\"
-               \"${_basename}.geant.json\"
-               \"${_output}\"
-               \"--gen-test\"
-         )
-         endif()"
-    )
-
-    add_custom_target("${_target_name}"
-      DEPENDS ${_update_deps}
-      COMMAND "${CMAKE_COMMAND}" "-P" "${_update_script}"
+    add_custom_command(
+      TARGET update-root-test-data
+      POST_BUILD
+      DEPENDS
+        celer-export-geant
+        "${_gdml}"
+        "${_basename}.geant.json"
+        "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
+      COMMAND
+        "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
+        "$<TARGET_FILE:celer-export-geant>"
+        "${_gdml}"
+        "${_basename}.geant.json"
+        "${_output}"
+        "--gen-test"
       VERBATIM
     )
-
-    list(APPEND _root_data "${_target_name}")
-
-    # Can't order targets in CMake: use commands + script instead
-
-    add_custom_target("force-update-${_target_name}"
-      DEPENDS ${_update_deps}
-      COMMAND "${CMAKE_COMMAND}" "-E" "rm" "${_output}"
-      COMMAND "${CMAKE_COMMAND}" "-P" "${_update_script}"
-      VERBATIM
-    )
-
-    list(APPEND _force_update_root_data "force-update-${_target_name}")
   endforeach()
 endif()
-
-add_custom_target(update-root-test-data
-  COMMENT "Regenerate ROOT test data if it doesn't exist"
-  DEPENDS ${_root_data}
-)
-
-add_custom_target(force-update-root-test-data
-  COMMENT "Force regeneration of ROOT test data"
-  DEPENDS ${_force_update_root_data}
-)
 
 #-----------------------------------------------------------------------------#
