@@ -88,9 +88,6 @@ class SeltzerBergerModel final : public Model, public StaticConcreteAction
     CollectionMirror<SeltzerBergerData> data_;
 
     ImportedModelAdapter imported_;
-
-    using HostXsTables = HostVal<SeltzerBergerTableData>;
-    void append_table(ImportSBTable const& table, HostXsTables* tables) const;
 };
 
 //---------------------------------------------------------------------------//

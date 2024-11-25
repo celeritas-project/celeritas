@@ -79,9 +79,10 @@ celeritas_add_test_library(testcel_celeritas
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
   neutron/NeutronTestBase.cc
-  optical/MockImportedData.cc
+  optical/OpticalMockTestBase.cc
   optical/OpticalTestBase.cc
   optical/InteractorHostTestBase.cc
+  optical/ValidationUtils.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
   phys/MockModel.cc
@@ -130,6 +131,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 # Distributions
 celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
+celeritas_add_test(em/distribution/MuBremsPPAngularDistribution.test.cc ${_needs_double})
 celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Cross section calculation
@@ -307,14 +309,13 @@ celeritas_add_test(optical/Cerenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
-celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
-celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
+celeritas_add_test(optical/Rayleigh.test.cc)
+celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
-celeritas_add_test(optical/MockValidation.test.cc)
 celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 
 #-----------------------------------------------------------------------------#

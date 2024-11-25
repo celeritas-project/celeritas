@@ -9,7 +9,8 @@
 
 #include <array>
 
-#include "MockImportedData.hh"
+#include "OpticalMockTestBase.hh"
+#include "ValidationUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -23,10 +24,10 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedModelAdapterTest : public MockImportedData
+class ImportedModelAdapterTest : public OpticalMockTestBase
 {
   protected:
-    void SetUp() override {}
+    using ImportedModelId = typename ImportedModels::ImportedModelId;
 
     void check_model(ImportOpticalModel const& expected_model,
                      ImportOpticalModel const& imported_model) const
@@ -36,9 +37,20 @@ class ImportedModelAdapterTest : public MockImportedData
                   imported_model.mfp_table.size());
         for (auto mat_id : range(imported_model.mfp_table.size()))
         {
-            this->check_mfp(expected_model.mfp_table[mat_id],
-                            imported_model.mfp_table[mat_id]);
+            check_physics_vector(expected_model.mfp_table[mat_id],
+                                 imported_model.mfp_table[mat_id]);
         }
+    }
+
+    std::shared_ptr<ImportedModels const> const& imported_models() const
+    {
+        static std::shared_ptr<ImportedModels const> models;
+        if (!models)
+        {
+            models = std::make_shared<ImportedModels const>(
+                this->imported_data().optical_models);
+        }
+        return models;
     }
 };
 
@@ -48,8 +60,8 @@ class ImportedModelAdapterTest : public MockImportedData
 // Create ImportedModels from mock data
 TEST_F(ImportedModelAdapterTest, build_mock)
 {
-    auto const& expected_models = this->import_models();
-    auto imported_models = this->create_imported_models();
+    auto const& expected_models = this->imported_data().optical_models;
+    auto imported_models = this->imported_models();
 
     ASSERT_EQ(expected_models.size(), imported_models->num_models());
     for (auto model_id : range(ImportedModelId{imported_models->num_models()}))
@@ -67,7 +79,7 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
     std::array<IMC, 3> expected_builtin_imcs{
         IMC::absorption, IMC::rayleigh, IMC::wls};
 
-    auto imported_models = this->create_imported_models();
+    auto imported_models = this->imported_models();
 
     // Check built-in models match expected ones
     EXPECT_EQ(expected_builtin_imcs.size(), static_cast<size_type>(IMC::size_));
@@ -85,8 +97,8 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
 // Check adapters correctly match MFPs
 TEST_F(ImportedModelAdapterTest, adapter_mfps)
 {
-    auto const& expected_models = this->import_models();
-    auto imported_models = this->create_imported_models();
+    auto const& expected_models = this->imported_data().optical_models;
+    auto imported_models = this->imported_models();
 
     ASSERT_EQ(expected_models.size(), imported_models->num_models());
     for (auto model_id : range(ImportedModelId{imported_models->num_models()}))
@@ -97,8 +109,8 @@ TEST_F(ImportedModelAdapterTest, adapter_mfps)
         ASSERT_EQ(expected_model.mfp_table.size(), adapter.num_materials());
         for (auto mat_id : range(OpticalMaterialId{adapter.num_materials()}))
         {
-            this->check_mfp(expected_model.mfp_table[mat_id.get()],
-                            adapter.mfp(mat_id));
+            check_physics_vector(expected_model.mfp_table[mat_id.get()],
+                                 adapter.mfp(mat_id));
         }
     }
 }

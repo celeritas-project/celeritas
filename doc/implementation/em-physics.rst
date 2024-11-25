@@ -204,6 +204,11 @@ rejection sampling.
 
 .. doxygenclass:: celeritas::MuBremsDiffXsCalculator
 
+Muon bremsstrahlung and pair production use a simple distribution to sample the
+exiting polar angles.
+
+.. doxygenclass:: celeritas::MuBremsPPAngularDistribution
+
 Photon scattering
 -----------------
 

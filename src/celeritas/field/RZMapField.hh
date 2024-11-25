@@ -78,7 +78,7 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 
     Real3 value{0, 0, 0};
 
-    real_type r = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
+    real_type r = hypot(pos[0], pos[1]);
 
     if (!params_.valid(pos[2], r))
         return value;
