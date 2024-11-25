@@ -16,6 +16,8 @@ namespace test
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 /*!
+ * Compare expected and actual \c ImportPhysicsVector expecting them to be
+ * exactly equal.
  */
 void check_physics_vector(ImportPhysicsVector const& expected,
                           ImportPhysicsVector const& actual)
