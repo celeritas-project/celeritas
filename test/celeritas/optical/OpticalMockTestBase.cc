@@ -176,6 +176,8 @@ ImportData const& OpticalMockTestBase::imported_data() const
  */
 void OpticalMockTestBase::build_import_data(ImportData& data) const
 {
+    data.units = units::NativeTraits::label();
+
     // Build mock imported optical materials
     {
         data.optical_materials = std::vector<ImportOpticalMaterial>(5);

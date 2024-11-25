@@ -9,14 +9,13 @@
 
 #include <algorithm>
 
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/optical/ModelBuilder.hh"
 #include "celeritas/optical/model/AbsorptionModel.hh"
 #include "celeritas/optical/model/RayleighModel.hh"
 
-#include "MockImportedData.hh"
+#include "OpticalMockTestBase.hh"
+#include "ValidationUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -28,34 +27,20 @@ namespace test
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 
-class ModelImporterTest : public MockImportedData
+class ModelImporterTest : public OpticalMockTestBase
 {
   protected:
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstCoreMaterial
         = std::shared_ptr<::celeritas::MaterialParams const>;
 
-    static void SetUpTestCase()
-    {
-        auto& data = import_data();
-        data.optical_models = import_models();
-        data.optical_materials = import_materials();
-        data.units = units::NativeTraits::label();
-    }
-
     ModelImporter
     build_importer(ModelImporter::UserBuildMap const& user_build = {})
     {
-        return ModelImporter(import_data(),
-                             this->optical_materials(),
-                             this->core_materials(),
+        return ModelImporter(this->imported_data(),
+                             this->optical_material(),
+                             this->material(),
                              user_build);
-    }
-
-    static ImportData& import_data()
-    {
-        static ImportData import_data_;
-        return import_data_;
     }
 
     template<class ModelT>
@@ -77,22 +62,25 @@ class ModelImporterTest : public MockImportedData
 
         // Get expected MFP tables
         auto expected_iter = std::find_if(
-            this->import_models().begin(),
-            this->import_models().end(),
+            this->imported_data().optical_models.begin(),
+            this->imported_data().optical_models.end(),
             [imc](auto const& m) { return m.model_class == imc; });
-        ASSERT_FALSE(expected_iter == this->import_models().end());
+        ASSERT_FALSE(expected_iter
+                     == this->imported_data().optical_models.end());
 
         // Build imported tables
-        auto mfp_builder = this->create_mfp_builder();
-        for (auto mat : range(OpticalMaterialId{
-                 this->optical_materials()->num_materials()}))
+        GridStorage storage;
+        auto mfp_builder = storage.create_mfp_builder();
+        for (auto mat : range(
+                 OpticalMaterialId{this->optical_material()->num_materials()}))
         {
             model->build_mfps(mat, mfp_builder);
         }
 
         // Check tables (i.e. models have correct data after being built)
-        this->check_built_table_exact(expected_iter->mfp_table,
-                                      mfp_builder.grid_ids());
+        storage.check_built_table(expected_iter->mfp_table,
+                                  mfp_builder.grid_ids(),
+                                  GridValidator::Exact);
     }
 };
 
@@ -118,7 +106,13 @@ TEST_F(ModelImporterTest, build_rayleigh)
 
 //---------------------------------------------------------------------------//
 // Test building WLS
-TEST_F(ModelImporterTest, build_wls) {}
+TEST_F(ModelImporterTest, build_wls)
+{
+    auto model_importer = this->build_importer();
+
+    // TODO: update when WLS model is supported
+    EXPECT_THROW(model_importer(ImportModelClass::wls), RuntimeError);
+}
 
 //---------------------------------------------------------------------------//
 // Test user ignore options

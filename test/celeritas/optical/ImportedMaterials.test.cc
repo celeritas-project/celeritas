@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/ImportedMaterials.hh"
 
-#include "celeritas/io/ImportData.hh"
-
-#include "MockImportedData.hh"
+#include "OpticalMockTestBase.hh"
+#include "ValidationUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -23,16 +22,13 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedMaterialsTest : public MockImportedData
+class ImportedMaterialsTest : public OpticalMockTestBase
 {
   protected:
     void SetUp() override
     {
-        ImportData import_data;
-        import_data.optical_materials = this->import_materials();
-
         imported_materials = ImportedMaterials::from_import(
-            import_data, *this->core_materials());
+            this->imported_data(), *this->material());
     }
 
     std::shared_ptr<ImportedMaterials const> imported_materials;
@@ -54,7 +50,7 @@ TEST_F(ImportedMaterialsTest, simple)
         // Rayleigh data
         {
             auto const& expected_rayleigh
-                = this->import_materials()[opt_mat.get()].rayleigh;
+                = this->imported_data().optical_materials[opt_mat.get()].rayleigh;
             auto const& imported_rayleigh
                 = this->imported_materials->rayleigh(opt_mat);
 
@@ -67,13 +63,14 @@ TEST_F(ImportedMaterialsTest, simple)
         // Wavelength shifting
         {
             auto const& expected_wls
-                = this->import_materials()[opt_mat.get()].wls;
+                = this->imported_data().optical_materials[opt_mat.get()].wls;
             auto const& imported_wls = this->imported_materials->wls(opt_mat);
 
             EXPECT_EQ(expected_wls.mean_num_photons,
                       imported_wls.mean_num_photons);
             EXPECT_EQ(expected_wls.time_constant, imported_wls.time_constant);
-            this->check_mfp(expected_wls.component, imported_wls.component);
+            check_physics_vector(expected_wls.component,
+                                 imported_wls.component);
         }
     }
 }
