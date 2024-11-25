@@ -77,13 +77,13 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
     , imported_(ImportModelClass::rayleigh, std::move(imported))
     , input_(std::move(input))
 {
-    if (input)
-    {
-        CELER_EXPECT(input_.materials->num_materials()
-                     == imported_.num_materials());
+    CELER_EXPECT(!input_
+                 || input_.materials->num_materials()
+                        == imported_.num_materials());
 
-        for (auto mat :
-             range(OpticalMaterialId(input_.materials->num_materials())))
+    for (auto mat : range(OpticalMaterialId(imported_.num_materials())))
+    {
+        if (input)
         {
             CELER_VALIDATE(
                 imported_.mfp(mat) || input_.imported_materials->rayleigh(mat),
@@ -91,10 +91,7 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
                    "material parameters to build MFPs for each optical "
                    "material");
         }
-    }
-    else
-    {
-        for (auto mat : range(OpticalMaterialId(imported_.num_materials())))
+        else
         {
             CELER_VALIDATE(imported_.mfp(mat),
                            << "Rayleigh model requires imported MFP for each "

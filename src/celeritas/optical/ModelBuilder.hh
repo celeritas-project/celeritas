@@ -17,10 +17,20 @@ namespace optical
 {
 class Model;
 //---------------------------------------------------------------------------//
+/*!
+ * Concrete base class for deferred building of optical models.
+ *
+ * Mimics \c Process in core physics, but doesn't need any functionality
+ * besides building the models.
+ */
 struct ModelBuilder
 {
+    //!@{
+    //! \name Type aliases
     using SPModel = std::shared_ptr<Model>;
+    //!@}
 
+    //! Construct an optical model with the given action ID
     virtual SPModel operator()(ActionId) const = 0;
 };
 
