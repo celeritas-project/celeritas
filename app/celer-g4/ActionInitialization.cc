@@ -82,15 +82,21 @@ void ActionInitialization::Build() const
     CELER_LOG_LOCAL(status) << "Constructing user action";
 
     // Primary generator emits source particles
+    std::unique_ptr<G4VUserPrimaryGeneratorAction> generator_action;
     if (auto const& hepmc_gen = GlobalSetup::Instance()->hepmc_gen())
     {
-        this->SetUserAction(new HepMC3PrimaryGeneratorAction(hepmc_gen));
+        generator_action
+            = std::make_unique<HepMC3PrimaryGeneratorAction>(hepmc_gen);
     }
     else
     {
-        this->SetUserAction(new PGPrimaryGeneratorAction(
-            GlobalSetup::Instance()->input().primary_options));
+        ExceptionConverter call_g4exception{"celer0006"};
+        CELER_TRY_HANDLE(
+            generator_action = std::make_unique<PGPrimaryGeneratorAction>(
+                GlobalSetup::Instance()->input().primary_options),
+            call_g4exception);
     }
+    this->SetUserAction(generator_action.release());
 
     // Create thread-local transporter to share between actions
     auto transport = std::make_shared<LocalTransporter>();
