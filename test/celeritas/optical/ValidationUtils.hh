@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <array>
 #include <type_traits>
+#include <vector>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
