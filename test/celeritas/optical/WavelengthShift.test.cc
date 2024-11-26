@@ -216,7 +216,7 @@ TEST_F(WavelengthShiftTest, wls_stress)
         avg_energy.push_back(sum_energy / sum_emitted);
         avg_costheta.push_back(sum_costheta / sum_emitted);
         avg_orthogonality.push_back(sum_orthogonality / sum_emitted);
-        avg_time.push_back(sum_time / sum_emitted);
+        avg_time.push_back(sum_time / sum_emitted / units::second);
     }
 
     static double const expected_avg_emitted[]
