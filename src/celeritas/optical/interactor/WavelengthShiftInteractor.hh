@@ -122,7 +122,8 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
         return Interaction::from_unchanged();
     }
 
-    // Allocate space for reemitted optical photons
+    // Allocate space for reemitted optical photons - Note: the reproducibility
+    // is not guaranteed in the case of an out-of-memory error
     TrackInitializer* secondaries = allocate_(num_photons);
 
     if (secondaries == nullptr)
