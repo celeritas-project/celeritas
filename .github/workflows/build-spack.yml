@@ -41,7 +41,7 @@ jobs:
           - geometry: "geant4"
             special: null
             geant: "11.0"
-          - geometry: "orange"
+          - geometry: "vecgeom"
             special: "clang-tidy"
             geant: "11.2"
     env:
@@ -139,7 +139,6 @@ jobs:
       - name: Build all
         id: build
         working-directory: build
-        continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
           ninja -v -k0
       - name: Regenerate ROOT test data
