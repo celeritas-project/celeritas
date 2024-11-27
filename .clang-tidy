@@ -23,10 +23,12 @@ Checks: |
   -bugprone-macro-parentheses
   -bugprone-easily-swappable-parameters
   -bugprone-implicit-widening-of-multiplication-result
+WarningsAsErrors: '*'
 CheckOptions:
   cppcoreguidelines-macro-usage.CheckCapsOnly: true
   cppcoreguidelines-avoid-do-while.IgnoreMacros: true
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: true
+  cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
 HeaderFilterRegex: ''
 FormatStyle: file
 ...

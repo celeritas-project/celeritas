@@ -24,6 +24,7 @@ namespace app
  */
 auto SensitiveHit::allocator() -> HitAllocator&
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     static G4ThreadLocal HitAllocator* alloc_;
     if (CELER_UNLIKELY(!alloc_))
     {
