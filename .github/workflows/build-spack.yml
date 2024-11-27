@@ -56,6 +56,7 @@ jobs:
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
       CC: "clang-15"
       CXX: "clang++-15"
+      CLANG_TIDY: "clang-tidy-15"
     runs-on: ubuntu-22.04
     continue-on-error: false
     steps:
@@ -126,8 +127,6 @@ jobs:
         run: |
           ccache -z
       - name: Configure Celeritas
-        env:
-          CLANG_TIDY: "clang-tidy-15"
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           if [ "${{matrix.geant}}" == "11.0" ]; then
@@ -140,7 +139,11 @@ jobs:
         id: build
         working-directory: build
         run: |
-          ninja -v -k0
+          if [ "${{matrix.special}}" == "clang-tidy" ]; then
+            ninja -k0
+          else
+            ninja -v -k0
+          fi
       - name: Regenerate ROOT test data
         if: ${{matrix.geant == '11.0'}}
         working-directory: build
@@ -183,18 +186,19 @@ jobs:
         if: >-
           ${{
             (matrix.special != 'asanlite')
+            && (matrix.special != 'clang-tidy')
           }}
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         id: install
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{!cancelled() && steps.build.outcome == 'success' && matrix.special != 'clang-tidy'}}
         working-directory: build
         run: |
           ninja install
       - name: Check installation
-        if: ${{steps.install.outcome == 'success'}}
+        if: ${{steps.install.outcome == 'success' && matrix.special != 'clang-tidy'}}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant celer-dump-data \

@@ -84,6 +84,7 @@ class UniquePtrOwner
         // we transfered ownership, don't free the memory
         if (!is_owner_)
         {
+            // NOLINTNEXTLINE(bugprone-unused-return-value)
             ptr_.release();
         }
     };
