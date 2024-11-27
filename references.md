@@ -63,6 +63,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. C. Blyth, R. De Vita, X. Espinal, P. Laycock, O. Shadura, *et al*. "Opticks: GPU Optical Photon Simulation via NVIDIA OptiX". *EPJ Web of Conferences*, Nov 2024. [10.1051/epjconf/202429511014](https://doi.org/10.1051/epjconf/202429511014)
 - The ATLAS Collaboration. "Software and computing for Run 3 of the ATLAS experiment at the LHC". Geneva. Switzerland, Nov 2024. [doi.org](https://doi.org/10.48550/arXiv.2404.06335)
 - J. Hahnfeld, V. Ivanchenko, M. Novak, L. Pandola, D. Sawkey, *et al*. "Geant4 electromagnetic physics for Run3 and Phase2 LHC". *EPJ Web of Conferences*, Nov 2024. [10.1051/epjconf/202429503018](https://doi.org/10.1051/epjconf/202429503018)
+- F. Vaselli, F. Cattafesta, P. Asenov, A. Rizzi. "End-to-end simulation of particle physics events with flow matching and generator oversampling". *Machine Learning: Science and Technology*, Sep 2024. [10.1088/2632-2153/ad563c](https://doi.org/10.1088/2632-2153/ad563c)
 - J. P. Morgan, A. Mote, S. L. Pasmann, G. Ridley, T. S. Palmer, *et al*. "The Monte Carlo Computational Summit – October 25 & 26, 2023 – Notre Dame, Indiana, USA". *Journal of Computational and Theoretical Transport*, Jun 2024. [10.1080/23324309.2024.2354401](https://doi.org/10.1080/23324309.2024.2354401)
 - S. V. Chekanov, S. Eno, S. Magill, C. Palmer, L. Wu, *et al*. "Geant4 simulations of sampling and homogeneous hadronic calorimeters with dual readout for future colliders". Nov 2023. [arxiv.org](http://arxiv.org/abs/2311.03539)
 - A. Howard. "Electromagnetic physics II - Optical Photons". CERN, Oct 2023. [indico.cern.ch](https://indico.cern.ch/event/1304769/contributions/5487618/)
@@ -72,11 +73,14 @@ These publications are extracted from the Celeritas team's Zotero database.
 - G. Amadio, J. Apostolakis, P. Buncic, G. Cosmo, D. Dosaru, *et al*. "Offloading electromagnetic shower transport to GPUs". *Journal of Physics: Conference Series*, Feb 2023. [10.1088/1742-6596/2438/1/012055](https://doi.org/10.1088/1742-6596/2438/1/012055)
 - A. Salzburger, J. Niermann, B. Yeo, A. Krasznahorkay. "Detray: a compile time polymorphic tracking geometry description". *Journal of Physics: Conference Series*, Feb 2023. [10.1088/1742-6596/2438/1/012026](https://doi.org/10.1088/1742-6596/2438/1/012026)
 - V. D. Elvira, S. Gottlieb, O. Gutsche, B. Nachman, S. Bailey, *et al*. "The Future of High Energy Physics Software and Computing". Nov 2022. [arxiv.org](http://arxiv.org/abs/2210.05822)
+- S. R. Eriksen. "Commissioning of the Outer Detector of the LUX-ZEPLIN experiment and a study of the experiment’s sensitivity to signatures arising from effective field theory operators". Sep 2022.
 - J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector Simulation Challenges for Future Accelerator Experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
 - "GDML User's Guide". Jun 2022.
 - T. M. Evans, A. Siegel, E. W. Draeger, J. Deslippe, M. M. Francois, *et al*. "A survey of software implementations used by application codes in the Exascale Computing Project". *The International Journal of High Performance Computing Applications*, Jan 2022. [10.1177/10943420211028940](https://doi.org/10.1177/10943420211028940)
-- M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
 - X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
+- M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
+- S. Blyth, C. Biscarat, S. Campana, B. Hegner, S. Roiser, *et al*. "Integration of JUNO simulation framework with Opticks: GPU accelerated optical propagation via NVIDIA® OptiX™". *EPJ Web of Conferences*, Nov 2021. [10.1051/epjconf/202125103009](https://doi.org/10.1051/epjconf/202125103009)
+- O. Creaner, S. Blyth, S. Eriksen, L. Gerhardt, M. E. Monzani, *et al*. "GPU simulation with Opticks: The future of optical simulations for LZ". *EPJ Web of Conferences*, Nov 2021. [10.1051/epjconf/202125103037](https://doi.org/10.1051/epjconf/202125103037)
 - J. Hahnfeld, L. Moneta, C. Biscarat, S. Campana, B. Hegner, *et al*. "A Portable Implementation of RANLUX++". *EPJ Web of Conferences*, Nov 2021. [10.1051/epjconf/202125103008](https://doi.org/10.1051/epjconf/202125103008)
 - Andrei Gheata. "AdePT Status". Sep 2021. [indico.cern.ch](https://indico.cern.ch/event/1052654/contributions/4525306/attachments/2310908/3932523/AdePT%2026th%20Geant4%20Collaboration%20Meeting.pdf)
 - Marc Verderi, Alberto Ribon. "Geant4 Introduction". Apr 2021. [indico.cern.ch](https://indico.cern.ch/event/1028379/)
@@ -90,6 +94,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - The ATLAS Collaboration. "ATLAS HL-LHC Computing Conceptual Design Report". Nov 2020. [twiki.cern.ch](https://twiki.cern.ch/twiki/bin/view/AtlasPublic/ComputingandSoftwarePublicResults)
 - G. Amadio, A. Ananya, J. Apostolakis, M. Bandieramonte, S. Banerjee, *et al*. "GeantV: Results from the prototype of concurrent vector particle transport simulation in HEP". Sep 2020. [arxiv.org](http://arxiv.org/abs/2005.00949)
 - Andrei Gheata. "AdePT: Accelerated demonstrator of electromagnetic Particle Transport". Sep 2020. [indico.cern.ch](https://indico.cern.ch/event/942142/contributions/4016086/attachments/2102749/3535536/AdePT.pdf)
+- G. A. Stewart, A. Valassi, J. McFayden, E. Yazgan, W. Pokorski, *et al*. "HL-LHC Computing Review: Common Tools and Community Software". Aug 2020. [zenodo.org](https://zenodo.org/record/4009114)
 - F. Sanglard. "A history of NVidia Stream Multiprocessor". May 2020. [fabiensanglard.net](https://fabiensanglard.net/cuda/)
 - The HEP Software Foundation, J. Albrecht, A. A. Alves, G. Amadio, G. Andronico, *et al*. "A Roadmap for HEP Software and Computing R&D for the 2020s". *Computing and Software for Big Science*, Dec 2019. [10.1007/s41781-018-0018-8](https://doi.org/10.1007/s41781-018-0018-8)
 - P. Canal. "Geant Exascale Pilot Project". Nov 2019.
@@ -125,6 +130,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - C. Muratori. "Turns are Better than Radians". Sep 2022. [www.computerenhance.com](https://www.computerenhance.com/p/turns-are-better-than-radians)
 - M. D. Schwartz. "Modern Machine Learning and Particle Physics". *arXiv:2103.12226 [hep-ph]*, Mar 2021. [arxiv.org](http://arxiv.org/abs/2103.12226)
 - H. Haber. "Eigenvalues and eigenvectors of rotation matrices". Nov 2019. [scipp.ucsc.edu](http://scipp.ucsc.edu/~haber/ph116A/Rotation2.pdf)
+- C. F. Borges. "An Improved Algorithm for hypot(a,b)". Jun 2019. [arxiv.org](http://arxiv.org/abs/1904.09481)
 - G. Marsaglia. "Xorshift RNGs". *Journal of Statistical software*, Nov 2003.
 - G. Marsaglia, W. W. Tsang. "A simple method for generating gamma variables". *ACM Transactions on Mathematical Software*, Sep 2000. [10.1145/358407.358414](https://doi.org/10.1145/358407.358414)
 
@@ -132,6 +138,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 - D. Meister, S. Ogaki, C. Benthin, M. J. Doyle, M. Guthe, *et al*. "A Survey on Bounding Volume Hierarchies for Ray Tracing". *Computer Graphics Forum*, May 2021. [10.1111/cgf.142662](https://doi.org/10.1111/cgf.142662)
 - J. Apostolakis, G. Cosmo, A. Gheata, M. Gheata, R. Sehgal, *et al*. "A vectorization approach for multifaceted solids in VecGeom". *EPJ Web of Conferences*, Nov 2019. [10.1051/epjconf/201921402025](https://doi.org/10.1051/epjconf/201921402025)
+- B. R. Nease, D. L. Millman, D. P. Griesheimer, D. F. Gill, D. Caruge, *et al*. "Geometric Templates for Improved Tracking Performance in Monte Carlo Codes". in *SNA + MC 2013 - Joint International Conference on Supercomputing in Nuclear Applications + Monte Carlo*, Paris, France, Nov 2014. [10.1051/snamc/201402505](https://doi.org/10.1051/snamc/201402505)
+- D. L. Millman, D. P. Griesheimer, B. R. Nease, J. Snoeyink, D. Caruge, *et al*. "Computing Numerically-Optimal Bounding Boxes for Constructive Solid Geometry (CSG) Components in Monte Carlo Particle Transport Calculations". in *SNA + MC 2013 - Joint International Conference on Supercomputing in Nuclear Applications + Monte Carlo*, Paris, France, Nov 2014. [10.1051/snamc/201402506](https://doi.org/10.1051/snamc/201402506)
+- D. L. Millman, D. P. Griesheimer, B. R. Nease, J. Snoeyink. "Robust volume calculations for constructive solid geometry (CSG) components in Monte Carlo transport calculations". Nov 2012.
 - M. Stich, H. Friedrich, A. Dietrich. "Spatial splits in bounding volume hierarchies". in *Proceedings of the 1st ACM conference on High Performance Graphics - HPG '09*, New Orleans, Louisiana, Nov 2009. [10.1145/1572769.1572771](https://doi.org/10.1145/1572769.1572771)
 - I. Wald. "On fast Construction of SAH-based Bounding Volume Hierarchies". in *2007 IEEE Symposium on Interactive Ray Tracing*, Ulm, Sep 2007. [10.1109/RT.2007.4342588](https://doi.org/10.1109/RT.2007.4342588)
 - C. Ericson. "Real-Time Collision Detection". CRC Press, Dec 2004. [www.taylorfrancis.com](https://www.taylorfrancis.com/books/9780080474144)
