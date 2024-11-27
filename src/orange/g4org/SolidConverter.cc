@@ -186,14 +186,15 @@ auto make_shape(G4VSolid const& solid, Args&&... args)
  */
 template<class CR>
 auto make_solid(G4VSolid const& solid,
-                CR&& interior,
+                CR&& interior,  // NOLINT(cppcoreguidelines-missing-std-forward)
                 std::optional<CR>&& excluded,
                 SolidEnclosedAngle&& enclosed)
 {
-    return Solid<CR>::or_shape(std::string{solid.GetName()},
-                               std::move(interior),
-                               std::move(excluded),
-                               std::move(enclosed));
+    return Solid<CR>::or_shape(
+        std::string{solid.GetName()},
+        std::move(interior),  // NOLINT(bugprone-move-forwarding-reference)
+        std::move(excluded),
+        std::move(enclosed));
 }
 
 //---------------------------------------------------------------------------//

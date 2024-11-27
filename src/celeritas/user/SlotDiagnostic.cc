@@ -32,7 +32,16 @@ struct SlotDiagnostic::State final : AuxStateInterface
     std::ofstream outfile;
     std::vector<int> buffer;
 
-    ~State() { CELER_LOG_LOCAL(debug) << "Closing slot diagnostic file"; }
+    State() = default;
+    State(State const&) = delete;
+    State& operator=(State const&) = delete;
+    State(State&&) noexcept = default;
+    State& operator=(State&&) noexcept = default;
+
+    ~State() final
+    {
+        CELER_LOG_LOCAL(debug) << "Closing slot diagnostic file";
+    }
 };
 
 //---------------------------------------------------------------------------//

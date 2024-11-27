@@ -141,7 +141,7 @@ HitProcessor::~HitProcessor()
     {
         CELER_LOG_LOCAL(debug) << "Deallocating hit processor";
     }
-    catch (...)
+    catch (...)  // NOLINT(bugprone-empty-catch)
     {
         // Ignore anything bad that happens while logging
     }

@@ -335,10 +335,14 @@ void CelerOpticalPhysics::ConstructProcess()
                                                       idxPostStep);
         }
     }
+    // NOLINTBEGIN(bugprone-unused-return-value,
+    // clang-analyzer-cplusplus.NewDeleteLeaks)
     boundary.release();
     cerenkov.release();
     scint.release();
-}
+    // NOLINTEND(bugprone-unused-return-value,
+    // clang-analyzer-cplusplus.NewDeleteLeaks)
+}  // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
 
 }  // namespace detail
 }  // namespace celeritas

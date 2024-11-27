@@ -48,6 +48,7 @@ SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
  * whereas the simple quadric has a different sign for the constant:
  * \f$ dx + ey + fz + g = 0 \f$ .
  */
+// NOLINTNEXTLINE(bugprone-exception-escape)
 SimpleQuadric::SimpleQuadric(Plane const& other) noexcept
     : SimpleQuadric{{0, 0, 0}, other.normal(), negate(other.displacement())}
 {
@@ -94,6 +95,7 @@ template SimpleQuadric::SimpleQuadric(CylAligned<Axis::z> const&) noexcept;
        + x_0^2 + y_0^2 + z_0^2 - r^2 = 0
  * \endverbatim
  */
+// NOLINTNEXTLINE(bugprone-exception-escape)
 SimpleQuadric::SimpleQuadric(Sphere const& other) noexcept
 {
     Real3 const& origin = other.origin();

@@ -270,6 +270,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 UniverseId UnitInserter::operator()(UnitInput&& inp)
 {
     CELER_VALIDATE(inp,

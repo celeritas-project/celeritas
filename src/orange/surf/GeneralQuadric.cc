@@ -44,6 +44,7 @@ GeneralQuadric::GeneralQuadric(Real3 const& abc,
 /*!
  * Promote from a simple quadric.
  */
+// NOLINTNEXTLINE(bugprone-exception-escape)
 GeneralQuadric::GeneralQuadric(SimpleQuadric const& other) noexcept
     : GeneralQuadric{make_array(other.second()),
                      Real3{0, 0, 0},

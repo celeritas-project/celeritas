@@ -97,11 +97,12 @@ class DaughterPlacer
     using VecPv = Converter::VecPv;
 
     template<class F>
-    DaughterPlacer(F&& build_vgdaughter,
-                   Transformer const& trans,
-                   VecPv* placed_volumes,
-                   G4LogicalVolume const* daughter_g4lv,
-                   VGLogicalVolume* mother_lv)
+    DaughterPlacer(
+        F&& build_vgdaughter,  // NOLINT(cppcoreguidelines-missing-std-forward)
+        Transformer const& trans,
+        VecPv* placed_volumes,
+        G4LogicalVolume const* daughter_g4lv,
+        VGLogicalVolume* mother_lv)
         : convert_transform_{trans}
         , placed_pv_{placed_volumes}
         , mother_lv_{mother_lv}

@@ -19,6 +19,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class T>
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 void move_back(std::vector<T>& dst, std::vector<T>&& src)
 {
     dst.insert(dst.end(),

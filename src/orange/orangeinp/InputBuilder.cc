@@ -62,6 +62,7 @@ class JsonProtoOutput
     }
 
     //! Save JSON
+    // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
     void operator()(UniverseId uid, JsonPimpl&& jpo)
     {
         CELER_EXPECT(uid < output_.size());

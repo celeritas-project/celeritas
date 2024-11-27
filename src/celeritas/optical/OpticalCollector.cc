@@ -34,6 +34,7 @@ namespace celeritas
  *
  * This adds several actions and auxiliary data to the registry.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 {
     CELER_EXPECT(inp);

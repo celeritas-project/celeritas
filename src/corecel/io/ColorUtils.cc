@@ -86,6 +86,7 @@ char const* color_code(char abbrev)
     if (!use_color())
         return "";
 
+    // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
     switch (abbrev)
     {
         case 'g':

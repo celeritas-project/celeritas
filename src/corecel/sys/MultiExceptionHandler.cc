@@ -27,6 +27,7 @@ void log_exception(std::exception const& e, Logger::Message* msg)
         log_exception(next, msg);
         *msg << "\n... from: ";
     }
+    // NOLINTNEXTLINE(bugprone-empty-catch)
     catch (...)
     {
         // Ignore unknown exception
@@ -43,6 +44,7 @@ namespace detail
 /*!
  * Throw the first exception and log all the rest.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 [[noreturn]] void log_and_rethrow_impl(MultiExceptionHandler&& exceptions)
 {
     CELER_EXPECT(!exceptions.empty());

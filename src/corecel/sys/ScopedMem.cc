@@ -60,6 +60,7 @@ MemResult get_cpu_mem()
         result.resident = tinfo.resident_size;
     }
 #elif defined(__linux__)
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
     struct rusage usage;
     usage.ru_maxrss = 0;
     if (!getrusage(RUSAGE_SELF, &usage))
@@ -67,6 +68,7 @@ MemResult get_cpu_mem()
         // Units are kiB!
         result.hwm = usage.ru_maxrss * 1024u;
     }
+    // NOLINTEND(cppcoreguidelines-pro-type-union-access)
 #elif defined(_WIN32)
     // Units are B
     PROCESS_MEMORY_COUNTERS info;
@@ -116,7 +118,7 @@ ScopedMem::ScopedMem(std::string_view label, MemRegistry* registry)
 /*!
  * Register data on destruction.
  */
-ScopedMem::~ScopedMem()
+ScopedMem::~ScopedMem()  // NOLINT(bugprone-exception-escape)
 {
     if (registry_.value() != nullptr)
     {
