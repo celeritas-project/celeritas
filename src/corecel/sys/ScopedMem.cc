@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "ScopedMem.hh"
 
-#include "corecel/Config.hh"
-
 #if defined(__APPLE__)
 #    include <cstring>
 #    include <mach/mach.h>

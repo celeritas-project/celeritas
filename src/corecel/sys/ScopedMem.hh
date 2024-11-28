@@ -9,6 +9,8 @@
 
 #include <string_view>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/InitializedValue.hh"
 
 #include "MemRegistry.hh"
