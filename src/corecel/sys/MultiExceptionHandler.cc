@@ -44,11 +44,10 @@ namespace detail
 /*!
  * Throw the first exception and log all the rest.
  */
-// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 [[noreturn]] void log_and_rethrow_impl(MultiExceptionHandler&& exceptions)
 {
     CELER_EXPECT(!exceptions.empty());
-    auto exc_vec = exceptions.release();
+    auto exc_vec = std::move(exceptions).release();
 
     for (auto eptr_iter = exc_vec.begin() + 1; eptr_iter != exc_vec.end();
          ++eptr_iter)

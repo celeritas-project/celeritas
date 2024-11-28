@@ -48,11 +48,10 @@ OpticalLaunchAction::make_and_insert(CoreParams const& core, Input&& input)
 /*!
  * Construct with action ID, generator storage.
  */
-OpticalLaunchAction::OpticalLaunchAction(
-    ActionId action_id,
-    AuxId data_id,
-    CoreParams const& core,
-    Input&& input)  // NOLINT(cppcoreguidelines-rvalue-reference-param-not-moved)
+OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
+                                         AuxId data_id,
+                                         CoreParams const& core,
+                                         Input&& input)
     : action_id_{action_id}
     , aux_id_{data_id}
     , offload_params_{std::move(input.offload)}

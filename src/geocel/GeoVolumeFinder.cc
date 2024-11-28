@@ -16,8 +16,8 @@ namespace celeritas
 /*!
  * Perform the search.
  */
-// NOLINTNEXTLINE(bugprone-exception-escape)
-VolumeId GeoVolumeFinder::operator()(Label const& label) const noexcept
+VolumeId GeoVolumeFinder::operator()(Label const& label) const
+    noexcept(!CELERITAS_DEBUG)
 {
     if (auto id = vols_.find_exact(label))
     {

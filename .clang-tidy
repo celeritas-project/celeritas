@@ -28,6 +28,7 @@ CheckOptions:
   cppcoreguidelines-macro-usage.CheckCapsOnly: true
   cppcoreguidelines-avoid-do-while.IgnoreMacros: true
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: true
+  cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove: true
   cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
 HeaderFilterRegex: ''
 FormatStyle: file

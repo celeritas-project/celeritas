@@ -62,7 +62,7 @@ class MultiExceptionHandler
     bool empty() const { return exceptions_.empty(); }
 
     //! Release exceptions for someone else to process (not thread safe)
-    VecExceptionPtr release() { return std::move(exceptions_); }
+    VecExceptionPtr release() && { return std::move(exceptions_); }
 
   private:
     VecExceptionPtr exceptions_;

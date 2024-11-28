@@ -198,7 +198,7 @@ jobs:
         run: |
           ninja install
       - name: Check installation
-        if: ${{steps.install.outcome == 'success' && matrix.special != 'clang-tidy'}}
+        if: ${{steps.install.outcome == 'success'}}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant celer-dump-data \

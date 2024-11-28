@@ -10,6 +10,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <G4BooleanSolid.hh>
 #include <G4Box.hh>
@@ -186,15 +187,14 @@ auto make_shape(G4VSolid const& solid, Args&&... args)
  */
 template<class CR>
 auto make_solid(G4VSolid const& solid,
-                CR&& interior,  // NOLINT(cppcoreguidelines-missing-std-forward)
+                CR&& interior,
                 std::optional<CR>&& excluded,
                 SolidEnclosedAngle&& enclosed)
 {
-    return Solid<CR>::or_shape(
-        std::string{solid.GetName()},
-        std::move(interior),  // NOLINT(bugprone-move-forwarding-reference)
-        std::move(excluded),
-        std::move(enclosed));
+    return Solid<CR>::or_shape(std::string{solid.GetName()},
+                               std::forward<CR>(interior),
+                               std::move(excluded),
+                               std::move(enclosed));
 }
 
 //---------------------------------------------------------------------------//

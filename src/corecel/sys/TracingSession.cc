@@ -48,6 +48,7 @@ initialize_session(TracingMode mode) noexcept
             case TracingMode::in_process:
                 return perfetto::kInProcessBackend;
             case TracingMode::system:
+                [[fallthrough]];
             default:
                 return perfetto::kSystemBackend;
         }

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ScopedMem.hh"
 
+#include "corecel/Config.hh"
+
 #if defined(__APPLE__)
 #    include <cstring>
 #    include <mach/mach.h>
@@ -118,7 +120,8 @@ ScopedMem::ScopedMem(std::string_view label, MemRegistry* registry)
 /*!
  * Register data on destruction.
  */
-ScopedMem::~ScopedMem()  // NOLINT(bugprone-exception-escape)
+// NOLINTNEXTLINE(cppcoreguidelines-noexcept-destructor)
+ScopedMem::~ScopedMem() noexcept(!CELERITAS_DEBUG)
 {
     if (registry_.value() != nullptr)
     {

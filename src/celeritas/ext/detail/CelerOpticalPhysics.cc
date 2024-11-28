@@ -20,6 +20,8 @@
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
 #include <G4Version.hh>
+
+#include "corecel/Macros.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #    include <G4OpticalParameters.hh>
@@ -56,42 +58,27 @@ enum class OpticalProcessType
 
 /*!
  * Wrapper around a unique pointer to accomodate keeping track whether we
- * deleguated ownership to Geant4. We have to assume that Geant4 won't free the
+ * delegated ownership to Geant4. We have to assume that Geant4 won't free the
  * memory before we're done reading it...
  */
 template<class T>
-class UniquePtrOwner
+class ObservingUniquePtr
 {
   public:
-    explicit UniquePtrOwner(std::unique_ptr<T> ptr) : ptr_(std::move(ptr)) {};
-    UniquePtrOwner(UniquePtrOwner const&) = delete;
-    UniquePtrOwner& operator=(UniquePtrOwner const&) = delete;
-    UniquePtrOwner(UniquePtrOwner&&) noexcept = default;
-    UniquePtrOwner& operator=(UniquePtrOwner&&) noexcept = default;
-
-    T* transferOwnership() noexcept
+    explicit ObservingUniquePtr(std::unique_ptr<T> ptr)
+        : uptr_(std::move(ptr)), ptr_{uptr_.get()}
     {
-        is_owner_ = false;
-        return ptr_.get();
-    };
+    }
+    CELER_DEFAULT_MOVE_DELETE_COPY(ObservingUniquePtr);
+    ~ObservingUniquePtr() = default;
 
-    operator T*() const noexcept { return ptr_.get(); };
-
-    T* operator->() const noexcept { return ptr_.get(); };
-
-    ~UniquePtrOwner()
-    {
-        // we transfered ownership, don't free the memory
-        if (!is_owner_)
-        {
-            // NOLINTNEXTLINE(bugprone-unused-return-value)
-            ptr_.release();
-        }
-    };
+    T* release() noexcept { return uptr_.release(); }
+    operator T*() const noexcept { return ptr_; }
+    T* operator->() const noexcept { return ptr_; }
 
   private:
-    std::unique_ptr<T> ptr_;
-    bool is_owner_{true};
+    std::unique_ptr<T> uptr_;
+    T* ptr_;
 };
 
 #if G4VERSION_NUMBER >= 1070
@@ -279,13 +266,13 @@ void CelerOpticalPhysics::ConstructProcess()
 
     // NB: boundary is also used later on in loop over particles,
     // though it's only ever applicable to G4OpticalPhotons
-    auto boundary = UniquePtrOwner{std::make_unique<G4OpBoundaryProcess>()};
+    auto boundary = ObservingUniquePtr{std::make_unique<G4OpBoundaryProcess>()};
 #if G4VERSION_NUMBER < 1070
     boundary->SetInvokeSD(options_.boundary.invoke_sd);
 #endif
     if (process_is_active(OpticalProcessType::boundary, options_))
     {
-        process_manager->AddDiscreteProcess(boundary.transferOwnership());
+        process_manager->AddDiscreteProcess(boundary.release());
         CELER_LOG(debug)
             << "Loaded Optical boundary process with G4OpBoundaryProcess "
                "process";
@@ -315,7 +302,7 @@ void CelerOpticalPhysics::ConstructProcess()
 
     // Add photon-generating processes to all particles they apply to
     // TODO: Eventually replace with Celeritas step collector processes
-    auto scint = UniquePtrOwner{std::make_unique<G4Scintillation>()};
+    auto scint = ObservingUniquePtr{std::make_unique<G4Scintillation>()};
 #if G4VERSION_NUMBER < 1070
     scint->SetStackPhotons(options_.scintillation.stack_photons);
     scint->SetTrackSecondariesFirst(
@@ -330,7 +317,7 @@ void CelerOpticalPhysics::ConstructProcess()
 #endif
     scint->AddSaturation(G4LossTableManager::Instance()->EmSaturation());
 
-    auto cerenkov = UniquePtrOwner{std::make_unique<G4Cerenkov>()};
+    auto cerenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
 #if G4VERSION_NUMBER < 1070
     cerenkov->SetStackPhotons(options_.cerenkov.stack_photons);
     cerenkov->SetTrackSecondariesFirst(
@@ -351,7 +338,7 @@ void CelerOpticalPhysics::ConstructProcess()
         if (cerenkov->IsApplicable(*p)
             && process_is_active(OpticalProcessType::cerenkov, options_))
         {
-            process_manager->AddProcess(cerenkov.transferOwnership());
+            process_manager->AddProcess(cerenkov.release());
             process_manager->SetProcessOrdering(cerenkov, idxPostStep);
             CELER_LOG(debug) << "Loaded Optical Cerenkov with G4Cerenkov "
                                 "process for particle "
@@ -360,7 +347,7 @@ void CelerOpticalPhysics::ConstructProcess()
         if (scint->IsApplicable(*p)
             && process_is_active(OpticalProcessType::scintillation, options_))
         {
-            process_manager->AddProcess(scint.transferOwnership());
+            process_manager->AddProcess(scint.release());
             process_manager->SetProcessOrderingToLast(scint, idxAtRest);
             process_manager->SetProcessOrderingToLast(scint, idxPostStep);
             CELER_LOG(debug)

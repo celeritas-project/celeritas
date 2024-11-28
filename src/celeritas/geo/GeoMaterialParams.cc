@@ -40,11 +40,9 @@ using MapLabelMatId = std::unordered_map<Label, MaterialId>;
  * The input is effectively an "unzipped" unordered list of (volume label,
  * material id) pairs.
  */
-MapLabelMatId build_label_map(
-    MaterialParams const& mat_params,
-    std::vector<Label>&&
-        labels,  // NOLINT(cppcoreguidelines-rvalue-reference-param-not-moved)
-    std::vector<MaterialId> const& materials)
+MapLabelMatId build_label_map(MaterialParams const& mat_params,
+                              std::vector<Label> const& labels,
+                              std::vector<MaterialId> const& materials)
 {
     CELER_EXPECT(materials.size() == labels.size());
     CELER_EXPECT(std::all_of(

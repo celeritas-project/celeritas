@@ -86,7 +86,6 @@ char const* color_code(char abbrev)
     if (!use_color())
         return "";
 
-    // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
     switch (abbrev)
     {
         case 'g':
@@ -103,7 +102,7 @@ char const* color_code(char abbrev)
             return "\033[31;1m";
         case 'W':
             return "\033[37;1m";
-        case ' ':
+        default:
             return "\033[0m";
     }
 
