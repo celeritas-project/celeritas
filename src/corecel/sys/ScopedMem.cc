@@ -120,7 +120,9 @@ ScopedMem::ScopedMem(std::string_view label, MemRegistry* registry)
 /*!
  * Register data on destruction.
  */
-// NOLINTNEXTLINE(cppcoreguidelines-noexcept-destructor)
+// bugprone-exception-escape shouldn't be needed after we upgrade to
+// clang-tidy-18
+// NOLINTNEXTLINE(bugprone-exception-escape,cppcoreguidelines-noexcept-destructor)
 ScopedMem::~ScopedMem() noexcept(!CELERITAS_DEBUG)
 {
     if (registry_.value() != nullptr)
