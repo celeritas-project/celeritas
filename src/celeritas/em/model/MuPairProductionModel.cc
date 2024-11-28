@@ -15,6 +15,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/executor/MuPairProductionExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
@@ -138,23 +139,24 @@ void MuPairProductionModel::build_table(
 
     // Build 2D sampling table
     TwodGridBuilder build_grid{&table->reals};
-    auto grids = make_builder(&table->grids);
+    CollectionBuilder grids{&table->grids};
     for (auto const& pvec : imported.physics_vectors)
     {
         CELER_VALIDATE(pvec,
                        << "invalid grid in sampling table for '"
                        << this->description() << "'");
 
+        Array<size_type, 2> dims{pvec.x.size(), pvec.y.size()};
+        HyperslabIndexer index(dims);
+
         // Normalize the CDF
         std::vector<double> cdf(pvec.value.size());
-        size_type num_y = pvec.y.size();
-        for (size_type i : range(pvec.x.size()))
+        for (size_type i : range(dims[0]))
         {
-            double norm = 1 / pvec.value[(i + 1) * num_y - 1];
-            for (size_type j : range(num_y))
+            double norm = 1 / pvec.value[index(i, dims[1] - 1)];
+            for (size_type j : range(dims[1]))
             {
-                size_type idx = i * num_y + j;
-                cdf[idx] = pvec.value[idx] * norm;
+                cdf[index(i, j)] = pvec.value[index(i, j)] * norm;
             }
         }
         grids.push_back(

@@ -10,11 +10,13 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/grid/FindInterp.hh"
+#include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuPairProductionData.hh"
+#include "celeritas/grid/InverseCdfFinder.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -33,6 +35,24 @@ namespace celeritas
  * Because the shape of the distribution depends only weakly on the atomic
  * number, the CDF is calculated for a hardcoded set of points equally spaced
  * in \f$ \log Z \f$ and linearly interpolated.
+ *
+ * The formula used for the differential cross section is valid when the
+ * maximum energy transfer to the electron-positron pair lies between \f$
+ * \epsilon_{\text{min}} = 4 m \f$, where \f$ m \f$ is the electron mass, and
+ * \f[
+   \epsilon_{\text{max}} = E + \frac{3 \sqrt{e}}{4} \mu Z^{1/3}),
+ * \f]
+ * where \f$ E = T + \mu \f$ is the total muon energy, \f$ \mu \f$ is the muon
+ * mass, \f$ e \f$ is Euler's number, and \f$ Z \f$ is the atomic number.
+ *
+ * The maximum energy partition between the electron and positron is calculated
+ * as
+ * \f[
+   r_{\text{max}} = \left[1 - 6 \frac{\mu^2}{E (E - \epsilon)} \right] \sqrt{1
+   - \epsilon_{\text{min}} / \epsilon}.
+ * \f]
+ * The partition \f$ r \f$ is then sampled uniformly in \f$ [-r_{\text{max}},
+ * r_{\text{max}}) \f$.
  */
 class MuPPEnergyDistribution
 {
@@ -201,9 +221,10 @@ CELER_FUNCTION real_type
 MuPPEnergyDistribution::sample_scaled_energy(Engine& rng) const
 {
     real_type u = generate_canonical(rng);
-    real_type y_lower = this->calc_scaled_energy(logz_interp_.index, u);
-    real_type y_upper = this->calc_scaled_energy(logz_interp_.index + 1, u);
-    return y_lower + (y_upper - y_lower) * logz_interp_.fraction;
+    LinearInterpolator<real_type> interp_energy{
+        {0, this->calc_scaled_energy(logz_interp_.index, u)},
+        {1, this->calc_scaled_energy(logz_interp_.index + 1, u)}};
+    return interp_energy(logz_interp_.fraction);
 }
 
 //---------------------------------------------------------------------------//
@@ -214,35 +235,22 @@ CELER_FUNCTION real_type
 MuPPEnergyDistribution::calc_scaled_energy(size_type z_idx, real_type u) const
 {
     CELER_EXPECT(z_idx < table_.grids.size());
+    CELER_EXPECT(u >= 0 && u < 1);
 
     TwodGridData const& cdf_grid = table_.grids[ItemId<TwodGridData>(z_idx)];
     auto calc_cdf
         = TwodGridCalculator(cdf_grid, table_.reals)(std::log(inc_energy_));
 
     // Get the sampled CDF value between the y bounds
-    real_type cdf_min = calc_cdf(y_min_);
-    real_type cdf = std::fma(calc_cdf(y_max_) - cdf_min, u, cdf_min);
+    real_type cdf = LinearInterpolator<real_type>{{0, calc_cdf(y_min_)},
+                                                  {1, calc_cdf(y_max_)}}(u);
 
     // Find the grid index of the sampled CDF value
     NonuniformGrid y_grid(cdf_grid.y, table_.reals);
-    Range indices(y_grid.size());
-    auto iter = celeritas::lower_bound(
-        indices.begin(),
-        indices.end(),
-        cdf,
-        [&calc_cdf, &y_grid](size_type i, real_type v) {
-            return calc_cdf(y_grid[i]) < v;
-        });
-    CELER_ASSERT(iter != indices.end());
-    size_type idx = iter - indices.begin();
-    CELER_ASSERT(idx > 0);
-
-    // Calculate the y value corresponding to the sampled CDF value
-    real_type y_upper = y_grid[idx];
-    real_type y_lower = y_grid[idx - 1];
-    real_type cdf_lower = calc_cdf(y_lower);
-    real_type frac = (cdf - cdf_lower) / (calc_cdf(y_upper) - cdf_lower);
-    return fma<real_type>(frac, y_upper - y_lower, y_lower);
+    InverseCdfFinder find_y(y_grid, [&calc_cdf, &y_grid](size_type i) {
+        return calc_cdf(y_grid[i]);
+    });
+    return find_y(cdf);
 }
 
 //---------------------------------------------------------------------------//

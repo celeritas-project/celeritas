@@ -62,7 +62,7 @@ The following table summarizes the EM processes and models in Celeritas.
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      |                | Pair production     |  Mu pair production         | :cpp:class:`celeritas::MuPairProductionInteractor`  |       0--100 TeV         |
+      |                | Pair production     |  Mu pair production         | :cpp:class:`celeritas::MuPairProductionInteractor`  |   0.85 GeV--100 TeV      |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::MuHadIonizationInteractor`   |       0--200 keV         |
       |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
@@ -72,7 +72,7 @@ The following table summarizes the EM processes and models in Celeritas.
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      |                | Pair production     |  Mu pair production         | :cpp:class:`celeritas::MuPairProductionInteractor`  |       0--100 TeV         |
+      |                | Pair production     |  Mu pair production         | :cpp:class:`celeritas::MuPairProductionInteractor`  |   0.85 GeV--100 TeV      |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
 
 .. only:: latex
@@ -125,7 +125,7 @@ The following table summarizes the EM processes and models in Celeritas.
                                     \cline{2-5}
                                     & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
                                     \cline{2-5}
-                                    & Pair production                     & Mu pair production   & \texttt{\scriptsize celeritas::MuPairProductionInteractor}  & 0--100 TeV \\
+                                    & Pair production                     & Mu pair production   & \texttt{\scriptsize celeritas::MuPairProductionInteractor}  & 0.85 GeV--100 TeV \\
           \hline
           \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::MuHadIonizationInteractor}   & 0--200 keV \\
                                                                           \cline{3-5}
@@ -135,7 +135,7 @@ The following table summarizes the EM processes and models in Celeritas.
                                     \cline{2-5}
                                     & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
                                     \cline{2-5}
-                                    & Pair production                     & Mu pair production   & \texttt{\scriptsize celeritas::MuPairProductionInteractor}  & 0--100 TeV \\
+                                    & Pair production                     & Mu pair production   & \texttt{\scriptsize celeritas::MuPairProductionInteractor}  & 0.85 GeV--100 TeV \\
           \bottomrule
         \end{tabular}
         \end{threeparttable}
@@ -215,7 +215,7 @@ rejection sampling.
 Muon bremsstrahlung and pair production use a simple distribution to sample the
 exiting polar angles.
 
-.. doxygenclass:: celeritas::MuBremsPPAngularDistribution
+.. doxygenclass:: celeritas::MuAngularDistribution
 
 Photon scattering
 -----------------

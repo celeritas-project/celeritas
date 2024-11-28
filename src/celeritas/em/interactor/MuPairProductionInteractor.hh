@@ -16,7 +16,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuPairProductionData.hh"
-#include "celeritas/em/distribution/MuBremsPPAngularDistribution.hh"
+#include "celeritas/em/distribution/MuAngularDistribution.hh"
 #include "celeritas/em/distribution/MuPPEnergyDistribution.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/CutoffView.hh"
@@ -130,8 +130,7 @@ CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
     Energy pair_energy = energy.electron + energy.positron;
 
     // Sample the secondary directions
-    MuBremsPPAngularDistribution sample_costheta(
-        inc_energy_, inc_mass_, pair_energy);
+    MuAngularDistribution sample_costheta(inc_energy_, inc_mass_, pair_energy);
     real_type phi = sample_phi_(rng);
 
     // Create the secondary electron
