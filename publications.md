@@ -95,4 +95,4 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Code
 
-- S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Canal, B. Morgan, T. Evans, J. Esseiva. "[Celeritas *v1040*](https://doi.org/10.11578/dc.20221011.1)". Jul 2022.
+- S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Canal, B. Morgan, T. Evans, J. Esseiva. "[Celeritas *v1246*](https://doi.org/10.11578/dc.20221011.1)". Jul 2022.
