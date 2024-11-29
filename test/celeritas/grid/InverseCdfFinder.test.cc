@@ -38,9 +38,9 @@ class InverseCdfFinderTest : public Test
 
 TEST_F(InverseCdfFinderTest, all)
 {
-    GridT grid(values, ref);
     std::vector<real_type> cdf{0.0, 0.1, 0.2, 0.8, 0.9, 1.0};
-    InverseCdfFinder find(grid, [&cdf](size_type i) { return cdf[i]; });
+    InverseCdfFinder find(GridT(values, ref),
+                          [&cdf](size_type i) { return cdf[i]; });
 
     EXPECT_SOFT_EQ(0, find(0));
     EXPECT_SOFT_EQ(0.1, find(0.05));
@@ -49,6 +49,10 @@ TEST_F(InverseCdfFinderTest, all)
     EXPECT_SOFT_EQ(6.0, find(0.9));
     EXPECT_SOFT_EQ(8.0, find(0.95));
     EXPECT_SOFT_EQ(9.99996, find(0.999999));
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(find(1.0), DebugError);
+    }
 }
 
 //---------------------------------------------------------------------------//
