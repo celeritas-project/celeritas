@@ -31,6 +31,11 @@ class InverseCdfFinderTest : public Test
         ref = data;
     }
 
+    std::vector<real_type> build_cdf()
+    {
+        return std::vector<real_type>{0.0, 0.1, 0.2, 0.8, 0.9, 1.0};
+    }
+
     ItemRange<real_type> values;
     Collection<real_type, Ownership::value, MemSpace::host> data;
     Collection<real_type, Ownership::const_reference, MemSpace::host> ref;
@@ -38,9 +43,7 @@ class InverseCdfFinderTest : public Test
 
 TEST_F(InverseCdfFinderTest, all)
 {
-    std::vector<real_type> cdf{0.0, 0.1, 0.2, 0.8, 0.9, 1.0};
-    InverseCdfFinder find(GridT(values, ref),
-                          [&cdf](size_type i) { return cdf[i]; });
+    InverseCdfFinder find(GridT(values, ref), this->build_cdf());
 
     EXPECT_SOFT_EQ(0, find(0));
     EXPECT_SOFT_EQ(0.1, find(0.05));

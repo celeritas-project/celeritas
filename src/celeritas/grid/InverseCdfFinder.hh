@@ -52,7 +52,7 @@ CELER_FUNCTION InverseCdfFinder<G, C>::InverseCdfFinder(G&& grid, C&& calc_cdf)
     , calc_cdf_(celeritas::forward<C>(calc_cdf))
 {
     CELER_EXPECT(grid_.size() >= 2);
-    CELER_EXPECT(calc_cdf_(0) == 0 && calc_cdf(grid_.size() - 1) == 1);
+    CELER_EXPECT(calc_cdf_[0] == 0 && calc_cdf_[grid_.size() - 1] == 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -68,9 +68,9 @@ CELER_FUNCTION real_type InverseCdfFinder<G, C>::operator()(real_type cdf) const
     Range indices(grid_.size() - 1);
     auto iter = celeritas::lower_bound(
         indices.begin(), indices.end(), cdf, [this](size_type i, real_type c) {
-            return calc_cdf_(i) < c;
+            return calc_cdf_[i] < c;
         });
-    if (calc_cdf_(*iter) != cdf)
+    if (calc_cdf_[*iter] != cdf)
     {
         --iter;
     }
@@ -78,7 +78,7 @@ CELER_FUNCTION real_type InverseCdfFinder<G, C>::operator()(real_type cdf) const
 
     // Calculate the grid value corresponding to the sampled CDF value
     return LinearInterpolator<real_type>{
-        {calc_cdf_(i), grid_[i]}, {calc_cdf_(i + 1), grid_[i + 1]}}(cdf);
+        {calc_cdf_[i], grid_[i]}, {calc_cdf_[i + 1], grid_[i + 1]}}(cdf);
 }
 
 //---------------------------------------------------------------------------//
