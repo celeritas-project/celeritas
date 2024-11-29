@@ -208,7 +208,8 @@ Stream::Stream(Stream&& other) noexcept
  */
 Stream& Stream::operator=(Stream&& other) noexcept
 {
-    this->swap(other);
+    Stream temp(std::move(other));
+    this->swap(temp);
     return *this;
 }
 
