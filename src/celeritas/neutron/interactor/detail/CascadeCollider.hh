@@ -147,13 +147,12 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     if (kin_energy_ < energy_grid.back())
     {
         // Find cos\theta from tabulated angular data for a given CDF
-        Grid cos_grid(cdf_grid.y, shared_.reals);
-        auto calc_cdf
-            = TwodGridCalculator(cdf_grid, shared_.reals)(kin_energy_);
-        cos_theta
-            = InverseCdfFinder(cos_grid, [&calc_cdf, &cos_grid](size_type i) {
-                  return calc_cdf(cos_grid[i]);
-              })(cdf);
+        Grid costheta_grid(cdf_grid.y, shared_.reals);
+        auto calc = TwodGridCalculator(cdf_grid, shared_.reals)(kin_energy_);
+        auto calc_cdf = [&calc, &costheta_grid](size_type i) {
+            return calc(costheta_grid[i]);
+        };
+        cos_theta = InverseCdfFinder(costheta_grid, calc_cdf)(cdf);
     }
     else
     {
