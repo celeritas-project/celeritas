@@ -52,7 +52,7 @@ CELER_FUNCTION InverseCdfFinder<G, C>::InverseCdfFinder(G&& grid, C&& calc_cdf)
     , calc_cdf_(celeritas::forward<C>(calc_cdf))
 {
     CELER_EXPECT(grid_.size() >= 2);
-    CELER_EXPECT(calc_cdf_(0) == 0);
+    CELER_EXPECT(calc_cdf_(0) == 0 && calc_cdf(grid_.size() - 1) == 1);
 }
 
 //---------------------------------------------------------------------------//
