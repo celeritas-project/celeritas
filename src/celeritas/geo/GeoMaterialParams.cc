@@ -41,7 +41,7 @@ using MapLabelMatId = std::unordered_map<Label, MaterialId>;
  * material id) pairs.
  */
 MapLabelMatId build_label_map(MaterialParams const& mat_params,
-                              std::vector<Label> const& labels,
+                              std::vector<Label>&& labels,
                               std::vector<MaterialId> const& materials)
 {
     CELER_EXPECT(materials.size() == labels.size());
