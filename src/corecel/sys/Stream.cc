@@ -198,7 +198,6 @@ Stream::~Stream()
  * Move construct.
  */
 Stream::Stream(Stream&& other) noexcept
-    : memory_resource_{other.memory_resource_}
 {
     this->swap(other);
 }
@@ -209,8 +208,7 @@ Stream::Stream(Stream&& other) noexcept
  */
 Stream& Stream::operator=(Stream&& other) noexcept
 {
-    Stream temp(std::move(other));
-    this->swap(temp);
+    this->swap(other);
     return *this;
 }
 

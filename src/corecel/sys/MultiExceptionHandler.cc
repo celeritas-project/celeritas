@@ -80,7 +80,7 @@ namespace detail
 {
     CELER_EXPECT(!exceptions_.empty());
 
-    for (auto eptr : exceptions_)
+    for (auto const& eptr : exceptions_)
     {
         try
         {

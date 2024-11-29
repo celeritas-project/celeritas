@@ -37,10 +37,7 @@ auto SensitiveHit::allocator() -> HitAllocator&
 /*!
  * Construct with hit data.
  */
-SensitiveHit::SensitiveHit(EventHitData const& hit)
-    : G4VHit(), data_{std::move(hit)}
-{
-}
+SensitiveHit::SensitiveHit(EventHitData const& hit) : G4VHit(), data_{hit} {}
 
 //---------------------------------------------------------------------------//
 }  // namespace app

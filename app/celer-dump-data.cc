@@ -624,7 +624,7 @@ void print_trans_params(ImportTransParameters const& trans_params,
     for (auto const& kv : trans_params.looping)
     {
         auto pid = particles.find(PDGNumber{kv.first});
-        auto par = particles.id_to_label(pid);
+        auto const& par = particles.id_to_label(pid);
         cout << PEP_STREAM_PAR_PARAM(threshold_trials, par)
              << PEP_STREAM_PAR_PARAM(important_energy, par);
     }

@@ -1,9 +1,14 @@
 ---
 Checks: |
   -*
-  clang-analyzer-cplusplus.Move
-  clang-analyzer-cplusplus.NewDeleteLeaks
-  clang-analyzer-core.StackAddressEscape
+  clang-analyzer-core.*
+  clang-analyzer-deadcode.*
+  clang-analyzer-cplusplus.*
+  -clang-analyzer-cplusplus.NewDelete
+  performance-*
+  -performance-avoid-endl
+  -performance-unnecessary-value-param
+  -performance-enum-size
   cppcoreguidelines-*
   -cppcoreguidelines-owning-memory
   -cppcoreguidelines-narrowing-conversions
@@ -30,6 +35,8 @@ CheckOptions:
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: true
   cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove: true
   cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
+  performance-move-const-arg.CheckTriviallyCopyableMove: false
+  performance-move-const-arg.CheckMoveToConstRef: false
 HeaderFilterRegex: ''
 FormatStyle: file
 ...
