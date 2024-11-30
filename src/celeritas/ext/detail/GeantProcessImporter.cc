@@ -443,7 +443,8 @@ ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
     double const y_scaling = native_value_from_clhep(units[1]);
     double const v_scaling = native_value_from_clhep(units[2]);
 
-    Array<size_type, 2> dims{g4pv.GetLengthY(), g4pv.GetLengthX()};
+    Array<size_type, 2> dims{static_cast<size_type>(g4pv.GetLengthY()),
+                             static_cast<size_type>(g4pv.GetLengthX())};
     HyperslabIndexer<2> index(dims);
 
     ImportPhysics2DVector pv;
