@@ -7,13 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <utility>
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 
 namespace celeritas
 {
@@ -21,23 +20,25 @@ namespace celeritas
 /*!
  * Given a sampled CDF value, find the corresponding grid value.
  *
- * The input grid should be monotonically increasing, and the given CDF value
- * must be in range.
+ * \tparam G Grid, e.g. \c UniformGrid or \c NonUniformGrid
+ * \tparam C Calculate the CDF at a given grid index
+ *
+ * Both the input grid and the CDF must be monotonically increasing. The
+ * sampled CDF value must be in range.
  */
-template<class GridT, class CalcCdf>
+template<class G, class C>
 class InverseCdfFinder
 {
   public:
     // Construct from grid and CDF calculator
-    inline CELER_FUNCTION
-    InverseCdfFinder(GridT const& grid, CalcCdf&& calc_cdf);
+    inline CELER_FUNCTION InverseCdfFinder(G&& grid, C&& calc_cdf);
 
-    // Find the grid value corresponding to the given CDF
+    // Find and interpolate the grid value corresponding to the given CDF
     inline CELER_FUNCTION real_type operator()(real_type cdf) const;
 
   private:
-    GridT const& grid_;
-    CalcCdf calc_cdf_;
+    G grid_;
+    C calc_cdf_;
 };
 
 //---------------------------------------------------------------------------//
@@ -46,37 +47,40 @@ class InverseCdfFinder
 /*!
  * Construct from grid and CDF calculator.
  */
-template<class GridT, class CalcCdf>
-CELER_FUNCTION
-InverseCdfFinder<GridT, CalcCdf>::InverseCdfFinder(GridT const& grid,
-                                                   CalcCdf&& calc_cdf)
-    : grid_(grid), calc_cdf_(std::move(calc_cdf))
+template<class G, class C>
+CELER_FUNCTION InverseCdfFinder<G, C>::InverseCdfFinder(G&& grid, C&& calc_cdf)
+    : grid_(celeritas::forward<G>(grid))
+    , calc_cdf_(celeritas::forward<C>(calc_cdf))
 {
+    CELER_EXPECT(grid_.size() >= 2);
+    CELER_EXPECT(calc_cdf_[0] == 0
+                 && soft_equal(calc_cdf_[grid_.size() - 1], real_type(1)));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the grid value corresponding to the given CDF.
+ * Find and interpolate the grid value corresponding to the given CDF.
  */
-template<class GridT, class CalcCdf>
-CELER_FUNCTION real_type
-InverseCdfFinder<GridT, CalcCdf>::operator()(real_type cdf) const
+template<class G, class C>
+CELER_FUNCTION real_type InverseCdfFinder<G, C>::operator()(real_type cdf) const
 {
     CELER_EXPECT(cdf >= 0 && cdf < 1);
 
     // Find the grid index of the sampled CDF value
-    Range indices(grid_.size());
+    Range indices(grid_.size() - 1);
     auto iter = celeritas::lower_bound(
         indices.begin(), indices.end(), cdf, [this](size_type i, real_type c) {
-            return calc_cdf_(i) < c;
+            return calc_cdf_[i] < c;
         });
-    CELER_ASSERT(iter != indices.end());
+    if (calc_cdf_[*iter] != cdf)
+    {
+        --iter;
+    }
     size_type i = iter - indices.begin();
-    CELER_ASSERT(i > 0);
 
     // Calculate the grid value corresponding to the sampled CDF value
-    return LinearInterpolator<real_type>{{calc_cdf_(i - 1), grid_[i - 1]},
-                                         {calc_cdf_(i), grid_[i]}}(cdf);
+    return LinearInterpolator<real_type>{
+        {calc_cdf_[i], grid_[i]}, {calc_cdf_[i + 1], grid_[i + 1]}}(cdf);
 }
 
 //---------------------------------------------------------------------------//

@@ -246,11 +246,8 @@ MuPPEnergyDistribution::calc_scaled_energy(size_type z_idx, real_type u) const
                                                   {1, calc_cdf(y_max_)}}(u);
 
     // Find the grid index of the sampled CDF value
-    NonuniformGrid y_grid(cdf_grid.y, table_.reals);
-    InverseCdfFinder find_y(y_grid, [&calc_cdf, &y_grid](size_type i) {
-        return calc_cdf(y_grid[i]);
-    });
-    return find_y(cdf);
+    return InverseCdfFinder(NonuniformGrid(cdf_grid.y, table_.reals),
+                            std::move(calc_cdf))(cdf);
 }
 
 //---------------------------------------------------------------------------//
