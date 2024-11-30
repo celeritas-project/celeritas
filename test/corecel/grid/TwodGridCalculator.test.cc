@@ -140,6 +140,10 @@ TEST_F(TwodGridCalculatorTest, subgrid)
         {
             EXPECT_SOFT_EQ(calc_expected(x, y), interpolate(y));
         }
+        for (size_type i : range(ygrid_.size()))
+        {
+            EXPECT_SOFT_EQ(calc_expected(x, ygrid_[i]), interpolate[i]);
+        }
     }
 
     unsigned int const expected_lower_idx[] = {0u, 1u, 2u};
