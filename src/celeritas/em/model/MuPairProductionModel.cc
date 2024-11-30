@@ -146,7 +146,8 @@ void MuPairProductionModel::build_table(
                        << "invalid grid in sampling table for '"
                        << this->description() << "'");
 
-        Array<size_type, 2> dims{pvec.x.size(), pvec.y.size()};
+        Array<size_type, 2> dims{static_cast<size_type>(pvec.x.size()),
+                                 static_cast<size_type>(pvec.y.size())};
         HyperslabIndexer index(dims);
 
         // Normalize the CDF
