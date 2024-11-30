@@ -103,7 +103,7 @@ void run(std::string const& gdml_filename,
     if (gen_test)
     {
         ImportDataTrimmer::Input options;
-        options.max_size = 3;
+        options.mupp = true;
         ImportDataTrimmer trim(options);
         trim(&imported);
     }

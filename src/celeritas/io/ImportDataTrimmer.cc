@@ -41,6 +41,8 @@ void ImportDataTrimmer::operator()(ImportData* data)
         (*this)(&data->geo_materials);
         (*this)(&data->phys_materials);
         (*this)(&data->optical_materials);
+        (*this)(&data->neutron_elastic_data);
+        (*this)(&data->atomic_relaxation_data);
     }
 
     if (options_.physics)
@@ -50,6 +52,11 @@ void ImportDataTrimmer::operator()(ImportData* data)
         (*this)(&data->msc_models);
         (*this)(&data->regions);
         (*this)(&data->volumes);
+    }
+
+    if (options_.mupp)
+    {
+        (*this)(&data->mu_pair_production_data);
     }
 
     for (auto& e : data->elements)
@@ -79,9 +86,15 @@ void ImportDataTrimmer::operator()(ImportData* data)
 
     (*this)(&data->sb_data);
     (*this)(&data->livermore_pe_data);
-    (*this)(&data->neutron_elastic_data);
-    (*this)(&data->atomic_relaxation_data);
-    (*this)(&data->mu_pair_production_data);
+
+    if (this->options_.physics)
+    {
+        for (auto&& kv : data->neutron_elastic_data)
+        {
+            (*this)(&kv.second);
+        }
+        // TODO: trim relaxation shells
+    }
 
     for (auto& m : data->optical_models)
     {
@@ -305,8 +318,14 @@ void ImportDataTrimmer::operator()(std::vector<T>* vec)
 {
     CELER_EXPECT(vec);
 
+    if (options_.max_size == numeric_limits<size_type>::max())
+    {
+        // Don't trim
+        return;
+    }
+
     std::vector<T> result;
-    result.reserve(options_.max_size);
+    result.reserve(std::min(options_.max_size + 1, vec->size()));
 
     auto filter = this->make_filterer(vec->size());
     for (auto i : range(vec->size()))

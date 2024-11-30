@@ -27,8 +27,10 @@ class ImportDataTrimmer
         bool materials{false};
         //! Reduce the number of physics models and processes
         bool physics{false};
+        //! Reduce the MuPPET table fidelity
+        bool mupp{false};
         //! Maximum number of elements in a vector (approximate)
-        size_type max_size{numeric_limits<size_type>::max()};
+        std::size_t max_size{numeric_limits<std::size_t>::max()};
     };
 
   public:
