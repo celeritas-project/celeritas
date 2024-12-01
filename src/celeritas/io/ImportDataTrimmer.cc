@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "ImportDataTrimmer.hh"
 
+#include <algorithm>
+#include <utility>
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 
@@ -15,11 +18,11 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct ImportDataTrimmer::GridFilterer
 {
-    std::size_t stride;
-    std::size_t orig_size;
+    size_type stride;
+    size_type orig_size;
 
     // Whether to keep the data at this index
-    inline bool operator()(std::size_t i) const;
+    inline bool operator()(size_type i) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -362,7 +365,7 @@ void ImportDataTrimmer::operator()(std::map<K, T, C, A>* m)
 /*!
  * Whether to keep the data at this index.
  */
-auto ImportDataTrimmer::make_filterer(std::size_t vec_size) const -> GridFilterer
+auto ImportDataTrimmer::make_filterer(size_type vec_size) const -> GridFilterer
 {
     auto stride = vec_size >= 2 ? vec_size / (options_.max_size - 1) : 1;
 
@@ -373,7 +376,7 @@ auto ImportDataTrimmer::make_filterer(std::size_t vec_size) const -> GridFiltere
 /*!
  * Whether to keep the data at this index.
  */
-bool ImportDataTrimmer::GridFilterer::operator()(std::size_t i) const
+bool ImportDataTrimmer::GridFilterer::operator()(size_type i) const
 {
     return i % stride == 0 || i + 1 == orig_size;
 }

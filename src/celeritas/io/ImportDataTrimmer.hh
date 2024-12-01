@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
+#include <map>
+#include <vector>
+
 #include "corecel/math/NumericLimits.hh"
 
 #include "ImportData.hh"
@@ -23,14 +25,15 @@ class ImportDataTrimmer
   public:
     struct Input
     {
+        //! Maximum number of elements in a vector (approximate)
+        std::size_t max_size{numeric_limits<std::size_t>::max()};
+
         //! Remove materials/elements which might affect the problem
         bool materials{false};
         //! Reduce the number of physics models and processes
         bool physics{false};
         //! Reduce the MuPPET table fidelity
         bool mupp{false};
-        //! Maximum number of elements in a vector (approximate)
-        std::size_t max_size{numeric_limits<std::size_t>::max()};
     };
 
   public:
@@ -63,6 +66,7 @@ class ImportDataTrimmer
   private:
     //// TYPES ////
 
+    using size_type = std::size_t;
     struct GridFilterer;
 
     //// DATA ////
@@ -71,7 +75,7 @@ class ImportDataTrimmer
 
     //// HELPERS ////
 
-    GridFilterer make_filterer(std::size_t vec_size) const;
+    GridFilterer make_filterer(size_type vec_size) const;
 
     template<class T>
     void operator()(std::vector<T>* vec);
