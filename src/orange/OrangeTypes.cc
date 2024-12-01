@@ -221,6 +221,7 @@ char to_char(ZOrder zo)
  */
 ZOrder to_zorder(char c)
 {
+    // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
     switch (c)
     {
         case '!':

@@ -99,7 +99,7 @@ endif()
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(geocel ${SOURCES})
+celeritas_add_src_library(geocel ${SOURCES})
 
 celeritas_target_link_libraries(geocel
   PRIVATE ${PRIVATE_DEPS}

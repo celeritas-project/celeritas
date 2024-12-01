@@ -38,6 +38,7 @@ SPConstObject make_explicit_background(LogicalVolume const& lv,
     using namespace orangeinp;
 
     std::vector<SPConstObject> children;
+    children.reserve(lv.children.size());
     for (auto const& child_pv : lv.children)
     {
         children.push_back(

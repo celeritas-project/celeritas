@@ -121,7 +121,7 @@ class DaughterPlacer
             flip_z_ = true;
         }
 
-        daughter_lv_ = build_vgdaughter(daughter_g4lv);
+        daughter_lv_ = std::forward<F>(build_vgdaughter)(daughter_g4lv);
         CELER_ENSURE(daughter_lv_);
     }
 
