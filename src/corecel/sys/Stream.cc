@@ -198,7 +198,6 @@ Stream::~Stream()
  * Move construct.
  */
 Stream::Stream(Stream&& other) noexcept
-    : memory_resource_{other.memory_resource_}
 {
     this->swap(other);
 }

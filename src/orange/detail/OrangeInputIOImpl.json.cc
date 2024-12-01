@@ -224,6 +224,7 @@ std::vector<logic_int> string_to_logic(std::string const& s)
         }
 
         // Parse a logic token
+        // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
         switch (v)
         {
                 // clang-format off

@@ -349,6 +349,7 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 
     // Isotopic data
     std::vector<ElIsotopeComponent> vec_eic;
+    vec_eic.reserve(inp.isotopes_fractions.size());
     for (auto const& key : inp.isotopes_fractions)
     {
         vec_eic.push_back(ElIsotopeComponent{key.first, key.second});
