@@ -33,8 +33,8 @@ namespace detail
  * the surfaces remapped to index of the surface in the face vector.
  *
  * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2"}
-    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "0 & 2 & (~1 | ~3)"}
+    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
+    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
  * \endverbatim
  */
 class InfixLogicBuilder
