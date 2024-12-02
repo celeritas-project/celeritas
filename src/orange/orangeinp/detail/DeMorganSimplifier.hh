@@ -23,7 +23,10 @@ namespace orangeinp
  */
 struct DeMorganSimplifierResult
 {
+    //! The simplified tree
     CsgTree tree;
+    //! Has the same size as the original tree, indexed by old node id, with
+    //! the value pointing to the equivalent node in the simplified tree
     std::vector<NodeId> new_nodes;
 };
 

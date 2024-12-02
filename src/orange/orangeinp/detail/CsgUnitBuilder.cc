@@ -196,7 +196,12 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v,
 
 //---------------------------------------------------------------------------//
 /*!
- * Simplify negated joins for Infix evaluation
+ * Simplify negated joins for Infix evaluation.
+ *
+ * Apply DeMorgan simplification to use the \c CsgUnit in infix evaluation.
+ * \c NodeId indexing in the \c CsgTree are invalidated after calling this,
+ * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
+ * previously cached \c NodeId is invalid.
  */
 void CsgUnitBuilder::simplifiy_joins()
 {
