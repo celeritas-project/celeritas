@@ -10,34 +10,39 @@ on:
       - completed
 
 permissions:
+  actions: read
   checks: write
   pull-requests: write
 
 jobs:
   report-tests:
     runs-on: ubuntu-latest
+    env:
+      ARTIFACTS_DIR: artifacts
     steps:
-    - name: Download and Extract Artifacts
-      uses: dawidd6/action-download-artifact@e7466d1a7587ed14867642c2ca74b5bcc1e19a2d # v6
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
       with:
-        name: "(event-file|test-results-.*)"
-        name_is_regexp: true
-        run_id: ${{github.event.workflow_run.id}}
-        path: artifacts
+        # Syntax: https://www.gnu.org/software/bash/manual/html_node/Pattern-Matching.html
+        pattern: "+(event-file|test-results-*)"
+        merge-multiple: false
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        run-id: ${{github.event.workflow_run.id}}
+        path: ${{env.ARTIFACTS_DIR}}
     - name: Publish PR comment
       uses: EnricoMi/publish-unit-test-result-action@82082dac68ad6a19d980f8ce817e108b9f496c2a # v2.17.1
       if: always()
       with:
         check_name: "Test summary"
         commit: ${{github.event.workflow_run.head_sha}}
-        event_file: artifacts/event-file/event.json
+        event_file: ${{env.ARTIFACTS_DIR}}/event-file/event.json
         event_name: ${{github.event.workflow_run.event}}
-        files: "artifacts/**/*.xml"
+        files: "${{env.ARTIFACTS_DIR}}/**/*.xml"
     - name: Publish comments on source code
       uses: mikepenz/action-junit-report@db71d41eb79864e25ab0337e395c352e84523afe # v4.3.1
       if: always()
       with:
         commit: ${{github.event.workflow_run.head_sha}}
-        report_paths: "artifacts/**/*.xml"
+        report_paths: "${{env.ARTIFACTS_DIR}}/**/*.xml"
 
 # vim: set nowrap tw=100:

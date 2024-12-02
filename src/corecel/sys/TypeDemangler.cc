@@ -28,6 +28,7 @@ std::string demangled_typeid_name(char const* typeid_name)
     std::string result(status == 0 ? demangled : typeid_name);
 
     // Free the returned memory
+    // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
     std::free(demangled);
 #else  // __GNUG__
     std::string result(typeid_name);

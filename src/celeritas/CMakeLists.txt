@@ -320,7 +320,7 @@ celeritas_polysource(user/detail/StepGatherAction)
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(celeritas ${SOURCES})
+celeritas_add_src_library(celeritas ${SOURCES})
 
 if(NOT CELERITAS_USE_OpenMP
     AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"

@@ -84,6 +84,7 @@ void eptr_to_json(nlohmann::json& j, std::exception_ptr const& eptr)
     {
         try_nested_to_json(j, e);
     }
+    // NOLINTNEXTLINE(bugprone-empty-catch)
     catch (...)
     {
     }

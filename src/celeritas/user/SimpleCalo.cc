@@ -128,6 +128,7 @@ void SimpleCalo::output(JsonPimpl* j) const
     // Save detector volumes
     {
         std::vector<int> ids;
+        ids.reserve(volume_ids_.size());
         for (VolumeId vid : volume_ids_)
         {
             ids.push_back(static_cast<int>(vid.get()));

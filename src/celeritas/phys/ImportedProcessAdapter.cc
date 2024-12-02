@@ -203,7 +203,7 @@ auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
 {
     try
     {
-        return this->step_limits_impl(std::move(applic));
+        return this->step_limits_impl(applic);
     }
     catch (...)
     {

@@ -83,7 +83,7 @@ CoreState<M>::~CoreState()
             << "Deallocating " << to_cstring(M) << " core state (stream "
             << this->stream_id().unchecked_get() << ')';
     }
-    catch (...)
+    catch (...)  // NOLINT(bugprone-empty-catch)
     {
         // Ignore anything bad that happens while logging
     }

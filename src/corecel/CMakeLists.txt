@@ -223,7 +223,7 @@ endif()
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(corecel ${SOURCES})
+celeritas_add_src_library(corecel ${SOURCES})
 
 # Require at least C++17
 target_compile_features(corecel PUBLIC cxx_std_17)
