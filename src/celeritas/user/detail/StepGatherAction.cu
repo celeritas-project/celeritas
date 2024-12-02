@@ -14,6 +14,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "StepGatherExecutor.hh"
+#include "StepParams.hh"
 #include "../StepData.hh"
 
 namespace celeritas
@@ -28,13 +29,13 @@ template<StepPoint P>
 void StepGatherAction<P>::step(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    auto& step_state = storage_->obj.state<MemSpace::native>(state.stream_id(),
-                                                             state.size());
+    auto const& step_params = params_->ref<MemSpace::native>();
+    auto& step_state = params_->state_ref<MemSpace::native>(state.aux());
+
     auto execute = TrackExecutor{
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::StepGatherExecutor<P>{storage_->obj.params<MemSpace::native>(),
-                                      step_state}};
+        detail::StepGatherExecutor<P>{step_params, step_state}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 

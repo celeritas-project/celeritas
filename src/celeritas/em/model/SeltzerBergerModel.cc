@@ -16,8 +16,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/grid/TwodGridData.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/executor/SeltzerBergerExecutor.hh"  // IWYU pragma: associated
@@ -32,6 +30,8 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+
+#include "detail/SBTableInserter.hh"
 
 namespace celeritas
 {
@@ -71,13 +71,11 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Load differential cross sections
-    make_builder(&host_data.differential_xs.elements)
-        .reserve(materials.num_elements());
+    detail::SBTableInserter insert_element(&host_data.differential_xs);
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
-        auto element = materials.get(el_id);
-        this->append_table(load_sb_table(element.atomic_number()),
-                           &host_data.differential_xs);
+        AtomicNumber z = materials.get(el_id).atomic_number();
+        insert_element(load_sb_table(z));
     }
     CELER_ASSERT(host_data.differential_xs.elements.size()
                  == materials.num_elements());
@@ -142,64 +140,6 @@ void SeltzerBergerModel::step(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct differential cross section tables for a single element.
- *
- * Here, x = log of scaled incident energy (E / MeV)
- * and y = scaled exiting energy (E_gamma / E_inc)
- * and values are the cross sections.
- */
-void SeltzerBergerModel::append_table(ImportSBTable const& imported,
-                                      HostXsTables* tables) const
-{
-    auto reals = make_builder(&tables->reals);
-
-    CELER_ASSERT(!imported.value.empty()
-                 && imported.value.size()
-                        == imported.x.size() * imported.y.size());
-    size_type const num_x = imported.x.size();
-    size_type const num_y = imported.y.size();
-
-    SBElementTableData table;
-
-    //! \todo Refactor as a builder helper using DedupeCollectionBuilder
-
-    // Incident charged particle log energy grid
-    table.grid.x = reals.insert_back(imported.x.begin(), imported.x.end());
-
-    // Photon reduced energy grid
-    table.grid.y = reals.insert_back(imported.y.begin(), imported.y.end());
-
-    // 2D scaled DCS grid
-    table.grid.values
-        = reals.insert_back(imported.value.begin(), imported.value.end());
-
-    // Find the location of the highest cross section at each incident E
-    std::vector<size_type> argmax(table.grid.x.size());
-    for (size_type i : range(num_x))
-    {
-        // Get the xs data for the given incident energy coordinate
-        real_type const* iter = &tables->reals[table.grid.at(i, 0)];
-
-        // Search for the highest cross section value
-        size_type max_el = std::max_element(iter, iter + num_y) - iter;
-        CELER_ASSERT(max_el < num_y);
-        // Save it!
-        argmax[i] = max_el;
-    }
-    table.argmax
-        = make_builder(&tables->sizes).insert_back(argmax.begin(), argmax.end());
-
-    // Add the table
-    make_builder(&tables->elements).push_back(table);
-
-    CELER_ENSURE(table.grid.x.size() == num_x);
-    CELER_ENSURE(table.grid.y.size() == num_y);
-    CELER_ENSURE(table.argmax.size() == num_x);
-    CELER_ENSURE(table.grid);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

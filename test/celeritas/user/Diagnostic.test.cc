@@ -11,10 +11,10 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -53,7 +53,6 @@ class SimpleComptonDiagnosticTest : public SimpleTestBase,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
-            result[i].track_id = TrackId{i};
             result[i].particle_id = gamma;
         }
         return result;
@@ -98,7 +97,6 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
-            result[i].track_id = TrackId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;

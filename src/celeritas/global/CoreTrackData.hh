@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/geo/GeoData.hh"
@@ -26,6 +27,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class CoreParams;
+
+//---------------------------------------------------------------------------//
 /*!
  * Memspace-independent core variables.
  */
@@ -40,6 +44,10 @@ struct CoreScalars
     ActionId along_step_neutral_action;
 
     StreamId::size_type max_streams{0};
+
+    // Non-owning pointer to core params ONLY for diagnostics:
+    // see DebugIO.json.cc
+    ObserverPtr<CoreParams const, MemSpace::host> host_core_params{nullptr};
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const

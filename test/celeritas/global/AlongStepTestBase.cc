@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/AlongStepTestBase.cc
+//! \file celeritas/alongstepTestBase.cc
 //---------------------------------------------------------------------------//
 #include "AlongStepTestBase.hh"
 
@@ -55,7 +55,6 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         for (auto i : range(num_tracks))
         {
             primaries[i].event_id = EventId{i};
-            primaries[i].track_id = TrackId{i};
         }
 
         // Construct track initializers

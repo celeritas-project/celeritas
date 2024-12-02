@@ -35,6 +35,7 @@ list(APPEND SOURCES
   orangeinp/InputBuilder.cc
   orangeinp/IntersectRegion.cc
   orangeinp/IntersectSurfaceBuilder.cc
+  orangeinp/ObjectInterface.cc
   orangeinp/ObjectIO.json.cc
   orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
@@ -83,7 +84,7 @@ list(APPEND SOURCES
 
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  set( _cg4org_sources
+  set(_cg4org_sources
     g4org/Converter.cc
     g4org/LogicalVolumeConverter.cc
     g4org/PhysicalVolumeConverter.cc
@@ -106,7 +107,7 @@ celeritas_polysource_append(SOURCES RaytraceImager)
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(orange ${SOURCES})
+celeritas_add_src_library(orange ${SOURCES})
 celeritas_target_link_libraries(orange
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}

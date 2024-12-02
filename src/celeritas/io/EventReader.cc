@@ -102,7 +102,7 @@ auto EventReader::operator()() -> result_type
 
     CELER_LOG(debug) << "Reading event " << event_count_;
     EventId const event_id{event_count_++};
-    if (static_cast<EventId::size_type>(evt.event_number()) != event_id.get())
+    if (id_cast<EventId>(evt.event_number()) != event_id)
     {
         CELER_LOG_LOCAL(warning)
             << "Overwriting event ID " << evt.event_number()
@@ -112,7 +112,6 @@ auto EventReader::operator()() -> result_type
     std::set<int> missing_pdg;
 
     result_type result;
-    int track_id = 0;
     for (auto const& par : evt.particles())
     {
         if (par->data().status != 1 || par->end_vertex())
@@ -139,7 +138,6 @@ auto EventReader::operator()() -> result_type
 
         // Set the event and track number
         primary.event_id = event_id;
-        primary.track_id = TrackId(track_id++);
 
         // Get the position of the vertex
         auto pos = par->production_vertex()->position();

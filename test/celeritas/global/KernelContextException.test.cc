@@ -69,7 +69,6 @@ class KernelContextExceptionTest : public SimpleTestBase, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i / (count / 2)};
-            result[i].track_id = TrackId{i % (count / 2)};
         }
         return result;
     }

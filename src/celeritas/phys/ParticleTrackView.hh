@@ -37,16 +37,22 @@ class ParticleTrackView
   public:
     //!@{
     //! \name Type aliases
-    using ParticleParamsRef = celeritas::NativeCRef<ParticleParamsData>;
-    using ParticleStateRef = celeritas::NativeRef<ParticleStateData>;
-    using Energy = units::MevEnergy;
+    using ParamsRef = celeritas::NativeCRef<ParticleParamsData>;
+    using StateRef = celeritas::NativeRef<ParticleStateData>;
     using Initializer_t = ParticleTrackInitializer;
+
+    using Charge = units::ElementaryCharge;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
+    using Momentum = units::MevMomentum;
+    using MomentumSq = units::MevMomentumSq;
+    using Speed = units::LightSpeed;
     //!@}
 
   public:
     // Construct from "dynamic" state and "static" particle definitions
-    inline CELER_FUNCTION ParticleTrackView(ParticleParamsRef const& params,
-                                            ParticleStateRef const& states,
+    inline CELER_FUNCTION ParticleTrackView(ParamsRef const& params,
+                                            StateRef const& states,
                                             TrackSlotId id);
 
     // Initialize the particle
@@ -75,10 +81,10 @@ class ParticleTrackView
     CELER_FORCEINLINE_FUNCTION ParticleView particle_view() const;
 
     // Rest mass [MeV / c^2]
-    CELER_FORCEINLINE_FUNCTION units::MevMass mass() const;
+    CELER_FORCEINLINE_FUNCTION Mass mass() const;
 
     // Charge [elemental charge e+]
-    CELER_FORCEINLINE_FUNCTION units::ElementaryCharge charge() const;
+    CELER_FORCEINLINE_FUNCTION Charge charge() const;
 
     // Decay constant [1 / time]
     CELER_FORCEINLINE_FUNCTION real_type decay_constant() const;
@@ -98,20 +104,20 @@ class ParticleTrackView
     inline CELER_FUNCTION real_type beta_sq() const;
 
     // Speed [1/c]
-    inline CELER_FUNCTION units::LightSpeed speed() const;
+    inline CELER_FUNCTION Speed speed() const;
 
     // Lorentz factor [unitless]
     inline CELER_FUNCTION real_type lorentz_factor() const;
 
     // Relativistic momentum [MeV / c]
-    inline CELER_FUNCTION units::MevMomentum momentum() const;
+    inline CELER_FUNCTION Momentum momentum() const;
 
     // Relativistic momentum squared [MeV^2 / c^2]
-    inline CELER_FUNCTION units::MevMomentumSq momentum_sq() const;
+    inline CELER_FUNCTION MomentumSq momentum_sq() const;
 
   private:
-    ParticleParamsRef const& params_;
-    ParticleStateRef const& states_;
+    ParamsRef const& params_;
+    StateRef const& states_;
     TrackSlotId const track_slot_;
 };
 
@@ -122,8 +128,8 @@ class ParticleTrackView
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(ParticleParamsRef const& params,
-                                     ParticleStateRef const& states,
+ParticleTrackView::ParticleTrackView(ParamsRef const& params,
+                                     StateRef const& states,
                                      TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
@@ -215,7 +221,7 @@ CELER_FUNCTION ParticleView ParticleTrackView::particle_view() const
 /*!
  * Rest mass [MeV / c^2].
  */
-CELER_FUNCTION units::MevMass ParticleTrackView::mass() const
+CELER_FUNCTION auto ParticleTrackView::mass() const -> Mass
 {
     return this->particle_view().mass();
 }
@@ -224,7 +230,7 @@ CELER_FUNCTION units::MevMass ParticleTrackView::mass() const
 /*!
  * Elementary charge.
  */
-CELER_FUNCTION units::ElementaryCharge ParticleTrackView::charge() const
+CELER_FUNCTION auto ParticleTrackView::charge() const -> Charge
 {
     return this->particle_view().charge();
 }
@@ -265,7 +271,7 @@ CELER_FUNCTION bool ParticleTrackView::is_stable() const
 CELER_FUNCTION auto ParticleTrackView::total_energy() const -> Energy
 {
     return Energy(value_as<Energy>(this->energy())
-                  + value_as<units::MevMass>(this->mass()));
+                  + value_as<Mass>(this->mass()));
 }
 
 //---------------------------------------------------------------------------//
@@ -317,7 +323,7 @@ CELER_FUNCTION real_type ParticleTrackView::beta_sq() const
  * Speed is calculated using beta so that the expression works for massless
  * particles.
  */
-CELER_FUNCTION units::LightSpeed ParticleTrackView::speed() const
+CELER_FUNCTION auto ParticleTrackView::speed() const -> Speed
 {
     return units::LightSpeed{std::sqrt(this->beta_sq())};
 }
@@ -374,12 +380,12 @@ CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
  * p^2 = \frac{K^2}{c^2} + 2 * m * K
  * \f]
  */
-CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const
+CELER_FUNCTION auto ParticleTrackView::momentum_sq() const -> MomentumSq
 {
     real_type const energy = this->energy().value();
     real_type result = ipow<2>(energy) + 2 * this->mass().value() * energy;
     CELER_ENSURE(result >= 0);
-    return units::MevMomentumSq{result};
+    return MomentumSq{result};
 }
 
 //---------------------------------------------------------------------------//
@@ -388,9 +394,9 @@ CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const
  *
  * This is calculated by taking the root of the square of the momentum.
  */
-CELER_FUNCTION units::MevMomentum ParticleTrackView::momentum() const
+CELER_FUNCTION auto ParticleTrackView::momentum() const -> Momentum
 {
-    return units::MevMomentum{std::sqrt(this->momentum_sq().value())};
+    return Momentum{std::sqrt(this->momentum_sq().value())};
 }
 
 //---------------------------------------------------------------------------//

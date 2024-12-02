@@ -56,7 +56,7 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
     PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("World_PV", world.name);
+    EXPECT_EQ("world_PV", world.name);
     EXPECT_EQ(0, world.copy_number);
     if (!std::holds_alternative<NoTransformation>(world.transform))
     {
@@ -116,7 +116,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("World_PV", world.name);
+    EXPECT_EQ("world_PV", world.name);
     EXPECT_EQ(0, world.copy_number);
 
     ASSERT_TRUE(world.lv);
@@ -126,7 +126,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     {
         // Test world's logical volume
         EXPECT_NE(nullptr, lv->g4lv);
-        EXPECT_EQ("World0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ("world0x0", this->genericize_pointers(lv->name));
         ASSERT_TRUE(lv->solid);
         EXPECT_JSON_EQ(
             R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
@@ -140,7 +140,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test calorimeter
-        EXPECT_EQ("Calorimeter0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ("calorimeter0x0", this->genericize_pointers(lv->name));
         ASSERT_EQ(50, lv->children.size());
 
         auto const& first_layer = lv->children.front();
@@ -165,7 +165,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test layer
-        EXPECT_EQ("Layer0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ("layer0x0", this->genericize_pointers(lv->name));
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
@@ -181,7 +181,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test lead
-        EXPECT_EQ("G4_Pb0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ("pb0x0", this->genericize_pointers(lv->name));
         EXPECT_EQ(0, lv->children.size());
     }
 }

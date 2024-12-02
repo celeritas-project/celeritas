@@ -10,7 +10,9 @@
 #include <iostream>
 #include <regex>
 
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/io/Repr.hh"
 
 namespace celeritas
@@ -22,15 +24,15 @@ namespace test
  * Construct reference to log to temporarily replace.
  */
 ScopedLogStorer::ScopedLogStorer(Logger* orig, LogLevel min_level)
-    : logger_{orig}
+    : logger_{orig}, min_level_{min_level}
 {
     CELER_EXPECT(logger_);
     CELER_EXPECT(min_level != LogLevel::size_);
     // Create a new logger that calls our operator(), replace orig and store
     saved_logger_ = std::make_unique<Logger>(
         std::exchange(*logger_, Logger{std::ref(*this)}));
-    // Update global log level
-    logger_->level(min_level);
+    // Catch everything, keep only what we want
+    logger_->level(LogLevel::debug);
 }
 
 //---------------------------------------------------------------------------//
@@ -58,6 +60,18 @@ ScopedLogStorer::~ScopedLogStorer()
 //! Save a log message
 void ScopedLogStorer::operator()(LogProvenance, LogLevel lev, std::string msg)
 {
+    static LogLevel const debug_level
+        = log_level_from_env("CELER_LOG_SCOPED", LogLevel::warning);
+    if (lev >= debug_level)
+    {
+        std::clog << color_code('x') << to_cstring(lev) << ": " << msg
+                  << std::endl;
+    }
+    if (lev < min_level_)
+    {
+        return;
+    }
+
     static std::regex const delete_ansi("\033\\[[0-9;]*m");
     static std::regex const subs_ptr("0x[0-9a-f]+");
     msg = std::regex_replace(msg, delete_ansi, "");

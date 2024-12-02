@@ -35,7 +35,6 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/MpiCommunicator.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/surf/Sphere.hh"
@@ -243,7 +242,7 @@ TEST_F(NestedTest, unique)
     {
         VolumeId vol_id = find_vol(*logical_[i]);
         ASSERT_NE(VolumeId{}, vol_id);
-        EXPECT_EQ(names_[i], geo_params_->id_to_label(vol_id).name);
+        EXPECT_EQ(names_[i], geo_params_->volumes().at(vol_id).name);
     }
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
@@ -285,7 +284,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
     {
         VolumeId vol_id = find_vol(*logical_[i]);
         ASSERT_NE(VolumeId{}, vol_id);
-        EXPECT_EQ(names_[i], geo_params_->id_to_label(vol_id).name);
+        EXPECT_EQ(names_[i], geo_params_->volumes().at(vol_id).name);
     }
 
     // IDs for the unique LVs should be different
@@ -310,7 +309,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(suffixed))
         VolumeId vol_id = find_vol(*logical_[i]);
         ASSERT_NE(VolumeId{}, vol_id);
         EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->id_to_label(vol_id));
+                  geo_params_->volumes().at(vol_id));
     }
 }
 
@@ -327,7 +326,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated_suffixed))
         VolumeId vol_id = find_vol(*logical_[i]);
         ASSERT_NE(VolumeId{}, vol_id);
         EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->id_to_label(vol_id));
+                  geo_params_->volumes().at(vol_id));
     }
 }
 
@@ -343,7 +342,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(double_prefixed))
         VolumeId vol_id = find_vol(*logical_[i]);
         ASSERT_NE(VolumeId{}, vol_id);
         EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->id_to_label(vol_id));
+                  geo_params_->volumes().at(vol_id));
     }
 }
 
@@ -359,7 +358,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated_double_prefixed))
         VolumeId vol_id = find_vol(*logical_[i]);
         ASSERT_NE(VolumeId{}, vol_id);
         EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->id_to_label(vol_id));
+                  geo_params_->volumes().at(vol_id));
     }
 }
 

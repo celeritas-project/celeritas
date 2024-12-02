@@ -10,7 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
+#include "celeritas/Types.hh"
 
 #include "RngData.hh"
 
@@ -20,11 +20,13 @@ namespace celeritas
 // Reinitialize the RNG states on host/device at the start of an event
 void reseed_rng(DeviceCRef<RngParamsData> const&,
                 DeviceRef<RngStateData> const&,
-                size_type);
+                StreamId,
+                UniqueEventId);
 
 void reseed_rng(HostCRef<RngParamsData> const&,
                 HostRef<RngStateData> const&,
-                size_type);
+                StreamId,
+                UniqueEventId);
 
 #if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
@@ -33,7 +35,8 @@ void reseed_rng(HostCRef<RngParamsData> const&,
  */
 inline void reseed_rng(DeviceCRef<RngParamsData> const&,
                        DeviceRef<RngStateData> const&,
-                       size_type)
+                       StreamId,
+                       UniqueEventId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

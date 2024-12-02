@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -70,7 +72,8 @@ class GeneralQuadric
     explicit inline CELER_FUNCTION GeneralQuadric(Span<R, StorageSpan::extent>);
 
     // Promote from a simple quadric
-    explicit GeneralQuadric(SimpleQuadric const& other) noexcept;
+    explicit GeneralQuadric(SimpleQuadric const& other) noexcept(
+        !CELERITAS_DEBUG);
 
     //// ACCESSORS ////
 

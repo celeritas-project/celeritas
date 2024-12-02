@@ -19,12 +19,14 @@
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
+#include <G4NavigationHistory.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4RegionStore.hh>
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
+#include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4Version.hh>
 #include <G4ios.hh>
@@ -36,6 +38,7 @@
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "orange/g4org/Converter.hh"
 
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
@@ -47,7 +50,7 @@ static_assert(G4VERSION_NUMBER
                          + 10 * ((CELERITAS_GEANT4_VERSION / 0x100) % 0x100)
                          + (CELERITAS_GEANT4_VERSION % 0x100),
               "CMake-reported Geant4 version does not match installed "
-              "<G4Version.hh>: compare to 'celeritas_sys_config.h'");
+              "<G4Version.hh>: compare to 'corecel/Config.hh'");
 
 namespace celeritas
 {
@@ -119,20 +122,22 @@ void free_and_clear(std::vector<T*>* table)
 //---------------------------------------------------------------------------//
 /*!
  * Print detailed information about the touchable history.
+ *
+ * For brevity, this does not print the world volume.
  */
 std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 {
-    CELER_EXPECT(pnh.touch);
+    CELER_EXPECT(pnh.nav);
     os << '{';
 
-    auto& touch = const_cast<GeantTouchableBase&>(*pnh.touch);
-    for (int depth : range(touch.GetHistoryDepth()))
+    int depth = pnh.nav->GetDepth();
+    for (int level : range(depth))
     {
-        G4VPhysicalVolume* vol = touch.GetVolume(depth);
+        G4VPhysicalVolume* vol = pnh.nav->GetVolume(depth - level);
         CELER_ASSERT(vol);
         G4LogicalVolume* lv = vol->GetLogicalVolume();
         CELER_ASSERT(lv);
-        if (depth != 0)
+        if (level != 0)
         {
             os << " -> ";
         }
@@ -194,6 +199,45 @@ G4VPhysicalVolume* load_geant_geometry_native(std::string const& filename)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Write a GDML file to the given filename.
+ */
+void write_geant_geometry(G4VPhysicalVolume const* world,
+                          std::string const& out_filename)
+{
+    CELER_EXPECT(world);
+
+    CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
+    ScopedMem record_mem("write_geant_geometry");
+    ScopedTimeLog scoped_time;
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
+
+    G4GDMLParser parser;
+    parser.SetOverlapCheck(false);
+
+    if (!world->GetLogicalVolume()->GetRegion())
+    {
+        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping "
+                              "export of energy cuts and regions";
+    }
+    else
+    {
+        parser.SetEnergyCutsExport(true);
+        parser.SetRegionExport(true);
+    }
+
+    parser.SetSDExport(true);
+    parser.SetStripFlag(false);
+#if G4VERSION_NUMBER >= 1070
+    parser.SetOutputFileOverwrite(true);
+#endif
+
+    parser.Write(out_filename, world, /* append_pointers = */ true);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset all Geant4 geometry stores if *not* using RunManager.
  *
  * Use this function if reading geometry and cleaning up *without* doing any
@@ -215,7 +259,7 @@ void reset_geant_geometry()
         G4ReflectionFactory::Instance()->Clean();
 #endif
         free_and_clear(G4Material::GetMaterialTable());
-        free_and_clear(G4Element::GetElementTable());
+        free_and_clear(const_cast<std::vector<G4Element*>*>(G4Element::GetElementTable()));
         free_and_clear(const_cast<std::vector<G4Isotope*>*>(
             G4Isotope::GetIsotopeTable()));
         msg = scoped_log.str();
@@ -243,6 +287,21 @@ Span<G4LogicalVolume*> geant_logical_volumes()
         ++start;
     }
     return {start, stop};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the world volume for the primary geometry.
+ *
+ * \return World volume if geometry has been initialized, nullptr otherwise.
+ */
+G4VPhysicalVolume const* geant_world_volume()
+{
+    auto* man = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(man);
+    auto* nav = man->GetNavigatorForTracking();
+    CELER_ASSERT(nav);
+    return nav->GetWorldVolume();
 }
 
 //---------------------------------------------------------------------------//
@@ -321,6 +380,69 @@ std::string make_gdml_name(G4LogicalVolume const& lv)
     }
 
     return temp_writer.GenerateName(lv.GetName(), &lv);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update a nav history to match the given pv stack.
+ *
+ * \warning The stack cannot have a parameterized/replicated volume.
+ *
+ * \note The stack should have the same semantics as \c LevelId, i.e. the
+ * initial entry is the "most global" level.
+ */
+void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
+{
+    CELER_EXPECT(!stack.empty());
+    CELER_EXPECT(std::all_of(
+        stack.begin(), stack.end(), [](auto* v) -> bool { return v; }));
+    CELER_EXPECT(nav);
+
+    size_type level = 0;
+    auto nav_stack_size
+        = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
+
+    // Loop deeper until stack and nav disagree
+    for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());
+         level != end_level;
+         ++level)
+    {
+        if (nav->GetVolume(level) != stack[level])
+        {
+            break;
+        }
+    }
+
+    if (CELER_UNLIKELY(level == 0))
+    {
+        // Top level disagrees (rare? should always be world):
+        // reset to top level
+        nav->Reset();
+        nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0]));
+        ++level;
+    }
+    else if (level < nav_stack_size())
+    {
+        // Decrease nav stack to the parent's level
+        nav->BackLevel(nav_stack_size() - level);
+        CELER_ASSERT(nav_stack_size() == level);
+    }
+
+    // Add all remaining levels
+    for (auto end_level = stack.size(); level != end_level; ++level)
+    {
+        G4VPhysicalVolume const* pv = stack[level];
+        constexpr auto volume_type = EVolume::kNormal;
+        CELER_VALIDATE(pv->VolumeType() == volume_type,
+                       << "sensitive detectors inside of "
+                          "replica/parameterized volumes are not supported: '"
+                       << pv->GetName() << "' inside "
+                       << PrintableNavHistory{nav});
+        nav->NewLevel(
+            const_cast<G4VPhysicalVolume*>(pv), volume_type, pv->GetCopyNo());
+    }
+
+    CELER_ENSURE(nav_stack_size() == stack.size());
 }
 
 //---------------------------------------------------------------------------//

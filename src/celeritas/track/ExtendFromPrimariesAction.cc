@@ -209,18 +209,22 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
  * we do not use \c launch_core or \c launch_action .
  */
 void ExtendFromPrimariesAction::process_primaries(
-    CoreParams const&,
+    CoreParams const& params,
     CoreStateHost& state,
     PrimaryStateData<MemSpace::host> const& pstate) const
 {
     MultiExceptionHandler capture_exception;
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute_thread{
-        state.ptr(), primaries, state.counters()};
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        state.counters(),
+        primaries};
+    size_type const size = primaries.size();
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
-    for (size_type i = 0, size = primaries.size(); i != size; ++i)
+    for (size_type i = 0; i < size; ++i)
     {
         CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
     }

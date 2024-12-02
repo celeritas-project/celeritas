@@ -86,7 +86,8 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
     if (!indices.empty())
     {
         VecNodes nodes;
-        this->construct_tree(indices, &nodes, BIHNodeId{});
+        auto inf_bbox = FastBBox::from_infinite();
+        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -116,9 +117,10 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
  */
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
-                                BIHNodeId parent)
+                                BIHNodeId parent,
+                                FastBBox const& bbox)
 {
-    using Edge = BIHInnerNode::Edge;
+    using Side = BIHInnerNode::Side;
 
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
@@ -131,19 +133,31 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.parent = parent;
         node.axis = p.axis;
 
-        auto ax = to_int(p.axis);
+        // Return the current bounding box, clipped by the supplied halfspace
+        auto get_shrunk_bbox
+            = [&bbox, axis = p.axis](Bound bound, FastBBox::real_type pos) {
+                  auto out_box = bbox;
+                  out_box.shrink(bound, axis, pos);
+                  return out_box;
+              };
 
-        node.bounding_planes[Edge::left].position
-            = p.bboxes[Edge::left].upper()[ax];
-        node.bounding_planes[Edge::right].position
-            = p.bboxes[Edge::right].lower()[ax];
+        // Populate left/right bounding planes
+        auto left_pos = p.bboxes[Side::left].upper()[to_int(p.axis)];
+        node.edges[Side::left].bounding_plane_pos = left_pos;
+        node.edges[Side::left].bbox = get_shrunk_bbox(Bound::hi, left_pos);
+
+        auto right_pos = p.bboxes[Side::right].lower()[to_int(p.axis)];
+        node.edges[Side::right].bounding_plane_pos = right_pos;
+        node.edges[Side::right].bbox = get_shrunk_bbox(Bound::lo, right_pos);
 
         // Recursively construct the left and right branches
-        for (auto edge : range(Edge::size_))
+        for (auto side : range(Side::size_))
         {
-            node.bounding_planes[edge].child = BIHNodeId(nodes->size());
-            this->construct_tree(
-                p.indices[edge], nodes, BIHNodeId(current_index));
+            node.edges[side].child = BIHNodeId(nodes->size());
+            this->construct_tree(p.indices[side],
+                                 nodes,
+                                 BIHNodeId(current_index),
+                                 node.edges[side].bbox);
         }
 
         CELER_EXPECT(node);
@@ -204,15 +218,14 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
     // Remap IDs. "parent" will only be undefined for the root node.
     auto remapped_id = [&new_indices](BIHNodeId old) {
         CELER_EXPECT(old < new_indices.size());
-        return BIHNodeId{
-            static_cast<size_type>(new_indices[old.unchecked_get()])};
+        return id_cast<BIHNodeId>(new_indices[old.unchecked_get()]);
     };
 
     for (auto& inner_node : inner_nodes)
     {
-        for (auto& bp : inner_node.bounding_planes)
+        for (auto& edge : inner_node.edges)
         {
-            bp.child = remapped_id(bp.child);
+            edge.child = remapped_id(edge.child);
         }
         if (inner_node.parent)
         {

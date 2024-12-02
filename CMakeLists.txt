@@ -20,8 +20,7 @@ cmake_policy(VERSION 3.18...3.28)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(GNUInstallDirs)
-include(CudaRdcUtils)
-include(CeleritasUtils)
+include(CeleritasOptionUtils)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
@@ -49,7 +48,6 @@ option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
-option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
 # Assertion handling
@@ -62,7 +60,7 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "Use verbose debug assertions in device code" "OFF"
-  "_celeritas_use_device" OFF
+  "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
 
 # Secondary testing options (only applies to CTest)
@@ -231,8 +229,12 @@ celeritas_set_default(CMAKE_CXX_STANDARD 17 STRING "C++ standard")
 celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF "Allow C++ compiler extensions")
 if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
-  celeritas_set_default(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
-  celeritas_set_default(CMAKE_CUDA_EXTENSIONS ${CMAKE_CXX_EXTENSIONS})
+  celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
+  celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
+  # Use host compiler by default to ensure ABI consistency
+  celeritas_set_default(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}"
+    "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists"
+  )
 endif()
 
 ### Linking flags ###
@@ -278,15 +280,21 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # DEPENDENCIES
 #----------------------------------------------------------------------------#
 
+include(CeleritasUtils)
+
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
   include(CTest)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # Use host compiler by default to ensure ABI consistency
-  set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING
-    "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists")
+  if(NOT CMAKE_CUDA_ARCHITECTURES)
+    message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
+      "to specify the GPU target device, is not defined, and the default "
+      "guess may be suboptimal and cause further issues. "
+      "Verify that this value matches your CUDA device capability."
+    )
+  endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
 elseif(CELERITAS_USE_HIP)
@@ -301,6 +309,14 @@ elseif(CELERITAS_USE_HIP)
   endif()
 endif()
 
+if(CELERITAS_USE_CUDA)
+  # NOTE: older versions of CUDA/Thrust don't include a CMake configuration
+  # file, so don't make it required
+  find_package(Thrust)
+endif()
+# Unconditionally set Thrust availability for downstream configuration
+set(CELERITAS_USE_Thrust "${Thrust_FOUND}")
+
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
   if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
@@ -308,6 +324,11 @@ if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
       "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
     )
   endif()
+endif()
+if(CELERITAS_USE_Geant4 AND BUILD_TESTING AND NOT DEFINED CELER_G4ENV)
+  # Set environment variables from Geant4-exported configuration or environment
+  # currently used only for CTest setup
+  celeritas_set_celer_g4env()
 endif()
 
 if(CELERITAS_USE_HepMC3)
@@ -383,6 +404,13 @@ if(CELERITAS_USE_VecGeom)
       "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
       CELERITAS_USE_CUDA
       "${VecGeom_CUDA_FOUND}"
+    )
+  elseif(CELERITAS_USE_CUDA
+      AND NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
+    message(WARNING "CUDA architecture types between "
+      "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
+      "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
+      "runtime errors may result"
     )
   endif()
   if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
@@ -460,6 +488,8 @@ endif()
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
+
+include(CeleritasLibraryUtils)
 
 # Define an interface library for propagating include paths for GPU compilers.
 # This allow API calls, so long as the compiler or linker implicitly bring in
@@ -560,10 +590,16 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
+  # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
-foreach(_dep Geant4 HepMC3 ROOT VecGeom)
+if(NOT CELERITAS_USE_VecGeom OR VecGeom_VERSION VERSION_LESS 1.2.10)
+  # Only install RDC utils if not available through vecgeom
+  list(APPEND _cmake_files
+    "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
+  )
+endif()
+foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
@@ -597,11 +633,21 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
+# Thrust dependency is not a cache variable:
+celeritas_export_var(CELERITAS_USE_Thrust)
 
 # Export defaulted variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
-foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES)
-  list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
+set(_celer_other_cmake_variables)
+if(CELERITAS_USE_CUDA)
+  set(_celer_other_cmake_variables CMAKE_CUDA_ARCHITECTURES)
+elseif(CELERITAS_USE_HIP)
+  set(_celer_other_cmake_variables CMAKE_HIP_ARCHITECTURES)
+endif()
+foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES _celer_other_cmake_variables)
+  # Value of _key may be ;-separated list, so we need to escape the ; if present
+  string(REPLACE ";" "\;" _key_val "${${_key}}")
+  list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${_key_val}\")")
 endforeach()
 
 # Add hints for direct dependencies and indirect geant dependencies

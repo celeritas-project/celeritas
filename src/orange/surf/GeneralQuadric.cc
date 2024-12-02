@@ -44,7 +44,10 @@ GeneralQuadric::GeneralQuadric(Real3 const& abc,
 /*!
  * Promote from a simple quadric.
  */
-GeneralQuadric::GeneralQuadric(SimpleQuadric const& other) noexcept
+// Remove after upgrade to clang-tidy-18:
+// NOLINTNEXTLINE(bugprone-exception-escape)
+GeneralQuadric::GeneralQuadric(SimpleQuadric const& other) noexcept(
+    !CELERITAS_DEBUG)
     : GeneralQuadric{make_array(other.second()),
                      Real3{0, 0, 0},
                      make_array(other.first()),

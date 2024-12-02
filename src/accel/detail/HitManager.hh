@@ -37,11 +37,11 @@ class HitProcessor;
  * - Finds *all* logical volumes that have SDs attached (TODO: add list of
  *   exclusions for SDs that are implemented natively on GPU)
  * - Maps those volumes to VecGeom geometry
- * - Creates a HitProcessor for each Geant4 thread
  *
- * \warning Because of low-level problems with Geant4 allocators, the hit
- * processors must be allocated and deallocated on the same thread in which
- * they're used.
+ * Because of low-level use of Geant4 allocators through the associated Geant4
+ * objects, the hit processors \em must be allocated and deallocated on the
+ * same thread in which they're used, so \c make_local_processor is deferred
+ * until after construction and called in the \c LocalTransporter constructor.
  */
 class HitManager final : public StepInterface
 {
@@ -53,22 +53,25 @@ class HitManager final : public StepInterface
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using SPProcessor = std::shared_ptr<HitProcessor>;
+    using SPConstGeo = std::shared_ptr<GeoParams const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}
 
   public:
     // Construct with Celeritas objects for mapping
-    HitManager(GeoParams const& geo,
+    HitManager(SPConstGeo geo,
                ParticleParams const& par,
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
 
-    // Create local hit processor
-    SPProcessor make_local_processor(StreamId sid);
+    CELER_DEFAULT_MOVE_DELETE_COPY(HitManager);
 
     // Default destructor
     ~HitManager();
+
+    // Create local hit processor
+    SPProcessor make_local_processor(StreamId sid);
 
     // Selection of data required for this interface
     Filters filters() const final;
@@ -88,7 +91,7 @@ class HitManager final : public StepInterface
     SPConstVecLV const& geant_vols() const { return geant_vols_; }
 
     //! Access the Celeritas volume IDs corresponding to the detectors
-    VecVolId const& celer_vols() const { return vecgeom_vols_; }
+    VecVolId const& celer_vols() const { return celer_vols_; }
 
     //! Access mapped particles if recreating G4Tracks later
     VecParticle const& geant_particles() const { return particles_; }
@@ -97,9 +100,10 @@ class HitManager final : public StepInterface
     using VecLV = std::vector<G4LogicalVolume const*>;
 
     bool nonzero_energy_deposition_{};
-    VecVolId vecgeom_vols_;
+    VecVolId celer_vols_;
 
     // Hit processor setup
+    SPConstGeo geo_;
     SPConstVecLV geant_vols_;
     VecParticle particles_;
     StepSelection selection_;

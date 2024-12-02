@@ -14,7 +14,9 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxIO.json.cc
+  GeoParamsInterface.cc
   GeoParamsOutput.cc
+  GeoVolumeFinder.cc
   rasterize/Color.cc
   rasterize/Image.cc
   rasterize/ImageIO.json.cc
@@ -78,12 +80,6 @@ if(CELERITAS_USE_VecGeom)
   if(VecGeom_GDML_FOUND)
     list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   endif()
-  if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
-    # Special routines needed for surface
-    list(APPEND SOURCES
-      vg/VecgeomParams.surface.cu
-    )
-  endif()
   if(CELERITAS_USE_CUDA)
     # This needs to be public because its might be needed
     # to resolve the symbols generate by the `nvcc -dlink` of
@@ -91,6 +87,7 @@ if(CELERITAS_USE_VecGeom)
     list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
     list(APPEND SOURCES
       vg/RaytraceImager.cu
+      vg/detail/VecgeomSetup.cu
     )
   elseif(VecGeom_CUDA_FOUND)
     # VecGeom is built with CUDA but Celeritas is not
@@ -102,7 +99,7 @@ endif()
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(geocel ${SOURCES})
+celeritas_add_src_library(geocel ${SOURCES})
 
 celeritas_target_link_libraries(geocel
   PRIVATE ${PRIVATE_DEPS}

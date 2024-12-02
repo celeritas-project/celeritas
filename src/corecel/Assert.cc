@@ -153,6 +153,10 @@ DebugError::DebugError(DebugErrorDetails&& d)
 }
 
 //---------------------------------------------------------------------------//
+// Default destructor to anchor vtable
+DebugError::~DebugError() = default;
+
+//---------------------------------------------------------------------------//
 /*!
  * Construct a runtime error from detailed descriptions.
  */
@@ -160,6 +164,10 @@ RuntimeError::RuntimeError(RuntimeErrorDetails&& d)
     : std::runtime_error(build_runtime_error_msg(d)), details_(std::move(d))
 {
 }
+
+//---------------------------------------------------------------------------//
+// Default destructor to anchor vtable
+RuntimeError::~RuntimeError() = default;
 
 //---------------------------------------------------------------------------//
 // String constants for throwing

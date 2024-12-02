@@ -17,9 +17,9 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "corecel/Config.hh"
-#if CELERITAS_USE_CUDA
+#include "corecel/DeviceRuntimeApi.hh"
+#ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/management/CudaManager.h>
-#    include <cuda_runtime_api.h>
 #endif
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
@@ -27,8 +27,6 @@
 #ifdef VECGEOM_GDML
 #    include <VecGeom/gdml/Frontend.h>
 #endif
-
-#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -49,13 +47,12 @@
 #include "VecgeomData.hh"  // IWYU pragma: associated
 
 #include "detail/VecgeomCompatibility.hh"
-
-#ifdef VECGEOM_USE_SURF
-#    include "VecgeomParams.surface.hh"
-#endif
+#include "detail/VecgeomSetup.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
+
+using vecgeom::cxx::BVHManager;
 
 namespace celeritas
 {
@@ -80,12 +77,6 @@ namespace
         do                     \
         {                      \
         } while (0)
-#endif
-
-#if defined(VECGEOM_ENABLE_CUDA) && defined(VECGEOM_USE_SURF)
-#    define VG_CUDASURF_CALL(CODE) CODE
-#else
-#    define VG_CUDASURF_CALL(CODE) CELER_UNREACHABLE
 #endif
 
 //---------------------------------------------------------------------------//
@@ -163,7 +154,7 @@ VecgeomParams::VecgeomParams(std::string const& filename)
     this->build_data();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -182,7 +173,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     this->build_data();
     this->build_metadata();
 
-    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
 }
 
@@ -197,7 +188,7 @@ VecgeomParams::~VecgeomParams()
         if (VecgeomParams::use_surface_tracking())
         {
             CELER_LOG(debug) << "Clearing VecGeom surface GPU data";
-            VG_CUDASURF_CALL(teardown_surface_tracking_device());
+            VG_SURF_CALL(detail::teardown_surface_tracking_device());
         }
         else
         {
@@ -223,37 +214,16 @@ VecgeomParams::~VecgeomParams()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label for a placed volume ID.
+ * Get the Geant4 physical volume corresponding to a volume instance ID.
  */
-Label const& VecgeomParams::id_to_label(VolumeId vol) const
+G4VPhysicalVolume const* VecgeomParams::id_to_pv(VolumeInstanceId viid) const
 {
-    CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_.get(vol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the ID corresponding to a label.
- */
-auto VecgeomParams::find_volume(std::string const& name) const -> VolumeId
-{
-    auto result = vol_labels_.find_all(name);
-    if (result.empty())
-        return {};
-    CELER_VALIDATE(result.size() == 1,
-                   << "volume '" << name << "' is not unique");
-    return result.front();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a label.
- *
- * If the label isn't in the geometry, a null ID will be returned.
- */
-VolumeId VecgeomParams::find_volume(Label const& label) const
-{
-    return vol_labels_.find(label);
+    CELER_EXPECT(viid);
+    if (viid < g4_pv_map_.size())
+    {
+        return g4_pv_map_[viid.unchecked_get()];
+    }
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//
@@ -270,18 +240,6 @@ VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
             result = iter->second;
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get zero or more volume IDs corresponding to a name.
- *
- * This is useful for volumes that are repeated in the geometry with different
- * uniquifying 'extensions' from Geant4.
- */
-auto VecgeomParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
-{
-    return vol_labels_.find_all(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -318,7 +276,20 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     g4vg::Converter convert{opts};
     auto result = convert(world);
     CELER_ASSERT(result.world != nullptr);
-    g4log_volid_map_ = std::move(result.volumes);
+    g4log_volid_map_.reserve(result.logical_volumes.size());
+    for (auto vol_idx : range(result.logical_volumes.size()))
+    {
+        auto&& [iter, inserted] = g4log_volid_map_.insert(
+            {result.logical_volumes[vol_idx], id_cast<VolumeId>(vol_idx)});
+        if (CELER_UNLIKELY(!inserted))
+        {
+            // This shouldn't happen...
+            CELER_LOG(warning)
+                << "Geant4 logical volume " << PrintableLV{iter->first}
+                << " maps to multiple volume IDs";
+        }
+    }
+    g4_pv_map_ = std::move(result.physical_volumes);
 
     // Set as world volume
     auto& vg_manager = vecgeom::GeoManager::Instance();
@@ -387,8 +358,8 @@ void VecgeomParams::build_surface_tracking()
         ScopedTimeAndRedirect time_and_output_(
             "BrepCudaManager::TransferSurfData");
 
-        VG_CUDASURF_CALL(
-            setup_surface_tracking_device(brep_helper.GetSurfData()));
+        VG_SURF_CALL(
+            detail::setup_surface_tracking_device(brep_helper.GetSurfData()));
         CELER_DEVICE_CHECK_ERROR();
     }
 }
@@ -414,7 +385,7 @@ void VecgeomParams::build_volume_tracking()
     }
 
     // Init the bounding volume hierarchy structure
-    vecgeom::cxx::BVHManager::Init();
+    BVHManager::Init();
 
     if (celeritas::device())
     {
@@ -450,22 +421,25 @@ void VecgeomParams::build_volume_tracking()
             set_cuda_heap_size(heap_size);
         }
 
-#if CELERITAS_USE_CUDA
+#ifdef VECGEOM_ENABLE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         cuda_manager.set_verbose(vecgeom_verbosity());
+#endif
         {
             CELER_LOG(debug) << "Converting to CUDA geometry";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.LoadGeometry");
 
-            cuda_manager.LoadGeometry();
+            VG_CUDA_CALL(cuda_manager.LoadGeometry());
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
         {
             CELER_LOG(debug) << "Transferring geometry to GPU";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.Synchronize");
-            auto world_top_devptr = cuda_manager.Synchronize();
+            void const* world_top_devptr{nullptr};
+            VG_CUDA_CALL(
+                world_top_devptr = cuda_manager.Synchronize().GetPtr());
             CELER_DEVICE_CHECK_ERROR();
             CELER_VALIDATE(world_top_devptr != nullptr,
                            << "VecGeom failed to copy geometry to GPU");
@@ -474,12 +448,60 @@ void VecgeomParams::build_volume_tracking()
             CELER_LOG(debug) << "Initializing BVH on GPU";
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::BVHManager::DeviceInit");
-            vecgeom::cxx::BVHManager::DeviceInit();
+#if defined(VECGEOM_BVHMANAGER_DEVICE)
+            auto* bvh_ptr = BVHManager::DeviceInit();
+#elif defined(VECGEOM_ENABLE_CUDA)
+            BVHManager::DeviceInit();
+#endif
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+            auto* bvh_symbol_ptr = BVHManager::GetDeviceBVH();
+            CELER_VALIDATE(bvh_ptr && bvh_ptr == bvh_symbol_ptr,
+                           << "inconsistent BVH device pointer: allocated "
+                           << bvh_ptr << " but copy-from-symbol returned "
+                           << bvh_symbol_ptr);
+#endif
             CELER_DEVICE_CHECK_ERROR();
         }
-#else
-        CELER_NOT_CONFIGURED("CUDA");
+
+        // Check BVH pointers
+        auto ptrs = detail::bvh_pointers_device();
+
+        vecgeom::cuda::BVH const* bvh_symbol_ptr{nullptr};
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+        bvh_symbol_ptr = BVHManager::GetDeviceBVH();
 #endif
+        if (ptrs.kernel == nullptr || ptrs.kernel != ptrs.symbol
+            || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
+        {
+            // It's very bad if the kernel-viewed BVH pointer is null or
+            // inconsistent with the VecGeom-provided BVH pointer (only
+            // available in very recent VecGeom). It's bad (but not really
+            // necessary?) if cudaMemcpyFromSymbol fails when accessed from
+            // Celeritas
+            auto msg = CELER_LOG(error);
+            auto msg_pointer = [&msg](auto* p) {
+                if (p)
+                {
+                    msg << p;
+                }
+                else
+                {
+                    msg << "nullptr";
+                }
+            };
+            msg << "VecGeom CUDA may not be correctly linked or initialized ("
+                   "BVH device pointers are null or inconsistent: ";
+            msg_pointer(ptrs.kernel);
+            msg << " from Celeritas device kernel, ";
+            msg_pointer(ptrs.symbol);
+            msg << " from Celeritas runtime symbol, ";
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+            msg_pointer(bvh_symbol_ptr);
+#else
+            msg << "unavailable";
+#endif
+            msg << " from VecGeom runtime symbol)";
+        }
     }
 }
 
@@ -497,7 +519,7 @@ void VecgeomParams::build_data()
 
     if (celeritas::device())
     {
-#if CELERITAS_USE_CUDA
+#ifdef VECGEOM_ENABLE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         device_ref_.world_volume = cuda_manager.world_gpu();
 #endif
@@ -515,42 +537,63 @@ void VecgeomParams::build_data()
 void VecgeomParams::build_metadata()
 {
     ScopedMem record_mem("VecgeomParams.build_metadata");
+
     // Construct volume labels
-    vol_labels_ = LabelIdMultiMap<VolumeId>([] {
-        auto& vg_manager = vecgeom::GeoManager::Instance();
-        CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
+    volumes_ = VolumeMap{
+        "volume", [] {
+            auto& vg_manager = vecgeom::GeoManager::Instance();
+            CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
 
-        std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
+            std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
 
-        for (auto vol_idx : range<VolumeId::size_type>(result.size()))
-        {
-            // Get label
-            vecgeom::LogicalVolume const* vol
-                = vg_manager.FindLogicalVolume(vol_idx);
-            CELER_ASSERT(vol);
+            for (auto vol_idx : range<VolumeId::size_type>(result.size()))
+            {
+                // Get label
+                vecgeom::LogicalVolume const* vol
+                    = vg_manager.FindLogicalVolume(vol_idx);
+                CELER_ASSERT(vol);
 
-            auto label = [vol] {
-                std::string const& label = vol->GetLabel();
-                if (starts_with(label, "[TEMP]"))
-                {
-                    // Temporary logical volume not directly used in transport
-                    return Label{};
-                }
-                return Label::from_geant(label);
-            }();
+                auto label = [vol] {
+                    std::string const& label = vol->GetLabel();
+                    if (starts_with(label, "[TEMP]"))
+                    {
+                        // Temporary volume not directly used in transport
+                        return Label{};
+                    }
+                    return Label::from_geant(label);
+                }();
 
-            result[vol_idx] = std::move(label);
-        }
-        return result;
-    }());
+                result[vol_idx] = std::move(label);
+            }
+            return result;
+        }()};
+
+    // Construct volume instance labels
+    vol_instances_ = VolInstanceMap{
+        "volume instance", [] {
+            auto& vg_manager = vecgeom::GeoManager::Instance();
+            CELER_EXPECT(vg_manager.GetPlacedVolumesCount() > 0);
+
+            std::vector<Label> result(vg_manager.GetPlacedVolumesCount());
+
+            for (auto vol_idx : range<VolumeId::size_type>(result.size()))
+            {
+                // Get label
+                vecgeom::VPlacedVolume const* vol
+                    = vg_manager.FindPlacedVolume(vol_idx);
+                CELER_ASSERT(vol);
+                result[vol_idx] = Label::from_geant(vol->GetLabel());
+            }
+            return result;
+        }()};
 
     // Check for duplicates
     {
-        auto vol_dupes = vol_labels_.duplicates();
+        auto vol_dupes = volumes_.duplicates();
         if (!vol_dupes.empty())
         {
             auto streamed_label = [this](std::ostream& os, VolumeId v) {
-                os << '"' << this->vol_labels_.get(v) << "\" ("
+                os << '"' << this->volumes_.at(v) << "\" ("
                    << v.unchecked_get() << ')';
             };
 

@@ -454,6 +454,17 @@ void SharedParams::initialize_core(SetupOptions const& options)
         export_root(*imported);
     }
 
+    if (!options.geometry_output_file.empty())
+    {
+        CELER_VALIDATE(options.geometry_file.empty(),
+                       << "the 'geometry_output_file' option cannot be used "
+                          "when manually loading a geometry (the "
+                          "'geometry_file' option is also set)");
+
+        write_geant_geometry(GeantImporter::get_world_volume(),
+                             options.geometry_output_file);
+    }
+
     CoreParams::Input params;
 
     // Create registries
@@ -527,14 +538,27 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.rng = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
 
     // Construct simulation params
-    params.sim = SimParams::from_import(
-        *imported, params.particle, options.max_field_substeps);
+    params.sim = std::make_shared<SimParams>([&] {
+        auto input = SimParams::Input::from_import(
+            *imported, params.particle, options.max_field_substeps);
+        if (options.max_steps != SetupOptions::no_max_steps())
+        {
+            input.max_steps = options.max_steps;
+        }
+        return input;
+    }());
+
+    if (options.max_num_events > 0)
+    {
+        CELER_LOG(warning) << "Deprecated option 'max_events': will be "
+                              "removed in v0.6";
+    }
 
     // Construct track initialization params
     params.init = [&options] {
         TrackInitParams::Input input;
         input.capacity = options.initializer_capacity;
-        input.max_events = options.max_num_events;
+        input.max_events = 1;  // TODO: use special "max events" case
         input.track_order = options.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
@@ -575,27 +599,27 @@ void SharedParams::initialize_core(SetupOptions const& options)
         asfi.cutoff = params.cutoff;
         asfi.physics = params.physics;
         asfi.imported = imported;
-        auto const along_step{options.make_along_step(asfi)};
+        auto along_step{options.make_along_step(asfi)};
         CELER_VALIDATE(along_step,
                        << "along-step factory returned a null pointer");
         return along_step;
     }());
 
-    // Construct sensitive detector callback
-    if (options.sd)
-    {
-        hit_manager_ = std::make_shared<detail::HitManager>(
-            *params.geometry, *params.particle, options.sd, params.max_streams);
-        step_collector_ = std::make_shared<StepCollector>(
-            StepCollector::VecInterface{hit_manager_},
-            params.geometry,
-            params.max_streams,
-            params.action_reg.get());
-    }
-
     // Create params
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
+
+    // Construct sensitive detector callback
+    if (options.sd)
+    {
+        hit_manager_
+            = std::make_shared<detail::HitManager>(params_->geometry(),
+                                                   *params_->particle(),
+                                                   options.sd,
+                                                   params_->max_streams());
+        step_collector_
+            = StepCollector::make_and_insert(*params_, {hit_manager_});
+    }
 
     // Add diagnostics
     if (!options.slot_diagnostic_prefix.empty())

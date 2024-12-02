@@ -12,6 +12,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/Repr.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
@@ -36,7 +37,7 @@ class XsCalculatorTest : public CalculatorTestBase
 
 TEST_F(XsCalculatorTest, simple)
 {
-    // Energy from 1 to 1e5 MeV with 5 grid points; XS should be the same
+    // Energy from 1 to 1e5 MeV with 6 grid points; XS = E
     // *No* magical 1/E scaling
     this->build(1.0, 1e5, 6);
 
@@ -67,10 +68,9 @@ TEST_F(XsCalculatorTest, simple)
 
 TEST_F(XsCalculatorTest, scaled_lowest)
 {
-    // Energy from .1 to 1e4 MeV with 5 grid points; XS should be constant
-    // since the constructor fills it with E
-    this->build(0.1, 1e4, 6);
-    this->set_prime_index(0);
+    // Energy from .1 to 1e4 MeV with 6 grid points and values of 1
+    this->build({0.1, 1e4}, 6, [](real_type) { return real_type{1}; });
+    this->convert_to_prime(0);
 
     XsCalculator calc(this->data(), this->values());
 
@@ -101,18 +101,9 @@ TEST_F(XsCalculatorTest, scaled_lowest)
 
 TEST_F(XsCalculatorTest, scaled_middle)
 {
-    // Energy from .1 to 1e4 MeV with 5 grid points; XS should be constant
-    // since the constructor fills it with E
-    this->build(0.1, 1e4, 6);
-    this->set_prime_index(3);
-    auto xs = this->mutable_values();
-    std::fill(xs.begin(), xs.begin() + 3, 1.0);
-
-    // Change constant to 3 just to shake things up
-    for (real_type& x : xs)
-    {
-        x *= 3;
-    }
+    // Energy from .1 to 1e4 MeV with 6 grid points
+    this->build({0.1, 1e4}, 6, [](real_type) { return real_type{3}; });
+    this->convert_to_prime(3);
 
     XsCalculator calc(this->data(), this->values());
 
@@ -131,14 +122,36 @@ TEST_F(XsCalculatorTest, scaled_middle)
     EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
     EXPECT_SOFT_EQ(3, calc(Energy{5}));
 
-    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
-    // this might not be the right behavior for
+    // Test out-of-bounds: cross section still scales according to 1/E
     EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
 
     // Test energy grid bounds
     EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
     EXPECT_SOFT_EQ(1e4, value_as<Energy>(calc.energy_max()));
+}
+
+TEST_F(XsCalculatorTest, scaled_linear)
+{
+    auto reference_xs = [](real_type energy) {
+        auto result = 100 + energy * 10;
+        if (energy > 1)
+        {
+            result *= 1 / energy;
+        }
+        return result;
+    };
+
+    this->build({1e-3, 1e3}, 7, reference_xs);
+    this->convert_to_prime(3);
+
+    XsCalculator interp_xs(this->data(), this->values());
+
+    for (real_type e : {1e-3, 1e-1, 0.5, 1.0, 1.5, 10.0, 12.5, 1e3})
+    {
+        EXPECT_SOFT_EQ(reference_xs(e), interp_xs(Energy{e}))
+            << "e=" << repr(e);
+    }
 }
 
 TEST_F(XsCalculatorTest, scaled_highest)
@@ -176,6 +189,7 @@ TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
 
     EXPECT_THROW(XsCalculator(data, this->values()), DebugError);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

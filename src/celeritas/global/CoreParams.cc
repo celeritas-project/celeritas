@@ -33,6 +33,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
+#include "celeritas/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
@@ -54,7 +55,6 @@
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-#include "alongstep/AlongStepNeutralAction.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeParams.hh"
@@ -285,6 +285,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
+
+    // Save non-owning pointer to core params for host diagnostics
+    scalars.host_core_params = ObserverPtr{this};
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);

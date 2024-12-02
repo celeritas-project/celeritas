@@ -37,23 +37,22 @@ class BIHPartitioner
     using VecBBox = std::vector<FastBBox>;
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
+    using Side = BIHInnerNode::Side;
 
     struct Partition
     {
-        using Edge = BIHInnerNode::Edge;
-
         Axis axis = Axis::size_;
         real_type position = std::numeric_limits<real_type>::infinity();
 
-        EnumArray<Edge, VecIndices> indices;
-        EnumArray<Edge, FastBBox> bboxes;
+        EnumArray<Side, VecIndices> indices;
+        EnumArray<Side, FastBBox> bboxes;
 
         explicit operator bool() const
         {
             return axis != Axis::size_ && std::isfinite(position)
-                   && !indices[Edge::left].empty()
-                   && !indices[Edge::right].empty() && bboxes[Edge::left]
-                   && bboxes[Edge::right];
+                   && !indices[Side::left].empty()
+                   && !indices[Side::right].empty() && bboxes[Side::left]
+                   && bboxes[Side::right];
         }
     };
 

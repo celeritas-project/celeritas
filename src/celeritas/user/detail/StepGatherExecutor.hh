@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
@@ -23,33 +24,26 @@ namespace detail
 template<StepPoint P>
 struct StepGatherExecutor
 {
+    NativeCRef<StepParamsData> const params;
+    NativeRef<StepStateData> const state;
+
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<StepParamsData> const params;
-    NativeRef<StepStateData> const state;
+    inline CELER_FUNCTION void fill(celeritas::CoreTrackView const& track);
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Gather step data on device based on the user selection.
+ * Decide whether to fill data and fill key attributes if inactive.
  */
 template<StepPoint P>
 CELER_FUNCTION void
 StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
 {
     CELER_EXPECT(params && state);
-
-#define SGL_SET_IF_SELECTED(ATTR, VALUE)                          \
-    do                                                            \
-    {                                                             \
-        if (this->params.selection.ATTR)                          \
-        {                                                         \
-            this->state.data.ATTR[track.track_slot_id()] = VALUE; \
-        }                                                         \
-    } while (0)
 
     {
         auto const sim = track.make_sim_view();
@@ -110,11 +104,31 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         }
     }
 
+    this->fill(track);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Gather step data on device based on the user selection.
+ */
+template<StepPoint P>
+CELER_FUNCTION void
+StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
+{
+#define SGL_SET_IF_SELECTED(ATTR, VALUE)                          \
+    do                                                            \
+    {                                                             \
+        if (this->params.selection.ATTR)                          \
+        {                                                         \
+            this->state.data.ATTR[track.track_slot_id()] = VALUE; \
+        }                                                         \
+    } while (0)
+
     {
         auto const sim = track.make_sim_view();
 
         SGL_SET_IF_SELECTED(points[P].time, sim.time());
-        if (P == StepPoint::post)
+        if constexpr (P == StepPoint::post)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
@@ -132,12 +146,43 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
         SGL_SET_IF_SELECTED(points[P].volume_id,
                             geo.is_outside() ? VolumeId{} : geo.volume_id());
+
+        if (this->params.selection.points[P].volume_instance_ids)
+        {
+            auto dst = [this,
+                        &vid = this->state.data.points[P].volume_instance_ids,
+                        tid = track.track_slot_id()] {
+                // Destination size
+                size_type const size = this->params.volume_instance_depth;
+                size_type offset = tid.unchecked_get() * size;
+                auto all_ids = vid[AllItems<VolumeInstanceId>{}];
+                return all_ids.subspan(offset, size);
+            }();
+
+            // Fill every level from the geometry
+            size_type depth = geo.level().unchecked_get() + 1;
+            CELER_ASSERT(depth <= dst.size());
+            geo.volume_instance_id(dst.first(depth));
+            if constexpr (CELERITAS_DEBUG)
+            {
+                for (auto level : range(depth))
+                {
+                    CELER_ASSERT(dst[level]);
+                }
+            }
+
+            // Fill remaining levels with empty instance IDs
+            for (auto level : range<size_type>(depth, dst.size()))
+            {
+                dst[level] = {};
+            }
+        }
     }
 
     {
         auto const par = track.make_particle_view();
 
-        if (P == StepPoint::post)
+        if constexpr (P == StepPoint::post)
         {
             auto const pstep = track.make_physics_step_view();
             SGL_SET_IF_SELECTED(energy_deposition, pstep.energy_deposition());

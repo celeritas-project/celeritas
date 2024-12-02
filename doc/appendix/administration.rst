@@ -135,6 +135,10 @@ substantive enough to merit a new pull request. Perfect is the enemy of good.
 Check that the title meets the requirements below, that the description is
 adequate, and that the appropriate labels are set.
 
+Mark your comments as resolved only if the other person was the last to
+comment. Other reviewers can reopen the conversation to comment on it. All
+conversations must be resolved for the merge to be approved.
+
 By the time you've finished the code review, you should understand the code
 well enough to maintain it (by extension or modification) in the future.
 
@@ -257,6 +261,8 @@ The GitHub settings for Celeritas currently require that before merging:
     combinations that cover most potential build issues. These do not *execute*
     GPU code but they will build it and ensure that the tests pass when
     the Celeritas device capability is disabled.
+3.  All conversations must be resolved (see the "reviewing" section above and
+    the contributing guidelines).
 
 Celeritas uses the "squash and merge" process to ensure continuity of the code
 history and provide easy bisecting because all commits pass all tests.
@@ -383,9 +389,13 @@ each release.
     summary of highlights, and enumerate the pull requests (with PR numbers and
     authorship attribution) separated by features and bug requests. Use the
     `helper notebook`_ in the Celeritas documents repository to automate this.
+    Ensure that both the HTML and PDF versions of the documentation build
+    without errors.
 10. Submit a pull request with the newly added documentation and any
-    release-related tweaks, and wait until it's reviewed and merged. The unit
-    tests and documentation should all build and pass the CI.
+    release-related tweaks using the
+    :file:`.github/pull_request_template.release.md` template, and wait until
+    it's reviewed and merged. The unit tests and documentation should all build
+    and pass the CI.
 11. If releasing a backported version branch, cherry-pick this documentation
     commit into the backport branch.
 12. Use the GitHub interface to create a new release with the documentation

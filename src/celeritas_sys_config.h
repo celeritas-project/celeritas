@@ -8,6 +8,7 @@
  * \brief System-specific configuration options for Celeritas.
  * \deprecated This file should be replaced by "corecel/Config.hh".
  */
+// DEPRECATED: remove in Celeritas v1.0
 //---------------------------------------------------------------------------//
 #ifndef celeritas_sys_config_h
 #define celeritas_sys_config_h

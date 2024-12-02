@@ -10,7 +10,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/math/Atomics.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
@@ -33,13 +32,16 @@ struct ProcessPrimariesExecutor
 {
     //// TYPES ////
 
+    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
     using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
 
     //// DATA ////
 
+    ParamsPtr params;
     StatePtr state;
-    Span<Primary const> primaries;
     CoreStateCounters counters;
+
+    Span<Primary const> primaries;
 
     //// FUNCTIONS ////
 
@@ -62,7 +64,8 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     Primary const& primary = primaries[tid.unchecked_get()];
 
     // Construct a track initializer from a primary particle
-    ti.sim.track_id = primary.track_id;
+    ti.sim.track_id
+        = make_track_id(params->init, state->init, primary.event_id);
     ti.sim.parent_id = TrackId{};
     ti.sim.event_id = primary.event_id;
     ti.sim.time = primary.time;
@@ -70,10 +73,6 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     ti.geo.dir = primary.direction;
     ti.particle.particle_id = primary.particle_id;
     ti.particle.energy = primary.energy;
-
-    // Update per-event counter of number of tracks created
-    CELER_ASSERT(ti.sim.event_id < state->init.track_counters.size());
-    atomic_add(&state->init.track_counters[ti.sim.event_id], size_type{1});
 }
 
 //---------------------------------------------------------------------------//

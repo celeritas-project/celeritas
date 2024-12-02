@@ -1,6 +1,0 @@
-{
-    "input": "@PROJECT_SOURCE_DIR@/test/geocel/data/four-levels.gdml",
-    "max_steps": 500,
-    "pos": [0, 0, 0],
-    "dir": [1, 1, 1]
-}

@@ -33,7 +33,7 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv,
         CELER_LOG(debug) << "Mapped sensitive detector \"" << sd->GetName()
                          << "\" on logical volume " << PrintableLV{lv}
                          << " to " << celeritas_core_geo << " volume \""
-                         << geo_.id_to_label(id)
+                         << geo_.volumes().at(id)
                          << "\" (ID=" << id.unchecked_get() << ')';
     }
 }
@@ -50,7 +50,7 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv)
     {
         CELER_LOG(debug) << "Mapped unspecified detector on logical volume "
                          << PrintableLV{lv} << " to " << celeritas_core_geo
-                         << " volume \"" << geo_.id_to_label(id)
+                         << " volume \"" << geo_.volumes().at(id)
                          << "\" (ID=" << id.unchecked_get() << ')';
     }
 }
@@ -84,7 +84,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
         if (iter->second != lv)
         {
             CELER_LOG(warning)
-                << "Celeritas volume \"" << geo_.id_to_label(id)
+                << "Celeritas volume \"" << geo_.volumes().at(id)
                 << "\" is mapped to two different volumes with "
                    "sensitive detectors: "
                 << PrintableLV{lv} << " and " << PrintableLV{iter->second};

@@ -21,9 +21,11 @@ endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
+  set(_g4_geo_libs)
 else()
-  set(_optional_geant4_env ENVIRONMENT "${CELERITASTEST_G4ENV}")
+  set(_optional_geant4_env ENVIRONMENT "${CELER_G4ENV}")
   set(_needs_geant4 ${_optional_geant4_env})
+  celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -77,6 +79,7 @@ celeritas_add_test_library(testcel_celeritas
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
   neutron/NeutronTestBase.cc
+  optical/MockImportedData.cc
   optical/OpticalTestBase.cc
   optical/InteractorHostTestBase.cc
   phys/InteractionIO.cc
@@ -86,6 +89,7 @@ celeritas_add_test_library(testcel_celeritas
   phys/SecondaryIO.cc
   user/CaloTestBase.cc
   user/DiagnosticTestBase.cc
+  user/ExampleInstanceCalo.cc
   user/ExampleMctruth.cc
   user/MctruthTestBase.cc
   user/SimpleLoopTestBase.cc
@@ -96,7 +100,7 @@ celeritas_target_link_libraries(testcel_celeritas
     testcel_harness Celeritas::celeritas
   PRIVATE
     testcel_core testcel_orange testcel_geocel
-    nlohmann_json::nlohmann_json
+    nlohmann_json::nlohmann_json ${_g4_geo_libs}
 )
 
 #-----------------------------------------------------------------------------#
@@ -116,10 +120,17 @@ celeritas_add_test(Constants.test.cc
 celeritas_add_test(Units.test.cc)
 
 #-----------------------------------------------------------------------------#
+# Decay
+
+# Muon
+celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
+
+#-----------------------------------------------------------------------------#
 # EM
 
 # Distributions
 celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
+celeritas_add_test(em/distribution/MuBremsPPAngularDistribution.test.cc ${_needs_double})
 celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Cross section calculation
@@ -154,6 +165,7 @@ set(_import_filter
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "LarSphere.*"
+  "LarSphereExtramat.*"
   "Solids.*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
@@ -274,9 +286,11 @@ celeritas_add_test(grid/GenericCalculator.test.cc)
 celeritas_add_test(grid/GenericGridBuilder.test.cc)
 celeritas_add_test(grid/GenericGridInserter.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
+celeritas_add_test(grid/InverseCdfFinder.test.cc)
 celeritas_add_test(grid/InverseRangeCalculator.test.cc)
 celeritas_add_test(grid/PolyEvaluator.test.cc)
 celeritas_add_test(grid/RangeCalculator.test.cc)
+celeritas_add_test(grid/SplineXsCalculator.test.cc)
 celeritas_add_test(grid/ValueGridBuilder.test.cc)
 celeritas_add_test(grid/ValueGridInserter.test.cc)
 celeritas_add_test(grid/XsCalculator.test.cc)
@@ -297,6 +311,10 @@ celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
+celeritas_add_test(optical/ImportedModelAdapter.test.cc)
+celeritas_add_test(optical/MfpBuilder.test.cc)
+celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
+celeritas_add_test(optical/MockValidation.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -378,8 +396,14 @@ if(CELERITAS_USE_Geant4)
     "-TestEm3*"
     "TestEm3*"
   )
+  set(_step_filter
+    "-TestEm3*:TestMultiEm3*"
+    "TestEm3*"
+    "TestMultiEm3*"
+  )
 else()
   set(_diagnostic_filter)
+  set(_step_filter)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   # EM track gets stuck
@@ -397,27 +421,32 @@ celeritas_add_test(user/SlotDiagnostic.test.cc
 )
 celeritas_add_test(user/StepCollector.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fixme_single}
+  FILTER ${_step_filter}
 )
 
 #-----------------------------------------------------------------------------#
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-set(_root_data)
+add_custom_target(update-root-test-data
+  COMMENT "Regenerate ROOT test data"
+)
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")
     add_custom_command(
-      OUTPUT "${_output}"
+      TARGET update-root-test-data
+      POST_BUILD
       DEPENDS
         celer-export-geant
         "${_gdml}"
         "${_basename}.geant.json"
         "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
       COMMAND
-        "${CMAKE_COMMAND}" "-E" "env" ${CELERITASTEST_G4ENV}
+        "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
         "$<TARGET_FILE:celer-export-geant>"
         "${_gdml}"
         "${_basename}.geant.json"
@@ -425,13 +454,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "--gen-test"
       VERBATIM
     )
-    list(APPEND _root_data "${_output}")
   endforeach()
 endif()
-
-add_custom_target(update-root-test-data
-  COMMENT "Regenerate ROOT test data"
-  DEPENDS ${_root_data}
-)
 
 #-----------------------------------------------------------------------------#

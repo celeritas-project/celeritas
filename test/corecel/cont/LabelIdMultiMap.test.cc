@@ -42,27 +42,36 @@ std::ostream& operator<<(std::ostream& os, CatId const& cat)
 TEST(LabelIdMultiMapTest, empty)
 {
     CatMultiMap const default_cats;
-    CatMultiMap const empty_cats(VecLabel{});
+    EXPECT_FALSE(default_cats);  // Uninitialized and empty
+    CatMultiMap const empty_cats("cat", VecLabel{});
+    EXPECT_TRUE(empty_cats);  // Initialized and empty
     for (CatMultiMap const* cats : {&default_cats, &empty_cats})
     {
         EXPECT_EQ(0, cats->size());
-        EXPECT_EQ(CatId{}, cats->find(Label{"merry"}));
+        EXPECT_EQ(CatId{}, cats->find_exact(Label{"merry"}));
         EXPECT_EQ(0, cats->find_all("pippin").size());
-#if CELERITAS_DEBUG
-        EXPECT_THROW(cats->get(CatId{0}), DebugError);
-#endif
+        if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(cats->at(CatId{0}), DebugError);
+        }
     }
 }
 
 TEST(LabelIdMultiMapTest, no_ext_with_duplicates)
 {
-    CatMultiMap cats{VecLabel{{"dexter", "andy", "loki", "bob", "bob", "bob"}}};
+    CatMultiMap cats{
+        "cat", VecLabel{{"dexter", "andy", "loki", "bob", "bob", "bob"}}};
+    EXPECT_TRUE(cats);
     EXPECT_EQ(6, cats.size());
-    EXPECT_EQ(CatId{}, cats.find("nyoka"));
-    EXPECT_EQ(CatId{0}, cats.find("dexter"));
-    EXPECT_EQ(CatId{1}, cats.find("andy"));
-    EXPECT_EQ(CatId{2}, cats.find("loki"));
-    EXPECT_EQ(CatId{2}, cats.find(Label{"loki"}));
+    EXPECT_EQ(CatId{}, cats.find_exact("nyoka"));
+    EXPECT_EQ(CatId{0}, cats.find_exact("dexter"));
+    EXPECT_EQ(CatId{1}, cats.find_exact("andy"));
+    EXPECT_EQ(CatId{2}, cats.find_exact("loki"));
+    EXPECT_EQ(CatId{2}, cats.find_exact(Label{"loki"}));
+
+    EXPECT_EQ(CatId{}, cats.find_unique("nyoka"));
+    EXPECT_EQ(CatId{2}, cats.find_unique("loki"));
+    EXPECT_THROW(cats.find_unique("bob"), RuntimeError);
 
     static CatId const expected_duplicates[] = {CatId{3}, CatId{4}, CatId{5}};
     EXPECT_VEC_EQ(expected_duplicates, cats.duplicates());
@@ -71,6 +80,7 @@ TEST(LabelIdMultiMapTest, no_ext_with_duplicates)
 TEST(LabelIdMultiMapTest, empty_duplicates)
 {
     CatMultiMap cats{VecLabel{{"dexter", "andy", "loki", "", ""}}};
+    EXPECT_TRUE(cats);
     EXPECT_EQ(5, cats.size());
     EXPECT_EQ(0, cats.duplicates().size());
 }
@@ -82,13 +92,15 @@ TEST(LabelIdMultiMapTest, some_labels)
                        {"fluffy", "jr"},
                        {"fluffy", "sr"}}}};
     EXPECT_EQ(4, cats.size());
-    EXPECT_EQ(CatId{1}, cats.find(Label{"fluffy"}));
-    EXPECT_EQ(CatId{2}, cats.find(Label{"fluffy", "jr"}));
+    EXPECT_EQ(CatId{1}, cats.find_exact(Label{"fluffy"}));
+    EXPECT_EQ(CatId{2}, cats.find_exact(Label{"fluffy", "jr"}));
     {
         auto found = cats.find_all("fluffy");
         static CatId const expected_found[] = {CatId{1}, CatId{2}, CatId{3}};
         EXPECT_VEC_EQ(expected_found, found);
     }
+
+    EXPECT_THROW(cats.find_unique("fluffy"), RuntimeError);
 }
 
 TEST(LabelIdMultiMapTest, shuffled_labels)
@@ -102,12 +114,12 @@ TEST(LabelIdMultiMapTest, shuffled_labels)
         {"c", "1"},
     };
 
-    CatMultiMap cats{labels};
+    CatMultiMap cats{std::vector<Label>{labels}};
 
     // Check ordering of IDs
     for (auto i : range<CatId::size_type>(labels.size()))
     {
-        EXPECT_EQ(labels[i], cats.get(CatId{i}));
+        EXPECT_EQ(labels[i], cats.at(CatId{i}));
     }
 
     // Check discontinuous ID listing

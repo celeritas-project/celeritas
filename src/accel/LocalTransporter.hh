@@ -99,11 +99,11 @@ class LocalTransporter
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
 
-    EventId event_id_;
-    TrackId::size_type track_counter_{};
+    UniqueEventId event_id_;
 
     size_type auto_flush_{};
-    size_type max_steps_{};
+    size_type max_step_iters_{};
+    double buffer_energy_{0};
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;

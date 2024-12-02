@@ -10,7 +10,6 @@
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
@@ -61,7 +60,6 @@
       "cacheVariables": {
         "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     },
@@ -79,12 +77,11 @@
       "inherits": ["spack"]
     },
     {
-      "name": "reldeb-orange-clang-tidy",
+      "name": "reldeb-vecgeom-clang-tidy",
       "description": "Build with ORANGE and clang-tidy checks",
-      "inherits": ["spack"],
+      "inherits": ["spack", ".vecgeom"],
       "cacheVariables": {
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
@@ -112,7 +109,6 @@
       "inherits": [".ndebug", ".vecgeom", "spack"],
       "cacheVariables": {
         "BUILD_TESTING":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     },
@@ -121,7 +117,8 @@
       "description": "Build with Geant4 geometry",
       "inherits": ["spack"],
       "cacheVariables": {
-        "CELERITAS_CORE_GEO": "Geant4"
+        "CELERITAS_CORE_GEO": "Geant4",
+        "CELERITAS_UNITS": "CLHEP"
       }
     },
     {

@@ -20,7 +20,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 
-#include "Convert.geant.hh"
+#include "Convert.hh"
 #include "GeantGeoData.hh"
 
 namespace celeritas
@@ -85,9 +85,14 @@ class GeantGeoTrackView
     CELER_FORCEINLINE Real3 const& dir() const { return dir_; }
     //!@}
 
-    // Get the volume ID in the current cell.
-    CELER_FORCEINLINE VolumeId volume_id() const;
-    CELER_FORCEINLINE int volume_physid() const;
+    // Get the volume ID in the lowest level volume.
+    inline VolumeId volume_id() const;
+    // Get the physical volume ID in the current cell
+    inline VolumeInstanceId volume_instance_id() const;
+    // Get the depth in the geometry hierarchy
+    inline LevelId level() const;
+    // Get the volume instance ID for all levels
+    inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
     //!@{
     //! VecGeom states are never "on" a surface
@@ -96,9 +101,9 @@ class GeantGeoTrackView
     //!@}
 
     // Whether the track is outside the valid geometry region
-    CELER_FORCEINLINE bool is_outside() const;
+    inline bool is_outside() const;
     // Whether the track is exactly on a surface
-    CELER_FORCEINLINE bool is_on_boundary() const;
+    inline bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
 
@@ -248,29 +253,59 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 VolumeId GeantGeoTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    auto inst_id = this->volume()->GetInstanceID();
-    CELER_ENSURE(inst_id >= 0);
-    return VolumeId{static_cast<VolumeId::size_type>(inst_id)};
+    return id_cast<VolumeId>(this->volume()->GetInstanceID());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the physical volume ID in the current cell.
  */
-int GeantGeoTrackView::volume_physid() const
+VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
     G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
     if (!pv)
-        return -1;
-    return pv->GetInstanceID();
+        return {};
+    return id_cast<VolumeInstanceId>(pv->GetInstanceID());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the depth in the geometry hierarchy.
+ */
+LevelId GeantGeoTrackView::level() const
+{
+    auto* touch = touch_handle_();
+    return id_cast<LevelId>(touch->GetHistoryDepth());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance ID at every level.
+ *
+ * The input span size must be equal to the value of "level" plus one. The
+ * top-most level ("world" or level zero) starts at index zero and moves
+ * downward. Note that Geant4 uses the \em reverse nomenclature.
+ */
+void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+{
+    CELER_EXPECT(levels.size() == this->level().get() + 1);
+
+    auto* touch = touch_handle_();
+    auto const max_depth = static_cast<size_type>(touch->GetHistoryDepth());
+    for (auto lev : range(levels.size()))
+    {
+        G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev);
+        CELER_ASSERT(pv);
+        levels[lev] = id_cast<VolumeInstanceId>(pv->GetInstanceID());
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Whether the track is outside the valid geometry region.
  */
-bool GeantGeoTrackView::is_outside() const
+CELER_FORCEINLINE bool GeantGeoTrackView::is_outside() const
 {
     return this->volume() == nullptr;
 }
@@ -279,7 +314,7 @@ bool GeantGeoTrackView::is_outside() const
 /*!
  * Whether the track is on the boundary of a volume.
  */
-bool GeantGeoTrackView::is_on_boundary() const
+CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 {
     return safety_radius_ == 0.0;
 }
@@ -288,7 +323,7 @@ bool GeantGeoTrackView::is_on_boundary() const
 /*!
  * Find the distance to the next geometric boundary.
  */
-Propagation GeantGeoTrackView::find_next_step()
+CELER_FORCEINLINE Propagation GeantGeoTrackView::find_next_step()
 {
     return this->find_next_step(numeric_limits<real_type>::infinity());
 }
@@ -350,7 +385,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 /*!
  * Find the safety at the current position.
  */
-auto GeantGeoTrackView::find_safety() -> real_type
+CELER_FORCEINLINE auto GeantGeoTrackView::find_safety() -> real_type
 {
     return this->find_safety(numeric_limits<real_type>::infinity());
 }
@@ -474,7 +509,7 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
 /*!
  * Whether a next step has been calculated.
  */
-bool GeantGeoTrackView::has_next_step() const
+CELER_FORCEINLINE bool GeantGeoTrackView::has_next_step() const
 {
     return next_step_ != 0;
 }

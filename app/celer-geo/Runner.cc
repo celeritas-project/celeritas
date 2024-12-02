@@ -94,10 +94,10 @@ std::vector<std::string> Runner::get_volumes(Geometry g) const&
     CELER_EXPECT(geo_cache_[g]);
 
     auto const& geo = *geo_cache_[g];
-    std::vector<std::string> result(geo.num_volumes());
+    std::vector<std::string> result(geo.volumes().size());
     for (auto i : range<VolumeId::size_type>(result.size()))
     {
-        result[i] = geo.id_to_label(VolumeId{i}).name;
+        result[i] = geo.volumes().at(VolumeId{i}).name;
     }
     return result;
 }

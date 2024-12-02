@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <solids>
+    <orb lunit="mm" name="sph" r="20"/>
+    <box lunit="mm" name="box" x="150" y="150" z="150"/>
+    <box lunit="mm" name="worldbox" x="480" y="480" z="480"/>
+  </solids>
+
+  <structure>
+    <volume name="sph">
+      <solidref ref="sph"/>
+    </volume>
+    <volume name="box">
+      <solidref ref="box"/>
+      <physvol copynumber="31" name="boxsph1">
+        <volumeref ref="sph"/>
+        <position name="bs1_pos" unit="mm" x="25.0" y="25.0" z="0.0"/>
+      </physvol>
+      <physvol copynumber="32" name="boxsph2">
+        <volumeref ref="sph"/>
+        <position name="bs2_pos" unit="mm" x="-25.0" y="-25.0" z="0.0"/>
+      </physvol>
+    </volume>
+    <volume name="world">
+      <solidref ref="worldbox"/>
+      <physvol copynumber="11" name="topsph1">
+        <volumeref ref="sph"/>
+        <position name="ts1_pos" unit="mm" x="0.0" y="0.0" z="0.0"/>
+      </physvol>
+      <physvol copynumber="21" name="topbox1">
+        <volumeref ref="box"/>
+        <position name="tb1_pos" unit="mm" x="100.0" y="100.0" z="0.0"/>
+      </physvol>
+      <physvol copynumber="22" name="topbox2">
+        <volumeref ref="box"/>
+        <position name="tb2_pos" unit="mm" x="-100.0" y="100.0" z="0.0"/>
+      </physvol>
+      <physvol copynumber="23" name="topbox3">
+        <volumeref ref="box"/>
+        <position name="tb3_pos" unit="mm" x="-100.0" y="-100.0" z="0.0"/>
+      </physvol>
+      <physvol copynumber="12" name="topsph2">
+        <volumeref ref="box"/>
+        <position name="ts2_pos" unit="mm" x="100.0" y="-100.0" z="0.0"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

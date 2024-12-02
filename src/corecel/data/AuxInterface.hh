@@ -41,7 +41,7 @@ class AuxStateInterface
     //@}
 
   public:
-    // Virtual destructor for polymorphism
+    // Anchored virtual destructor for polymorphism
     virtual ~AuxStateInterface();
 
   protected:
@@ -71,7 +71,7 @@ class AuxParamsInterface
     //@}
 
   public:
-    // Virtual destructor for polymorphism
+    // Anchored virtual destructor for polymorphism
     virtual ~AuxParamsInterface();
 
     //! Index of this class instance in its registry

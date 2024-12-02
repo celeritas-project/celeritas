@@ -7,44 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "RngReseed.hh"
 
-#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-
-#include "RngEngine.hh"
+#include "detail/RngReseedExecutor.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-/*!
- * Reinitialize the RNG states on device at the start of an event.
- */
-__global__ void reseed_rng_kernel(DeviceCRef<RngParamsData> const params,
-                                  DeviceRef<RngStateData> const state,
-                                  size_type event_id)
-{
-    auto tid = TrackSlotId{
-        celeritas::KernelParamCalculator::thread_id().unchecked_get()};
-    if (tid.get() < state.size())
-    {
-        TrackSlotId tsid{tid.unchecked_get()};
-        RngEngine::Initializer_t init;
-        init.seed = params.seed;
-        init.subsequence = event_id * state.size() + tsid.get();
-        RngEngine rng(params, state, tsid);
-        rng = init;
-    }
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
@@ -57,11 +26,13 @@ __global__ void reseed_rng_kernel(DeviceCRef<RngParamsData> const params,
  */
 void reseed_rng(DeviceCRef<RngParamsData> const& params,
                 DeviceRef<RngStateData> const& state,
-                size_type event_id)
+                StreamId stream,
+                UniqueEventId event_id)
 {
-    CELER_EXPECT(state);
-    CELER_EXPECT(params);
-    CELER_LAUNCH_KERNEL(reseed_rng, state.size(), 0, params, state, event_id);
+    detail::RngReseedExecutor execute_thread{params, state, event_id};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "rng-reseed");
+    launch_kernel(state.size(), stream, execute_thread);
 }
 
 //---------------------------------------------------------------------------//

@@ -35,14 +35,6 @@ namespace celeritas
 class ChipsNeutronElasticInteractor
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using Energy = units::MevEnergy;
-    using Mass = units::MevMass;
-    using Momentum = units::MevMomentum;
-    //!@}
-
-  public:
     // Construct from shared and state data
     inline CELER_FUNCTION
     ChipsNeutronElasticInteractor(NeutronElasticRef const& shared,
@@ -58,6 +50,9 @@ class ChipsNeutronElasticInteractor
     //// TYPES ////
 
     using UniformRealDist = UniformRealDistribution<real_type>;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
+    using Momentum = units::MevMomentum;
 
     //// DATA ////
 
@@ -126,7 +121,7 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
     // The momentum magnitude in the c.m. frame
     real_type target_mass = value_as<Mass>(target_.nuclear_mass());
 
-    real_type cm_p = value_as<units::MevMomentum>(neutron_p_)
+    real_type cm_p = value_as<Momentum>(neutron_p_)
                      / std::sqrt(1 + ipow<2>(neutron_mass_ / target_mass)
                                  + 2 * neutron_energy_ / target_mass);
 
@@ -137,11 +132,12 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
 
     // Boost to the center of mass (c.m.) frame
-    Real3 cm_mom = cm_p * from_spherical(cos_theta, sample_phi_(rng));
-    FourVector nlv1(
-        {cm_mom, std::sqrt(ipow<2>(cm_p) + ipow<2>(neutron_mass_))});
+    auto nlv1 = FourVector::from_mass_momentum(
+        Mass{neutron_mass_},
+        Momentum{cm_p},
+        from_spherical(cos_theta, sample_phi_(rng)));
 
-    FourVector lv({{0, 0, value_as<units::MevMomentum>(neutron_p_)},
+    FourVector lv({{0, 0, value_as<Momentum>(neutron_p_)},
                    neutron_energy_ + target_mass});
     boost(boost_vector(lv), &nlv1);
 

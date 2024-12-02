@@ -146,12 +146,12 @@ std::vector<Label> make_surface_labels(UnitInput& inp)
 
 //---------------------------------------------------------------------------//
 //! Construct volume labels from the input volumes
-std::vector<Label> make_volume_labels(UnitInput& inp)
+std::vector<Label> make_volume_labels(UnitInput const& inp)
 {
     std::vector<Label> result;
     for (auto const& v : inp.volumes)
     {
-        Label vl = std::move(v.label);
+        Label vl = v.label;
         if (vl.ext.empty())
         {
             vl.ext = inp.label.name;
@@ -350,7 +350,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     // Save unit scalars
     if (inp.volumes.back().zorder == ZOrder::background)
     {
-        unit.background = LocalVolumeId(inp.volumes.size() - 1);
+        unit.background = id_cast<LocalVolumeId>(inp.volumes.size() - 1);
     }
 
     // Simple safety if all volumes provide support, excluding the external

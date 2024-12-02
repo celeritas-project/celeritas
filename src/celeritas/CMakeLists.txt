@@ -50,7 +50,6 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
-  global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
   grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc
@@ -80,6 +79,7 @@ list(APPEND SOURCES
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+  optical/ImportedModelAdapter.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/TrackInitParams.cc
@@ -113,6 +113,7 @@ list(APPEND SOURCES
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
+  user/detail/StepParams.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -126,7 +127,7 @@ endif()
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     track/detail/Filler.cu
-    global/alongstep/detail/AlongStepKernels.cu
+    alongstep/detail/AlongStepKernels.cu
   )
 endif()
 
@@ -144,6 +145,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeoOpticalIdMap.cc
     ext/detail/MuHadEmStandardPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs
@@ -260,6 +262,10 @@ macro(celeritas_polysource filename_we)
   celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
+celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
+celeritas_polysource(alongstep/AlongStepNeutralAction)
+celeritas_polysource(alongstep/AlongStepUniformMscAction)
+celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
@@ -276,13 +282,12 @@ celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)
 celeritas_polysource(em/model/CoulombScatteringModel)
 celeritas_polysource(geo/detail/BoundaryAction)
-celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
-celeritas_polysource(global/alongstep/AlongStepNeutralAction)
-celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
-celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/model/AbsorptionModel)
+celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/action/InitializeTracksAction)
@@ -315,7 +320,7 @@ celeritas_polysource(user/detail/StepGatherAction)
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(celeritas ${SOURCES})
+celeritas_add_src_library(celeritas ${SOURCES})
 
 if(NOT CELERITAS_USE_OpenMP
     AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"

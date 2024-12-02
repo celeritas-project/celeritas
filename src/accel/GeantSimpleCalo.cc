@@ -197,7 +197,7 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
         {
             auto id = geo.find_volume(volumes_[idx]);
             ids[idx] = id.unchecked_get();
-            labels[idx] = geo.id_to_label(id);
+            labels[idx] = geo.volumes().at(id);
         }
         obj["volume_ids"] = std::move(ids);
         obj["volume_labels"] = std::move(labels);

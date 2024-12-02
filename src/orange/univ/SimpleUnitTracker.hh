@@ -10,7 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
-#include "orange/detail/BIHTraverser.hh"
+#include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
@@ -360,9 +360,9 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 {
-    detail::BIHTraverser find_impl{unit_record_.bih_tree,
-                                   params_.bih_tree_data};
-    return find_impl(pos, predicate);
+    detail::BIHEnclosingVolFinder find_volume{unit_record_.bih_tree,
+                                              params_.bih_tree_data};
+    return find_volume(pos, predicate);
 }
 
 //---------------------------------------------------------------------------//

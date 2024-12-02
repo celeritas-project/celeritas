@@ -38,6 +38,11 @@ void GenericGeoTrackingResult::print_expected()
         << repr(this->volumes)
         << ";\n"
            "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
+           "static char const* const expected_volume_instances[] = "
+        << repr(this->volume_instances)
+        << ";\n"
+           "EXPECT_VEC_EQ(expected_volume_instances, "
+           "result.volume_instances);\n"
            "static real_type const expected_distances[] = "
         << repr(this->distances)
         << ";\n"
@@ -95,7 +100,7 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
             CELER_ASSERT(i < result.volumes.size());
 
             auto label = Label::from_geant(name);
-            auto id = geom.find_volume(label);
+            auto id = geom.volumes().find_exact(label);
             if (!id)
             {
                 result.volumes[i] = Result::missing;
@@ -104,7 +109,7 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
             }
             result.volumes[i] = static_cast<int>(id.unchecked_get());
         },
-        *world->GetLogicalVolume());
+        *world);
 
     // Trim leading 'empty' values
     auto first_nonempty = std::find_if(

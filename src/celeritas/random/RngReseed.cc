@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "RngReseed.hh"
 
-#include "corecel/cont/Range.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "corecel/sys/KernelLauncher.hh"
 
-#include "RngEngine.hh"
+#include "detail/RngReseedExecutor.hh"
 
 namespace celeritas
 {
+#if !defined(__DOXYGEN__) || __DOXYGEN__ > 0x010908
 //---------------------------------------------------------------------------//
 /*!
  * Reinitialize the RNG states on host at the start of an event.
@@ -24,21 +24,13 @@ namespace celeritas
  */
 void reseed_rng(HostCRef<RngParamsData> const& params,
                 HostRef<RngStateData> const& state,
-                size_type event_id)
+                StreamId,
+                UniqueEventId event_id)
 {
-    auto size = state.size();
-#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
-#    pragma omp parallel for
-#endif
-    for (TrackSlotId::size_type i = 0; i < size; ++i)
-    {
-        RngEngine::Initializer_t init;
-        init.seed = params.seed;
-        init.subsequence = event_id * size + i;
-        RngEngine engine(params, state, TrackSlotId{i});
-        engine = init;
-    }
+    launch_kernel(state.size(),
+                  detail::RngReseedExecutor{params, state, event_id});
 }
 
 //---------------------------------------------------------------------------//
+#endif
 }  // namespace celeritas

@@ -21,11 +21,23 @@ namespace celeritas
 /*!
  * Type-safe index for accessing an array or collection of data.
  *
- * \tparam ValueT Type of each item in the array.
- * \tparam SizeT Integer index
+ * \tparam ValueT Type of each item in an array
+ * \tparam SizeT Unsigned integer index
  *
- * This allows type-safe, read-only indexing/access for a class. The value is
- * "true" if it"s assigned, "false" if invalid.
+ * It's common for classes and functions to take multiple indices, especially
+ * for O(1) indexing for performance. By annotating these values with a type,
+ * we give them semantic meaning, and we gain compile-time type safety.
+ *
+ * If this class is used for indexing into an array, then \c ValueT argument
+ * should be the value type of the array:
+ * <code>Foo operator[](OpaqueId<Foo>)</code>
+ *
+ * An \c OpaqueId object evaluates to \c true if it has a value, or \c false if
+ * it does not (i.e. it has an "invalid" value).
+ *
+ * See also \c id_cast below for checked construction of OpaqueIds from generic
+ * integer values (avoid compile-time warnings or errors from signed/truncated
+ * integers).
  */
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId
@@ -114,6 +126,42 @@ class OpaqueId
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Safely create an OpaqueId from an integer of any type.
+ *
+ * This asserts that the integer is in the \em valid range of the target ID
+ * type, and casts to it.
+ *
+ * \note The value cannot be the underlying "invalid" value, i.e.
+ * <code> static_cast<FooId>(FooId{}.unchecked_get()) </code> will not work.
+ */
+template<class IdT, class T>
+inline CELER_FUNCTION IdT id_cast(T value) noexcept(!CELERITAS_DEBUG)
+{
+    static_assert(std::is_integral_v<T>);
+    if constexpr (!std::is_unsigned_v<T>)
+    {
+        CELER_EXPECT(value >= 0);
+    }
+
+    using IdSize = typename IdT::size_type;
+    if constexpr (!std::is_same_v<T, IdSize>)
+    {
+        // Check that value is within the integer range [0, N-1)
+        using U = std::common_type_t<IdSize, std::make_unsigned_t<T>>;
+        CELER_EXPECT(static_cast<U>(value)
+                     < static_cast<U>(IdT{}.unchecked_get()));
+    }
+    else
+    {
+        // Check that value is *not* the invalid value
+        CELER_EXPECT(value != IdT{}.unchecked_get());
+    }
+
+    return IdT{static_cast<IdSize>(value)};
+}
+
 //---------------------------------------------------------------------------//
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                             \
     template<class V, class S>                                       \
