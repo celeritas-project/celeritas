@@ -24,7 +24,7 @@ namespace orangeinp
 struct DeMorganSimplifierResult
 {
     CsgTree tree;
-    std::vector<NodeId> equivalent_nodes;
+    std::vector<NodeId> new_nodes;
 };
 
 //---------------------------------------------------------------------------//
