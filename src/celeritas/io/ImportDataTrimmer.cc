@@ -110,9 +110,13 @@ void ImportDataTrimmer::operator()(ImportPhysMaterial&)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportOpticalMaterial&)
+void ImportDataTrimmer::operator()(ImportOpticalMaterial& data)
 {
-    // TODO: trim WLS components?
+    if (options_.physics)
+    {
+        (*this)(data.properties.refractive_index);
+        // TODO: trim WLS components?
+    }
 }
 
 //---------------------------------------------------------------------------//
