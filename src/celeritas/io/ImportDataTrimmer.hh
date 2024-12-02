@@ -82,6 +82,12 @@ class ImportDataTrimmer
 
     template<class K, class T, class C, class A>
     void operator()(std::map<K, T, C, A>* m);
+
+    template<class T>
+    void for_each(std::vector<T>* vec);
+
+    template<class K, class T, class C, class A>
+    void for_each(std::map<K, T, C, A>* m);
 };
 
 //---------------------------------------------------------------------------//

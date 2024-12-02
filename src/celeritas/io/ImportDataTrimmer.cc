@@ -39,75 +39,50 @@ void ImportDataTrimmer::operator()(ImportData* data)
 {
     if (options_.materials)
     {
+        // Reduce the number of materials, elements, etc.
         (*this)(&data->isotopes);
         (*this)(&data->elements);
         (*this)(&data->geo_materials);
         (*this)(&data->phys_materials);
-        (*this)(&data->optical_materials);
+
+        (*this)(&data->regions);
+        (*this)(&data->volumes);
+
+        (*this)(&data->sb_data);
+        (*this)(&data->livermore_pe_data);
         (*this)(&data->neutron_elastic_data);
         (*this)(&data->atomic_relaxation_data);
+
+        (*this)(&data->optical_materials);
     }
 
     if (options_.physics)
     {
+        // Reduce the number of physics processes
         (*this)(&data->particles);
         (*this)(&data->processes);
         (*this)(&data->msc_models);
-        (*this)(&data->regions);
-        (*this)(&data->volumes);
     }
 
     if (options_.mupp)
     {
+        // Reduce the resolution of the muon pair production table
         (*this)(&data->mu_pair_production_data);
     }
 
-    for (auto& e : data->elements)
-    {
-        (*this)(&e);
-    }
+    this->for_each(&data->elements);
+    this->for_each(&data->geo_materials);
+    this->for_each(&data->phys_materials);
 
-    for (auto& m : data->geo_materials)
-    {
-        (*this)(&m);
-    }
+    this->for_each(&data->processes);
+    this->for_each(&data->msc_models);
+    this->for_each(&data->sb_data);
+    this->for_each(&data->livermore_pe_data);
+    this->for_each(&data->neutron_elastic_data);
+    this->for_each(&data->atomic_relaxation_data);
 
-    for (auto& m : data->phys_materials)
-    {
-        (*this)(&m);
-    }
-
-    for (auto& p : data->processes)
-    {
-        (*this)(&p);
-    }
-
-    for (auto& m : data->msc_models)
-    {
-        (*this)(&m);
-    }
-
-    (*this)(&data->sb_data);
-    (*this)(&data->livermore_pe_data);
-
-    if (this->options_.physics)
-    {
-        for (auto&& kv : data->neutron_elastic_data)
-        {
-            (*this)(&kv.second);
-        }
-        // TODO: trim relaxation shells
-    }
-
-    for (auto& m : data->optical_models)
-    {
-        (*this)(&m);
-    }
-
-    for (auto& m : data->optical_materials)
-    {
-        (*this)(&m);
-    }
+    this->for_each(&data->optical_models);
+    this->for_each(&data->optical_materials);
 }
 
 //---------------------------------------------------------------------------//
@@ -158,10 +133,7 @@ void ImportDataTrimmer::operator()(ImportOpticalModel* data)
         (*this)(&data->mfp_table);
     }
 
-    for (auto& mfp_grid : data->mfp_table)
-    {
-        (*this)(&mfp_grid);
-    }
+    this->for_each(data->mfp_table);
 }
 
 //---------------------------------------------------------------------------//
@@ -176,10 +148,7 @@ void ImportDataTrimmer::operator()(ImportModelMaterial* data)
         (*this)(&data->micro_xs);
     }
 
-    for (auto& xs_vec : data->micro_xs)
-    {
-        (*this)(&xs_vec);
-    }
+    this->for_each(data->micro_xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -192,10 +161,7 @@ void ImportDataTrimmer::operator()(ImportModel* data)
         (*this)(&data->materials);
     }
 
-    for (auto& mm : data->materials)
-    {
-        (*this)(&mm);
-    }
+    this->for_each(data->materials);
 }
 
 //---------------------------------------------------------------------------//
@@ -219,10 +185,7 @@ void ImportDataTrimmer::operator()(ImportMuPairProductionTable* data)
     (*this)(&data->atomic_number);
     (*this)(&data->physics_vectors);
 
-    for (auto& pv : data->physics_vectors)
-    {
-        (*this)(&pv);
-    }
+    this->for_each(&data->physics_vectors);
 
     CELER_ENSURE(*data);
 }
@@ -247,15 +210,8 @@ void ImportDataTrimmer::operator()(ImportProcess* data)
         (*this)(&data->models);
     }
 
-    for (auto& m : data->models)
-    {
-        (*this)(&m);
-    }
-
-    for (auto& t : data->tables)
-    {
-        (*this)(&t);
-    }
+    this->for_each(&data->models);
+    this->for_each(&data->tables);
 
     CELER_ENSURE(*data);
 }
@@ -277,10 +233,7 @@ void ImportDataTrimmer::operator()(ImportPhysicsTable* data)
         (*this)(&data->physics_vectors);
     }
 
-    for (auto& pv : data->physics_vectors)
-    {
-        (*this)(&pv);
-    }
+    this->for_each(&data->physics_vectors);
 }
 
 //---------------------------------------------------------------------------//
@@ -316,6 +269,9 @@ void ImportDataTrimmer::operator()(ImportPhysics2DVector* data)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Trim the number of elements in a vector.
+ */
 template<class T>
 void ImportDataTrimmer::operator()(std::vector<T>* vec)
 {
@@ -342,6 +298,9 @@ void ImportDataTrimmer::operator()(std::vector<T>* vec)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Trim the number of elements in a map.
+ */
 template<class K, class T, class C, class A>
 void ImportDataTrimmer::operator()(std::map<K, T, C, A>* m)
 {
@@ -363,7 +322,37 @@ void ImportDataTrimmer::operator()(std::map<K, T, C, A>* m)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to keep the data at this index.
+ * Trim each element in a vector.
+ */
+template<class T>
+void ImportDataTrimmer::for_each(std::vector<T>* vec)
+{
+    CELER_EXPECT(vec);
+
+    for (auto& v : *vec)
+    {
+        (*this)(&v);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Trim each value in a map.
+ */
+template<class K, class T, class C, class A>
+void ImportDataTrimmer::for_each(std::map<K, T, C, A>* m)
+{
+    CELER_EXPECT(m);
+
+    for (auto&& kv : *m)
+    {
+        (*this)(&kv.second);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a filtering object.
  */
 auto ImportDataTrimmer::make_filterer(size_type vec_size) const -> GridFilterer
 {
