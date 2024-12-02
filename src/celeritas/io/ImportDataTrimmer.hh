@@ -42,25 +42,28 @@ class ImportDataTrimmer
 
     //!@{
     //! Trim imported data
-    void operator()(ImportData* data);
-    void operator()(ImportElement* data);
-    void operator()(ImportGeoMaterial* data);
-    void operator()(ImportModel* data);
-    void operator()(ImportModelMaterial* data);
-    void operator()(ImportMscModel* data);
-    void operator()(ImportMuPairProductionTable* data);
-    void operator()(ImportOpticalMaterial* data);
-    void operator()(ImportOpticalModel* data);
-    void operator()(ImportParticle* data);
-    void operator()(ImportPhysMaterial* data);
-    void operator()(ImportProcess* data);
+    void operator()(ImportData& data);
+    void operator()(ImportElement& data);
+    void operator()(ImportGeoMaterial& data);
+    void operator()(ImportModel& data);
+    void operator()(ImportModelMaterial& data);
+    void operator()(ImportMscModel& data);
+    void operator()(ImportLivermorePE& data);
+    void operator()(ImportLivermoreSubshell& data);
+    void operator()(ImportAtomicRelaxation& data);
+    void operator()(ImportMuPairProductionTable& data);
+    void operator()(ImportOpticalMaterial& data);
+    void operator()(ImportOpticalModel& data);
+    void operator()(ImportParticle& data);
+    void operator()(ImportPhysMaterial& data);
+    void operator()(ImportProcess& data);
     //!@}
 
     //!@{
     //! Trim objects
-    void operator()(ImportPhysicsVector* data);
-    void operator()(ImportPhysicsTable* data);
-    void operator()(ImportPhysics2DVector* data);
+    void operator()(ImportPhysicsVector& data);
+    void operator()(ImportPhysicsTable& data);
+    void operator()(ImportPhysics2DVector& data);
     //!@}
 
   private:
@@ -78,16 +81,16 @@ class ImportDataTrimmer
     GridFilterer make_filterer(size_type vec_size) const;
 
     template<class T>
-    void operator()(std::vector<T>* vec);
+    void operator()(std::vector<T>& vec);
 
     template<class K, class T, class C, class A>
-    void operator()(std::map<K, T, C, A>* m);
+    void operator()(std::map<K, T, C, A>& m);
 
     template<class T>
-    void for_each(std::vector<T>* vec);
+    void for_each(std::vector<T>& vec);
 
     template<class K, class T, class C, class A>
-    void for_each(std::map<K, T, C, A>* m);
+    void for_each(std::map<K, T, C, A>& m);
 };
 
 //---------------------------------------------------------------------------//

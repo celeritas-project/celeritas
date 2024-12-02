@@ -44,7 +44,7 @@ TEST_F(RootJsonDumperTest, all)
         inp.physics = true;
         inp.max_size = 2;
         ImportDataTrimmer trim{inp};
-        trim(&imported);
+        trim(imported);
     }
 
     std::string str = [&imported] {

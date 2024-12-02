@@ -105,7 +105,7 @@ void run(std::string const& gdml_filename,
         ImportDataTrimmer::Input options;
         options.mupp = true;
         ImportDataTrimmer trim(options);
-        trim(&imported);
+        trim(imported);
     }
 
     ScopedRootErrorHandler scoped_root_error;
