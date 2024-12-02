@@ -9,22 +9,46 @@
 
 namespace celeritas
 {
+namespace testdetail
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Template specialization to compare \c ImportPhysicsVector for equivalence.
+ *
+ * Uses exact comparison to compare imported vectors that have been copied
+ * or referenced, and therefore should have the same bit representation as
+ * the source vectors.
+ */
+template<>
+::testing::AssertionResult IsVecEq<ImportPhysicsVector, ImportPhysicsVector>(
+    char const* expected_expr,
+    char const* actual_expr,
+    ImportPhysicsVector const& expected,
+    ImportPhysicsVector const& actual)
+{
+    auto x_result = IsVecEq(expected_expr, actual_expr, expected.x, actual.x);
+    auto y_result = IsVecEq(expected_expr, actual_expr, expected.y, actual.y);
+
+    ::testing::AssertionResult result(x_result && y_result);
+    if (!x_result)
+    {
+        result << "x values:\n" << x_result.message();
+    }
+    if (!y_result)
+    {
+        result << "y values:\n" << y_result.message();
+    }
+
+    return result;
+}
+//---------------------------------------------------------------------------//
+}  // namespace testdetail
+
 namespace optical
 {
 namespace test
 {
 using namespace ::celeritas::test;
-//---------------------------------------------------------------------------//
-/*!
- */
-void check_physics_vector(ImportPhysicsVector const& expected,
-                          ImportPhysicsVector const& actual)
-{
-    EXPECT_EQ(expected.vector_type, actual.vector_type);
-    EXPECT_VEC_EQ(expected.x, actual.x);
-    EXPECT_VEC_EQ(expected.y, actual.y);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct validator for with the underlying storage.
@@ -79,31 +103,9 @@ MfpBuilder GridValidator::create_mfp_builder()
 
 //---------------------------------------------------------------------------//
 /*!
- * Check the imported data is built in the given data range.
- */
-void GridValidator::check_span(Span<real_type const> const& t,
-                               ItemRange<real_type> const& real_ids,
-                               Softness soft)
-{
-    ASSERT_LT(real_ids.front(), real_ids.back());
-    ASSERT_LT(real_ids.back(), reals_->size());
-
-    switch (soft)
-    {
-        case Soft:
-            EXPECT_VEC_SOFT_EQ(t, (*reals_)[real_ids]);
-            break;
-        case Exact:
-            EXPECT_VEC_EQ(t, (*reals_)[real_ids]);
-            break;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with internal collections.
  */
-GridStorage::GridStorage() : GridValidator(&reals_, &grids_) {}
+OwningGridValidator::OwningGridValidator() : GridValidator(&reals_, &grids_) {}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

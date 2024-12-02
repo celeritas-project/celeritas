@@ -156,7 +156,7 @@ TEST_F(RayleighModelTest, description)
 // Check Rayleigh model MFP tables match imported ones
 TEST_F(RayleighModelTest, interaction_mfp)
 {
-    GridStorage storage;
+    OwningGridValidator storage;
 
     auto model = create_model();
     auto builder = storage.create_mfp_builder();

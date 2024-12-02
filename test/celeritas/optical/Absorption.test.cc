@@ -76,7 +76,7 @@ TEST_F(AbsorptionModelTest, description)
 // Check absorption model MFP tables match imported ones
 TEST_F(AbsorptionModelTest, interaction_mfp)
 {
-    GridStorage storage;
+    OwningGridValidator storage;
 
     auto model = create_model();
     auto builder = storage.create_mfp_builder();
