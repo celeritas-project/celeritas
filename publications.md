@@ -8,10 +8,10 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Conference papers
 
+- S. R. Johnson, A. Lund, P. Canal, S. C. Tognini, J. Esseiva, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Dec 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - K. Maheshwari, W. Arndt, A. M. Karimi, J. Yin, F. Suter, *et al*. "GNU Parallel: Enabling Low-Overhead HT-HPC Workflows at Extreme Scale". Atlanta, GA, Nov 2024.
-- S. R. Johnson, J. Esseiva, E. Biondo, P. Canal, M. Demarteau, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Nov 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - S. C. Tognini, P. Canal, T. M. Evans, G. Lima, A. L. Lund, *et al*. "Celeritas: GPU-accelerated particle transport for detector simulation in High Energy Physics experiments". in *Snowmass white papers*, Mar 2022. [10.48550/arXiv.2203.09467](https://doi.org/10.48550/arXiv.2203.09467)
-- S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Nov 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
+- S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Dec 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
 
 ## Presentations
 
