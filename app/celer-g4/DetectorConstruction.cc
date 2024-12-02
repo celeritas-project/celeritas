@@ -312,6 +312,7 @@ void DetectorConstruction::ConstructSDandField()
  * Apply a function to the range of volumes for each detector.
  */
 template<class F>
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 void DetectorConstruction::foreach_detector(F&& apply_to_range) const
 {
     auto start = detectors_.begin();

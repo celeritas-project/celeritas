@@ -166,7 +166,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
                     msg << "\n[error while exporting state: " << e.what()
                         << "]";
                 }
-                catch (...)
+                catch (...)  // NOLINT(bugprone-empty-catch)
                 {
                     /* Do nothing */
                 }
