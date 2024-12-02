@@ -22,17 +22,141 @@
 #include "Test.hh"
 #include "TestMacros.hh"
 
+//! Equivalence macro for physics grids
+#define EXPECT_GRID_EQ(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsGridEq, expected, actual)
+
+//! Equivalence macro for physics tables (vectors of grids)
+#define EXPECT_TABLE_EQ(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsTableEq, expected, actual)
+
 namespace celeritas
 {
-
 namespace testdetail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Type traits for physics grids.
+ *
+ * Allows duck-typing to allow comparisons of physics grids that might be
+ * stored as different objects.
+ */
+template<class GridType>
+struct PhysicsGridTraits;
+
+//---------------------------------------------------------------------------//
+//! Specialization for \c ImportPhysicsVector
 template<>
-::testing::AssertionResult
-IsVecEq<ImportPhysicsVector, ImportPhysicsVector>(char const*,
-                                                  char const*,
-                                                  ImportPhysicsVector const&,
-                                                  ImportPhysicsVector const&);
+struct PhysicsGridTraits<ImportPhysicsVector>
+{
+    using grid_type = ImportPhysicsVector;
+
+    static constexpr std::vector<double> const& grid(grid_type const& v)
+    {
+        return v.x;
+    }
+    static constexpr std::vector<double> const& value(grid_type const& v)
+    {
+        return v.y;
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Specialization for a tuple of containers
+template<class T>
+struct PhysicsGridTraits<std::tuple<T, T>>
+{
+    using grid_type = std::tuple<T, T>;
+    static constexpr T const& grid(grid_type const& v)
+    {
+        return std::get<0>(v);
+    }
+    static constexpr T const& value(grid_type const& v)
+    {
+        return std::get<1>(v);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare to physics grids with exact equivalence.
+ */
+template<class GridTypeE, class GridTypeA>
+::testing::AssertionResult IsGridEq(char const* expected_expr,
+                                    char const* actual_expr,
+                                    GridTypeE const& expected,
+                                    GridTypeA const& actual)
+{
+    using EGT = PhysicsGridTraits<GridTypeE>;
+    using AGT = PhysicsGridTraits<GridTypeA>;
+
+    auto x_result = IsVecEq(
+        expected_expr, actual_expr, EGT::grid(expected), AGT::grid(actual));
+    auto y_result = IsVecEq(
+        expected_expr, actual_expr, EGT::value(expected), AGT::value(actual));
+
+    ::testing::AssertionResult result(x_result && y_result);
+    if (!x_result)
+    {
+        result << "x values:\n" << x_result.message();
+    }
+    if (!y_result)
+    {
+        result << "y values:\n" << y_result.message();
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare physics tables with exact equivalence.
+ */
+template<class GridTypeE, class GridTypeA>
+::testing::AssertionResult IsTableEq(char const* expected_expr,
+                                     char const* actual_expr,
+                                     std::vector<GridTypeE> const& expected,
+                                     std::vector<GridTypeA> const& actual)
+{
+    if (expected.size() != actual.size())
+    {
+        ::testing::AssertionResult failure = ::testing::AssertionFailure();
+
+        failure << " Size of: " << actual_expr
+                << "\n  Actual: " << actual.size()
+                << "\nExpected: " << expected_expr
+                << ".size()\nWhich is: " << expected.size() << "\n";
+        return failure;
+    }
+
+    ::testing::AssertionResult result = ::testing::AssertionSuccess();
+
+    for (auto i : range(expected.size()))
+    {
+        std::string index_expr = "[" + std::to_string(i) + "]";
+        std::string expected_expr_i = expected_expr + index_expr;
+        std::string actual_expr_i = actual_expr + index_expr;
+
+        auto grid_result = IsGridEq(expected_expr_i.c_str(),
+                                    actual_expr_i.c_str(),
+                                    expected[i],
+                                    actual[i]);
+
+        if (!grid_result)
+        {
+            if (result)
+            {
+                result = ::testing::AssertionFailure();
+            }
+
+            result << grid_result.message();
+        }
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace testdetail
 
 namespace optical
@@ -82,45 +206,33 @@ class GridValidator
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     //!@}
 
-    //! Whether to use soft or exact equivalence
-    enum Softness
-    {
-        Soft,
-        Exact
-    };
-
   public:
     // Construct validator for underlying storage
     GridValidator(Items<real_type>* reals, Items<Grid>* grids);
 
-    // Check the imported data is built under the given grid ID range
-    void check_built_table(ImportPhysicsTable const& table,
-                           ItemRange<Grid> grid_ids,
-                           Softness soft);
-
-    // Check the imported data is built under the given grid ID
-    void check_built_grid(ImportPhysicsVector const& expected,
-                          GridId grid_id,
-                          Softness soft);
-
-    //! Check the imported data is built in the given data range
-    template<class T>
-    void check_built_vector(T const& t,
-                            ItemRange<real_type> const& real_ids,
-                            Softness soft)
+    std::vector<std::tuple<Span<real_type const>, Span<real_type const>>>
+    operator()(ItemRange<Grid> grid_ids) const
     {
-        ASSERT_LT(real_ids.front(), real_ids.back());
-        ASSERT_LT(real_ids.back(), reals_->size());
+        std::vector<std::tuple<Span<real_type const>, Span<real_type const>>> grids;
+        grids.reserve(grid_ids.size());
 
-        switch (soft)
+        for (GridId grid_id : grid_ids)
         {
-            case Soft:
-                EXPECT_VEC_SOFT_EQ(t, (*reals_)[real_ids]);
-                break;
-            case Exact:
-                EXPECT_VEC_EQ(t, (*reals_)[real_ids]);
-                break;
+            CELER_EXPECT(grid_id < grids_->size());
+            auto const& grid = (*grids_)[grid_id];
+            CELER_EXPECT(grid);
+            grids.push_back(
+                std::make_tuple((*this)(grid.grid), (*this)(grid.value)));
         }
+
+        return grids;
+    }
+
+    Span<real_type const> operator()(ItemRange<real_type> const& real_ids) const
+    {
+        CELER_EXPECT(real_ids.front() < real_ids.back());
+        CELER_EXPECT(real_ids.back() < reals_->size());
+        return (*reals_)[real_ids];
     }
 
     // Construct an MFP builder with the underlying collections

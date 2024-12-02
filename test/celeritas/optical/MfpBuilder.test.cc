@@ -55,8 +55,7 @@ TEST_F(MfpBuilderTest, construct_tables)
     // Check each MFP table has been built correctly
     for (auto table_id : range(tables.size()))
     {
-        storage.check_built_table(
-            models[table_id].mfp_table, tables[table_id], GridValidator::Exact);
+        EXPECT_TABLE_EQ(models[table_id].mfp_table, storage(tables[table_id]));
     }
 }
 

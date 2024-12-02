@@ -41,6 +41,66 @@ template<>
 
     return result;
 }
+
+template<>
+::testing::AssertionResult
+IsVecEq<std::vector<ImportPhysicsVector>,
+        std::vector<std::tuple<Span<real_type const>, Span<real_type const>>>>(
+    char const* expected_expr,
+    char const* actual_expr,
+    std::vector<ImportPhysicsVector> const& expected,
+    std::vector<std::tuple<Span<real_type const>, Span<real_type const>>> const&
+        actual)
+{
+    if (expected.size() != actual.size())
+    {
+        ::testing::AssertionResult failure = ::testing::AssertionFailure();
+
+        failure << " Size of: " << actual_expr
+                << "\n  Actual: " << actual.size()
+                << "\nExpected: " << expected_expr
+                << ".size()\nWhich is: " << expected.size() << "\n";
+        return failure;
+    }
+
+    ::testing::AssertionResult result = ::testing::AssertionSuccess();
+
+    for (auto i : range(expected.size()))
+    {
+        auto const& expected_vec = expected[i];
+        auto const& [actual_x, actual_y] = actual[i];
+
+        std::string index_expr = "[" + std::to_string(i) + "]";
+        std::string expected_expr_i = expected_expr + index_expr;
+        std::string actual_expr_i = actual_expr + index_expr;
+
+        auto x_result = IsVecEq(expected_expr_i.c_str(),
+                                actual_expr_i.c_str(),
+                                expected_vec.x,
+                                actual_x);
+        auto y_result = IsVecEq(expected_expr_i.c_str(),
+                                actual_expr_i.c_str(),
+                                expected_vec.y,
+                                actual_y);
+
+        if (result && (!x_result || !y_result))
+        {
+            result = ::testing::AssertionFailure();
+        }
+
+        if (!x_result)
+        {
+            result << "x values:\n" << x_result.message();
+        }
+        if (!y_result)
+        {
+            result << "y values:\n" << y_result.message();
+        }
+    }
+
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace testdetail
 
@@ -58,38 +118,6 @@ GridValidator::GridValidator(Items<real_type>* reals, Items<Grid>* grids)
 {
     CELER_EXPECT(reals_);
     CELER_EXPECT(grids_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check the imported data is built under the given grid ID range.
- */
-void GridValidator::check_built_table(ImportPhysicsTable const& table,
-                                      ItemRange<Grid> grid_ids,
-                                      Softness soft)
-{
-    ASSERT_EQ(table.size(), grid_ids.size());
-
-    for (auto i : range(grid_ids.size()))
-    {
-        this->check_built_grid(table[i], grid_ids[i], soft);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check the imported data is built under the given ID range.
- */
-void GridValidator::check_built_grid(ImportPhysicsVector const& expected,
-                                     GridId grid_id,
-                                     Softness soft)
-{
-    ASSERT_LT(grid_id, grids_->size());
-    Grid const& grid = (*grids_)[grid_id];
-    ASSERT_TRUE(grid);
-
-    this->check_built_vector(expected.x, grid.grid, soft);
-    this->check_built_vector(expected.y, grid.value, soft);
 }
 
 //---------------------------------------------------------------------------//

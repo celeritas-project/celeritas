@@ -166,10 +166,9 @@ TEST_F(RayleighModelTest, interaction_mfp)
         model->build_mfps(mat, builder);
     }
 
-    storage.check_built_table(
+    EXPECT_TABLE_EQ(
         this->import_model_by_class(ImportModelClass::rayleigh).mfp_table,
-        builder.grid_ids(),
-        GridValidator::Exact);
+        storage(builder.grid_ids()));
 }
 
 //---------------------------------------------------------------------------//

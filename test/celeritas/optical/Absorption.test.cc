@@ -86,10 +86,9 @@ TEST_F(AbsorptionModelTest, interaction_mfp)
         model->build_mfps(mat, builder);
     }
 
-    storage.check_built_table(
+    EXPECT_TABLE_EQ(
         this->import_model_by_class(ImportModelClass::absorption).mfp_table,
-        builder.grid_ids(),
-        GridValidator::Exact);
+        storage(builder.grid_ids()));
 }
 
 //---------------------------------------------------------------------------//

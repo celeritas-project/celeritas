@@ -41,8 +41,8 @@ class ImportedModelAdapterTest : public OpticalMockTestBase
                   imported_model.mfp_table.size());
         for (auto mat_id : range(imported_model.mfp_table.size()))
         {
-            EXPECT_VEC_EQ(expected_model.mfp_table[mat_id],
-                          imported_model.mfp_table[mat_id]);
+            EXPECT_GRID_EQ(expected_model.mfp_table[mat_id],
+                           imported_model.mfp_table[mat_id]);
         }
     }
 
@@ -113,8 +113,8 @@ TEST_F(ImportedModelAdapterTest, adapter_mfps)
         ASSERT_EQ(expected_model.mfp_table.size(), adapter.num_materials());
         for (auto mat_id : range(OpticalMaterialId{adapter.num_materials()}))
         {
-            EXPECT_VEC_EQ(expected_model.mfp_table[mat_id.get()],
-                          adapter.mfp(mat_id));
+            EXPECT_GRID_EQ(expected_model.mfp_table[mat_id.get()],
+                           adapter.mfp(mat_id));
         }
     }
 }
