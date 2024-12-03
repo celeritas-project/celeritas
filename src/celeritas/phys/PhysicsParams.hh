@@ -71,8 +71,8 @@ class ParticleParams;
  *   processes.
  *   \c spline_eloss_order: the order of interpolation to be used for the
  *   spline interpolation. If it is 1, then the existing linear interpolation
- * is used. If it is 2+, the spline interpolation is used for energy loss using
- *   the specified order. Default value is 1
+ *   is used. If it is 2+, the spline interpolation is used for energy loss
+ *   using the specified order. Default value is 1
  *
  * NOTE: min_range/max_step_over_range are not accessible through Geant4, and
  * they can also be set to be different for electrons, mu/hadrons, and ions
