@@ -1,0 +1,113 @@
+# Pleace cite the following article when referencing Celeritas in a publication:
+#
+# (Plain text, Chicago author-date 17th ed):
+#   Johnson, Seth R., Amanda Lund, Philippe Canal, Stefano C. Tognini, Julien
+#   Esseiva, Soon Yung Jun, Guilherme Lima, et al. 2024. “Celeritas:
+#   Accelerating Geant4 with GPUs.” EPJ Web of Conferences 295:11005.
+#   https://doi.org/10.1051/epjconf/202429511005.
+#
+# (BibLaTeX):
+#    @article{celer-chep-2024,
+#      title = {Celeritas: {{Accelerating Geant4}} with {{GPUs}}},
+#      author = {Johnson, Seth R. and Lund, Amanda and Canal, Philippe and Tognini, Stefano C. and Esseiva, Julien and Jun, Soon Yung and Lima, Guilherme and Biondo, Elliott and Evans, Thomas and Demarteau, Marcel and Romano, Paul},
+#      date = {2024},
+#      journaltitle = {EPJ Web of Conferences},
+#      volume = {295},
+#      pages = {11005},
+#      doi = {10.1051/epjconf/202429511005}
+#    }
+#
+# (CFF):
+
+cff-version: 1.2.0
+type: software
+message: "Please cite the following article when referencing Celeritas in a publication."
+title: "Celeritas"
+type: software
+license:
+  - Apache-2.0
+  - MIT
+authors:
+  - family-names: Johnson
+    given-names: Seth R.
+    orcid: "https://orcid.org/0000-0003-1504-8966"
+  - family-names: Lund
+    given-names: Amanda
+    orcid: "https://orcid.org/0000-0002-8316-0709"
+  - family-names: Jun
+    given-names: Soon Yung
+    orcid: "https://orcid.org/0000-0003-3370-6109"
+  - family-names: Tognini
+    given-names: Stefano
+    orcid: "https://orcid.org/0000-0001-9741-6608"
+  - family-names: Lima
+    given-names: Guilherme
+    orcid: "https://orcid.org/0000-0003-4585-0546"
+  - family-names: Canal
+    given-names: Philippe
+    orcid: "https://orcid.org/0000-0002-7748-7887"
+  - family-names: Morgan
+    given-names: Ben
+  - family-names: Evans
+    given-names: Tom
+    orcid: "https://orcid.org/0000-0001-5743-3788"
+  - family-names: Esseiva
+    given-names: Julien
+date-released: 2022
+url: https://doi.org/10.11578/dc.20221011.1
+identifiers:
+  - type: doi
+    value: 10.11578/dc.20221011.1
+keywords:
+  - monte carlo
+  - particle transport
+  - high energy physics
+  - detector simulation
+  - computational physics
+  - hep
+  - cuda
+  - hip
+preferred-citation:
+  authors:
+    - family-names: Johnson
+      given-names: Seth R.
+      orcid: "https://orcid.org/0000-0003-1504-8966"
+    - family-names: Lund
+      given-names: Amanda
+      orcid: "https://orcid.org/0000-0002-8316-0709"
+    - family-names: Canal
+      given-names: Philippe
+      orcid: "https://orcid.org/0000-0002-7748-7887"
+    - family-names: Tognini
+      given-names: Stefano C.
+      orcid: "https://orcid.org/0000-0001-9741-6608"
+    - family-names: Esseiva
+      given-names: Julien
+    - family-names: Jun
+      given-names: Soon Yung
+      orcid: "https://orcid.org/0000-0003-3370-6109"
+    - family-names: Lima
+      given-names: Guilherme
+      orcid: "https://orcid.org/0000-0003-4585-0546"
+    - family-names: Biondo
+      given-names: Elliott
+    - family-names: Evans
+      given-names: Thomas
+      orcid: "https://orcid.org/0000-0001-5743-3788"
+    - family-names: Demarteau
+      given-names: Marcel
+    - family-names: Romano
+      given-names: Paul
+      orcid: "https://orcid.org/0000-0002-1147-045X"
+  title: "Celeritas: Accelerating Geant4 with GPUs"
+  type: article
+  journal: "EPJ Web of Conferences"
+  volume: 295
+  number: 11005
+  issue-title: "26th International Conference on Computing in High Energy and Nuclear Physics (CHEP 2023)"
+  date-published: 2024
+  identifiers:
+    - type: doi
+      value: 10.1051/epjconf/202429511005
+  abstract: >-
+    Celeritas is a new Monte Carlo (MC) detector simulation code designed for computationally intensive applications (specifically, High Luminosity Large Hadron Collider (HL-LHC) simulation) on high-performance heterogeneous architectures. In the past two years Celeritas has advanced from prototyping a GPU-based single physics model in infinite medium to implementing a full set of electromagnetic (EM) physics processes in complex geometries. The current release of Celeritas, version 0.3, has incorporated full device-based navigation, an event loop in the presence of magnetic fields, and detector hit scoring. New functionality incorporates a scheduler to offload electromagnetic physics to the GPU within a Geant4-driven simulation, enabling integration of Celeritas into high energy physics (HEP) experimental frameworks such as CMSSW. On the Summit supercomputer, Celeritas performs EM physics between 6× and 32× faster using the machine’s Nvidia GPUs compared to using only CPUs. When running a multithreaded Geant4 ATLAS test beam application with full hadronic physics, using Celeritas to accelerate the EM physics results in an overall simulation speedup of 1.8–2.3× on GPU and 1.2× on CPU.
