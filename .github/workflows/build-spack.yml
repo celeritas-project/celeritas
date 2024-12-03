@@ -63,7 +63,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: 383
+          fetch-depth: ${{matrix.special == 'clang-tidy' && 0 || 383}}
           fetch-tags: true # to get version information
       - name: Setup Spack
         uses: spack/setup-spack@0ce61628ed8a32a5664cf01a0e0b5a4834a3b413 # 2024/03
@@ -137,10 +137,22 @@ jobs:
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
       - name: Build all
         id: build
-        working-directory: build
+        working-directory: ${{format('{0}', matrix.special == 'clang-tidy' && github.workspace || 'build')}}
+        env:
+          BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
           if [ "${{matrix.special}}" == "clang-tidy" ]; then
-            ninja -k0
+            if [ "${{github.event_name}}" == "schedule" ]; then
+              ninja -k0
+              exit $?
+            fi
+            FILES=$(git diff --name-only --diff-filter=ACM "$BASE_REF" HEAD)
+            if [ -z "$FILES" ]; then
+              echo "No files to run clang-tidy on."
+              exit 0
+            fi
+            grep -E '^(src|app|example)/.*\.cc$' - <<< "$FILES" | xargs ${{env.CLANG_TIDY}} -p build
+            exit $?
           else
             ninja -v -k0
           fi
