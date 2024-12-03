@@ -144,20 +144,13 @@ TEST_F(WavelengthShiftTest, wls_basic)
 
         num_secondaries.push_back(num_emitted);
 
-        if (num_emitted == 0)
+        EXPECT_EQ(Interaction::Action::absorbed, result.action);
+        for (auto j : range(num_emitted))
         {
-            EXPECT_EQ(Interaction::Action::unchanged, result.action);
-        }
-        else
-        {
-            EXPECT_EQ(Interaction::Action::absorbed, result.action);
-            for (auto j : range(num_emitted))
-            {
-                EXPECT_LT(result.secondaries[j].energy.value(), test_energy);
-                EXPECT_SOFT_EQ(0,
-                               dot_product(result.secondaries[j].polarization,
-                                           result.secondaries[j].direction));
-            }
+            EXPECT_LT(result.secondaries[j].energy.value(), test_energy);
+            EXPECT_SOFT_EQ(0,
+                           dot_product(result.secondaries[j].polarization,
+                                       result.secondaries[j].direction));
         }
     }
     static size_type const expected_num_secondaries[] = {1, 4, 3, 0};
