@@ -104,7 +104,7 @@ preferred-citation:
   journal: "EPJ Web of Conferences"
   volume: 295
   number: 11005
-  issue: "26th International Conference on Computing in High Energy and Nuclear Physics (CHEP 2023)"
+  issue-title: "26th International Conference on Computing in High Energy and Nuclear Physics (CHEP 2023)"
   date-published: 2024
   identifiers:
     - type: doi
