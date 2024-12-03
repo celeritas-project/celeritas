@@ -156,7 +156,7 @@ class PhysicsTrackView
     // Construct a grid calculator from a physics table
     template<class T>
     inline CELER_FUNCTION T make_calculator(ValueGridId,
-                                            const size_type order) const;
+                                            size_type order) const;
 
     //// HACKS ////
 
@@ -686,7 +686,7 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
  */
 template<class T>
 CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id,
-                                                   const size_type order) const
+                                                   size_type order) const
 {
     CELER_EXPECT(id < params_.value_grids.size());
     return T{params_.value_grids[id], params_.reals, order};
