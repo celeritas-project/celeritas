@@ -111,8 +111,8 @@ See the [contribution guide][contributing-guidelines] for the contribution proce
 [the development guidelines][development-guidelines] for further
 details on coding in Celeritas, and [the administration guidelines][administration-guidelines] for community standards and roles.
 
-[contributing-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/development.html#contributing-to-celeritas
-[development-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/development.html#code-development-guidelines
+[contributing-guidelines]: https://celeritas-project.github.io/celeritas/user/development/contributing.html
+[development-guidelines]: https://celeritas-project.github.io/celeritas/user/development/coding.html
 [administration-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/administration.html
 
 # Directory structure
