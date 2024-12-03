@@ -34,8 +34,8 @@ namespace optical
  * isotropically at longer wavelengths. It usually shifts the ultraviolet
  * region of the radiation spectrum to the visible region, which enhances the
  * light collection or reduces the self-absorption of the optical production.
- * The number of the reemited lights follows the Poisson distribution with the
- * mean number of the characteristic light production which depends on the
+ * The number of the reemitted photons follows the Poisson distribution with
+ * the mean number of the characteristic light production, which depends on the
  * optical property of wavelength shifters. The polarization of the reemitted
  * lights is assumed to be incoherent with respect to the polarization of the
  * primary optical photon.
@@ -107,13 +107,16 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Sampling the wavelength shift (WLS) photons as in G4OpWLS of the Geant4
- * release 11.2 with a modification in sampling the reemission spectrum.
+ * Sampling the wavelength shift (WLS) photons.
  */
 template<class Engine>
 CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
 {
-    // Sample the number of photons generated from WLS
+    /*!
+     * Sample the number of photons generated from WLS.
+     *
+     * \todo if this is nonzero and allocation fails, we lose reproducibility.
+     */
     unsigned int num_photons = sample_num_photons_(rng);
 
     if (num_photons == 0)
@@ -140,6 +143,8 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
     for (size_type i : range(num_photons))
     {
         // Sample the emitted energy from the inverse cumulative distribution
+        // TODO: add CDF sampler; see
+        // https://github.com/celeritas-project/celeritas/pull/1507/files#r1844973621
         real_type energy = calc_energy_(generate_canonical(rng));
         if (CELER_UNLIKELY(energy > inc_energy_.value()))
         {

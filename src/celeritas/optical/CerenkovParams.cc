@@ -49,6 +49,7 @@ CerenkovParams::CerenkovParams(SPConstMaterial material)
         std::vector<real_type> integral(energy.size());
         for (size_type i = 1; i < energy.size(); ++i)
         {
+            // TODO: use trapezoidal integrator helper class
             integral[i] = integral[i - 1]
                           + real_type(0.5) * (energy[i] - energy[i - 1])
                                 * (1 / ipow<2>(refractive_index[i - 1])

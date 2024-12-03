@@ -88,6 +88,7 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
         cdf[0] = 0;
         for (size_type i = 1; i < comp_vec.x.size(); ++i)
         {
+            // TODO: use trapezoidal integrator helper class
             cdf[i] = cdf[i - 1]
                      + 0.5 * (comp_vec.x[i] - comp_vec.x[i - 1])
                            * (comp_vec.y[i] + comp_vec.y[i - 1]);
