@@ -121,8 +121,8 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
 
     if (num_photons == 0)
     {
-        // Return unchanged photon without reemitted optical photons
-        return Interaction::from_unchanged();
+        // Return absorbed photon without reemitted optical photons
+        return Interaction::from_absorption();
     }
 
     // Allocate space for reemitted optical photons - Note: the reproducibility
