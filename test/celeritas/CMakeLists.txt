@@ -428,14 +428,18 @@ celeritas_add_test(user/StepCollector.test.cc
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-set(_root_data)
+add_custom_target(update-root-test-data
+  COMMENT "Regenerate ROOT test data"
+)
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")
     add_custom_command(
-      OUTPUT "${_output}"
+      TARGET update-root-test-data
+      POST_BUILD
       DEPENDS
         celer-export-geant
         "${_gdml}"
@@ -450,13 +454,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "--gen-test"
       VERBATIM
     )
-    list(APPEND _root_data "${_output}")
   endforeach()
 endif()
-
-add_custom_target(update-root-test-data
-  COMMENT "Regenerate ROOT test data"
-  DEPENDS ${_root_data}
-)
 
 #-----------------------------------------------------------------------------#

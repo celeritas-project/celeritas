@@ -57,6 +57,7 @@ list(APPEND SOURCES
   grid/ValueGridType.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
+  io/ImportDataTrimmer.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportOpticalModel.cc
