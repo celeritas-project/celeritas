@@ -58,21 +58,13 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
     GenericGridInserter insert_energy_cdf(&data.reals, &data.energy_cdf);
     for (auto const& wls : input.data)
     {
-        // Store WLS component tabulated as a function of photon energy
-        auto const& comp_vec = wls.component;
-
-        if (comp_vec.x.empty())
+        if (!wls)
         {
             // No WLS data for this material
+            wls_record.push_back({});
+            insert_energy_cdf();
             continue;
         }
-
-        CELER_VALIDATE(wls.mean_num_photons > 0,
-                       << "invalid mean_num_photons=" << wls.mean_num_photons
-                       << " (should be positive)");
-        CELER_VALIDATE(wls.time_constant > 0,
-                       << "invalid time_constant=" << wls.time_constant
-                       << " (should be positive)");
 
         // WLS material properties
         WlsMaterialRecord record;
@@ -81,6 +73,8 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
         wls_record.push_back(record);
 
         // Calculate the WLS cumulative probability of the emission spectrum
+        // Store WLS component tabulated as a function of photon energy
+        auto const& comp_vec = wls.component;
         std::vector<double> cdf(comp_vec.x.size());
 
         CELER_ASSERT(comp_vec.y[0] > 0);
@@ -103,6 +97,7 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
         insert_energy_cdf(make_span(cdf), make_span(comp_vec.x));
     }
     CELER_ASSERT(data.energy_cdf.size() == input.data.size());
+    CELER_ASSERT(data.wls_record.size() == data.energy_cdf.size());
 
     data_ = CollectionMirror<WavelengthShiftData>{std::move(data)};
     CELER_ENSURE(data_);
