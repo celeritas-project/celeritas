@@ -75,7 +75,7 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
     // Get output registry
-    auto output_reg = params.output_reg();
+    auto const& output_reg = params.output_reg();
     CELER_ASSERT(output_reg);
     size_type num_threads = params.num_streams();
 

@@ -134,6 +134,7 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const* world)
  *
  * Volume and surface labels must be unique for the time being.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 OrangeParams::OrangeParams(OrangeInput&& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
@@ -218,6 +219,7 @@ OrangeParams::OrangeParams(OrangeInput&& input)
  */
 OrangeParams::~OrangeParams() = default;
 
+// NOLINTNEXTLINE(cppcoreguidelines-virtual-class-destructor)
 template class CollectionMirror<OrangeParamsData>;
 template class ParamsDataInterface<OrangeParamsData>;
 

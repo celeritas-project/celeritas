@@ -247,9 +247,9 @@ TEST_F(MuBetheBlochTest, basic)
 TEST_F(MuBetheBlochTest, stress_test)
 {
     unsigned int const num_samples = 10000;
-    std::vector<real_type> avg_engine_samples;
-    std::vector<real_type> avg_energy;
-    std::vector<real_type> avg_costheta;
+    std::vector<double> avg_engine_samples;
+    std::vector<double> avg_energy;
+    std::vector<double> avg_costheta;
 
     for (real_type inc_e : {0.2, 1.0, 10.0, 1e2, 1e3, 1e4, 1e6, 1e8})
     {
@@ -258,8 +258,8 @@ TEST_F(MuBetheBlochTest, stress_test)
 
         RandomEngine& rng = this->rng();
         RandomEngine::size_type num_particles_sampled = 0;
-        real_type energy = 0;
-        real_type costheta = 0;
+        double energy = 0;
+        double costheta = 0;
 
         // Loop over several incident directions
         for (Real3 const& inc_dir :
@@ -296,6 +296,9 @@ TEST_F(MuBetheBlochTest, stress_test)
         avg_costheta.push_back(costheta / num_particles_sampled);
     }
 
+    // Looser tolerance for Windows build
+    double const tol = 1e-11;
+
     // Gold values for average number of calls to RNG
     static double const expected_avg_engine_samples[]
         = {6.0069, 6.011, 6.0185, 6.0071, 6.043, 6.1304, 6.456, 6.9743};
@@ -317,7 +320,7 @@ TEST_F(MuBetheBlochTest, stress_test)
                                                    0.060456801678551};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
-    EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
+    EXPECT_VEC_NEAR(expected_avg_energy, avg_energy, tol);
     EXPECT_VEC_SOFT_EQ(expected_avg_costheta, avg_costheta);
 }
 

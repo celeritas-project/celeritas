@@ -1,9 +1,14 @@
 ---
 Checks: |
   -*
-  clang-analyzer-cplusplus.Move
-  clang-analyzer-cplusplus.NewDeleteLeaks
-  clang-analyzer-core.StackAddressEscape
+  clang-analyzer-core.*
+  clang-analyzer-deadcode.*
+  clang-analyzer-cplusplus.*
+  -clang-analyzer-cplusplus.NewDelete
+  performance-*
+  -performance-avoid-endl
+  -performance-unnecessary-value-param
+  -performance-enum-size
   cppcoreguidelines-*
   -cppcoreguidelines-owning-memory
   -cppcoreguidelines-narrowing-conversions
@@ -17,16 +22,24 @@ Checks: |
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay
   -cppcoreguidelines-avoid-const-or-ref-data-members
   -cppcoreguidelines-pro-bounds-constant-array-index
+  -cppcoreguidelines-noexcept-swap
+  -cppcoreguidelines-noexcept-move-operations
+  -cppcoreguidelines-noexcept-destructor
   bugprone-*
   -bugprone-sizeof-expression
   -bugprone-narrowing-conversions
   -bugprone-macro-parentheses
   -bugprone-easily-swappable-parameters
   -bugprone-implicit-widening-of-multiplication-result
+WarningsAsErrors: '*'
 CheckOptions:
   cppcoreguidelines-macro-usage.CheckCapsOnly: true
   cppcoreguidelines-avoid-do-while.IgnoreMacros: true
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: true
+  cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove: true
+  cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
+  performance-move-const-arg.CheckTriviallyCopyableMove: false
+  performance-move-const-arg.CheckMoveToConstRef: false
 HeaderFilterRegex: ''
 FormatStyle: file
 ...

@@ -15,6 +15,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
+#include "NumericLimits.hh"
+
 #include "detail/AlgorithmsImpl.hh"
 
 #if !defined(CELER_DEVICE_SOURCE) && !defined(CELERITAS_SINCOSPI_PREFIX)
@@ -509,6 +511,37 @@ template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = tr
 CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
 {
     return a * b + y;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a hypotenuse.
+ *
+ * This does \em not conform to IEEE754 by returning infinity in edge cases
+ * (e.g., one argument is infinite and the other NaN). Similarly, it is not
+ * symmetric with respect to the function arguments.
+ *
+ * To improve accuracy we could use [1].
+ *
+ * [1] C.F. Borges, An Improved Algorithm for hypot(a,b), (2019).
+ *     http://arxiv.org/abs/1904.09481 (accessed November 19, 2024).
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T hypot(T a, T b)
+{
+    return std::sqrt(fma(b, b, ipow<2>(a)));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a hypotenuse.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T hypot(T a, T b, T c)
+{
+    T result = fma(b, b, ipow<2>(a));
+    result = fma(c, c, result);
+    return std::sqrt(result);
 }
 
 //---------------------------------------------------------------------------//
