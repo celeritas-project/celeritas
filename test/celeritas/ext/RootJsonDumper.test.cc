@@ -12,6 +12,7 @@
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportDataTrimmer.hh"
 
 #include "celeritas_test.hh"
 
@@ -20,133 +21,39 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-template<class T>
-void trim(T*);
-
-template<class T>
-void trim(std::vector<T>* vec);
-
-template<class K, class T, class C, class A>
-void trim(std::map<K, T, C, A>* m);
-
-void trim(ImportModelMaterial* imm)
-{
-    CELER_EXPECT(imm);
-    trim(&imm->energy);
-    trim(&imm->micro_xs);
-}
-
-void trim(ImportModel* im)
-{
-    CELER_EXPECT(im);
-    trim(&im->materials);
-}
-
-void trim(ImportPhysicsVector* ipv)
-{
-    CELER_EXPECT(ipv);
-    trim(&ipv->x);
-    trim(&ipv->y);
-}
-
-void trim(ImportPhysics2DVector* ipv)
-{
-    CELER_EXPECT(ipv);
-    trim(&ipv->x);
-    trim(&ipv->y);
-    trim(&ipv->value);
-}
-
-void trim(ImportPhysicsTable* ipt)
-{
-    CELER_EXPECT(ipt);
-    trim(&ipt->physics_vectors);
-}
-
-void trim(ImportMscModel* im)
-{
-    CELER_EXPECT(im);
-    trim(&im->xs_table);
-}
-
-void trim(ImportProcess* ip)
-{
-    CELER_EXPECT(ip);
-    trim(&ip->models);
-    trim(&ip->tables);
-}
-
-template<class T>
-void trim(T*)
-{
-    // Null-op by default
-}
-
-template<class T>
-void trim(std::vector<T>* vec)
-{
-    CELER_EXPECT(vec);
-    if (vec->size() > 2)
-    {
-        vec->erase(vec->begin() + 1, vec->end() - 1);
-    }
-    for (auto& v : *vec)
-    {
-        trim(&v);
-    }
-}
-
-template<class K, class T, class C, class A>
-void trim(std::map<K, T, C, A>* m)
-{
-    CELER_EXPECT(m);
-    if (!m->empty())
-    {
-        auto iter = m->begin();
-        ++iter;
-        m->erase(iter, m->end());
-    }
-}
-
-//---------------------------------------------------------------------------//
 class RootJsonDumperTest : public ::celeritas::test::Test
 {
 };
 
 TEST_F(RootJsonDumperTest, all)
 {
-    ImportData imported;
-    {
+    // Import data
+    ImportData imported = [this] {
         ScopedRootErrorHandler scoped_root_error;
         RootImporter import(
             this->test_data_path("celeritas", "four-steel-slabs.root"));
-        imported = import();
+        auto result = import();
         scoped_root_error.throw_if_errors();
+        return result;
+    }();
+
+    // Trim data
+    {
+        ImportDataTrimmer::Input inp;
+        inp.materials = true;
+        inp.physics = true;
+        inp.max_size = 2;
+        ImportDataTrimmer trim{inp};
+        trim(imported);
     }
 
-    // Reduce amount of data to check...
-    trim(&imported.particles);
-    trim(&imported.isotopes);
-    trim(&imported.elements);
-    trim(&imported.geo_materials);
-    trim(&imported.phys_materials);
-    trim(&imported.processes);
-    trim(&imported.msc_models);
-    trim(&imported.regions);
-    trim(&imported.volumes);
-    imported.sb_data = {};
-    imported.livermore_pe_data = {};
-    for (auto& pv : imported.mu_pair_production_data.physics_vectors)
-    {
-        trim(&pv);
-    }
-
-    std::ostringstream os;
-    {
+    std::string str = [&imported] {
+        std::ostringstream os;
         ScopedRootErrorHandler scoped_root_error;
         RootJsonDumper{&os}(imported);
         scoped_root_error.throw_if_errors();
-    }
+        return std::move(os).str();
+    }();
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
@@ -183,14 +90,6 @@ TEST_F(RootJsonDumperTest, all)
     "second" : 0.05845
   }, {
     "_typename" : "pair<unsigned int,double>",
-    "first" : 1,
-    "second" : 0.91754
-  }, {
-    "_typename" : "pair<unsigned int,double>",
-    "first" : 2,
-    "second" : 0.02119
-  }, {
-    "_typename" : "pair<unsigned int,double>",
     "first" : 3,
     "second" : 0.00282
   }]
@@ -219,10 +118,6 @@ TEST_F(RootJsonDumperTest, all)
     "_typename" : "celeritas::ImportMatElemComponent",
     "element_id" : 0,
     "number_fraction" : 0.74
-  }, {
-    "_typename" : "celeritas::ImportMatElemComponent",
-    "element_id" : 1,
-    "number_fraction" : 0.18
   }, {
     "_typename" : "celeritas::ImportMatElemComponent",
     "element_id" : 2,
@@ -275,6 +170,8 @@ TEST_F(RootJsonDumperTest, all)
     "range" : 0.1
   }}]
 }],
+"optical_models" : [],
+"optical_materials" : [],
 "regions" : [{
   "_typename" : "celeritas::ImportRegion",
   "name" : "DefaultRegionForTheWorld",
@@ -428,33 +325,8 @@ TEST_F(RootJsonDumperTest, all)
 "atomic_relaxation_data" : [],
 "mu_pair_production_data" : {
   "_typename" : "celeritas::ImportMuPairProductionTable",
-  "atomic_number" : [1, 4, 13, 29, 92],
-  "physics_vectors" : [{
-    "_typename" : "celeritas::ImportPhysics2DVector",
-    "x" : [6.90775527898214, 18.4206807439524],
-    "y" : [-6.19284873971536, 0],
-    "value" : [0, 2.43638436260562e-25]
-  }, {
-    "_typename" : "celeritas::ImportPhysics2DVector",
-    "x" : [6.90775527898214, 18.4206807439524],
-    "y" : [-6.19284873971536, 0],
-    "value" : [0, 2.25768385581701e-24]
-  }, {
-    "_typename" : "celeritas::ImportPhysics2DVector",
-    "x" : [6.90775527898214, 18.4206807439524],
-    "y" : [-6.19284873971536, 0],
-    "value" : [0, 1.89837758987408e-23]
-  }, {
-    "_typename" : "celeritas::ImportPhysics2DVector",
-    "x" : [6.90775527898214, 18.4206807439524],
-    "y" : [-6.19284873971536, 0],
-    "value" : [0, 8.65855291759754e-23]
-  }, {
-    "_typename" : "celeritas::ImportPhysics2DVector",
-    "x" : [6.90775527898214, 18.4206807439524],
-    "y" : [-6.19284873971536, 0],
-    "value" : [0, 7.93413967608228e-22]
-  }]
+  "atomic_number" : [],
+  "physics_vectors" : []
 },
 "em_params" : {
   "_typename" : "celeritas::ImportEmParameters",
@@ -503,11 +375,9 @@ TEST_F(RootJsonDumperTest, all)
   "_typename" : "celeritas::ImportOpticalParameters",
   "scintillation_by_particle" : false
 },
-"optical_models" : [],
-"optical_materials" : [],
 "units" : "cgs"
 })json",
-            os.str());
+            str);
     }
 }
 

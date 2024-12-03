@@ -124,17 +124,20 @@ details on coding in Celeritas, and [the administration guidelines][administrati
 | **doc**       | Code documentation and manual                         |
 | **example**   | Example applications and input files                  |
 | **external**  | Automatically fetched external CMake dependencies     |
-| **interface** | Wrapper interfaces to Celeritas library functions     |
 | **scripts**   | Development and continuous integration helper scripts |
 | **src**       | Library source code                                   |
 | **test**      | Unit tests                                            |
 
 # Citing Celeritas
 
-If using Celeritas in your work, we ask that you cite the code using its
-[DOECode](https://www.osti.gov/doecode/biblio/94866) registration:
+If using Celeritas in your work, we ask that you cite the following article:
 
-> Seth R. Johnson, Amanda Lund, Soon Yung Jun, Stefano Tognini, Guilherme Lima, Paul Romano, Philippe Canal, Ben Morgan, and Tom Evans. “Celeritas,” July 2022. https://doi.org/10.11578/dc.20221011.1.
+> Johnson, Seth R., Amanda Lund, Philippe Canal, Stefano C. Tognini, Julien Esseiva, Soon Yung Jun, Guilherme Lima, et al. 2024. “Celeritas: Accelerating Geant4 with GPUs.” EPJ Web of Conferences 295:11005. https://doi.org/10.1051/epjconf/202429511005.
+
+See also its [DOECode](https://www.osti.gov/doecode/biblio/94866) registration:
+
+> Johnson, Seth R., Amanda Lund, Soon Yung Jun, Stefano Tognini, Guilherme Lima, Philippe Canal, Ben Morgan, Tom Evans, and Julien Esseiva. 2022. “Celeritas.” https://doi.org/10.11578/dc.20221011.1.
 
 A continually evolving list of works authored by (or with content authored by)
-core team members is available in our [citation file](doc/_static/celeritas.bib).
+core team members is continually updated at [our publications page](https://github.com/celeritas-project/celeritas/blob/doc/gh-pages-base/publications.md)
+and displayed on [the official project web site](https://celeritas.ornl.gov/).
