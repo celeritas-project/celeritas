@@ -166,6 +166,7 @@ void MuPairProductionModel::build_table(
 
     // Build log Z grid
     std::vector<real_type> log_z;
+    log_z.reserve(imported.atomic_number.size());
     for (auto z : imported.atomic_number)
     {
         log_z.push_back(std::log(z));
