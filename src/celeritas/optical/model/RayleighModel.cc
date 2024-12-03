@@ -83,7 +83,7 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
 
     for (auto mat : range(OpticalMaterialId(imported_.num_materials())))
     {
-        if (input)
+        if (input_)
         {
             CELER_VALIDATE(
                 imported_.mfp(mat) || input_.imported_materials->rayleigh(mat),
