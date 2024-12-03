@@ -266,10 +266,9 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && lambda_limit > 0 && range_factor > 0 && range_factor < 1
-               && safety_factor >= 0.1
-               && step_limit_algorithm != MscStepLimitAlgorithm::size_
-               && spline_eloss_order > 0;
+               && spline_eloss_order > 0 && lambda_limit > 0
+               && range_factor > 0 && range_factor < 1 && safety_factor >= 0.1
+               && step_limit_algorithm != MscStepLimitAlgorithm::size_;
     }
 
     //! Stop early due to MSC limitation
