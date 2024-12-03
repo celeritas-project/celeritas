@@ -42,6 +42,7 @@ TEST_F(RootJsonDumperTest, all)
         ImportDataTrimmer::Input inp;
         inp.materials = true;
         inp.physics = true;
+        inp.mupp = true;
         inp.max_size = 2;
         ImportDataTrimmer trim{inp};
         trim(imported);
@@ -170,8 +171,6 @@ TEST_F(RootJsonDumperTest, all)
     "range" : 0.1
   }}]
 }],
-"optical_models" : [],
-"optical_materials" : [],
 "regions" : [{
   "_typename" : "celeritas::ImportRegion",
   "name" : "DefaultRegionForTheWorld",
@@ -325,8 +324,18 @@ TEST_F(RootJsonDumperTest, all)
 "atomic_relaxation_data" : [],
 "mu_pair_production_data" : {
   "_typename" : "celeritas::ImportMuPairProductionTable",
-  "atomic_number" : [],
-  "physics_vectors" : []
+  "atomic_number" : [1, 92],
+  "physics_vectors" : [{
+    "_typename" : "celeritas::ImportPhysics2DVector",
+    "x" : [6.90775527898214, 18.4206807439524],
+    "y" : [-6.19284873971536, 0],
+    "value" : [0, 4.0853712905423e-28, 0, 2.43638436260562e-25]
+  }, {
+    "_typename" : "celeritas::ImportPhysics2DVector",
+    "x" : [6.90775527898214, 18.4206807439524],
+    "y" : [-6.19284873971536, 0],
+    "value" : [0, 3.30246663127583e-24, 0, 7.93413967608228e-22]
+  }]
 },
 "em_params" : {
   "_typename" : "celeritas::ImportEmParameters",
@@ -375,6 +384,8 @@ TEST_F(RootJsonDumperTest, all)
   "_typename" : "celeritas::ImportOpticalParameters",
   "scintillation_by_particle" : false
 },
+"optical_models" : [],
+"optical_materials" : [],
 "units" : "cgs"
 })json",
             str);

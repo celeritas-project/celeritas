@@ -99,6 +99,7 @@ class MuPairProductionTest : public InteractorHostBase,  public RootTestBase
         this->check_energy_conservation(interaction);
     }
 
+    //! \note These tests use a trimmed element table
     std::string_view geometry_basename() const final
     {
         return "four-steel-slabs";
@@ -171,11 +172,11 @@ TEST_F(MuPairProductionTest, distribution)
     }
 
     static int const expected_counters[] = {
-        81,  1008, 2263, 2737, 2030, 1137, 489,  179, 61,  10, 5, 0,
-        211, 932,  1925, 2521, 2144, 1458, 553,  194, 42,  16, 4, 0,
-        175, 824,  1609, 2169, 2125, 1657, 972,  352, 94,  19, 3, 1,
-        166, 809,  1542, 2019, 2029, 1732, 1071, 464, 144, 18, 6, 0,
-        166, 795,  1527, 1973, 1973, 1622, 1136, 570, 198, 36, 4, 0,
+        162, 1066, 2154, 2691, 2020, 1115, 518,  196, 60,  13, 5, 0,
+        270, 931,  1869, 2496, 2103, 1514, 534,  212, 51,  15, 5, 0,
+        208, 811,  1608, 2146, 2099, 1668, 947,  387, 101, 20, 3, 2,
+        203, 782,  1564, 1987, 2015, 1717, 1058, 489, 161, 16, 8, 0,
+        197, 767,  1548, 1948, 1965, 1607, 1116, 605, 200, 43, 4, 0,
     };
     static double const expected_min_energy[] = {
         1.0219978922,
@@ -192,18 +193,18 @@ TEST_F(MuPairProductionTest, distribution)
         9999703.2353964,
     };
     static double const expected_avg_energy[] = {
-        11.385403357084,
-        41.361523802727,
-        206.98208714495,
-        1020.1219188343,
-        5577.8316473924,
+        11.551429194638,
+        42.5605253686,
+        216.32003549047,
+        1093.2367878798,
+        6041.1513546243,
     };
     static double const expected_avg_energy_fraction[] = {
-        0.50423912447367,
-        0.50100207981952,
-        0.49755643023702,
-        0.50541882095067,
-        0.50104378127586,
+        0.50427974126835,
+        0.50112476955009,
+        0.49759901188728,
+        0.50543113944062,
+        0.50102592483879,
     };
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
@@ -259,10 +260,10 @@ TEST_F(MuPairProductionTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     static double const expected_pair_energy[] = {
-        5.2112020993966,
-        21.243525659788,
-        38.579822017652,
-        1.5718174636183,
+        5.1981351222035,
+        21.411122079708,
+        39.340205211007,
+        1.2067098240449,
     };
     static double const expected_costheta[] = {
         0.99992128683238,
@@ -351,22 +352,22 @@ TEST_F(MuPairProductionTest, stress_test)
     // Gold values for average number of calls to RNG
     static double const expected_avg_engine_samples[] = {10, 10, 10, 10, 10};
     static double const expected_avg_electron_energy[] = {
-        5.8576412144715,
-        20.252555954228,
-        94.180558565793,
-        520.94052936516,
-        2639.6476941083,
+        5.9452433822303,
+        20.776282536509,
+        98.201429477115,
+        555.92710681765,
+        2855.9810205079,
     };
     static double const expected_avg_positron_energy[] = {
-        5.7794889335716,
-        20.927588166876,
-        96.754501610176,
-        514.01049205226,
-        2615.657078881,
+        5.8651456808897,
+        21.483133310816,
+        100.92564951414,
+        546.95048450797,
+        2824.7431627774,
     };
     static double const expected_avg_costheta[] = {
-        0.94178280083313,
-        0.99880165150942,
+        0.94178280008365,
+        0.99880165151034,
         0.99998776687485,
         0.99999983141391,
         0.99999999832285,
