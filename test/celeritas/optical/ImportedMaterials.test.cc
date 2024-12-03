@@ -69,8 +69,7 @@ TEST_F(ImportedMaterialsTest, simple)
             EXPECT_EQ(expected_wls.mean_num_photons,
                       imported_wls.mean_num_photons);
             EXPECT_EQ(expected_wls.time_constant, imported_wls.time_constant);
-            check_physics_vector(expected_wls.component,
-                                 imported_wls.component);
+            EXPECT_GRID_EQ(expected_wls.component, imported_wls.component);
         }
     }
 }

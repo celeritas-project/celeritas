@@ -69,7 +69,7 @@ class ModelImporterTest : public OpticalMockTestBase
                      == this->imported_data().optical_models.end());
 
         // Build imported tables
-        GridStorage storage;
+        OwningGridAccessor storage;
         auto mfp_builder = storage.create_mfp_builder();
         for (auto mat : range(
                  OpticalMaterialId{this->optical_material()->num_materials()}))
@@ -78,9 +78,8 @@ class ModelImporterTest : public OpticalMockTestBase
         }
 
         // Check tables (i.e. models have correct data after being built)
-        storage.check_built_table(expected_iter->mfp_table,
-                                  mfp_builder.grid_ids(),
-                                  GridValidator::Exact);
+        EXPECT_TABLE_EQ(expected_iter->mfp_table,
+                        storage(mfp_builder.grid_ids()));
     }
 };
 
