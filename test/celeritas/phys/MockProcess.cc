@@ -78,11 +78,12 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
     {
         auto eloss_rate = native_value_to<units::MevEnergy>(
             native_value_from(data_.energy_loss) * numdens);
+
         builders[ValueGridType::energy_loss]
             = std::make_unique<ValueGridLogBuilder>(
                 applic.lower.value(),
                 applic.upper.value(),
-                VecDbl{eloss_rate.value(), eloss_rate.value()});
+                VecDbl(3, eloss_rate.value()));
 
         builders[ValueGridType::range] = std::make_unique<ValueGridLogBuilder>(
             applic.lower.value(),
