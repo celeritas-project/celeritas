@@ -81,7 +81,7 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
         wls_record.push_back(record);
 
         // Calculate the WLS cumulative probability of the emission spectrum
-        std::vector<real_type> cdf(comp_vec.x.size());
+        std::vector<double> cdf(comp_vec.x.size());
 
         CELER_ASSERT(comp_vec.y[0] > 0);
         // The value of cdf at the low edge is zero by default
@@ -89,7 +89,7 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
         for (size_type i = 1; i < comp_vec.x.size(); ++i)
         {
             cdf[i] = cdf[i - 1]
-                     + real_type(0.5) * (comp_vec.x[i] - comp_vec.x[i - 1])
+                     + 0.5 * (comp_vec.x[i] - comp_vec.x[i - 1])
                            * (comp_vec.y[i] + comp_vec.y[i - 1]);
         }
 
