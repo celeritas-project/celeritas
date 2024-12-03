@@ -184,6 +184,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(secondary_stack_factor);
+    LDIO_SAVE_OPTION(spline_eloss_order);
     LDIO_SAVE(use_device);
     LDIO_SAVE(action_times);
     LDIO_SAVE(merge_events);
