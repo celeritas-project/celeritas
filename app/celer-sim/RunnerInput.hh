@@ -55,15 +55,17 @@ struct RunnerInput
 
     struct OpticalOptions
     {
+        // Sizes are divided among streams
+        size_type num_track_slots{};  //!< Number of optical loop tracks slots
         size_type buffer_capacity{};  //!< Number of steps that created photons
-        size_type primary_capacity{};  //!< Maximum number of pending primaries
+        size_type initializer_capacity{};  //!< Maximum queued tracks
         size_type auto_flush{};  //!< Threshold number of primaries for
                                  //!< launching optical tracking loop
 
         explicit operator bool() const
         {
-            return buffer_capacity > 0 && primary_capacity > 0
-                   && auto_flush > 0;
+            return num_track_slots > 0 && buffer_capacity > 0
+                   && initializer_capacity > 0 && auto_flush > 0;
         };
     };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }

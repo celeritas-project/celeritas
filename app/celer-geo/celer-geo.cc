@@ -132,6 +132,7 @@ void run_trace(Runner& run_trace,
         std::ofstream image_file(trace_setup.bin_file, std::ios::binary);
         std::vector<int> image_data(img_params.num_pixels());
         image->copy_to_host(make_span(image_data));
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         image_file.write(reinterpret_cast<char const*>(image_data.data()),
                          image_data.size() * sizeof(int));
     }

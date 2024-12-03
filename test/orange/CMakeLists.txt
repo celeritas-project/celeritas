@@ -60,7 +60,7 @@ celeritas_add_test(detail/UniverseIndexer.test.cc)
 
 # Bounding interval hierarchy
 celeritas_add_test(detail/BIHBuilder.test.cc)
-celeritas_add_test(detail/BIHTraverser.test.cc)
+celeritas_add_test(detail/BIHEnclosingVolFinder.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
 
 # Oriented Bounding Zone

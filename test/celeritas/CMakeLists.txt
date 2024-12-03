@@ -120,10 +120,17 @@ celeritas_add_test(Constants.test.cc
 celeritas_add_test(Units.test.cc)
 
 #-----------------------------------------------------------------------------#
+# Decay
+
+# Muon
+celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
+
+#-----------------------------------------------------------------------------#
 # EM
 
 # Distributions
 celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
+celeritas_add_test(em/distribution/MuBremsPPAngularDistribution.test.cc ${_needs_double})
 celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Cross section calculation
@@ -279,6 +286,7 @@ celeritas_add_test(grid/GenericCalculator.test.cc)
 celeritas_add_test(grid/GenericGridBuilder.test.cc)
 celeritas_add_test(grid/GenericGridInserter.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
+celeritas_add_test(grid/InverseCdfFinder.test.cc)
 celeritas_add_test(grid/InverseRangeCalculator.test.cc)
 celeritas_add_test(grid/PolyEvaluator.test.cc)
 celeritas_add_test(grid/RangeCalculator.test.cc)
@@ -305,6 +313,7 @@ celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
+celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/MockValidation.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -419,14 +428,18 @@ celeritas_add_test(user/StepCollector.test.cc
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-set(_root_data)
+add_custom_target(update-root-test-data
+  COMMENT "Regenerate ROOT test data"
+)
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")
     add_custom_command(
-      OUTPUT "${_output}"
+      TARGET update-root-test-data
+      POST_BUILD
       DEPENDS
         celer-export-geant
         "${_gdml}"
@@ -441,13 +454,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "--gen-test"
       VERBATIM
     )
-    list(APPEND _root_data "${_output}")
   endforeach()
 endif()
-
-add_custom_target(update-root-test-data
-  COMMENT "Regenerate ROOT test data"
-  DEPENDS ${_root_data}
-)
 
 #-----------------------------------------------------------------------------#

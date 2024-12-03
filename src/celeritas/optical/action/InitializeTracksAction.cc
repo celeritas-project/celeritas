@@ -102,7 +102,7 @@ void InitializeTracksAction::step_impl(CoreParams const& params,
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
-    for (size_type i = 0; i != num_new_tracks; ++i)
+    for (size_type i = 0; i < num_new_tracks; ++i)
     {
         CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
     }

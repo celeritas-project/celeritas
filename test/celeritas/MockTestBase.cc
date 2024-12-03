@@ -9,8 +9,8 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"

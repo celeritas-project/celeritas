@@ -28,10 +28,12 @@ InteractorHostTestBase::InteractorHostTestBase()
 {
     using namespace constants;
     using namespace units;
+    using InvSecond = Quantity<UnitInverse<Second>>;
     constexpr auto zero = zero_quantity();
 
     constexpr MevMass emass{0.5109989461};
     constexpr MevMass mumass{105.6583745};
+    constexpr InvSecond mu_decay_constant{1 / 2.1969811e-6};
 
     // Default particle params
     ParticleParams::Input par_inp = {
@@ -50,12 +52,12 @@ InteractorHostTestBase::InteractorHostTestBase()
          pdg::mu_minus(),
          mumass,
          ElementaryCharge{-1},
-         stable_decay_constant},
+         native_value_from(mu_decay_constant)},
         {"mu_plus",
          pdg::mu_plus(),
          mumass,
          ElementaryCharge{1},
-         stable_decay_constant},
+         native_value_from(mu_decay_constant)},
     };
     this->set_particle_params(std::move(par_inp));
 

@@ -102,7 +102,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
 
   add_test(NAME "app/celer-sim-${test_ext}:cpu"
     COMMAND "${CELER_PYTHON}"
-    "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${mctruth_out}"
+    "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
   )
   set(_env
     "CELERITAS_EXE=$<TARGET_FILE:celer-sim>"

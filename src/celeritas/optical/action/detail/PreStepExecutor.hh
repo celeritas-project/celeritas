@@ -47,7 +47,8 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
 
     CELER_ASSERT(sim.status() == TrackStatus::initializing
                  || sim.status() == TrackStatus::alive);
-    sim.status(TrackStatus::alive);
+    //! \todo Set to alive when loop is implemented; for now just kill tracks
+    sim.status(TrackStatus::inactive);
 }
 
 //---------------------------------------------------------------------------//

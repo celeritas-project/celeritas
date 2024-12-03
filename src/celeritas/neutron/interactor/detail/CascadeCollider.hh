@@ -12,10 +12,12 @@
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/grid/TwodGridData.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/InverseCdfFinder.hh"
 #include "celeritas/phys/FourVector.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
@@ -47,7 +49,6 @@ class CascadeCollider
     //!@{
     //! \name Type aliases
     using FinalState = Array<CascadeParticle, 2>;
-    using MevMass = units::MevMass;
     //!@}
 
   public:
@@ -63,6 +64,8 @@ class CascadeCollider
   private:
     //// TYPES ////
 
+    using Mass = units::MevMass;
+    using Momentum = units::MevMomentum;
     using Grid = NonuniformGrid<real_type>;
     using UniformRealDist = UniformRealDistribution<real_type>;
 
@@ -143,22 +146,10 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
 
     if (kin_energy_ < energy_grid.back())
     {
-        // Find cos\theta from tabulated angular data for a given c.d.f.
-        Grid cos_grid(cdf_grid.y, shared_.reals);
-        TwodGridCalculator calc_cdf(cdf_grid, shared_.reals);
-
-        size_type idx = cos_grid.size() - 2;
-        real_type cdf_upper = 0;
-        real_type cdf_lower = 1;
-
-        do
-        {
-            cdf_upper = cdf_lower;
-            cdf_lower = calc_cdf({kin_energy_, cos_grid[idx]});
-        } while (cdf_lower > cdf && idx-- > 0);
-
-        real_type frac = (cdf - cdf_lower) / (cdf_upper - cdf_lower);
-        cos_theta = fma(frac, cos_grid[idx + 1] - cos_grid[idx], cos_grid[idx]);
+        // Find cos\theta from tabulated angular data for a given CDF
+        cos_theta = InverseCdfFinder(
+            Grid(cdf_grid.y, shared_.reals),
+            TwodGridCalculator(cdf_grid, shared_.reals)(kin_energy_))(cdf);
     }
     else
     {
@@ -168,12 +159,11 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     }
 
     // Sample the momentum of outgoing particles in the center of mass frame
-    Real3 mom = cm_p_ * from_spherical(cos_theta, sample_phi_(rng));
-
     // Rotate the momentum along the reference z-axis
-    FourVector fv = {mom,
-                     std::sqrt(dot_product(mom, mom)
-                               + ipow<2>(value_as<MevMass>(bullet_.mass)))};
+    auto fv = FourVector::from_mass_momentum(
+        bullet_.mass,
+        Momentum{cm_p_},
+        from_spherical(cos_theta, sample_phi_(rng)));
 
     // Find the final state of outgoing particles
     FinalState result = {bullet_, target_};
@@ -204,14 +194,12 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     }
     else
     {
-        // Degenerated if velocity perpendicular to the c.m. momentum is small
+        // Degenerate if velocity perpendicular to the c.m. momentum is small
         result[0].four_vec = fv;
     }
 
-    result[1].four_vec
-        = {{-result[0].four_vec.mom},
-           std::sqrt(dot_product(mom, mom)
-                     + ipow<2>(value_as<MevMass>(target_.mass)))};
+    result[1].four_vec = {{-result[0].four_vec.mom},
+                          hypot(cm_p_, value_as<Mass>(target_.mass))};
 
     // Convert the final state to the lab frame
     for (auto i : range(2))
@@ -232,8 +220,8 @@ CELER_FUNCTION real_type CascadeCollider::calc_cm_p(FourVector const& v) const
     // The total energy in c.m.
     real_type m0 = norm(v);
 
-    real_type m1 = value_as<MevMass>(bullet_.mass);
-    real_type m2 = value_as<MevMass>(target_.mass);
+    real_type m1 = value_as<Mass>(bullet_.mass);
+    real_type m2 = value_as<Mass>(target_.mass);
 
     real_type pc_sq = diffsq(m0, m1 - m2) * diffsq(m0, m1 + m2);
 

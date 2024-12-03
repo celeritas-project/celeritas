@@ -28,9 +28,10 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct the unioned "interior" of a polysolid
 template<class T>
-[[nodiscard]] NodeId construct_segments(PolySolidBase const& base,
-                                        T&& build_region,
-                                        detail::VolumeBuilder& vb)
+[[nodiscard]] NodeId construct_segments(
+    PolySolidBase const& base,
+    T&& build_region,  // NOLINT(cppcoreguidelines-missing-std-forward)
+    detail::VolumeBuilder& vb)
 {
     std::string const label{base.label()};
     auto const& segments = base.segments();

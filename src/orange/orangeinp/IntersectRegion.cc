@@ -407,7 +407,7 @@ GenPrism GenPrism::from_trap(
  * Construct from half Z height and 1-4 vertices for top and bottom planes.
  */
 GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
-    : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
+    : hz_{halfz}, lo_{lo}, hi_{hi}
 {
     CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
     CELER_VALIDATE(lo_.size() >= 3,

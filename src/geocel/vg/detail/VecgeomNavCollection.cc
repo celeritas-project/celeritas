@@ -102,8 +102,9 @@ auto VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
     -> VecgeomNavCollection&
 {
     CELER_ASSERT(other);
-    pool_view = vecgeom::NavStatePoolView{
-        (char*)other.ptr, other.max_depth, (int)other.size};
+    pool_view = vecgeom::NavStatePoolView{static_cast<char*>(other.ptr),
+                                          other.max_depth,
+                                          static_cast<int>(other.size)};
     return *this;
 }
 

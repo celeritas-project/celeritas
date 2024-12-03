@@ -238,42 +238,49 @@ TEST_F(NeutronElasticTest, extended)
     RandomEngine& rng_engine = this->rng();
 
     // Produce four samples from the original incident energy/dir
-    std::vector<real_type> const expected_energy = {9.9158593229731196e-06,
-                                                    9.3982652856539062e-05,
-                                                    0.00098086065952429635,
-                                                    0.0098830010231267806,
-                                                    0.093829689366657476,
-                                                    0.96350809858199682,
-                                                    9.999775621044023,
-                                                    99.910768471827168,
-                                                    999.98224958135802,
-                                                    9999.9796839871542};
-    std::vector<real_type> const expected_angle = {0.73642517015232023,
-                                                   -0.93575721388581845,
-                                                   0.39720848171626949,
-                                                   0.63289309823793916,
-                                                   -0.98646693371059246,
-                                                   -0.15892409193659782,
-                                                   0.99930375891282708,
-                                                   0.97355882843189279,
-                                                   0.99963860089317569,
-                                                   0.99998997488584618};
+    std::vector<real_type> energy;
+    std::vector<real_type> angle;
 
-    real_type energy = 1e-5;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_energy.size()))
+    for (auto i : range(10))
     {
-        this->set_inc_particle(pdg::neutron(), MevEnergy{energy});
+        MevEnergy const inc_energy{
+            std::pow(real_type{10}, static_cast<real_type>(-5 + 1 * i))};
+        this->set_inc_particle(pdg::neutron(), inc_energy);
         ChipsNeutronElasticInteractor interact(
             shared, this->particle_track(), this->direction(), isotope_he4);
         Interaction result = interact(rng_engine);
 
         // Check scattered energy and angle at each incident neutron energy
-        EXPECT_SOFT_EQ(result.energy.value(), expected_energy[i]);
-        EXPECT_SOFT_EQ(dot_product(result.direction, this->direction()),
-                       expected_angle[i]);
-        energy *= factor;
+        energy.push_back(value_as<MevEnergy>(result.energy));
+        angle.push_back(dot_product(result.direction, this->direction()));
     }
+
+    static double const expected_energy[] = {
+        9.9158593229731e-06,
+        9.3982652856539e-05,
+        0.0009808606595243,
+        0.0098830010231268,
+        0.093829689366657,
+        0.963508098582,
+        9.999775621044,
+        99.910768471827,
+        999.98224958136,
+        9999.9796839872,
+    };
+    static double const expected_angle[] = {
+        0.73642517015232,
+        -0.93575721388582,
+        0.39720848171627,
+        0.63289309823794,
+        -0.98646693371059,
+        -0.1589240919366,
+        0.99930375891283,
+        0.97355882843189,
+        0.99963860089318,
+        0.99998997488585,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
 }
 
 TEST_F(NeutronElasticTest, stress_test)
@@ -291,18 +298,8 @@ TEST_F(NeutronElasticTest, stress_test)
     RandomEngine& rng_engine = this->rng();
 
     // Produce samples from the incident energy
-    std::vector<real_type> neutron_energy;
-    real_type const expected_energy[] = {9.6937900401599116e-05,
-                                         0.0096967590954386649,
-                                         0.96066635424842617,
-                                         99.915949160022208,
-                                         9999.9519447032781};
-    std::vector<real_type> cos_theta;
-    real_type const expected_angle[] = {-0.0062993051693811574,
-                                        0.0036712145032221713,
-                                        -0.29680452456419526,
-                                        0.97426025128623828,
-                                        0.9999755334707946};
+    std::vector<real_type> energy;
+    std::vector<real_type> angle;
 
     int const num_sample = 100;
     real_type const weight = 1.0 / static_cast<real_type>(num_sample);
@@ -327,10 +324,28 @@ TEST_F(NeutronElasticTest, stress_test)
             rng_engine.reset_count();
         }
         avg_rng_samples.push_back(sum_count / num_sample);
-        EXPECT_SOFT_EQ(weight * sum_energy, expected_energy[i]);
-        EXPECT_SOFT_EQ(weight * sum_angle, expected_angle[i]);
+        energy.push_back(weight * sum_energy);
+        angle.push_back(weight * sum_angle);
     }
+
+    static double const expected_energy[] = {
+        9.6937900401599e-05,
+        0.0096967590954387,
+        0.96066635424843,
+        99.915949160022,
+        9999.9519447033,
+    };
+    static double const expected_angle[] = {
+        -0.0062993051693812,
+        0.0036712145032222,
+        -0.2968045245642,
+        0.97426025128624,
+        0.99997553347079,
+    };
     static int const expected_avg_rng_samples[] = {4, 4, 6, 6, 6};
+
+    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_EQ(expected_avg_rng_samples, avg_rng_samples);
 }
 

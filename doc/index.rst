@@ -141,6 +141,7 @@ configuration attributes.
    implementation/core-physics.rst
    implementation/em-physics.rst
    implementation/optical-physics.rst
+   implementation/decay-physics.rst
    implementation/geant4-interface.rst
 
 
