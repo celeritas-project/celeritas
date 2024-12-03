@@ -16,22 +16,9 @@ namespace test
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 /*!
- * Compare expected and actual \c ImportPhysicsVector expecting them to be
- * exactly equal.
- */
-void check_physics_vector(ImportPhysicsVector const& expected,
-                          ImportPhysicsVector const& actual)
-{
-    EXPECT_EQ(expected.vector_type, actual.vector_type);
-    EXPECT_VEC_EQ(expected.x, actual.x);
-    EXPECT_VEC_EQ(expected.y, actual.y);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct validator for with the underlying storage.
  */
-GridValidator::GridValidator(Items<real_type>* reals, Items<Grid>* grids)
+GridAccessor::GridAccessor(Items<real_type>* reals, Items<Grid>* grids)
     : reals_(reals), grids_(grids)
 {
     CELER_EXPECT(reals_);
@@ -40,72 +27,54 @@ GridValidator::GridValidator(Items<real_type>* reals, Items<Grid>* grids)
 
 //---------------------------------------------------------------------------//
 /*!
- * Check the imported data is built under the given grid ID range.
+ * Retrieve a span of reals built on the storage.
  */
-void GridValidator::check_built_table(ImportPhysicsTable const& table,
-                                      ItemRange<Grid> grid_ids,
-                                      Softness soft)
+Span<real_type const>
+GridAccessor::operator()(ItemRange<real_type> const& real_ids) const
 {
-    ASSERT_EQ(table.size(), grid_ids.size());
-
-    for (auto i : range(grid_ids.size()))
-    {
-        this->check_built_grid(table[i], grid_ids[i], soft);
-    }
+    CELER_EXPECT(real_ids.front() < real_ids.back());
+    CELER_EXPECT(real_ids.back() < reals_->size());
+    return (*reals_)[real_ids];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Check the imported data is built under the given ID range.
+ * Retrieve a table of grid views built on the storage.
+ *
+ * Each grid view is a pair of spans representing the grid and value of a
+ * \c GenericGridRecord.
  */
-void GridValidator::check_built_grid(ImportPhysicsVector const& expected,
-                                     GridId grid_id,
-                                     Softness soft)
+auto GridAccessor::operator()(ItemRange<Grid> grid_ids) const
+    -> std::vector<GridView>
 {
-    ASSERT_LT(grid_id, grids_->size());
-    Grid const& grid = (*grids_)[grid_id];
-    ASSERT_TRUE(grid);
+    std::vector<GridView> grids;
+    grids.reserve(grid_ids.size());
 
-    this->check_built_vector(expected.x, grid.grid, soft);
-    this->check_built_vector(expected.y, grid.value, soft);
+    for (GridId grid_id : grid_ids)
+    {
+        CELER_EXPECT(grid_id < grids_->size());
+        auto const& grid = (*grids_)[grid_id];
+        CELER_EXPECT(grid);
+        grids.emplace_back((*this)(grid.grid), (*this)(grid.value));
+    }
+
+    return grids;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct an MFP builder with the underlying collections.
  */
-MfpBuilder GridValidator::create_mfp_builder()
+MfpBuilder GridAccessor::create_mfp_builder()
 {
     return MfpBuilder(reals_, grids_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Check the imported data is built in the given data range.
- */
-void GridValidator::check_span(Span<real_type const> const& t,
-                               ItemRange<real_type> const& real_ids,
-                               Softness soft)
-{
-    ASSERT_LT(real_ids.front(), real_ids.back());
-    ASSERT_LT(real_ids.back(), reals_->size());
-
-    switch (soft)
-    {
-        case Soft:
-            EXPECT_VEC_SOFT_EQ(t, (*reals_)[real_ids]);
-            break;
-        case Exact:
-            EXPECT_VEC_EQ(t, (*reals_)[real_ids]);
-            break;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with internal collections.
  */
-GridStorage::GridStorage() : GridValidator(&reals_, &grids_) {}
+OwningGridAccessor::OwningGridAccessor() : GridAccessor(&reals_, &grids_) {}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -152,7 +152,7 @@ void ImageWriter::operator()(Span<Color const> colors)
         *iter++ = c.channel(Color::Channel::green);
         *iter++ = c.channel(Color::Channel::blue);
     }
-
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     png_write_row(impl_->png, reinterpret_cast<png_byte*>(row_buffer_.data()));
 
     ++rows_written_;

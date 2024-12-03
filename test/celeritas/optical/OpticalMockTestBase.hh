@@ -40,7 +40,7 @@ class OpticalMockTestBase : public GlobalTestBase
     ImportOpticalModel const& import_model_by_class(ImportModelClass) const;
 
     //! Number of mock optical materials
-    inline OpticalMaterialId::size_type num_optical_materials() const
+    OpticalMaterialId::size_type num_optical_materials() const
     {
         return this->imported_data().optical_materials.size();
     }

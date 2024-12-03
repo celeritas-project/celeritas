@@ -10,6 +10,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <G4BooleanSolid.hh>
 #include <G4Box.hh>
@@ -191,7 +192,7 @@ auto make_solid(G4VSolid const& solid,
                 SolidEnclosedAngle&& enclosed)
 {
     return Solid<CR>::or_shape(std::string{solid.GetName()},
-                               std::move(interior),
+                               std::forward<CR>(interior),
                                std::move(excluded),
                                std::move(enclosed));
 }

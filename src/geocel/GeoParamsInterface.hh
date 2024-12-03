@@ -127,7 +127,7 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
 
   public:
     // Default destructor
-    virtual ~GeoParamsSurfaceInterface() = 0;
+    ~GeoParamsSurfaceInterface() override = 0;
 
     using GeoParamsInterface::id_to_label;
 

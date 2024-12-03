@@ -17,6 +17,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/InverseCdfFinder.hh"
 #include "celeritas/phys/FourVector.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
@@ -145,22 +146,10 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
 
     if (kin_energy_ < energy_grid.back())
     {
-        // Find cos\theta from tabulated angular data for a given c.d.f.
-        Grid cos_grid(cdf_grid.y, shared_.reals);
-        TwodGridCalculator calc_cdf(cdf_grid, shared_.reals);
-
-        size_type idx = cos_grid.size() - 2;
-        real_type cdf_upper = 0;
-        real_type cdf_lower = 1;
-
-        do
-        {
-            cdf_upper = cdf_lower;
-            cdf_lower = calc_cdf({kin_energy_, cos_grid[idx]});
-        } while (cdf_lower > cdf && idx-- > 0);
-
-        real_type frac = (cdf - cdf_lower) / (cdf_upper - cdf_lower);
-        cos_theta = fma(frac, cos_grid[idx + 1] - cos_grid[idx], cos_grid[idx]);
+        // Find cos\theta from tabulated angular data for a given CDF
+        cos_theta = InverseCdfFinder(
+            Grid(cdf_grid.y, shared_.reals),
+            TwodGridCalculator(cdf_grid, shared_.reals)(kin_energy_))(cdf);
     }
     else
     {

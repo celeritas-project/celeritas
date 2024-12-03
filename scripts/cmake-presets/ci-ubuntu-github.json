@@ -77,9 +77,9 @@
       "inherits": ["spack"]
     },
     {
-      "name": "reldeb-orange-clang-tidy",
+      "name": "reldeb-vecgeom-clang-tidy",
       "description": "Build with ORANGE and clang-tidy checks",
-      "inherits": ["spack"],
+      "inherits": ["spack", ".vecgeom"],
       "cacheVariables": {
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},

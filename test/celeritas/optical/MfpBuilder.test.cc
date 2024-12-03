@@ -32,9 +32,9 @@ class MfpBuilderTest : public OpticalMockTestBase
 // Check MFP tables are built with correct structure from imported data
 TEST_F(MfpBuilderTest, construct_tables)
 {
-    GridStorage storage;
+    OwningGridAccessor storage;
 
-    std::vector<ItemRange<GridStorage::Grid>> tables;
+    std::vector<ItemRange<OwningGridAccessor::Grid>> tables;
     auto const& models = this->imported_data().optical_models;
 
     // Build MFP tables from imported data
@@ -55,8 +55,7 @@ TEST_F(MfpBuilderTest, construct_tables)
     // Check each MFP table has been built correctly
     for (auto table_id : range(tables.size()))
     {
-        storage.check_built_table(
-            models[table_id].mfp_table, tables[table_id], GridValidator::Exact);
+        EXPECT_TABLE_EQ(models[table_id].mfp_table, storage(tables[table_id]));
     }
 }
 

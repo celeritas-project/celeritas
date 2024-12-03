@@ -21,15 +21,6 @@ namespace test
 //---------------------------------------------------------------------------//
 // UNITS
 //---------------------------------------------------------------------------//
-struct ElectronVolt
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return units::Mev::value() / 1e6;
-    }
-    static char const* label() { return "eV"; }
-};
-
 struct Kelvin
 {
     static CELER_CONSTEXPR_FUNCTION real_type value() { return units::kelvin; }
@@ -58,7 +49,7 @@ struct MeterCubedPerMeV
  */
 template<class GridUnit, class ValueUnit>
 ImportPhysicsVector
-physics_vector_expressed_as(std::vector<double> xs, std::vector<double> ys)
+native_physics_vector_from(std::vector<double> xs, std::vector<double> ys)
 {
     CELER_EXPECT(xs.size() == ys.size());
     ImportPhysicsVector v{
@@ -66,12 +57,12 @@ physics_vector_expressed_as(std::vector<double> xs, std::vector<double> ys)
     for (double& x : v.x)
     {
         x = value_as<units::MevEnergy>(native_value_to<units::MevEnergy>(
-            native_value_from(Quantity<GridUnit>{x})));
+            native_value_from(Quantity<GridUnit>(x))));
     }
 
     for (double& y : v.y)
     {
-        y = native_value_from(Quantity<ValueUnit>{y});
+        y = native_value_from(Quantity<ValueUnit>(y));
     }
 
     return v;
@@ -83,14 +74,14 @@ physics_vector_expressed_as(std::vector<double> xs, std::vector<double> ys)
  * \c ImportPhysicsVector.
  */
 template<class GridUnit, class ValueUnit>
-std::vector<ImportPhysicsVector> physics_table_expressed_as(
+std::vector<ImportPhysicsVector> native_physics_table_from(
     std::vector<std::tuple<std::vector<double>, std::vector<double>>> data)
 {
     std::vector<ImportPhysicsVector> table;
     table.reserve(data.size());
     for (auto&& arrs : data)
     {
-        table.push_back(physics_vector_expressed_as<GridUnit, ValueUnit>(
+        table.push_back(native_physics_vector_from<GridUnit, ValueUnit>(
             std::move(std::get<0>(arrs)), std::move(std::get<1>(arrs))));
     }
 
@@ -132,7 +123,8 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
     ::celeritas::MaterialParams::Input input;
 
     static constexpr auto material_temperatures
-        = expressed_as<Quantity<Kelvin>>(283.15, 300.0, 283.15, 200., 300.0);
+        = native_array_from<Quantity<Kelvin>>(
+            283.15, 300.0, 283.15, 200., 300.0);
 
     // Unused element - only to pass checks
     input.elements.push_back(::celeritas::MaterialParams::ElementInput{
@@ -149,7 +141,7 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
             std::to_string(i).c_str()});
 
         // mock MaterialId == OpticalMaterialId
-        input.mat_to_optical.push_back(OpticalMaterialId{i});
+        input.mat_to_optical.push_back(OpticalMaterialId(i));
     }
 
     return std::make_shared<::celeritas::MaterialParams const>(
@@ -180,10 +172,10 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
 
     // Build mock imported optical materials
     {
-        data.optical_materials = std::vector<ImportOpticalMaterial>(5);
+        data.optical_materials.resize(5);
 
         data.optical_materials[0].properties.refractive_index
-            = physics_vector_expressed_as<ElectronVolt, units::Native>(
+            = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1.098177, 1.256172, 1.484130},
                 {1.3235601610672, 1.3256740639273, 1.3280120256415});
         data.optical_materials[0].rayleigh.scale_factor = 1;
@@ -191,7 +183,7 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
             = native_value_from(Quantity<MeterCubedPerMeV>{7.658e-23});
 
         data.optical_materials[1].properties.refractive_index
-            = physics_vector_expressed_as<ElectronVolt, units::Native>(
+            = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1.098177, 1.256172, 1.484130},
                 {1.3235601610672, 1.3256740639273, 1.3280120256415});
         data.optical_materials[1].rayleigh.scale_factor = 1.7;
@@ -199,21 +191,21 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
             = native_value_from(Quantity<MeterCubedPerMeV>{4.213e-24});
 
         data.optical_materials[2].properties.refractive_index
-            = physics_vector_expressed_as<ElectronVolt, units::Native>(
+            = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1.098177, 6.812319}, {1.3235601610672, 1.4679465862259});
         data.optical_materials[2].rayleigh.scale_factor = 1;
         data.optical_materials[2].rayleigh.compressibility
             = native_value_from(Quantity<MeterCubedPerMeV>{7.658e-23});
 
         data.optical_materials[3].properties.refractive_index
-            = physics_vector_expressed_as<ElectronVolt, units::Native>(
+            = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1, 2, 5}, {1.3, 1.4, 1.5});
         data.optical_materials[3].rayleigh.scale_factor = 2;
         data.optical_materials[3].rayleigh.compressibility
             = native_value_from(Quantity<MeterCubedPerMeV>{1e-20});
 
         data.optical_materials[4].properties.refractive_index
-            = physics_vector_expressed_as<ElectronVolt, units::Native>(
+            = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1.098177, 6.812319}, {1.3235601610672, 1.4679465862259});
         data.optical_materials[4].rayleigh.scale_factor = 1.7;
         data.optical_materials[4].rayleigh.compressibility
@@ -222,11 +214,11 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
 
     // Build mock imported optical models
     {
-        data.optical_models = std::vector<ImportOpticalModel>(3);
+        data.optical_models.resize(3);
 
         data.optical_models[0].model_class = ImportModelClass::absorption;
         data.optical_models[0].mfp_table
-            = physics_table_expressed_as<units::Mev, units::Centimeter>({
+            = native_physics_table_from<units::Mev, units::Centimeter>({
                 {{1e-3, 1e-2}, {5.7, 9.3}},
                 {{1e-2, 3e2}, {1.2, 10.7}},
                 {{1e-2, 3e2}, {3.1, 5.4}},
@@ -236,7 +228,7 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
 
         data.optical_models[1].model_class = ImportModelClass::rayleigh;
         data.optical_models[1].mfp_table
-            = physics_table_expressed_as<units::Mev, units::Centimeter>({
+            = native_physics_table_from<units::Mev, units::Centimeter>({
                 {{1e-2, 3e2}, {5.7, 9.3}},
                 {{1e-3, 1e-2}, {1.2, 10.7}},
                 {{1e-3, 2e-3, 5e-1}, {0.1, 7.6, 12.5}},
@@ -246,7 +238,7 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
 
         data.optical_models[2].model_class = ImportModelClass::wls;
         data.optical_models[2].mfp_table
-            = physics_table_expressed_as<units::Mev, units::Centimeter>({
+            = native_physics_table_from<units::Mev, units::Centimeter>({
                 {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}},
                 {{1e-2, 3e2}, {5.7, 9.3}},
                 {{1e-2, 3e2}, {1.2, 10.7}},

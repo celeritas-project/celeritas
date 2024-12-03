@@ -9,6 +9,8 @@
 
 #include <string_view>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/InitializedValue.hh"
 
 #include "MemRegistry.hh"
@@ -56,7 +58,7 @@ class ScopedMem
     }
 
     // Register data on destruction
-    ~ScopedMem();
+    ~ScopedMem() noexcept(!CELERITAS_DEBUG);
 
     //! Prevent copying but allow moving
     CELER_DEFAULT_MOVE_DELETE_COPY(ScopedMem);
