@@ -58,7 +58,7 @@ Array<real_type, sizeof...(Args)> constexpr native_array_from(Args const&... arg
  * This overload accepts fixed size \c Arrays which clang-format handles
  * better.
  */
-template<class UnitType, size_t N>
+template<class UnitType, size_type N>
 Array<real_type, N> constexpr native_array_from(Array<real_type, N> const& arr)
 {
     return ::celeritas::testdetail::native_array_from<UnitType>(
