@@ -197,7 +197,6 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         CELER_ASSERT(grid_id);
 
         size_type order = physics.scalars().spline_eloss_order;
-        CELER_ASSERT(order > 0);
 
         if (order == 1)
         {
@@ -205,7 +204,7 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
                 = physics.make_calculator<XsCalculator>(grid_id);
             eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
         }
-        else if (order > 1)
+        else
         {
             auto calc_eloss_rate
                 = physics.make_calculator<SplineXsCalculator>(grid_id, order);
