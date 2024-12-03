@@ -35,19 +35,21 @@ class RayleighMfpCalculatorTest : public OpticalMockTestBase
 TEST_F(RayleighMfpCalculatorTest, mfp_table)
 {
     static constexpr auto expected_mfps
-        = native_array_from<units::CmLength>(1189584.7068151,
-                                             682569.13017288,
-                                             343507.60086802,
-                                             12005096.767467,
-                                             6888377.4406869,
-                                             3466623.2384762,
-                                             1189584.7068151,
-                                             277.60444893823,
-                                             11510.805603078,
-                                             322.70360179716,
-                                             4.230373664558,
-                                             12005096.767467,
-                                             2801.539271218);
+        = native_array_from<units::CmLength, 13>({
+            1189584.7068151,
+            682569.13017288,
+            343507.60086802,
+            12005096.767467,
+            6888377.4406869,
+            3466623.2384762,
+            1189584.7068151,
+            277.60444893823,
+            11510.805603078,
+            322.70360179716,
+            4.230373664558,
+            12005096.767467,
+            2801.539271218,
+        });
 
     auto core_materials = this->material();
     auto const& opt_materials = this->imported_data().optical_materials;

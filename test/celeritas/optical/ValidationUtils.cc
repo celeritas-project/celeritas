@@ -113,7 +113,7 @@ using namespace ::celeritas::test;
 /*!
  * Construct validator for with the underlying storage.
  */
-GridValidator::GridValidator(Items<real_type>* reals, Items<Grid>* grids)
+GridAccessor::GridAccessor(Items<real_type>* reals, Items<Grid>* grids)
     : reals_(reals), grids_(grids)
 {
     CELER_EXPECT(reals_);
@@ -122,9 +122,45 @@ GridValidator::GridValidator(Items<real_type>* reals, Items<Grid>* grids)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Retrieve a span of reals built on the storage.
+ */
+Span<real_type const>
+GridAccessor::operator()(ItemRange<real_type> const& real_ids) const
+{
+    CELER_EXPECT(real_ids.front() < real_ids.back());
+    CELER_EXPECT(real_ids.back() < reals_->size());
+    return (*reals_)[real_ids];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve a table of grid views built on the storage.
+ *
+ * Each grid view is a pair of spans representing the grid and value of a
+ * \c GenericGridRecord.
+ */
+auto GridAccessor::operator()(ItemRange<Grid> grid_ids) const
+    -> std::vector<GridView>
+{
+    std::vector<GridView> grids;
+    grids.reserve(grid_ids.size());
+
+    for (GridId grid_id : grid_ids)
+    {
+        CELER_EXPECT(grid_id < grids_->size());
+        auto const& grid = (*grids_)[grid_id];
+        CELER_EXPECT(grid);
+        grids.emplace_back((*this)(grid.grid), (*this)(grid.value));
+    }
+
+    return grids;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct an MFP builder with the underlying collections.
  */
-MfpBuilder GridValidator::create_mfp_builder()
+MfpBuilder GridAccessor::create_mfp_builder()
 {
     return MfpBuilder(reals_, grids_);
 }
@@ -133,7 +169,7 @@ MfpBuilder GridValidator::create_mfp_builder()
 /*!
  * Construct with internal collections.
  */
-OwningGridValidator::OwningGridValidator() : GridValidator(&reals_, &grids_) {}
+OwningGridAccessor::OwningGridAccessor() : GridAccessor(&reals_, &grids_) {}
 
 //---------------------------------------------------------------------------//
 }  // namespace test
