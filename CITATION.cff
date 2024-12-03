@@ -25,8 +25,8 @@ message: "Please cite the following article when referencing Celeritas in a publ
 title: "Celeritas"
 type: software
 license:
- - Apache-2.0
- - MIT
+  - Apache-2.0
+  - MIT
 authors:
   - family-names: Johnson
     given-names: Seth R.
@@ -101,9 +101,10 @@ preferred-citation:
       orcid: "https://orcid.org/0000-0002-1147-045X"
   title: "Celeritas: Accelerating Geant4 with GPUs"
   type: article
-  publisher: "EPJ Web of Conferences"
+  journal: "EPJ Web of Conferences"
   volume: 295
   pages: 11005
+  issue-title: "26th International Conference on Computing in High Energy and Nuclear Physics (CHEP 2023)"
   date-published: 2024
   identifiers:
     - type: doi
