@@ -63,7 +63,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: ${{matrix.special == 'clang-tidy' && 0 || 383}}
+          fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
       - name: Setup Spack
         uses: spack/setup-spack@0ce61628ed8a32a5664cf01a0e0b5a4834a3b413 # 2024/03
