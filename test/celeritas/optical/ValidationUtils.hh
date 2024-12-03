@@ -61,7 +61,7 @@ Array<real_type, sizeof...(Args)> constexpr native_array_from(Args const&... arg
 template<class UnitType, size_type N>
 Array<real_type, N> constexpr native_array_from(Array<real_type, N> const& arr)
 {
-    return ::celeritas::testdetail::native_array_from<UnitType>(
+    return ::celeritas::testdetail::native_array_from_indexer<UnitType>(
         arr, std::make_index_sequence<N>{});
 }
 

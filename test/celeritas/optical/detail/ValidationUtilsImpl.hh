@@ -167,7 +167,7 @@ template<class GridTypeE, class GridTypeA>
  * Forwards \c Array values as a parameter pack using \c std::index_sequence.
  */
 template<class UnitType, size_type... Is>
-Array<real_type, sizeof...(Is)> constexpr native_array_from(
+Array<real_type, sizeof...(Is)> constexpr native_array_from_indexer(
     Array<real_type, sizeof...(Is)> const& arr, std::index_sequence<Is...>)
 {
     return ::celeritas::optical::test::native_array_from<UnitType>(arr[Is]...);
