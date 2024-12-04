@@ -40,6 +40,8 @@ class ExceptionOutput final : public OutputInterface
     explicit ExceptionOutput(std::exception_ptr e);
 
     // Protected destructor
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
     ~ExceptionOutput();
 
     // Category of data to write

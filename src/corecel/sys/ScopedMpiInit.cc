@@ -26,7 +26,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// False positive with clang-tidy-15, need cleanup
+// TODO Remove in clang-tidy-18
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 ScopedMpiInit::Status ScopedMpiInit::status_
     = ScopedMpiInit::Status::uninitialized;
