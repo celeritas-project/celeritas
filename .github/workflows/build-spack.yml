@@ -150,7 +150,9 @@ jobs:
           echo "First PR commit: $FIRST_PR_HASH"
           ALL_FILES=$(git diff --name-only --diff-filter=ACM "$FIRST_PR_HASH^" HEAD^2)
           echo "All files: $ALL_FILES"
-          CC_FILES=$(set +e; grep -E '^(src|app|example)/.*\.cc$' - <<< "$ALL_FILES")
+          set +e
+          CC_FILES=$(grep -E '^(src|app|example)/.*\.cc$' - <<< "$ALL_FILES")
+          set -e
           echo "Files to check: $CC_FILES"
           if [ -z "$FILES" ]; then
             echo "No files to run clang-tidy on."
