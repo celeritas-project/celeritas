@@ -25,16 +25,34 @@ doc` (user) or `ninja doxygen` (developer).
 # Installation for applications
 
 The easiest way to install Celeritas as a library/app is with Spack:
-- Follow the first two steps above to install [Spack][spack-start] and set up its CUDA usage.
-- Install Celeritas with `spack install celeritas`
-- Use `spack load celeritas` to add the installation to your `PATH`.
+- Follow this these steps to install [Spack][spack-start].
+```console
+# Install Spack
+git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
+# Add Spack to the shell environment
+# For bash/zsh/sh (See [spack-start] for other shell)
+```
+- Install Celeritas with
+```console
+spack install celeritas
+```console
+- Add the Celeritas installation to your `PATH` with:
+```console
+spack load celeritas
+```
 
 To install a GPU-enabled Celeritas build, you might have to make sure that VecGeom is also built with CUDA
 support if installing `celeritas+vecgeom`, which is the default geometry.
-To do so, set the following configuration:
+To do so, aet Spack up its CUDA usage:
 ```console
+. spack/share/spack/setup-env.sh
+# Set up CUDA (optional)
+$ spack external find cuda
 # Replace cuda_arch=80 with your target architecture
-$ spack config add packages:vecgeom:variants:"cxxstd=17 +cuda cuda_arch=80"
+$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=80"
+```
+and install Celeritas with this configuration:
+```console
 $ spack install celeritas +cuda cuda_arch=80
 ```
 
@@ -62,7 +80,7 @@ $ spack external find cuda
 # Install celeritas dependencies
 $ spack env create celeritas scripts/spack.yaml
 $ spack env activate celeritas
-$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=70"
+$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=80"
 $ spack install
 # Configure, build, and test
 $ ./build.sh base
