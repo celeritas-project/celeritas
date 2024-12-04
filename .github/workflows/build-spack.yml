@@ -146,7 +146,7 @@ jobs:
               ninja -k0
               exit $?
             fi
-            FILES=$(git diff --name-only --diff-filter=ACM "$BASE_REF" HEAD)
+            FILES=$(git diff --name-only --diff-filter=ACM origin/"$BASE_REF" HEAD)
             if [ -z "$FILES" ]; then
               echo "No files to run clang-tidy on."
               exit 0
