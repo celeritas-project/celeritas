@@ -91,8 +91,8 @@ StringEnumMapper<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
  */
 template<class T>
 template<class U>
-// NOLINTNEXTLINE(bugprone-forwarding-reference-overload) -- TODO Remove in
-// clang-tidy-18
+// TODO Remove in clang-tidy-18
+// NOLINTNEXTLINE(bugprone-forwarding-reference-overload)
 StringEnumMapper<T>::StringEnumMapper(U&& enum_to_string, char const* desc)
     : description_(desc)
 {
