@@ -23,6 +23,9 @@ struct ImportDataTrimmer::GridFilterer
 
     // Whether to keep the data at this index
     inline bool operator()(size_type i) const;
+
+    // Whether to trim the data
+    explicit operator bool() const { return stride > 0; };
 };
 
 //---------------------------------------------------------------------------//
@@ -54,6 +57,10 @@ void ImportDataTrimmer::operator()(ImportData& data)
         (*this)(data.atomic_relaxation_data);
 
         (*this)(data.optical_materials);
+
+        this->for_each(data.elements);
+        this->for_each(data.geo_materials);
+        this->for_each(data.phys_materials);
     }
 
     if (options_.physics)
@@ -62,6 +69,16 @@ void ImportDataTrimmer::operator()(ImportData& data)
         (*this)(data.particles);
         (*this)(data.processes);
         (*this)(data.msc_models);
+
+        this->for_each(data.processes);
+        this->for_each(data.msc_models);
+        this->for_each(data.sb_data);
+        this->for_each(data.livermore_pe_data);
+        this->for_each(data.neutron_elastic_data);
+        this->for_each(data.atomic_relaxation_data);
+
+        this->for_each(data.optical_models);
+        this->for_each(data.optical_materials);
     }
 
     if (options_.mupp)
@@ -69,20 +86,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         // Reduce the resolution of the muon pair production table
         (*this)(data.mu_pair_production_data);
     }
-
-    this->for_each(data.elements);
-    this->for_each(data.geo_materials);
-    this->for_each(data.phys_materials);
-
-    this->for_each(data.processes);
-    this->for_each(data.msc_models);
-    this->for_each(data.sb_data);
-    this->for_each(data.livermore_pe_data);
-    this->for_each(data.neutron_elastic_data);
-    this->for_each(data.atomic_relaxation_data);
-
-    this->for_each(data.optical_models);
-    this->for_each(data.optical_materials);
 }
 
 //---------------------------------------------------------------------------//
@@ -264,7 +267,7 @@ void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
     {
         for (auto j : range(y_filter.orig_size))
         {
-            if (x_filter(i) && y_filter(j))
+            if ((!x_filter || x_filter(i)) && (!y_filter || y_filter(j)))
             {
                 new_value.push_back(*src);
             }
@@ -272,6 +275,7 @@ void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
         }
     }
     CELER_ASSERT(src == data.value.cend());
+    CELER_ASSERT(new_value.size() == data.x.size() * data.y.size());
 
     data.value = std::move(new_value);
 
@@ -285,7 +289,8 @@ void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
 template<class T>
 void ImportDataTrimmer::operator()(std::vector<T>& data)
 {
-    if (options_.max_size == numeric_limits<size_type>::max())
+    auto filter = this->make_filterer(data.size());
+    if (!filter)
     {
         // Don't trim
         return;
@@ -294,7 +299,6 @@ void ImportDataTrimmer::operator()(std::vector<T>& data)
     std::vector<T> result;
     result.reserve(std::min(options_.max_size + 1, data.size()));
 
-    auto filter = this->make_filterer(data.size());
     for (auto i : range(data.size()))
     {
         if (filter(i))
@@ -312,8 +316,14 @@ void ImportDataTrimmer::operator()(std::vector<T>& data)
 template<class K, class T, class C, class A>
 void ImportDataTrimmer::operator()(std::map<K, T, C, A>& data)
 {
-    std::map<K, T, C, A> result;
     auto filter = this->make_filterer(data.size());
+    if (!filter)
+    {
+        // Don't trim
+        return;
+    }
+
+    std::map<K, T, C, A> result;
     auto iter = data.begin();
     for (auto i : range(filter.orig_size))
     {
@@ -369,6 +379,7 @@ auto ImportDataTrimmer::make_filterer(size_type vec_size) const -> GridFilterer
  */
 bool ImportDataTrimmer::GridFilterer::operator()(size_type i) const
 {
+    CELER_EXPECT(stride > 0);
     return i % stride == 0 || i + 1 == orig_size;
 }
 

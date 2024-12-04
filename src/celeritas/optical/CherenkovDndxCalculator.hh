@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovDndxCalculator.hh
+//! \file celeritas/optical/CherenkovDndxCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/GenericCalculator.hh"
 
-#include "CerenkovData.hh"
+#include "CherenkovData.hh"
 #include "MaterialView.hh"
 
 namespace celeritas
@@ -25,7 +25,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the mean number of Cerenkov photons produced per unit length.
+ * Calculate the mean number of Cherenkov photons produced per unit length.
  *
  * The average number of photons produced is given by
  * \f[
@@ -49,23 +49,23 @@ namespace optical
    \frac{1}{n^2(\epsilon)}\dif\epsilon \right].
  * \f]
  */
-class CerenkovDndxCalculator
+class CherenkovDndxCalculator
 {
   public:
-    // Construct from optical materials and Cerenkov angle integrals
+    // Construct from optical materials and Cherenkov angle integrals
     inline CELER_FUNCTION
-    CerenkovDndxCalculator(MaterialView const& material,
-                           NativeCRef<CerenkovData> const& shared,
+    CherenkovDndxCalculator(MaterialView const& material,
+                           NativeCRef<CherenkovData> const& shared,
                            units::ElementaryCharge charge);
 
-    // Calculate the mean number of Cerenkov photons produced per unit length
+    // Calculate the mean number of Cherenkov photons produced per unit length
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
 
   private:
     // Calculate refractive index [MeV -> unitless]
     GenericCalculator calc_refractive_index_;
 
-    // Calculate the Cerenkov angle integral [MeV -> unitless]
+    // Calculate the Cherenkov angle integral [MeV -> unitless]
     GenericCalculator calc_integral_;
 
     // Square of particle charge
@@ -76,12 +76,12 @@ class CerenkovDndxCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from optical materials and Cerenkov angle integrals.
+ * Construct from optical materials and Cherenkov angle integrals.
  */
 CELER_FUNCTION
-CerenkovDndxCalculator::CerenkovDndxCalculator(
+CherenkovDndxCalculator::CherenkovDndxCalculator(
     MaterialView const& material,
-    NativeCRef<CerenkovData> const& shared,
+    NativeCRef<CherenkovData> const& shared,
     units::ElementaryCharge charge)
     : calc_refractive_index_(material.make_refractive_index_calculator())
     , calc_integral_{shared.angle_integral[material.material_id()],
@@ -93,14 +93,14 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the mean number of Cerenkov photons produced per unit length.
+ * Calculate the mean number of Cherenkov photons produced per unit length.
  *
  * \todo define a "generic grid extents" class for finding the lower/upper x/y
  * coordinates on grid data. In the future we could cache these if the memory
  * lookups result in too much indirection.
  */
 CELER_FUNCTION real_type
-CerenkovDndxCalculator::operator()(units::LightSpeed beta)
+CherenkovDndxCalculator::operator()(units::LightSpeed beta)
 {
     CELER_EXPECT(beta.value() > 0 && beta.value() <= 1);
 
@@ -108,7 +108,7 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
     real_type energy_max = calc_refractive_index_.grid().back();
     if (inv_beta > calc_refractive_index_(energy_max))
     {
-        // Incident particle energy is below the threshold for Cerenkov
+        // Incident particle energy is below the threshold for Cherenkov
         // emission (i.e., beta < 1 / n_max)
         return 0;
     }
@@ -134,7 +134,7 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
     }
 
     // Calculate number of photons. This may be negative if the incident
-    // particle energy is very close to (just above) the Cerenkov production
+    // particle energy is very close to (just above) the Cherenkov production
     // threshold
     return clamp_to_nonneg(zsq_
                            * (constants::alpha_fine_structure

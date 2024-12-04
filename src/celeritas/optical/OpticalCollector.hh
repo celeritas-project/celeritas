@@ -22,15 +22,15 @@ class CoreParams;
 
 namespace optical
 {
-class CerenkovParams;
+class CherenkovParams;
 class MaterialParams;
 class ScintillationParams;
 }  // namespace optical
 
 namespace detail
 {
-class CerenkovOffloadAction;
-class CerenkovGeneratorAction;
+class CherenkovOffloadAction;
+class CherenkovGeneratorAction;
 class OffloadGatherAction;
 class OpticalLaunchAction;
 class OffloadParams;
@@ -45,7 +45,7 @@ class ScintGeneratorAction;
  * This class is the interface between the main stepping loop and the photon
  * stepping loop and constructs kernel actions for:
  * - gathering the pre-step data needed to generate the optical distributions,
- * - generating the scintillation and Cerenkov optical distributions at the
+ * - generating the scintillation and Cherenkov optical distributions at the
  *   end of the step, and
  * - launching the photon stepping loop.
  *
@@ -62,7 +62,7 @@ class OpticalCollector
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCerenkov = std::shared_ptr<optical::CerenkovParams const>;
+    using SPConstCherenkov = std::shared_ptr<optical::CherenkovParams const>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     using SPConstScintillation
         = std::shared_ptr<optical::ScintillationParams const>;
@@ -72,7 +72,7 @@ class OpticalCollector
     {
         //! Optical physics material for materials
         SPConstMaterial material;
-        SPConstCerenkov cerenkov;
+        SPConstCherenkov cherenkov;
         SPConstScintillation scintillation;
 
         //! Number track slots in the optical loop
@@ -90,7 +90,7 @@ class OpticalCollector
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return material && (scintillation || cerenkov)
+            return material && (scintillation || cherenkov)
                    && num_track_slots > 0 && buffer_capacity > 0
                    && initializer_capacity > 0 && auto_flush > 0;
         }
@@ -110,11 +110,11 @@ class OpticalCollector
     //// TYPES ////
 
     using SPOffloadParams = std::shared_ptr<detail::OffloadParams>;
-    using SPCerenkovAction = std::shared_ptr<detail::CerenkovOffloadAction>;
+    using SPCherenkovAction = std::shared_ptr<detail::CherenkovOffloadAction>;
     using SPScintAction = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
-    using SPCerenkovGenAction
-        = std::shared_ptr<detail::CerenkovGeneratorAction>;
+    using SPCherenkovGenAction
+        = std::shared_ptr<detail::CherenkovGeneratorAction>;
     using SPScintGenAction = std::shared_ptr<detail::ScintGeneratorAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
@@ -123,9 +123,9 @@ class OpticalCollector
     SPOffloadParams offload_params_;
 
     SPGatherAction gather_action_;
-    SPCerenkovAction cerenkov_action_;
+    SPCherenkovAction cherenkov_action_;
     SPScintAction scint_action_;
-    SPCerenkovGenAction cerenkov_gen_action_;
+    SPCherenkovGenAction cherenkov_gen_action_;
     SPScintGenAction scint_gen_action_;
     SPLaunchAction launch_action_;
 

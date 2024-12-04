@@ -45,7 +45,7 @@ namespace
  */
 enum class OpticalProcessType
 {
-    cerenkov,
+    cherenkov,
     scintillation,
     absorption,
     rayleigh,
@@ -89,7 +89,7 @@ optical_process_type_to_geant_index(OpticalProcessType value)
 {
     switch (value)
     {
-        case OpticalProcessType::cerenkov:
+        case OpticalProcessType::cherenkov:
             return kCerenkov;
         case OpticalProcessType::scintillation:
             return kScintillation;
@@ -135,8 +135,8 @@ bool process_is_active(
 #else
     switch (process)
     {
-        case OpticalProcessType::cerenkov:
-            return bool(options.cerenkov);
+        case OpticalProcessType::cherenkov:
+            return bool(options.cherenkov);
         case OpticalProcessType::scintillation:
             return bool(options.scintillation);
         case OpticalProcessType::absorption:
@@ -175,7 +175,7 @@ CelerOpticalPhysics::CelerOpticalPhysics(Options const& options)
         params->SetProcessActivation(G4OpticalProcessName(i), flag);
     };
 
-    activate_process(kCerenkov, bool(options_.cerenkov));
+    activate_process(kCerenkov, bool(options_.cherenkov));
     activate_process(kScintillation, bool(options_.scintillation));
     activate_process(kAbsorption, options_.absorption);
     activate_process(kRayleigh, options_.rayleigh_scattering);
@@ -186,12 +186,12 @@ CelerOpticalPhysics::CelerOpticalPhysics(Options const& options)
     activate_process(
         kWLS2, options_.wavelength_shifting2 != WLSTimeProfileSelection::none);
 
-    // Cerenkov
-    params->SetCerenkovStackPhotons(options_.cerenkov.stack_photons);
+    // Cherenkov
+    params->SetCerenkovStackPhotons(options_.cherenkov.stack_photons);
     params->SetCerenkovTrackSecondariesFirst(
-        options_.cerenkov.track_secondaries_first);
-    params->SetCerenkovMaxPhotonsPerStep(options_.cerenkov.max_photons);
-    params->SetCerenkovMaxBetaChange(options_.cerenkov.max_beta_change);
+        options_.cherenkov.track_secondaries_first);
+    params->SetCerenkovMaxPhotonsPerStep(options_.cherenkov.max_photons);
+    params->SetCerenkovMaxBetaChange(options_.cherenkov.max_beta_change);
 
     // Scintillation
     params->SetScintStackPhotons(options_.scintillation.stack_photons);
@@ -319,13 +319,13 @@ void CelerOpticalPhysics::ConstructProcess()
 #endif
     scint->AddSaturation(G4LossTableManager::Instance()->EmSaturation());
 
-    auto cerenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
+    auto cherenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
 #if G4VERSION_NUMBER < 1070
-    cerenkov->SetStackPhotons(options_.cerenkov.stack_photons);
-    cerenkov->SetTrackSecondariesFirst(
-        options_.cerenkov.track_secondaries_first);
-    cerenkov->SetMaxNumPhotonsPerStep(options_.cerenkov.max_photons);
-    cerenkov->SetMaxBetaChangePerStep(options_.cerenkov.max_beta_change);
+    cherenkov->SetStackPhotons(options_.cherenkov.stack_photons);
+    cherenkov->SetTrackSecondariesFirst(
+        options_.cherenkov.track_secondaries_first);
+    cherenkov->SetMaxNumPhotonsPerStep(options_.cherenkov.max_photons);
+    cherenkov->SetMaxBetaChangePerStep(options_.cherenkov.max_beta_change);
 #endif
 
     auto particle_iterator = GetParticleIterator();
@@ -337,12 +337,12 @@ void CelerOpticalPhysics::ConstructProcess()
         process_manager = p->GetProcessManager();
         CELER_ASSERT(process_manager);
 
-        if (cerenkov->IsApplicable(*p)
-            && process_is_active(OpticalProcessType::cerenkov, options_))
+        if (cherenkov->IsApplicable(*p)
+            && process_is_active(OpticalProcessType::cherenkov, options_))
         {
-            process_manager->AddProcess(cerenkov.release());
-            process_manager->SetProcessOrdering(cerenkov, idxPostStep);
-            CELER_LOG(debug) << "Loaded Optical Cerenkov with G4Cerenkov "
+            process_manager->AddProcess(cherenkov.release());
+            process_manager->SetProcessOrdering(cherenkov, idxPostStep);
+            CELER_LOG(debug) << "Loaded Optical Cherenkov with G4Cerenkov "
                                 "process for particle "
                              << p->GetParticleName();
         }
