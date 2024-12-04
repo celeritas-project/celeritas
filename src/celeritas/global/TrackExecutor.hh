@@ -162,12 +162,10 @@ template<class T>
 inline CELER_FUNCTION decltype(auto)
 make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
                            CoreStatePtr<MemSpace::native> const& state,
-                           T&& apply_track) return ConditionalTrackExecutor {
-    params,
-    state,
-    AppliesValid{},
-    celeritas::forward<T>(apply_track)
-};
+                           T&& apply_track)
+{
+    return ConditionalTrackExecutor{
+        params, state, AppliesValid{}, celeritas::forward<T>(apply_track)};
 }
 
 //---------------------------------------------------------------------------//
@@ -201,11 +199,13 @@ inline CELER_FUNCTION decltype(auto)
 make_along_step_track_executor(CoreParamsPtr<MemSpace::native> params,
                                CoreStatePtr<MemSpace::native> state,
                                ActionId action,
-                               T&& apply_track) CELER_EXPECT(action);
-return ConditionalTrackExecutor{params,
-                                state,
-                                IsAlongStepActionEqual{action},
-                                celeritas::forward<T>(apply_track)};
+                               T&& apply_track)
+{
+    CELER_EXPECT(action);
+    return ConditionalTrackExecutor{params,
+                                    state,
+                                    IsAlongStepActionEqual{action},
+                                    celeritas::forward<T>(apply_track)};
 }
 
 //---------------------------------------------------------------------------//
