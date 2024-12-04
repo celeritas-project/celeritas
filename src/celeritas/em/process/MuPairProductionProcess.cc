@@ -64,7 +64,7 @@ auto MuPairProductionProcess::step_limits(Applicability applic) const
  */
 std::string_view MuPairProductionProcess::label() const
 {
-    return "Muon pair production";
+    return "Muon electron-positron pair production";
 }
 
 //---------------------------------------------------------------------------//
