@@ -466,7 +466,6 @@ struct PhysicsStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     PhysicsStateData& operator=(PhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);

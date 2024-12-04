@@ -26,7 +26,6 @@ struct SimpleCaloParamsData
     explicit CELER_FUNCTION operator bool() const { return num_detectors > 0; }
 
     template<Ownership W2, MemSpace M2>
-    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     SimpleCaloParamsData& operator=(SimpleCaloParamsData<W2, M2>& other)
     {
         CELER_EXPECT(other);
@@ -75,7 +74,6 @@ struct SimpleCaloStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     SimpleCaloStateData& operator=(SimpleCaloStateData<W2, M2>& other)
     {
         energy_deposition = other.energy_deposition;

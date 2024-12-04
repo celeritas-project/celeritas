@@ -35,7 +35,6 @@ struct GeantGeoNavCollection
     explicit CELER_FUNCTION operator bool() const { return false; }
     CELER_FUNCTION TrackSlotId::size_type size() const { return 0; }
     template<Ownership W2, MemSpace M2>
-    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     CELER_FUNCTION GeantGeoNavCollection&
     operator=(GeantGeoNavCollection<W2, M2>&)
     {

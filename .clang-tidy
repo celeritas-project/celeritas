@@ -27,6 +27,7 @@ Checks: |
   -cppcoreguidelines-noexcept-move-operations
   -cppcoreguidelines-noexcept-destructor
   -cppcoreguidelines-virtual-class-destructor
+  -cppcoreguidelines-c-copy-assignment-signature
   bugprone-*
   -bugprone-sizeof-expression
   -bugprone-narrowing-conversions

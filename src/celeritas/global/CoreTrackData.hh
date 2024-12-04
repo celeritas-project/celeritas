@@ -143,7 +143,6 @@ struct CoreStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     CoreStateData& operator=(CoreStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);

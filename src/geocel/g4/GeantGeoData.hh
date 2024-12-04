@@ -36,7 +36,6 @@ struct GeantGeoParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     GeantGeoParamsData& operator=(GeantGeoParamsData<W2, M2>& other)
     {
         world = other.world;
@@ -87,7 +86,6 @@ struct GeantGeoStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     GeantGeoStateData& operator=(GeantGeoStateData<W2, M2>& other)
     {
         static_assert(M2 == M && W == Ownership::reference,
