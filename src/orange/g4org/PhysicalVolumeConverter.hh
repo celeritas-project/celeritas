@@ -27,6 +27,8 @@ namespace g4org
  * This recurses through the physical volume. It holds a weak-pointer cache of
  * logical volumes already created.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions) -- Todo Remove in
+// clang-tidy-18
 class PhysicalVolumeConverter
 {
   public:
