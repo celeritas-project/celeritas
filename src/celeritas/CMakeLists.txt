@@ -76,7 +76,7 @@ list(APPEND SOURCES
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
-  optical/CerenkovParams.cc
+  optical/CherenkovParams.cc
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
@@ -294,8 +294,8 @@ celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
-celeritas_polysource(optical/detail/CerenkovGeneratorAction)
-celeritas_polysource(optical/detail/CerenkovOffloadAction)
+celeritas_polysource(optical/detail/CherenkovGeneratorAction)
+celeritas_polysource(optical/detail/CherenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
 celeritas_polysource(optical/detail/OffloadGatherAction)
 celeritas_polysource(optical/detail/ScintGeneratorAction)

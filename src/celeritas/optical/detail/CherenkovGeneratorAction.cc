@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovGeneratorAction.cc
+//! \file celeritas/optical/detail/CherenkovGeneratorAction.cc
 //---------------------------------------------------------------------------//
-#include "CerenkovGeneratorAction.hh"
+#include "CherenkovGeneratorAction.hh"
 
 #include <algorithm>
 
@@ -16,13 +16,13 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
-#include "CerenkovGeneratorExecutor.hh"
+#include "CherenkovGeneratorExecutor.hh"
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
 
@@ -34,23 +34,23 @@ namespace detail
 /*!
  * Construct with action ID, data IDs, and optical properties.
  */
-CerenkovGeneratorAction::CerenkovGeneratorAction(ActionId id,
+CherenkovGeneratorAction::CherenkovGeneratorAction(ActionId id,
                                                  AuxId offload_id,
                                                  AuxId optical_id,
                                                  SPConstMaterial material,
-                                                 SPConstCerenkov cerenkov,
+                                                 SPConstCherenkov cherenkov,
                                                  size_type auto_flush)
     : id_(id)
     , offload_id_{offload_id}
     , optical_id_{optical_id}
     , material_(std::move(material))
-    , cerenkov_(std::move(cerenkov))
+    , cherenkov_(std::move(cherenkov))
     , auto_flush_(auto_flush)
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(offload_id_);
     CELER_EXPECT(optical_id_);
-    CELER_EXPECT(cerenkov_);
+    CELER_EXPECT(cherenkov_);
     CELER_EXPECT(material_);
     CELER_EXPECT(auto_flush_ > 0);
 }
@@ -59,16 +59,16 @@ CerenkovGeneratorAction::CerenkovGeneratorAction(ActionId id,
 /*!
  * Descriptive name of the action.
  */
-std::string_view CerenkovGeneratorAction::description() const
+std::string_view CherenkovGeneratorAction::description() const
 {
-    return "generate Cerenkov photons from optical distribution data";
+    return "generate Cherenkov photons from optical distribution data";
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with host data.
  */
-void CerenkovGeneratorAction::step(CoreParams const& params,
+void CherenkovGeneratorAction::step(CoreParams const& params,
                                    CoreStateHost& state) const
 {
     this->step_impl(params, state);
@@ -78,7 +78,7 @@ void CerenkovGeneratorAction::step(CoreParams const& params,
 /*!
  * Execute the action with device data.
  */
-void CerenkovGeneratorAction::step(CoreParams const& params,
+void CherenkovGeneratorAction::step(CoreParams const& params,
                                    CoreStateDevice& state) const
 {
     this->step_impl(params, state);
@@ -86,10 +86,10 @@ void CerenkovGeneratorAction::step(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical track initializers from Cerenkov distribution data.
+ * Generate optical track initializers from Cherenkov distribution data.
  */
 template<MemSpace M>
-void CerenkovGeneratorAction::step_impl(CoreParams const& core_params,
+void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
                                         CoreState<M>& core_state) const
 {
     auto& offload_state
@@ -112,20 +112,20 @@ void CerenkovGeneratorAction::step_impl(CoreParams const& core_params,
                    << num_photons << ")");
 
     auto& offload = offload_state.store.ref();
-    auto& buffer_size = offload_state.buffer_size.cerenkov;
+    auto& buffer_size = offload_state.buffer_size.cherenkov;
     CELER_ASSERT(buffer_size > 0);
 
     // Calculate the cumulative sum of the number of photons in the buffered
     // distributions. These values are used to determine which thread will
     // generate initializers from which distribution
     auto count = inclusive_scan_photons(
-        offload.cerenkov, offload.offsets, buffer_size, core_state.stream_id());
+        offload.cherenkov, offload.offsets, buffer_size, core_state.stream_id());
 
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);
 
     CELER_LOG_LOCAL(debug) << "Generated " << count
-                           << " Cerenkov photons from " << buffer_size
+                           << " Cherenkov photons from " << buffer_size
                            << " distributions";
 
     num_photons += count;
@@ -137,7 +137,7 @@ void CerenkovGeneratorAction::step_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to generate optical photon initializers.
  */
-void CerenkovGeneratorAction::generate(CoreParams const& core_params,
+void CherenkovGeneratorAction::generate(CoreParams const& core_params,
                                        CoreStateHost& core_state) const
 {
     auto& offload_state = get<OpticalOffloadState<MemSpace::native>>(
@@ -148,9 +148,9 @@ void CerenkovGeneratorAction::generate(CoreParams const& core_params,
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::CerenkovGeneratorExecutor{core_state.ptr(),
+        detail::CherenkovGeneratorExecutor{core_state.ptr(),
                                           material_->host_ref(),
-                                          cerenkov_->host_ref(),
+                                          cherenkov_->host_ref(),
                                           offload_state.store.ref(),
                                           optical_state.ptr(),
                                           offload_state.buffer_size,
@@ -160,7 +160,7 @@ void CerenkovGeneratorAction::generate(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void CerenkovGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
+void CherenkovGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

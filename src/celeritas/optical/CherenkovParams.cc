@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovParams.cc
+//! \file celeritas/optical/CherenkovParams.cc
 //---------------------------------------------------------------------------//
-#include "CerenkovParams.hh"
+#include "CherenkovParams.hh"
 
 #include <utility>
 #include <vector>
@@ -28,12 +28,12 @@ namespace optical
 /*!
  * Construct with optical property data.
  */
-CerenkovParams::CerenkovParams(SPConstMaterial material)
+CherenkovParams::CherenkovParams(SPConstMaterial material)
 {
     CELER_EXPECT(material);
     auto const& host_ref = material->host_ref();
 
-    HostVal<CerenkovData> data;
+    HostVal<CherenkovData> data;
     GenericGridInserter insert_angle_integral(&data.reals,
                                               &data.angle_integral);
 
@@ -43,7 +43,7 @@ CerenkovParams::CerenkovParams(SPConstMaterial material)
         auto const& ri_grid = host_ref.refractive_index[mat_id];
         CELER_ASSERT(ri_grid);
 
-        // Calculate the Cerenkov angle integral
+        // Calculate the Cherenkov angle integral
         auto const&& refractive_index = host_ref.reals[ri_grid.value];
         auto const&& energy = host_ref.reals[ri_grid.grid];
         std::vector<real_type> integral(energy.size());
@@ -61,7 +61,7 @@ CerenkovParams::CerenkovParams(SPConstMaterial material)
     CELER_ASSERT(data.angle_integral.size()
                  == host_ref.refractive_index.size());
 
-    data_ = CollectionMirror<CerenkovData>{std::move(data)};
+    data_ = CollectionMirror<CherenkovData>{std::move(data)};
     CELER_ENSURE(data_ || host_ref.refractive_index.empty());
 }
 

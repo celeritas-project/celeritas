@@ -47,7 +47,7 @@
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
@@ -587,7 +587,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
 {
     CELER_EXPECT(core_params_);
 
-    using optical::CerenkovParams;
+    using optical::CherenkovParams;
     using optical::MaterialParams;
     using optical::ScintillationParams;
 
@@ -604,7 +604,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
         imported, *core_params_->geomaterial(), *core_params_->material());
-    oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.material);
+    oc_inp.cherenkov = std::make_shared<CherenkovParams>(oc_inp.material);
     oc_inp.scintillation
         = ScintillationParams::from_import(imported, core_params_->particle());
     oc_inp.num_track_slots = ceil_div(inp.optical.num_track_slots, num_streams);

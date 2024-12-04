@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovParams.hh
+//! \file celeritas/optical/CherenkovParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
-#include "CerenkovData.hh"
+#include "CherenkovData.hh"
 
 namespace celeritas
 {
@@ -21,9 +21,9 @@ class MaterialParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Build and manage Cerenkov data.
+ * Build and manage Cherenkov data.
  */
-class CerenkovParams final : public ParamsDataInterface<CerenkovData>
+class CherenkovParams final : public ParamsDataInterface<CherenkovData>
 {
   public:
     //!@{
@@ -33,7 +33,7 @@ class CerenkovParams final : public ParamsDataInterface<CerenkovData>
 
   public:
     // Construct with optical property data
-    explicit CerenkovParams(SPConstMaterial material);
+    explicit CherenkovParams(SPConstMaterial material);
 
     //! Access physics material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -42,7 +42,7 @@ class CerenkovParams final : public ParamsDataInterface<CerenkovData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<CerenkovData> data_;
+    CollectionMirror<CherenkovData> data_;
 };
 
 //---------------------------------------------------------------------------//
