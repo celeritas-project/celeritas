@@ -102,10 +102,13 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
 
     // Default constructors
     GeantGeoNavCollection() = default;
+    GeantGeoNavCollection(GeantGeoNavCollection const&) = default;
 
     // Obtain reference from host memory
     GeantGeoNavCollection&
     operator=(GeantGeoNavCollection<Ownership::value, MemSpace::host>& other);
+    // Default assignment
+    GeantGeoNavCollection& operator=(GeantGeoNavCollection const&) = default;
 
     // Get the navigation state for a given track slot
     GeantTouchableHandle& touch_handle(TrackSlotId tid) const;

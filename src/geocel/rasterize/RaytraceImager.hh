@@ -37,7 +37,7 @@ class RaytraceImager final : public ImagerInterface
   public:
     // Construct with geometry
     explicit RaytraceImager(SPGeometry geo);
-    ~RaytraceImager() override = default;
+    ~RaytraceImager() final = default;
 
     // Raytrace an image on host or device
     void operator()(Image<MemSpace::host>* image) final;
