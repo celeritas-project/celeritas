@@ -46,15 +46,25 @@ support if installing `celeritas+vecgeom`, which is the default geometry.
 To do so, set Spack up its CUDA usage:
 ```console
 . spack/share/spack/setup-env.sh
-# Set up CUDA (optional)
+# Set up CUDA
 $ spack external find cuda
-# Replace cuda_arch=80 with your target architecture
+# Optionally set the default configuration. Replace "cuda_arch=80"
+# with your target architecture
 $ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=80"
 ```
 and install Celeritas with this configuration:
 ```console
+$ spack install celeritas
+```
+If Celeritas was installed with a different configuration do
+```console
+$ spack install --fresh celeritas
+```
+If you need to set a default configuration
+```console
 $ spack install celeritas +cuda cuda_arch=80
 ```
+
 
 Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
