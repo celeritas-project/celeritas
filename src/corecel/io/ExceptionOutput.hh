@@ -33,6 +33,8 @@ namespace celeritas
     }
    \endcode
  */
+// TODO Remove in clang-tidy-18
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ExceptionOutput final : public OutputInterface
 {
   public:

@@ -277,6 +277,8 @@ class Collection
     //! Default constructors
     Collection() = default;
     Collection(Collection const&) = default;
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection(Collection&&) = default;
     //!@}
 
@@ -293,6 +295,8 @@ class Collection
     //!@{
     //! Default assignment
     Collection& operator=(Collection const& other) = default;
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection& operator=(Collection&& other) = default;
     //!@}
 

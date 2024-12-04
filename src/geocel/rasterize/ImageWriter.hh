@@ -28,6 +28,8 @@ namespace celeritas
  * Each row is written progressively. All rows must be written. Currently alpha
  * values are ignored due to my poor understanding of libpng.
  */
+// TODO Remove in clang-tidy-18
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ImageWriter
 {
   public:
