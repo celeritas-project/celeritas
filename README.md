@@ -147,6 +147,8 @@ details on coding in Celeritas, and [the administration guidelines][administrati
 
 # Citing Celeritas
 
+<!-- This section should be kept in sync with the CITATIONS.cff file -->
+
 If using Celeritas in your work, we ask that you cite the following article:
 
 > Johnson, Seth R., Amanda Lund, Philippe Canal, Stefano C. Tognini, Julien Esseiva, Soon Yung Jun, Guilherme Lima, et al. 2024. “Celeritas: Accelerating Geant4 with GPUs.” EPJ Web of Conferences 295:11005. https://doi.org/10.1051/epjconf/202429511005.
