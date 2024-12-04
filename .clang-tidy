@@ -29,6 +29,7 @@ Checks: |
   -cppcoreguidelines-virtual-class-destructor
   -cppcoreguidelines-c-copy-assignment-signature
   -cppcoreguidelines-missing-std-forward
+  -cppcoreguidelines-special-member-functions
   bugprone-*
   -bugprone-sizeof-expression
   -bugprone-narrowing-conversions

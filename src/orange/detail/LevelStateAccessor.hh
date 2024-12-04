@@ -20,7 +20,6 @@ namespace detail
 /*!
  * Accesss the 2D fields (i.e., {thread, level}) of OrangeStateData
  */
-// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class LevelStateAccessor
 {
   public:
