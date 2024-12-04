@@ -50,6 +50,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 - A. Collaboration. "Software and computing for Run 3 of the ATLAS experiment at the LHC". Apr 2024. [arxiv.org](http://arxiv.org/abs/2404.06335)
 - Y. Li, A. Davis, S. Easo, K. Evans, E. M. Gersabeck, *et al*. "Gpu-based optical photon simulation for the LHCb RICH 1 detector". *The European Physical Journal C*, Nov 2023. [10.1140/epjc/s10052-023-12158-7](https://doi.org/10.1140/epjc/s10052-023-12158-7)
+- M. Agostini, A. Alexander, G. R. Araujo, A. M. Bakalyarov, M. Balata, *et al*. "Liquid argon light collection and veto modeling in GERDA Phase II". *The European Physical Journal C*, Apr 2023. [10.1140/epjc/s10052-023-11354-9](https://doi.org/10.1140/epjc/s10052-023-11354-9)
 - S. R. Eriksen. "Commissioning of the Outer Detector of the LUX-ZEPLIN experiment and a study of the experiment’s sensitivity to signatures arising from effective field theory operators". Sep 2022.
 - S. Lachnit, L. Pezzotti, D. Konstantinov. "Standalone Geant4 validation of the ATLAS Tile Calorimeter". Aug 2022.
 - CMS Offline Software. "CMS Phase-2 Computing Model: Update Document". Jul 2022. [cds.cern.ch](https://cds.cern.ch/record/2815292)
