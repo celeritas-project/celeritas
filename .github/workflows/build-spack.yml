@@ -135,27 +135,29 @@ jobs:
             test -n "${G4LEDATA}"
           fi
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
-      - name: Build all
-        id: build
-        working-directory: ${{format('{0}', matrix.special == 'clang-tidy' && github.workspace || 'build')}}
+      - name: Run incremental clang-tidy
+        id: clang-tidy
+        if: ${{matrix.special == 'clang-tidy'}}
         env:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
-          if [ "${{matrix.special}}" == "clang-tidy" ]; then
-            if [ "${{github.event_name}}" == "schedule" ]; then
-              ninja -k0
-              exit $?
-            fi
-            FILES=$(git diff --name-only --diff-filter=ACM origin/"$BASE_REF" HEAD)
-            if [ -z "$FILES" ]; then
-              echo "No files to run clang-tidy on."
-              exit 0
-            fi
-            grep -E '^(src|app|example)/.*\.cc$' - <<< "$FILES" | xargs ${{env.CLANG_TIDY}} -p build
+          if [ "${{github.event_name}}" == "schedule" ]; then
+            echo "Full clang-tidy check on scheduled run."
+            ninja -k0
             exit $?
-          else
-            ninja -v -k0
           fi
+          FILES=$(git diff --name-only --diff-filter=ACM origin/"$BASE_REF" HEAD)
+          if [ -z "$FILES" ]; then
+            echo "No files to run clang-tidy on."
+            exit 0
+          fi
+          grep -E '^(src|app|example)/.*\.cc$' - <<< "$FILES" | xargs ${{env.CLANG_TIDY}} -p build
+          exit $?
+      - name: Build all
+        id: build
+        if: ${{matrix.special != 'clang-tidy'}}
+        run: |
+            ninja -v -k0
       - name: Regenerate ROOT test data
         if: ${{matrix.geant == '11.0'}}
         working-directory: build
