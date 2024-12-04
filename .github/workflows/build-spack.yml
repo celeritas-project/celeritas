@@ -146,12 +146,12 @@ jobs:
             ninja -k0
             exit $?
           fi
-          FILES=$(git diff --name-only --diff-filter=ACM origin/"$BASE_REF" HEAD)
+          FILES=$(git diff --name-only --diff-filter=ACM origin/"$BASE_REF" HEAD | grep -E '^(src|app|example)/.*\.cc$')
           if [ -z "$FILES" ]; then
             echo "No files to run clang-tidy on."
             exit 0
           fi
-          grep -E '^(src|app|example)/.*\.cc$' - <<< "$FILES" | xargs ${{env.CLANG_TIDY}} -p build
+          ${{env.CLANG_TIDY}} -p build $FILES
           exit $?
       - name: Build all
         id: build
