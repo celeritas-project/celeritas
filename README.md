@@ -25,7 +25,7 @@ doc` (user) or `ninja doxygen` (developer).
 # Installation for applications
 
 The easiest way to install Celeritas as a library/app is with Spack:
-- Follow this these steps to install [Spack][spack-start].
+- Follow these steps to install [Spack][spack-start].
 ```console
 # Install Spack
 git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
@@ -43,7 +43,7 @@ spack load celeritas
 
 To install a GPU-enabled Celeritas build, you might have to make sure that VecGeom is also built with CUDA
 support if installing `celeritas+vecgeom`, which is the default geometry.
-To do so, aet Spack up its CUDA usage:
+To do so, set Spack up its CUDA usage:
 ```console
 . spack/share/spack/setup-env.sh
 # Set up CUDA (optional)
