@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovOffloadExecutor.hh
+//! \file celeritas/optical/detail/CherenkovOffloadExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/CerenkovOffload.hh"
+#include "celeritas/optical/CherenkovOffload.hh"
 #include "celeritas/optical/OffloadData.hh"
 
 namespace celeritas
@@ -23,13 +23,13 @@ namespace detail
 /*!
  * Generate optical distribution data.
  */
-struct CerenkovOffloadExecutor
+struct CherenkovOffloadExecutor
 {
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
-    NativeCRef<celeritas::optical::CerenkovData> const cerenkov;
+    NativeCRef<celeritas::optical::CherenkovData> const cherenkov;
     NativeRef<OffloadStateData> const state;
     OffloadBufferSize size;
 };
@@ -41,20 +41,20 @@ struct CerenkovOffloadExecutor
  * Generate optical distribution data.
  */
 CELER_FUNCTION void
-CerenkovOffloadExecutor::operator()(CoreTrackView const& track)
+CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(cerenkov);
+    CELER_EXPECT(cherenkov);
     CELER_EXPECT(material);
 
     using DistId = ItemId<celeritas::optical::GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
-    CELER_ASSERT(size.cerenkov + tsid.get() < state.cerenkov.size());
-    auto& cerenkov_dist = state.cerenkov[DistId(size.cerenkov + tsid.get())];
+    CELER_ASSERT(size.cherenkov + tsid.get() < state.cherenkov.size());
+    auto& cherenkov_dist = state.cherenkov[DistId(size.cherenkov + tsid.get())];
 
     // Clear distribution data
-    cerenkov_dist = {};
+    cherenkov_dist = {};
 
     auto sim = track.make_sim_view();
     auto const& step = state.step[tsid];
@@ -68,15 +68,15 @@ CerenkovOffloadExecutor::operator()(CoreTrackView const& track)
 
     auto particle = track.make_particle_view();
 
-    // Get the distribution data used to generate Cerenkov optical photons
+    // Get the distribution data used to generate Cherenkov optical photons
     if (particle.charge() != zero_quantity())
     {
         Real3 const& pos = track.make_geo_view().pos();
         optical::MaterialView opt_mat{material, step.material};
         auto rng = track.make_rng_engine();
 
-        CerenkovOffload generate(particle, sim, opt_mat, pos, cerenkov, step);
-        cerenkov_dist = generate(rng);
+        CherenkovOffload generate(particle, sim, opt_mat, pos, cherenkov, step);
+        cherenkov_dist = generate(rng);
     }
 }
 

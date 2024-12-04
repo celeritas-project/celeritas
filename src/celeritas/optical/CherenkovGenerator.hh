@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovGenerator.hh
+//! \file celeritas/optical/CherenkovGenerator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,7 +20,7 @@
 #include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "CerenkovDndxCalculator.hh"
+#include "CherenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"
 #include "MaterialView.hh"
 #include "TrackInitializer.hh"
@@ -31,9 +31,9 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample Cerenkov photons from the given distribution.
+ * Sample Cherenkov photons from the given distribution.
  *
- * Cerenkov radiation is emitted when a charged particle passes through a
+ * Cherenkov radiation is emitted when a charged particle passes through a
  * dielectric medium faster than the speed of light in that medium. Photons are
  * emitted on the surface of a cone, with the cone angle, \f$ \theta \f$,
  * measured with respect to the incident particle direction. As the particle
@@ -47,16 +47,16 @@ namespace optical
    f(\epsilon) = \left[1 - \frac{1}{n^2(\epsilon)\beta^2}\right]
  * \f]
  */
-class CerenkovGenerator
+class CherenkovGenerator
 {
   public:
     // Construct from optical materials and distribution parameters
     inline CELER_FUNCTION
-    CerenkovGenerator(MaterialView const& material,
-                      NativeCRef<CerenkovData> const& shared,
+    CherenkovGenerator(MaterialView const& material,
+                      NativeCRef<CherenkovData> const& shared,
                       GeneratorDistributionData const& dist);
 
-    // Sample a Cerenkov photon from the distribution
+    // Sample a Cherenkov photon from the distribution
     template<class Generator>
     inline CELER_FUNCTION TrackInitializer operator()(Generator& rng);
 
@@ -88,8 +88,8 @@ class CerenkovGenerator
  * Construct from optical materials and distribution parameters.
  */
 CELER_FUNCTION
-CerenkovGenerator::CerenkovGenerator(MaterialView const& material,
-                                     NativeCRef<CerenkovData> const& shared,
+CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
+                                     NativeCRef<CherenkovData> const& shared,
                                      GeneratorDistributionData const& dist)
     : dist_(dist)
     , calc_refractive_index_(material.make_refractive_index_calculator())
@@ -105,7 +105,7 @@ CerenkovGenerator::CerenkovGenerator(MaterialView const& material,
     // pre- and post-step energies
     auto const& pre_step = dist_.points[StepPoint::pre];
     auto const& post_step = dist_.points[StepPoint::post];
-    CerenkovDndxCalculator calc_dndx(material, shared, dist_.charge);
+    CherenkovDndxCalculator calc_dndx(material, shared, dist_.charge);
     dndx_pre_ = calc_dndx(pre_step.speed);
     real_type dndx_post = calc_dndx(post_step.speed);
 
@@ -134,10 +134,10 @@ CerenkovGenerator::CerenkovGenerator(MaterialView const& material,
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample Cerenkov photons from the distribution.
+ * Sample Cherenkov photons from the distribution.
  */
 template<class Generator>
-CELER_FUNCTION TrackInitializer CerenkovGenerator::operator()(Generator& rng)
+CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
 {
     // Sample energy and direction
     real_type energy;
@@ -151,7 +151,7 @@ CELER_FUNCTION TrackInitializer CerenkovGenerator::operator()(Generator& rng)
         // wavelength.
         // We could improve sampling efficiency for this edge case by
         // increasing the minimum energy (as is done in
-        // CerenkovDndxCalculator) to where the refractive index satisfies
+        // CherenkovDndxCalculator) to where the refractive index satisfies
         // this condition, but since fewer photons are emitted at lower
         // energies in general, relatively few rejections will take place
         // here.

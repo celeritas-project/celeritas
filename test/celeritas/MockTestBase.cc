@@ -161,7 +161,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.use_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
-        inp.xs = {Barn{1.0}, Barn{1.0}};
+        inp.xs = {Barn{1.0}, Barn{1.0}, Barn{1.0}};
         inp.energy_loss = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }

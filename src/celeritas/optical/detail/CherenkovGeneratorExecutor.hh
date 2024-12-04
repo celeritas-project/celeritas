@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovGeneratorExecutor.hh
+//! \file celeritas/optical/detail/CherenkovGeneratorExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/CerenkovGenerator.hh"
+#include "celeritas/optical/CherenkovGenerator.hh"
 #include "celeritas/optical/OffloadData.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
@@ -25,15 +25,15 @@ namespace detail
 // LAUNCHER
 //---------------------------------------------------------------------------//
 /*!
- * Generate Cerenkov photons from optical distribution data.
+ * Generate Cherenkov photons from optical distribution data.
  */
-struct CerenkovGeneratorExecutor
+struct CherenkovGeneratorExecutor
 {
     //// DATA ////
 
     RefPtr<CoreStateData, MemSpace::native> state;
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
-    NativeCRef<celeritas::optical::CerenkovData> const cerenkov;
+    NativeCRef<celeritas::optical::CherenkovData> const cherenkov;
     NativeRef<OffloadStateData> const offload_state;
     RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
     OffloadBufferSize size;
@@ -49,17 +49,17 @@ struct CerenkovGeneratorExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Generate Cerenkov photons from optical distribution data.
+ * Generate Cherenkov photons from optical distribution data.
  */
 CELER_FUNCTION void
-CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
+CherenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(cerenkov);
+    CELER_EXPECT(cherenkov);
     CELER_EXPECT(material);
     CELER_EXPECT(offload_state);
     CELER_EXPECT(optical_state);
-    CELER_EXPECT(size.cerenkov <= offload_state.cerenkov.size());
+    CELER_EXPECT(size.cherenkov <= offload_state.cherenkov.size());
 
     using DistId = ItemId<celeritas::optical::GeneratorDistributionData>;
     using InitId = ItemId<celeritas::optical::TrackInitializer>;
@@ -68,7 +68,7 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
     // Each bin gives the range of thread IDs that will generate from the
     // corresponding distribution
     auto offsets = offload_state.offsets[ItemRange<size_type>(
-        ItemId<size_type>(0), ItemId<size_type>(size.cerenkov))];
+        ItemId<size_type>(0), ItemId<size_type>(size.cherenkov))];
 
     // Get the total number of initializers to generate
     size_type total_work = offsets.back();
@@ -86,13 +86,13 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
 
         // Find the distribution this thread will generate from
         size_type dist_idx = find_distribution_index(offsets, idx);
-        CELER_ASSERT(dist_idx < size.cerenkov);
-        auto const& dist = offload_state.cerenkov[DistId(dist_idx)];
+        CELER_ASSERT(dist_idx < size.cherenkov);
+        auto const& dist = offload_state.cherenkov[DistId(dist_idx)];
         CELER_ASSERT(dist);
 
         // Generate one primary from the distribution
         optical::MaterialView opt_mat{material, dist.material};
-        celeritas::optical::CerenkovGenerator generate(opt_mat, cerenkov, dist);
+        celeritas::optical::CherenkovGenerator generate(opt_mat, cherenkov, dist);
         size_type init_idx = counters.num_initializers + idx;
         CELER_ASSERT(init_idx < optical_state->init.initializers.size());
         optical_state->init.initializers[InitId(init_idx)] = generate(rng);

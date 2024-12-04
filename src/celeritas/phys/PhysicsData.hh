@@ -241,6 +241,9 @@ struct PhysicsParamsScalars
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{};  //!< Global charged step size limit [len]
 
+    //! Order for energy loss interpolation
+    size_type spline_eloss_order{};
+
     // User-configurable multiple scattering options
     real_type lambda_limit{};  //!< lambda limit
     real_type range_factor{};  //!< range factor for e-/e+ (0.2 for muon/h)
@@ -263,8 +266,8 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && lambda_limit > 0 && range_factor > 0 && range_factor < 1
-               && safety_factor >= 0.1
+               && spline_eloss_order > 0 && lambda_limit > 0
+               && range_factor > 0 && range_factor < 1 && safety_factor >= 0.1
                && step_limit_algorithm != MscStepLimitAlgorithm::size_;
     }
 

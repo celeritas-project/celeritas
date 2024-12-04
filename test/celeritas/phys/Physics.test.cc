@@ -16,6 +16,7 @@
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/grid/SplineXsCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -141,7 +142,7 @@ TEST_F(PhysicsParamsTest, output)
         GTEST_SKIP() << "Test results are based on CGS units";
     }
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":231,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
         to_string(out));
 }
 
@@ -646,6 +647,30 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
                                     3.016582857143,
                                     3.016582857143};
     EXPECT_VEC_SOFT_EQ(expected_step, step);
+}
+
+TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
+{
+    // Cross sections: same across particle types, constant in energy, scale
+    // according to material number density
+    std::vector<real_type> xs;
+    for (char const* particle : {"gamma", "celeriton"})
+    {
+        for (auto mat_id : range(MaterialId{this->material()->size()}))
+        {
+            PhysicsTrackView const phys
+                = this->make_track_view(particle, mat_id);
+            auto scat_ppid = this->find_ppid(phys, "scattering");
+            auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
+            ASSERT_TRUE(id);
+            auto calc_xs = phys.make_calculator<SplineXsCalculator>(id, 2);
+            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
+        }
+    }
+
+    double const expected_xs[]
+        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
+    EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
 //---------------------------------------------------------------------------//
