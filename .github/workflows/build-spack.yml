@@ -146,7 +146,9 @@ jobs:
             ninja -k0
             exit $?
           fi
-          FILES=$(git diff --name-only --diff-filter=ACM origin/"$BASE_REF" HEAD | grep -E '^(src|app|example)/.*\.cc$')
+          FIRST_PR_HASH=$(git log --reverse --oneline --format="%H" origin/${BASE_REF}..HEAD | head -1)
+          BASE=$(git log --oneline -n1 --format="%P" $FIRST_PR_HASH)
+          FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD^2 | grep -E '^(src|app|example)/.*\.cc$')
           if [ -z "$FILES" ]; then
             echo "No files to run clang-tidy on."
             exit 0
