@@ -146,14 +146,11 @@ jobs:
             ninja -k0
             exit $?
           fi
-          set -x
           FIRST_PR_HASH=$(git log --reverse --oneline --format="%H" origin/${BASE_REF}..HEAD | head -1)
           echo "First PR commit: $FIRST_PR_HASH"
-          BASE=$(git log --oneline -n1 --format="%P" $FIRST_PR_HASH)
-          echo "Diffing against $BASE"
-          ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD^2)
+          ALL_FILES=$(git diff --name-only --diff-filter=ACM "$FIRST_PR_HASH^" HEAD^2)
           echo "All files: $ALL_FILES"
-          CC_FILES=$(grep -E '^(src|app|example)/.*\.cc$' - <<< "$ALL_FILES")
+          CC_FILES=$(set +e; grep -E '^(src|app|example)/.*\.cc$' - <<< "$ALL_FILES")
           echo "Files to check: $CC_FILES"
           if [ -z "$FILES" ]; then
             echo "No files to run clang-tidy on."
