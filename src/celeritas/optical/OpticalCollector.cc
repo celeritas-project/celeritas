@@ -12,14 +12,14 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-#include "CerenkovParams.hh"
+#include "CherenkovParams.hh"
 #include "CoreParams.hh"
 #include "MaterialParams.hh"
 #include "OffloadData.hh"
 #include "ScintillationParams.hh"
 
-#include "detail/CerenkovGeneratorAction.hh"
-#include "detail/CerenkovOffloadAction.hh"
+#include "detail/CherenkovGeneratorAction.hh"
+#include "detail/CherenkovOffloadAction.hh"
 #include "detail/OffloadGatherAction.hh"
 #include "detail/OffloadParams.hh"
 #include "detail/OpticalLaunchAction.hh"
@@ -39,7 +39,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     CELER_EXPECT(inp);
 
     OffloadOptions setup;
-    setup.cerenkov = inp.cerenkov && inp.material;
+    setup.cherenkov = inp.cherenkov && inp.material;
     setup.scintillation = static_cast<bool>(inp.scintillation);
     setup.capacity = inp.buffer_capacity;
 
@@ -55,15 +55,15 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         actions.next_id(), offload_params_->aux_id());
     actions.insert(gather_action_);
 
-    if (setup.cerenkov)
+    if (setup.cherenkov)
     {
-        // Action to generate Cerenkov optical distributions
-        cerenkov_action_ = std::make_shared<detail::CerenkovOffloadAction>(
+        // Action to generate Cherenkov optical distributions
+        cherenkov_action_ = std::make_shared<detail::CherenkovOffloadAction>(
             actions.next_id(),
             offload_params_->aux_id(),
             inp.material,
-            inp.cerenkov);
-        actions.insert(cerenkov_action_);
+            inp.cherenkov);
+        actions.insert(cherenkov_action_);
     }
 
     if (setup.scintillation)
@@ -74,20 +74,20 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         actions.insert(scint_action_);
     }
 
-    if (setup.cerenkov)
+    if (setup.cherenkov)
     {
-        // Action to generate Cerenkov primaries
-        cerenkov_gen_action_
-            = std::make_shared<detail::CerenkovGeneratorAction>(
+        // Action to generate Cherenkov primaries
+        cherenkov_gen_action_
+            = std::make_shared<detail::CherenkovGeneratorAction>(
                 actions.next_id(),
                 offload_params_->aux_id(),
                 // TODO: Hack: generator action must be before launch action
                 // but needs optical state aux ID
                 core.aux_reg()->next_id(),
                 inp.material,
-                std::move(inp.cerenkov),
+                std::move(inp.cherenkov),
                 inp.auto_flush);
-        actions.insert(cerenkov_gen_action_);
+        actions.insert(cherenkov_gen_action_);
     }
 
     if (setup.scintillation)
@@ -114,14 +114,14 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         core, std::move(la_inp));
 
     // Launch action must be *after* offload and generator actions
-    CELER_ENSURE(!cerenkov_action_
+    CELER_ENSURE(!cherenkov_action_
                  || launch_action_->action_id()
-                        > cerenkov_action_->action_id());
+                        > cherenkov_action_->action_id());
     CELER_ENSURE(!scint_action_
                  || launch_action_->action_id() > scint_action_->action_id());
-    CELER_ENSURE(!cerenkov_gen_action_
+    CELER_ENSURE(!cherenkov_gen_action_
                  || launch_action_->action_id()
-                        > cerenkov_gen_action_->action_id());
+                        > cherenkov_gen_action_->action_id());
     CELER_ENSURE(!scint_gen_action_
                  || launch_action_->action_id()
                         > scint_gen_action_->action_id());

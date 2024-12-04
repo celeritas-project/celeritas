@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovOffloadAction.hh
+//! \file celeritas/optical/detail/CherenkovGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,39 +15,46 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
 
-#include "OffloadParams.hh"
-
 namespace celeritas
 {
 namespace optical
 {
-class CerenkovParams;
+class CherenkovParams;
 class MaterialParams;
 }  // namespace optical
 
 namespace detail
 {
+class OffloadParams;
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data.
+ * Generate Cherenkov photons from optical distribution data.
+ *
+ * This samples and buffers new optical track initializers in a reproducible
+ * way. Rather than let each thread generate all initializers from one
+ * distribution, the work is split as evenly as possible among threads:
+ * multiple threads may generate initializers from a single distribution.
  */
-class CerenkovOffloadAction final : public CoreStepActionInterface
+class CherenkovGeneratorAction final : public CoreStepActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCerenkov
-        = std::shared_ptr<celeritas::optical::CerenkovParams const>;
+    using SPConstCherenkov
+        = std::shared_ptr<celeritas::optical::CherenkovParams const>;
     using SPConstMaterial
         = std::shared_ptr<celeritas::optical::MaterialParams const>;
+    using SPOffloadParams = std::shared_ptr<OffloadParams>;
     //!@}
 
   public:
-    // Construct with action ID, optical material, and storage
-    CerenkovOffloadAction(ActionId id,
-                          AuxId data_id,
-                          SPConstMaterial material,
-                          SPConstCerenkov cerenkov);
+    // Construct with action ID, data IDs, and optical properties
+    CherenkovGeneratorAction(ActionId id,
+                            AuxId offload_id,
+                            AuxId optical_id,
+                            SPConstMaterial material,
+                            SPConstCherenkov cherenkov,
+                            size_type auto_flush);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -59,7 +66,10 @@ class CerenkovOffloadAction final : public CoreStepActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string_view label() const final { return "cerenkov-offload"; }
+    std::string_view label() const final
+    {
+        return "generate-cherenkov-photons";
+    }
 
     // Name of the action (for user output)
     std::string_view description() const final;
@@ -71,17 +81,19 @@ class CerenkovOffloadAction final : public CoreStepActionInterface
     //// DATA ////
 
     ActionId id_;
-    AuxId data_id_;
+    AuxId offload_id_;
+    AuxId optical_id_;
     SPConstMaterial material_;
-    SPConstCerenkov cerenkov_;
+    SPConstCherenkov cherenkov_;
+    size_type auto_flush_;
 
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;
 
-    void pre_generate(CoreParams const&, CoreStateHost&) const;
-    void pre_generate(CoreParams const&, CoreStateDevice&) const;
+    void generate(CoreParams const&, CoreStateHost&) const;
+    void generate(CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/Cerenkov.test.cc
+//! \file celeritas/optical/Cherenkov.test.cc
 //---------------------------------------------------------------------------//
 #include <algorithm>
 #include <vector>
@@ -20,10 +20,10 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/optical/CerenkovDndxCalculator.hh"
-#include "celeritas/optical/CerenkovGenerator.hh"
-#include "celeritas/optical/CerenkovOffload.hh"
-#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/CherenkovDndxCalculator.hh"
+#include "celeritas/optical/CherenkovGenerator.hh"
+#include "celeritas/optical/CherenkovOffload.hh"
+#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
@@ -125,7 +125,7 @@ real_type um_to_mev(real_type wavelength_um)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CerenkovTest : public ::celeritas::test::OpticalTestBase
+class CherenkovTest : public ::celeritas::test::OpticalTestBase
 {
   protected:
     using Energy = units::MevEnergy;
@@ -148,12 +148,12 @@ class CerenkovTest : public ::celeritas::test::OpticalTestBase
         input.volume_to_mat = {OpticalMaterialId{0}};
         material = std::make_shared<MaterialParams>(std::move(input));
 
-        // Build Cerenkov data
-        params = std::make_shared<CerenkovParams>(material);
+        // Build Cherenkov data
+        params = std::make_shared<CherenkovParams>(material);
     }
 
     std::shared_ptr<MaterialParams const> material;
-    std::shared_ptr<CerenkovParams const> params;
+    std::shared_ptr<CherenkovParams const> params;
     OpticalMaterialId material_id{0};
 };
 
@@ -161,7 +161,7 @@ class CerenkovTest : public ::celeritas::test::OpticalTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(CerenkovTest, angle_integral)
+TEST_F(CherenkovTest, angle_integral)
 {
     // Check conversion: 1 μm wavelength is approximately 1.2398 eV
     EXPECT_SOFT_EQ(1.2398419843320026e-6, um_to_mev(1));
@@ -181,7 +181,7 @@ TEST_F(CerenkovTest, angle_integral)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CerenkovTest, dndx)
+TEST_F(CherenkovTest, dndx)
 {
     EXPECT_SOFT_NEAR(369.81e6,
                      constants::alpha_fine_structure * units::Mev::value()
@@ -190,7 +190,7 @@ TEST_F(CerenkovTest, dndx)
                      1e-6);
 
     MaterialView mat_view{material->host_ref(), material_id};
-    CerenkovDndxCalculator calc_dndx(
+    CherenkovDndxCalculator calc_dndx(
         mat_view,
         params->host_ref(),
         this->particle_params()->get(ParticleId{0}).charge());
@@ -221,7 +221,7 @@ TEST_F(CerenkovTest, dndx)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
+TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 {
     Rng rng;
     MaterialView const mat_view{material->host_ref(), material_id};
@@ -241,7 +241,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        CerenkovOffload pre_generate(
+        CherenkovOffload pre_generate(
             particle, sim, mat_view, pos, params->host_ref(), pre_step);
 
         size_type num_samples = 10;
@@ -271,7 +271,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
     }
 
-    // Below Cerenkov threshold
+    // Below Cherenkov threshold
     {
         // Pre-step values
         OffloadPreStepData pre_step;
@@ -286,7 +286,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.1);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        CerenkovOffload pre_generate(
+        CherenkovOffload pre_generate(
             particle, sim, mat_view, pos, params->host_ref(), pre_step);
         auto const result = pre_generate(rng);
 
@@ -297,7 +297,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
+TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 {
     Rng rng;
     MaterialView mat_view{material->host_ref(), material_id};
@@ -338,7 +338,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         real_type ddel = (dmax - dmin) / num_bins;
 
         // Calculate the average number of photons produced per unit length
-        CerenkovOffload pre_generate(
+        CherenkovOffload pre_generate(
             particle, sim, mat_view, pos, params->host_ref(), pre_step);
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
@@ -348,7 +348,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
             CELER_ASSERT(dist);
 
             // Sample the optical photons
-            CerenkovGenerator generate_photon(
+            CherenkovGenerator generate_photon(
                 mat_view, params->host_ref(), dist);
 
             for (size_type j = 0; j < dist.num_photons; ++j)

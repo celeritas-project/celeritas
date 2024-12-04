@@ -21,6 +21,7 @@
 #include "celeritas/em/process/GammaConversionProcess.hh"
 #include "celeritas/em/process/MuBremsstrahlungProcess.hh"
 #include "celeritas/em/process/MuIonizationProcess.hh"
+#include "celeritas/em/process/MuPairProductionProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/io/ImportData.hh"
@@ -90,6 +91,8 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
         read_neutron_elastic_
             = make_imported_element_loader(data.neutron_elastic_data);
     }
+    mu_pairprod_table_ = std::make_shared<ImportMuPairProductionTable>(
+        data.mu_pair_production_data);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,6 +143,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
         {IPC::mu_brems, &ProcessBuilder::build_mubrems},
         {IPC::mu_ioni, &ProcessBuilder::build_muioni},
+        {IPC::mu_pair_prod, &ProcessBuilder::build_mupairprod},
         {IPC::neutron_elastic, &ProcessBuilder::build_neutron_elastic},
         {IPC::photoelectric, &ProcessBuilder::build_photoelectric},
         {IPC::rayleigh, &ProcessBuilder::build_rayleigh},
@@ -272,6 +276,16 @@ auto ProcessBuilder::build_muioni() -> SPProcess
 
     return std::make_shared<MuIonizationProcess>(
         this->particle(), this->imported(), options);
+}
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_mupairprod() -> SPProcess
+{
+    MuPairProductionProcess::Options options;
+    options.use_integral_xs = use_integral_xs_;
+
+    return std::make_shared<MuPairProductionProcess>(
+        this->particle(), this->imported(), options, mu_pairprod_table_);
 }
 
 //---------------------------------------------------------------------------//

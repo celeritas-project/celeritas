@@ -11,7 +11,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -133,9 +133,9 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
 }
 
 //---------------------------------------------------------------------------//
-auto ImportedDataTestBase::build_cerenkov() -> SPConstCerenkov
+auto ImportedDataTestBase::build_cherenkov() -> SPConstCherenkov
 {
-    return std::make_shared<optical::CerenkovParams>(this->optical_material());
+    return std::make_shared<optical::CherenkovParams>(this->optical_material());
 }
 
 //---------------------------------------------------------------------------//
