@@ -43,7 +43,7 @@ using IsotopeId = OpaqueId<struct IsotopeRecord>;
 using MaterialId = OpaqueId<class Material_>;
 
 //! Opaque index of model in the list of physics processes
-using ModelId = OpaqueId<class Model>;
+using ModelId = OpaqueId<class Model_>;
 
 //! Opaque index to a material with optical properties
 using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;

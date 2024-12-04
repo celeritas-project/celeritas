@@ -29,7 +29,7 @@ void fill(T&& value, Collection<T, W, M, I>* col)
     static_assert(W != Ownership::const_reference,
                   "const references cannot be filled");
     CELER_EXPECT(col);
-    Filler<T, M> fill_impl{value};
+    Filler<T, M> fill_impl{std::forward<T>(value)};
     fill_impl((*col)[AllItems<T, M>{}]);
 }
 

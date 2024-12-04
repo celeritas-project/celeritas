@@ -34,6 +34,7 @@ namespace celeritas
  */
 template<template<class EquationT> class StepperT, class FieldT>
 CELER_FUNCTION decltype(auto)
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
 {
     using Equation_t = MagFieldEquation<FieldT>;
@@ -58,10 +59,12 @@ make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
  */
 template<class StepperT, class GTV>
 CELER_FUNCTION decltype(auto)
+// NOLINTBEGIN(cppcoreguidelines-missing-std-forward)
 make_field_propagator(StepperT&& stepper,
                       FieldDriverOptions const& options,
                       ParticleTrackView const& particle,
                       GTV&& geometry)
+// NOLINTEND(cppcoreguidelines-missing-std-forward)
 {
     return FieldPropagator{
         FieldDriver{options, ::celeritas::forward<StepperT>(stepper)},
@@ -84,12 +87,14 @@ make_field_propagator(StepperT&& stepper,
  * propagate(0.123);
  * \endcode
  */
+// NOLINTBEGIN(cppcoreguidelines-missing-std-forward)
 template<template<class EquationT> class StepperT, class FieldT, class GTV>
 CELER_FUNCTION decltype(auto)
 make_mag_field_propagator(FieldT&& field,
                           FieldDriverOptions const& options,
                           ParticleTrackView const& particle,
                           GTV&& geometry)
+// NOLINTEND(cppcoreguidelines-missing-std-forward)
 {
     return make_field_propagator(
         make_mag_field_stepper<StepperT>(::celeritas::forward<FieldT>(field),

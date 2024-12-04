@@ -20,6 +20,7 @@ namespace detail
 /*!
  * Accesss the 2D fields (i.e., {thread, level}) of OrangeStateData
  */
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class LevelStateAccessor
 {
   public:
@@ -34,9 +35,12 @@ class LevelStateAccessor
                                              TrackSlotId tid,
                                              LevelId level_id);
 
+    LevelStateAccessor(LevelStateAccessor const&) = default;
+    LevelStateAccessor(LevelStateAccessor&&) = default;
     // Copy data from another LSA
     inline CELER_FUNCTION LevelStateAccessor&
     operator=(LevelStateAccessor const& other);
+    ~LevelStateAccessor() = default;
 
     //// ACCESSORS ////
 
@@ -109,6 +113,10 @@ LevelStateAccessor::LevelStateAccessor(StateRef const* states,
 CELER_FUNCTION LevelStateAccessor&
 LevelStateAccessor::operator=(LevelStateAccessor const& other)
 {
+    if (this == &other)
+    {
+        return *this;
+    }
     this->vol() = other.vol();
     this->pos() = other.pos();
     this->dir() = other.dir();

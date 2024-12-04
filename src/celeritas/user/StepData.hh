@@ -207,6 +207,7 @@ struct StepPointStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     StepPointStateData& operator=(StepPointStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
@@ -289,6 +290,7 @@ struct StepStateDataImpl
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     StepStateDataImpl& operator=(StepStateDataImpl<W2, M2>& other)
     {
         // The extra storage used to gather the step data is only required on
@@ -370,6 +372,7 @@ struct StepStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     StepStateData& operator=(StepStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);

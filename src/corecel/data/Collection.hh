@@ -280,6 +280,8 @@ class Collection
     Collection(Collection&&) = default;
     //!@}
 
+    ~Collection() = default;
+
     // Construct from another collection
     template<Ownership W2, MemSpace M2>
     explicit inline Collection(Collection<T, W2, M2, I> const& other);
@@ -300,6 +302,7 @@ class Collection
 
     // Assign (mutable!) from another collection
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     inline Collection& operator=(Collection<T, W2, M2, I>& other);
 
     //// ACCESS ////
@@ -414,6 +417,7 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
+// NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
 Collection<T, W, M, I>&
 Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
 {

@@ -9,6 +9,7 @@ Checks: |
   -performance-avoid-endl
   -performance-unnecessary-value-param
   -performance-enum-size
+  -performance-noexcept-destructor
   cppcoreguidelines-*
   -cppcoreguidelines-owning-memory
   -cppcoreguidelines-narrowing-conversions
@@ -25,6 +26,7 @@ Checks: |
   -cppcoreguidelines-noexcept-swap
   -cppcoreguidelines-noexcept-move-operations
   -cppcoreguidelines-noexcept-destructor
+  -cppcoreguidelines-virtual-class-destructor
   bugprone-*
   -bugprone-sizeof-expression
   -bugprone-narrowing-conversions
@@ -37,9 +39,11 @@ CheckOptions:
   cppcoreguidelines-avoid-do-while.IgnoreMacros: true
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: true
   cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove: true
+  cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
   cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
   performance-move-const-arg.CheckTriviallyCopyableMove: false
   performance-move-const-arg.CheckMoveToConstRef: false
-HeaderFilterRegex: ''
+
+HeaderFilterRegex: '(example|app|src/(accel|celeritas|corecel|orange|geocel))/.*\.hh$'
 FormatStyle: file
 ...

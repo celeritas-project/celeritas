@@ -51,6 +51,7 @@ class CollectionStateStore
 
   public:
     CollectionStateStore() = default;
+    ~CollectionStateStore() = default;
 
     // Construct from parameters and stream ID
     template<template<Ownership, MemSpace> class P>

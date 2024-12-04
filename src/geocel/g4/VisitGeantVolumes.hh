@@ -31,6 +31,7 @@ namespace celeritas
  * as visited using a set.
  */
 template<class F>
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
 {
     struct QueuedVolume
@@ -77,6 +78,7 @@ void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
  * \code void(*)(G4LogicalVolume const&) \endcode .
  */
 template<class F>
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 void visit_geant_volumes(F&& vis, G4VPhysicalVolume const& parent_vol)
 {
     std::unordered_set<G4LogicalVolume const*> visited;

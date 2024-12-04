@@ -240,6 +240,7 @@ class range_iter
     CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
 
   protected:
+    // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
     value_type value_;
 };
 

@@ -110,6 +110,7 @@ LocalSurfaceVisitor::LocalSurfaceVisitor(ParamsRef const& params,
  */
 template<class F>
 CELER_FUNCTION decltype(auto)
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
 {
     CELER_EXPECT(id < surfaces_.size());

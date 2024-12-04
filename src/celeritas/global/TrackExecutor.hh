@@ -159,10 +159,10 @@ CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
  * Return a track executor that only applies to active, non-errored tracks.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
-                           CoreStatePtr<MemSpace::native> const& state,
-                           T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_active_track_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> const& state,
+    T&& apply_track)  // NOLINT(cppcoreguidelines-missing-std-forward)
 {
     return ConditionalTrackExecutor{
         params, state, AppliesValid{}, celeritas::forward<T>(apply_track)};
@@ -177,11 +177,11 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
  * threads, active or not.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
-                           CoreStatePtr<MemSpace::native> state,
-                           ActionId action,
-                           T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_action_track_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> state,
+    ActionId action,
+    T&& apply_track)  // NOLINT(cppcoreguidelines-missing-std-forward)
 {
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
@@ -195,11 +195,11 @@ make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
  * Return a track executor that only applies for the given along-step action.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_along_step_track_executor(CoreParamsPtr<MemSpace::native> params,
-                               CoreStatePtr<MemSpace::native> state,
-                               ActionId action,
-                               T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_along_step_track_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> state,
+    ActionId action,
+    T&& apply_track)  // NOLINT(cppcoreguidelines-missing-std-forward)
 {
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,

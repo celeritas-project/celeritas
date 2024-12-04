@@ -175,6 +175,7 @@ CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
  * Cast a value to an rvalue reference.
  */
 template<class T>
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 CELER_CONSTEXPR_FUNCTION auto trivial_move(T&& v) noexcept ->
     typename std::remove_reference<T>::type&&
 {

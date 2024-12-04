@@ -29,7 +29,7 @@ namespace app
  * The parameters will be distributed to worker threads and all the actions.
  */
 ActionInitialization::ActionInitialization(SPParams params)
-    : params_{std::move(params)}, init_shared_{true}
+    : params_{std::move(params)}
 {
     CELER_EXPECT(params_);
 

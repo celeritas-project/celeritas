@@ -52,7 +52,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
                    size_type num_streams);
 
     //! Default destructor
-    ~StepDiagnostic();
+    ~StepDiagnostic() final;
 
     //!@{
     //! \name ExplicitAction interface

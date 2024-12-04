@@ -133,6 +133,7 @@ struct AtomicRelaxStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     AtomicRelaxStateData& operator=(AtomicRelaxStateData<W2, M2>& other)
     {
         scratch = other.scratch;

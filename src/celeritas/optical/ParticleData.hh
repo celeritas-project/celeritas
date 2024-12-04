@@ -49,6 +49,7 @@ struct ParticleStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     ParticleStateData& operator=(ParticleStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);

@@ -50,11 +50,12 @@ class IntersectRegionInterface
     //! Write the region to a JSON object
     virtual void output(JsonPimpl*) const = 0;
 
+    virtual ~IntersectRegionInterface() = default;
+
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
     IntersectRegionInterface() = default;
-    virtual ~IntersectRegionInterface() = default;
     CELER_DEFAULT_COPY_MOVE(IntersectRegionInterface);
     //!@}
 };

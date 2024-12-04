@@ -37,6 +37,7 @@ struct StackAllocatorData
 
     //! Assign from another stack
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     StackAllocatorData& operator=(StackAllocatorData<T, W2, M2>& other)
     {
         CELER_EXPECT(other);

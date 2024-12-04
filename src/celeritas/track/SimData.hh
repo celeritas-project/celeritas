@@ -166,6 +166,7 @@ struct SimStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     SimStateData& operator=(SimStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);

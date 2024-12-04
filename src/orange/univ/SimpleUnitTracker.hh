@@ -358,6 +358,7 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 {
     detail::BIHEnclosingVolFinder find_volume{unit_record_.bih_tree,
@@ -388,9 +389,10 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  *   Geant4)
  */
 template<class F>
-CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(LocalState const& state,
-                                  F&& is_valid) const -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::intersect_impl(
+    LocalState const& state,
+    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
+    F&& is_valid) const -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 

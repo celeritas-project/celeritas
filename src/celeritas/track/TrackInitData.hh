@@ -133,6 +133,7 @@ struct TrackInitStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
     TrackInitStateData& operator=(TrackInitStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);

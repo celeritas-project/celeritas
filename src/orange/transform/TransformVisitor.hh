@@ -95,6 +95,7 @@ CELER_FUNCTION TransformVisitor::TransformVisitor(ParamsRef const& params)
  */
 template<class F>
 CELER_FUNCTION decltype(auto)
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 TransformVisitor::operator()(F&& func, TransformId id)
 {
     CELER_EXPECT(id < transforms_.size());
