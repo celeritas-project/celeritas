@@ -30,6 +30,7 @@ list(APPEND SOURCES
   em/process/GammaConversionProcess.cc
   em/process/MuIonizationProcess.cc
   em/process/MuBremsstrahlungProcess.cc
+  em/process/MuPairProductionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantOpticalPhysicsOptions.cc
@@ -279,6 +280,7 @@ celeritas_polysource(em/model/LivermorePEModel)
 celeritas_polysource(em/model/MollerBhabhaModel)
 celeritas_polysource(em/model/MuBetheBlochModel)
 celeritas_polysource(em/model/MuBremsstrahlungModel)
+celeritas_polysource(em/model/MuPairProductionModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)

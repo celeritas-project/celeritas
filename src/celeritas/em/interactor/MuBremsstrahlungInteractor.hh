@@ -14,7 +14,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
-#include "celeritas/em/distribution/MuBremsPPAngularDistribution.hh"
+#include "celeritas/em/distribution/MuAngularDistribution.hh"
 #include "celeritas/em/xs/MuBremsDiffXsCalculator.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -144,7 +144,7 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     } while (RejectionSampler{gamma_energy * calc_dcs_(Energy{gamma_energy}),
                               envelope_}(rng));
 
-    MuBremsPPAngularDistribution sample_costheta(
+    MuAngularDistribution sample_costheta(
         particle_.energy(), particle_.mass(), Energy{gamma_energy});
 
     // Update kinematics of the final state and return this interaction

@@ -130,7 +130,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 # Distributions
 celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
-celeritas_add_test(em/distribution/MuBremsPPAngularDistribution.test.cc ${_needs_double})
+celeritas_add_test(em/distribution/MuAngularDistribution.test.cc ${_needs_double})
 celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Cross section calculation
@@ -147,6 +147,7 @@ celeritas_add_test(em/LivermorePE.test.cc ${_needs_double})
 celeritas_add_test(em/MollerBhabha.test.cc ${_needs_double})
 celeritas_add_test(em/MuBetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/MuBremsstrahlung.test.cc ${_needs_double})
+celeritas_add_test(em/MuPairProduction.test.cc ${_needs_double} ${_needs_root})
 celeritas_add_test(em/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(em/RelativisticBrem.test.cc ${_needs_double})
 celeritas_add_test(em/SeltzerBerger.test.cc ${_needs_double})

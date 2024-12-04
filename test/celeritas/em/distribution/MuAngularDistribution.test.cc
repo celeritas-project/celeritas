@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/distribution/MuBremsPPAngularDistribution.test.cc
+//! \file celeritas/em/distribution/MuAngularDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/em/distribution/MuBremsPPAngularDistribution.hh"
+#include "celeritas/em/distribution/MuAngularDistribution.hh"
 
 #include <random>
 
@@ -19,7 +19,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-TEST(MuBremsPPAngularDistributionTest, costheta_dist)
+TEST(MuAngularDistributionTest, costheta_dist)
 {
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
@@ -33,7 +33,7 @@ TEST(MuBremsPPAngularDistributionTest, costheta_dist)
     {
         for (real_type eps : {0.001, 0.01, 0.1})
         {
-            MuBremsPPAngularDistribution sample_costheta(
+            MuAngularDistribution sample_costheta(
                 Energy{inc_e}, muon_mass, Energy{eps * inc_e});
 
             real_type costheta_sum = 0;
