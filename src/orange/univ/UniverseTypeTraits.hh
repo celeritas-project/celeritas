@@ -46,7 +46,6 @@ ORANGE_UNIV_TRAITS(rect_array, RectArray);
  */
 template<class F>
 CELER_CONSTEXPR_FUNCTION decltype(auto)
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 visit_universe_type(F&& func, UniverseType ut)
 {
 #define ORANGE_UT_VISIT_CASE(TYPE)          \

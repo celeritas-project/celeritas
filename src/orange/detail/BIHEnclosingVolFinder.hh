@@ -95,7 +95,6 @@ BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTree const& tree,
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
 {
     BIHNodeId previous_node;
@@ -208,9 +207,7 @@ bool BIHEnclosingVolFinder::visit_edge(BIHInnerNode const& node,
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
-    BIHLeafNode const& leaf_node,
-    Real3 const& pos,
-    F&& is_inside) const  // NOLINT(cppcoreguidelines-missing-std-forward)
+    BIHLeafNode const& leaf_node, Real3 const& pos, F&& is_inside) const
 {
     for (auto id : view_.leaf_volids(leaf_node))
     {
@@ -228,7 +225,6 @@ CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
 {
     for (auto id : view_.inf_volids())

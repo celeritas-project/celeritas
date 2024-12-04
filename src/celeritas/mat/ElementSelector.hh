@@ -93,10 +93,9 @@ class ElementSelector
  * Construct with material, xs calculator, and storage.
  */
 template<class MicroXsCalc>
-CELER_FUNCTION ElementSelector::ElementSelector(
-    MaterialView const& material,
-    MicroXsCalc&& calc_micro_xs,  // NOLINT(cppcoreguidelines-missing-std-forward)
-    SpanReal storage)
+CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
+                                                MicroXsCalc&& calc_micro_xs,
+                                                SpanReal storage)
     : elements_(material.elements()), elemental_xs_(storage.data())
 {
     CELER_EXPECT(!elements_.empty());

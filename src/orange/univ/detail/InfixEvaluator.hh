@@ -71,7 +71,6 @@ CELER_FUNCTION InfixEvaluator::InfixEvaluator(SpanConstLogic logic)
  * matching \c celeritas::Sense
  */
 template<class F>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
 {
     bool result{true};

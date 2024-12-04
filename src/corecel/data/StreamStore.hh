@@ -113,7 +113,6 @@ class StreamStore
     //// FUNCTIONS ////
 
     template<MemSpace M, class Self>
-    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
     static constexpr decltype(auto) states_impl(Self&& self)
     {
         if constexpr (M == MemSpace::host)
@@ -131,7 +130,6 @@ class StreamStore
     }
 
     template<MemSpace M, class Self>
-    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
     static decltype(auto) stateptr_impl(Self&& self, StreamId stream_id)
     {
         CELER_EXPECT(stream_id < self.num_streams_ || !self);
@@ -219,7 +217,6 @@ StreamStore<P, S>::state(StreamId stream_id, size_type size)
  * Apply a function to all streams.
  */
 template<class S, class F>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 void apply_to_all_streams(S&& store, F&& func)
 {
     // Apply on host
@@ -246,7 +243,6 @@ void apply_to_all_streams(S&& store, F&& func)
  * Accumulate data over all streams.
  */
 template<class S, class F, class T>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 void accumulate_over_streams(S&& store, F&& func, std::vector<T>* result)
 {
     std::vector<T> temp_host;

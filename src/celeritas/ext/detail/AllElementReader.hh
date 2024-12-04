@@ -42,7 +42,6 @@ class AllElementReader
 
     //! Load a map of data for all stored elements
     template<class ReadOneElement>
-    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
     auto operator()(ReadOneElement&& read_el) const -> decltype(auto)
     {
         using result_type = typename ReadOneElement::result_type;

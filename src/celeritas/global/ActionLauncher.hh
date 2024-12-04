@@ -37,11 +37,10 @@ namespace celeritas
  * \endcode
  */
 template<class F>
-void launch_core(
-    std::string_view label,
-    celeritas::CoreParams const& params,
-    celeritas::CoreState<MemSpace::host>& state,
-    F&& execute_thread)  // NOLINT(cppcoreguidelines-missing-std-forward)
+void launch_core(std::string_view label,
+                 celeritas::CoreParams const& params,
+                 celeritas::CoreState<MemSpace::host>& state,
+                 F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;
     size_type const size = state.size();

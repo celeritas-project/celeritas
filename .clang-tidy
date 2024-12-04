@@ -28,6 +28,7 @@ Checks: |
   -cppcoreguidelines-noexcept-destructor
   -cppcoreguidelines-virtual-class-destructor
   -cppcoreguidelines-c-copy-assignment-signature
+  -cppcoreguidelines-missing-std-forward
   bugprone-*
   -bugprone-sizeof-expression
   -bugprone-narrowing-conversions

@@ -32,7 +32,6 @@ namespace celeritas
  * \endcode
  */
 template<class F>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 void launch_kernel(size_type num_threads, F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;

@@ -35,7 +35,6 @@ namespace optical
  * \endcode
  */
 template<class F>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 void launch_action(CoreState<MemSpace::host>& state, F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;

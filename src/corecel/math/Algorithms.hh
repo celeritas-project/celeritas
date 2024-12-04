@@ -51,7 +51,6 @@ forward(typename std::remove_reference<T>::type&& v) noexcept
  * Cast a value as an rvalue reference to allow move construction.
  */
 template<class T>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept ->
     typename std::remove_reference<T>::type&&
 {
@@ -110,8 +109,7 @@ struct Less<void>
 {
     template<class T, class U>
     CELER_CONSTEXPR_FUNCTION auto
-    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
-    operator()(T && lhs, U && rhs) const -> decltype(auto)
+    operator()(T&& lhs, U&& rhs) const -> decltype(auto)
     {
         return ::celeritas::forward<T>(lhs) < ::celeritas::forward<U>(rhs);
     }

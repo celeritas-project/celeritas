@@ -45,7 +45,6 @@ std::string demangled_typeid_name(char const* typeid_name);
 //---------------------------------------------------------------------------//
 //! Demangle the type name of any variable
 template<class T>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 std::string demangled_type(T&&)
 {
     return demangled_typeid_name(typeid(T).name());

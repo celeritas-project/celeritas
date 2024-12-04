@@ -65,7 +65,6 @@ ORANGE_SURFACE_TRAITS(inv, Involute);
  */
 template<class F>
 CELER_CONSTEXPR_FUNCTION decltype(auto)
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 visit_surface_type(F&& func, SurfaceType st)
 {
 #define ORANGE_ST_VISIT_CASE(TYPE)          \

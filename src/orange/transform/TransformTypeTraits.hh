@@ -47,7 +47,6 @@ ORANGE_TRANSFORM_TRAITS(transformation, Transformation);
  */
 template<class F>
 CELER_CONSTEXPR_FUNCTION decltype(auto)
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 visit_transform_type(F&& func, TransformType st)
 {
 #define ORANGE_TT_VISIT_CASE(TYPE)          \

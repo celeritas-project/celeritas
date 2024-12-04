@@ -91,7 +91,6 @@ StringEnumMapper<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
  */
 template<class T>
 template<class U>
-// NOLINTNEXTLINE(bugprone-forwarding-reference-overload,cppcoreguidelines-missing-std-forward)
 StringEnumMapper<T>::StringEnumMapper(U&& enum_to_string, char const* desc)
     : description_(desc)
 {

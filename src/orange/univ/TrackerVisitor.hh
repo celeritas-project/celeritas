@@ -68,7 +68,6 @@ CELER_FUNCTION TrackerVisitor::TrackerVisitor(ParamsRef const& params)
  */
 template<class F>
 CELER_FUNCTION decltype(auto)
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 TrackerVisitor::operator()(F&& func, UniverseId id)
 {
     CELER_EXPECT(id < params_.universe_types.size());

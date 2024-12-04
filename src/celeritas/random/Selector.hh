@@ -80,7 +80,6 @@ class Selector
  */
 template<class F, class T>
 CELER_FUNCTION Selector<F, T>
-// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 make_selector(F&& func, T size, decltype(func(size)) total = 1)
 {
     return {celeritas::forward<F>(func), size, total};
