@@ -17,6 +17,9 @@
 #      doi = {10.1051/epjconf/202429511005}
 #    }
 #
+# Note: This information is also present in the README.md and needs to
+# kept in sync.
+#
 # (CFF):
 
 cff-version: 1.2.0
