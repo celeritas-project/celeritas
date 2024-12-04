@@ -115,12 +115,11 @@ Geant4:
 
 Since we compile with extra warning flags and avoid non-portable code, most
 other compilers *should* work.
-The full set of configurations is viewable on CI platforms ([Jenkins][jenkins] and [GitHub Actions][gha]).
+The full set of configurations is viewable on CI platform [GitHub Actions][gha]).
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
 [install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
-[jenkins]: https://cloud.cees.ornl.gov/jenkins-ci/job/celeritas/job/develop
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development
