@@ -155,6 +155,7 @@ jobs:
             echo "No files to run clang-tidy on."
             exit 0
           fi
+          echo "Running clang-tidy on: $CC_FILES"
           ${{env.CLANG_TIDY}} -p build $CC_FILES
           exit $?
       - name: Build all
