@@ -32,12 +32,6 @@ namespace app
 class GlobalSetup
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPPrimaryGenerator = std::shared_ptr<HepMC3PrimaryGenerator>;
-    //!@}
-
-  public:
     // Return non-owning pointer to a singleton
     static GlobalSetup* Instance();
 

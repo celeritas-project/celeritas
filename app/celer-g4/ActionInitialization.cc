@@ -13,6 +13,7 @@
 #include "accel/LocalTransporter.hh"
 
 #include "EventAction.hh"
+#include "GeantDiagnostics.hh"
 #include "GlobalSetup.hh"
 #include "HepMC3PrimaryGeneratorAction.hh"
 #include "PGPrimaryGeneratorAction.hh"
@@ -38,13 +39,13 @@ ActionInitialization::ActionInitialization(SPParams params)
     diagnostics_ = std::make_shared<GeantDiagnostics>();
 
     auto const& input = GlobalSetup::Instance()->input();
-    if (!input_.event_file.empty())
+    if (!input.event_file.empty())
     {
         ExceptionConverter call_g4exception{"celer0007"};
         CELER_TRY_HANDLE(hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
                              input.event_file),
                          call_g4exception);
-        num_events_ = hepmc_gen->NumEvents();
+        num_events_ = hepmc_gen_->NumEvents();
     }
     else
     {
@@ -88,7 +89,6 @@ void ActionInitialization::Build() const
 
     // Primary generator emits source particles
     std::unique_ptr<G4VUserPrimaryGeneratorAction> generator_action;
-    auto const& input = GlobalSetup::Instance()->input();
     if (hepmc_gen_)
     {
         ExceptionConverter call_g4exception{"celer0007"};
