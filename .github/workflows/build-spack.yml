@@ -146,7 +146,7 @@ jobs:
             ninja -k0
             exit $?
           fi
-          FIRST_PR_HASH=$(git log --reverse --oneline --format="%H" origin/${BASE_REF}..HEAD | head -1)
+          FIRST_PR_HASH=$(git log --first-parent --reverse --oneline --format="%H" origin/${BASE_REF}..HEAD | head -1)
           echo "First PR commit: $FIRST_PR_HASH"
           ALL_FILES=$(git diff --name-only --diff-filter=ACM "$FIRST_PR_HASH^" HEAD^2)
           set +e
