@@ -30,7 +30,7 @@ char const* to_cstring(MatterState value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to a track status.
+ * Get a string corresponding to a track status
  */
 char const* to_cstring(TrackStatus value)
 {
