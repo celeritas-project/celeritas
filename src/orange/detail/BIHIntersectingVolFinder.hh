@@ -69,8 +69,8 @@ class BIHIntersectingVolFinder
     //// HELPER FUNCTIONS ////
 
     // Get the ID of the next node in the traversal sequence
-    inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId const& current_id,
-                                              BIHNodeId const& previous_id,
+    inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId current_id,
+                                              BIHNodeId previous_id,
                                               Ray const& ray,
                                               double min_dist) const;
 
@@ -147,8 +147,8 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray const& ray,
  *  Get the ID of the next node in the traversal sequence.
  */
 CELER_FUNCTION
-BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId const& current_id,
-                                              BIHNodeId const& previous_id,
+BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
+                                              BIHNodeId previous_id,
                                               Ray const& ray,
                                               double min_dist) const
 {
