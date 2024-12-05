@@ -29,7 +29,7 @@ class MiniStack
   public:
     //! Construct with underlying storage.
     CELER_FUNCTION explicit MiniStack(Span<T> storage)
-        : data_(storage.data()), size_(0), capacity_(storage.size())
+        : data_(storage.data()), capacity_(storage.size())
     {
     }
 
@@ -58,7 +58,7 @@ class MiniStack
 
   private:
     T* data_;
-    size_type size_;
+    size_type size_{0};
     size_type capacity_;
 };
 

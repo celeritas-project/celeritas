@@ -51,6 +51,7 @@ class CollectionStateStore
 
   public:
     CollectionStateStore() = default;
+    ~CollectionStateStore() = default;
 
     // Construct from parameters and stream ID
     template<template<Ownership, MemSpace> class P>
@@ -77,6 +78,8 @@ class CollectionStateStore
     inline CollectionStateStore& operator=(S<W2, M2> const& other);
 
     //! Default move, delete copy (since ref "points to" val)
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_MOVE_DELETE_COPY(CollectionStateStore);
 
     //! Whether any data is being stored

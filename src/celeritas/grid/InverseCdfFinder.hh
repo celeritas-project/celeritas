@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 
 namespace celeritas
 {
@@ -52,7 +53,8 @@ CELER_FUNCTION InverseCdfFinder<G, C>::InverseCdfFinder(G&& grid, C&& calc_cdf)
     , calc_cdf_(celeritas::forward<C>(calc_cdf))
 {
     CELER_EXPECT(grid_.size() >= 2);
-    CELER_EXPECT(calc_cdf_[0] == 0 && calc_cdf_[grid_.size() - 1] == 1);
+    CELER_EXPECT(calc_cdf_[0] == 0
+                 && soft_equal(calc_cdf_[grid_.size() - 1], real_type(1)));
 }
 
 //---------------------------------------------------------------------------//

@@ -45,6 +45,8 @@ class ParamsDataInterface
 
     // Prohibit copy/move beween interface classes
     ParamsDataInterface() = default;
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_COPY_MOVE(ParamsDataInterface);
 };
 

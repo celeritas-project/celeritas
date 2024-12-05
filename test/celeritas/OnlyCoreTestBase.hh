@@ -23,7 +23,7 @@ namespace test
 class OnlyCoreTestBase : virtual public GlobalTestBase
 {
   public:
-    SPConstCerenkov build_cerenkov() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCherenkov build_cherenkov() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstOpticalMaterial build_optical_material() override
     {
         CELER_ASSERT_UNREACHABLE();

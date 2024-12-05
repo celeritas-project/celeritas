@@ -24,7 +24,7 @@ namespace test
 /*!
  * Initialize secondary allocation on construction.
  */
-InteractorHostTestBase::InteractorHostTestBase()
+InteractorHostBase::InteractorHostBase()
 {
     using namespace constants;
     using namespace units;
@@ -117,13 +117,13 @@ InteractorHostTestBase::InteractorHostTestBase()
 /*!
  * Default destructor.
  */
-InteractorHostTestBase::~InteractorHostTestBase() = default;
+InteractorHostBase::~InteractorHostBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Helper to make dummy ImportProcess data .
  */
-ImportProcess InteractorHostTestBase::make_import_process(
+ImportProcess InteractorHostBase::make_import_process(
     PDGNumber particle,
     PDGNumber secondary,
     ImportProcessClass ipc,
@@ -159,7 +159,7 @@ ImportProcess InteractorHostTestBase::make_import_process(
 /*!
  * Set particle parameters.
  */
-void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
+void InteractorHostBase::set_material_params(MaterialParams::Input inp)
 {
     CELER_EXPECT(!inp.materials.empty());
 
@@ -172,7 +172,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
 /*!
  * Initialize the incident track's material
  */
-void InteractorHostTestBase::set_material(std::string const& name)
+void InteractorHostBase::set_material(std::string const& name)
 {
     CELER_EXPECT(material_params_);
 
@@ -190,7 +190,7 @@ void InteractorHostTestBase::set_material(std::string const& name)
 /*!
  * Set particle parameters.
  */
-void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
+void InteractorHostBase::set_particle_params(ParticleParams::Input inp)
 {
     CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
@@ -202,7 +202,7 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 /*!
  * Set cutoff parameters.
  */
-void InteractorHostTestBase::set_cutoff_params(CutoffParams::Input inp)
+void InteractorHostBase::set_cutoff_params(CutoffParams::Input inp)
 {
     CELER_EXPECT(inp.materials && inp.particles);
     cutoff_params_ = std::make_shared<CutoffParams>(std::move(inp));
@@ -212,7 +212,7 @@ void InteractorHostTestBase::set_cutoff_params(CutoffParams::Input inp)
 /*!
  * Set imported processes.
  */
-void InteractorHostTestBase::set_imported_processes(
+void InteractorHostBase::set_imported_processes(
     std::vector<ImportProcess> inp)
 {
     CELER_EXPECT(!inp.empty());
@@ -223,7 +223,7 @@ void InteractorHostTestBase::set_imported_processes(
 /*!
  * Initialize the incident particle data
  */
-void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
+void InteractorHostBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
 {
     CELER_EXPECT(particle_params_);
     CELER_EXPECT(pdg);
@@ -244,7 +244,7 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
 /*!
  * Set an incident direction (and normalize it).
  */
-void InteractorHostTestBase::set_inc_direction(Real3 const& dir)
+void InteractorHostBase::set_inc_direction(Real3 const& dir)
 {
     CELER_EXPECT(norm(dir) > 0);
 
@@ -255,7 +255,7 @@ void InteractorHostTestBase::set_inc_direction(Real3 const& dir)
 /*!
  * Resize secondaries.
  */
-void InteractorHostTestBase::resize_secondaries(int count)
+void InteractorHostBase::resize_secondaries(int count)
 {
     CELER_EXPECT(count > 0);
     secondaries_ = StateStore<SecondaryStackData>(count);
@@ -266,7 +266,7 @@ void InteractorHostTestBase::resize_secondaries(int count)
 /*!
  * Check for energy and momentum conservation in the interaction.
  */
-void InteractorHostTestBase::check_conservation(Interaction const& interaction) const
+void InteractorHostBase::check_conservation(Interaction const& interaction) const
 {
     ASSERT_NE(interaction.action, Action::failed);
 
@@ -278,7 +278,7 @@ void InteractorHostTestBase::check_conservation(Interaction const& interaction) 
 /*!
  * Check for energy conservation in the interaction.
  */
-void InteractorHostTestBase::check_energy_conservation(
+void InteractorHostBase::check_energy_conservation(
     Interaction const& interaction) const
 {
     // Sum of exiting kinetic energy
@@ -296,7 +296,8 @@ void InteractorHostTestBase::check_energy_conservation(
         exit_energy += s.energy.value();
 
         // Account for positron production
-        if (s && s.particle_id == particle_params_->find(pdg::positron()))
+        if (s && s.particle_id == particle_params_->find(pdg::positron())
+            && interaction.action == Action::absorbed)
         {
             exit_energy
                 += 2 * particle_params_->get(s.particle_id).mass().value();
@@ -311,7 +312,7 @@ void InteractorHostTestBase::check_energy_conservation(
 /*!
  * Check for momentum conservation in the interaction.
  */
-void InteractorHostTestBase::check_momentum_conservation(
+void InteractorHostBase::check_momentum_conservation(
     Interaction const& interaction) const
 {
     CollectionStateStore<ParticleStateData, MemSpace::host> temp_store(

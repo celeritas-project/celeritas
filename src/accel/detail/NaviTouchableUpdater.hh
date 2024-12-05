@@ -56,7 +56,7 @@ class NaviTouchableUpdater final : public TouchableUpdaterInterface
                          G4VPhysicalVolume const* world);
 
     // Default external deleter
-    ~NaviTouchableUpdater();
+    ~NaviTouchableUpdater() final;
 
     // Update from a particular detector step
     bool operator()(DetectorStepOutput const& out,

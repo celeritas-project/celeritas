@@ -47,7 +47,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
     explicit LevelTouchableUpdater(SPConstGeo);
 
     // Destroy pointers
-    ~LevelTouchableUpdater();
+    ~LevelTouchableUpdater() final;
 
     // Update from a particular detector step
     bool operator()(DetectorStepOutput const& out,

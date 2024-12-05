@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 
 namespace celeritas
@@ -53,7 +55,7 @@ class MultiExceptionHandler
     CELER_DEFAULT_COPY_MOVE(MultiExceptionHandler);
 
     // Terminate if destroyed without handling exceptions
-    inline ~MultiExceptionHandler();
+    inline ~MultiExceptionHandler() noexcept(!CELERITAS_DEBUG);
 
     // Thread-safe capture of the given exception
     void operator()(std::exception_ptr p);
@@ -99,7 +101,7 @@ inline void log_and_rethrow(MultiExceptionHandler&& exceptions)
 /*!
  * Terminate if destroyed without handling exceptions.
  */
-MultiExceptionHandler::~MultiExceptionHandler()
+MultiExceptionHandler::~MultiExceptionHandler() noexcept(!CELERITAS_DEBUG)
 {
     if (CELER_UNLIKELY(!exceptions_.empty()))
     {

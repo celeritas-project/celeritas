@@ -47,7 +47,7 @@
  "relaxation": "none",
  "verbose": false,
  "optical": {
-  "cerenkov": { "enable": false },
+  "cherenkov": { "enable": false },
   "scintillation": { "enable": false },
   "wavelength_shifting": "delta",
   "wavelength_shifting2": "none",

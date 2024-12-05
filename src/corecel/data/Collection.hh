@@ -277,8 +277,12 @@ class Collection
     //! Default constructors
     Collection() = default;
     Collection(Collection const&) = default;
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection(Collection&&) = default;
     //!@}
+
+    ~Collection() = default;
 
     // Construct from another collection
     template<Ownership W2, MemSpace M2>
@@ -291,6 +295,8 @@ class Collection
     //!@{
     //! Default assignment
     Collection& operator=(Collection const& other) = default;
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection& operator=(Collection&& other) = default;
     //!@}
 

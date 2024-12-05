@@ -29,7 +29,7 @@ class SortTracksAction final : public CoreStepActionInterface,
     SortTracksAction(ActionId id, TrackOrder track_order);
 
     //! Default destructor
-    ~SortTracksAction() = default;
+    ~SortTracksAction() final = default;
 
     //! Execute the action with host data
     void step(CoreParams const& params, CoreStateHost& state) const final;

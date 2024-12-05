@@ -13,6 +13,8 @@
 #include <variant>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/OpaqueId.hh"
 #include "corecel/math/HashUtils.hh"
 #include "orange/OrangeTypes.hh"
@@ -205,7 +207,8 @@ struct hash<celeritas::orangeinp::Joined>
 {
     using argument_type = celeritas::orangeinp::Joined;
     using result_type = std::size_t;
-    result_type operator()(argument_type const& val) const noexcept
+    result_type operator()(argument_type const& val) const
+        noexcept(!CELERITAS_DEBUG)
     {
         result_type result;
         celeritas::Hasher hash{&result};

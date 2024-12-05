@@ -66,12 +66,13 @@ class PrimaryGenerator : public EventReaderInterface
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(PrimaryGenerator);
+    ~PrimaryGenerator() override = default;
 
     // Generate primary particles from a single event
     result_type operator()() final;
 
     //! Get total number of events
-    size_type num_events() const { return num_events_; }
+    size_type num_events() const override { return num_events_; }
 
   private:
     size_type num_events_{};

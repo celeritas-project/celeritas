@@ -90,7 +90,7 @@ class CoreState final : public CoreStateInterface
               size_type num_track_slots);
 
     // Default destructor
-    ~CoreState();
+    ~CoreState() final;
 
     // Prevent move/copy
     CELER_DELETE_COPY_MOVE(CoreState);

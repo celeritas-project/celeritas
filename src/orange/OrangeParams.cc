@@ -219,7 +219,6 @@ OrangeParams::OrangeParams(OrangeInput&& input)
  */
 OrangeParams::~OrangeParams() = default;
 
-// NOLINTNEXTLINE(cppcoreguidelines-virtual-class-destructor)
 template class CollectionMirror<OrangeParamsData>;
 template class ParamsDataInterface<OrangeParamsData>;
 

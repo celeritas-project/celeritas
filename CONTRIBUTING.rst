@@ -118,7 +118,7 @@ Congratulations!
 
 .. [resol] When you've fully implemented the reviewer's comment, you may mark
    it as resolved without commenting.  Do not resolve a conversation if you
-   disagree with the feed: instead, post your view in a follow-on comment and
+   disagree with the feedback: instead, post your view in a follow-on comment and
    wait for the reviewer to respond. If you comment, whether to supplement your
    change or to iterate with the reviewer, please do not resolve the
    conversation since that makes it hard to find your comment.

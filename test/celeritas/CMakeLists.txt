@@ -131,7 +131,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 # Distributions
 celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
-celeritas_add_test(em/distribution/MuBremsPPAngularDistribution.test.cc ${_needs_double})
+celeritas_add_test(em/distribution/MuAngularDistribution.test.cc ${_needs_double})
 celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Cross section calculation
@@ -148,6 +148,7 @@ celeritas_add_test(em/LivermorePE.test.cc ${_needs_double})
 celeritas_add_test(em/MollerBhabha.test.cc ${_needs_double})
 celeritas_add_test(em/MuBetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/MuBremsstrahlung.test.cc ${_needs_double})
+celeritas_add_test(em/MuPairProduction.test.cc ${_needs_double} ${_needs_root})
 celeritas_add_test(em/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(em/RelativisticBrem.test.cc ${_needs_double})
 celeritas_add_test(em/SeltzerBerger.test.cc ${_needs_double})
@@ -306,12 +307,13 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Optical
-celeritas_add_test(optical/Cerenkov.test.cc)
+celeritas_add_test(optical/Cherenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/Absorption.test.cc)
+celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
