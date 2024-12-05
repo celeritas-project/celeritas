@@ -43,7 +43,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     SPParams params_;
     SPDiagnostics diagnostics_;
     int num_events_{0};
-    mutable bool init_shared_;
+    mutable bool init_shared_{true};
 };
 
 //---------------------------------------------------------------------------//

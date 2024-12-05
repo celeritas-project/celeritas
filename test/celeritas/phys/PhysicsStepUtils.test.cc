@@ -460,5 +460,80 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
     }
 }
 //---------------------------------------------------------------------------//
+
+class SplinePhysicsStepUtilsTest : public PhysicsStepUtilsTest
+{
+    PhysicsOptions build_physics_options() const override
+    {
+        PhysicsOptions opts;
+        opts.spline_eloss_order = 2;
+        return opts;
+    }
+};
+
+TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
+{
+    MaterialTrackView material(
+        this->material()->host_ref(), mat_state.ref(), TrackSlotId{0});
+    ParticleTrackView particle(
+        this->particle()->host_ref(), par_state.ref(), TrackSlotId{0});
+
+    // input: cm; output: MeV
+    auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
+        // Calculate and store the energy loss range to PhysicsTrackView
+        auto ppid = phys.eloss_ppid();
+        auto grid_id = phys.value_grid(ValueGridType::range, ppid);
+        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
+        real_type range = calc_range(particle.energy());
+        phys.dedx_range(range);
+
+        auto result
+            = calc_mean_energy_loss(particle, phys, step * units::centimeter);
+        return value_as<MevEnergy>(result);
+    };
+
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+        if (CELERITAS_DEBUG)
+        {
+            // Can't calc eloss for photons
+            EXPECT_THROW(calc_eloss(phys, 1e4), DebugError);
+        }
+    }
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "celeriton", MevEnergy{10});
+        real_type const eloss_rate = (0.2 + 0.4);  // MeV / cm
+
+        // Tiny step: should still be linear loss (single process)
+        EXPECT_SOFT_EQ(eloss_rate * 1e-6, calc_eloss(phys, 1e-6));
+
+        // Long step (lose half energy) will call inverse lookup. The correct
+        // answer (if range table construction was done over energy loss)
+        // should be half since the slowing down rate is constant over all
+        real_type step = 0.5 * particle.energy().value() / eloss_rate;
+        EXPECT_SOFT_EQ(5, calc_eloss(phys, step));
+
+        // Long step (lose half energy) will call inverse lookup. The correct
+        // answer (if range table construction was done over energy loss)
+        // should be half since the slowing down rate is constant over all
+        step = 0.999 * particle.energy().value() / eloss_rate;
+        EXPECT_SOFT_EQ(9.99, calc_eloss(phys, step));
+    }
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "electron", MevEnergy{1e-3});
+        real_type const eloss_rate = 0.5;  // MeV / cm
+
+        // Low energy particle which loses all its energy over the step will
+        // call inverse lookup. Remaining range will be zero and eloss will be
+        // equal to the pre-step energy.
+        real_type step = value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
+    }
+}
+//---------------------------------------------------------------------------//
+
 }  // namespace test
 }  // namespace celeritas

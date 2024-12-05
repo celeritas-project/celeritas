@@ -39,9 +39,7 @@ namespace detail
  * Construct with model selection.
  */
 GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(ModelSelection selection)
-    : G4VEnergyLossProcess("eBrem")
-    , is_initialized_(false)
-    , model_selection_(selection)
+    : G4VEnergyLossProcess("eBrem"), model_selection_(selection)
 {
     CELER_VALIDATE(selection != ModelSelection::none,
                    << "Cannot initialize GeantBremsstrahlungProcess with "

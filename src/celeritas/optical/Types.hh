@@ -19,7 +19,7 @@ namespace celeritas
 using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
 
 //! Opaque index to a scintillation spectrum
-using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord>;
+using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord_>;
 
 //---------------------------------------------------------------------------//
 /*!

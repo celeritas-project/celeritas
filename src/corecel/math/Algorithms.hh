@@ -39,6 +39,7 @@ forward(typename std::remove_reference<T>::type& v) noexcept
 //! \cond (CELERITAS_DOC_DEV)
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 forward(typename std::remove_reference<T>::type&& v) noexcept
 {
     return static_cast<T&&>(v);

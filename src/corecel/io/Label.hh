@@ -13,6 +13,8 @@
 #include <string>
 #include <utility>
 
+#include "corecel/Config.hh"
+
 #include "corecel/math/HashUtils.hh"
 
 namespace celeritas
@@ -120,7 +122,8 @@ struct hash<celeritas::Label>
 {
     using argument_type = celeritas::Label;
     using result_type = std::size_t;
-    result_type operator()(argument_type const& label) const noexcept
+    result_type operator()(argument_type const& label) const
+        noexcept(!CELERITAS_DEBUG)
     {
         return celeritas::hash_combine(label.name, label.ext);
     }

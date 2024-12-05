@@ -38,7 +38,8 @@ class RZMapMagneticField : public G4MagneticField
     inline explicit RZMapMagneticField(SPConstFieldParams field_params);
 
     // Calculate values of the magnetic field vector
-    inline void GetFieldValue(double const point[3], double* field) const;
+    inline void
+    GetFieldValue(double const point[3], double* field) const override;
 
   private:
     SPConstFieldParams params_;

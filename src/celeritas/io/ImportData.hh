@@ -20,7 +20,6 @@
 #include "ImportParameters.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
-#include "ImportSBTable.hh"
 #include "ImportVolume.hh"
 // IWYU pragma: end_exports
 
@@ -58,7 +57,7 @@ struct ImportData
     //! \name Type aliases
     using ZInt = int;
     using GeoMatIndex = unsigned int;
-    using ImportSBMap = std::map<ZInt, ImportSBTable>;
+    using ImportSBMap = std::map<ZInt, ImportPhysics2DVector>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
     using ImportNeutronElasticMap = std::map<ZInt, ImportPhysicsVector>;

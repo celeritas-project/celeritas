@@ -252,6 +252,9 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
                    << "invalid range_factor=" << opts.range_factor
                    << " (should be within 0 < limit < 1)");
+    CELER_VALIDATE(opts.spline_eloss_order > 0,
+                   << "invalid spline_eloss_order=" << opts.spline_eloss_order
+                   << " (should be > 0)");
     data->scalars.min_range = opts.min_range;
     data->scalars.max_step_over_range = opts.max_step_over_range;
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
@@ -262,6 +265,7 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.range_factor = opts.range_factor;
     data->scalars.safety_factor = opts.safety_factor;
     data->scalars.step_limit_algorithm = opts.step_limit_algorithm;
+    data->scalars.spline_eloss_order = opts.spline_eloss_order;
     if (data->scalars.step_limit_algorithm
         == MscStepLimitAlgorithm::distance_to_boundary)
     {

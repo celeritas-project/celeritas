@@ -58,7 +58,7 @@ class RootImporter final : public ImporterInterface
     }
 
     // Load data from the ROOT files
-    ImportData operator()();
+    ImportData operator()() final;
 
   private:
     // ROOT file

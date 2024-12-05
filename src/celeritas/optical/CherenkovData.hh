@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovData.hh
+//! \file celeritas/optical/CherenkovData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,10 +20,10 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Cerenkov angle integrals tablulated as a function of photon energy.
+ * Cherenkov angle integrals tablulated as a function of photon energy.
  */
 template<Ownership W, MemSpace M>
-struct CerenkovData
+struct CherenkovData
 {
     template<class T>
     using Items = Collection<T, W, M>;
@@ -47,7 +47,7 @@ struct CerenkovData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CerenkovData& operator=(CerenkovData<W2, M2> const& other)
+    CherenkovData& operator=(CherenkovData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         angle_integral = other.angle_integral;

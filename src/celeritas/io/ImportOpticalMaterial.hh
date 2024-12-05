@@ -164,7 +164,8 @@ struct ImportWavelengthShift
 /*!
  * Store optical material properties.
  *
- * \todo boolean for enabling cerenkov in the material??
+ * \todo boolean for enabling cherenkov in the material?? DUNE e.g. disables
+ * cherenkov globally.
  */
 struct ImportOpticalMaterial
 {

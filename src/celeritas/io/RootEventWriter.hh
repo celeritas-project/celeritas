@@ -40,9 +40,10 @@ class RootEventWriter : public EventWriterInterface
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(RootEventWriter);
+    ~RootEventWriter() override = default;
 
     // Export primaries to ROOT
-    void operator()(VecPrimary const& primaries);
+    void operator()(VecPrimary const& primaries) override;
 
   private:
     //// DATA ////

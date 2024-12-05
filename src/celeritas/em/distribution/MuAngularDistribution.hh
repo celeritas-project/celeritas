@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/distribution/MuBremsPPAngularDistribution.hh
+//! \file celeritas/em/distribution/MuAngularDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -42,7 +42,7 @@ namespace celeritas
  * G4ModifiedMephi class and documented in section 11.2.4 of the Geant4 Physics
  * Reference (release 11.2).
  */
-class MuBremsPPAngularDistribution
+class MuAngularDistribution
 {
   public:
     //!@{
@@ -53,9 +53,8 @@ class MuBremsPPAngularDistribution
 
   public:
     // Construct with incident and secondary particle quantities
-    inline CELER_FUNCTION MuBremsPPAngularDistribution(Energy inc_energy,
-                                                       Mass inc_mass,
-                                                       Energy energy);
+    inline CELER_FUNCTION
+    MuAngularDistribution(Energy inc_energy, Mass inc_mass, Energy energy);
 
     // Sample the cosine of the polar angle of the secondary
     template<class Engine>
@@ -75,9 +74,9 @@ class MuBremsPPAngularDistribution
  * Construct with incident and secondary particle.
  */
 CELER_FUNCTION
-MuBremsPPAngularDistribution::MuBremsPPAngularDistribution(Energy inc_energy,
-                                                           Mass inc_mass,
-                                                           Energy energy)
+MuAngularDistribution::MuAngularDistribution(Energy inc_energy,
+                                             Mass inc_mass,
+                                             Energy energy)
     : gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(inc_mass))
 {
     real_type r_max_sq = ipow<2>(
@@ -93,7 +92,7 @@ MuBremsPPAngularDistribution::MuBremsPPAngularDistribution(Energy inc_energy,
  * Sample the cosine of the polar angle of the secondary.
  */
 template<class Engine>
-CELER_FUNCTION real_type MuBremsPPAngularDistribution::operator()(Engine& rng)
+CELER_FUNCTION real_type MuAngularDistribution::operator()(Engine& rng)
 {
     real_type a = generate_canonical(rng) * a_over_xi_;
     return std::cos(std::sqrt(a / (1 - a)) / gamma_);

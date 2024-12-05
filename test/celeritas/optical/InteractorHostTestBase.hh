@@ -10,7 +10,9 @@
 #include <memory>
 #include <random>
 
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StackAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleData.hh"
@@ -42,6 +44,8 @@ class InteractorHostTestBase : public Test
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
     using Energy = units::MevEnergy;
     using Action = Interaction::Action;
+    using SecondaryAllocator = StackAllocator<TrackInitializer>;
+    using constSpanSecondaries = Span<TrackInitializer const>;
     //!@}
 
   public:
@@ -69,6 +73,14 @@ class InteractorHostTestBase : public Test
     //! Get incident photon track view
     ParticleTrackView const& particle_track() const;
 
+    //! Secondary stack storage and access
+    void resize_secondaries(int count);
+    SecondaryAllocator& secondary_allocator()
+    {
+        CELER_EXPECT(sa_view_);
+        return *sa_view_;
+    }
+
     //!@{
     //! Check direction and polarizations are physical
     void check_direction_polarization(Real3 const& dir, Real3 const& pol) const;
@@ -78,12 +90,16 @@ class InteractorHostTestBase : public Test
   private:
     template<template<Ownership, MemSpace> class S>
     using StateStore = CollectionStateStore<S, MemSpace::host>;
+    template<Ownership W, MemSpace M>
+    using SecondaryStackData = StackAllocatorData<TrackInitializer, W, M>;
 
     StateStore<ParticleStateData> ps_;
+    StateStore<SecondaryStackData> secondaries_;
 
     RandomEngine rng_;
     Real3 inc_direction_;
     std::shared_ptr<ParticleTrackView> pt_view_;
+    std::shared_ptr<SecondaryAllocator> sa_view_;
 };
 
 //---------------------------------------------------------------------------//

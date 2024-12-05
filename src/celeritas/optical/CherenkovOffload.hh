@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovOffload.hh
+//! \file celeritas/optical/CherenkovOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,8 +13,8 @@
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "CerenkovData.hh"
-#include "CerenkovDndxCalculator.hh"
+#include "CherenkovData.hh"
+#include "CherenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"
 #include "MaterialView.hh"
 #include "OffloadData.hh"
@@ -23,10 +23,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample the number of Cerenkov photons to be generated.
+ * Sample the number of Cherenkov photons to be generated.
  *
  * This populates the \c GeneratorDistributionData used by the \c
- * CerenkovGenerator to generate optical photons using post-step and cached
+ * CherenkovGenerator to generate optical photons using post-step and cached
  * pre-step data.
  *
  * The number of photons is sampled from a Poisson distribution with a mean
@@ -35,19 +35,19 @@ namespace celeritas
  * \f]
  * where \f$ \ell_\text{step} \f$ is the step length.
  */
-class CerenkovOffload
+class CherenkovOffload
 {
   public:
-    // Construct with optical material, Cerenkov, and step data
+    // Construct with optical material, Cherenkov, and step data
     inline CELER_FUNCTION
-    CerenkovOffload(ParticleTrackView const& particle,
+    CherenkovOffload(ParticleTrackView const& particle,
                     SimTrackView const& sim,
                     optical::MaterialView const& mat,
                     Real3 const& pos,
-                    NativeCRef<optical::CerenkovData> const& shared,
+                    NativeCRef<optical::CherenkovData> const& shared,
                     OffloadPreStepData const& step_data);
 
-    // Return a populated optical distribution data for the Cerenkov Generator
+    // Return a populated optical distribution data for the Cherenkov Generator
     template<class Generator>
     inline CELER_FUNCTION optical::GeneratorDistributionData
     operator()(Generator& rng);
@@ -64,14 +64,14 @@ class CerenkovOffload
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with optical material, Cerenkov, and step information.
+ * Construct with optical material, Cherenkov, and step information.
  */
 CELER_FUNCTION
-CerenkovOffload::CerenkovOffload(ParticleTrackView const& particle,
+CherenkovOffload::CherenkovOffload(ParticleTrackView const& particle,
                                  SimTrackView const& sim,
                                  optical::MaterialView const& mat,
                                  Real3 const& pos,
-                                 NativeCRef<optical::CerenkovData> const& shared,
+                                 NativeCRef<optical::CherenkovData> const& shared,
                                  OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
@@ -85,7 +85,7 @@ CerenkovOffload::CerenkovOffload(ParticleTrackView const& particle,
     units::LightSpeed beta(
         real_type{0.5} * (pre_step_.speed.value() + post_step_.speed.value()));
 
-    optical::CerenkovDndxCalculator calculate_dndx(mat, shared, charge_);
+    optical::CherenkovDndxCalculator calculate_dndx(mat, shared, charge_);
     num_photons_per_len_ = calculate_dndx(beta);
 }
 
@@ -98,7 +98,7 @@ CerenkovOffload::CerenkovOffload(ParticleTrackView const& particle,
  */
 template<class Generator>
 CELER_FUNCTION optical::GeneratorDistributionData
-CerenkovOffload::operator()(Generator& rng)
+CherenkovOffload::operator()(Generator& rng)
 {
     if (num_photons_per_len_ == 0)
     {

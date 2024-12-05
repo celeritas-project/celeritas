@@ -12,6 +12,7 @@
 #include <vector>
 #include <G4TouchableHandle.hh>
 
+#include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
@@ -81,6 +82,7 @@ class HitProcessor
 
     // Log on destruction
     ~HitProcessor();
+    CELER_DEFAULT_MOVE_DELETE_COPY(HitProcessor);
 
     // Process CPU-generated hits
     void operator()(StepStateHostRef const&);

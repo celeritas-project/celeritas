@@ -120,7 +120,7 @@ class PolySolidBase : public ObjectInterface
 {
   public:
     // Anchored default virtual destructor
-    virtual ~PolySolidBase();
+    ~PolySolidBase() override;
 
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
