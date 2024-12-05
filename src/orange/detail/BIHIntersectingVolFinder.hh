@@ -156,43 +156,37 @@ BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
 
     BIHNodeId next_id;
 
-    if (view_.is_inner(current_id))
-    {
-        auto const& current_node = view_.inner_node(current_id);
-        auto const& l_edge = current_node.edges[Side::left];
-        auto const& r_edge = current_node.edges[Side::right];
-
-        if (previous_id == current_node.parent)
-        {
-            // Visiting this inner node for the first time; go down either left
-            // or right edge
-            next_id = this->visit_bbox(l_edge.bbox, ray, min_dist)
-                          ? l_edge.child
-                          : r_edge.child;
-        }
-        else if (previous_id == current_node.edges[Side::left].child)
-        {
-            // Visiting this inner node for the second time; go down right edge
-            // or return to parent
-            next_id = this->visit_bbox(r_edge.bbox, ray, min_dist)
-                          ? r_edge.child
-                          : current_node.parent;
-        }
-        else
-        {
-            // Visiting this inner node for the third time; return to parent
-            CELER_EXPECT(previous_id == current_node.edges[Side::right].child);
-            next_id = current_node.parent;
-        }
-    }
-    else
+    if (!view_.is_inner(current_id))
     {
         // Leaf node; return to parent
         CELER_EXPECT(previous_id == view_.leaf_node(current_id).parent);
-        next_id = previous_id;
+        return previous_id;
     }
 
-    return next_id;
+    auto const& current_node = view_.inner_node(current_id);
+    auto const& l_edge = current_node.edges[Side::left];
+    auto const& r_edge = current_node.edges[Side::right];
+
+    if (previous_id == current_node.parent)
+    {
+        // Visiting this inner node for the first time; go down either left
+        // or right edge
+        return this->visit_bbox(l_edge.bbox, ray, min_dist) ? l_edge.child
+                                                            : r_edge.child;
+    }
+
+    if (previous_id == current_node.edges[Side::left].child)
+    {
+        // Visiting this inner node for the second time; go down right edge
+        // or return to parent
+        return this->visit_bbox(r_edge.bbox, ray, min_dist)
+                   ? r_edge.child
+                   : current_node.parent;
+    }
+
+    // Visiting this inner node for the third time; return to parent
+    CELER_ASSERT(previous_id == current_node.edges[Side::right].child);
+    return current_node.parent;
 }
 
 //---------------------------------------------------------------------------//
