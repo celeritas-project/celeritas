@@ -8,10 +8,12 @@
 #include "ActionInitialization.hh"
 
 #include "corecel/io/Logger.hh"
+#include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"
 
 #include "EventAction.hh"
+#include "GeantDiagnostics.hh"
 #include "GlobalSetup.hh"
 #include "HepMC3PrimaryGeneratorAction.hh"
 #include "PGPrimaryGeneratorAction.hh"
@@ -36,14 +38,18 @@ ActionInitialization::ActionInitialization(SPParams params)
     // Create Geant4 diagnostics to be shared across worker threads
     diagnostics_ = std::make_shared<GeantDiagnostics>();
 
-    if (auto const& hepmc_gen = GlobalSetup::Instance()->hepmc_gen())
+    auto const& input = GlobalSetup::Instance()->input();
+    if (!input.event_file.empty())
     {
-        num_events_ = hepmc_gen->NumEvents();
+        ExceptionConverter call_g4exception{"celer0007"};
+        CELER_TRY_HANDLE(hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
+                             input.event_file),
+                         call_g4exception);
+        num_events_ = hepmc_gen_->NumEvents();
     }
     else
     {
-        num_events_
-            = GlobalSetup::Instance()->input().primary_options.num_events;
+        num_events_ = input.primary_options.num_events;
     }
 
     CELER_ENSURE(num_events_ > 0);
@@ -82,15 +88,24 @@ void ActionInitialization::Build() const
     CELER_LOG_LOCAL(status) << "Constructing user action";
 
     // Primary generator emits source particles
-    if (auto const& hepmc_gen = GlobalSetup::Instance()->hepmc_gen())
+    std::unique_ptr<G4VUserPrimaryGeneratorAction> generator_action;
+    if (hepmc_gen_)
     {
-        this->SetUserAction(new HepMC3PrimaryGeneratorAction(hepmc_gen));
+        ExceptionConverter call_g4exception{"celer0007"};
+        CELER_TRY_HANDLE(
+            generator_action
+            = std::make_unique<HepMC3PrimaryGeneratorAction>(hepmc_gen_),
+            call_g4exception);
     }
     else
     {
-        this->SetUserAction(new PGPrimaryGeneratorAction(
-            GlobalSetup::Instance()->input().primary_options));
+        ExceptionConverter call_g4exception{"celer0006"};
+        CELER_TRY_HANDLE(
+            generator_action = std::make_unique<PGPrimaryGeneratorAction>(
+                GlobalSetup::Instance()->input().primary_options),
+            call_g4exception);
     }
+    this->SetUserAction(generator_action.release());
 
     // Create thread-local transporter to share between actions
     auto transport = std::make_shared<LocalTransporter>();
