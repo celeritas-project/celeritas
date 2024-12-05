@@ -48,8 +48,8 @@ class BIHIntersectingVolFinder
 
     struct Ray
     {
-        Real3 pos;
-        Real3 dir;
+        Real3 const& pos;
+        Real3 const& dir;
     };
     //!@}
 
@@ -59,8 +59,7 @@ class BIHIntersectingVolFinder
 
     // Calculate the minimum intersection
     template<class F>
-    inline CELER_FUNCTION Intersection operator()(Ray const& ray,
-                                                  F&& visit_vol) const;
+    inline CELER_FUNCTION Intersection operator()(Ray ray, F&& visit_vol) const;
 
   private:
     //// DATA ////
@@ -71,19 +70,19 @@ class BIHIntersectingVolFinder
     // Get the ID of the next node in the traversal sequence
     inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId current_id,
                                               BIHNodeId previous_id,
-                                              Ray const& ray,
+                                              Ray ray,
                                               double min_dist) const;
 
     // Determine if the intersection with an edge/vol bbox is less than
     // min_dist
     inline CELER_FUNCTION bool
-    visit_bbox(FastBBox const& bbox, Ray const& ray, double min_dist) const;
+    visit_bbox(FastBBox const& bbox, Ray ray, double min_dist) const;
 
     // Calculate the current min intersection, which may/may not be on this
     // leaf
     template<class F>
     inline CELER_FUNCTION Intersection visit_leaf(BIHLeafNode const& leaf_node,
-                                                  Ray const& ray,
+                                                  Ray ray,
                                                   Intersection intersection,
                                                   F&& visit_vol) const;
 
@@ -113,7 +112,7 @@ BIHIntersectingVolFinder::BIHIntersectingVolFinder(
  */
 template<class F>
 CELER_FUNCTION auto
-BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray const& ray,
+BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      F&& visit_vol) const -> Intersection
 {
     BIHNodeId previous_node;
@@ -149,12 +148,10 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray const& ray,
 CELER_FUNCTION
 BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
                                               BIHNodeId previous_id,
-                                              Ray const& ray,
+                                              Ray ray,
                                               double min_dist) const
 {
     using Side = BIHInnerNode::Side;
-
-    BIHNodeId next_id;
 
     if (!view_.is_inner(current_id))
     {
@@ -195,7 +192,7 @@ BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
  */
 CELER_FUNCTION
 bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
-                                          Ray const& ray,
+                                          Ray ray,
                                           double min_dist) const
 {
     return is_inside(bbox, ray.pos)
@@ -209,7 +206,7 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
 template<class F>
 CELER_FUNCTION auto
 BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
-                                     BIHIntersectingVolFinder::Ray const& ray,
+                                     BIHIntersectingVolFinder::Ray ray,
                                      Intersection min_intersection,
                                      F&& visit_vol) const -> Intersection
 {
