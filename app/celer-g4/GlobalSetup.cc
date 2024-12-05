@@ -164,21 +164,9 @@ void GlobalSetup::ReadInput(std::string const& filename)
 
         // Apply Celeritas \c SetupOptions commands
         options_->max_num_tracks = input_.num_track_slots;
-        options_->max_num_events = [this] {
-            CELER_VALIDATE(input_.primary_options || !input_.event_file.empty(),
-                           << "no event input file nor primary options were "
-                              "specified");
-            if (!input_.event_file.empty())
-            {
-                hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
-                    input_.event_file);
-                return static_cast<size_type>(hepmc_gen_->NumEvents());
-            }
-            else
-            {
-                return input_.primary_options.num_events;
-            }
-        }();
+        CELER_VALIDATE(input_.primary_options || !input_.event_file.empty(),
+                       << "no event input file nor primary options were "
+                          "specified");
         options_->max_steps = input_.max_steps;
         options_->initializer_capacity = input_.initializer_capacity;
         options_->secondary_stack_factor = input_.secondary_stack_factor;
