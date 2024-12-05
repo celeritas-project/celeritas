@@ -65,7 +65,8 @@ class BIHIntersectingVolFinderTest : public Test
     {
         detail::Intersection
         operator()(LocalVolumeId const& vol_id,
-                   [[maybe_unused]] BIHIntersectingVolFinder::Ray ray)
+                   [[maybe_unused]] BIHIntersectingVolFinder::Ray ray,
+                   [[maybe_unused]] real_type max_search_dist)
         {
             detail::OnLocalSurface on_surface{
                 LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};

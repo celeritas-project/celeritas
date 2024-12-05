@@ -113,12 +113,13 @@ BIHIntersectingVolFinder::BIHIntersectingVolFinder(
  *
  * The visit_vol argument should be of the form:
  *
- * detail::Intersection(*)(LocalVolumeId, Ray)
+ * detail::Intersection(*)(LocalVolumeId id, Ray ray, real_type
+ * max_search_dist)
  *
  * In other words, for a given LocalVolumeId and Ray, it should provide an
  * Intersection object denoting the next surface and the corresponding
- * distance. If no intersection is found, Intersection.distance should be set
- * to inf.
+ * distance. If no intersection is found within max_search_dist, an empty
+ * Intersection object is returned.
  */
 template<class F>
 CELER_FUNCTION auto
@@ -226,8 +227,9 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
 
         if (this->visit_bbox(bbox, ray, min_intersection.distance))
         {
-            auto intersection = visit_vol(id, ray);
-            if (intersection.distance < min_intersection.distance)
+            auto intersection = visit_vol(id, ray, min_intersection.distance);
+            if (intersection
+                && intersection.distance < min_intersection.distance)
             {
                 min_intersection = intersection;
             }
@@ -248,8 +250,8 @@ BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
 {
     for (auto id : view_.inf_volids())
     {
-        auto intersection = visit_vol(id, ray);
-        if (intersection.distance < min_intersection.distance)
+        auto intersection = visit_vol(id, ray, min_intersection.distance);
+        if (intersection && intersection.distance < min_intersection.distance)
         {
             min_intersection = intersection;
         }
