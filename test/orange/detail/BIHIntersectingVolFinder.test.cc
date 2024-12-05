@@ -63,7 +63,9 @@ class BIHIntersectingVolFinderTest : public Test
     // Mock class with operator() to serve as a visit_vol functor
     struct MockVisitVol
     {
-        detail::Intersection operator()(LocalVolumeId const& vol_id)
+        detail::Intersection
+        operator()(LocalVolumeId const& vol_id,
+                   [[maybe_unused]] BIHIntersectingVolFinder::Ray ray)
         {
             detail::OnLocalSurface on_surface{
                 LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};
