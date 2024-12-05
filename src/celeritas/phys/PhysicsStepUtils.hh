@@ -18,7 +18,6 @@
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/grid/SplineXsCalculator.hh"
-#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/random/Selector.hh"
@@ -41,8 +40,6 @@ calc_physics_step_limit(MaterialTrackView const& material,
                         PhysicsStepView& pstep)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
-
-    using VGT = ValueGridType;
 
     /*! \todo For particles with decay, macro XS calculation will incorporate
      * decay probability, dividing decay constant by speed to become 1/len to
@@ -86,9 +83,8 @@ calc_physics_step_limit(MaterialTrackView const& material,
     else
     {
         limit.step = physics.interaction_mfp() / total_macro_xs;
-        if (auto ppid = physics.eloss_ppid())
+        if (auto grid_id = physics.range_grid())
         {
-            auto grid_id = physics.value_grid(VGT::range, ppid);
             auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
             real_type range = calc_range(particle.energy());
             // Save range for the current step and reuse it elsewhere
@@ -180,20 +176,17 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
                       real_type step)
 {
     CELER_EXPECT(step > 0);
-    CELER_EXPECT(physics.eloss_ppid());
     using Energy = ParticleTrackView::Energy;
-    using VGT = ValueGridType;
     static_assert(Energy::unit_type::value()
                       == EnergyLossCalculator::Energy::unit_type::value(),
                   "Incompatible energy types");
 
-    auto ppid = physics.eloss_ppid();
     Energy const pre_step_energy = particle.energy();
 
     // Calculate the sum of energy loss rate over all processes.
     Energy eloss;
     {
-        auto grid_id = physics.value_grid(VGT::energy_loss, ppid);
+        auto grid_id = physics.energy_loss_grid();
         CELER_ASSERT(grid_id);
 
         size_type order = physics.scalars().spline_eloss_order;
@@ -218,7 +211,7 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         // approximation is probably wrong. Use the definition of the range as
         // the integral of 1/loss to back-calculate the actual energy loss
         // along the curve given the actual step.
-        auto grid_id = physics.value_grid(VGT::range, ppid);
+        auto grid_id = physics.range_grid();
         CELER_ASSERT(grid_id);
 
         // Use the range limit stored from calc_physics_step_limit

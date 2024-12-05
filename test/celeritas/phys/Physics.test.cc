@@ -142,7 +142,7 @@ TEST_F(PhysicsParamsTest, output)
         GTEST_SKIP() << "Test results are based on CGS units";
     }
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
         to_string(out));
 }
 
@@ -413,6 +413,10 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 {
     std::vector<int> grid_ids;
 
+    auto id_to_int = [](ValueGridId vgid) {
+        return vgid ? static_cast<int>(vgid.unchecked_get()) : -1;
+    };
+
     for (char const* particle : {"gamma", "celeriton", "anti-celeriton"})
     {
         for (auto mat_id : range(MaterialId{this->material()->size()}))
@@ -423,23 +427,20 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
             for (auto pp_id :
                  range(ParticleProcessId{phys.num_particle_processes()}))
             {
-                for (ValueGridType vgt : range(ValueGridType::size_))
-                {
-                    auto id = phys.value_grid(vgt, pp_id);
-                    grid_ids.push_back(id ? static_cast<int>(id.get()) : -1);
-                }
+                grid_ids.push_back(id_to_int(phys.macro_xs_grid(pp_id)));
             }
+            grid_ids.push_back(id_to_int(phys.energy_loss_grid()));
+            grid_ids.push_back(id_to_int(phys.range_grid()));
         }
     }
 
     // Grid IDs should be unique if they exist. Gammas should have fewer
     // because there aren't any slowing down/range limiters.
-    static int const expected_grid_ids[]
-        = {0,  -1, -1, 4,  -1, -1, 1,  -1, -1, 5,  -1, -1, 2,  -1, -1, 6,  -1,
-           -1, 3,  -1, -1, 7,  -1, -1, 8,  -1, -1, 12, 13, 14, 24, -1, -1, 9,
-           -1, -1, 15, 16, 17, 25, -1, -1, 10, -1, -1, 18, 19, 20, 26, -1, -1,
-           11, -1, -1, 21, 22, 23, 27, -1, -1, 28, 29, 30, 40, -1, -1, 31, 32,
-           33, 41, -1, -1, 34, 35, 36, 42, -1, -1, 37, 38, 39, 43, -1, -1};
+    static int const expected_grid_ids[] = {
+        0,  4,  -1, -1, 1,  5,  -1, -1, 2,  6,  -1, -1, 3,  7,  -1, -1, 8,  12,
+        24, 13, 14, 9,  15, 25, 16, 17, 10, 18, 26, 19, 20, 11, 21, 27, 22, 23,
+        28, 40, 29, 30, 31, 41, 32, 33, 34, 42, 35, 36, 37, 43, 38, 39,
+    };
     EXPECT_VEC_EQ(expected_grid_ids, grid_ids);
 }
 
@@ -455,7 +456,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
             PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
-            auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
+            auto id = phys.macro_xs_grid(scat_ppid);
             ASSERT_TRUE(id);
             auto calc_xs = phys.make_calculator<XsCalculator>(id);
             xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
@@ -482,14 +483,12 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
     {
         PhysicsTrackView const phys
             = this->make_track_view(particle, MaterialId{0});
-        auto ppid = phys.eloss_ppid();
-        ASSERT_TRUE(ppid);
 
-        auto eloss_id = phys.value_grid(ValueGridType::energy_loss, ppid);
+        auto eloss_id = phys.energy_loss_grid();
         ASSERT_TRUE(eloss_id);
         auto calc_eloss = phys.make_calculator<EnergyLossCalculator>(eloss_id);
 
-        auto range_id = phys.value_grid(ValueGridType::range, ppid);
+        auto range_id = phys.range_grid();
         ASSERT_TRUE(range_id);
         auto calc_range = phys.make_calculator<RangeCalculator>(range_id);
         for (real_type energy : {1e-6, 0.01, 1.0, 1e2})
@@ -661,7 +660,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
             PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
-            auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
+            auto id = phys.macro_xs_grid(scat_ppid);
             ASSERT_TRUE(id);
             auto calc_xs = phys.make_calculator<SplineXsCalculator>(id, 2);
             xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
