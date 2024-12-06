@@ -25,7 +25,7 @@ namespace celeritas
  *
  * The end points of the grid are extrapolated outward as constant values.
  *
- * \todo Rename GenericGridCalculator? Template on value type and/or units?
+ * \todo Rename NonuniformGridCalculator? Template on value type and/or units?
  */
 class GenericCalculator
 {

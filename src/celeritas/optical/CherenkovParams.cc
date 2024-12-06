@@ -54,7 +54,7 @@ CherenkovParams::CherenkovParams(MaterialParams const& mats)
 
         // Integrate
         std::vector<real_type> integral(energy.size());
-        integrate_rindex(refractive_index.grid().values(),
+        integrate_rindex(energy,
                          Span<real_type const>(make_span(ri_inv_sq)),
                          make_span(integral));
         insert_angle_integral(energy, make_span(integral));
