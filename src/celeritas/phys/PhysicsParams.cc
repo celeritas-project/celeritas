@@ -454,6 +454,7 @@ void PhysicsParams::build_xs(Options const& opts,
 
     using UPGridBuilder = Process::UPConstGridBuilder;
     using Energy = Applicability::Energy;
+    using VGT = ValueGridType;
 
     ValueGridInserter insert_grid(&data->reals, &data->value_grids);
     auto value_tables = make_builder(&data->value_tables);
@@ -477,12 +478,11 @@ void PhysicsParams::build_xs(Options const& opts,
             = data->model_groups[process_groups.models];
         CELER_ASSERT(processes.size() == model_groups.size());
 
-        // Material-dependent physics tables, one per particle-process
-        ValueGridArray<std::vector<ValueTable>> temp_tables;
-        for (auto& vec : temp_tables)
-        {
-            vec.resize(processes.size());
-        }
+        // Material-dependent physics tables, one cross section table per
+        // particle-process and one dedx/range table per particle
+        std::vector<ValueTable> xs_table(processes.size());
+        ValueTable eloss_table;
+        ValueTable range_table;
 
         // Processes with dE/dx and macro xs tables
         std::vector<IntegralXsProcess> temp_integral_xs(processes.size());
@@ -501,11 +501,9 @@ void PhysicsParams::build_xs(Options const& opts,
             Process const& proc = *this->process(processes[pp_idx]);
 
             // Grid IDs for each grid type, each material
-            ValueGridArray<std::vector<ValueGridId>> temp_grid_ids;
-            for (auto& vec : temp_grid_ids)
-            {
-                vec.resize(mats.size());
-            }
+            std::vector<ValueGridId> xs_grid_ids(mats.size());
+            std::vector<ValueGridId> eloss_grid_ids(mats.size());
+            std::vector<ValueGridId> range_grid_ids(mats.size());
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
@@ -517,9 +515,9 @@ void PhysicsParams::build_xs(Options const& opts,
             }
 
             // Loop over materials
-            for (auto mat_id : range(MaterialId{mats.size()}))
+            for (auto mat_idx : range(MaterialId::size_type{mats.size()}))
             {
-                applic.material = mat_id;
+                applic.material = MaterialId(mat_idx);
 
                 // Construct step limit builders
                 auto builders = proc.step_limits(applic);
@@ -532,11 +530,10 @@ void PhysicsParams::build_xs(Options const& opts,
                        "have at least one)");
 
                 // Construct grids
-                for (auto vgt : range(ValueGridType::size_))
-                {
-                    temp_grid_ids[vgt][mat_id.get()]
-                        = build_grid(builders[vgt]);
-                }
+                xs_grid_ids[mat_idx] = build_grid(builders[VGT::macro_xs]);
+                eloss_grid_ids[mat_idx]
+                    = build_grid(builders[VGT::energy_loss]);
+                range_grid_ids[mat_idx] = build_grid(builders[VGT::range]);
 
                 if (processes[pp_idx] == data->hardwired.positron_annihilation)
                 {
@@ -547,11 +544,10 @@ void PhysicsParams::build_xs(Options const& opts,
                     {
                         // Annihilation cross section is maximum at zero and
                         // decreases with increasing energy
-                        energy_max_xs[mat_id.get()] = 0;
+                        energy_max_xs[mat_idx] = 0;
                     }
                 }
-                else if (auto grid_id
-                         = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()])
+                else if (auto grid_id = xs_grid_ids[mat_idx])
                 {
                     auto const& grid_data = data->value_grids[grid_id];
                     auto data_ref = make_const_ref(*data);
@@ -579,37 +575,39 @@ void PhysicsParams::build_xs(Options const& opts,
                             }
                         }
                         CELER_ASSERT(e_max > 0);
-                        energy_max_xs[mat_id.get()] = e_max;
+                        energy_max_xs[mat_idx] = e_max;
                     }
-                }
-
-                // Index of the energy loss process that stores the de/dx and
-                // range tables
-                if (temp_grid_ids[ValueGridType::energy_loss][mat_id.get()]
-                    && temp_grid_ids[ValueGridType::range][mat_id.get()])
-                {
-                    // Only one particle-process should have energy loss tables
-                    CELER_ASSERT(!process_groups.eloss_ppid
-                                 || pp_idx == process_groups.eloss_ppid.get());
-                    process_groups.eloss_ppid = ParticleProcessId{pp_idx};
                 }
             }
 
-            // Outer loop over grid types
-            for (auto vgt : range(ValueGridType::size_))
-            {
-                if (!std::any_of(temp_grid_ids[vgt].begin(),
-                                 temp_grid_ids[vgt].end(),
-                                 [](ValueGridId id) { return bool(id); }))
-                {
-                    continue;
-                }
+            // Check if any material has value grids
+            auto has_grids = [](std::vector<ValueGridId> const& vec_id) {
+                return std::any_of(vec_id.begin(),
+                                   vec_id.end(),
+                                   [](ValueGridId id) { return bool(id); });
+            };
 
-                // Construct value grid table
-                ValueTable& temp_table = temp_tables[vgt][pp_idx];
-                temp_table.grids = value_grid_ids.insert_back(
-                    temp_grid_ids[vgt].begin(), temp_grid_ids[vgt].end());
-                CELER_ASSERT(temp_table.grids.size() == mats.size());
+            // Construct value grid tables
+            if (has_grids(xs_grid_ids))
+            {
+                xs_table[pp_idx].grids = value_grid_ids.insert_back(
+                    xs_grid_ids.begin(), xs_grid_ids.end());
+                CELER_ASSERT(xs_table[pp_idx].grids.size() == mats.size());
+            }
+            if (has_grids(eloss_grid_ids))
+            {
+                CELER_VALIDATE(!eloss_table && !range_table,
+                               << "more than one process for particle ID "
+                               << particle_id.get()
+                               << " has energy loss tables");
+
+                CELER_ASSERT(has_grids(range_grid_ids));
+                eloss_table.grids = value_grid_ids.insert_back(
+                    eloss_grid_ids.begin(), eloss_grid_ids.end());
+                range_table.grids = value_grid_ids.insert_back(
+                    range_grid_ids.begin(), range_grid_ids.end());
+                CELER_ASSERT(eloss_table.grids.size() == mats.size()
+                             && range_table.grids.size() == mats.size());
             }
 
             // Store the energies of the maximum cross sections
@@ -627,11 +625,10 @@ void PhysicsParams::build_xs(Options const& opts,
             temp_integral_xs.begin(), temp_integral_xs.end());
 
         // Construct value tables
-        for (auto vgt : range(ValueGridType::size_))
-        {
-            process_groups.tables[vgt] = value_tables.insert_back(
-                temp_tables[vgt].begin(), temp_tables[vgt].end());
-        }
+        process_groups.macro_xs
+            = value_tables.insert_back(xs_table.begin(), xs_table.end());
+        process_groups.energy_loss = value_tables.push_back(eloss_table);
+        process_groups.range = value_tables.push_back(range_table);
     }
 }
 

@@ -227,8 +227,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto ppid = phys.eloss_ppid();
-        auto grid_id = phys.value_grid(ValueGridType::range, ppid);
+        auto grid_id = phys.range_grid();
         auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
         real_type range = calc_range(particle.energy());
         phys.dedx_range(range);
@@ -481,8 +480,7 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto ppid = phys.eloss_ppid();
-        auto grid_id = phys.value_grid(ValueGridType::range, ppid);
+        auto grid_id = phys.range_grid();
         auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
         real_type range = calc_range(particle.energy());
         phys.dedx_range(range);
