@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/CdfUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/grid/GenericGridInserter.hh"
@@ -52,8 +53,10 @@ WavelengthShiftParams::from_import(ImportData const& data)
 WavelengthShiftParams::WavelengthShiftParams(Input const& input)
 {
     CELER_EXPECT(input.data.size() > 0);
-    HostVal<WavelengthShiftData> data;
 
+    SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
+
+    HostVal<WavelengthShiftData> data;
     CollectionBuilder wls_record{&data.wls_record};
     GenericGridInserter insert_energy_cdf(&data.reals, &data.energy_cdf);
     for (auto const& wls : input.data)
@@ -73,28 +76,14 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
         wls_record.push_back(record);
 
         // Calculate the WLS cumulative probability of the emission spectrum
-        // Store WLS component tabulated as a function of photon energy
-        auto const& comp_vec = wls.component;
-        std::vector<double> cdf(comp_vec.x.size());
+        std::vector<double> cdf(wls.component.x.size());
+        integrate_emission(make_span(wls.component.x),
+                           make_span(wls.component.y),
+                           make_span(cdf));
+        normalize_cdf(make_span(cdf));
 
-        CELER_ASSERT(comp_vec.y[0] > 0);
-        // The value of cdf at the low edge is zero by default
-        cdf[0] = 0;
-        for (size_type i = 1; i < comp_vec.x.size(); ++i)
-        {
-            // TODO: use trapezoidal integrator helper class
-            cdf[i] = cdf[i - 1]
-                     + 0.5 * (comp_vec.x[i] - comp_vec.x[i - 1])
-                           * (comp_vec.y[i] + comp_vec.y[i - 1]);
-        }
-
-        // Normalize for the cdf probability
-        for (size_type i = 1; i < comp_vec.x.size(); ++i)
-        {
-            cdf[i] = cdf[i] / cdf.back();
-        }
         // Note that energy and cdf are swapped for the inverse sampling
-        insert_energy_cdf(make_span(cdf), make_span(comp_vec.x));
+        insert_energy_cdf(make_span(cdf), make_span(wls.component.x));
     }
     CELER_ASSERT(data.energy_cdf.size() == input.data.size());
     CELER_ASSERT(data.wls_record.size() == data.energy_cdf.size());
