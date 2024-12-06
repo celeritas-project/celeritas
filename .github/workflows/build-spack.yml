@@ -63,7 +63,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: 383
+          fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
       - name: Setup Spack
         uses: spack/setup-spack@0ce61628ed8a32a5664cf01a0e0b5a4834a3b413 # 2024/03
@@ -135,15 +135,35 @@ jobs:
             test -n "${G4LEDATA}"
           fi
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+      - name: Run incremental clang-tidy
+        id: clang-tidy
+        if: ${{matrix.special == 'clang-tidy'}}
+        env:
+          BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
+        run: |
+          if [ "${{github.event_name}}" == "schedule" ]; then
+            echo "Full clang-tidy check on scheduled run."
+            ninja -k0
+            exit $?
+          fi
+          BASE=$(git merge-base origin/${BASE_REF} HEAD)
+          ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)
+          set +e
+          CC_FILES=$(grep -E '^(src|app|example)/.*\.cc$' - <<< "$ALL_FILES")
+          set -e
+          if [ -z "$CC_FILES" ]; then
+            echo "No files to run clang-tidy on."
+            exit 0
+          fi
+          echo "Running clang-tidy on: $CC_FILES"
+          ${{env.CLANG_TIDY}} -p build $CC_FILES
+          exit $?
       - name: Build all
         id: build
+        if: ${{matrix.special != 'clang-tidy'}}
         working-directory: build
         run: |
-          if [ "${{matrix.special}}" == "clang-tidy" ]; then
-            ninja -k0
-          else
             ninja -v -k0
-          fi
       - name: Regenerate ROOT test data
         if: ${{matrix.geant == '11.0'}}
         working-directory: build
