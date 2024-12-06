@@ -14,6 +14,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/CdfUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericCalculator.hh"
@@ -32,6 +33,8 @@ namespace optical
  */
 CherenkovParams::CherenkovParams(MaterialParams const& mats)
 {
+    SegmentIntegrator integrate_rindex{TrapezoidSegmentIntegrator{}};
+
     HostVal<CherenkovData> data;
     GenericGridInserter insert_angle_integral(&data.reals,
                                               &data.angle_integral);
@@ -42,16 +45,18 @@ CherenkovParams::CherenkovParams(MaterialParams const& mats)
                   .make_refractive_index_calculator();
         Span<real_type const> energy = refractive_index.grid().values();
 
-        // Calculate the Cherenkov angle integral
-        std::vector<real_type> integral(energy.size());
-        for (size_type i = 1; i < energy.size(); ++i)
+        // Calculate 1/n^2 on all grid points
+        std::vector<real_type> ri_inv_sq(energy.size());
+        for (auto i : range(ri_inv_sq.size()))
         {
-            // TODO: use trapezoidal integrator helper class
-            integral[i] = integral[i - 1]
-                          + real_type(0.5) * (energy[i] - energy[i - 1])
-                                * (1 / ipow<2>(refractive_index[i - 1])
-                                   + 1 / ipow<2>(refractive_index[i]));
+            ri_inv_sq[i] = 1 / ipow<2>(refractive_index[i]);
         }
+
+        // Integrate
+        std::vector<real_type> integral(energy.size());
+        integrate_rindex(refractive_index.grid().values(),
+                         Span<real_type const>(make_span(ri_inv_sq)),
+                         make_span(integral));
         insert_angle_integral(energy, make_span(integral));
     }
     CELER_ASSERT(data.angle_integral.size() == mats.num_materials());
