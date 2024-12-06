@@ -82,8 +82,8 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
                            make_span(cdf));
         normalize_cdf(make_span(cdf));
 
-        // Note that energy and cdf are swapped for the inverse sampling
-        insert_energy_cdf(make_span(cdf), make_span(wls.component.x));
+        // Insert energy -> CDF grid
+        insert_energy_cdf(make_span(wls.component.x), make_span(cdf));
     }
     CELER_ASSERT(data.energy_cdf.size() == input.data.size());
     CELER_ASSERT(data.wls_record.size() == data.energy_cdf.size());

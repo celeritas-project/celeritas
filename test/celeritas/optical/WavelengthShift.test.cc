@@ -86,21 +86,18 @@ TEST_F(WavelengthShiftTest, data)
     EXPECT_SOFT_EQ(1 * units::nanosecond, wls_record.time_constant);
 
     // Test the vector property (emission spectrum) of WLS
-    auto const& grid = data_.energy_cdf[material_id_];
-    EXPECT_TRUE(grid);
 
-    auto const& cdf = data_.reals[grid.grid];
-    EXPECT_EQ(5, cdf.size());
-    EXPECT_SOFT_EQ(0, cdf.front());
-    EXPECT_SOFT_EQ(1, cdf.back());
-
-    auto const& energy = data_.reals[grid.value];
+    // Test the energy range and spectrum of emitted photons
+    GenericCalculator calc_cdf(data_.energy_cdf[material_id_], data_.reals);
+    auto const& energy = calc_cdf.grid();
     EXPECT_EQ(5, energy.size());
     EXPECT_SOFT_EQ(1.65e-6, energy.front());
     EXPECT_SOFT_EQ(3.26e-6, energy.back());
 
-    // Test the energy range and spectrum of emitted photons
-    GenericCalculator calc_energy(data_.energy_cdf[material_id_], data_.reals);
+    auto calc_energy = calc_cdf.make_inverse();
+    auto const& cdf = calc_energy.grid();
+    EXPECT_SOFT_EQ(0, cdf.front());
+    EXPECT_SOFT_EQ(1, cdf.back());
 
     EXPECT_SOFT_EQ(energy.front(), calc_energy(0));
     EXPECT_SOFT_EQ(energy.back(), calc_energy(1));

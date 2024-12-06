@@ -74,7 +74,6 @@ class WavelengthShiftInteractor
     PoissonDistribution<real_type> sample_num_photons_;
     ExponentialDistribution<real_type> sample_time_;
     // Grid calculators
-    GenericCalculator calc_energy_;
     GenericCalculator calc_cdf_;
     // Allocate space for secondary particles
     SecondaryAllocator& allocate_;
@@ -95,12 +94,10 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
     : inc_energy_(particle.energy())
     , sample_num_photons_(shared.wls_record[mat_id].mean_num_photons)
     , sample_time_(real_type{1} / shared.wls_record[mat_id].time_constant)
-    , calc_energy_(shared.energy_cdf[mat_id], shared.reals)
-    , calc_cdf_(GenericCalculator::from_inverse(shared.energy_cdf[mat_id],
-                                                shared.reals))
+    , calc_cdf_(shared.energy_cdf[mat_id], shared.reals)
     , allocate_(allocate)
 {
-    CELER_EXPECT(inc_energy_.value() > calc_energy_(0));
+    CELER_EXPECT(inc_energy_.value() > calc_cdf_.grid().front());
 }
 
 //---------------------------------------------------------------------------//
@@ -140,18 +137,19 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, num_photons};
 
     IsotropicDistribution sample_direction{};
+    GenericCalculator calc_energy = calc_cdf_.make_inverse();
     for (size_type i : range(num_photons))
     {
         // Sample the emitted energy from the inverse cumulative distribution
         // TODO: add CDF sampler; see
         // https://github.com/celeritas-project/celeritas/pull/1507/files#r1844973621
-        real_type energy = calc_energy_(generate_canonical(rng));
+        real_type energy = calc_energy(generate_canonical(rng));
         if (CELER_UNLIKELY(energy > inc_energy_.value()))
         {
             // Sample a restricted energy below the incident photon energy
             real_type cdf_max = calc_cdf_(inc_energy_.value());
             UniformRealDistribution<real_type> sample_cdf(0, cdf_max);
-            energy = calc_energy_(sample_cdf(rng));
+            energy = calc_energy(sample_cdf(rng));
         }
         CELER_ENSURE(energy < inc_energy_.value());
         secondaries[i].energy = Energy{energy};

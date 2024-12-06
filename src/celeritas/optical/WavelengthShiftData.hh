@@ -49,7 +49,7 @@ struct WavelengthShiftData
 
     OpticalMaterialItems<WlsMaterialRecord> wls_record;
 
-    // Grid energy tabulated as a function of the cumulative probability.
+    // Cumulative probability of emission as a function of energy
     OpticalMaterialItems<GenericGridRecord> energy_cdf;
 
     // Backend data
@@ -60,7 +60,7 @@ struct WavelengthShiftData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !wls_record.empty() && !energy_cdf.empty() && !reals.empty();
+        return !wls_record.empty() && !energy_cdf.empty();
     }
 
     //! Assign from another set of data
