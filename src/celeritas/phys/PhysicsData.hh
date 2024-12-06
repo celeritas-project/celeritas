@@ -119,7 +119,7 @@ struct IntegralXsProcess
  *
  * Each index should be accessed with type ParticleProcessId. \c macro_xs
  * stores the cross section tables for each process, while \c energy_loss and
- * \c range are the process-integrated dE/dx and range for the particle.  c
+ * \c range are the process-integrated dE/dx and range for the particle.  \c
  * integral_xs will only be assigned if the integral approach is used and the
  * particle has continuous-discrete processes.
  */
