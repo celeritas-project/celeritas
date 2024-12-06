@@ -149,7 +149,7 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
         material = std::make_shared<MaterialParams>(std::move(input));
 
         // Build Cherenkov data
-        params = std::make_shared<CherenkovParams>(material);
+        params = std::make_shared<CherenkovParams>(*material);
     }
 
     std::shared_ptr<MaterialParams const> material;

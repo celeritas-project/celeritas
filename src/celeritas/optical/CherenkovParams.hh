@@ -26,14 +26,8 @@ class MaterialParams;
 class CherenkovParams final : public ParamsDataInterface<CherenkovData>
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
-    //!@}
-
-  public:
     // Construct with optical property data
-    explicit CherenkovParams(SPConstMaterial material);
+    explicit CherenkovParams(MaterialParams const& material);
 
     //! Access physics material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

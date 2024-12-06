@@ -135,7 +135,8 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_cherenkov() -> SPConstCherenkov
 {
-    return std::make_shared<optical::CherenkovParams>(this->optical_material());
+    return std::make_shared<optical::CherenkovParams>(
+        *this->optical_material());
 }
 
 //---------------------------------------------------------------------------//

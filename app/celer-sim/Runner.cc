@@ -604,7 +604,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
         imported, *core_params_->geomaterial(), *core_params_->material());
-    oc_inp.cherenkov = std::make_shared<CherenkovParams>(oc_inp.material);
+    oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
     oc_inp.scintillation
         = ScintillationParams::from_import(imported, core_params_->particle());
     oc_inp.num_track_slots = ceil_div(inp.optical.num_track_slots, num_streams);

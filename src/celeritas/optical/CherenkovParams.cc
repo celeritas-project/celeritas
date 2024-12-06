@@ -16,9 +16,11 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/grid/GenericGridInserter.hh"
 
 #include "MaterialParams.hh"
+#include "MaterialView.hh"
 
 namespace celeritas
 {
@@ -28,24 +30,19 @@ namespace optical
 /*!
  * Construct with optical property data.
  */
-CherenkovParams::CherenkovParams(SPConstMaterial material)
+CherenkovParams::CherenkovParams(MaterialParams const& mats)
 {
-    CELER_EXPECT(material);
-    auto const& host_ref = material->host_ref();
-
     HostVal<CherenkovData> data;
     GenericGridInserter insert_angle_integral(&data.reals,
                                               &data.angle_integral);
-
-    for (auto mat_id :
-         range(OpticalMaterialId(host_ref.refractive_index.size())))
+    for (auto mat_id : range(OpticalMaterialId(mats.num_materials())))
     {
-        auto const& ri_grid = host_ref.refractive_index[mat_id];
-        CELER_ASSERT(ri_grid);
+        GenericCalculator refractive_index
+            = MaterialView{mats.host_ref(), mat_id}
+                  .make_refractive_index_calculator();
+        Span<real_type const> energy = refractive_index.grid().values();
 
         // Calculate the Cherenkov angle integral
-        auto const&& refractive_index = host_ref.reals[ri_grid.value];
-        auto const&& energy = host_ref.reals[ri_grid.grid];
         std::vector<real_type> integral(energy.size());
         for (size_type i = 1; i < energy.size(); ++i)
         {
@@ -55,14 +52,11 @@ CherenkovParams::CherenkovParams(SPConstMaterial material)
                                 * (1 / ipow<2>(refractive_index[i - 1])
                                    + 1 / ipow<2>(refractive_index[i]));
         }
-
-        insert_angle_integral(make_span(energy), make_span(integral));
+        insert_angle_integral(energy, make_span(integral));
     }
-    CELER_ASSERT(data.angle_integral.size()
-                 == host_ref.refractive_index.size());
-
+    CELER_ASSERT(data.angle_integral.size() == mats.num_materials());
     data_ = CollectionMirror<CherenkovData>{std::move(data)};
-    CELER_ENSURE(data_ || host_ref.refractive_index.empty());
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
