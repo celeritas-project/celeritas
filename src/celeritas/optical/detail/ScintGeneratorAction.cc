@@ -118,6 +118,7 @@ void ScintGeneratorAction::step_impl(CoreParams const& core_params,
                                         offload.offsets,
                                         buffer_size,
                                         core_state.stream_id());
+    optical_state.counters().num_generated += count;
 
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);

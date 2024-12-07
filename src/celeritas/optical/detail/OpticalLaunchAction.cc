@@ -151,31 +151,26 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     CELER_ASSERT(offload_state);
     CELER_ASSERT(optical_state.size() > 0);
 
-    constexpr size_type max_steps{1};
-    size_type remaining_steps = max_steps;
+    constexpr size_type max_step_iters{1};
+    size_type num_step_iters{0};
+    size_type num_steps{0};
 
     // Loop while photons are yet to be tracked
     auto& counters = optical_state.counters();
     auto const& step_actions = optical_actions_->step();
     while (counters.num_initializers > 0 || counters.num_alive > 0)
     {
-        // TODO: generation is done *outside* of the optical tracking loop;
-        // once we move it inside, update the generation count in the
-        // generators
-        counters.num_generated = 0;
-
         // Loop through actions
         for (auto const& action : step_actions)
         {
             action->step(*optical_params_, optical_state);
         }
-        CELER_LOG(debug) << "Stepped " << counters.num_active
-                         << " optical tracks";
 
-        if (CELER_UNLIKELY(--remaining_steps == 0))
+        num_steps += counters.num_active;
+        if (CELER_UNLIKELY(++num_step_iters == max_step_iters))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << max_steps
+                << "Exceeded step count of " << max_step_iters
                 << ": aborting optical transport loop with "
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
@@ -184,6 +179,15 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
             break;
         }
     }
+
+    CELER_LOG_LOCAL(debug) << "Generated " << counters.num_generated
+                           << " optical photons which completed " << num_steps
+                           << " total steps over " << num_step_iters
+                           << " iterations";
+
+    // TODO: generation is done *outside* of the optical tracking loop;
+    // once we move it inside, update the generation count in the loop here
+    counters.num_generated = 0;
 }
 
 //---------------------------------------------------------------------------//

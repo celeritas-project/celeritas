@@ -125,6 +125,7 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
     // generate initializers from which distribution
     auto count = inclusive_scan_photons(
         offload.cherenkov, offload.offsets, buffer_size, core_state.stream_id());
+    optical_state.counters().num_generated += count;
 
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);
