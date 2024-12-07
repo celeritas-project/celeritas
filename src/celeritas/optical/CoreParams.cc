@@ -19,10 +19,12 @@
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "TrackInitParams.hh"
+#include "action/AlongStepAction.hh"
 #include "action/BoundaryAction.hh"
 #include "action/InitializeTracksAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
+#include "action/TrackingCutAction.hh"
 
 namespace celeritas
 {
@@ -71,14 +73,22 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     reg->insert(make_shared<PreStepAction>(reg->next_id()));
 
+    //// ALONG-STEP ACTIONS ////
+
+    reg->insert(make_shared<AlongStepAction>(reg->next_id()));
+
     //// POST-STEP ACTIONS ////
 
-    // Construct geometry boundary action
-    // TODO: it might make more sense to build these actions right before
-    // making the action group: re-examine once we add a surface physics
-    // manager
+    // TODO: process selection action (or constructed by physics?)
+
+    // TODO: it might make more sense to build the surface crossing action
+    // right before making the action group: re-examine once we add a surface
+    // physics manager
     scalars.boundary_action = reg->next_id();
     reg->insert(make_shared<BoundaryAction>(scalars.boundary_action));
+
+    scalars.tracking_cut_action = reg->next_id();
+    reg->insert(make_shared<TrackingCutAction>(scalars.tracking_cut_action));
 
     //// END ACTIONS ////
 

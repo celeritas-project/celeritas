@@ -26,24 +26,21 @@ namespace detail
  */
 struct TrackingCutExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void TrackingCutExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void TrackingCutExecutor::operator()(CoreTrackView& track)
 {
     using Energy = ParticleTrackView::Energy;
 
-    auto particle = track.make_particle_view();
-    auto sim = track.make_sim_view();
+    auto deposited = track.particle().energy().value();
 
-    auto deposited = particle.energy().value();
-
+    auto&& sim = track.sim();
 #if !CELER_DEVICE_COMPILE
     {
         // Print a debug message if track is just being cut; error message if
         // an error occurred
-        auto const geo = track.make_geo_view();
         auto msg = self_logger()(CELER_CODE_PROVENANCE,
                                  sim.status() == TrackStatus::errored
                                      ? LogLevel::error

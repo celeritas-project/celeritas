@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/detail/PropagateExecutor.hh
+//! \file celeritas/optical/action/detail/AlongStepExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,39 +21,31 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Move a track to the next interaction or geometry boundary.
+ * Complete end-of-step activity for a track.
  *
- * This should only apply to alive tracks.
+ * - Update track time
+ * - Update number of steps
+ * - Update remaining MFPs to interaction
  */
-struct PropagateExecutor
+struct AlongStepExecutor
 {
     inline CELER_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void PropagateExecutor::operator()(CoreTrackView& track)
+CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
 {
-    auto&& sim = track.sim();
+    auto sim = track.sim();
+
+    // Update time
+    sim.add_time(sim.step_length() / constants::c_light);
+
     CELER_ASSERT(sim.status() == TrackStatus::alive);
+    CELER_ASSERT(sim.step_length() > 0);
+    CELER_ASSERT(sim.post_step_action());
 
-    // Propagate up to the physics distance
-    real_type step = sim.step_length();
-    CELER_ASSERT(step > 0);
-
-    auto&& geo = track.geometry();
-    Propagation p = geo.find_next_step(step);
-    if (p.boundary)
-    {
-        geo.move_to_boundary();
-        step = p.distance;
-        sim.step_length(p.distance);
-        sim.post_step_action(track.boundary_action());
-    }
-    else
-    {
-        CELER_ASSERT(step == p.distance);
-        geo.move_internal(step);
-    }
+    // TODO: update step count and check max step cut
+    // TODO: reduce MFP by step * xs
 }
 
 //---------------------------------------------------------------------------//
