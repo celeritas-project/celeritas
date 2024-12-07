@@ -24,7 +24,7 @@ namespace celeritas
 /*!
  * Current sizes of the buffers of distribution data.
  *
- * These sizes are updated by value on the host at each step.
+ * These sizes are updated by value on the host at each core step.
  */
 struct OffloadBufferSize
 {

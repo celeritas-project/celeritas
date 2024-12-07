@@ -113,7 +113,12 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
 
     auto& offload = offload_state.store.ref();
     auto& buffer_size = offload_state.buffer_size.cherenkov;
-    CELER_ASSERT(buffer_size > 0);
+    if (buffer_size == 0)
+    {
+        // No new cherenkov photons: perhaps tracks are all subluminal
+        CELER_LOG_LOCAL(debug) << "No Cherenkov photons to generate";
+        return;
+    }
 
     // Calculate the cumulative sum of the number of photons in the buffered
     // distributions. These values are used to determine which thread will

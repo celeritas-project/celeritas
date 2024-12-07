@@ -97,6 +97,7 @@ class LArSphereOffloadTest : public LArSphereBase
     size_type buffer_capacity_{256};
     size_type initializer_capacity_{8192};
     size_type auto_flush_{4096};
+    units::MevEnergy primary_energy_{10.0};
 
     std::shared_ptr<OpticalCollector> collector_;
     StreamId stream_{0};
@@ -198,7 +199,7 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
 {
     celeritas::Primary p;
     p.event_id = EventId{0};
-    p.energy = units::MevEnergy{10.0};
+    p.energy = primary_energy_;
     p.position = from_cm(Real3{0, 0, 0});
     p.time = 0;
 
@@ -494,9 +495,24 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     }
 }
 
+TEST_F(LArSphereOffloadTest, host_generate_small)
+{
+    primary_energy_ = units::MevEnergy{0.01};
+    num_track_slots_ = 16;
+    buffer_capacity_ = 1024;
+    initializer_capacity_ = 1024;
+    auto_flush_ = 4;
+    this->build_optical_collector();
+
+    // Run with 1 core track slot and 16 optical track slots
+    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
+    auto result = this->run<MemSpace::host>(4, 1, 2);
+    scoped_log_.print_expected();
+}
+
 TEST_F(LArSphereOffloadTest, host_generate)
 {
-    num_track_slots_ = 1 << 18;
+    num_track_slots_ = 262144;
     buffer_capacity_ = 1024;
     initializer_capacity_ = 524288;
     auto_flush_ = 16384;
