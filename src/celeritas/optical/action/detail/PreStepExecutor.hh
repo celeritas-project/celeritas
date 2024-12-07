@@ -48,10 +48,15 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
     CELER_ASSERT(sim.status() == TrackStatus::initializing
                  || sim.status() == TrackStatus::alive);
 
-    sim.status(TrackStatus::alive);
+    if (sim.status() == TrackStatus::initializing)
+    {
+        sim.reset_step_limit();
+        sim.status(TrackStatus::alive);
+    }
 
     // TODO: reset secondaries
     // TODO: calculate step limit
+    CELER_ENSURE(sim.step_length() > 0);
 }
 
 //---------------------------------------------------------------------------//
