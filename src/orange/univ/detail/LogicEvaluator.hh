@@ -8,6 +8,7 @@
 #pragma once
 
 #include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/LdgIterator.hh"
@@ -65,9 +66,7 @@ CELER_FUNCTION LogicEvaluator::LogicEvaluator(SpanConstLogic logic)
  */
 CELER_FUNCTION bool LogicEvaluator::operator()(SpanConstSense values) const
 {
-    auto calc_sense = [&](FaceId face_id){
-        return values[face_id.get()];
-    };
+    auto calc_sense = [&](FaceId face_id) { return values[face_id.get()]; };
     return (*this)(calc_sense);
 }
 
