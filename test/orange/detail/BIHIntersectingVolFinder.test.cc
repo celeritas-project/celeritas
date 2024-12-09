@@ -93,6 +93,24 @@ class BIHIntersectingVolFinderTest : public Test
                   intersection.surface.id().unchecked_get());
     }
 
+    // Check result for a single ray, with a max search distance
+    void check_result(Ray ray,
+                      DistMap const& dist_map,
+                      LocalVolumeId vol_id,
+                      real_type max_search_dist,
+                      real_type dist)
+    {
+        MockVisitVol visit_vol;
+        visit_vol.dist_map = dist_map;
+
+        auto find_volume = BIHIntersectingVolFinder(bih_tree_, ref_storage_);
+        auto intersection = find_volume(ray, visit_vol, max_search_dist);
+
+        EXPECT_SOFT_EQ(dist, intersection.distance);
+        EXPECT_EQ(vol_id.unchecked_get(),
+                  intersection.surface.id().unchecked_get());
+    }
+
     static constexpr auto inff_
         = std::numeric_limits<fast_real_type>::infinity();
     std::vector<FastBBox> bboxes_;
@@ -101,7 +119,7 @@ class BIHIntersectingVolFinderTest : public Test
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 };
 
-// Test the case where the ray starts outside the bbbox and the first bbox
+// Test the case where the ray starts outside the bbox and the first bbox
 // intersection yields the first volume intersection.
 TEST_F(BIHIntersectingVolFinderTest, outside_first)
 {
@@ -162,6 +180,28 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
                 {LocalVolumeId{4}, 1.3},
                 {LocalVolumeId{5}, 1.2}};
     this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.2);
+
+    // Ray intersects V5 from the left, max search distance is closer
+    pos = {-0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, inff_},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, 1.3},
+                {LocalVolumeId{5}, 1.2}};
+    this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 1.1, 1.1);
+
+    // Ray intersects V5 from the left, max search distance is further
+    pos = {-0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, inff_},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, 1.3},
+                {LocalVolumeId{5}, 1.2}};
+    this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.3, 1.2);
 }
 
 // Test the case where the ray starts somewhere inside a bbox and this bbox
@@ -236,6 +276,28 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
                 {LocalVolumeId{4}, 1.3},
                 {LocalVolumeId{5}, 1.2}};
     this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.2);
+
+    // Ray intersects V5 from the left, max search distance is closer
+    pos = {0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, inff_},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, 1.3},
+                {LocalVolumeId{5}, 1.2}};
+    this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 0.1, 0.1);
+
+    // Ray intersects V5 from the left, max search distance is further
+    pos = {0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, inff_},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, 1.3},
+                {LocalVolumeId{5}, 1.2}};
+    this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.6, 1.2);
 }
 
 // Test the case where the first intersection does not yeilds the first volume
@@ -277,6 +339,28 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
                 {LocalVolumeId{4}, inff_},
                 {LocalVolumeId{5}, inff_}};
     this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1.5);
+
+    // Ray goes through V4 and V5 and intersects with V2, max search is closer
+    pos = {1.5, -2, 50.};
+    dir = {0., 1., 0.};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, 1.5},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, inff_},
+                {LocalVolumeId{5}, inff_}};
+    this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 0.8, 0.8);
+
+    // Ray goes through V4 and V5 and intersects with V2, max search is further
+    pos = {1.5, -2, 50.};
+    dir = {0., 1., 0.};
+    dist_map = {{LocalVolumeId{0}, inff_},
+                {LocalVolumeId{1}, inff_},
+                {LocalVolumeId{2}, 1.5},
+                {LocalVolumeId{3}, inff_},
+                {LocalVolumeId{4}, inff_},
+                {LocalVolumeId{5}, inff_}};
+    this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 2.1, 1.5);
 }
 
 //---------------------------------------------------------------------------//

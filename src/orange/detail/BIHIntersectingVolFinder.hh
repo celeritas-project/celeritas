@@ -57,7 +57,14 @@ class BIHIntersectingVolFinder
     inline CELER_FUNCTION
     BIHIntersectingVolFinder(BIHTree const& tree, Storage const& storage);
 
-    // Calculate the minimum intersection
+    // Calculate the minimum intersection, with supplied maximum search
+    // distance
+    template<class F>
+    inline CELER_FUNCTION Intersection
+    operator()(Ray ray, F&& visit_vol, real_type max_search_dist) const;
+
+    // Calculate the minimum intersection, without supplied maximum search
+    // distance
     template<class F>
     inline CELER_FUNCTION Intersection operator()(Ray ray, F&& visit_vol) const;
 
@@ -71,12 +78,12 @@ class BIHIntersectingVolFinder
     inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId current_id,
                                               BIHNodeId previous_id,
                                               Ray ray,
-                                              double min_dist) const;
+                                              real_type min_dist) const;
 
     // Determine if the intersection with an edge/vol bbox is less than
     // min_dist
     inline CELER_FUNCTION bool
-    visit_bbox(FastBBox const& bbox, Ray ray, double min_dist) const;
+    visit_bbox(FastBBox const& bbox, Ray ray, real_type min_dist) const;
 
     // Calculate the current min intersection, which may/may not be on this
     // leaf
@@ -109,7 +116,7 @@ BIHIntersectingVolFinder::BIHIntersectingVolFinder(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the minimum intersection.
+ * Calculate the minimum intersection, with supplied maximum search distance.
  *
  * The visit_vol argument should be of the form:
  *
@@ -124,13 +131,14 @@ BIHIntersectingVolFinder::BIHIntersectingVolFinder(
 template<class F>
 CELER_FUNCTION auto
 BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
-                                     F&& visit_vol) const -> Intersection
+                                     F&& visit_vol,
+                                     real_type max_search_dist) const
+    -> Intersection
 {
     BIHNodeId previous_node;
     BIHNodeId current_node{0};
 
-    Intersection intersection{OnLocalSurface{},
-                              std::numeric_limits<real_type>::infinity()};
+    Intersection intersection{OnLocalSurface{}, max_search_dist};
 
     do
     {
@@ -151,6 +159,19 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Calculate the minimum intersection, without supplied maximum search
+ * distance.
+ */
+template<class F>
+CELER_FUNCTION auto
+BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
+                                     F&& visit_vol) const -> Intersection
+{
+    return (*this)(ray, visit_vol, std::numeric_limits<real_type>::infinity());
+}
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -160,7 +181,7 @@ CELER_FUNCTION
 BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
                                               BIHNodeId previous_id,
                                               Ray ray,
-                                              double min_dist) const
+                                              real_type min_dist) const
 {
     using Side = BIHInnerNode::Side;
 
@@ -204,7 +225,7 @@ BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
 CELER_FUNCTION
 bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
                                           Ray ray,
-                                          double min_dist) const
+                                          real_type min_dist) const
 {
     return is_inside(bbox, ray.pos)
            || calc_dist_to_inside(bbox, ray.pos, ray.dir) < min_dist;
