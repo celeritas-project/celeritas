@@ -10,6 +10,8 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "corecel/Macros.hh"
+
 #include "Array.hh"
 
 #include "detail/SpanImpl.hh"
@@ -95,12 +97,10 @@ class Span
         : s_(other.data(), other.size())
     {
     }
-
-    //! Copy constructor (same template parameters)
-    Span(Span const&) noexcept = default;
-
-    //! Assignment (same template parameters)
-    Span& operator=(Span const&) noexcept = default;
+    // TODO Remove in clang-tidy-18
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
+    CELER_DEFAULT_COPY_MOVE(Span);
+    ~Span() = default;
 
     //// ACCESS ////
 

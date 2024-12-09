@@ -81,9 +81,8 @@ CELER_FUNCTION bool FluctELoss::is_applicable(CoreTrackView const& track) const
     if (track.make_sim_view().status() == TrackStatus::errored)
         return false;
 
-    // Energy loss grid ID will be 'false' if inapplicable
-    auto ppid = track.make_physics_view().eloss_ppid();
-    return static_cast<bool>(ppid);
+    // Energy loss grid ID is 'false'
+    return static_cast<bool>(track.make_physics_view().energy_loss_grid());
 }
 
 //---------------------------------------------------------------------------//

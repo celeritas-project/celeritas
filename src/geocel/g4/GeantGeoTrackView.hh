@@ -178,10 +178,10 @@ GeantGeoTrackView::GeantGeoTrackView(ParamsRef const&,
     , safety_radius_(states.safety_radius[tid])
     , touch_handle_(states.nav_state.touch_handle(tid))
     , navi_(states.nav_state.navigator(tid))
+    , g4pos_(convert_to_geant(pos_, clhep_length))
+    , g4dir_(convert_to_geant(dir_, 1))
+    , g4safety_(convert_to_geant(safety_radius_, clhep_length))
 {
-    g4pos_ = convert_to_geant(pos_, clhep_length);
-    g4dir_ = convert_to_geant(dir_, 1);
-    g4safety_ = convert_to_geant(safety_radius_, clhep_length);
 }
 
 //---------------------------------------------------------------------------//

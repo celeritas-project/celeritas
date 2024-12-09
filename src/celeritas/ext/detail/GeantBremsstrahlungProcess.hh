@@ -51,7 +51,7 @@ class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
     void StreamProcessInfo(std::ostream& output) const override;
 
   private:
-    bool is_initialized_;
+    bool is_initialized_{false};
     ModelSelection model_selection_;
 };
 

@@ -3,7 +3,8 @@
 "coulomb_scattering": true,
 "muon": {
  "ionization": true,
- "bremsstrahlung": true
+ "bremsstrahlung": true,
+ "pair_production": true
 },
 "eloss_fluctuation": true,
 "em_bins_per_decade": 7,

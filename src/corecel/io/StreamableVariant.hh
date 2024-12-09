@@ -9,6 +9,7 @@
 
 #include <ostream>
 #include <sstream>
+#include <utility>
 #include <variant>
 
 #include "corecel/Assert.hh"
@@ -47,7 +48,7 @@ struct GenericToStream
     template<class T>
     void operator()(T&& obj) const
     {
-        this->os << obj;
+        this->os << std::forward<T>(obj);
     }
 };
 }  // namespace detail

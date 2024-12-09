@@ -34,12 +34,12 @@ void to_json(nlohmann::json& j, WLSTimeProfileSelection const& value)
 }
 
 //---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, CerenkovPhysicsOptions& options)
+void from_json(nlohmann::json const& j, CherenkovPhysicsOptions& options)
 {
     if (j.is_null())
     {
         // Null json means deactivated process
-        options = CerenkovPhysicsOptions{};
+        options = CherenkovPhysicsOptions{};
         options.enable = false;
         return;
     }
@@ -52,7 +52,7 @@ void from_json(nlohmann::json const& j, CerenkovPhysicsOptions& options)
 #undef GCPO_LOAD_OPTION
 }
 
-void to_json(nlohmann::json& j, CerenkovPhysicsOptions const& inp)
+void to_json(nlohmann::json& j, CherenkovPhysicsOptions const& inp)
 {
     if (!inp)
     {
@@ -155,7 +155,7 @@ void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
 
 #define GOPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
     check_format(j, format_str);
-    GOPO_LOAD_OPTION(cerenkov);
+    GOPO_LOAD_OPTION(cherenkov);
     GOPO_LOAD_OPTION(scintillation);
     GOPO_LOAD_OPTION(wavelength_shifting);
     GOPO_LOAD_OPTION(wavelength_shifting2);
@@ -181,7 +181,7 @@ void to_json(nlohmann::json& j, GeantOpticalPhysicsOptions const& inp)
     }
 
     j = {
-        CELER_JSON_PAIR(inp, cerenkov),
+        CELER_JSON_PAIR(inp, cherenkov),
         CELER_JSON_PAIR(inp, scintillation),
         CELER_JSON_PAIR(inp, wavelength_shifting),
         CELER_JSON_PAIR(inp, wavelength_shifting2),

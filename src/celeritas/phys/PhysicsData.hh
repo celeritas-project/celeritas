@@ -16,7 +16,6 @@
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
 
@@ -118,22 +117,20 @@ struct IntegralXsProcess
 /*!
  * Processes for a single particle type.
  *
- * Each index should be accessed with type ParticleProcessId. The "tables" are
- * a fixed-size number of ItemRange references to ValueTables. The first index
- * of the table (hard-coded) corresponds to ValueGridType; the second index is
- * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
- * be \code tables[ValueGridType::macro_xs][2] \endcode. This
- * awkward access is encapsulated by the PhysicsTrackView. \c integral_xs will
- * only be assigned if the integral approach is used and the particle has
- * continuous-discrete processes.
+ * Each index should be accessed with type ParticleProcessId. \c macro_xs
+ * stores the cross section tables for each process, while \c energy_loss and
+ * \c range are the process-integrated dE/dx and range for the particle.  \c
+ * integral_xs will only be assigned if the integral approach is used and the
+ * particle has continuous-discrete processes.
  */
 struct ProcessGroup
 {
     ItemRange<ProcessId> processes;  //!< Processes that apply [ppid]
-    ValueGridArray<ItemRange<ValueTable>> tables;  //!< [vgt][ppid]
-    ItemRange<IntegralXsProcess> integral_xs;  //!< [ppid]
     ItemRange<ModelGroup> models;  //!< Model applicability [ppid]
-    ParticleProcessId eloss_ppid{};  //!< Process with de/dx and range tables
+    ItemRange<IntegralXsProcess> integral_xs;  //!< [ppid]
+    ItemRange<ValueTable> macro_xs;  //!< [ppid]
+    ValueTableId energy_loss;  //!< Process-integrated energy loss
+    ValueTableId range;  //!< Process-integrated range
     bool has_at_rest{};  //!< Whether the particle type has an at-rest process
 
     //! True if assigned and valid
@@ -241,6 +238,9 @@ struct PhysicsParamsScalars
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{};  //!< Global charged step size limit [len]
 
+    //! Order for energy loss interpolation
+    size_type spline_eloss_order{};
+
     // User-configurable multiple scattering options
     real_type lambda_limit{};  //!< lambda limit
     real_type range_factor{};  //!< range factor for e-/e+ (0.2 for muon/h)
@@ -263,8 +263,8 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && lambda_limit > 0 && range_factor > 0 && range_factor < 1
-               && safety_factor >= 0.1
+               && spline_eloss_order > 0 && lambda_limit > 0
+               && range_factor > 0 && range_factor < 1 && safety_factor >= 0.1
                && step_limit_algorithm != MscStepLimitAlgorithm::size_;
     }
 
@@ -303,16 +303,16 @@ struct PhysicsParamsScalars
 /*!
  * Persistent shared physics data.
  *
- * This includes macroscopic cross section, energy loss, and range tables
- * ordered by [particle][process][material][energy].
+ * This includes macroscopic cross section tables ordered by
+ * [particle][process][material][energy] and process-integrated energy loss and
+ * range tables ordered by [particle][material][energy].
  *
  * So the first applicable process (ProcessId{0}) for an arbitrary particle
  * (ParticleId{1}) in material 2 (MaterialId{2}) will have the following
  * ID and cross section grid: \code
    ProcessId proc_id = params.particle[1].processes[0];
    const UniformGridData& grid
-       =
- params.particle[1].table[int(ValueGridType::macro_xs)][0].material[2].log_energy;
+       = params.particle[1].macro_xs[0].material[2].log_energy;
  * \endcode
  */
 template<Ownership W, MemSpace M>

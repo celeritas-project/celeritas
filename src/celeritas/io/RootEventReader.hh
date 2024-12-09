@@ -47,6 +47,7 @@ class RootEventReader : public EventReaderInterface
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(RootEventReader);
+    ~RootEventReader() override = default;
 
     // Read a user-defined event from the ROOT file
     result_type operator()(EventId event_id);
@@ -86,7 +87,7 @@ inline RootEventReader::RootEventReader(std::string const&, SPConstParticles)
     CELER_DISCARD(num_events_);
     CELER_DISCARD(entry_count_);
     CELER_DISCARD(expected_event_id_);
-    CELER_DISCARD(event_to_entry_);
+    CELER_DISCARD(event_to_entry_);  // NOLINT(bugprone-sizeof-container)
     CELER_NOT_CONFIGURED("ROOT");
 }
 

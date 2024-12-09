@@ -41,8 +41,8 @@ class SensitiveDetector final : public G4VSensitiveDetector
     bool ProcessHits(G4Step*, G4TouchableHistory*) final;
 
   private:
-    int hcid_;
-    SensitiveHitsCollection* collection_;
+    int hcid_{-1};
+    SensitiveHitsCollection* collection_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

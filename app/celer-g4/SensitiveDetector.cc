@@ -30,7 +30,7 @@ namespace app
  * Construct with sensitive detector name.
  */
 SensitiveDetector::SensitiveDetector(std::string name)
-    : G4VSensitiveDetector(name), hcid_{-1}, collection_{nullptr}
+    : G4VSensitiveDetector(name)
 {
     this->collectionName.insert(name);
 }

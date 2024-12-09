@@ -47,7 +47,7 @@ struct Primary;
 
 namespace optical
 {
-class CerenkovParams;
+class CherenkovParams;
 class MaterialParams;
 class ScintillationParams;
 }  // namespace optical
@@ -87,7 +87,7 @@ class GlobalTestBase : public Test
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
-    using SPConstCerenkov = SP<optical::CerenkovParams const>;
+    using SPConstCherenkov = SP<optical::CherenkovParams const>;
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
     using SPConstScintillation = SP<optical::ScintillationParams const>;
 
@@ -119,7 +119,7 @@ class GlobalTestBase : public Test
     inline SPActionRegistry const& action_reg();
     inline SPUserRegistry const& aux_reg();
     inline SPConstCore const& core();
-    inline SPConstCerenkov const& cerenkov();
+    inline SPConstCherenkov const& cherenkov();
     inline SPConstOpticalMaterial const& optical_material();
     inline SPConstScintillation const& scintillation();
 
@@ -137,7 +137,7 @@ class GlobalTestBase : public Test
     inline SPActionRegistry const& action_reg() const;
     inline SPUserRegistry const& aux_reg() const;
     inline SPConstCore const& core() const;
-    inline SPConstCerenkov const& cerenkov() const;
+    inline SPConstCherenkov const& cherenkov() const;
     inline SPConstOpticalMaterial const& optical_material() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
@@ -164,7 +164,7 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
     [[nodiscard]] virtual SPConstWentzelOKVI build_wentzel() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
-    [[nodiscard]] virtual SPConstCerenkov build_cerenkov() = 0;
+    [[nodiscard]] virtual SPConstCherenkov build_cherenkov() = 0;
     [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
@@ -193,7 +193,7 @@ class GlobalTestBase : public Test
     SPConstWentzelOKVI wentzel_;
     SPConstCore core_;
     SPOutputRegistry output_reg_;
-    SPConstCerenkov cerenkov_;
+    SPConstCherenkov cherenkov_;
     SPConstOpticalMaterial optical_material_;
     SPConstScintillation scintillation_;
 
@@ -234,7 +234,7 @@ DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
-DEF_GTB_ACCESSORS(SPConstCerenkov, cerenkov)
+DEF_GTB_ACCESSORS(SPConstCherenkov, cherenkov)
 DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
 DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
 auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&

@@ -16,7 +16,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"  // IWYU pragma: export
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridType.hh"
 
 #include "Applicability.hh"  // IWYU pragma: export
 

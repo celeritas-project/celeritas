@@ -85,6 +85,7 @@ struct InvalidValueTraits
         // all our datatypes. Reinterpret the data as bytes and assign garbage
         // values.
         T result;
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::memset(reinterpret_cast<unsigned char*>(&result), 0xd0, sizeof(T));
         return result;
     }

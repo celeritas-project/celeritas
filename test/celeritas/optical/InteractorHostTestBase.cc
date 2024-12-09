@@ -29,6 +29,9 @@ InteractorHostTestBase::InteractorHostTestBase() : inc_direction_({0, 0, 1})
     ps_ = StateStore<ParticleStateData>(1);
     pt_view_ = std::make_shared<ParticleTrackView>(ps_.ref(), TrackSlotId{0});
     *pt_view_ = ParticleTrackView::Initializer{Energy{13e-6}, Real3{1, 0, 0}};
+
+    // Set default capacities
+    this->resize_secondaries(128);
 }
 
 //---------------------------------------------------------------------------//
@@ -121,6 +124,18 @@ void InteractorHostTestBase::check_direction_polarization(
 {
     this->check_direction_polarization(interaction.direction,
                                        interaction.polarization);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Resize secondaries.
+ */
+void InteractorHostTestBase::resize_secondaries(int count)
+{
+    CELER_EXPECT(count > 0);
+    secondaries_ = StateStore<SecondaryStackData>(count);
+    sa_view_ = std::make_shared<StackAllocator<TrackInitializer>>(
+        secondaries_.ref());
 }
 
 //---------------------------------------------------------------------------//

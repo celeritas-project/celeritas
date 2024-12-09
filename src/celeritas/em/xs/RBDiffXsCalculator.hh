@@ -123,6 +123,7 @@ RBDiffXsCalculator::RBDiffXsCalculator(RelativisticBremRef const& shared,
     , material_(material)
     , element_(material.make_element_view(elcomp_id))
     , total_energy_(value_as<Energy>(particle.total_energy()))
+    , dielectric_suppression_(shared.dielectric_suppression())
 {
     real_type density_factor = material.electron_density()
                                * detail::migdal_constant();
@@ -133,7 +134,6 @@ RBDiffXsCalculator::RBDiffXsCalculator(RelativisticBremRef const& shared,
           * value_as<detail::MevPerLen>(detail::lpm_constant());
     real_type lpm_threshold = lpm_energy * std::sqrt(density_factor);
     enable_lpm_ = (shared.enable_lpm && (total_energy_ > lpm_threshold));
-    dielectric_suppression_ = shared.dielectric_suppression();
 }
 
 //---------------------------------------------------------------------------//

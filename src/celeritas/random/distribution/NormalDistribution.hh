@@ -62,14 +62,16 @@ class NormalDistribution
     inline CELER_FUNCTION NormalDistribution(NormalDistribution const& other);
 
     // Reset spare value of other distribution
-    inline CELER_FUNCTION NormalDistribution(NormalDistribution&& other);
+    inline CELER_FUNCTION
+    NormalDistribution(NormalDistribution&& other) noexcept;
 
     // Keep spare value but change distribution
     inline CELER_FUNCTION NormalDistribution&
     operator=(NormalDistribution const&);
 
     // Possibly use spare value, change distribution
-    inline CELER_FUNCTION NormalDistribution& operator=(NormalDistribution&&);
+    inline CELER_FUNCTION NormalDistribution&
+    operator=(NormalDistribution&&) noexcept;
 
     // Default destructor (rule of 5)
     ~NormalDistribution() = default;
@@ -119,8 +121,8 @@ NormalDistribution<RealType>::NormalDistribution(NormalDistribution const& other
  * Reset spare value of other distribution.
  */
 template<class RealType>
-CELER_FUNCTION
-NormalDistribution<RealType>::NormalDistribution(NormalDistribution&& other)
+CELER_FUNCTION NormalDistribution<RealType>::NormalDistribution(
+    NormalDistribution&& other) noexcept
     : mean_{other.mean_}
     , stddev_{other.stddev_}
     , spare_{other.spare_}
@@ -148,7 +150,7 @@ NormalDistribution<RealType>::operator=(NormalDistribution const& other)
  */
 template<class RealType>
 CELER_FUNCTION NormalDistribution<RealType>&
-NormalDistribution<RealType>::operator=(NormalDistribution&& other)
+NormalDistribution<RealType>::operator=(NormalDistribution&& other) noexcept
 {
     mean_ = other.mean_;
     stddev_ = other.stddev_;

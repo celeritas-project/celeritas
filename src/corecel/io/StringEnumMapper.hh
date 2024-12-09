@@ -57,6 +57,7 @@ class StringEnumMapper
 
     // Construct with a function that takes an enum and returns a stringlike
     template<class U>
+    // NOLINTNEXTLINE(bugprone-forwarding-reference-overload)
     explicit inline StringEnumMapper(U&& enum_to_string,
                                      char const* desc = nullptr);
 
@@ -90,6 +91,8 @@ StringEnumMapper<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
  */
 template<class T>
 template<class U>
+// TODO Remove in clang-tidy-18
+// NOLINTNEXTLINE(bugprone-forwarding-reference-overload)
 StringEnumMapper<T>::StringEnumMapper(U&& enum_to_string, char const* desc)
     : description_(desc)
 {

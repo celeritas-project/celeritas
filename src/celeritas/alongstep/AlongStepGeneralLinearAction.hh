@@ -56,7 +56,7 @@ class AlongStepGeneralLinearAction final : public CoreStepActionInterface
                                  SPConstMsc msc);
 
     // Default destructor
-    ~AlongStepGeneralLinearAction();
+    ~AlongStepGeneralLinearAction() final;
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;

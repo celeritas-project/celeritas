@@ -157,7 +157,7 @@ class Stepper final : public StepperInterface
     explicit Stepper(Input input);
 
     // Default destructor
-    ~Stepper();
+    ~Stepper() final;
 
     // Warm up before stepping
     void warm_up() final;
