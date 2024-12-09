@@ -45,7 +45,6 @@ CELER_FUNCTION void PropagateExecutor::operator()(CoreTrackView& track)
     if (p.boundary)
     {
         geo.move_to_boundary();
-        step = p.distance;
         sim.step_length(p.distance);
         sim.post_step_action(track.boundary_action());
     }

@@ -22,7 +22,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch the boundary action on device.
+ * Launch the tracking cut action on device.
  */
 void TrackingCutAction::step(CoreParams const& params,
                              CoreStateDevice& state) const

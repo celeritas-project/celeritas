@@ -15,6 +15,7 @@
 #include "TrackSlotExecutor.hh"
 
 #include "detail/AlongStepExecutor.hh"
+#include "detail/PropagateExecutor.hh"
 
 namespace celeritas
 {
@@ -22,7 +23,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch the boundary action on device.
+ * Launch the along-step action on device.
  */
 void AlongStepAction::step(CoreParams const& params,
                            CoreStateDevice& state) const
