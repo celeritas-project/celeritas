@@ -47,12 +47,12 @@ list(APPEND SOURCES
   orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/DeMorganSimplifier.cc
-  orangeinp/detail/InfixLogicBuilder.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
+  orangeinp/detail/LogicBuilder.cc
+  orangeinp/detail/LogicBuilderPolicies.cc
   orangeinp/detail/NodeSimplifier.cc
-  orangeinp/detail/PostfixLogicBuilder.cc
   orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/SenseEvaluator.cc

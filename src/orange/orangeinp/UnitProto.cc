@@ -31,7 +31,8 @@
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
-#include "detail/PostfixLogicBuilder.hh"
+#include "detail/LogicBuilder.hh"
+#include "detail/LogicBuilderPolicies.hh"
 #include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
@@ -170,8 +171,7 @@ void UnitProto::build(ProtoBuilder& input) const
     }
 
     // Loop over all volumes to construct
-    detail::PostfixLogicBuilder build_logic{csg_unit.tree,
-                                            sorted_local_surfaces};
+    detail::LogicBuilder build_logic{csg_unit.tree, sorted_local_surfaces};
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
@@ -182,7 +182,9 @@ void UnitProto::build(ProtoBuilder& input) const
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
-        auto&& [faces, logic] = build_logic(node_id);
+        auto&& [faces, logic]
+            = build_logic.operator()<detail::PostfixLogicBuilderPolicy>(
+                node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);
 

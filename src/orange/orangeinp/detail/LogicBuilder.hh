@@ -22,7 +22,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a infix logic representation of a node.
+ * Construct a logic representation of a node.
  *
  * The optional surface mapping is an ordered vector of *existing* surface IDs.
  * Those surface IDs will be replaced by the index in the array. All existing
@@ -37,7 +37,7 @@ namespace detail
     all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
  * \endverbatim
  */
-class InfixLogicBuilder
+class LogicBuilder
 {
   public:
     //!@{
@@ -49,12 +49,13 @@ class InfixLogicBuilder
 
   public:
     //! Construct from a tree
-    explicit InfixLogicBuilder(CsgTree const& tree) : tree_{tree} {}
+    explicit LogicBuilder(CsgTree const& tree) : tree_{tree} {}
 
     // Construct from a tree and surface remapping
-    inline InfixLogicBuilder(CsgTree const& tree, VecSurface const& old_ids);
+    inline LogicBuilder(CsgTree const& tree, VecSurface const& old_ids);
 
-    // Convert a single node to infix notation
+    // Convert a single node to a given notation
+    template<class LogicBuilderPolicy>
     result_type operator()(NodeId n) const;
 
   private:
@@ -66,8 +67,7 @@ class InfixLogicBuilder
 /*!
  * Construct from a tree and surface remapping.
  */
-InfixLogicBuilder::InfixLogicBuilder(CsgTree const& tree,
-                                     VecSurface const& old_ids)
+LogicBuilder::LogicBuilder(CsgTree const& tree, VecSurface const& old_ids)
     : tree_{tree}, mapping_{&old_ids}
 {
 }
