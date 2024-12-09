@@ -70,10 +70,14 @@ auto LogicBuilder::operator()(NodeId n) const -> result_type
     return {std::move(faces), std::move(lgc)};
 }
 
-template LogicBuilder::result_type
-LogicBuilder::operator()<InfixLogicBuilderPolicy>(NodeId) const;
-template LogicBuilder::result_type
-LogicBuilder::operator()<PostfixLogicBuilderPolicy>(NodeId) const;
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template auto
+LogicBuilder::operator()<InfixLogicBuilderPolicy>(NodeId) const -> result_type;
+template auto
+LogicBuilder::operator()<PostfixLogicBuilderPolicy>(NodeId) const -> result_type;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

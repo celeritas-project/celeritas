@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/InfixLogicBuilder.hh
+//! \file orange/orangeinp/detail/LogicBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,10 +32,9 @@ namespace detail
  * of this volume, and the logical representation using \em face IDs, i.e. with
  * the surfaces remapped to index of the surface in the face vector.
  *
- * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
-    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
- * \endverbatim
+ * The call operator is templated on a policy class that determines the logic
+ * representation. The policy class must have an operator() that takes a NodeId
+ * and be constructible from a CsgTree, VecSurface const*, and VecLogic*.
  */
 class LogicBuilder
 {
