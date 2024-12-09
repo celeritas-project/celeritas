@@ -12,7 +12,6 @@
 #include "orange/orangeinp/CsgTypes.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
 #include "orange/orangeinp/detail/LogicBuilder.hh"
-#include "orange/orangeinp/detail/LogicBuilderPolicies.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 #include "orange/surf/VariantSurface.hh"
 
@@ -21,10 +20,8 @@
 
 using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
-using celeritas::orangeinp::detail::InfixLogicBuilderPolicy;
 using celeritas::orangeinp::detail::InternalSurfaceFlagger;
 using celeritas::orangeinp::detail::LogicBuilder;
-using celeritas::orangeinp::detail::PostfixLogicBuilderPolicy;
 
 namespace celeritas
 {
@@ -35,6 +32,11 @@ std::ostream& operator<<(std::ostream& os, SignedSense s)
 
 namespace orangeinp
 {
+namespace detail
+{
+class InfixLogicBuilderPolicy;
+class PostfixLogicBuilderPolicy;
+}  // namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -108,7 +110,8 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     LogicBuilder builder(tree_);
-    auto postfix_policy = &LogicBuilder::operator()<PostfixLogicBuilderPolicy>;
+    auto postfix_policy
+        = &LogicBuilder::operator()<detail::PostfixLogicBuilderPolicy>;
 
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
@@ -265,7 +268,8 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     LogicBuilder builder(tree_);
-    auto infix_policy = &LogicBuilder::operator()<InfixLogicBuilderPolicy>;
+    auto infix_policy
+        = &LogicBuilder::operator()<detail::InfixLogicBuilderPolicy>;
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
         auto&& [faces, lgc] = (builder.*infix_policy)(mz);

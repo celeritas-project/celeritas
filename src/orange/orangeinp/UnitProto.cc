@@ -19,6 +19,7 @@
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/orangeinp/detail/LogicBuilderPolicies.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
@@ -32,7 +33,6 @@
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
 #include "detail/LogicBuilder.hh"
-#include "detail/LogicBuilderPolicies.hh"
 #include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
@@ -40,6 +40,10 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace detail
+{
+class PostfixLogicBuilderPolicy;
+}  // namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Construct with required input data.
