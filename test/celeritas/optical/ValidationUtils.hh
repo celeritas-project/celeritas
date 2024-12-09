@@ -53,20 +53,6 @@ Array<real_type, sizeof...(Args)> constexpr native_array_from(Args const&... arg
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper function to annotate units of a hard-coded test data array.
- *
- * This overload accepts fixed size \c Arrays which clang-format handles
- * better.
- */
-template<class UnitType, size_type N>
-Array<real_type, N> constexpr native_array_from(Array<real_type, N> const& arr)
-{
-    return ::celeritas::testdetail::native_array_from_indexer<UnitType>(
-        arr, std::make_integer_sequence<size_type, N>{});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Helper function to annotate units of hard-coded test data.
  *
  * Same as \c native_array_from, except returns a vector.

@@ -14,7 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
-#include "CerenkovData.hh"
+#include "CherenkovData.hh"
 #include "GeneratorDistributionData.hh"
 #include "ScintillationData.hh"
 
@@ -28,7 +28,7 @@ namespace celeritas
  */
 struct OffloadBufferSize
 {
-    size_type cerenkov{0};
+    size_type cherenkov{0};
     size_type scintillation{0};
     size_type num_photons{0};
 };
@@ -37,18 +37,18 @@ struct OffloadBufferSize
 /*!
  * Setup options for optical generation.
  *
- * At least one of cerenkov and scintillation must be enabled.
+ * At least one of cherenkov and scintillation must be enabled.
  */
 struct OffloadOptions
 {
-    bool cerenkov{false};  //!< Whether Cerenkov is enabled
+    bool cherenkov{false};  //!< Whether Cherenkov is enabled
     bool scintillation{false};  //!< Whether scintillation is enabled
     size_type capacity{0};  //!< Distribution data buffer capacity
 
     //! True if valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return (cerenkov || scintillation) && capacity > 0;
+        return (cherenkov || scintillation) && capacity > 0;
     }
 };
 
@@ -105,7 +105,7 @@ struct OffloadPreStepData
 /*!
  * Optical photon distribution data.
  *
- * The distributions are stored in separate Cerenkov and scintillation buffers
+ * The distributions are stored in separate Cherenkov and scintillation buffers
  * indexed by the current buffer size plus the track slot ID. The data is
  * compacted at the end of each step by removing all invalid distributions. The
  * order of the distributions in the buffers is guaranteed to be reproducible.
@@ -126,7 +126,7 @@ struct OffloadStateData
     StateItems<OffloadPreStepData> step;
 
     // Buffers of distribution data for generating optical photons
-    Items<optical::GeneratorDistributionData> cerenkov;
+    Items<optical::GeneratorDistributionData> cherenkov;
     Items<optical::GeneratorDistributionData> scintillation;
 
     // Determines which distribution a thread will generate a primary from
@@ -141,7 +141,7 @@ struct OffloadStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return !step.empty() && !offsets.empty()
-               && !(cerenkov.empty() && scintillation.empty());
+               && !(cherenkov.empty() && scintillation.empty());
     }
 
     //! Assign from another set of data
@@ -150,7 +150,7 @@ struct OffloadStateData
     {
         CELER_EXPECT(other);
         step = other.step;
-        cerenkov = other.cerenkov;
+        cherenkov = other.cherenkov;
         scintillation = other.scintillation;
         offsets = other.offsets;
         return *this;
@@ -172,9 +172,9 @@ void resize(OffloadStateData<Ownership::value, M>* state,
 
     resize(&state->step, size);
     OffloadOptions const& setup = params.setup;
-    if (setup.cerenkov)
+    if (setup.cherenkov)
     {
-        resize(&state->cerenkov, setup.capacity);
+        resize(&state->cherenkov, setup.capacity);
     }
     if (setup.scintillation)
     {

@@ -40,7 +40,7 @@ class CoreStateInterface : public AuxStateInterface
 
   public:
     // Support polymorphic deletion
-    virtual ~CoreStateInterface();
+    ~CoreStateInterface() override;
 
     //! Thread/stream ID
     virtual StreamId stream_id() const = 0;

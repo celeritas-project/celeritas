@@ -38,6 +38,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"

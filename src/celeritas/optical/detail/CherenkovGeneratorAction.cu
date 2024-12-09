@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovGeneratorAction.cu
+//! \file celeritas/optical/detail/CherenkovGeneratorAction.cu
 //---------------------------------------------------------------------------//
-#include "CerenkovGeneratorAction.hh"
+#include "CherenkovGeneratorAction.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
-#include "CerenkovGeneratorExecutor.hh"
+#include "CherenkovGeneratorExecutor.hh"
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
 
@@ -28,7 +28,7 @@ namespace detail
 /*!
  * Launch a kernel to generate optical photon initializers.
  */
-void CerenkovGeneratorAction::generate(CoreParams const& core_params,
+void CherenkovGeneratorAction::generate(CoreParams const& core_params,
                                        CoreStateDevice& core_state) const
 {
     auto& offload_state = get<OpticalOffloadState<MemSpace::native>>(
@@ -39,9 +39,9 @@ void CerenkovGeneratorAction::generate(CoreParams const& core_params,
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::CerenkovGeneratorExecutor{core_state.ptr(),
+        detail::CherenkovGeneratorExecutor{core_state.ptr(),
                                           material_->device_ref(),
-                                          cerenkov_->device_ref(),
+                                          cherenkov_->device_ref(),
                                           offload_state.store.ref(),
                                           optical_state.ptr(),
                                           offload_state.buffer_size,

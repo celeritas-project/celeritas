@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/Label.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -109,20 +111,25 @@ class PopVBTransformOnDestruct
 
   public:
     //! Capture the pointer when move constructed
-    PopVBTransformOnDestruct(PopVBTransformOnDestruct&& other)
+    PopVBTransformOnDestruct(PopVBTransformOnDestruct&& other) noexcept
         : vb_(std::exchange(other.vb_, nullptr))
     {
     }
 
     //! Capture the pointer when move assigned
-    PopVBTransformOnDestruct& operator=(PopVBTransformOnDestruct&& other)
+    PopVBTransformOnDestruct&
+    operator=(PopVBTransformOnDestruct&& other) noexcept
     {
         vb_ = std::exchange(other.vb_, nullptr);
         return *this;
     }
 
+    PopVBTransformOnDestruct(PopVBTransformOnDestruct const&) = default;
+    PopVBTransformOnDestruct& operator=(PopVBTransformOnDestruct const&)
+        = default;
+
     //! Call pop when we own the pointer and go out of scope
-    ~PopVBTransformOnDestruct()
+    ~PopVBTransformOnDestruct() noexcept(!CELERITAS_DEBUG)
     {
         if (vb_)
         {

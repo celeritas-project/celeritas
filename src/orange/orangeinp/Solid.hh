@@ -96,11 +96,12 @@ class SolidBase : public ObjectInterface
     //! Optional azimuthal angular restriction
     virtual SolidEnclosedAngle enclosed_angle() const = 0;
 
+    ~SolidBase() override = default;
+
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
     SolidBase() = default;
-    virtual ~SolidBase() = default;
     CELER_DEFAULT_COPY_MOVE(SolidBase);
     //!@}
 };

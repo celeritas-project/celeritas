@@ -161,19 +161,5 @@ template<class GridTypeE, class GridTypeA>
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Helper function for \c native_array_from.
- *
- * Forwards \c Array values as a parameter pack using \c std::integer_sequence.
- */
-template<class UnitType, size_type... Is>
-Array<real_type, sizeof...(Is)> constexpr native_array_from_indexer(
-    Array<real_type, sizeof...(Is)> const& arr,
-    std::integer_sequence<size_type, Is...>)
-{
-    return ::celeritas::optical::test::native_array_from<UnitType>(arr[Is]...);
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace testdetail
 }  // namespace celeritas

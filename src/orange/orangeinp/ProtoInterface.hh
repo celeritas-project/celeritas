@@ -71,7 +71,7 @@ class ProtoInterface
     //!@{
     //! Allow construction and assignment only through subclasses
     ProtoInterface() = default;
-    virtual ~ProtoInterface() = default;
+    ~ProtoInterface() = default;
     CELER_DEFAULT_COPY_MOVE(ProtoInterface);
     //!@}
 };

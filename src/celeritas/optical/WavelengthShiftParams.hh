@@ -3,46 +3,54 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovParams.hh
+//! \file celeritas/optical/WavelengthShiftParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 
-#include "CerenkovData.hh"
+#include "WavelengthShiftData.hh"
 
 namespace celeritas
 {
+struct ImportData;
+
 namespace optical
 {
-class MaterialParams;
-
 //---------------------------------------------------------------------------//
 /*!
- * Build and manage Cerenkov data.
+ * Build and manage wavelength shift (WLS) data.
  */
-class CerenkovParams final : public ParamsDataInterface<CerenkovData>
+class WavelengthShiftParams final
+    : public ParamsDataInterface<WavelengthShiftData>
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
-    //!@}
+    //! Material-dependent WLS data, indexed by \c OpticalMaterialId
+    struct Input
+    {
+        std::vector<ImportWavelengthShift> data;
+    };
 
   public:
-    // Construct with optical property data
-    explicit CerenkovParams(SPConstMaterial material);
+    // Construct with imported data
+    static std::shared_ptr<WavelengthShiftParams>
+    from_import(ImportData const& data);
 
-    //! Access physics material on the host
+    // Construct with WLS input data
+    explicit WavelengthShiftParams(Input const& input);
+
+    //! Access WLS data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
-    //! Access physics material on the device
+    //! Access WLS data on the device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<CerenkovData> data_;
+    // Host/device storage and reference
+    CollectionMirror<WavelengthShiftData> data_;
 };
 
 //---------------------------------------------------------------------------//
