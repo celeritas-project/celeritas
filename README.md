@@ -31,6 +31,7 @@ The easiest way to install Celeritas as a library/app is with Spack:
 git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
 # Add Spack to the shell environment
 # For bash/zsh/sh (See [spack-start] for other shell)
+. spack/share/spack/setup-env.sh
 ```
 - Install Celeritas with
 ```console
