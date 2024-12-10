@@ -53,6 +53,10 @@ class ImportedDataTestBase : virtual public GlobalGeoTestBase
     SPConstWentzelOKVI build_wentzel() override;
     SPConstCherenkov build_cherenkov() override;
     SPConstOpticalMaterial build_optical_material() override;
+    SPConstOpticalPhysics build_optical_physics() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
     SPConstScintillation build_scintillation() override;
 };
 

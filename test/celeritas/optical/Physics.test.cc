@@ -23,6 +23,7 @@
 #include "celeritas/optical/PhysicsTrackView.hh"
 
 #include "DiagnosticRngEngine.hh"
+#include "OpticalMockTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -35,13 +36,13 @@ using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-// Mock grids for 4 models and 7 optical materials.
+// Mock grids for 4 models and 5 optical materials.
 template<class Functor>
 std::vector<std::vector<std::vector<real_type>>>
 build_expected_grids(Functor const& f)
 {
     ModelId::size_type num_models = 4;
-    OpticalMaterialId::size_type num_materials = 7;
+    OpticalMaterialId::size_type num_materials = 5;
 
     std::vector<std::vector<std::vector<real_type>>> grids;
     grids.reserve(num_models);
@@ -137,39 +138,16 @@ struct MockModelBuilder : public ModelBuilder
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class OpticalPhysicsTest : public ::celeritas::test::Test
+class OpticalPhysicsTest : public OpticalMockTestBase
 {
   protected:
-    //!@{
-    //! \name Type aliases
-    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
-    using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
-    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
-    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
-    //!@}
+    using RngEngine = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
 
     ModelId::size_type const num_models = 4;
-    OpticalMaterialId::size_type const num_materials = 7;
 
     void SetUp() override { this->initialize_states(1); }
 
-    RandomEngine& rng()
-    {
-        rng_.reset_count();
-        return rng_;
-    }
-
-    SPConstPhysics const& physics_params() const
-    {
-        static SPConstPhysics p = nullptr;
-        if (!p)
-        {
-            p = this->build_physics_params();
-        }
-        return p;
-    }
-
-    SPConstPhysics build_physics_params() const
+    SPConstOpticalPhysics build_optical_physics() override
     {
         PhysicsParams::Input input;
 
@@ -179,62 +157,26 @@ class OpticalPhysicsTest : public ::celeritas::test::Test
                 std::make_shared<MockModelBuilder const>());
         }
 
-        input.materials = this->material_params();
-        input.action_registry = this->action_registry().get();
+        input.materials = this->optical_material();
+        input.action_registry = this->action_reg().get();
 
         return std::make_shared<PhysicsParams const>(std::move(input));
-    }
-
-    SPActionRegistry const& action_registry() const
-    {
-        static SPActionRegistry a = nullptr;
-        if (!a)
-        {
-            a = std::make_shared<ActionRegistry>();
-        }
-        return a;
-    }
-
-    SPConstMaterials const& material_params() const
-    {
-        static SPConstMaterials m = nullptr;
-        if (!m)
-        {
-            m = this->build_material_params();
-        }
-        return m;
-    }
-
-    SPConstMaterials build_material_params() const
-    {
-        // Only need MaterialParams for number of materials;
-        // refractive indices will be unused.
-        MaterialParams::Input input;
-        ImportPhysicsVector v{ImportPhysicsVectorType::free,
-                              std::vector<double>{1, 2},
-                              std::vector<double>{3, 4}};
-
-        for (auto mat : range(OpticalMaterialId{num_materials}))
-        {
-            input.properties.push_back(ImportOpticalProperty{v});
-            input.volume_to_mat.push_back(mat);
-        }
-
-        return std::make_shared<MaterialParams const>(std::move(input));
     }
 
     PhysicsTrackView
     make_track_view(OpticalMaterialId mat, TrackSlotId slot = TrackSlotId{0})
     {
-        CELER_EXPECT(mat < num_materials);
-        return PhysicsTrackView(
-            this->physics_params()->host_ref(), physics_state_.ref(), mat, slot);
+        CELER_EXPECT(mat < this->num_optical_materials());
+        return PhysicsTrackView(this->optical_physics()->host_ref(),
+                                physics_state_.ref(),
+                                mat,
+                                slot);
     }
 
     PhysicsStepView make_step_view(TrackSlotId slot = TrackSlotId{0})
     {
         return PhysicsStepView(
-            this->physics_params()->host_ref(), physics_state_.ref(), slot);
+            this->optical_physics()->host_ref(), physics_state_.ref(), slot);
     }
 
     ParticleTrackView make_particle_view(TrackSlotId slot = TrackSlotId{0})
@@ -248,7 +190,7 @@ class OpticalPhysicsTest : public ::celeritas::test::Test
             = CollectionStateStore<ParticleStateData, MemSpace::host>(
                 num_tracks);
         physics_state_ = CollectionStateStore<PhysicsStateData, MemSpace::host>(
-            this->physics_params()->host_ref(), num_tracks);
+            this->optical_physics()->host_ref(), num_tracks);
         CELER_ENSURE(physics_state_.ref().states.size() == num_tracks);
     }
 
@@ -259,11 +201,12 @@ class OpticalPhysicsTest : public ::celeritas::test::Test
     template<class T>
     OpticalMaterialId cycle_material_id(T other_id)
     {
-        return OpticalMaterialId{(2 * other_id.get() + 3) % num_materials};
+        return OpticalMaterialId{(2 * other_id.get() + 3)
+                                 % this->num_optical_materials()};
     }
 
   private:
-    RandomEngine rng_;
+    SPConstOpticalPhysics optical_physics_;
 
     CollectionStateStore<ParticleStateData, MemSpace::host> particle_state_;
     CollectionStateStore<PhysicsStateData, MemSpace::host> physics_state_;
@@ -275,7 +218,7 @@ class OpticalPhysicsTest : public ::celeritas::test::Test
 // Test optical physics parameter accessors.
 TEST_F(OpticalPhysicsTest, physics_params)
 {
-    auto const& params = *this->physics_params();
+    auto const& params = *this->optical_physics();
 
     EXPECT_EQ(num_models, params.num_models());
 
@@ -289,21 +232,27 @@ TEST_F(OpticalPhysicsTest, physics_params)
 
         ASSERT_TRUE(model);
 
-        model_names.push_back(model->label());
-        model_descs.push_back(model->description());
+        model_names.emplace_back(model->label());
+        model_descs.emplace_back(model->description());
         action_ids.insert(model->action_id());
     }
 
     // Check model names
-    static std::string_view expected_names[]
-        = {"mock-1", "mock-2", "mock-3", "mock-4"};
+    static std::string_view expected_names[] = {
+        "mock-1",
+        "mock-2",
+        "mock-3",
+        "mock-4",
+    };
     EXPECT_VEC_EQ(expected_names, model_names);
 
     // Check model descriptions
-    static std::string_view expected_descs[] = {"mock-description-1",
-                                                "mock-description-2",
-                                                "mock-description-3",
-                                                "mock-description-4"};
+    static std::string_view expected_descs[] = {
+        "mock-description-1",
+        "mock-description-2",
+        "mock-description-3",
+        "mock-description-4",
+    };
     EXPECT_VEC_EQ(expected_descs, model_descs);
 
     // Check model actions
@@ -320,7 +269,7 @@ TEST_F(OpticalPhysicsTest, select_discrete)
 {
     PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{3});
     PhysicsStepView pstep = this->make_step_view();
-    auto& rng_engine = this->rng();
+    RngEngine rng_engine;
 
     // Populate XS scratch space used for each model
     physics = PhysicsTrackView::Initializer{};
@@ -370,22 +319,30 @@ TEST_F(OpticalPhysicsTest, calc_step_limits)
 
     static std::vector<real_type> energies{0.1, 1, 5, 10};
     std::vector<std::vector<real_type>> expected_model_xs_per_energy{
-        {12.006406151030452,
-         6.667764385625069,
-         4.615748800013053,
-         3.5295746115291053},
-        {1.2006406151030453,
-         0.38972461716887974,
-         0.19832692355210077,
-         0.11789059014280627},
-        {0.0439036747357096,
-         0.01315496492916648,
-         0.006228478239695414,
-         0.0036181352104175312},
-        {0.007710727894083951,
-         0.002299288122865045,
-         0.0010868566672318657,
-         0.0006310511934242025}};
+        {
+            12.006406151030452,
+            6.667764385625069,
+            4.615748800013053,
+            3.5295746115291053,
+        },
+        {
+            1.2006406151030453,
+            0.38972461716887974,
+            0.19832692355210077,
+            0.11789059014280627,
+        },
+        {
+            0.0439036747357096,
+            0.01315496492916648,
+            0.006228478239695414,
+            0.0036181352104175312,
+        },
+        {
+            0.007710727894083951,
+            0.002299288122865045,
+            0.0010868566672318657,
+            0.0006310511934242025,
+        }};
 
     physics.interaction_mfp(100);
 
@@ -498,16 +455,68 @@ TEST_F(OpticalPhysicsTest, step_view_xs_scratch)
     TrackSlotId::size_type num_tracks = 10;
     this->initialize_states(num_tracks);
 
-    static real_type const expected_per_model_xs[][4] = {{1, 2, 3, 4},
-                                                         {5, 6, 7, 8},
-                                                         {9, 10, 11, 12},
-                                                         {13, 14, 15, 16},
-                                                         {17, 18, 19, 20},
-                                                         {21, 22, 23, 24},
-                                                         {25, 26, 27, 28},
-                                                         {29, 30, 31, 32},
-                                                         {33, 34, 35, 36},
-                                                         {37, 38, 39, 40}};
+    static real_type const expected_per_model_xs[][4] = {
+        {
+            1,
+            2,
+            3,
+            4,
+        },
+        {
+            5,
+            6,
+            7,
+            8,
+        },
+        {
+            9,
+            10,
+            11,
+            12,
+        },
+        {
+            13,
+            14,
+            15,
+            16,
+        },
+        {
+            17,
+            18,
+            19,
+            20,
+        },
+        {
+            21,
+            22,
+            23,
+            24,
+        },
+        {
+            25,
+            26,
+            27,
+            28,
+        },
+        {
+            29,
+            30,
+            31,
+            32,
+        },
+        {
+            33,
+            34,
+            35,
+            36,
+        },
+        {
+            37,
+            38,
+            39,
+            40,
+        },
+    };
     static real_type const expected_macro_xs[] = {
         1,
         101,
@@ -565,12 +574,13 @@ TEST_F(OpticalPhysicsTest, track_view_grids)
     TrackSlotId::size_type num_tracks = 10;
     this->initialize_states(num_tracks);
 
-    auto const& grids = this->physics_params()->host_ref().grids;
-    auto const& reals = this->physics_params()->host_ref().reals;
+    auto const& grids = this->optical_physics()->host_ref().grids;
+    auto const& reals = this->optical_physics()->host_ref().reals;
 
     for (auto track_id : range(TrackSlotId{num_tracks}))
     {
-        for (auto mat_id : range(OpticalMaterialId{num_materials}))
+        for (auto mat_id :
+             range(OpticalMaterialId{this->num_optical_materials()}))
         {
             auto const physics = this->make_track_view(mat_id, track_id);
 
