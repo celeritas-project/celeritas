@@ -143,7 +143,7 @@ jobs:
         run: |
           if [ "${{github.event_name}}" == "schedule" ]; then
             echo "Full clang-tidy check on scheduled run."
-            ninja -k0
+            ninja -Cbuild -k0
             exit $?
           fi
           BASE=$(git merge-base origin/${BASE_REF} HEAD)

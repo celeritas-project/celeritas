@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/detail/PreStepExecutor.hh
+//! \file celeritas/optical/action/detail/AlongStepExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,42 +21,31 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up the beginning of a physics step.
+ * Complete end-of-step activity for a track.
+ *
+ * - Update track time
+ * - Update number of steps
+ * - Update remaining MFPs to interaction
  */
-struct PreStepExecutor
+struct AlongStepExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
 {
     auto sim = track.sim();
-    if (sim.status() == TrackStatus::inactive)
-    {
-        // Clear step limit and actions for an empty track slot
-        sim.reset_step_limit();
-        return;
-    }
 
-    if (CELER_UNLIKELY(sim.status() == TrackStatus::errored))
-    {
-        // Failed during initialization: don't calculate step limits
-        return;
-    }
+    // Update time
+    sim.add_time(sim.step_length() / constants::c_light);
 
-    CELER_ASSERT(sim.status() == TrackStatus::initializing
-                 || sim.status() == TrackStatus::alive);
+    CELER_ASSERT(sim.status() == TrackStatus::alive);
+    CELER_ASSERT(sim.step_length() > 0);
+    CELER_ASSERT(sim.post_step_action());
 
-    if (sim.status() == TrackStatus::initializing)
-    {
-        sim.reset_step_limit();
-        sim.status(TrackStatus::alive);
-    }
-
-    // TODO: reset secondaries
-    // TODO: calculate step limit
-    CELER_ENSURE(sim.step_length() > 0);
+    // TODO: update step count and check max step cut
+    // TODO: reduce MFP by step * xs
 }
 
 //---------------------------------------------------------------------------//

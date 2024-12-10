@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/detail/PreStepExecutor.hh
+//! \file celeritas/optical/action/detail/PropagateExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,42 +21,38 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up the beginning of a physics step.
+ * Move a track to the next interaction or geometry boundary.
+ *
+ * This should only apply to alive tracks.
  */
-struct PreStepExecutor
+struct PropagateExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void PropagateExecutor::operator()(CoreTrackView& track)
 {
-    auto sim = track.sim();
-    if (sim.status() == TrackStatus::inactive)
+    auto&& sim = track.sim();
+    CELER_ASSERT(sim.status() == TrackStatus::alive);
+
+    // Propagate up to the physics distance
+    real_type step = sim.step_length();
+    CELER_ASSERT(step > 0);
+
+    auto&& geo = track.geometry();
+    Propagation p = geo.find_next_step(step);
+    if (p.boundary)
     {
-        // Clear step limit and actions for an empty track slot
-        sim.reset_step_limit();
-        return;
+        geo.move_to_boundary();
+        sim.step_length(p.distance);
+        sim.post_step_action(track.boundary_action());
     }
-
-    if (CELER_UNLIKELY(sim.status() == TrackStatus::errored))
+    else
     {
-        // Failed during initialization: don't calculate step limits
-        return;
+        CELER_ASSERT(step == p.distance);
+        geo.move_internal(step);
     }
-
-    CELER_ASSERT(sim.status() == TrackStatus::initializing
-                 || sim.status() == TrackStatus::alive);
-
-    if (sim.status() == TrackStatus::initializing)
-    {
-        sim.reset_step_limit();
-        sim.status(TrackStatus::alive);
-    }
-
-    // TODO: reset secondaries
-    // TODO: calculate step limit
-    CELER_ENSURE(sim.step_length() > 0);
 }
 
 //---------------------------------------------------------------------------//

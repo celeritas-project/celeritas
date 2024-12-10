@@ -65,7 +65,7 @@ void ScopedLogStorer::operator()(LogProvenance, LogLevel lev, std::string msg)
     if (lev >= debug_level)
     {
         std::clog << color_code('x') << to_cstring(lev) << ": " << msg
-                  << std::endl;
+                  << color_code(' ') << std::endl;
     }
     if (lev < min_level_)
     {

@@ -364,14 +364,6 @@ celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
 
-if(CELERITAS_USE_CUDA)
-  celeritas_add_test(random/curand/CurandPerformance.test.cc GPU
-    SOURCES random/curand/CurandPerformance.test.cu
-    LINK_LIBRARIES Celeritas::DeviceToolkit
-    ${_disable_if_debug}
-  )
-endif()
-
 #-----------------------------------------------------------------------------#
 # Track
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})

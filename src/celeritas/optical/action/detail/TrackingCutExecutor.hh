@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/detail/PreStepExecutor.hh
+//! \file celeritas/optical/action/detail/TrackingCutExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
 
 namespace celeritas
@@ -21,42 +22,35 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up the beginning of a physics step.
+ * Kill a malfunctioning photon.
  */
-struct PreStepExecutor
+struct TrackingCutExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void TrackingCutExecutor::operator()(CoreTrackView& track)
 {
-    auto sim = track.sim();
-    if (sim.status() == TrackStatus::inactive)
+    using Energy = ParticleTrackView::Energy;
+
+    auto deposited = track.particle().energy().value();
+
+    auto&& sim = track.sim();
+#if !CELER_DEVICE_COMPILE
     {
-        // Clear step limit and actions for an empty track slot
-        sim.reset_step_limit();
-        return;
+        // Print a debug message if track is just being cut; error message if
+        // an error occurred
+        auto msg = self_logger()(CELER_CODE_PROVENANCE,
+                                 sim.status() == TrackStatus::errored
+                                     ? LogLevel::error
+                                     : LogLevel::debug);
+        msg << "Killing optical photon: lost " << deposited << ' '
+            << Energy::unit_type::label();
     }
+#endif
 
-    if (CELER_UNLIKELY(sim.status() == TrackStatus::errored))
-    {
-        // Failed during initialization: don't calculate step limits
-        return;
-    }
-
-    CELER_ASSERT(sim.status() == TrackStatus::initializing
-                 || sim.status() == TrackStatus::alive);
-
-    if (sim.status() == TrackStatus::initializing)
-    {
-        sim.reset_step_limit();
-        sim.status(TrackStatus::alive);
-    }
-
-    // TODO: reset secondaries
-    // TODO: calculate step limit
-    CELER_ENSURE(sim.step_length() > 0);
+    sim.status(TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//

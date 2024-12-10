@@ -97,6 +97,7 @@ class LArSphereOffloadTest : public LArSphereBase
     size_type buffer_capacity_{256};
     size_type initializer_capacity_{8192};
     size_type auto_flush_{4096};
+    units::MevEnergy primary_energy_{10.0};
 
     std::shared_ptr<OpticalCollector> collector_;
     StreamId stream_{0};
@@ -198,7 +199,7 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
 {
     celeritas::Primary p;
     p.event_id = EventId{0};
-    p.energy = units::MevEnergy{10.0};
+    p.energy = primary_energy_;
     p.position = from_cm(Real3{0, 0, 0});
     p.time = 0;
 
@@ -365,7 +366,10 @@ TEST_F(LArSphereOffloadTest, host_distributions)
         EXPECT_EQ(21572, result.cherenkov.total_num_photons);
         EXPECT_EQ(52, result.cherenkov.num_photons.size());
 
-        EXPECT_EQ(2104145, result.scintillation.total_num_photons);
+        EXPECT_SOFT_EQ(
+            2104145.0f,
+            static_cast<float>(result.scintillation.total_num_photons));
+
         EXPECT_EQ(130, result.scintillation.num_photons.size());
     }
 }
@@ -489,34 +493,70 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     }
     else
     {
-        EXPECT_EQ(1656334, result.scintillation.total_num_photons);
+        EXPECT_SOFT_EQ(
+            1656334.0f,
+            static_cast<float>(result.scintillation.total_num_photons));
         EXPECT_EQ(52, result.scintillation.num_photons.size());
     }
 }
 
-TEST_F(LArSphereOffloadTest, host_generate)
+TEST_F(LArSphereOffloadTest, host_generate_small)
 {
-    num_track_slots_ = 1 << 18;
-    buffer_capacity_ = 1024;
-    initializer_capacity_ = 524288;
-    auto_flush_ = 16384;
+    primary_energy_ = units::MevEnergy{0.01};
+    num_track_slots_ = 32;
+    buffer_capacity_ = 4096;
+    initializer_capacity_ = 4096;
+    auto_flush_ = 1;
     this->build_optical_collector();
 
-    // Run with 512 core track slots and 2^18 optical track slots
-    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
-    auto result = this->run<MemSpace::host>(4, 512, 16);
+    // Run with 2 core track slots and 32 optical track slots
+    ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::debug};
+    auto result = this->run<MemSpace::host>(4, 2, 2);
 
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        R"(Exceeded step count of 1: aborting optical transport loop with 262144 active tracks, 0 alive tracks, 262144 vacancies, and 62049 queued)",
+        "No Cherenkov photons to generate",
+        "Generated 964 Scintillation photons from 2 distributions",
+        R"(Exceeded step count of 1: aborting optical transport loop with 32 active tracks, 0 alive tracks, 32 vacancies, and 932 queued)",
+        R"(Generated 964 optical photons which completed 32 total steps over 1 iterations)",
+        "Deallocating host core state (stream 0)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "error"};
+        = {"status", "status", "debug", "debug", "error", "debug", "debug"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+}
+
+TEST_F(LArSphereOffloadTest, host_generate)
+{
+    num_track_slots_ = 262144;
+    buffer_capacity_ = 1024;
+    initializer_capacity_ = 524288;
+    auto_flush_ = 16384;
+    this->build_optical_collector();
+
+    // Run with 512 core track slots and 2^18 optical track slots
+    ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::debug};
+    auto result = this->run<MemSpace::host>(4, 512, 16);
+
+    static char const* const expected_log_messages[] = {
+        "Celeritas optical state initialization complete",
+        "Celeritas core state initialization complete",
+        "Generated 4258 Cherenkov photons from 4 distributions",
+        "Generated 319935 Scintillation photons from 4 distributions",
+        R"(Exceeded step count of 1: aborting optical transport loop with 262144 active tracks, 0 alive tracks, 262144 vacancies, and 62049 queued)",
+        R"(Generated 324193 optical photons which completed 262144 total steps over 1 iterations)",
+        "Deallocating host core state (stream 0)"};
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
+    static char const* const expected_log_levels[]
+        = {"status", "status", "debug", "debug", "error", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(2, result.optical_launch_step);

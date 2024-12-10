@@ -52,8 +52,8 @@ class BIHEnclosingVolFinder
     //// HELPER FUNCTIONS ////
 
     // Get the ID of the next node in the traversal sequence
-    inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId const& current_id,
-                                              BIHNodeId const& previous_id,
+    inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId current_id,
+                                              BIHNodeId previous_id,
                                               Real3 const& pos) const;
 
     // Determine if traversal shall proceed down a given edge
@@ -130,8 +130,8 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
  *  Get the ID of the next node in the traversal sequence.
  */
 CELER_FUNCTION
-BIHNodeId BIHEnclosingVolFinder::next_node(BIHNodeId const& current_id,
-                                           BIHNodeId const& previous_id,
+BIHNodeId BIHEnclosingVolFinder::next_node(BIHNodeId current_id,
+                                           BIHNodeId previous_id,
                                            Real3 const& pos) const
 {
     using Side = BIHInnerNode::Side;
