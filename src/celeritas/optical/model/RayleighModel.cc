@@ -11,10 +11,12 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/MaterialParams.hh"
-#include "celeritas/optical/MfpBuilder.hh"
 
 #include "RayleighMfpCalculator.hh"
+#include "../ImportedMaterials.hh"
+#include "../MaterialParams.hh"
+#include "../MfpBuilder.hh"
+#include "../ModelBuilder.hh"
 
 namespace celeritas
 {
@@ -22,40 +24,45 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Search for material ID corresponding to the given optical material ID.
- *
- * Assumes material ID to optical material ID mapping is one-to-one.
+ * Builder for optical Rayleigh scattering model.
  */
-::celeritas::MaterialId
-get_core_material(::celeritas::MaterialParams const& params,
-                  OpticalMaterialId opt_mat)
+class RayleighModelBuilder final : public ModelBuilder
 {
-    for (auto mat : range(::celeritas::MaterialId{params.num_materials()}))
+  public:
+    //!@{
+    //! \name Type aliases
+    using SPModel = ModelBuilder::SPModel;
+    using SPConstImported = RayleighModel::SPConstImported;
+    using Input = RayleighModel::Input;
+    //!@}
+
+  public:
+    RayleighModelBuilder(SPConstImported imported, Input input)
+        : imported_(std::move(imported)), input_(std::move(input))
     {
-        if (::celeritas::MaterialView(params.host_ref(), mat)
-                .optical_material_id()
-            == opt_mat)
-        {
-            return mat;
-        }
+        CELER_EXPECT(imported_);
     }
-    return ::celeritas::MaterialId{};
-}
+
+    SPModel operator()(ActionId id) const final
+    {
+        return std::make_shared<RayleighModel>(id, imported_, input_);
+    }
+
+  private:
+    SPConstImported imported_;
+    Input input_;
+};
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct the model from imported data.
+ * Create a model builder for Rayleigh scattering from imported data and
+ * material parameters.
  */
-RayleighModel::RayleighModel(ActionId id, SPConstImported imported)
-    : Model(id, "optical-rayleigh", "interact by optical Rayleigh")
-    , imported_(ImportModelClass::rayleigh, imported)
+std::shared_ptr<ModelBuilder>
+RayleighModel::make_builder(SPConstImported imported, Input input)
 {
-    for (auto mat : range(OpticalMaterialId(imported_.num_materials())))
-    {
-        CELER_VALIDATE(imported_.mfp(mat),
-                       << "Rayleigh model requires imported MFP for each "
-                          "optical material");
-    }
+    return std::make_shared<RayleighModelBuilder>(std::move(imported),
+                                                  std::move(input));
 }
 
 //---------------------------------------------------------------------------//
@@ -63,33 +70,33 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported)
  * Construct the model from imported data and imported material parameters.
  *
  * Uses \c RayleighMfpCalculator to calculate missing imported MFPs from
- * material parameters.
+ * material parameters, if available.
  */
-RayleighModel::RayleighModel(
-    ActionId id,
-    SPConstImported imported,
-    SPConstMaterials materials,
-    SPConstCoreMaterials core_materials,
-    std::vector<ImportOpticalRayleigh> import_rayleigh_materials)
+RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
     : Model(id, "optical-rayleigh", "interact by optical Rayleigh")
-    , imported_(ImportModelClass::rayleigh, imported)
-    , materials_(std::move(materials))
-    , core_materials_(std::move(core_materials))
-    , import_rayleigh_materials_(std::move(import_rayleigh_materials))
+    , imported_(ImportModelClass::rayleigh, std::move(imported))
+    , input_(std::move(input))
 {
-    CELER_EXPECT(materials_);
-    CELER_EXPECT(core_materials_);
-    CELER_EXPECT(materials_->num_materials() == imported_.num_materials());
-    CELER_EXPECT(materials_->num_materials()
-                 == import_rayleigh_materials_.size());
+    CELER_EXPECT(!input_
+                 || input_.materials->num_materials()
+                        == imported_.num_materials());
 
-    for (auto mat : range(OpticalMaterialId(materials_->num_materials())))
+    for (auto mat : range(OpticalMaterialId(imported_.num_materials())))
     {
-        CELER_VALIDATE(imported_.mfp(mat)
-                           || import_rayleigh_materials_[mat.get()],
-                       << "Rayleigh model requires either imported MFP or "
-                          "material parameters to build MFPs for each optical "
-                          "material");
+        if (input_)
+        {
+            CELER_VALIDATE(
+                imported_.mfp(mat) || input_.imported_materials->rayleigh(mat),
+                << "Rayleigh model requires either imported MFP or "
+                   "material parameters to build MFPs for each optical "
+                   "material");
+        }
+        else
+        {
+            CELER_VALIDATE(imported_.mfp(mat),
+                           << "Rayleigh model requires imported MFP for each "
+                              "optical material");
+        }
     }
 }
 
@@ -107,23 +114,15 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
     }
     else
     {
-        ::celeritas::MaterialId core_mat
-            = get_core_material(*core_materials_, mat);
-        CELER_VALIDATE(core_mat,
-                       << "calculating Rayleigh MFPs from material parameters "
-                          "requires core material corresponding to each "
-                          "optical material");
-
-        ::celeritas::MaterialView core_mat_view(core_materials_->host_ref(),
-                                                core_mat);
+        auto core_mat_view = input_.core_materials->get(
+            input_.imported_materials->core_material_id(mat));
         CELER_VALIDATE(core_mat_view.temperature() > 0,
                        << "calculating Rayleigh MFPs from material parameters "
                           "requires positive temperatures");
 
-        RayleighMfpCalculator calc_mfp(
-            MaterialView(materials_->host_ref(), mat),
-            import_rayleigh_materials_[mat.get()],
-            core_mat_view);
+        RayleighMfpCalculator calc_mfp(input_.materials->get(mat),
+                                       input_.imported_materials->rayleigh(mat),
+                                       core_mat_view);
 
         // Use index of refraction energy grid as calculated MFP energy grid
         auto const& energy_grid = calc_mfp.grid().values();

@@ -11,11 +11,50 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "../MfpBuilder.hh"
+#include "../ModelBuilder.hh"
 
 namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Builder for the optical absorption model.
+ */
+class AbsorptionModelBuilder final : public ModelBuilder
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using SPModel = ModelBuilder::SPModel;
+    using SPConstImported = AbsorptionModel::SPConstImported;
+    //!@}
+
+  public:
+    AbsorptionModelBuilder(SPConstImported imported) : imported_(imported)
+    {
+        CELER_EXPECT(imported_);
+    }
+
+    SPModel operator()(ActionId id) const final
+    {
+        return std::make_shared<AbsorptionModel>(id, imported_);
+    }
+
+  private:
+    SPConstImported imported_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a model builder for the optical absorption model.
+ */
+std::shared_ptr<ModelBuilder>
+AbsorptionModel::make_builder(SPConstImported imported)
+{
+    return std::make_shared<AbsorptionModelBuilder>(imported);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct the model from imported data.
