@@ -51,7 +51,6 @@ list(APPEND SOURCES
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/LogicBuilder.cc
-  orangeinp/detail/LogicBuilderPolicies.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
