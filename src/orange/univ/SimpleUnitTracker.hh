@@ -529,13 +529,14 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     CELER_ASSERT(num_isect > 0);
 
     // Calculate local senses, taking current face into account
-    auto logic_state = detail::SenseCalculator(
-        this->make_surface_visitor(), state.pos, state.temp_sense)(
-        vol, detail::find_face(vol, state.surface));
-
+    auto calc_senses = detail::LazySenseCalculator(
+        this->make_surface_visitor(), state.pos, state.temp_sense_mod);
+    auto bind_calc_sense = [&](FaceId face_id) {
+        return calc_senses(vol, face_id, detail::find_face(vol, state.surface));
+    };
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(is_inside(logic_state.senses));
+    CELER_ASSERT(is_inside(bind_calc_sense));
 
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].
@@ -548,16 +549,19 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         // Face being crossed in this ordered intersection
         FaceId face = state.temp_next.face[isect];
         // Flip the sense of the face being crossed
-        Sense new_sense = flip_sense(logic_state.senses[face.get()]);
-        logic_state.senses[face.unchecked_get()] = new_sense;
-        if (!is_inside(logic_state.senses))
+        state.temp_sense_mod[face.get()] = flip_sense_mod(
+            SenseMod::flipped, state.temp_sense_mod[face.get()]);
+
+        if (!is_inside(bind_calc_sense))
         {
             // Flipping this sense puts us outside the current volume: in
             // other words, only after crossing all the internal surfaces along
             // this direction do we hit a surface that actually puts us
             // outside.
             Intersection result;
-            result.surface = {vol.get_surface(face), flip_sense(new_sense)};
+
+            result.surface
+                = {vol.get_surface(face), flip_sense(bind_calc_sense(face))};
             result.distance = state.temp_next.distance[isect];
             CELER_ENSURE(result.distance > 0 && !std::isinf(result.distance));
             return result;

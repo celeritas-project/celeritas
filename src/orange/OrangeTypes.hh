@@ -411,6 +411,16 @@ set_sense_mod(SenseMod mod, SenseModFlags flags)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Flip a sense modifier.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SenseModFlags
+flip_sense_mod(SenseMod mod, SenseModFlags flags)
+{
+    return flags ^ static_cast<SenseModFlags>(mod);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
 [[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
