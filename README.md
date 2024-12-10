@@ -71,7 +71,7 @@ Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
 
 # Installation for developers
 
