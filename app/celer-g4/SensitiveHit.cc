@@ -24,6 +24,7 @@ namespace app
  */
 auto SensitiveHit::allocator() -> HitAllocator&
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     static G4ThreadLocal HitAllocator* alloc_;
     if (CELER_UNLIKELY(!alloc_))
     {
@@ -36,10 +37,7 @@ auto SensitiveHit::allocator() -> HitAllocator&
 /*!
  * Construct with hit data.
  */
-SensitiveHit::SensitiveHit(EventHitData const& hit)
-    : G4VHit(), data_{std::move(hit)}
-{
-}
+SensitiveHit::SensitiveHit(EventHitData const& hit) : G4VHit(), data_{hit} {}
 
 //---------------------------------------------------------------------------//
 }  // namespace app

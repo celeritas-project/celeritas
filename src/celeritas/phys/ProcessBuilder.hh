@@ -28,6 +28,7 @@ class MaterialParams;
 class ParticleParams;
 struct ImportData;
 struct ImportLivermorePE;
+struct ImportMuPairProductionTable;
 
 //---------------------------------------------------------------------------//
 //! Options used for constructing built-in Celeritas processes
@@ -115,6 +116,7 @@ class ProcessBuilder
     std::function<ImportSBTable(AtomicNumber)> read_sb_;
     std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
     std::function<ImportPhysicsVector(AtomicNumber)> read_neutron_elastic_;
+    std::shared_ptr<ImportMuPairProductionTable> mu_pairprod_table_;
 
     BremsModelSelection selection_;
     bool brem_combined_;
@@ -135,6 +137,7 @@ class ProcessBuilder
     auto build_eioni() -> SPProcess;
     auto build_mubrems() -> SPProcess;
     auto build_muioni() -> SPProcess;
+    auto build_mupairprod() -> SPProcess;
     auto build_msc() -> SPProcess;
     auto build_neutron_elastic() -> SPProcess;
     auto build_photoelectric() -> SPProcess;

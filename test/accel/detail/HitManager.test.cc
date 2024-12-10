@@ -40,6 +40,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
     {
         sd_setup_.enabled = true;
         sd_setup_.ignore_zero_deposition = false;
+        sd_setup_.track = false;
     }
 
     SPConstGeoI build_fresh_geometry(std::string_view basename) override
@@ -90,7 +91,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
     HitManager make_hit_manager(bool make_hit_proc = true)
     {
         CELER_EXPECT(!processor_);
-        HitManager result(*this->geometry(), *this->particle(), sd_setup_, 1);
+        HitManager result(this->geometry(), *this->particle(), sd_setup_, 1);
 
         if (make_hit_proc)
         {
@@ -155,9 +156,9 @@ TEST_F(SimpleCmsTest, delete_one)
 TEST_F(SimpleCmsTest, add_duplicate)
 {
     sd_setup_.force_volumes = find_geant_volumes({"em_calorimeter"});
-    celeritas::world_logger().level(LogLevel::debug);
+    scoped_log_.level(LogLevel::debug);
     HitManager man = this->make_hit_manager();
-    celeritas::world_logger().level(Logger::default_level());
+    scoped_log_.level(Logger::default_level());
 
     EXPECT_EQ(2, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());

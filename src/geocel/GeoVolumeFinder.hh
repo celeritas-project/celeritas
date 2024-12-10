@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "GeoParamsInterface.hh"
 
 namespace celeritas
@@ -33,7 +35,7 @@ class GeoVolumeFinder
     explicit inline GeoVolumeFinder(GeoParamsInterface const& geo);
 
     // Perform search
-    VolumeId operator()(Label const& label) const noexcept;
+    VolumeId operator()(Label const& label) const noexcept(!CELERITAS_DEBUG);
 
   private:
     VolumeMap const& vols_;

@@ -30,6 +30,7 @@ list(APPEND SOURCES
   em/process/GammaConversionProcess.cc
   em/process/MuIonizationProcess.cc
   em/process/MuBremsstrahlungProcess.cc
+  em/process/MuPairProductionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantOpticalPhysicsOptions.cc
@@ -57,6 +58,7 @@ list(APPEND SOURCES
   grid/ValueGridType.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
+  io/ImportDataTrimmer.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportOpticalModel.cc
@@ -75,7 +77,7 @@ list(APPEND SOURCES
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
-  optical/CerenkovParams.cc
+  optical/CherenkovParams.cc
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
@@ -84,6 +86,7 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
+  optical/WavelengthShiftParams.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OffloadParams.cc
@@ -127,7 +130,7 @@ endif()
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     track/detail/Filler.cu
-    global/alongstep/detail/AlongStepKernels.cu
+    alongstep/detail/AlongStepKernels.cu
   )
 endif()
 
@@ -262,6 +265,10 @@ macro(celeritas_polysource filename_we)
   celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
+celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
+celeritas_polysource(alongstep/AlongStepNeutralAction)
+celeritas_polysource(alongstep/AlongStepUniformMscAction)
+celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
@@ -273,15 +280,12 @@ celeritas_polysource(em/model/LivermorePEModel)
 celeritas_polysource(em/model/MollerBhabhaModel)
 celeritas_polysource(em/model/MuBetheBlochModel)
 celeritas_polysource(em/model/MuBremsstrahlungModel)
+celeritas_polysource(em/model/MuPairProductionModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)
 celeritas_polysource(em/model/CoulombScatteringModel)
 celeritas_polysource(geo/detail/BoundaryAction)
-celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
-celeritas_polysource(global/alongstep/AlongStepNeutralAction)
-celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
-celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
@@ -292,8 +296,8 @@ celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
-celeritas_polysource(optical/detail/CerenkovGeneratorAction)
-celeritas_polysource(optical/detail/CerenkovOffloadAction)
+celeritas_polysource(optical/detail/CherenkovGeneratorAction)
+celeritas_polysource(optical/detail/CherenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
 celeritas_polysource(optical/detail/OffloadGatherAction)
 celeritas_polysource(optical/detail/ScintGeneratorAction)
@@ -320,7 +324,7 @@ celeritas_polysource(user/detail/StepGatherAction)
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(celeritas ${SOURCES})
+celeritas_add_src_library(celeritas ${SOURCES})
 
 if(NOT CELERITAS_USE_OpenMP
     AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"

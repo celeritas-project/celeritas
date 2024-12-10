@@ -55,7 +55,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     explicit OrangeParams(OrangeInput&& input);
 
     // Default destructor to anchor vtable
-    ~OrangeParams();
+    ~OrangeParams() final;
 
     // Moving would leave the class in an unspecified state
     CELER_DELETE_COPY_MOVE(OrangeParams);

@@ -51,7 +51,6 @@ class LdgIterator
     //!@{
     //! Construct a pointer
     constexpr LdgIterator() noexcept = default;
-    constexpr LdgIterator(LdgIterator const&) noexcept = default;
     CELER_CONSTEXPR_FUNCTION LdgIterator(std::nullptr_t) noexcept {}
     CELER_CONSTEXPR_FUNCTION explicit LdgIterator(pointer ptr) noexcept
         : ptr_{ptr}
@@ -109,7 +108,6 @@ class LdgIterator
     {
         return LoadPolicyT::read(ptr_ + n);
     }
-    LdgIterator& operator=(LdgIterator const&) = default;
     //!@}
 
     //!@{

@@ -106,16 +106,15 @@ std::vector<Label> get_pv_labels(G4VPhysicalVolume const& world)
 //---------------------------------------------------------------------------//
 LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
-    int result{0};
+    LevelId::size_type result{0};
     visit_geant_volume_instances(
         [&result](G4VPhysicalVolume const&, int level) {
-            result = max(level, result);
+            result = max(level, static_cast<int>(result));
             return true;
         },
         world);
-    CELER_ENSURE(result >= 0);
     // Maximum "depth" is one greater than "highest level"
-    return static_cast<LevelId::size_type>(result + 1);
+    return result + 1;
 }
 
 //---------------------------------------------------------------------------//
@@ -304,6 +303,12 @@ void GeantGeoParams::build_metadata()
         CELER_ASSERT(pv_store && !pv_store->empty());
         return pv_store->front()->GetInstanceID();
     }();
+    if (lv_offset_ != 0 || pv_offset_ != 0)
+    {
+        CELER_LOG(debug) << "Building after volume stores were cleared: "
+                         << "lv_offset=" << lv_offset_
+                         << ", pv_offset=" << pv_offset_;
+    }
 
     // Construct volume labels
     volumes_ = VolumeMap{"volume",

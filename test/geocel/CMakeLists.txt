@@ -82,6 +82,7 @@ if(CELERITAS_USE_VecGeom)
       # TODO: vecgeom surface doesn't support some of these shapes
       list(APPEND _vecgeom_tests
         "FourLevelsTest.*"
+        "MultiLevelTest.*"
         "SolidsTest.*"
         "CmseTest.*"
       )
@@ -90,6 +91,7 @@ if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
+      "MultiLevelGeantTest.*"
       "SolidsGeantTest.*"
       "ZnenvGeantTest.*"
     )
@@ -99,7 +101,7 @@ if(CELERITAS_USE_VecGeom)
     set(_vecgeom_tests DISABLE)
   endif()
   celeritas_add_device_test(vg/Vecgeom
-    LINK_LIBRARIES VecGeom::vecgeom
+    LINK_LIBRARIES VecGeom::vecgeom ${_g4_geo_libs}
     FILTER ${_vecgeom_tests}
     ${_fixme_cgs}
   )
@@ -123,10 +125,16 @@ endif()
 #-----------------------------------------------------------------------------#
 # Rasterization
 
-
 celeritas_add_test(rasterize/Color.test.cc)
 celeritas_add_test(rasterize/Image.test.cc)
 celeritas_add_test(rasterize/Raytracer.test.cc)
-celeritas_add_test(rasterize/ImageWriter.test.cc ${_needs_png})
+
+# In that very specific case (which is the one used in Athena integration)
+# this test fails to link as geocel seems to be removed by the linker
+# https://github.com/celeritas-project/celeritas/pull/1498
+if(NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA
+   AND NOT CELERITAS_USE_PNG AND NOT BUILD_SHARED_LIBS))
+  celeritas_add_test(rasterize/ImageWriter.test.cc ${_needs_png})
+endif()
 
 #-----------------------------------------------------------------------------#

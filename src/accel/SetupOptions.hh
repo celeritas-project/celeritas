@@ -26,45 +26,67 @@ struct AlongStepFactoryInput;
 /*!
  * Control options for initializing Celeritas SD callbacks.
  *
- * These affect only the \c HitManager construction that is responsible for
- * reconstructing CPU hits and sending directly to the Geant4 detectors.
+ * By default, Celeritas connects to Geant4 sensitive detectors so that it
+ * reconstructs full-fidelity hits with all available step information.
+ * - If your problem has no SDs, you must set \c enabled to \c false.
+ * - By default, steps that do not deposit energy do not generate any hits.
+ * - To improve performance and memory usage, determine what quantities (time,
+ *   position, direction, touchable, ...) are required by your setup's
+ *   sensitive detectors and set all other attributes to \c false.
+ * - Reconstructing the full geometry status using \c locate_touchable is the
+ *   most expensive detector option. Disable it unless your SDs require (e.g.)
+ *   the volume's copy number to locate a detector submodule.
+ * - Some reconstructed track attributes (such as post-step material) are
+ *   currently never set because they are rarely used in practice. Contact the
+ *   Celeritas team or submit a pull request to add this functionality.
  *
  * Various attributes on the step, track, and pre/post step points may be
  * available depending on the selected options.
- * - Disabling \c track will leave \c G4Step::GetTrack as \c nullptr
- * - Enabling \c locate_touchable will also set \c Material and \c
- *   MaterialCutsCouple
- * - Enabling \c track will set particle the \c Charge attribute on the
- *   pre-step
+ * - Disabling \c track will leave \c G4Step::GetTrack as \c nullptr .
+ * - Enabling \c track will set the \c Charge attribute on the
+ *   pre-step.
  * - Requested post-step data including \c GlobalTime, \c Position, \c
  *   KineticEnergy, and \c MomentumDirection will be copied to the \c Track
- *   when the combination of options is enabled
- * - Track and Parent IDs will \em never be a valid value since Celeritas track
- *   counters are independent from Geant4 track counters.
- * - Some within-step properties (material, material cuts couple, and
+ *   when the combination of options is enabled.
+ * - Some pre-step properties (\c Material and \c MaterialCutsCouple, and
  *   sensitive detector) are always updated. Post-step values for those are not
  *   set.
+ * - Track and Parent IDs will \em never be a valid value since Celeritas track
+ *   counters are independent from Geant4 track counters. Similarly, special
+ *   Geant4 user-defined \c UserInformation and \c AuxiliaryTrackInformation
+ *   are never set.
+ *
+ * The \c force_volumes option can be used for unusual cases (i.e., when using
+ * a custom run manager) that do not define SDs on the "master" thread.
+ * Similarly, the \c skip_volumes option allows optimized GPU-defined SDs to be
+ * used in place of a Geant4 callback. For both options, the \c
+ * FindVolumes helper function can be used to determine LV pointers from
+ * the volume names.
+ *
+ * \note These setup options affect only the \c HitManager construction that is
+ * responsible for reconstructing CPU hits and sending directly to the Geant4
+ * detectors. It does not change the underlying physics.
  */
 struct SDSetupOptions
 {
     struct StepPoint
     {
-        bool global_time{false};
-        bool position{false};
-        bool direction{false};  //!< AKA momentum direction
-        bool kinetic_energy{false};
+        bool global_time{true};
+        bool position{true};
+        bool direction{true};  //!< AKA momentum direction
+        bool kinetic_energy{true};
     };
 
     //! Call back to Geant4 sensitive detectors
-    bool enabled{false};
+    bool enabled{true};
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
     //! Save energy deposition
     bool energy_deposition{true};
     //! Set TouchableHandle for PreStepPoint
-    bool locate_touchable{false};
+    bool locate_touchable{true};
     //! Create a track with the dynamic particle type and post-step data
-    bool track{false};
+    bool track{true};
     //! Options for saving and converting beginning-of-step data
     StepPoint pre;
     //! Options for saving and converting end-of-step data

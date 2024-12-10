@@ -146,6 +146,7 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         // Replace with constituent volume, and reflect across Z.
         // See G4ReflectionFactory::CheckScale: the reflection value is
         // hardcoded to {1, 1, -1}
+        // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
         g4lv = unrefl_g4lv;
         CELER_NOT_IMPLEMENTED("reflecting a placed volume");
     }

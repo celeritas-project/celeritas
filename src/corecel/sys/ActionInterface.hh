@@ -230,7 +230,7 @@ class ConcreteAction : virtual public ActionInterface
                    std::string description) noexcept(!CELERITAS_DEBUG);
 
     // Default destructor
-    ~ConcreteAction() noexcept;
+    ~ConcreteAction() noexcept override;
     CELER_DELETE_COPY_MOVE(ConcreteAction);
 
     //! ID of this action for verification
@@ -308,7 +308,7 @@ class StaticConcreteAction : virtual public ActionInterface
                          std::string_view description) noexcept(!CELERITAS_DEBUG);
 
     // Default destructor
-    ~StaticConcreteAction() = default;
+    ~StaticConcreteAction() override = default;
     CELER_DELETE_COPY_MOVE(StaticConcreteAction);
 
     //! ID of this action for verification

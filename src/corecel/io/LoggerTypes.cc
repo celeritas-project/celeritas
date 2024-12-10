@@ -40,7 +40,7 @@ char const* to_color_code(LogLevel lev)
     char c = ' ';
     switch (lev)
     {
-        case LogLevel::debug:      c = 'x'; break;
+        case LogLevel::debug:     [[fallthrough]];
         case LogLevel::diagnostic: c = 'x'; break;
         case LogLevel::status:     c = 'b'; break;
         case LogLevel::info:       c = 'g'; break;

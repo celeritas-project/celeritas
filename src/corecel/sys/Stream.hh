@@ -24,6 +24,9 @@ struct MockMemoryResource
     virtual Pointer do_allocate(std::size_t, std::size_t) = 0;
 
     virtual void do_deallocate(Pointer, std::size_t, std::size_t) = 0;
+
+  protected:
+    ~MockMemoryResource() = default;
 };
 #endif
 

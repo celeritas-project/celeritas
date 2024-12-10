@@ -22,6 +22,9 @@ namespace celeritas
  * Indexing is in standard C iteration order, such that final dimension
  * "changes fastest". For example, when indexing into a 3D grid (N=3) with
  * coords (i=0, j=0, k=1) the resulting index will be 1.
+ *
+ * \todo
+ * https://github.com/celeritas-project/celeritas/pull/1518#discussion_r1856614365
  */
 template<size_type N>
 class HyperslabIndexer
@@ -41,6 +44,10 @@ class HyperslabIndexer
 
     //! Convert N-dimensional coordinates to an index
     inline CELER_FUNCTION size_type operator()(Coords const& coords) const;
+
+    //! Convert N-dimensional coordinates to an index
+    template<typename... Args>
+    inline CELER_FUNCTION size_type operator()(Args... args) const;
 
   private:
     //// DATA ////
@@ -113,6 +120,20 @@ CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Coords const& coords) c
         result = dims_[i] * result + coords[i];
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert N-dimensional coordinates to an index.
+ */
+template<size_type N>
+template<typename... Args>
+CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Args... args) const
+{
+    static_assert(sizeof...(Args) == N,
+                  "Number of coordinates must match number of dimensions");
+
+    return this->operator()(Coords{static_cast<size_type>(args)...});
 }
 
 //---------------------------------------------------------------------------//

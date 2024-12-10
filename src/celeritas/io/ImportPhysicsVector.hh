@@ -60,7 +60,7 @@ struct ImportPhysics2DVector
 
     explicit operator bool() const
     {
-        return !x.empty() && !y.empty() && value.size() == x.size() * y.size();
+        return !value.empty() && value.size() == x.size() * y.size();
     }
 };
 

@@ -26,21 +26,26 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
   get_target_property(_vecgeom_lib_type VecGeom::vecgeom TYPE)
   if (_vecgeom_lib_type STREQUAL "STATIC_LIBRARY")
      set(_vecgeom_cuda_runtime "Static")
+     set(_vecgeom_middle_library_suffix "_static")
   else()
      set(_vecgeom_cuda_runtime "Shared")
+     set(_vecgeom_middle_library_suffix "")
   endif()
-  set_target_properties(VecGeom::vecgeom PROPERTIES
-    CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-    CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-    CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
-  )
-  set_target_properties(VecGeom::vecgeomcuda PROPERTIES
-    CUDA_RDC_LIBRARY_TYPE Shared
-    #CUDA_RUNTIME_LIBRARY ${_vecgeom_cuda_runtime}
-  )
-  set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
-    CUDA_RDC_LIBRARY_TYPE Static
-  )
+  get_target_property(_vecgeom_lib_rdc_final VecGeom::vecgeomcuda CUDA_RDC_FINAL_LIBRARY)
+  if(NOT _vecgeom_lib_rdc_final)
+    set_target_properties(VecGeom::vecgeom PROPERTIES
+      CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+      CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda${_vecgeom_middle_library_suffix}
+      CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
+    )
+    set_target_properties(VecGeom::vecgeomcuda PROPERTIES
+      CUDA_RDC_LIBRARY_TYPE Shared
+      #CUDA_RUNTIME_LIBRARY ${_vecgeom_cuda_runtime}
+    )
+    set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
+      CUDA_RDC_LIBRARY_TYPE Static
+    )
+  endif()
   # Suppress warnings from virtual function calls in RDC
   foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
     target_compile_options(${_lib}
@@ -51,15 +56,17 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
     )
   endforeach()
 
-  # Inform celeritas_add_library code
-  foreach(_lib VecGeom::vecgeom VecGeom::vecgeomcuda
-      VecGeom::vecgeomcuda_static)
-    set_target_properties(${_lib} PROPERTIES
-      CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-      CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-      CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
-    )
-  endforeach()
+  if(NOT _vecgeom_lib_rdc_final)
+    # Inform cuda_rdc_add_library code
+    foreach(_lib VecGeom::vecgeom VecGeom::vecgeomcuda
+        VecGeom::vecgeomcuda_static)
+      set_target_properties(${_lib} PROPERTIES
+        CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+        CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda${_vecgeom_middle_library_suffix}
+        CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
+      )
+    endforeach()
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

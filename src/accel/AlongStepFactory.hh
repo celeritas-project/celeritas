@@ -72,7 +72,7 @@ struct AlongStepFactoryInput
  * has the same interface.
  *
  * Celeritas provides a few "default" configurations of along-step actions in
- * `celeritas/global/alongstep`.
+ * `celeritas/alongstep`.
  */
 class AlongStepFactoryInterface
 {

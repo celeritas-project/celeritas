@@ -30,6 +30,8 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -42,12 +44,10 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
-#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
@@ -351,6 +351,7 @@ void Runner::build_core_params(RunnerInput const& inp,
         input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
         input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
             imported.em_params.lowest_electron_energy);
+        input.options.spline_eloss_order = inp.spline_eloss_order;
 
         input.processes = [&params, &inp, &imported] {
             std::vector<std::shared_ptr<Process const>> result;
@@ -586,7 +587,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
 {
     CELER_EXPECT(core_params_);
 
-    using optical::CerenkovParams;
+    using optical::CherenkovParams;
     using optical::MaterialParams;
     using optical::ScintillationParams;
 
@@ -598,15 +599,19 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     }
     CELER_ASSERT(inp.optical);
 
+    size_type num_streams = core_params_->max_streams();
+
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
         imported, *core_params_->geomaterial(), *core_params_->material());
-    oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.material);
+    oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
     oc_inp.scintillation
         = ScintillationParams::from_import(imported, core_params_->particle());
-    oc_inp.buffer_capacity = inp.optical.buffer_capacity;
-    oc_inp.primary_capacity = inp.optical.primary_capacity;
-    oc_inp.auto_flush = inp.optical.auto_flush;
+    oc_inp.num_track_slots = ceil_div(inp.optical.num_track_slots, num_streams);
+    oc_inp.buffer_capacity = ceil_div(inp.optical.buffer_capacity, num_streams);
+    oc_inp.initializer_capacity
+        = ceil_div(inp.optical.initializer_capacity, num_streams);
+    oc_inp.auto_flush = ceil_div(inp.optical.auto_flush, num_streams);
 
     CELER_ASSERT(oc_inp);
     optical_collector_

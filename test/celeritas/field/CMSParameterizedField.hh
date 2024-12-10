@@ -70,7 +70,7 @@ auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
 
     Real3 value{0., 0., 0.};
 
-    real_type r = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
+    real_type r = hypot(pos[0], pos[1]);
     Real3 bw = this->evaluate_field(r, pos[2]);
     real_type rinv = (r > 0) ? 1 / r : 0;
 
