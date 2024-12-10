@@ -130,7 +130,7 @@ The full set of configurations is viewable on CI platform [GitHub Actions][gha])
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
-[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development
