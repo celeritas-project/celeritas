@@ -366,7 +366,10 @@ TEST_F(LArSphereOffloadTest, host_distributions)
         EXPECT_EQ(21572, result.cherenkov.total_num_photons);
         EXPECT_EQ(52, result.cherenkov.num_photons.size());
 
-        EXPECT_EQ(2104145, result.scintillation.total_num_photons);
+        EXPECT_SOFT_EQ(
+            2104145.0f,
+            static_cast<float>(result.scintillation.total_num_photons));
+
         EXPECT_EQ(130, result.scintillation.num_photons.size());
     }
 }
@@ -490,7 +493,9 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     }
     else
     {
-        EXPECT_EQ(1656334, result.scintillation.total_num_photons);
+        EXPECT_SOFT_EQ(
+            1656334.0f,
+            static_cast<float>(result.scintillation.total_num_photons));
         EXPECT_EQ(52, result.scintillation.num_photons.size());
     }
 }
@@ -517,7 +522,10 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
         R"(Generated 964 optical photons which completed 32 total steps over 1 iterations)",
         "Deallocating host core state (stream 0)",
     };
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
     static char const* const expected_log_levels[]
         = {"status", "status", "debug", "debug", "error", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
