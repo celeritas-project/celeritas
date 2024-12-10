@@ -165,6 +165,7 @@ struct LocalState
     LocalVolumeId volume;
     OnLocalSurface surface;
     Span<Sense> temp_sense;
+    Span<SenseModFlags> temp_sense_mod;
     TempNextFace temp_next;
 };
 

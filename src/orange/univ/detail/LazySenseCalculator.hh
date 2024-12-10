@@ -32,8 +32,9 @@ class LazySenseCalculator
 {
   public:
     // Construct from persistent, current, and temporary data
-    inline CELER_FUNCTION
-    LazySenseCalculator(LocalSurfaceVisitor const& visit, Real3 const& pos);
+    inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor const& visit,
+                                              Real3 const& pos,
+                                              Span<SenseModFlags> sense_mod);
 
     // Calculate senses for a single face of the given volume, possibly on a
     // face
@@ -52,6 +53,9 @@ class LazySenseCalculator
 
     //! Local position
     Real3 pos_;
+
+    //! Temporary senses
+    Span<SenseModFlags> sense_storage_;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,9 +66,14 @@ class LazySenseCalculator
  */
 CELER_FUNCTION
 LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
-                                         Real3 const& pos)
-    : visit_{visit}, pos_(pos)
+                                         Real3 const& pos,
+                                         Span<SenseModFlags> sense_mod)
+    : visit_{visit}, pos_(pos), sense_storage_{sense_mod}
 {
+    for (auto& sense : sense_storage_)
+    {
+        sense = static_cast<SenseModFlags>(SenseMod::normal);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -101,6 +110,10 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(VolumeView const& vol,
     {
         // Sense is known a priori
         sense = face.sense();
+    }
+    if (is_sense_mod_set(SenseMod::flipped, sense_storage_[face_id.get()]))
+    {
+        sense = flip_sense(sense);
     }
 
     return sense;

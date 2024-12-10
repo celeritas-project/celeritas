@@ -473,6 +473,7 @@ struct OrangeStateData
 
     // Scratch space with dimensions {track}{max_faces}
     Items<Sense> temp_sense;
+    Items<SenseModFlags> temp_sense_mod;
 
     // Scratch space with dimensions {track}{max_intersections}
     Items<FaceId> temp_face;
@@ -500,6 +501,7 @@ struct OrangeStateData
             && vol.size() == max_depth  * this->size()
             && universe.size() == max_depth  * this->size()
             && !temp_sense.empty()
+            && !temp_sense_mod.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
             && temp_isect.size() == temp_face.size();
@@ -533,6 +535,7 @@ struct OrangeStateData
         universe = other.universe;
 
         temp_sense = other.temp_sense;
+        temp_sense_mod = other.temp_sense_mod;
 
         temp_face = other.temp_face;
         temp_distance = other.temp_distance;
@@ -576,6 +579,7 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
 
     size_type face_states = params.scalars.max_faces * num_tracks;
     resize(&data->temp_sense, face_states);
+    resize(&data->temp_sense_mod, face_states);
 
     size_type isect_states = params.scalars.max_intersections * num_tracks;
     resize(&data->temp_face, isect_states);

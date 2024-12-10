@@ -103,6 +103,17 @@ enum class Sense : bool
 
 //---------------------------------------------------------------------------//
 /*!
+ * Transformations to apply to senses when using lazy sense evaluation.
+ */
+enum class SenseMod
+{
+    normal = 0,
+    flipped = 1 << 0,
+};
+using SenseModFlags = std::underlying_type_t<SenseMod>;
+
+//---------------------------------------------------------------------------//
+/*!
  * Enumeration for mapping surface classes to integers.
  *
  * These are ordered roughly by complexity. The storage requirement for
@@ -376,6 +387,26 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 {
     using IntT = std::underlying_type_t<SignedSense>;
     return static_cast<SignedSense>(-static_cast<IntT>(orig));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check if a sense modifier is set.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION bool
+is_sense_mod_set(SenseMod mod, SenseModFlags flags)
+{
+    return (flags & static_cast<SenseModFlags>(mod)) != 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set a sense modifier.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SenseModFlags
+set_sense_mod(SenseMod mod, SenseModFlags flags)
+{
+    return flags | static_cast<SenseModFlags>(mod);
 }
 
 //---------------------------------------------------------------------------//

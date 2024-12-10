@@ -167,8 +167,8 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
 
-    detail::LazySenseCalculator calc_senses(this->make_surface_visitor(),
-                                            state.pos);
+    detail::LazySenseCalculator calc_senses(
+        this->make_surface_visitor(), state.pos, state.temp_sense_mod);
 
     // Use the BIH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
@@ -206,8 +206,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
     detail::OnLocalSurface on_surface;
     auto is_inside
         = [this, &state, &on_surface](LocalVolumeId const& id) -> bool {
-        detail::LazySenseCalculator calc_senses(this->make_surface_visitor(),
-                                                state.pos);
+        detail::LazySenseCalculator calc_senses(
+            this->make_surface_visitor(), state.pos, state.temp_sense_mod);
         if (id == state.volume)
         {
             // Cannot cross surface into the same volume
@@ -622,7 +622,7 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
             CELER_ASSERT(vid != state.volume);
             VolumeView vol = this->make_local_volume(vid);
             auto calc_senses = detail::LazySenseCalculator{
-                this->make_surface_visitor(), pos};
+                this->make_surface_visitor(), pos, state.temp_sense_mod};
             auto bind_calc_sense
                 = [&](FaceId face_id) { return calc_senses(vol, face_id); };
 

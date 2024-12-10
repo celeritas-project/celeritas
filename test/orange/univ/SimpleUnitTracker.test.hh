@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "orange/OrangeData.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/detail/LevelStateAccessor.hh"
 #include "orange/univ/SimpleUnitTracker.hh"
 #include "orange/univ/detail/Types.hh"
@@ -60,6 +61,8 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
 
     size_type const max_faces = params.scalars.max_faces;
     lstate.temp_sense = states.temp_sense[build_range<Sense>(max_faces, tid)];
+    lstate.temp_sense_mod
+        = states.temp_sense_mod[build_range<SenseModFlags>(max_faces, tid)];
 
     size_type const max_isect = params.scalars.max_intersections;
     lstate.temp_next.face

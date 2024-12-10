@@ -198,6 +198,7 @@ class OrangeTrackView
 
     // Create local sense reference
     inline CELER_FUNCTION Span<Sense> make_temp_sense() const;
+    inline CELER_FUNCTION Span<SenseModFlags> make_temp_sense_mod() const;
 
     // Create local distance
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
@@ -276,6 +277,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     local.volume = {};
     local.surface = {};
     local.temp_sense = this->make_temp_sense();
+    local.temp_sense_mod = this->make_temp_sense_mod();
 
     // Helpers for applying parent-to-daughter transformations
     TransformVisitor apply_transform{params_};
@@ -689,6 +691,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         local.volume = lsa.vol();
         local.surface = {this->surf(), this->sense()};
         local.temp_sense = this->make_temp_sense();
+        local.temp_sense_mod = this->make_temp_sense_mod();
     }
 
     TrackerVisitor visit_tracker{params_};
@@ -1049,6 +1052,18 @@ CELER_FUNCTION Span<Sense> OrangeTrackView::make_temp_sense() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a reference to the current volume, or to world volume if outside.
+ */
+CELER_FUNCTION Span<SenseModFlags> OrangeTrackView::make_temp_sense_mod() const
+{
+    auto const max_faces = params_.scalars.max_faces;
+    auto offset = track_slot_.get() * max_faces;
+    return states_.temp_sense_mod[AllItems<SenseModFlags, MemSpace::native>{}]
+        .subspan(offset, max_faces);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Set up intersection scratch space.
  */
 CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
@@ -1089,6 +1104,7 @@ OrangeTrackView::make_local_state(LevelId level) const
         local.surface = {};
     }
     local.temp_sense = this->make_temp_sense();
+    local.temp_sense_mod = this->make_temp_sense_mod();
     local.temp_next = this->make_temp_next();
     return local;
 }
