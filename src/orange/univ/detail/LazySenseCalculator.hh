@@ -34,13 +34,22 @@ class LazySenseCalculator
     // Construct from persistent, current, and temporary data
     inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                               Real3 const& pos,
-                                              Span<SenseModFlags> sense_mod);
+                                              Span<Sense> sense_cache,
+                                              Span<SenseModFlags> sense_flags);
 
     // Calculate senses for a single face of the given volume, possibly on a
     // face
     inline CELER_FUNCTION Sense operator()(VolumeView const& vol,
                                            FaceId face_id,
                                            OnFace face = {});
+
+    void invalidate_cache()
+    {
+        for (auto& flags : sense_flags_)
+        {
+            flags = unset_sense_mod(SenseMod::cached, flags);
+        }
+    }
 
     OnFace& on_face() { return face_; }
 
@@ -55,7 +64,8 @@ class LazySenseCalculator
     Real3 pos_;
 
     //! Temporary senses
-    Span<SenseModFlags> sense_storage_;
+    Span<Sense> sense_cache_;
+    Span<SenseModFlags> sense_flags_;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,10 +77,14 @@ class LazySenseCalculator
 CELER_FUNCTION
 LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          Real3 const& pos,
-                                         Span<SenseModFlags> sense_mod)
-    : visit_{visit}, pos_(pos), sense_storage_{sense_mod}
+                                         Span<Sense> sense_cache,
+                                         Span<SenseModFlags> sense_flags)
+    : visit_{visit}
+    , pos_(pos)
+    , sense_cache_(sense_cache)
+    , sense_flags_{sense_flags}
 {
-    for (auto& sense : sense_storage_)
+    for (auto& sense : sense_flags_)
     {
         sense = static_cast<SenseModFlags>(SenseMod::normal);
     }
@@ -94,6 +108,11 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(VolumeView const& vol,
         face_ = face;
     }
 
+    if (is_sense_mod_set(SenseMod::cached, sense_flags_[face_id.get()]))
+    {
+        return sense_cache_[face_id.get()];
+    }
+
     Sense sense;
     if (face_id != face.id())
     {
@@ -111,11 +130,14 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(VolumeView const& vol,
         // Sense is known a priori
         sense = face.sense();
     }
-    if (is_sense_mod_set(SenseMod::flipped, sense_storage_[face_id.get()]))
+    if (is_sense_mod_set(SenseMod::flipped, sense_flags_[face_id.get()]))
     {
         sense = flip_sense(sense);
     }
 
+    sense_flags_[face_id.get()]
+        = set_sense_mod(SenseMod::cached, sense_flags_[face_id.get()]);
+    sense_cache_[face_id.get()] = sense;
     return sense;
 }
 

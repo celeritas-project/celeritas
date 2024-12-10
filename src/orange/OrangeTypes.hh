@@ -109,6 +109,7 @@ enum class SenseMod : unsigned char
 {
     normal = 0,
     flipped = 1 << 0,
+    cached = 1 << 1,
 };
 using SenseModFlags = std::underlying_type_t<SenseMod>;
 
@@ -407,6 +408,16 @@ is_sense_mod_set(SenseMod mod, SenseModFlags flags)
 set_sense_mod(SenseMod mod, SenseModFlags flags)
 {
     return flags | static_cast<SenseModFlags>(mod);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Unset a sense modifier.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SenseModFlags
+unset_sense_mod(SenseMod mod, SenseModFlags flags)
+{
+    return flags & ~static_cast<SenseModFlags>(mod);
 }
 
 //---------------------------------------------------------------------------//
