@@ -19,7 +19,6 @@
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
-#include "orange/orangeinp/detail/LogicBuilderPolicies.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
