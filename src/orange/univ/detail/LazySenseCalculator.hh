@@ -43,7 +43,7 @@ class LazySenseCalculator
                                            FaceId face_id,
                                            OnFace face = {});
 
-    void invalidate_cache()
+    CELER_FUNCTION void invalidate_cache()
     {
         for (auto& flags : sense_flags_)
         {
@@ -51,7 +51,7 @@ class LazySenseCalculator
         }
     }
 
-    OnFace& on_face() { return face_; }
+    CELER_FUNCTION OnFace& on_face() { return face_; }
 
   private:
     //! The first face encountered that we are "on"
