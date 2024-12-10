@@ -105,7 +105,7 @@ enum class Sense : bool
 /*!
  * Transformations to apply to senses when using lazy sense evaluation.
  */
-enum class SenseMod
+enum class SenseMod : unsigned char
 {
     normal = 0,
     flipped = 1 << 0,
