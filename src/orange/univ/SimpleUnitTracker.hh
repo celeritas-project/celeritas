@@ -557,10 +557,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         // Face being crossed in this ordered intersection
         FaceId face = state.temp_next.face[isect];
         // Flip the sense of the face being crossed
-        state.temp_sense_mod[face.get()] = flip_sense_mod(
-            SenseMod::flipped, state.temp_sense_mod[face.get()]);
-        state.temp_sense_mod[face.get()] = unset_sense_mod(
-            SenseMod::cached, state.temp_sense_mod[face.get()]);
+        calc_senses.flip_sense(face);
         if (!is_inside(bind_calc_sense))
         {
             // Flipping this sense puts us outside the current volume: in

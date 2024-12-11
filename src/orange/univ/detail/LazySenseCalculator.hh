@@ -43,6 +43,7 @@ class LazySenseCalculator
                                            FaceId face_id,
                                            OnFace face = {});
 
+    //! Clear the cached sense values
     CELER_FUNCTION void invalidate_cache()
     {
         for (auto& flags : sense_flags_)
@@ -51,7 +52,23 @@ class LazySenseCalculator
         }
     }
 
+    //! The first face encountered that we are "on"
     CELER_FUNCTION OnFace& on_face() { return face_; }
+
+    //! Flip the sense of a face
+    CELER_FUNCTION void flip_sense(FaceId face_id)
+    {
+        sense_flags_[face_id.get()]
+            = flip_sense_mod(SenseMod::flipped, sense_flags_[face_id.get()]);
+
+        // If the sense is cached, flip it, otherwise it will be flipped when
+        // we calculate it
+        if (is_sense_mod_set(SenseMod::cached, sense_flags_[face_id.get()]))
+        {
+            sense_cache_[face_id.get()]
+                = celeritas::flip_sense(sense_cache_[face_id.get()]);
+        }
+    }
 
   private:
     //! The first face encountered that we are "on"
@@ -132,7 +149,7 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(VolumeView const& vol,
     }
     if (is_sense_mod_set(SenseMod::flipped, sense_flags_[face_id.get()]))
     {
-        sense = flip_sense(sense);
+        sense = celeritas::flip_sense(sense);
     }
 
     sense_flags_[face_id.get()]
