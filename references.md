@@ -8,8 +8,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Physics models and validation
 
-- A. Howard. "Electromagnetic physics II: Optical Photons". Oct 2023. [indico.cern.ch](https://indico.cern.ch/event/1304769/contributions/5487618/)
-- A. Howard. "Electromagnetic physics II - Optical Photons". CERN, Oct 2023. [indico.cern.ch](https://indico.cern.ch/event/1304769/contributions/5487618/)
+- A. Howard. "Electromagnetic physics II: Optical Photons". CERN, Oct 2023. [indico.cern.ch](https://indico.cern.ch/event/1304769/contributions/5487618/)
 - E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor. "CODATA Recommended Values of the Fundamental Physical Constants: 2018". *Journal of Physical and Chemical Reference Data*, Sep 2021. [10.1063/5.0064853](https://doi.org/10.1063/5.0064853)
 - W. R. Saunders, J. Grant, E. H. Müller. "A new algorithm for electrostatic interactions in Monte Carlo simulations of charged particles". *Journal of Computational Physics*, Apr 2021. [10.1016/j.jcp.2020.110099](https://doi.org/10.1016/j.jcp.2020.110099)
 - Bureau International des Poids et Mesures. "The International System of Units". Dec 2019.
@@ -102,6 +101,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - Andrei Gheata. "AdePT: Accelerated demonstrator of electromagnetic Particle Transport". Sep 2020. [indico.cern.ch](https://indico.cern.ch/event/942142/contributions/4016086/attachments/2102749/3535536/AdePT.pdf)
 - G. A. Stewart, A. Valassi, J. McFayden, E. Yazgan, W. Pokorski, *et al*. "HL-LHC Computing Review: Common Tools and Community Software". Aug 2020. [zenodo.org](https://zenodo.org/record/4009114)
 - R. Brun, F. Rademakers, P. Canal, A. Naumann, O. Couet, *et al*. "root-project/root: v6.18/02". Zenodo, Jun 2020. [doi.org](https://doi.org/10.5281/zenodo.3895860)
+- V. Artigues, K. Kormann, M. Rampp, K. Reuter. "Evaluation of performance portability frameworks for the implementation of a particle‐in‐cell code". *Concurrency and Computation: Practice and Experience*, Jun 2020. [10.1002/cpe.5640](https://doi.org/10.1002/cpe.5640)
 - F. Sanglard. "A history of NVidia Stream Multiprocessor". May 2020. [fabiensanglard.net](https://fabiensanglard.net/cuda/)
 - The HEP Software Foundation, J. Albrecht, A. A. Alves, G. Amadio, G. Andronico, *et al*. "A Roadmap for HEP Software and Computing R&D for the 2020s". *Computing and Software for Big Science*, Dec 2019. [10.1007/s41781-018-0018-8](https://doi.org/10.1007/s41781-018-0018-8)
 - P. Canal. "Geant Exascale Pilot Project". Dec 2019.
@@ -149,6 +149,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Computational geometry
 
+- P. Pellat-Finet. "Quaternions and rotations: applications to Minkowski's four-vectors, electromagnetic waves and polarization optics". Jul 2024. [arxiv.org](http://arxiv.org/abs/2407.11953)
 - D. Meister, S. Ogaki, C. Benthin, M. J. Doyle, M. Guthe, *et al*. "A Survey on Bounding Volume Hierarchies for Ray Tracing". *Computer Graphics Forum*, May 2021. [10.1111/cgf.142662](https://doi.org/10.1111/cgf.142662)
 - J. Apostolakis, G. Cosmo, A. Gheata, M. Gheata, R. Sehgal, *et al*. "A vectorization approach for multifaceted solids in VecGeom". *EPJ Web of Conferences*, Dec 2019. [10.1051/epjconf/201921402025](https://doi.org/10.1051/epjconf/201921402025)
 - B. R. Nease, D. L. Millman, D. P. Griesheimer, D. F. Gill, D. Caruge, *et al*. "Geometric Templates for Improved Tracking Performance in Monte Carlo Codes". in *SNA + MC 2013 - Joint International Conference on Supercomputing in Nuclear Applications + Monte Carlo*, Paris, France, Dec 2014. [10.1051/snamc/201402505](https://doi.org/10.1051/snamc/201402505)
