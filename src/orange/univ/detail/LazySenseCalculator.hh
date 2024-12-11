@@ -97,8 +97,8 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          Span<Sense> sense_cache,
                                          Span<SenseModFlags> sense_flags)
     : visit_{visit}
-    , pos_(pos)
-    , sense_cache_(sense_cache)
+    , pos_{pos}
+    , sense_cache_{sense_cache}
     , sense_flags_{sense_flags}
 {
     for (auto& sense : sense_flags_)
