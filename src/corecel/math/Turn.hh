@@ -66,19 +66,19 @@ CELER_FORCEINLINE_FUNCTION void sincos(Turn r, real_type* sinv, real_type* cosv)
     return sincospi(r.value() * 2, sinv, cosv);
 }
 
-CELER_FORCEINLINE_FUNCTION int cos(QuarterTurn r)
+CELER_CONSTEXPR_FUNCTION int cos(QuarterTurn r)
 {
     constexpr int cosval[] = {1, 0, -1, 0};
-    return cosval[std::abs(r.value()) % 4];
+    return cosval[(r.value() > 0 ? r.value() : -r.value()) % 4];
 }
 
-CELER_FORCEINLINE_FUNCTION int sin(QuarterTurn r)
+CELER_CONSTEXPR_FUNCTION int sin(QuarterTurn r)
 {
     // Define in terms of the symmetric "cos"
     return cos(QuarterTurn{r.value() - 1});
 }
 
-CELER_FORCEINLINE_FUNCTION void sincos(QuarterTurn r, int* sinv, int* cosv)
+CELER_CONSTEXPR_FUNCTION void sincos(QuarterTurn r, int* sinv, int* cosv)
 {
     *sinv = sin(r);
     *cosv = cos(r);
