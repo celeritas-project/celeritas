@@ -15,6 +15,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- S. R. Johnson. "Celeritas and an HPC perspective of detector simulation R&D". *Community input on the European Strategy for Particle Physics Update*, 22 Nov 2024. [presentation](https://indico.cern.ch/event/1475445/contributions/6235433/attachments/2972914/5232586/celeritas-esppu.pdf)
 - S. Johnson. "Optical physics in Celeritas: Status of an upcoming capability". *SWIFT-HEP Workshop*, 12 Nov 2024. [presentation](https://indico.cern.ch/event/1466097/contributions/6216512/attachments/2965789/5217806/celeritas-optical-photon.pdf)
 - B. Morgan. "Summary/Updates on Integration of AdePT/Celeritas in Experiments". *SWIFT-HEP Workshop*, 12 Nov 2024. [presentation](https://indico.cern.ch/event/1466097/contributions/6216504/attachments/2965776/5217783/BenMorgan-SWIFT-HEP-112024.pdf)
 - S. R. Johnson. "Accelerating detector simulations with Celeritas: Performance improvements and new capabilities". *Conference on Computing in High Energy and Nuclear Physics (CHEP) 2024*, 21 Oct 2024. [presentation](https://indico.cern.ch/event/1338689/contributions/6015932/attachments/2951364/5189225/celeritas-srj.pdf)
