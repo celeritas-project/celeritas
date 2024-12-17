@@ -82,7 +82,7 @@ class ElementSelector
 
   private:
     Span<MatElementComponent const> elements_;
-    real_type material_xs_;
+    real_type material_xs_{0};
     real_type* elemental_xs_;
 };
 
@@ -96,9 +96,7 @@ template<class MicroXsCalc>
 CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
                                                 MicroXsCalc&& calc_micro_xs,
                                                 SpanReal storage)
-    : elements_(material.elements())
-    , material_xs_(0)
-    , elemental_xs_(storage.data())
+    : elements_(material.elements()), elemental_xs_(storage.data())
 {
     CELER_EXPECT(!elements_.empty());
     CELER_EXPECT(storage.size() >= material.num_elements());

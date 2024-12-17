@@ -53,6 +53,20 @@ struct EElectron
 //!@{
 //! \name Atomic units
 
+//! Atom-scale energy
+struct ElectronVolt
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+        return units::megaelectronvolt / real_type(1e6);
+#else
+        return constants::e_electron * units::volt;
+#endif
+    }
+    static char const* label() { return "eV"; }
+};
+
 //! Nucleus-scale energy
 struct Mev
 {

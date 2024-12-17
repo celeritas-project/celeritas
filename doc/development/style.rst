@@ -177,8 +177,11 @@ underscores). Prefer enumerations to boolean values in function interfaces
 definition to understand).
 
 
-Function arguments and return values
-------------------------------------
+Function inputs and outputs
+---------------------------
+
+The following rules are mostly derived from the `Google style guide`_, so refer
+to that reference if not specified here.
 
 - Always pass value types for arguments when the data is small (``sizeof(arg)
   <= sizeof(void*)``). Using values instead of pointers/references allows the
@@ -186,24 +189,25 @@ Function arguments and return values
   make a local copy anyway, it's OK to make the function argument a value (and
   use ``std::move`` internally as needed, but this is a more complicated
   topic).
-- In general, avoid ``const`` values (e.g. ``const int``), because the decision
-  to modify a local variable or not is an implementation detail of the
-  function, not part of its interface.
 - Use const *references* for types that are nontrivial and that you only need
   to access or pass to other const-reference functions.
-- Prefer return values or structs rather than mutable function arguments. This
+- Prefer return values or structs rather return-by-reference. This
   makes it clear that there are no preconditions on the input value's state.
-- In Celeritas we use the google style of passing mutable pointers instead of
-  mutable references, so that it's more obvious to the calling code that a
-  value is going to be modified. Add ``CELER_EXPECT(input);`` to make it clear
-  that the pointer needs to be valid, and add any other preconditions.
+- In Celeritas we *formerly* used the google style of passing mutable pointers
+  instead of mutable references, so that it's more obvious to the calling code
+  that a value is going to be modified. The Google style changed and this has
+  fallen out of favor; **USE REFERENCES** except for the very rare case of
+  *optional* return values.
 - Host-only (e.g., runtime setup) code should almost never return raw pointers;
   use shared pointers instead to make the ownership semantics clear. When
   interfacing with older libraries such as Geant4, try to use ``unique_ptr``
   and its ``release``/``get`` semantics to indicate the transfer of pointer
   ownership.
-- Since we don't yet support C++17's ``string_view`` it's OK to use ``const
-  char*`` to indicate a read-only string.
+- Avoid ``const`` *values* (e.g. ``const int``), because the decision
+  to modify a local variable or not is an implementation detail of the
+  function, not part of its interface. Clang-tidy will warn about this.
+
+.. _Google style guide: https://google.github.io/styleguide/cppguide.html#Inputs_and_Outputs
 
 Memory is always managed from host code, since on-device data management can be
 tricky, proprietary, and inefficient. There are no shared or unique pointers,

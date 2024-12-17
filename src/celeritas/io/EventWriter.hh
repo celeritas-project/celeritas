@@ -61,6 +61,8 @@ class EventWriter : public EventWriterInterface
     //! Prevent copying and moving due to file ownership
     CELER_DELETE_COPY_MOVE(EventWriter);
 
+    ~EventWriter() override = default;
+
     // Write all the primaries from a single event
     void operator()(VecPrimary const& primaries) final;
 

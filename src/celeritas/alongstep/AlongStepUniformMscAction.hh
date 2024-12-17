@@ -55,7 +55,7 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
                               SPConstMsc msc);
 
     // Default destructor
-    ~AlongStepUniformMscAction();
+    ~AlongStepUniformMscAction() final;
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;

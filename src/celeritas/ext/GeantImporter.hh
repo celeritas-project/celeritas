@@ -90,7 +90,7 @@ class GeantImporter final : public ImporterInterface
     ImportData operator()(DataSelection const& selection);
 
     //! Fill all available data from Geant4
-    ImportData operator()() { return (*this)(DataSelection{}); }
+    ImportData operator()() final { return (*this)(DataSelection{}); }
 
   private:
     // Optional setup if celeritas handles initialization

@@ -21,7 +21,7 @@ tracking loop:
      gun["Gun or external"]
      geant4-direct["Direct Geant4 offload"]
      geant4-scint["Geant4 scintillation"]
-     geant4-ceren["Geant4 cerenkov"]
+     geant4-ceren["Geant4 cherenkov"]
 
      classDef not-impl stroke-width:2px,stroke-dasharray: 5 5
      class geant4-direct,geant4-scint,geant4-ceren not-impl
@@ -29,21 +29,21 @@ tracking loop:
      subgraph main-celeritas-loop["Main celeritas loop"]
        offload-gather
        scintillation-offload
-       cerenkov-offload
+       cherenkov-offload
      end
 
      offload-gather -->|pre-step| scintillation-offload
-     offload-gather -->|pre-step| cerenkov-offload
+     offload-gather -->|pre-step| cherenkov-offload
 
      subgraph photon-gen["Optical photon generation"]
        scintillation-gen
-       cerenkov-gen
+       cherenkov-gen
      end
 
      scintillation-offload -->|generator dist| scintillation-gen
-     cerenkov-offload -->|generator dist| cerenkov-gen
+     cherenkov-offload -->|generator dist| cherenkov-gen
      geant4-scint -->|generator dist| scintillation-gen
-     geant4-ceren -->|generator dist| cerenkov-gen
+     geant4-ceren -->|generator dist| cherenkov-gen
 
 
      photons["Optical tracking loop"]
@@ -51,7 +51,7 @@ tracking loop:
 
      geant4-direct -->|inits| photons
      scintillation-gen -->|inits| photons
-     cerenkov-gen -->|inits| photons
+     cherenkov-gen -->|inits| photons
 
 
 Optical materials
@@ -76,7 +76,7 @@ within-step energy distribution are used to "offload" optical photons by
 generating *distribution parameters* to be sampled in the stepping loop.
 
 .. doxygenclass:: celeritas::OpticalCollector
-.. doxygenclass:: celeritas::CerenkovOffload
+.. doxygenclass:: celeritas::CherenkovOffload
 .. doxygenclass:: celeritas::ScintillationOffload
 .. doxygenstruct:: celeritas::optical::GeneratorDistributionData
 
@@ -88,7 +88,7 @@ sample from the distribution of photons specified by the
 "generator distribution" to create optical photon *initializers* which are
 analogous to secondary particles in Geant4.
 
-.. doxygenclass:: celeritas::optical::CerenkovGenerator
+.. doxygenclass:: celeritas::optical::CherenkovGenerator
 .. doxygenclass:: celeritas::optical::ScintillationGenerator
 
 Volumetric processes

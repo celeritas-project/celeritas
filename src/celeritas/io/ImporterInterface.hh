@@ -24,6 +24,7 @@ class ImporterInterface
   protected:
     ImporterInterface() = default;
     CELER_DEFAULT_COPY_MOVE(ImporterInterface);
+    ~ImporterInterface() = default;
 };
 
 //---------------------------------------------------------------------------//

@@ -74,6 +74,8 @@ class InitializedValue
     {
     }
 
+    ~InitializedValue() = default;
+
     //!@}
     //!@{
     //! \name Assignment

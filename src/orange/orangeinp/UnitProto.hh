@@ -142,6 +142,8 @@ class UnitProto : public ProtoInterface
     // Construct with required input data
     explicit UnitProto(Input&& inp);
 
+    virtual ~UnitProto() = default;
+
     // Short unique name of this object
     std::string_view label() const final;
 

@@ -64,7 +64,7 @@ class SetupOptionsMessenger : public G4UImessenger
     explicit SetupOptionsMessenger(SetupOptions* options);
 
     // Default destructor
-    ~SetupOptionsMessenger();
+    ~SetupOptionsMessenger() override;
 
   protected:
     void SetNewValue(G4UIcommand* command, G4String newValue) override;

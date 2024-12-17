@@ -10,7 +10,8 @@
 #include "celeritas/optical/model/RayleighModel.hh"
 
 #include "InteractorHostTestBase.hh"
-#include "MockImportedData.hh"
+#include "OpticalMockTestBase.hh"
+#include "ValidationUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -42,7 +43,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
     }
 };
 
-class RayleighModelTest : public MockImportedData
+class RayleighModelTest : public OpticalMockTestBase
 {
   protected:
     void SetUp() override {}
@@ -50,19 +51,17 @@ class RayleighModelTest : public MockImportedData
     //! Create Rayleigh model from mock data
     std::shared_ptr<RayleighModel const> create_model()
     {
-        auto models = this->create_imported_models();
-        import_model_id_ = models->builtin_model_id(ImportModelClass::rayleigh);
+        auto models = std::make_shared<ImportedModels const>(
+            this->imported_data().optical_models);
         return std::make_shared<RayleighModel const>(ActionId{0}, models);
     }
-
-    ImportedModels::ImportedModelId import_model_id_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 // Basic tests for Rayleigh scattering interaction
-TEST_F(RayleighInteractorTest, basic)
+TEST_F(RayleighInteractorTest, TEST_IF_CELERITAS_DOUBLE(basic))
 {
     int const num_samples = 4;
 
@@ -103,7 +102,7 @@ TEST_F(RayleighInteractorTest, basic)
 
 //---------------------------------------------------------------------------//
 // Test statistical consistency over larger number of samples
-TEST_F(RayleighInteractorTest, stress_test)
+TEST_F(RayleighInteractorTest, TEST_IF_CELERITAS_DOUBLE(stress_test))
 {
     int const num_samples = 1'000;
 
@@ -157,17 +156,19 @@ TEST_F(RayleighModelTest, description)
 // Check Rayleigh model MFP tables match imported ones
 TEST_F(RayleighModelTest, interaction_mfp)
 {
-    auto model = create_model();
-    auto builder = this->create_mfp_builder();
+    OwningGridAccessor storage;
 
-    for (auto mat : range(OpticalMaterialId(import_materials().size())))
+    auto model = create_model();
+    auto builder = storage.create_mfp_builder();
+
+    for (auto mat : range(OpticalMaterialId(this->num_optical_materials())))
     {
         model->build_mfps(mat, builder);
     }
 
-    this->check_built_table_exact(
-        this->import_models()[import_model_id_.get()].mfp_table,
-        builder.grid_ids());
+    EXPECT_TABLE_EQ(
+        this->import_model_by_class(ImportModelClass::rayleigh).mfp_table,
+        storage(builder.grid_ids()));
 }
 
 //---------------------------------------------------------------------------//
