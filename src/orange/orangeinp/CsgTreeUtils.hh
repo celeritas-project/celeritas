@@ -11,15 +11,14 @@
 #include <vector>
 
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/detail/DeMorganSimplifier.hh"
 
+#include "CsgTree.hh"
 #include "CsgTypes.hh"
 
 namespace celeritas
 {
 namespace orangeinp
 {
-class CsgTree;
 
 //---------------------------------------------------------------------------//
 /*!

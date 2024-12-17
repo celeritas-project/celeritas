@@ -7,11 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/CsgTreeUtils.hh"
 
-#include <string_view>
-
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTypes.hh"
-#include "orange/orangeinp/detail/DeMorganSimplifier.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
 #include "orange/orangeinp/detail/PostfixLogicBuilder.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
