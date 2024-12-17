@@ -17,20 +17,7 @@ namespace celeritas
 {
 namespace orangeinp
 {
-//---------------------------------------------------------------------------//
-/*!
- * Result of a DeMorgan simplification.
- */
-struct DeMorganSimplifierResult
-{
-    //! The simplified tree
-    CsgTree tree;
-    //! Has the same size as the original tree, indexed by old node id, with
-    //! the value pointing to the equivalent node in the simplified tree
-    std::vector<NodeId> new_nodes;
-};
-
-//---------------------------------------------------------------------------//
+struct SimplifiedCsgTree;
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -60,7 +47,7 @@ class DeMorganSimplifier
     explicit DeMorganSimplifier(CsgTree const&);
 
     // Perform the simplification
-    DeMorganSimplifierResult operator()();
+    SimplifiedCsgTree operator()();
 
   private:
     //! CsgTree node 0 is always True{} and can't be the parent of any node

@@ -207,7 +207,7 @@ void CsgUnitBuilder::simplifiy_joins()
 {
     auto& tree = unit_->tree;
     auto simplification = transform_negated_joins(tree);
-    CELER_EXPECT(tree.size() == simplification.new_nodes.size());
+    CELER_ASSERT(tree.size() == simplification.new_nodes.size());
     std::vector<std::set<CsgUnit::Metadata>> md;
     md.resize(simplification.tree.size());
 
@@ -215,12 +215,13 @@ void CsgUnitBuilder::simplifiy_joins()
 
     for (auto node_id : range(tree.size()))
     {
-        if (auto equivalent_node = simplification.new_nodes[node_id];
-            equivalent_node)
+        if (auto equivalent_node = simplification.new_nodes[node_id])
         {
             CELER_EXPECT(equivalent_node < md.size());
-            md[equivalent_node.unchecked_get()] = unit_->metadata[node_id];
-            regions[equivalent_node] = unit_->regions[NodeId{node_id}];
+            md[equivalent_node.unchecked_get()]
+                = std::move(unit_->metadata[node_id]);
+            regions[equivalent_node]
+                = std::move(unit_->regions[NodeId{node_id}]);
         }
         else if (unit_->regions.find(NodeId{node_id}) != unit_->regions.end()
                  || !unit_->metadata[node_id].empty())

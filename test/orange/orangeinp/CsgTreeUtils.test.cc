@@ -68,7 +68,7 @@ class CsgTreeUtilsTest : public ::celeritas::test::Test
         return eval_sense(n);
     }
 
-    DeMorganSimplifierResult
+    SimplifiedCsgTree
     validate_simplification(std::string_view expected,
                             std::vector<NodeId> const& expected_node_map)
     {
@@ -78,7 +78,7 @@ class CsgTreeUtilsTest : public ::celeritas::test::Test
         return {simplified, node_map};
     };
 
-    DeMorganSimplifierResult
+    SimplifiedCsgTree
     validate_simplification(std::string_view expected,
                             std::vector<NodeId> const& expected_node_map,
                             std::vector<NodeId> const& expected_volumes)

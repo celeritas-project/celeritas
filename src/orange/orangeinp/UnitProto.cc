@@ -458,7 +458,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                                write_node_labels);
         }
 
-        if (input_.simplification == UnitSimplification::csgtree_infix_logic)
+        if (input_.simplification == UnitSimplification::infix_logic)
         {
             unit_builder.simplifiy_joins();
         }
