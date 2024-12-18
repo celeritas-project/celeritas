@@ -33,27 +33,15 @@ class LazySenseCalculator
   public:
     // Construct from persistent, current, and temporary data
     inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor const& visit,
+                                              VolumeView const& vol,
                                               Real3 const& pos,
                                               Span<Sense> sense_cache,
-                                              Span<SenseModFlags> sense_flags);
+                                              Span<SenseModFlags> sense_flags,
+                                              OnFace& face);
 
     // Calculate senses for a single face of the given volume, possibly on a
     // face
-    inline CELER_FUNCTION Sense operator()(VolumeView const& vol,
-                                           FaceId face_id,
-                                           OnFace face = {});
-
-    //! Clear the cached sense values
-    CELER_FUNCTION void invalidate_cache()
-    {
-        for (auto& flags : sense_flags_)
-        {
-            flags = unset_sense_mod(SenseMod::cached, flags);
-        }
-    }
-
-    //! The first face encountered that we are "on"
-    CELER_FUNCTION OnFace& on_face() { return face_; }
+    inline CELER_FUNCTION Sense operator()(FaceId face_id);
 
     //! Flip the sense of a face
     CELER_FUNCTION void flip_sense(FaceId face_id)
@@ -71,11 +59,11 @@ class LazySenseCalculator
     }
 
   private:
-    //! The first face encountered that we are "on"
-    OnFace face_;
-
     //! Apply a function to a local surface
     LocalSurfaceVisitor visit_;
+
+    //! Volume to calculate senses for
+    VolumeView const& vol_;
 
     //! Local position
     Real3 pos_;
@@ -83,6 +71,9 @@ class LazySenseCalculator
     //! Temporary senses
     Span<Sense> sense_cache_;
     Span<SenseModFlags> sense_flags_;
+
+    //! The first face encountered that we are "on"
+    OnFace& face_;
 };
 
 //---------------------------------------------------------------------------//
@@ -93,13 +84,17 @@ class LazySenseCalculator
  */
 CELER_FUNCTION
 LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
+                                         VolumeView const& vol,
                                          Real3 const& pos,
                                          Span<Sense> sense_cache,
-                                         Span<SenseModFlags> sense_flags)
+                                         Span<SenseModFlags> sense_flags,
+                                         OnFace& face)
     : visit_{visit}
+    , vol_(vol)
     , pos_{pos}
     , sense_cache_{sense_cache}
     , sense_flags_{sense_flags}
+    , face_(face)
 {
     for (auto& sense : sense_flags_)
     {
@@ -114,16 +109,9 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
  * If the point is exactly on one of the volume's surfaces, the \c face value
  * of the return will be set.
  */
-CELER_FUNCTION auto LazySenseCalculator::operator()(VolumeView const& vol,
-                                                    FaceId face_id,
-                                                    OnFace face) -> Sense
+CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
-    CELER_EXPECT(!face || face.id() < vol.num_faces());
-
-    if (!face_ && face)
-    {
-        face_ = face;
-    }
+    CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
 
     if (is_sense_mod_set(SenseMod::cached, sense_flags_[face_id.get()]))
     {
@@ -131,10 +119,10 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(VolumeView const& vol,
     }
 
     Sense sense;
-    if (face_id != face.id())
+    if (face_id != face_.id())
     {
         // Calculate sense
-        SignedSense ss = visit_(CalcSense{pos_}, vol.get_surface(face_id));
+        SignedSense ss = visit_(CalcSense{pos_}, vol_.get_surface(face_id));
         sense = to_sense(ss);
         if (ss == SignedSense::on && !face_)
         {
@@ -145,7 +133,7 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(VolumeView const& vol,
     else
     {
         // Sense is known a priori
-        sense = face.sense();
+        sense = face_.sense();
     }
     if (is_sense_mod_set(SenseMod::flipped, sense_flags_[face_id.get()]))
     {
