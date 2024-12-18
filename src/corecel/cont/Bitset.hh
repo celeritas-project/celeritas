@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <climits>
 #include <cstddef>
 
 #include "corecel/Config.hh"
@@ -43,7 +44,7 @@ class Bitset
     using word_type = unsigned int;
     //!@}
 
-    static constexpr size_t bits_per_word = __CHAR_BIT__ * sizeof(word_type);
+    static constexpr size_t bits_per_word = CHAR_BIT * sizeof(word_type);
     static constexpr size_t num_words = (N / bits_per_word)
                                         + (N % bits_per_word == 0 ? 0 : 1);
 
