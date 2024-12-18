@@ -749,9 +749,9 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
  * Count the number of set bits in an integer.
  */
 #if defined(_MSC_VER)
-int popcount(unsigned int x) noexcept
+inline int popcount(unsigned int x) noexcept
 #else
-int constexpr popcount(unsigned int x) noexcept
+inline constexpr int popcount(unsigned int x) noexcept
 #endif
 {
 #if CELER_DEVICE_COMPILE
