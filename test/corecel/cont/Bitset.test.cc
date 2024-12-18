@@ -17,7 +17,7 @@ namespace test
 // TESTS
 //---------------------------------------------------------------------------//
 
-template<size_t N>
+template<size_type N>
 void test_bitset()
 {
     using reference = typename Bitset<N>::reference;
