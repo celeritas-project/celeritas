@@ -111,8 +111,6 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
  */
 CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
-    CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
-
     if (is_sense_mod_set(SenseMod::cached, sense_flags_[face_id.get()]))
     {
         return sense_cache_[face_id.get()];
@@ -139,6 +137,8 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
     {
         sense = celeritas::flip_sense(sense);
     }
+
+    CELER_ENSURE(!face_ || face_.id() < vol_.num_faces());
 
     sense_flags_[face_id.get()]
         = set_sense_mod(SenseMod::cached, sense_flags_[face_id.get()]);
