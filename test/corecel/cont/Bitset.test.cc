@@ -91,11 +91,36 @@ void test_bitset()
     EXPECT_NE(x, y);
     y = x;
     EXPECT_EQ(x, y);
+
+    x.reset();
+    y.reset();
+    x[N - 1] = true;
+    x[N - 3] = true;
+    y[N - 2] = true;
+    y[N - 3] = true;
+    x ^= y;
+    EXPECT_EQ(x.count(), 2);
+    EXPECT_TRUE(x[N - 2]);
+    EXPECT_FALSE(x[N - 3]);
+
+    x &= y;
+    EXPECT_EQ(x.count(), 1);
+    EXPECT_TRUE(x[N - 2]);
+
+    x |= y;
+    EXPECT_EQ(x.count(), 2);
+    EXPECT_TRUE(x[N - 2]);
+    EXPECT_TRUE(x[N - 3]);
+
+    x = ~x;
+    EXPECT_EQ(x.count(), N - 2);
+    EXPECT_TRUE(x[N - 1]);
+    EXPECT_FALSE(x[N - 2]);
+    EXPECT_FALSE(x[N - 3]);
 }
 
 TEST(BitsetTest, all)
 {
-    test_bitset<2>();
     test_bitset<3>();
     test_bitset<16>();
     test_bitset<32>();

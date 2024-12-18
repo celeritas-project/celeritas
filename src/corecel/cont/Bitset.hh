@@ -32,7 +32,6 @@ namespace celeritas
  *
  * The following methods are not implemented:
  * - conversions to string, to_ulong, to_ullong
- * - set operations with other bitsets
  * - stream operators
  * - shift operators
  * - hash support
@@ -143,6 +142,42 @@ class Bitset
 
     //! Number of bits in the bitset
     CELER_CONSTEXPR_FUNCTION size_type size() const noexcept { return N; }
+
+    //! Bitwise AND with another bitset
+    CELER_CONSTEXPR_FUNCTION Bitset& operator&=(Bitset const& other) noexcept
+    {
+        for (size_type i = 0; i < num_words; ++i)
+        {
+            words_[i] &= other.words_[i];
+        }
+        return *this;
+    }
+
+    //! Bitwise OR with another bitset
+    CELER_CONSTEXPR_FUNCTION Bitset& operator|=(Bitset const& other) noexcept
+    {
+        for (size_type i = 0; i < num_words; ++i)
+        {
+            words_[i] |= other.words_[i];
+        }
+        return *this;
+    }
+
+    //! Bitwise XOR with another bitset
+    CELER_CONSTEXPR_FUNCTION Bitset& operator^=(Bitset const& other) noexcept
+    {
+        for (size_type i = 0; i < num_words; ++i)
+        {
+            words_[i] ^= other.words_[i];
+        }
+        return *this;
+    }
+
+    //! Return a copy with all bits flipped (bianry NOT)
+    CELER_CONSTEXPR_FUNCTION Bitset operator~() const noexcept
+    {
+        return Bitset{*this}.flip();
+    }
 
     //! Set all bits
     CELER_CONSTEXPR_FUNCTION Bitset& set() noexcept
@@ -332,5 +367,29 @@ class Bitset<N>::reference
     word_type* word_pointer_{nullptr};
     size_type bit_pos_{0};
 };
+
+//! Bitwise AND
+template<size_type N>
+CELER_CONSTEXPR_FUNCTION Bitset<N>
+operator&(Bitset<N> const& lhs, Bitset<N> const& rhs)
+{
+    return Bitset{lhs} &= rhs;
+}
+
+//! Bitwise OR
+template<size_type N>
+CELER_CONSTEXPR_FUNCTION Bitset<N>
+operator|(Bitset<N> const& lhs, Bitset<N> const& rhs)
+{
+    return Bitset{lhs} |= rhs;
+}
+
+//! Bitwise XOR
+template<size_type N>
+CELER_CONSTEXPR_FUNCTION Bitset<N>
+operator^(Bitset<N> const& lhs, Bitset<N> const& rhs)
+{
+    return Bitset{lhs} ^= rhs;
+}
 
 }  // namespace celeritas
