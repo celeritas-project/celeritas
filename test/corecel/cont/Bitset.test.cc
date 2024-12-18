@@ -20,6 +20,7 @@ namespace test
 template<size_t N>
 void test_bitset()
 {
+    using reference = typename Bitset<N>::reference;
     Bitset<N> x;
     EXPECT_TRUE(x.none());
     EXPECT_FALSE(x.any());
@@ -62,6 +63,19 @@ void test_bitset()
 
     x[N - 2] = true;
     EXPECT_TRUE(x[N - 2]);
+    EXPECT_FALSE(~x[N - 2]);
+
+    reference r = x[N - 2];
+    bool b = x[N - 2];
+    EXPECT_TRUE(r);
+    EXPECT_TRUE(b);
+    r = false;
+    EXPECT_FALSE(x[N - 2]);
+    EXPECT_FALSE(r);
+    EXPECT_TRUE(b);
+
+    x[N - 2] = ~x[N - 2];
+
     x[N - 1] = x[N - 2];
     EXPECT_TRUE(x[N - 1]);
     x[N - 1].flip();
