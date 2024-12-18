@@ -197,6 +197,8 @@ class Bitset
         {
 #if CELER_DEVICE_COMPILE
             count += __popc(words_[i]);
+#elif defined(_MSC_VER)
+            count += __popcnt(words_[i]);
 #else
             count += __builtin_popcount(words_[i]);
 #endif
