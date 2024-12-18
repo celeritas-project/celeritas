@@ -9,6 +9,8 @@
 
 #include <cstddef>
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -22,7 +24,7 @@ template<size_t ExtraBits>
 struct Sanitize
 {
     using word_type = unsigned int;
-    static constexpr void sanitize(word_type& word) noexcept
+    static CELER_CONSTEXPR_FUNCTION void sanitize(word_type& word) noexcept
     {
         word &= ~((~static_cast<word_type>(0)) << ExtraBits);
     }
@@ -32,7 +34,7 @@ template<>
 struct Sanitize<0>
 {
     using word_type = unsigned int;
-    static constexpr void sanitize(word_type) noexcept {}
+    static CELER_CONSTEXPR_FUNCTION void sanitize(word_type) noexcept {}
 };
 
 }  // namespace detail

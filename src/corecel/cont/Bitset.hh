@@ -14,7 +14,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/detail/BitsetUtils.hh"
+#include "corecel/math/Algorithms.hh"
 
 namespace celeritas
 {
@@ -26,7 +28,7 @@ namespace celeritas
  * It it a subset of the C++ standard, but it should be sufficient
  * for our current use case. Given that GPU typically use 32-bit words, this
  * uses unsigned int as the word type instead of the unsigned long used by the
- * standard library.
+ * standard library. This class is not thread-safe,
  *
  * The following methods are not implemented:
  * - conversions to string, to_ulong, to_ullong
@@ -49,83 +51,7 @@ class Bitset
                                         + (N % bits_per_word == 0 ? 0 : 1);
 
   public:
-    /*!
-     * Reference to a single bit in the bitset.
-     * This is used to implement the mutable operator[].
-     */
-    class reference
-    {
-        friend class Bitset;
-
-        word_type* word_pointer_{nullptr};
-        size_t bit_pos_{0};
-
-      public:
-        CELER_CONSTEXPR_FUNCTION
-        reference(Bitset& b, size_t pos) noexcept
-            : word_pointer_(&b.get_word(pos)), bit_pos_(Bitset::which_bit(pos))
-        {
-        }
-
-        reference(reference const&) = default;
-
-        ~reference() noexcept = default;
-
-        // For b[i] = x;
-        CELER_CONSTEXPR_FUNCTION
-        reference& operator=(bool x) noexcept
-        {
-            if (x)
-            {
-                *word_pointer_ |= Bitset::mask(bit_pos_);
-            }
-            else
-            {
-                *word_pointer_ &= ~Bitset::mask(bit_pos_);
-            }
-            return *this;
-        }
-
-        // For b[i] = b[j];
-        CELER_CONSTEXPR_FUNCTION
-        reference& operator=(reference const& j) noexcept
-        {
-            if (this != &j)
-            {
-                if ((*(j.word_pointer_) & Bitset::mask(j.bit_pos_)))
-                {
-                    *word_pointer_ |= Bitset::mask(bit_pos_);
-                }
-                else
-                {
-                    *word_pointer_ &= ~Bitset::mask(bit_pos_);
-                }
-            }
-            return *this;
-        }
-
-        // Flips the bit
-        CELER_CONSTEXPR_FUNCTION
-        bool operator~() const noexcept
-        {
-            return (*(word_pointer_)&Bitset::mask(bit_pos_)) == 0;
-        }
-
-        // For x = b[i];
-        CELER_CONSTEXPR_FUNCTION
-        operator bool() const noexcept
-        {
-            return (*(word_pointer_)&Bitset::mask(bit_pos_)) != 0;
-        }
-
-        // For b[i].flip();
-        CELER_CONSTEXPR_FUNCTION
-        reference& flip() noexcept
-        {
-            *word_pointer_ ^= Bitset::mask(bit_pos_);
-            return *this;
-        }
-    };
+    class reference;
 
     CELER_CONSTEXPR_FUNCTION bool operator==(Bitset const& other) const noexcept
     {
@@ -196,13 +122,7 @@ class Bitset
         size_t count = 0;
         for (size_t i = 0; i < num_words; ++i)
         {
-#if CELER_DEVICE_COMPILE
-            count += __popc(words_[i]);
-#elif defined(_MSC_VER)
-            count += __popcnt(words_[i]);
-#else
-            count += __builtin_popcount(words_[i]);
-#endif
+            count += celeritas::popcount(words_[i]);
         }
 
         return count;
@@ -305,6 +225,83 @@ class Bitset
     }
 
     word_type words_[num_words] = {};
+};
+
+/*!
+ * Reference to a single bit in the bitset.
+ * This is used to implement the mutable operator[].
+ */
+template<size_t N>
+class Bitset<N>::reference
+{
+    friend class Bitset;
+
+  public:
+    CELER_CONSTEXPR_FUNCTION
+    reference(Bitset& b, size_t pos) noexcept
+        : word_pointer_(&b.get_word(pos)), bit_pos_(Bitset::which_bit(pos))
+    {
+    }
+
+    CELER_CONSTEXPR_FUNCTION reference(reference const&) = default;
+
+    CELER_FUNCTION ~reference() noexcept = default;
+
+    // For b[i] = x;
+    CELER_CONSTEXPR_FUNCTION
+    reference& operator=(bool x) noexcept
+    {
+        if (x)
+        {
+            *word_pointer_ |= Bitset::mask(bit_pos_);
+        }
+        else
+        {
+            *word_pointer_ &= ~Bitset::mask(bit_pos_);
+        }
+        return *this;
+    }
+
+    // For b[i] = b[j];
+    CELER_CONSTEXPR_FUNCTION
+    reference& operator=(reference const& j) noexcept
+    {
+        if (this != &j)
+        {
+            if (*j.word_pointer_ & Bitset::mask(j.bit_pos_))
+            {
+                *word_pointer_ |= Bitset::mask(bit_pos_);
+            }
+            else
+            {
+                *word_pointer_ &= ~Bitset::mask(bit_pos_);
+            }
+        }
+        return *this;
+    }
+
+    // Flips the bit
+    CELER_CONSTEXPR_FUNCTION
+    bool operator~() const noexcept { return !static_cast<bool>(*this); }
+
+    // For x = b[i];
+    CELER_CONSTEXPR_FUNCTION
+    operator bool() const noexcept
+    {
+        return (*word_pointer_ & Bitset::mask(bit_pos_)) != 0;
+    }
+
+    // For b[i].flip();
+    CELER_CONSTEXPR_FUNCTION
+    reference& flip() noexcept
+    {
+        *word_pointer_ ^= Bitset::mask(bit_pos_);
+        return *this;
+    }
+
+  private:
+    word_type* word_pointer_{nullptr};
+    size_t bit_pos_{0};
 };
 
 }  // namespace celeritas
