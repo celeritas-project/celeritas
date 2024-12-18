@@ -34,6 +34,7 @@ namespace celeritas
  * - conversions to string, to_ulong, to_ullong
  * - set operations with other bitsets
  * - stream operators
+ * - shift operators
  * - hash support
  * - construct from string, from_ulong, from_ullong
  */
@@ -70,17 +71,21 @@ class Bitset
         return !(*this == other);
     }
 
+    //! Access to a single bit
     CELER_CONSTEXPR_FUNCTION bool operator[](size_type pos) const noexcept
     {
         return (this->get_word(pos) & Bitset::mask(pos))
                != static_cast<word_type>(0);
     }
 
+    //! Mutable access to a single bit
     CELER_CONSTEXPR_FUNCTION reference operator[](size_type pos) noexcept
     {
         return reference(*this, pos);
     }
 
+    //! Get the value of the bit at position pos. Equivalent to operator[] with
+    //! a precondition check in debug mode.
     CELER_CONSTEXPR_FUNCTION bool test(size_type pos) const
         noexcept(!CELERITAS_DEBUG)
     {
@@ -88,6 +93,7 @@ class Bitset
         return (*this)[pos];
     }
 
+    //! Check if all bits are set
     CELER_CONSTEXPR_FUNCTION bool all() const noexcept
     {
         for (size_type i = 0; i < num_words - 1; ++i)
@@ -103,6 +109,7 @@ class Bitset
                    >> (num_words * bits_per_word - N));
     }
 
+    //! Check if any bits are set
     CELER_CONSTEXPR_FUNCTION bool any() const noexcept
     {
         for (size_type i = 0; i < num_words; ++i)
@@ -116,11 +123,13 @@ class Bitset
         return false;
     }
 
+    //! Check if no bits are set
     CELER_CONSTEXPR_FUNCTION bool none() const noexcept
     {
         return !this->any();
     }
 
+    //! Number of bits set to true
     CELER_CONSTEXPR_FUNCTION size_type count() const noexcept
     {
         size_type count = 0;
@@ -132,8 +141,10 @@ class Bitset
         return count;
     }
 
+    //! Number of bits in the bitset
     CELER_CONSTEXPR_FUNCTION size_type size() const noexcept { return N; }
 
+    //! Set all bits
     CELER_CONSTEXPR_FUNCTION Bitset& set() noexcept
     {
         for (size_type i = 0; i < num_words; ++i)
@@ -145,6 +156,7 @@ class Bitset
         return *this;
     }
 
+    //! Set the bit at position pos
     CELER_CONSTEXPR_FUNCTION Bitset&
     set(size_type pos, bool value = true) noexcept
     {
@@ -160,6 +172,7 @@ class Bitset
         return *this;
     }
 
+    //! Reset all bits
     CELER_CONSTEXPR_FUNCTION Bitset& reset() noexcept
     {
         for (size_type i = 0; i < num_words; ++i)
@@ -170,12 +183,14 @@ class Bitset
         return *this;
     }
 
+    //! Reset the bit at position pos
     CELER_CONSTEXPR_FUNCTION Bitset& reset(size_type pos) noexcept
     {
         this->get_word(pos) &= ~Bitset::mask(pos);
         return *this;
     }
 
+    //! Flip all bits
     CELER_CONSTEXPR_FUNCTION Bitset& flip() noexcept
     {
         for (size_type i = 0; i < num_words; ++i)
@@ -187,6 +202,7 @@ class Bitset
         return *this;
     }
 
+    //! Flip the bit at position pos
     CELER_CONSTEXPR_FUNCTION Bitset& flip(size_type pos) noexcept
     {
         this->get_word(pos) ^= Bitset::mask(pos);
@@ -194,41 +210,49 @@ class Bitset
     }
 
   private:
+    //! Find the word index for a given bit position
     static CELER_CONSTEXPR_FUNCTION size_type which_word(size_type pos) noexcept
     {
         return pos / bits_per_word;
     }
 
+    //! Find the bit index in a word
     static CELER_CONSTEXPR_FUNCTION size_type which_bit(size_type pos) noexcept
     {
         return pos % bits_per_word;
     }
 
+    //! Create a mask for a given bit index
     static CELER_CONSTEXPR_FUNCTION word_type mask(size_type pos) noexcept
     {
         return static_cast<word_type>(1) << Bitset::which_bit(pos);
     }
 
+    //! Get the word for a given bit position
     CELER_CONSTEXPR_FUNCTION word_type get_word(size_type pos) const noexcept
     {
         return words_[Bitset::which_word(pos)];
     }
 
+    //! Get the word for a given bit position
     CELER_CONSTEXPR_FUNCTION word_type& get_word(size_type pos) noexcept
     {
         return words_[Bitset::which_word(pos)];
     }
 
+    //! Get the last word of the bitset
     CELER_CONSTEXPR_FUNCTION word_type& last_word() noexcept
     {
         return words_[num_words - 1];
     }
 
+    //! Get the last word of the bitset
     CELER_CONSTEXPR_FUNCTION word_type last_word() const noexcept
     {
         return words_[num_words - 1];
     }
 
+    //! storage
     word_type words_[num_words] = {};
 };
 
@@ -252,7 +276,7 @@ class Bitset<N>::reference
 
     CELER_FUNCTION ~reference() noexcept = default;
 
-    // For b[i] = x;
+    //! Assignment for b[i] = x;
     CELER_CONSTEXPR_FUNCTION
     reference& operator=(bool x) noexcept
     {
@@ -267,7 +291,7 @@ class Bitset<N>::reference
         return *this;
     }
 
-    // For b[i] = b[j];
+    //! Assignment for or b[i] = b[j];
     CELER_CONSTEXPR_FUNCTION
     reference& operator=(reference const& j) noexcept
     {
@@ -285,18 +309,18 @@ class Bitset<N>::reference
         return *this;
     }
 
-    // Flips the bit
+    //! Flips the bit
     CELER_CONSTEXPR_FUNCTION
     bool operator~() const noexcept { return !static_cast<bool>(*this); }
 
-    // For x = b[i];
+    //! Conversion for bool x = b[i];
     CELER_CONSTEXPR_FUNCTION
     operator bool() const noexcept
     {
         return (*word_pointer_ & Bitset::mask(bit_pos_)) != 0;
     }
 
-    // For b[i].flip();
+    //! To support b[i].flip();
     CELER_CONSTEXPR_FUNCTION
     reference& flip() noexcept
     {
