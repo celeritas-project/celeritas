@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
-
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
@@ -20,7 +19,7 @@ namespace detail
 /*!
  * Clear extra bits in the last word of a bitset.
  */
-template<size_t ExtraBits>
+template<size_type ExtraBits>
 struct Sanitize
 {
     using word_type = unsigned int;

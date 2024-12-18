@@ -745,18 +745,17 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
 //---------------------------------------------------------------------------//
 // Portable utilities functions
 //---------------------------------------------------------------------------//
-
 /*!
  * Count the number of set bits in an integer.
  */
 int constexpr popcount(unsigned int x) noexcept
 {
 #if CELER_DEVICE_COMPILE
-            return __popc(x);
+    return __popc(x);
 #elif defined(_MSC_VER)
-            return __popcnt(x);
+    return __popcnt(x);
 #else
-            return __builtin_popcount(x);
+    return __builtin_popcount(x);
 #endif
 }
 
