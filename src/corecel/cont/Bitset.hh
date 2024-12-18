@@ -46,12 +46,13 @@ class Bitset
     using word_type = unsigned int;
     //!@}
 
+    class reference;
+
     static constexpr size_type bits_per_word = CHAR_BIT * sizeof(word_type);
-    static constexpr size_type num_words = (N / bits_per_word)
-                                           + (N % bits_per_word == 0 ? 0 : 1);
+    static constexpr size_type num_words = ceil_div(N, bits_per_word);
 
   public:
-    class reference;
+    CELER_CONSTEXPR_FUNCTION Bitset() = default;
 
     CELER_CONSTEXPR_FUNCTION bool operator==(Bitset const& other) const noexcept
     {
@@ -195,15 +196,7 @@ class Bitset
     CELER_CONSTEXPR_FUNCTION Bitset&
     set(size_type pos, bool value = true) noexcept
     {
-        if (value)
-        {
-            this->get_word(pos) |= Bitset::mask(pos);
-        }
-        else
-        {
-            this->get_word(pos) &= ~Bitset::mask(pos);
-        }
-
+        (*this)[pos] = value;
         return *this;
     }
 
@@ -298,8 +291,6 @@ class Bitset
 template<size_type N>
 class Bitset<N>::reference
 {
-    friend class Bitset;
-
   public:
     CELER_CONSTEXPR_FUNCTION
     reference(Bitset& b, size_type pos) noexcept
