@@ -35,11 +35,13 @@ namespace celeritas
  * - stream operators
  * - shift operators
  * - hash support
- * - construct from string, from_ulong, from_ullong
+ * - construct from string, from_ullong
  */
 template<size_type N>
 class Bitset
 {
+    static_assert(N > 0, "Zero-sized bitset is not supported");
+
   public:
     //!@{
     //! \name Type aliases
@@ -53,6 +55,8 @@ class Bitset
 
   public:
     CELER_CONSTEXPR_FUNCTION Bitset() = default;
+
+    CELER_CONSTEXPR_FUNCTION Bitset(word_type value) noexcept;
 
     CELER_CONSTEXPR_FUNCTION bool
     operator==(Bitset const& other) const noexcept;
@@ -144,6 +148,18 @@ class Bitset
 
 //---------------------------------------------------------------------------//
 // Inline member function definitions
+//---------------------------------------------------------------------------//
+//! Construct from a word value
+template<size_type N>
+CELER_CONSTEXPR_FUNCTION Bitset<N>::Bitset(word_type value) noexcept
+    : words_{value}
+{
+    if constexpr (num_words == 1)
+    {
+        detail::Sanitize<N % bits_per_word>::sanitize(this->last_word());
+    }
+}
+
 //---------------------------------------------------------------------------//
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION bool

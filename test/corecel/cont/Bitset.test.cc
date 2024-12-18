@@ -117,6 +117,12 @@ void test_bitset()
     EXPECT_TRUE(x[N - 1]);
     EXPECT_FALSE(x[N - 2]);
     EXPECT_FALSE(x[N - 3]);
+
+    using flags = typename Bitset<N>::word_type;
+    flags init{0};
+    init = ~init;
+    Bitset<N> z(init);
+    EXPECT_EQ(z.count(), std::min(Bitset<N>::bits_per_word, N));
 }
 
 TEST(BitsetTest, all)
