@@ -15,7 +15,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-
 /*!
  * Clear extra bits in the last word of a bitset.
  */
@@ -29,6 +28,10 @@ struct Sanitize
     }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization for when there are no extra bits in the last word.
+ */
 template<>
 struct Sanitize<0>
 {
