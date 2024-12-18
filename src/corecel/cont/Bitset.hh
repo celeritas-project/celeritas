@@ -147,6 +147,84 @@ class Bitset
 };
 
 //---------------------------------------------------------------------------//
+// Bitset::reference definitions
+//---------------------------------------------------------------------------//
+/*!
+ * Reference to a single bit in the bitset.
+ * This is used to implement the mutable operator[].
+ */
+template<size_type N>
+class Bitset<N>::reference
+{
+  public:
+    CELER_CONSTEXPR_FUNCTION
+    reference(Bitset& b, size_type pos) noexcept
+        : word_pointer_(&b.get_word(pos)), bit_pos_(Bitset::which_bit(pos))
+    {
+    }
+
+    CELER_CONSTEXPR_FUNCTION reference(reference const&) = default;
+
+    CELER_FUNCTION ~reference() noexcept = default;
+
+    //! Assignment for b[i] = x;
+    CELER_CONSTEXPR_FUNCTION
+    reference& operator=(bool x) noexcept
+    {
+        if (x)
+        {
+            *word_pointer_ |= Bitset::mask(bit_pos_);
+        }
+        else
+        {
+            *word_pointer_ &= ~Bitset::mask(bit_pos_);
+        }
+        return *this;
+    }
+
+    //! Assignment for or b[i] = b[j];
+    CELER_CONSTEXPR_FUNCTION
+    reference& operator=(reference const& j) noexcept
+    {
+        if (this != &j)
+        {
+            if (*j.word_pointer_ & Bitset::mask(j.bit_pos_))
+            {
+                *word_pointer_ |= Bitset::mask(bit_pos_);
+            }
+            else
+            {
+                *word_pointer_ &= ~Bitset::mask(bit_pos_);
+            }
+        }
+        return *this;
+    }
+
+    //! Flips the bit
+    CELER_CONSTEXPR_FUNCTION
+    bool operator~() const noexcept { return !static_cast<bool>(*this); }
+
+    //! Conversion for bool x = b[i];
+    CELER_CONSTEXPR_FUNCTION
+    operator bool() const noexcept
+    {
+        return (*word_pointer_ & Bitset::mask(bit_pos_)) != 0;
+    }
+
+    //! To support b[i].flip();
+    CELER_CONSTEXPR_FUNCTION
+    reference& flip() noexcept
+    {
+        *word_pointer_ ^= Bitset::mask(bit_pos_);
+        return *this;
+    }
+
+  private:
+    word_type* word_pointer_{nullptr};
+    size_type bit_pos_{0};
+};
+
+//---------------------------------------------------------------------------//
 // Inline member function definitions
 //---------------------------------------------------------------------------//
 //! Construct from a word value
@@ -442,84 +520,6 @@ CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() const noexcept -> word_type
 {
     return words_[num_words - 1];
 }
-
-//---------------------------------------------------------------------------//
-// Bitset::reference definitions
-//---------------------------------------------------------------------------//
-/*!
- * Reference to a single bit in the bitset.
- * This is used to implement the mutable operator[].
- */
-template<size_type N>
-class Bitset<N>::reference
-{
-  public:
-    CELER_CONSTEXPR_FUNCTION
-    reference(Bitset& b, size_type pos) noexcept
-        : word_pointer_(&b.get_word(pos)), bit_pos_(Bitset::which_bit(pos))
-    {
-    }
-
-    CELER_CONSTEXPR_FUNCTION reference(reference const&) = default;
-
-    CELER_FUNCTION ~reference() noexcept = default;
-
-    //! Assignment for b[i] = x;
-    CELER_CONSTEXPR_FUNCTION
-    reference& operator=(bool x) noexcept
-    {
-        if (x)
-        {
-            *word_pointer_ |= Bitset::mask(bit_pos_);
-        }
-        else
-        {
-            *word_pointer_ &= ~Bitset::mask(bit_pos_);
-        }
-        return *this;
-    }
-
-    //! Assignment for or b[i] = b[j];
-    CELER_CONSTEXPR_FUNCTION
-    reference& operator=(reference const& j) noexcept
-    {
-        if (this != &j)
-        {
-            if (*j.word_pointer_ & Bitset::mask(j.bit_pos_))
-            {
-                *word_pointer_ |= Bitset::mask(bit_pos_);
-            }
-            else
-            {
-                *word_pointer_ &= ~Bitset::mask(bit_pos_);
-            }
-        }
-        return *this;
-    }
-
-    //! Flips the bit
-    CELER_CONSTEXPR_FUNCTION
-    bool operator~() const noexcept { return !static_cast<bool>(*this); }
-
-    //! Conversion for bool x = b[i];
-    CELER_CONSTEXPR_FUNCTION
-    operator bool() const noexcept
-    {
-        return (*word_pointer_ & Bitset::mask(bit_pos_)) != 0;
-    }
-
-    //! To support b[i].flip();
-    CELER_CONSTEXPR_FUNCTION
-    reference& flip() noexcept
-    {
-        *word_pointer_ ^= Bitset::mask(bit_pos_);
-        return *this;
-    }
-
-  private:
-    word_type* word_pointer_{nullptr};
-    size_type bit_pos_{0};
-};
 
 //---------------------------------------------------------------------------//
 // Non-member functions definitions
