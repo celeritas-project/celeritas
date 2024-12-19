@@ -8,10 +8,9 @@
 #pragma once
 
 #include <climits>
+#include <stdexcept>
+#include <string>
 
-#include "corecel/Config.hh"
-
-#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/detail/BitsetUtils.hh"
@@ -69,8 +68,7 @@ class Bitset
 
     // Get the value of the bit at position pos. Equivalent to operator[] with
     // a precondition check in debug mode.
-    CELER_CONSTEXPR_FUNCTION bool test(size_type pos) const
-        noexcept(!CELERITAS_DEBUG);
+    CELER_CONSTEXPR_FUNCTION bool test(size_type pos) const;
 
     // Check if all bits are set
     CELER_CONSTEXPR_FUNCTION bool all() const noexcept;
@@ -288,12 +286,16 @@ Bitset<N>::operator[](size_type pos) noexcept -> reference
 
 //---------------------------------------------------------------------------//
 //! Get the value of the bit at position pos. Equivalent to operator[] with
-//! a precondition check in debug mode.
+//! a precondition check.
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION bool Bitset<N>::test(size_type pos) const
-    noexcept(!CELERITAS_DEBUG)
 {
-    CELER_EXPECT(pos < N);
+    if (CELER_UNLIKELY(pos >= N))
+    {
+        throw std::out_of_range("Bitset out of bounds: pos="
+                                + std::to_string(pos)
+                                + ", N=" + std::to_string(N));
+    }
     return (*this)[pos];
 }
 

@@ -36,6 +36,7 @@ void test_bitset()
     EXPECT_FALSE(x.all());
     EXPECT_TRUE(x[N - 1]);
     EXPECT_TRUE(x.test(N - 1));
+    EXPECT_THROW(x.test(N), std::out_of_range);
 
     x.flip(N - 2);
     EXPECT_TRUE(x[N - 2]);
