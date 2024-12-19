@@ -27,7 +27,7 @@ namespace celeritas
  * for our current use case. Given that GPU typically use 32-bit words, this
  * uses unsigned int as the word type instead of the unsigned long used by the
  * standard library. This container is not thread-safe, multiple threads are
- * likely to manipulate the same word and access is not synchronized.
+ * likely to manipulate the same word, even we accessing different indices.
  *
  * The following methods are not implemented:
  * - conversions to string, to_ulong, to_ullong
@@ -67,7 +67,7 @@ class Bitset
     CELER_CONSTEXPR_FUNCTION reference operator[](size_type pos) noexcept;
 
     // Get the value of the bit at position pos. Equivalent to operator[] with
-    // a precondition check in debug mode.
+    // a precondition check.
     CELER_CONSTEXPR_FUNCTION bool test(size_type pos) const;
 
     // Check if all bits are set
@@ -186,7 +186,7 @@ class Bitset<N>::reference
         return *this;
     }
 
-    //! Assignment for or b[i] = b[j];
+    //! Assignment for b[i] = b[j];
     CELER_CONSTEXPR_FUNCTION
     reference& operator=(reference const& j) noexcept
     {
