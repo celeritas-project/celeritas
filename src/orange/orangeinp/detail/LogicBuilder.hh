@@ -43,33 +43,16 @@ class LogicBuilder
     //! \name Type aliases
     using VecLogic = std::vector<logic_int>;
     using VecSurface = std::vector<LocalSurfaceId>;
-    using result_type = std::pair<VecSurface, VecLogic>;
+    using result_type = VecSurface;
     //!@}
 
   public:
-    //! Construct from a tree
-    explicit LogicBuilder(CsgTree const& tree) : tree_{tree} {}
-
-    // Construct from a tree and surface remapping
-    inline LogicBuilder(CsgTree const& tree, VecSurface const& old_ids);
+    LogicBuilder() = default;
 
     // Convert a single node to a given notation
     template<class LogicBuilderPolicy>
-    result_type operator()(NodeId n) const;
-
-  private:
-    CsgTree const& tree_;
-    VecSurface const* mapping_{nullptr};
+    result_type operator()(LogicBuilderPolicy&& policy, NodeId n) const;
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a tree and surface remapping.
- */
-LogicBuilder::LogicBuilder(CsgTree const& tree, VecSurface const& old_ids)
-    : tree_{tree}, mapping_{&old_ids}
-{
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

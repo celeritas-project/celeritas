@@ -32,6 +32,7 @@
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
 #include "detail/LogicBuilder.hh"
+#include "detail/LogicBuilderPolicies.hh"
 #include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
@@ -39,10 +40,6 @@ namespace celeritas
 {
 namespace orangeinp
 {
-namespace detail
-{
-class PostfixLogicBuilderPolicy;
-}  // namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Construct with required input data.
@@ -174,7 +171,7 @@ void UnitProto::build(ProtoBuilder& input) const
     }
 
     // Loop over all volumes to construct
-    detail::LogicBuilder build_logic{csg_unit.tree, sorted_local_surfaces};
+    detail::LogicBuilder build_logic;
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
@@ -185,11 +182,11 @@ void UnitProto::build(ProtoBuilder& input) const
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
-        auto&& [faces, logic]
-            = build_logic.operator()<detail::PostfixLogicBuilderPolicy>(
-                node_id);
+        auto faces = build_logic(
+            detail::PostfixLogicBuilderPolicy{
+                csg_unit.tree, &sorted_local_surfaces, &vi.logic},
+            node_id);
         vi.faces = std::move(faces);
-        vi.logic = std::move(logic);
 
         // Set bounding box
         auto region_iter = csg_unit.regions.find(node_id);

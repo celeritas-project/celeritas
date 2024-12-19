@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTree.hh"
@@ -32,9 +33,9 @@ namespace detail
  * of the logic evaluation itself.
  */
 template<class LogicBuilderPolicy>
-auto LogicBuilder::operator()(NodeId n) const -> result_type
+auto LogicBuilder::operator()(LogicBuilderPolicy&& policy,
+                              NodeId n) const -> result_type
 {
-    CELER_EXPECT(n < tree_.size());
     static_assert(std::is_constructible_v<LogicBuilderPolicy,
                                           CsgTree const&,
                                           VecSurface const*,
@@ -42,9 +43,9 @@ auto LogicBuilder::operator()(NodeId n) const -> result_type
     static_assert(std::is_invocable_v<LogicBuilderPolicy, NodeId>);
 
     // Construct logic vector as local surface IDs
-    VecLogic lgc;
-    LogicBuilderPolicy build_impl{tree_, mapping_, &lgc};
-    build_impl(n);
+    auto& lgc = policy.logic();
+    CELER_ASSERT(lgc.empty());
+    policy(n);
 
     // Construct sorted vector of faces
     std::vector<LocalSurfaceId> faces;
@@ -72,7 +73,7 @@ auto LogicBuilder::operator()(NodeId n) const -> result_type
         }
     }
 
-    return {std::move(faces), std::move(lgc)};
+    return faces;
 }
 
 //---------------------------------------------------------------------------//
@@ -80,9 +81,10 @@ auto LogicBuilder::operator()(NodeId n) const -> result_type
 //---------------------------------------------------------------------------//
 
 template auto
-LogicBuilder::operator()<InfixLogicBuilderPolicy>(NodeId) const -> result_type;
-template auto
-LogicBuilder::operator()<PostfixLogicBuilderPolicy>(NodeId) const -> result_type;
+LogicBuilder::operator()<InfixLogicBuilderPolicy>(InfixLogicBuilderPolicy&&,
+                                                  NodeId) const -> result_type;
+template auto LogicBuilder::operator()<PostfixLogicBuilderPolicy>(
+    PostfixLogicBuilderPolicy&&, NodeId) const -> result_type;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

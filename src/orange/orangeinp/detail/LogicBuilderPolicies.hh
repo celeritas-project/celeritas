@@ -63,8 +63,10 @@ class BaseLogicBuilderPolicy
     inline void operator()(Aliased const&);
     //!@}
 
-  protected:
+    //! Access the logic expression
     VecLogic& logic() { return *logic_; }
+
+  protected:
     ContainerVisitor<CsgTree const&, NodeId>& visit() { return visit_node_; }
 
   private:

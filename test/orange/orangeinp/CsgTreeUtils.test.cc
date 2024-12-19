@@ -12,6 +12,7 @@
 #include "orange/orangeinp/CsgTypes.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
 #include "orange/orangeinp/detail/LogicBuilder.hh"
+#include "orange/orangeinp/detail/LogicBuilderPolicies.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 #include "orange/surf/VariantSurface.hh"
 
@@ -32,11 +33,6 @@ std::ostream& operator<<(std::ostream& os, SignedSense s)
 
 namespace orangeinp
 {
-namespace detail
-{
-class InfixLogicBuilderPolicy;
-class PostfixLogicBuilderPolicy;
-}  // namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -109,14 +105,17 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
-    LogicBuilder builder(tree_);
-    auto build_postfix = [&builder](N n) {
-        return builder.operator()<detail::PostfixLogicBuilderPolicy>(n);
-    };
+    detail::LogicBuilder::VecLogic lgc;
+    auto build_postfix
+        = [&](N n, detail::LogicBuilder::VecSurface* faces = nullptr) {
+              lgc.clear();
+              return detail::LogicBuilder{}(
+                  detail::PostfixLogicBuilderPolicy{tree_, faces, &lgc}, n);
+          };
 
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
-        auto&& [faces, lgc] = build_postfix(mz);
+        auto faces = build_postfix(mz);
 
         static size_type expected_lgc[] = {0};
         static S const expected_faces[] = {S{0u}};
@@ -131,7 +130,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(below_pz));
-        auto&& [faces, lgc] = build_postfix(below_pz);
+        auto faces = build_postfix(below_pz);
 
         static size_type expected_lgc[] = {0, logic::lnot};
         static S const expected_faces[] = {S{1u}};
@@ -144,7 +143,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(zslab));
-        auto&& [faces, lgc] = build_postfix(zslab);
+        auto faces = build_postfix(zslab);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
@@ -158,7 +157,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(inner_cyl));
-        auto&& [faces, lgc] = build_postfix(inner_cyl);
+        auto faces = build_postfix(inner_cyl);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
@@ -170,7 +169,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     }
     {
         EXPECT_TRUE(has_internal_surfaces(shell));
-        auto&& [faces, lgc] = build_postfix(shell);
+        auto faces = build_postfix(shell);
 
         static size_type const expected_lgc[] = {
             0u,
@@ -205,7 +204,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(bdy));
-        auto&& [faces, lgc] = build_postfix(bdy);
+        auto faces = build_postfix(bdy);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::land};
@@ -230,9 +229,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         static S const expected_remapped_surf[] = {S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
 
-        LogicBuilder builder(tree_, remapped_surf);
-        auto&& [faces, lgc]
-            = builder.operator()<detail::PostfixLogicBuilderPolicy>(shell);
+        auto faces = build_postfix(shell, &remapped_surf);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
@@ -269,13 +266,16 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
 
     // Test infix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
-    LogicBuilder builder(tree_);
-    auto build_infix = [&](N n) {
-        return builder.operator()<detail::InfixLogicBuilderPolicy>(n);
-    };
+    detail::LogicBuilder::VecLogic lgc;
+    auto build_infix
+        = [&](N n, detail::LogicBuilder::VecSurface* faces = nullptr) {
+              lgc.clear();
+              return LogicBuilder{}(
+                  detail::InfixLogicBuilderPolicy{tree_, faces, &lgc}, n);
+          };
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
-        auto&& [faces, lgc] = build_infix(mz);
+        auto faces = build_infix(mz);
 
         static size_type expected_lgc[] = {0};
         static S const expected_faces[] = {S{0u}};
@@ -290,7 +290,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(below_pz));
-        auto&& [faces, lgc] = build_infix(below_pz);
+        auto faces = build_infix(below_pz);
 
         static size_type expected_lgc[] = {logic::lnot, 0};
         static S const expected_faces[] = {S{1u}};
@@ -303,7 +303,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(zslab));
-        auto&& [faces, lgc] = build_infix(zslab);
+        auto faces = build_infix(zslab);
 
         static size_type const expected_lgc[]
             = {logic::lopen, 0u, logic::land, logic::lnot, 1u, logic::lclose};
@@ -317,7 +317,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(inner_cyl));
-        auto&& [faces, lgc] = build_infix(inner_cyl);
+        auto faces = build_infix(inner_cyl);
 
         static size_type const expected_lgc[] = {logic::lopen,
                                                  0u,
@@ -336,7 +336,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     }
     {
         EXPECT_TRUE(has_internal_surfaces(shell));
-        auto&& [faces, lgc] = build_infix(shell);
+        auto faces = build_infix(shell);
 
         static size_type const expected_lgc[]
             = {logic::lopen,  logic::lopen, 0u,
@@ -362,7 +362,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     }
     {
         EXPECT_FALSE(has_internal_surfaces(bdy));
-        auto&& [faces, lgc] = build_infix(bdy);
+        auto faces = build_infix(bdy);
 
         static size_type const expected_lgc[] = {logic::lopen,
                                                  0u,
@@ -392,10 +392,8 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         auto remapped_surf = calc_surfaces(tree_);
         static S const expected_remapped_surf[] = {S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
-
-        LogicBuilder builder(tree_, remapped_surf);
-        auto&& [faces, lgc]
-            = builder.operator()<detail::InfixLogicBuilderPolicy>(shell);
+        lgc.clear();
+        auto faces = build_infix(shell, &remapped_surf);
 
         static size_type const expected_lgc[]
             = {logic::lopen, 0u, logic::land, logic::lnot, 1u, logic::lclose};
