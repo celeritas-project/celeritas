@@ -46,7 +46,7 @@ class BaseLogicBuilderPolicy
     // Construct with optional mapping and logic vector to append to
     inline BaseLogicBuilderPolicy(CsgTree const& tree,
                                   VecSurface const* vs,
-                                  VecLogic* logic);
+                                  VecLogic& logic);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -64,7 +64,7 @@ class BaseLogicBuilderPolicy
     //!@}
 
     //! Access the logic expression
-    VecLogic& logic() { return *logic_; }
+    VecLogic& logic() { return logic_; }
 
   protected:
     ContainerVisitor<CsgTree const&, NodeId>& visit() { return visit_node_; }
@@ -72,7 +72,7 @@ class BaseLogicBuilderPolicy
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_;
-    VecLogic* logic_;
+    VecLogic& logic_;
 };
 
 //---------------------------------------------------------------------------//
@@ -83,10 +83,9 @@ class BaseLogicBuilderPolicy
  */
 template<class BuilderPolicy>
 BaseLogicBuilderPolicy<BuilderPolicy>::BaseLogicBuilderPolicy(
-    CsgTree const& tree, VecSurface const* vs, VecLogic* logic)
+    CsgTree const& tree, VecSurface const* vs, VecLogic& logic)
     : visit_node_{tree}, mapping_{vs}, logic_{logic}
 {
-    CELER_EXPECT(logic_);
 }
 
 //---------------------------------------------------------------------------//
@@ -106,7 +105,7 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(NodeId const& n)
 template<class BuilderPolicy>
 void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(True const&)
 {
-    logic_->push_back(logic::ltrue);
+    logic_.push_back(logic::ltrue);
 }
 
 //---------------------------------------------------------------------------//
@@ -144,7 +143,7 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Surface const& s)
         }
     }();
 
-    logic_->push_back(sidx);
+    logic_.push_back(sidx);
 }
 
 //---------------------------------------------------------------------------//

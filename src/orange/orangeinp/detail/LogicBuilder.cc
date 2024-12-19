@@ -37,10 +37,6 @@ void LogicBuilder::operator()(LogicBuilderPolicy&& policy,
                               NodeId n,
                               VecSurface& faces) const
 {
-    static_assert(std::is_constructible_v<LogicBuilderPolicy,
-                                          CsgTree const&,
-                                          VecSurface const*,
-                                          VecLogic*>);
     static_assert(std::is_invocable_v<LogicBuilderPolicy, NodeId>);
 
     // Construct logic vector as local surface IDs

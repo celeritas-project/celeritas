@@ -112,7 +112,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         lgc.clear();
         detail::LogicBuilder::VecSurface faces;
         detail::LogicBuilder{}(
-            detail::PostfixLogicBuilderPolicy{tree_, mapping, &lgc}, n, faces);
+            detail::PostfixLogicBuilderPolicy{tree_, mapping, lgc}, n, faces);
         return faces;
     };
 
@@ -275,7 +275,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         lgc.clear();
         detail::LogicBuilder::VecSurface faces;
         LogicBuilder{}(
-            detail::InfixLogicBuilderPolicy{tree_, mapping, &lgc}, n, faces);
+            detail::InfixLogicBuilderPolicy{tree_, mapping, lgc}, n, faces);
         return faces;
     };
     {
