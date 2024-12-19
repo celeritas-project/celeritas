@@ -75,79 +75,6 @@ class BaseLogicBuilderPolicy
 
 //---------------------------------------------------------------------------//
 /*!
- * Recursively construct a logic vector from a node with postfix operation.
- *
- * This is a policy used as template parameter of the \c
- * LogicBuilder::operator(). The user invokes this class with a node ID
- * (usually representing a cell), and then this class recurses into
- * the daughters using a tree visitor.
- *
- * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
-    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
- * \endverbatim
- */
-class PostfixLogicBuilderPolicy
-    : public BaseLogicBuilderPolicy<PostfixLogicBuilderPolicy>
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using BaseLogicBuilderPolicy::VecLogic;
-    using BaseLogicBuilderPolicy::VecSurface;
-    //!@}
-
-  public:
-    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
-
-    //!@{
-    //! \name Visit a node directly
-    using BaseLogicBuilderPolicy::operator();
-    // Visit a negated node and append 'not'
-    inline void operator()(Negated const&);
-    // Visit daughter nodes and append the conjunction.
-    inline void operator()(Joined const&);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Recursively construct a logic vector from a node with infix operation.
- *
- * This is a policy used as template parameter of the \c
- * LogicBuilder::operator(). The user invokes this class with a node ID
- * (usually representing a cell), and then this class recurses into the
- * daughters using a tree visitor.
- *
- * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
-    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
- * \endverbatim
- */
-class InfixLogicBuilderPolicy
-    : public BaseLogicBuilderPolicy<InfixLogicBuilderPolicy>
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using BaseLogicBuilderPolicy::VecLogic;
-    using BaseLogicBuilderPolicy::VecSurface;
-    //!@}
-
-  public:
-    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
-
-    //!@{
-    //! \name Visit a node directly
-    using BaseLogicBuilderPolicy::operator();
-    // Visit a negated node and append 'not'
-    inline void operator()(Negated const&);
-    // Visit daughter nodes and append the conjunction.
-    inline void operator()(Joined const&);
-    //!@}
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with pointer to the logic expression.
  *
  * The surface mapping vector is *optional*.
@@ -233,6 +160,42 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Aliased const& n)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Recursively construct a logic vector from a node with postfix operation.
+ *
+ * This is a policy used as template parameter of the \c
+ * LogicBuilder::operator(). The user invokes this class with a node ID
+ * (usually representing a cell), and then this class recurses into
+ * the daughters using a tree visitor.
+ *
+ * Example: \verbatim
+    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
+    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
+ * \endverbatim
+ */
+class PostfixLogicBuilderPolicy
+    : public BaseLogicBuilderPolicy<PostfixLogicBuilderPolicy>
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using BaseLogicBuilderPolicy::VecLogic;
+    using BaseLogicBuilderPolicy::VecSurface;
+    //!@}
+
+  public:
+    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
+
+    //!@{
+    //! \name Visit a node directly
+    using BaseLogicBuilderPolicy::operator();
+    // Visit a negated node and append 'not'
+    inline void operator()(Negated const&);
+    // Visit daughter nodes and append the conjunction.
+    inline void operator()(Joined const&);
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Visit a negated node and append 'not'.
  */
 void PostfixLogicBuilderPolicy::operator()(Negated const& n)
@@ -259,6 +222,43 @@ void PostfixLogicBuilderPolicy::operator()(Joined const& n)
         logic().push_back(n.op);
     }
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Recursively construct a logic vector from a node with infix operation.
+ *
+ * This is a policy used as template parameter of the \c
+ * LogicBuilder::operator(). The user invokes this class with a node ID
+ * (usually representing a cell), and then this class recurses into the
+ * daughters using a tree visitor.
+ *
+ * Example: \verbatim
+    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
+    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
+ * \endverbatim
+ */
+class InfixLogicBuilderPolicy
+    : public BaseLogicBuilderPolicy<InfixLogicBuilderPolicy>
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using BaseLogicBuilderPolicy::VecLogic;
+    using BaseLogicBuilderPolicy::VecSurface;
+    //!@}
+
+  public:
+    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
+
+    //!@{
+    //! \name Visit a node directly
+    using BaseLogicBuilderPolicy::operator();
+    // Visit a negated node and append 'not'
+    inline void operator()(Negated const&);
+    // Visit daughter nodes and append the conjunction.
+    inline void operator()(Joined const&);
+    //!@}
+};
 
 //---------------------------------------------------------------------------//
 /*!
