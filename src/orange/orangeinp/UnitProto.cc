@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <utility>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
@@ -182,12 +183,12 @@ void UnitProto::build(ProtoBuilder& input) const
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
-        build_logic(detail::PostfixLogicBuilderPolicy{csg_unit.tree,
-                                                      &sorted_local_surfaces,
-                                                      vi.logic},
-                    node_id,
-                    vi.faces);
-
+        auto&& [faces, logic] = build_logic(
+            detail::PostfixLogicBuilderPolicy{
+                csg_unit.tree, &sorted_local_surfaces, vi.logic},
+            node_id);
+        vi.logic = std::move(logic);
+        vi.faces = std::move(faces);
         // Set bounding box
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());

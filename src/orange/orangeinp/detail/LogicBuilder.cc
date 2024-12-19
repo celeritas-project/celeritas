@@ -33,18 +33,18 @@ namespace detail
  * of the logic evaluation itself.
  */
 template<class LogicBuilderPolicy>
-void LogicBuilder::operator()(LogicBuilderPolicy&& policy,
-                              NodeId n,
-                              VecSurface& faces) const
+auto LogicBuilder::operator()(LogicBuilderPolicy&& policy,
+                              NodeId n) const -> result_type
 {
     static_assert(std::is_invocable_v<LogicBuilderPolicy, NodeId>);
 
     // Construct logic vector as local surface IDs
     auto& lgc = policy.logic();
-    CELER_ASSERT(lgc.empty());
+    CELER_EXPECT(lgc.empty());
     policy(n);
 
     // Construct sorted vector of faces
+    VecSurface faces;
     for (auto const& v : lgc)
     {
         if (!logic::is_operator_token(v))
@@ -68,18 +68,18 @@ void LogicBuilder::operator()(LogicBuilderPolicy&& policy,
             v = iter - faces.begin();
         }
     }
+    return {faces, std::move(lgc)};
 }
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template void
+template auto
 LogicBuilder::operator()<InfixLogicBuilderPolicy>(InfixLogicBuilderPolicy&&,
-                                                  NodeId,
-                                                  VecSurface&) const;
-template void LogicBuilder::operator()<PostfixLogicBuilderPolicy>(
-    PostfixLogicBuilderPolicy&&, NodeId, VecSurface&) const;
+                                                  NodeId) const -> result_type;
+template auto LogicBuilder::operator()<PostfixLogicBuilderPolicy>(
+    PostfixLogicBuilderPolicy&&, NodeId) const -> result_type;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
