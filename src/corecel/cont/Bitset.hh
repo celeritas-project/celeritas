@@ -8,6 +8,10 @@
 #pragma once
 
 #include <climits>
+
+#include "corecel/Config.hh"
+
+#include "corecel/Assert.hh"
 #if !CELER_DEVICE_COMPILE
 #    include <stdexcept>
 #    include <string>
@@ -63,10 +67,12 @@ class Bitset
     operator!=(Bitset const& other) const noexcept;
 
     // Access to a single bit
-    CELER_CONSTEXPR_FUNCTION bool operator[](size_type pos) const noexcept;
+    CELER_CONSTEXPR_FUNCTION bool operator[](size_type pos) const
+        noexcept(!CELERITAS_DEBUG);
 
     // Mutable access to a single bit
-    CELER_CONSTEXPR_FUNCTION reference operator[](size_type pos) noexcept;
+    CELER_CONSTEXPR_FUNCTION reference
+    operator[](size_type pos) noexcept(!CELERITAS_DEBUG);
 
     // Get the value of the bit at position pos. Equivalent to operator[] with
     // a precondition check.
@@ -104,19 +110,21 @@ class Bitset
 
     // Set the bit at position pos
     CELER_CONSTEXPR_FUNCTION Bitset&
-    set(size_type pos, bool value = true) noexcept;
+    set(size_type pos, bool value = true) noexcept(!CELERITAS_DEBUG);
 
     // Reset all bits
     CELER_CONSTEXPR_FUNCTION Bitset& reset() noexcept;
 
     // Reset the bit at position pos
-    CELER_CONSTEXPR_FUNCTION Bitset& reset(size_type pos) noexcept;
+    CELER_CONSTEXPR_FUNCTION Bitset&
+    reset(size_type pos) noexcept(!CELERITAS_DEBUG);
 
     // Flip all bits
     CELER_CONSTEXPR_FUNCTION Bitset& flip() noexcept;
 
     // Flip the bit at position pos
-    CELER_CONSTEXPR_FUNCTION Bitset& flip(size_type pos) noexcept;
+    CELER_CONSTEXPR_FUNCTION Bitset&
+    flip(size_type pos) noexcept(!CELERITAS_DEBUG);
 
   private:
     //// HELPER FUNCTIONS ////
@@ -130,10 +138,12 @@ class Bitset
     static CELER_CONSTEXPR_FUNCTION word_type mask(size_type pos) noexcept;
 
     // Get the word for a given bit position
-    CELER_CONSTEXPR_FUNCTION word_type get_word(size_type pos) const noexcept;
+    CELER_CONSTEXPR_FUNCTION word_type get_word(size_type pos) const
+        noexcept(!CELERITAS_DEBUG);
 
     // Get the word for a given bit position
-    CELER_CONSTEXPR_FUNCTION word_type& get_word(size_type pos) noexcept;
+    CELER_CONSTEXPR_FUNCTION word_type&
+    get_word(size_type pos) noexcept(!CELERITAS_DEBUG);
 
     // Get the last word of the bitset
     CELER_CONSTEXPR_FUNCTION word_type& last_word() noexcept;
@@ -270,9 +280,10 @@ Bitset<N>::operator!=(Bitset const& other) const noexcept
 //---------------------------------------------------------------------------//
 //! Access to a single bit
 template<size_type N>
-CELER_CONSTEXPR_FUNCTION bool
-Bitset<N>::operator[](size_type pos) const noexcept
+CELER_CONSTEXPR_FUNCTION bool Bitset<N>::operator[](size_type pos) const
+    noexcept(!CELERITAS_DEBUG)
 {
+    CELER_EXPECT(pos < N);
     return (this->get_word(pos) & Bitset::mask(pos))
            != static_cast<word_type>(0);
 }
@@ -281,8 +292,9 @@ Bitset<N>::operator[](size_type pos) const noexcept
 //! Mutable access to a single bit
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::operator[](size_type pos) noexcept -> reference
+Bitset<N>::operator[](size_type pos) noexcept(!CELERITAS_DEBUG) -> reference
 {
+    CELER_EXPECT(pos < N);
     return reference(*this, pos);
 }
 
@@ -425,8 +437,9 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::set() noexcept
 //! Set the bit at position pos
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>&
-Bitset<N>::set(size_type pos, bool value) noexcept
+Bitset<N>::set(size_type pos, bool value) noexcept(!CELERITAS_DEBUG)
 {
+    CELER_EXPECT(pos < N);
     (*this)[pos] = value;
     return *this;
 }
@@ -447,8 +460,10 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::reset() noexcept
 //---------------------------------------------------------------------------//
 //! Reset the bit at position pos
 template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::reset(size_type pos) noexcept
+CELER_CONSTEXPR_FUNCTION Bitset<N>&
+Bitset<N>::reset(size_type pos) noexcept(!CELERITAS_DEBUG)
 {
+    CELER_EXPECT(pos < N);
     this->get_word(pos) &= ~Bitset::mask(pos);
     return *this;
 }
@@ -470,8 +485,10 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::flip() noexcept
 //---------------------------------------------------------------------------//
 //! Flip the bit at position pos
 template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::flip(size_type pos) noexcept
+CELER_CONSTEXPR_FUNCTION Bitset<N>&
+Bitset<N>::flip(size_type pos) noexcept(!CELERITAS_DEBUG)
 {
+    CELER_EXPECT(pos < N);
     this->get_word(pos) ^= Bitset::mask(pos);
     return *this;
 }
@@ -504,9 +521,10 @@ Bitset<N>::mask(size_type pos) noexcept -> word_type
 //---------------------------------------------------------------------------//
 //! Get the word for a given bit position
 template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::get_word(size_type pos) const noexcept -> word_type
+CELER_CONSTEXPR_FUNCTION auto Bitset<N>::get_word(size_type pos) const
+    noexcept(!CELERITAS_DEBUG) -> word_type
 {
+    CELER_EXPECT(pos < N);
     return words_[Bitset::which_word(pos)];
 }
 
@@ -514,8 +532,9 @@ Bitset<N>::get_word(size_type pos) const noexcept -> word_type
 //! Get the word for a given bit position
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::get_word(size_type pos) noexcept -> word_type&
+Bitset<N>::get_word(size_type pos) noexcept(!CELERITAS_DEBUG) -> word_type&
 {
+    CELER_EXPECT(pos < N);
     return words_[Bitset::which_word(pos)];
 }
 
