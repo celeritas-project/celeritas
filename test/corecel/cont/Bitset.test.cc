@@ -35,6 +35,7 @@ void test_bitset()
     EXPECT_TRUE(x.any());
     EXPECT_FALSE(x.all());
     EXPECT_TRUE(x[N - 1]);
+    EXPECT_TRUE(x.test(N - 1));
 
     x.flip(N - 2);
     EXPECT_TRUE(x[N - 2]);
