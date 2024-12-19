@@ -50,9 +50,6 @@ class Bitset
 
     class reference;
 
-    static constexpr size_type bits_per_word = CHAR_BIT * sizeof(word_type);
-    static constexpr size_type num_words = ceil_div(N, bits_per_word);
-
   public:
     CELER_CONSTEXPR_FUNCTION Bitset() = default;
 
@@ -122,6 +119,8 @@ class Bitset
     CELER_CONSTEXPR_FUNCTION Bitset& flip(size_type pos) noexcept;
 
   private:
+    //// HELPER FUNCTIONS ////
+
     // Find the word index for a given bit position
     static CELER_CONSTEXPR_FUNCTION size_type which_word(size_type pos) noexcept;
     // Find the bit index in a word
@@ -142,8 +141,15 @@ class Bitset
     // Get the last word of the bitset
     CELER_CONSTEXPR_FUNCTION word_type last_word() const noexcept;
 
+    //// CONSTANTS ////
+
+    static constexpr size_type bits_per_word_ = CHAR_BIT * sizeof(word_type);
+    static constexpr size_type num_words_ = ceil_div(N, bits_per_word_);
+
+    //// DATA ////
+
     //! storage
-    word_type words_[num_words]{};
+    word_type words_[num_words_]{};
 };
 
 //---------------------------------------------------------------------------//
@@ -232,9 +238,9 @@ template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>::Bitset(word_type value) noexcept
     : words_{value}
 {
-    if constexpr (num_words == 1)
+    if constexpr (num_words_ == 1)
     {
-        detail::Sanitize<N % bits_per_word>::sanitize(this->last_word());
+        detail::Sanitize<N % bits_per_word_>::sanitize(this->last_word());
     }
 }
 
@@ -243,7 +249,7 @@ template<size_type N>
 CELER_CONSTEXPR_FUNCTION bool
 Bitset<N>::operator==(Bitset const& other) const noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         if (words_[i] != other.words_[i])
         {
@@ -296,7 +302,7 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::test(size_type pos) const
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
 {
-    for (size_type i = 0; i < num_words - 1; ++i)
+    for (size_type i = 0; i < num_words_ - 1; ++i)
     {
         if (words_[i] != ~static_cast<word_type>(0))
         {
@@ -305,7 +311,7 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
     }
     // only compare the last word up to the last bit of the bitset
     return this->last_word()
-           == (~static_cast<word_type>(0) >> (num_words * bits_per_word - N));
+           == (~static_cast<word_type>(0) >> (num_words_ * bits_per_word_ - N));
 }
 
 //---------------------------------------------------------------------------//
@@ -313,7 +319,7 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION bool Bitset<N>::any() const noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         if (words_[i] != static_cast<word_type>(0))
         {
@@ -338,7 +344,7 @@ template<size_type N>
 CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::count() const noexcept
 {
     size_type count = 0;
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         count += celeritas::popcount(words_[i]);
     }
@@ -352,7 +358,7 @@ template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>&
 Bitset<N>::operator&=(Bitset const& other) noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         words_[i] &= other.words_[i];
     }
@@ -365,7 +371,7 @@ template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>&
 Bitset<N>::operator|=(Bitset const& other) noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         words_[i] |= other.words_[i];
     }
@@ -378,7 +384,7 @@ template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>&
 Bitset<N>::operator^=(Bitset const& other) noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         words_[i] ^= other.words_[i];
     }
@@ -398,12 +404,12 @@ CELER_CONSTEXPR_FUNCTION Bitset<N> Bitset<N>::operator~() const noexcept
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::set() noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         words_[i] = ~static_cast<word_type>(0);
     }
     // sanitize the last word
-    detail::Sanitize<N % bits_per_word>::sanitize(this->last_word());
+    detail::Sanitize<N % bits_per_word_>::sanitize(this->last_word());
     return *this;
 }
 
@@ -422,7 +428,7 @@ Bitset<N>::set(size_type pos, bool value) noexcept
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::reset() noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         words_[i] = static_cast<word_type>(0);
     }
@@ -444,12 +450,12 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::reset(size_type pos) noexcept
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::flip() noexcept
 {
-    for (size_type i = 0; i < num_words; ++i)
+    for (size_type i = 0; i < num_words_; ++i)
     {
         words_[i] = ~words_[i];
     }
     // sanitize the last word
-    detail::Sanitize<N % bits_per_word>::sanitize(last_word());
+    detail::Sanitize<N % bits_per_word_>::sanitize(last_word());
     return *this;
 }
 
@@ -467,7 +473,7 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::flip(size_type pos) noexcept
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::which_word(size_type pos) noexcept
 {
-    return pos / bits_per_word;
+    return pos / bits_per_word_;
 }
 
 //---------------------------------------------------------------------------//
@@ -475,7 +481,7 @@ CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::which_word(size_type pos) noexcept
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::which_bit(size_type pos) noexcept
 {
-    return pos % bits_per_word;
+    return pos % bits_per_word_;
 }
 
 //---------------------------------------------------------------------------//
@@ -510,7 +516,7 @@ Bitset<N>::get_word(size_type pos) noexcept -> word_type&
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() noexcept -> word_type&
 {
-    return words_[num_words - 1];
+    return words_[num_words_ - 1];
 }
 
 //---------------------------------------------------------------------------//
@@ -518,7 +524,7 @@ CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() noexcept -> word_type&
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() const noexcept -> word_type
 {
-    return words_[num_words - 1];
+    return words_[num_words_ - 1];
 }
 
 //---------------------------------------------------------------------------//

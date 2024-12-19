@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Bitset.hh"
 
+#include <climits>
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -122,7 +124,8 @@ void test_bitset()
     flags init{0};
     init = ~init;
     Bitset<N> z(init);
-    EXPECT_EQ(z.count(), std::min(Bitset<N>::bits_per_word, N));
+    EXPECT_EQ(z.count(),
+              std::min(CHAR_BIT * sizeof(typename Bitset<N>::word_type), N));
 }
 
 TEST(BitsetTest, all)
