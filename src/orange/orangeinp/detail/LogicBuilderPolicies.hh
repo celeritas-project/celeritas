@@ -26,13 +26,14 @@ namespace detail
  * Recursively construct a logic vector from a node with postfix operation.
  *
  * This is a policy used as template parameter of the \c
- LogicBuilder::operator() . The
- * user invokes this class with a node ID (usually representing a cell), and
- * then this class recurses into the daughters using a tree visitor.
+ * LogicBuilder::operator(). The user invokes this class with a node ID
+ * (usually representing a cell), and then this class recurses into
+ * the daughters using a tree visitor.
  *
  * Example: \verbatim
     all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
     all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
+ * \endverbatim
  */
 class PostfixLogicBuilderPolicy
 {
@@ -74,10 +75,7 @@ class PostfixLogicBuilderPolicy
 
   protected:
     VecLogic& logic() { return *logic_; }
-    ContainerVisitor<CsgTree const&, NodeId>& visite_node()
-    {
-        return visit_node_;
-    }
+    ContainerVisitor<CsgTree const&, NodeId>& visit() { return visit_node_; }
 
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
@@ -241,7 +239,7 @@ void PostfixLogicBuilderPolicy::operator()(Joined const& n)
  */
 void InfixLogicBuilderPolicy::operator()(NodeId const& n)
 {
-    this->visite_node()(*this, n);
+    this->visit()(*this, n);
 }
 
 //---------------------------------------------------------------------------//

@@ -24,7 +24,8 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Convert a single node to a given notation.
+ * Convert a single node to logic in the format dictated by the
+ * LogicBuilderPolicy.
  *
  * The per-node local surfaces (faces) are sorted in ascending order of ID, not
  * of access, since they're always evaluated sequentially rather than as part
