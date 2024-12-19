@@ -12,11 +12,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#if !CELER_DEVICE_COMPILE
-#    include <stdexcept>
-#    include <string>
-#endif
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/detail/BitsetUtils.hh"
@@ -73,10 +68,6 @@ class Bitset
     // Mutable access to a single bit
     CELER_CONSTEXPR_FUNCTION reference
     operator[](size_type pos) noexcept(!CELERITAS_DEBUG);
-
-    // Get the value of the bit at position pos. Equivalent to operator[] with
-    // a precondition check.
-    CELER_CONSTEXPR_FUNCTION bool test(size_type pos) const;
 
     // Check if all bits are set
     CELER_CONSTEXPR_FUNCTION bool all() const noexcept;
@@ -296,25 +287,6 @@ Bitset<N>::operator[](size_type pos) noexcept(!CELERITAS_DEBUG) -> reference
 {
     CELER_EXPECT(pos < N);
     return reference(*this, pos);
-}
-
-//---------------------------------------------------------------------------//
-//! Get the value of the bit at position pos. Equivalent to operator[] with
-//! a precondition check.
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION bool Bitset<N>::test(size_type pos) const
-{
-#if CELER_DEVICE_COMPILE
-    assert(pos < N);
-#else
-    if (CELER_UNLIKELY(pos >= N))
-    {
-        throw std::out_of_range("Bitset out of bounds: pos="
-                                + std::to_string(pos)
-                                + ", N=" + std::to_string(N));
-    }
-#endif
-    return (*this)[pos];
 }
 
 //---------------------------------------------------------------------------//
