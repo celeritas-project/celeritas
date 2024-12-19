@@ -23,19 +23,13 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Recursively construct a logic vector from a node with postfix operation.
+ * Base class for logic builder policies following CRTP pattern.
  *
- * This is a policy used as template parameter of the \c
- * LogicBuilder::operator(). The user invokes this class with a node ID
- * (usually representing a cell), and then this class recurses into
- * the daughters using a tree visitor.
- *
- * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
-    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
- * \endverbatim
+ * call operator for Negated and Joined are not implemented in the base policy
+ * and must be provided by the derived class.
  */
-class PostfixLogicBuilderPolicy
+template<class BuilderPolicy>
+class BaseLogicBuilderPolicy
 {
   public:
     //!@{
@@ -50,9 +44,9 @@ class PostfixLogicBuilderPolicy
 
   public:
     // Construct with optional mapping and logic vector to append to
-    inline PostfixLogicBuilderPolicy(CsgTree const& tree,
-                                     VecSurface const* vs,
-                                     VecLogic* logic);
+    inline BaseLogicBuilderPolicy(CsgTree const& tree,
+                                  VecSurface const* vs,
+                                  VecLogic* logic);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -67,10 +61,6 @@ class PostfixLogicBuilderPolicy
     inline void operator()(Surface const&);
     // Aliased nodes should never be reachable explicitly
     inline void operator()(Aliased const&);
-    // Visit a negated node and append 'not'
-    inline void operator()(Negated const&);
-    // Visit daughter nodes and append the conjunction.
-    inline void operator()(Joined const&);
     //!@}
 
   protected:
@@ -81,6 +71,42 @@ class PostfixLogicBuilderPolicy
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_;
     VecLogic* logic_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Recursively construct a logic vector from a node with postfix operation.
+ *
+ * This is a policy used as template parameter of the \c
+ * LogicBuilder::operator(). The user invokes this class with a node ID
+ * (usually representing a cell), and then this class recurses into
+ * the daughters using a tree visitor.
+ *
+ * Example: \verbatim
+    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
+    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
+ * \endverbatim
+ */
+class PostfixLogicBuilderPolicy
+    : public BaseLogicBuilderPolicy<PostfixLogicBuilderPolicy>
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using BaseLogicBuilderPolicy::VecLogic;
+    using BaseLogicBuilderPolicy::VecSurface;
+    //!@}
+
+  public:
+    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
+
+    //!@{
+    //! \name Visit a node directly
+    using BaseLogicBuilderPolicy::operator();
+    // Visit a negated node and append 'not'
+    inline void operator()(Negated const&);
+    // Visit daughter nodes and append the conjunction.
+    inline void operator()(Joined const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -97,26 +123,22 @@ class PostfixLogicBuilderPolicy
     all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
  * \endverbatim
  */
-class InfixLogicBuilderPolicy : public PostfixLogicBuilderPolicy
+class InfixLogicBuilderPolicy
+    : public BaseLogicBuilderPolicy<InfixLogicBuilderPolicy>
 {
   public:
     //!@{
     //! \name Type aliases
-    using PostfixLogicBuilderPolicy::VecLogic;
-    using PostfixLogicBuilderPolicy::VecSurface;
+    using BaseLogicBuilderPolicy::VecLogic;
+    using BaseLogicBuilderPolicy::VecSurface;
     //!@}
 
   public:
-    using PostfixLogicBuilderPolicy::PostfixLogicBuilderPolicy;
-
-    //! Build from a node ID
-    inline void operator()(NodeId const& n);
+    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
 
     //!@{
     //! \name Visit a node directly
-    using PostfixLogicBuilderPolicy::operator();
-    // Aliased nodes should never be reachable explicitly
-    inline void operator()(Aliased const&);
+    using BaseLogicBuilderPolicy::operator();
     // Visit a negated node and append 'not'
     inline void operator()(Negated const&);
     // Visit daughter nodes and append the conjunction.
@@ -130,9 +152,9 @@ class InfixLogicBuilderPolicy : public PostfixLogicBuilderPolicy
  *
  * The surface mapping vector is *optional*.
  */
-PostfixLogicBuilderPolicy::PostfixLogicBuilderPolicy(CsgTree const& tree,
-                                                     VecSurface const* vs,
-                                                     VecLogic* logic)
+template<class BuilderPolicy>
+BaseLogicBuilderPolicy<BuilderPolicy>::BaseLogicBuilderPolicy(
+    CsgTree const& tree, VecSurface const* vs, VecLogic* logic)
     : visit_node_{tree}, mapping_{vs}, logic_{logic}
 {
     CELER_EXPECT(logic_);
@@ -142,16 +164,18 @@ PostfixLogicBuilderPolicy::PostfixLogicBuilderPolicy(CsgTree const& tree,
 /*!
  * Build from a node ID.
  */
-void PostfixLogicBuilderPolicy::operator()(NodeId const& n)
+template<class BuilderPolicy>
+void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(NodeId const& n)
 {
-    visit_node_(*this, n);
+    visit_node_(static_cast<BuilderPolicy&>(*this), n);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Append the "true" token.
  */
-void PostfixLogicBuilderPolicy::operator()(True const&)
+template<class BuilderPolicy>
+void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(True const&)
 {
     logic_->push_back(logic::ltrue);
 }
@@ -162,7 +186,8 @@ void PostfixLogicBuilderPolicy::operator()(True const&)
  *
  * The 'false' standin is always aliased to "not true" in the CSG tree.
  */
-void PostfixLogicBuilderPolicy::operator()(False const&)
+template<class BuilderPolicy>
+void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(False const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
@@ -171,7 +196,8 @@ void PostfixLogicBuilderPolicy::operator()(False const&)
 /*!
  * Push a surface ID.
  */
-void PostfixLogicBuilderPolicy::operator()(Surface const& s)
+template<class BuilderPolicy>
+void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Surface const& s)
 {
     CELER_EXPECT(s.id < logic::lbegin);
     // Get index of original surface or remapped
@@ -199,7 +225,8 @@ void PostfixLogicBuilderPolicy::operator()(Surface const& s)
  * Aliased node shouldn't be reachable if the tree is fully simplified, but
  * could be reachable for testing purposes.
  */
-void PostfixLogicBuilderPolicy::operator()(Aliased const& n)
+template<class BuilderPolicy>
+void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Aliased const& n)
 {
     (*this)(n.node);
 }
@@ -211,7 +238,7 @@ void PostfixLogicBuilderPolicy::operator()(Aliased const& n)
 void PostfixLogicBuilderPolicy::operator()(Negated const& n)
 {
     (*this)(n.node);
-    logic_->push_back(logic::lnot);
+    logic().push_back(logic::lnot);
 }
 
 //---------------------------------------------------------------------------//
@@ -229,29 +256,8 @@ void PostfixLogicBuilderPolicy::operator()(Joined const& n)
     while (iter != n.nodes.end())
     {
         (*this)(*iter++);
-        logic_->push_back(n.op);
+        logic().push_back(n.op);
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build from a node ID.
- */
-void InfixLogicBuilderPolicy::operator()(NodeId const& n)
-{
-    this->visit()(*this, n);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Push an aliased node.
- *
- * Aliased node shouldn't be reachable if the tree is fully simplified, but
- * could be reachable for testing purposes.
- */
-void InfixLogicBuilderPolicy::operator()(Aliased const& n)
-{
-    (*this)(n.node);
 }
 
 //---------------------------------------------------------------------------//
