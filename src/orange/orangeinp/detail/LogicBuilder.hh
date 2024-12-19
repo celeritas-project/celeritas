@@ -43,7 +43,6 @@ class LogicBuilder
     //! \name Type aliases
     using VecLogic = std::vector<logic_int>;
     using VecSurface = std::vector<LocalSurfaceId>;
-    using result_type = VecSurface;
     //!@}
 
   public:
@@ -51,7 +50,8 @@ class LogicBuilder
 
     // Convert a single node to a given notation
     template<class LogicBuilderPolicy>
-    result_type operator()(LogicBuilderPolicy&& policy, NodeId n) const;
+    void
+    operator()(LogicBuilderPolicy&& policy, NodeId n, VecSurface& faces) const;
 };
 
 //---------------------------------------------------------------------------//

@@ -182,11 +182,11 @@ void UnitProto::build(ProtoBuilder& input) const
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
-        auto faces = build_logic(
-            detail::PostfixLogicBuilderPolicy{
-                csg_unit.tree, &sorted_local_surfaces, &vi.logic},
-            node_id);
-        vi.faces = std::move(faces);
+        build_logic(detail::PostfixLogicBuilderPolicy{csg_unit.tree,
+                                                      &sorted_local_surfaces,
+                                                      &vi.logic},
+                    node_id,
+                    vi.faces);
 
         // Set bounding box
         auto region_iter = csg_unit.regions.find(node_id);

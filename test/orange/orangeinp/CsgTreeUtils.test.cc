@@ -106,12 +106,15 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     detail::LogicBuilder::VecLogic lgc;
-    auto build_postfix
-        = [&](N n, detail::LogicBuilder::VecSurface* faces = nullptr) {
-              lgc.clear();
-              return detail::LogicBuilder{}(
-                  detail::PostfixLogicBuilderPolicy{tree_, faces, &lgc}, n);
-          };
+    auto build_postfix = [&](N n,
+                             detail::LogicBuilder::VecSurface* mapping
+                             = nullptr) {
+        lgc.clear();
+        detail::LogicBuilder::VecSurface faces;
+        detail::LogicBuilder{}(
+            detail::PostfixLogicBuilderPolicy{tree_, mapping, &lgc}, n, faces);
+        return faces;
+    };
 
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
@@ -267,12 +270,14 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     // Test infix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     detail::LogicBuilder::VecLogic lgc;
-    auto build_infix
-        = [&](N n, detail::LogicBuilder::VecSurface* faces = nullptr) {
-              lgc.clear();
-              return LogicBuilder{}(
-                  detail::InfixLogicBuilderPolicy{tree_, faces, &lgc}, n);
-          };
+    auto build_infix = [&](N n,
+                           detail::LogicBuilder::VecSurface* mapping = nullptr) {
+        lgc.clear();
+        detail::LogicBuilder::VecSurface faces;
+        LogicBuilder{}(
+            detail::InfixLogicBuilderPolicy{tree_, mapping, &lgc}, n, faces);
+        return faces;
+    };
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
         auto faces = build_infix(mz);
