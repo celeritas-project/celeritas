@@ -8,8 +8,10 @@
 #pragma once
 
 #include <climits>
-#include <stdexcept>
-#include <string>
+#if !CELER_DEVICE_COMPILE
+#    include <stdexcept>
+#    include <string>
+#endif
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -290,12 +292,16 @@ Bitset<N>::operator[](size_type pos) noexcept -> reference
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION bool Bitset<N>::test(size_type pos) const
 {
+#if CELER_DEVICE_COMPILE
+    assert(pos < N);
+#else
     if (CELER_UNLIKELY(pos >= N))
     {
         throw std::out_of_range("Bitset out of bounds: pos="
                                 + std::to_string(pos)
                                 + ", N=" + std::to_string(N));
     }
+#endif
     return (*this)[pos];
 }
 
