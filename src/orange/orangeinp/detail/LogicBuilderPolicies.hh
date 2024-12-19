@@ -88,9 +88,9 @@ class PostfixLogicBuilderPolicy
  * Recursively construct a logic vector from a node with infix operation.
  *
  * This is a policy used as template parameter of the \c
- LogicBuilder::operator() . The
- * user invokes this class with a node ID (usually representing a cell), and
- * then this class recurses into the daughters using a tree visitor.
+ * LogicBuilder::operator(). The user invokes this class with a node ID
+ * (usually representing a cell), and then this class recurses into the
+ * daughters using a tree visitor.
  *
  * Example: \verbatim
     all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
