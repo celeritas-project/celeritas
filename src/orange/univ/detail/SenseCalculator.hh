@@ -32,7 +32,7 @@ class SenseCalculator
     //! Return result
     struct result_type
     {
-        Span<Sense> senses;  //!< Calculated senses for the volume
+        Span<SenseMeta> senses;  //!< Calculated senses for the volume
         OnFace face;  //!< The first face encountered that we are "on"
     };
 
@@ -40,7 +40,7 @@ class SenseCalculator
     // Construct from persistent, current, and temporary data
     inline CELER_FUNCTION SenseCalculator(LocalSurfaceVisitor const& visit,
                                           Real3 const& pos,
-                                          Span<Sense> storage);
+                                          Span<SenseMeta> storage);
 
     // Calculate senses for the given volume, possibly on a face
     inline CELER_FUNCTION result_type operator()(VolumeView const& vol,
@@ -54,7 +54,7 @@ class SenseCalculator
     Real3 pos_;
 
     //! Temporary senses
-    Span<Sense> sense_storage_;
+    Span<SenseMeta> sense_storage_;
 };
 
 //---------------------------------------------------------------------------//
@@ -66,7 +66,7 @@ class SenseCalculator
 CELER_FUNCTION
 SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
                                  Real3 const& pos,
-                                 Span<Sense> storage)
+                                 Span<SenseMeta> storage)
     : visit_{visit}, pos_(pos), sense_storage_(storage)
 {
 }

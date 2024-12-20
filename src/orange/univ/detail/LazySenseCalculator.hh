@@ -43,8 +43,7 @@ class LazySenseCalculator
     inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                               VolumeView const& vol,
                                               Real3 const& pos,
-                                              Span<Sense> sense_cache,
-                                              Span<SenseMod> sense_flags,
+                                              Span<SenseMeta> sense_cache,
                                               OnFace& face);
 
     // Calculate senses for a single face of the given volume, possibly on a
@@ -54,14 +53,7 @@ class LazySenseCalculator
     //! Flip the sense of a face
     CELER_FUNCTION void flip_sense(FaceId face_id)
     {
-        sense_cache_[face_id.get()] = celeritas::flip_sense([this, &face_id] {
-            // If the sense isn't cached yet, calculate it
-            if (CELER_UNLIKELY(!sense_flags_[face_id.get()][SenseFlags::cached]))
-            {
-                return (*this)(face_id);
-            }
-            return sense_cache_[face_id.get()];
-        }());
+        sense_cache_[face_id.get()] = celeritas::flip_sense((*this)(face_id));
     }
 
   private:
@@ -75,8 +67,7 @@ class LazySenseCalculator
     Real3 pos_;
 
     //! Temporary senses
-    Span<Sense> sense_cache_;
-    Span<SenseMod> sense_flags_;
+    Span<SenseMeta> sense_cache_;
 
     //! The first face encountered that we are "on"
     OnFace& face_;
@@ -92,19 +83,13 @@ CELER_FUNCTION
 LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          VolumeView const& vol,
                                          Real3 const& pos,
-                                         Span<Sense> sense_cache,
-                                         Span<SenseMod> sense_flags,
+                                         Span<SenseMeta> sense_cache,
                                          OnFace& face)
-    : visit_{visit}
-    , vol_(vol)
-    , pos_{pos}
-    , sense_cache_{sense_cache}
-    , sense_flags_{sense_flags}
-    , face_(face)
+    : visit_{visit}, vol_(vol), pos_{pos}, sense_cache_{sense_cache}, face_(face)
 {
-    for (auto& sense : sense_flags_)
+    for (auto& sense : sense_cache_)
     {
-        sense.reset();
+        sense.invalidate();
     }
 }
 
@@ -117,35 +102,31 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
  */
 CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
-    auto& mods = sense_flags_[face_id.get()];
-    if (mods[SenseFlags::cached])
+    auto& cached_sense = sense_cache_[face_id.get()];
+    if (cached_sense.cached())
     {
         return sense_cache_[face_id.get()];
     }
 
-    Sense sense;
     if (face_id != face_.id())
     {
         // Calculate sense
         SignedSense ss = visit_(CalcSense{pos_}, vol_.get_surface(face_id));
-        sense = to_sense(ss);
+        cached_sense = to_sense(ss);
         if (ss == SignedSense::on && !face_)
         {
             // This is the first face that we're exactly on: save it
-            face_ = {face_id, sense};
+            face_ = {face_id, cached_sense};
         }
     }
     else
     {
         // Sense is known a priori
-        sense = face_.sense();
+        cached_sense = face_.sense();
     }
 
     CELER_ENSURE(!face_ || face_.id() < vol_.num_faces());
-
-    mods[SenseFlags::cached] = true;
-    sense_cache_[face_id.get()] = sense;
-    return sense;
+    return cached_sense;
 }
 
 //---------------------------------------------------------------------------//

@@ -19,7 +19,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using VecSense = std::vector<Sense>;
+using VecSense = std::vector<SenseMeta>;
 
 constexpr auto lbegin = logic::lbegin;
 constexpr auto ltrue = logic::ltrue;

@@ -61,7 +61,7 @@ class OrangeGeoTestBase : public OrangeTestBase
 
   public:
     // Convert a vector of senses to a string
-    static std::string senses_to_string(Span<Sense const> senses);
+    static std::string senses_to_string(Span<SenseMeta const> senses);
 
     // Convert a string to a sense vector
     static std::vector<Sense> string_to_senses(std::string const& s);

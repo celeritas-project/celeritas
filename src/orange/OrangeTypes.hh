@@ -104,18 +104,6 @@ enum class Sense : bool
 
 //---------------------------------------------------------------------------//
 /*!
- * Transformations to apply to senses when using lazy sense evaluation.
- */
-enum SenseFlags : unsigned char
-{
-    cached = 0x1,  //!< Sense is cached
-};
-
-//! Modifiers for the sense calculation
-using SenseMod = Bitset<8>;
-
-//---------------------------------------------------------------------------//
-/*!
  * Enumeration for mapping surface classes to integers.
  *
  * These are ordered roughly by complexity. The storage requirement for
@@ -435,6 +423,67 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(SignedSense s)
 {
     return Sense(static_cast<int>(s) >= 0);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wrapper for a sense value which associated metadata.
+ */
+class SenseMeta
+{
+    /*!
+     * Bitset indices for the sense metadata.
+     */
+    enum SenseFlags : unsigned char
+    {
+        cache,  //!< Sense is cached
+        sense,  //!< Sense value
+    };
+
+  public:
+    constexpr SenseMeta() = default;
+
+    //! Construct with a sense value
+    CELER_CONSTEXPR_FUNCTION SenseMeta(Sense sense)
+    {
+        sense_[SenseFlags::sense] = static_cast<bool>(sense);
+        sense_[SenseFlags::cache] = true;
+    }
+
+    //! Convert to a sense value
+    CELER_CONSTEXPR_FUNCTION operator Sense() const
+    {
+        return to_sense(sense_[SenseFlags::sense]);
+    }
+
+    //! Convert to a boolean value
+    CELER_CONSTEXPR_FUNCTION explicit operator bool() const
+    {
+        return static_cast<bool>(sense_[SenseFlags::sense]);
+    }
+
+    //! Assign a sense value
+    CELER_CONSTEXPR_FUNCTION SenseMeta& operator=(Sense sense)
+    {
+        sense_[SenseFlags::sense] = static_cast<bool>(sense);
+        sense_[SenseFlags::cache] = true;
+        return *this;
+    }
+
+    //! Check wether there is a cached sense value
+    CELER_CONSTEXPR_FUNCTION bool cached() const
+    {
+        return sense_[SenseFlags::cache];
+    }
+
+    //! Invalidate the cached sense value
+    CELER_CONSTEXPR_FUNCTION void invalidate()
+    {
+        sense_[SenseFlags::cache] = false;
+    }
+
+  private:
+    Bitset<2> sense_;
+};
 
 //---------------------------------------------------------------------------//
 /*!

@@ -30,7 +30,7 @@ class LogicEvaluator
     //@{
     //! \name Type aliases
     using SpanConstLogic = LdgSpan<logic_int const>;
-    using SpanConstSense = Span<Sense const>;
+    using SpanConstSense = Span<SenseMeta const>;
     //@}
 
   public:
@@ -66,7 +66,8 @@ CELER_FUNCTION LogicEvaluator::LogicEvaluator(SpanConstLogic logic)
  */
 CELER_FUNCTION bool LogicEvaluator::operator()(SpanConstSense values) const
 {
-    auto calc_sense = [&](FaceId face_id) { return values[face_id.get()]; };
+    auto calc_sense
+        = [&](FaceId face_id) -> Sense { return values[face_id.get()]; };
     return (*this)(calc_sense);
 }
 

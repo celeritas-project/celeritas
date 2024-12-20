@@ -197,8 +197,7 @@ class OrangeTrackView
     find_next_step_impl(detail::Intersection isect);
 
     // Create local sense reference
-    inline CELER_FUNCTION Span<Sense> make_temp_sense() const;
-    inline CELER_FUNCTION Span<SenseMod> make_temp_sense_mod() const;
+    inline CELER_FUNCTION Span<SenseMeta> make_temp_sense() const;
 
     // Create local distance
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
@@ -277,7 +276,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
     local.volume = {};
     local.surface = {};
     local.temp_sense = this->make_temp_sense();
-    local.temp_sense_mod = this->make_temp_sense_mod();
 
     // Helpers for applying parent-to-daughter transformations
     TransformVisitor apply_transform{params_};
@@ -691,7 +689,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         local.volume = lsa.vol();
         local.surface = {this->surf(), this->sense()};
         local.temp_sense = this->make_temp_sense();
-        local.temp_sense_mod = this->make_temp_sense_mod();
     }
 
     TrackerVisitor visit_tracker{params_};
@@ -1042,23 +1039,11 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
 /*!
  * Get a reference to the current volume, or to world volume if outside.
  */
-CELER_FUNCTION Span<Sense> OrangeTrackView::make_temp_sense() const
+CELER_FUNCTION Span<SenseMeta> OrangeTrackView::make_temp_sense() const
 {
     auto const max_faces = params_.scalars.max_faces;
     auto offset = track_slot_.get() * max_faces;
-    return states_.temp_sense[AllItems<Sense, MemSpace::native>{}].subspan(
-        offset, max_faces);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a reference to the current volume, or to world volume if outside.
- */
-CELER_FUNCTION Span<SenseMod> OrangeTrackView::make_temp_sense_mod() const
-{
-    auto const max_faces = params_.scalars.max_faces;
-    auto offset = track_slot_.get() * max_faces;
-    return states_.temp_sense_mod[AllItems<SenseMod, MemSpace::native>{}].subspan(
+    return states_.temp_sense[AllItems<SenseMeta, MemSpace::native>{}].subspan(
         offset, max_faces);
 }
 
@@ -1104,7 +1089,6 @@ OrangeTrackView::make_local_state(LevelId level) const
         local.surface = {};
     }
     local.temp_sense = this->make_temp_sense();
-    local.temp_sense_mod = this->make_temp_sense_mod();
     local.temp_next = this->make_temp_next();
     return local;
 }

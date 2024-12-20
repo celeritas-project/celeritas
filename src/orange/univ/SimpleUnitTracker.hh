@@ -174,7 +174,6 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
                                                 vol,
                                                 state.pos,
                                                 state.temp_sense,
-                                                state.temp_sense_mod,
                                                 on_surface);
         auto inside = detail::LogicEvaluator(vol.logic())(calc_senses);
         return inside;
@@ -219,7 +218,6 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
                                                 vol,
                                                 state.pos,
                                                 state.temp_sense,
-                                                state.temp_sense_mod,
                                                 on_face);
         if (detail::LogicEvaluator(vol.logic())(calc_senses))
         {
@@ -532,12 +530,8 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
     detail::OnFace on_face = detail::find_face(vol, state.surface);
     // Calculate local senses, taking current face into account
-    auto calc_senses = detail::LazySenseCalculator(this->make_surface_visitor(),
-                                                   vol,
-                                                   state.pos,
-                                                   state.temp_sense,
-                                                   state.temp_sense_mod,
-                                                   on_face);
+    auto calc_senses = detail::LazySenseCalculator(
+        this->make_surface_visitor(), vol, state.pos, state.temp_sense, on_face);
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
     CELER_ASSERT(is_inside(calc_senses));
@@ -633,7 +627,6 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
                                               vol,
                                               pos,
                                               state.temp_sense,
-                                              state.temp_sense_mod,
                                               on_face};
 
             if (detail::LogicEvaluator{vol.logic()}(calc_senses))
