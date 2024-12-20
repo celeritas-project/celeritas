@@ -143,7 +143,7 @@ TEST(AlgorithmsTest, clamp_to_nonneg)
 
     EXPECT_DOUBLE_EQ(1.2345, clamp_to_nonneg(1.2345));
     EXPECT_DOUBLE_EQ(0.0, clamp_to_nonneg(-123));
-    EXPECT_DOUBLE_EQ(m_pi, clamp_to_nonneg(constants::pi));
+    EXPECT_EQ(m_pi, clamp_to_nonneg(constants::pi));
     EXPECT_TRUE(std::isnan(clamp_to_nonneg(nan)));
 }
 
