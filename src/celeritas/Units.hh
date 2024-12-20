@@ -15,7 +15,7 @@
 
 namespace celeritas
 {
-
+//---------------------------------------------------------------------------//
 /*!
  * Units in Celeritas for macro-scale quantities.
  *
@@ -140,8 +140,8 @@ CELER_ICRT e_electron{1};  //!< Charge
 CELER_ICRT kelvin{1};  //!< Temperature
 //!@}
 
-CELER_ICRT coulomb = e_electron / Constant{1.602176634e-19};  //! Value from SI
-                                                              //! 2019
+// Note: conversion constant is the value from SI 2019
+CELER_ICRT coulomb = e_electron / Constant{1.602176634e-19};
 CELER_ICRT volt = Constant{1e-6} * (megaelectronvolt / e_electron);
 CELER_ICRT joule = coulomb * volt;
 
@@ -156,7 +156,7 @@ CELER_ICRT newton = joule / meter;
 
 //!@{
 //! \name CGS-specific units
-CELER_ICRT centimeter = Constant{10} * millimeter;
+CELER_ICRT centimeter = 10 * millimeter;
 CELER_ICRT gram = Constant{1e-3} * kilogram;
 CELER_ICRT gauss = Constant{1e-4} * tesla;
 //!@}

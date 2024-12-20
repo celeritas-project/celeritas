@@ -66,7 +66,7 @@ CELER_ICRT h_planck = Constant{6.62607015e-34} * units::joule * units::second;
 CELER_ICRT e_electron = Constant{1.602176634e-19} * units::coulomb;
 #endif
 CELER_ICRT k_boltzmann = Constant{1.380649e-23} * units::joule / units::kelvin;
-CELER_ICRT na_avogadro = Constant{6.02214076e23};
+CELER_ICRT na_avogadro{6.02214076e23};
 CELER_ICRT kcd_luminous{683};
 //!@}
 
