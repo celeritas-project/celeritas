@@ -53,7 +53,7 @@ class Bitset
     //// CONSTRUCTORS ////
 
     // Default construct with zeros for all bits
-    CELER_CONSTEXPR_FUNCTION Bitset() = default;
+    Bitset() = default;
 
     // Construct implicitly from a bitset encoded as an integer
     CELER_CONSTEXPR_FUNCTION Bitset(word_type value) noexcept;
@@ -185,9 +185,9 @@ class Bitset<N>::reference
     {
     }
 
-    CELER_CONSTEXPR_FUNCTION reference(reference const&) = default;
+    reference(reference const&) = default;
 
-    CELER_FUNCTION ~reference() noexcept = default;
+    ~reference() noexcept = default;
 
     //! Assignment for b[i] = x;
     CELER_CONSTEXPR_FUNCTION
