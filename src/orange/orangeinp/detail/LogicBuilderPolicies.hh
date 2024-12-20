@@ -67,9 +67,6 @@ class BaseLogicBuilderPolicy
     //! Access the logic expression
     VecLogic& logic() { return logic_; }
 
-  protected:
-    ContainerVisitor<CsgTree const&, NodeId>& visit() { return visit_node_; }
-
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_;
@@ -191,39 +188,27 @@ class PostfixLogicBuilderPolicy
     //! \name Visit a node directly
     using BaseLogicBuilderPolicy::operator();
     // Visit a negated node and append 'not'
-    inline void operator()(Negated const&);
-    // Visit daughter nodes and append the conjunction.
-    inline void operator()(Joined const&);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Visit a negated node and append 'not'.
- */
-void PostfixLogicBuilderPolicy::operator()(Negated const& n)
-{
-    (*this)(n.node);
-    logic().push_back(logic::lnot);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Visit daughter nodes and append the conjunction.
- */
-void PostfixLogicBuilderPolicy::operator()(Joined const& n)
-{
-    CELER_EXPECT(n.nodes.size() > 1);
-
-    // Visit first node, then add conjunction for subsequent nodes
-    auto iter = n.nodes.begin();
-    (*this)(*iter++);
-
-    while (iter != n.nodes.end())
+    void operator()(Negated const& n)
     {
-        (*this)(*iter++);
-        logic().push_back(n.op);
+        (*this)(n.node);
+        logic().push_back(logic::lnot);
     }
-}
+    // Visit daughter nodes and append the conjunction.
+    void operator()(Joined const& n)
+    {
+        CELER_EXPECT(n.nodes.size() > 1);
+
+        // Visit first node, then add conjunction for subsequent nodes
+        auto iter = n.nodes.begin();
+        (*this)(*iter++);
+
+        while (iter != n.nodes.end())
+        {
+            (*this)(*iter++);
+            logic().push_back(n.op);
+        }
+    }
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -255,43 +240,32 @@ class InfixLogicBuilderPolicy
     //!@{
     //! \name Visit a node directly
     using BaseLogicBuilderPolicy::operator();
-    // Visit a negated node and append 'not'
-    inline void operator()(Negated const&);
-    // Visit daughter nodes and append the conjunction.
-    inline void operator()(Joined const&);
+    //! Append 'not' and visit a negated node
+    void operator()(Negated const& n)
+    {
+        this->logic().push_back(logic::lnot);
+        (*this)(n.node);
+    }
+
+    //! Visit daughter nodes and append the conjunction.
+    void operator()(Joined const& n)
+    {
+        CELER_EXPECT(n.nodes.size() > 1);
+        auto& logic = this->logic();
+        logic.push_back(logic::lopen);
+        // Visit first node, then add conjunction for subsequent nodes
+        auto iter = n.nodes.begin();
+        (*this)(*iter++);
+
+        while (iter != n.nodes.end())
+        {
+            logic.push_back(n.op);
+            (*this)(*iter++);
+        }
+        logic.push_back(logic::lclose);
+    }
     //!@}
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Visit a negated node and append 'not'.
- */
-void InfixLogicBuilderPolicy::operator()(Negated const& n)
-{
-    this->logic().push_back(logic::lnot);
-    (*this)(n.node);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Visit daughter nodes and append the conjunction.
- */
-void InfixLogicBuilderPolicy::operator()(Joined const& n)
-{
-    CELER_EXPECT(n.nodes.size() > 1);
-    auto& logic = this->logic();
-    logic.push_back(logic::lopen);
-    // Visit first node, then add conjunction for subsequent nodes
-    auto iter = n.nodes.begin();
-    (*this)(*iter++);
-
-    while (iter != n.nodes.end())
-    {
-        logic.push_back(n.op);
-        (*this)(*iter++);
-    }
-    logic.push_back(logic::lclose);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
