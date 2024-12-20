@@ -50,7 +50,6 @@ jobs:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-docker.yml
   build-spack:
-    needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
