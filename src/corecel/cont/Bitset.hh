@@ -8,6 +8,7 @@
 #pragma once
 
 #include <climits>
+#include <cstdint>
 
 #include "corecel/Config.hh"
 
@@ -27,7 +28,7 @@ namespace celeritas
  * for our current use case. Given that GPU typically use 32-bit words, this
  * uses unsigned int as the word type instead of the unsigned long used by the
  * standard library. This container is not thread-safe, multiple threads are
- * likely to manipulate the same word, even we accessing different indices.
+ * likely to manipulate the same word, even when accessing different indices.
  *
  * The following methods are not implemented:
  * - conversions to string, to_ulong, to_ullong
@@ -44,7 +45,7 @@ class Bitset
   public:
     //!@{
     //! \name Type aliases
-    using word_type = unsigned int;
+    using word_type = std::uint32_t;
     //!@}
 
     class reference;
@@ -53,7 +54,7 @@ class Bitset
     //// CONSTRUCTORS ////
 
     // Default construct with zeros for all bits
-    Bitset() = default;
+    constexpr Bitset() = default;
 
     // Construct implicitly from a bitset encoded as an integer
     CELER_CONSTEXPR_FUNCTION Bitset(word_type value) noexcept;
@@ -185,7 +186,7 @@ class Bitset<N>::reference
     {
     }
 
-    reference(reference const&) = default;
+    constexpr reference(reference const&) = default;
 
     ~reference() noexcept = default;
 
