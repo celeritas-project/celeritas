@@ -200,7 +200,7 @@ inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
 template<class T>
 CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
 {
-    return (v < 0) ? 0 : v;
+    return (v < T{0}) ? T{0} : v;
 }
 
 //---------------------------------------------------------------------------//
@@ -452,7 +452,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
     if constexpr (N == 0)
     {
         CELER_DISCARD(v)  // Suppress warning in older compilers
-        return 1;
+        return T{1};
     }
     else if constexpr (N % 2 == 0)
     {
@@ -465,7 +465,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 #if (__CUDACC_VER_MAJOR__ < 11) \
     || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
     // "error: missing return statement at end of non-void function"
-    return T{};
+    return T{0};
 #endif
 }
 

@@ -139,6 +139,7 @@ TEST(AlgorithmsTest, clamp_to_nonneg)
 
     EXPECT_DOUBLE_EQ(1.2345, clamp_to_nonneg(1.2345));
     EXPECT_DOUBLE_EQ(0.0, clamp_to_nonneg(-123));
+    EXPECT_DOUBLE_EQ(m_pi, clamp_to_nonneg(constants::pi));
     EXPECT_TRUE(std::isnan(clamp_to_nonneg(nan)));
 }
 
@@ -311,6 +312,8 @@ TEST(MathTest, ipow)
     EXPECT_FLOAT_EQ(0.001f, ipow<3>(0.1f));
     EXPECT_EQ(1e4, ipow<4>(10.0));
     EXPECT_TRUE((std::is_same<int, decltype(ipow<4>(5))>::value));
+
+    EXPECT_EQ(m_pi * m_pi, static_cast<double>(ipow<2>(constants::pi)));
 }
 
 //---------------------------------------------------------------------------//
