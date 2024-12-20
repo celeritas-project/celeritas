@@ -54,14 +54,14 @@ class LazySenseCalculator
     //! Flip the sense of a face
     CELER_FUNCTION void flip_sense(FaceId face_id)
     {
-        // If the sense isn't cached yet, calculate it
-        if (CELER_UNLIKELY(!sense_flags_[face_id.get()][SenseFlags::cached]))
-        {
-            (*this)(face_id);
-        }
-        // flip it
-        sense_cache_[face_id.get()]
-            = celeritas::flip_sense(sense_cache_[face_id.get()]);
+        sense_cache_[face_id.get()] = celeritas::flip_sense([this, &face_id] {
+            // If the sense isn't cached yet, calculate it
+            if (CELER_UNLIKELY(!sense_flags_[face_id.get()][SenseFlags::cached]))
+            {
+                return (*this)(face_id);
+            }
+            return sense_cache_[face_id.get()];
+        }());
     }
 
   private:
