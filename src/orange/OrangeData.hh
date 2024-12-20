@@ -473,7 +473,7 @@ struct OrangeStateData
 
     // Scratch space with dimensions {track}{max_faces}
     Items<Sense> temp_sense;
-    Items<SenseModFlags> temp_sense_mod;
+    Items<SenseMod> temp_sense_mod;
 
     // Scratch space with dimensions {track}{max_intersections}
     Items<FaceId> temp_face;

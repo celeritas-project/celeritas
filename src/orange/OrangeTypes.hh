@@ -17,6 +17,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/Bitset.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "geocel/Types.hh"  // IWYU pragma: export
 
@@ -105,13 +106,14 @@ enum class Sense : bool
 /*!
  * Transformations to apply to senses when using lazy sense evaluation.
  */
-enum class SenseMod : unsigned char
+enum SenseFlags : unsigned char
 {
-    normal = 0,
-    flipped = 1 << 0,
-    cached = 1 << 1,
+    flipped = 0x1,
+    cached = 0x2,
 };
-using SenseModFlags = std::underlying_type_t<SenseMod>;
+
+//! Modifiers for the sense calculation
+using SenseMod = Bitset<8>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -388,46 +390,6 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 {
     using IntT = std::underlying_type_t<SignedSense>;
     return static_cast<SignedSense>(-static_cast<IntT>(orig));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check if a sense modifier is set.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION bool
-is_sense_mod_set(SenseMod mod, SenseModFlags flags)
-{
-    return (flags & static_cast<SenseModFlags>(mod)) != 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set a sense modifier.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION SenseModFlags
-set_sense_mod(SenseMod mod, SenseModFlags flags)
-{
-    return flags | static_cast<SenseModFlags>(mod);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Unset a sense modifier.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION SenseModFlags
-unset_sense_mod(SenseMod mod, SenseModFlags flags)
-{
-    return flags & ~static_cast<SenseModFlags>(mod);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Flip a sense modifier.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION SenseModFlags
-flip_sense_mod(SenseMod mod, SenseModFlags flags)
-{
-    return flags ^ static_cast<SenseModFlags>(mod);
 }
 
 //---------------------------------------------------------------------------//

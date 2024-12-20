@@ -198,7 +198,7 @@ class OrangeTrackView
 
     // Create local sense reference
     inline CELER_FUNCTION Span<Sense> make_temp_sense() const;
-    inline CELER_FUNCTION Span<SenseModFlags> make_temp_sense_mod() const;
+    inline CELER_FUNCTION Span<SenseMod> make_temp_sense_mod() const;
 
     // Create local distance
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
@@ -1054,12 +1054,12 @@ CELER_FUNCTION Span<Sense> OrangeTrackView::make_temp_sense() const
 /*!
  * Get a reference to the current volume, or to world volume if outside.
  */
-CELER_FUNCTION Span<SenseModFlags> OrangeTrackView::make_temp_sense_mod() const
+CELER_FUNCTION Span<SenseMod> OrangeTrackView::make_temp_sense_mod() const
 {
     auto const max_faces = params_.scalars.max_faces;
     auto offset = track_slot_.get() * max_faces;
-    return states_.temp_sense_mod[AllItems<SenseModFlags, MemSpace::native>{}]
-        .subspan(offset, max_faces);
+    return states_.temp_sense_mod[AllItems<SenseMod, MemSpace::native>{}].subspan(
+        offset, max_faces);
 }
 
 //---------------------------------------------------------------------------//

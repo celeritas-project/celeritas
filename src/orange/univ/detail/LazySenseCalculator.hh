@@ -8,7 +8,6 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
@@ -36,7 +35,7 @@ class LazySenseCalculator
                                               VolumeView const& vol,
                                               Real3 const& pos,
                                               Span<Sense> sense_cache,
-                                              Span<SenseModFlags> sense_flags,
+                                              Span<SenseMod> sense_flags,
                                               OnFace& face);
 
     // Calculate senses for a single face of the given volume, possibly on a
@@ -46,12 +45,11 @@ class LazySenseCalculator
     //! Flip the sense of a face
     CELER_FUNCTION void flip_sense(FaceId face_id)
     {
-        sense_flags_[face_id.get()]
-            = flip_sense_mod(SenseMod::flipped, sense_flags_[face_id.get()]);
+        sense_flags_[face_id.get()][SenseFlags::flipped].flip();
 
         // If the sense is cached, flip it, otherwise it will be flipped when
         // we calculate it
-        if (is_sense_mod_set(SenseMod::cached, sense_flags_[face_id.get()]))
+        if (sense_flags_[face_id.get()][SenseFlags::cached])
         {
             sense_cache_[face_id.get()]
                 = celeritas::flip_sense(sense_cache_[face_id.get()]);
@@ -70,7 +68,7 @@ class LazySenseCalculator
 
     //! Temporary senses
     Span<Sense> sense_cache_;
-    Span<SenseModFlags> sense_flags_;
+    Span<SenseMod> sense_flags_;
 
     //! The first face encountered that we are "on"
     OnFace& face_;
@@ -87,7 +85,7 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          VolumeView const& vol,
                                          Real3 const& pos,
                                          Span<Sense> sense_cache,
-                                         Span<SenseModFlags> sense_flags,
+                                         Span<SenseMod> sense_flags,
                                          OnFace& face)
     : visit_{visit}
     , vol_(vol)
@@ -98,7 +96,7 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
 {
     for (auto& sense : sense_flags_)
     {
-        sense = static_cast<SenseModFlags>(SenseMod::normal);
+        sense.reset();
     }
 }
 
@@ -111,7 +109,8 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
  */
 CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
-    if (is_sense_mod_set(SenseMod::cached, sense_flags_[face_id.get()]))
+    auto& mods = sense_flags_[face_id.get()];
+    if (mods[SenseFlags::cached])
     {
         return sense_cache_[face_id.get()];
     }
@@ -133,15 +132,14 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
         // Sense is known a priori
         sense = face_.sense();
     }
-    if (is_sense_mod_set(SenseMod::flipped, sense_flags_[face_id.get()]))
+    if (mods[SenseFlags::flipped])
     {
         sense = celeritas::flip_sense(sense);
     }
 
     CELER_ENSURE(!face_ || face_.id() < vol_.num_faces());
 
-    sense_flags_[face_id.get()]
-        = set_sense_mod(SenseMod::cached, sense_flags_[face_id.get()]);
+    mods[SenseFlags::cached] = true;
     sense_cache_[face_id.get()] = sense;
     return sense;
 }
