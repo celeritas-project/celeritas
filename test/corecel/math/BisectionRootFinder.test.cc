@@ -18,13 +18,15 @@
 #include "DiagnosticRealFunc.hh"
 #include "celeritas_test.hh"
 
-using celeritas::constants::pi;
-inline constexpr auto tol = celeritas::SoftEqual<>{}.rel();
-
 namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+
+constexpr auto pi = static_cast<real_type>(constants::pi);
+constexpr auto tol = SoftEqual<real_type>{}.rel();
+
 //---------------------------------------------------------------------------//
 
 // Solve: (x-2)(x+2) = 0

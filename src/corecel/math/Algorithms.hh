@@ -644,16 +644,6 @@ CELER_CONSTEXPR_FUNCTION int signum(T x)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Double-precision math constant (POSIX derivative).
- *
- * These should be used in *host* or *type-dependent* circumstances because, if
- * using \c CELERITAS_REAL_TYPE=float, this could have more accuracy than
- * \c celeritas::constants::pi .
- */
-inline constexpr double m_pi{3.14159265358979323846};
-
-//---------------------------------------------------------------------------//
 //!@{
 //! \name CUDA/HIP equivalent routines
 

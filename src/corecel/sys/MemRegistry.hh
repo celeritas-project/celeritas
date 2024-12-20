@@ -28,7 +28,7 @@ struct Kibi
 };
 
 //! 1024 bytes
-using KibiBytes = Quantity<Kibi>;
+using KibiBytes = Quantity<Kibi, Kibi::value_type>;
 //! Ordered identifiers for memory allocation segments
 using MemUsageId = OpaqueId<struct MemUsageEntry>;
 

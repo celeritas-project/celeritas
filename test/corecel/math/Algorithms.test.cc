@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "corecel/Constants.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -38,6 +40,8 @@ struct IsInRange
 
     bool operator()(int value) const { return value >= start && value < stop; }
 };
+
+inline constexpr auto m_pi = constants::pi;
 
 //---------------------------------------------------------------------------//
 // TESTS
