@@ -120,7 +120,7 @@ class BetheHeitlerInteractor
     inline CELER_FUNCTION Real2 screening_phi(real_type delta) const;
 
     // Calculate the auxiliary screening functions \f$ F_1 \f$ and \f$ F_2 \f$
-    inline CELER_FUNCTION Real2 screening_f(Real2 const& phi) const;
+    inline CELER_FUNCTION Real2 screening_f(real_type delta) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -220,8 +220,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
-        Real2 const fmin = this->screening_f(this->screening_phi(delta_min))
-                           - f_z_;
+        Real2 const fmin = this->screening_f(delta_min) - f_z_;
         BernoulliDistribution choose_f1g1(
             ipow<2>(half - epsilon_min) * fmin[0], real_type(1.5) * fmin[1]);
 
@@ -230,17 +229,34 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         real_type g;
         do
         {
-            // Sample screening from Brems (f1 & phi1, index 0)
-            // or pair production (f2 & phi2, index 1)
-            int const process_index = choose_f1g1(rng) ? 0 : 1;
-
-            if (process_index == 0)
+            if (choose_f1g1(rng))
             {
                 // Used to sample from f1
                 epsilon = half
                           - (half - epsilon_min)
                                 * std::cbrt(generate_canonical(rng));
                 CELER_ASSERT(epsilon >= epsilon_min && epsilon <= half);
+
+                // Calculate delta from element atomic number and sampled
+                // epsilon
+                real_type delta = this->impact_parameter(epsilon);
+                CELER_ASSERT(delta <= delta_max && delta >= delta_min);
+
+                // Calculate g_1 rejection function
+                if (enable_lpm_)
+                {
+                    auto screening = screening_phi(delta);
+                    auto lpm = calc_lpm_functions_(epsilon);
+                    g = lpm.xi
+                        * ((2 * lpm.phi + lpm.g) * screening[0]
+                           - lpm.g * screening[1] - lpm.phi * f_z_);
+                }
+                else
+                {
+                    g = this->screening_f(delta)[0] - f_z_;
+                }
+                g /= fmin[0];
+                CELER_ASSERT(g > 0);
             }
             else
             {
@@ -248,38 +264,28 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 epsilon = epsilon_min
                           + (half - epsilon_min) * generate_canonical(rng);
                 CELER_ASSERT(epsilon >= epsilon_min && epsilon <= half);
-            }
 
-            // Calculate delta from element atomic number and sampled
-            // epsilon
-            real_type delta = this->impact_parameter(epsilon);
-            CELER_ASSERT(delta <= delta_max && delta >= delta_min);
+                // Calculate delta given the element atomic number and sampled
+                // epsilon
+                real_type delta = this->impact_parameter(epsilon);
+                CELER_ASSERT(delta <= delta_max && delta >= delta_min);
 
-            // Calculate rejection function
-            auto screening = screening_phi(delta);
-            if (enable_lpm_)
-            {
-                auto lpm = calc_lpm_functions_(epsilon);
-                if (process_index == 0)
+                // Calculate g_2 rejection function
+                if (enable_lpm_)
                 {
-                    g = lpm.xi
-                        * ((2 * lpm.phi + lpm.g) * screening[0]
-                           - lpm.g * screening[1] - lpm.phi * f_z_);
-                }
-                else
-                {
+                    auto screening = screening_phi(delta);
+                    auto lpm = calc_lpm_functions_(epsilon);
                     g = half * lpm.xi
                         * ((2 * lpm.phi + lpm.g) * screening[0]
                            + lpm.g * screening[1] - (lpm.g + lpm.phi) * f_z_);
                 }
+                else
+                {
+                    g = this->screening_f(delta)[1] - f_z_;
+                }
+                g /= fmin[1];
+                CELER_ASSERT(g > 0);
             }
-            else
-            {
-                g = this->screening_f(screening)[process_index] - f_z_;
-            }
-            g /= fmin[process_index];
-            CELER_ASSERT(g > 0);
-
             // TODO: use rejection
         } while (g < generate_canonical(rng));
     }
@@ -378,10 +384,11 @@ BetheHeitlerInteractor::screening_phi(real_type delta) const -> Real2
  * subtraction should be addition.
  */
 CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_f(Real2 const& phi) const -> Real2
+BetheHeitlerInteractor::screening_f(real_type delta) const -> Real2
 {
     using R = real_type;
-    return {3 * phi[0] - phi[1], R{1.5} * phi[0] + R{0.5} * phi[1]};
+    auto temp = screening_phi(delta);
+    return {3 * temp[0] - temp[1], R{1.5} * temp[0] + R{0.5} * temp[1]};
 }
 
 //---------------------------------------------------------------------------//
