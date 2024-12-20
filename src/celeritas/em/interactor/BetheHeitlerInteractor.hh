@@ -11,12 +11,14 @@
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/BetheHeitlerData.hh"
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/em/xs/LPMCalculator.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -41,6 +43,11 @@ namespace celeritas
  * G4PairProductionRelModel, as documented in sections 6.5 (gamma conversion)
  * and 10.2.2 (LPM effect) of the Geant4 Physics Reference Manual (release
  * 10.7)
+ *
+ * For additional context on the derivation see:
+ *     Butcher, J.C., and H. Messel. “Electron Number Distribution in
+ *     Electron-Photon Showers in Air and Aluminium Absorbers.” Nuclear Physics
+ *     20 (October 1960): 15–128. https://doi.org/10.1016/0029-5582(60)90162-0.
  */
 class BetheHeitlerInteractor
 {
@@ -68,12 +75,7 @@ class BetheHeitlerInteractor
   private:
     //// TYPES ////
 
-    //! Screening functions \f$ \Phi_1 \f$ and \f$ \Phi_2 \f$
-    struct ScreeningFunctions
-    {
-        real_type phi1;
-        real_type phi2;
-    };
+    using Real2 = Array<real_type, 2>;
 
     //// DATA ////
 
@@ -115,14 +117,10 @@ class BetheHeitlerInteractor
     inline CELER_FUNCTION real_type impact_parameter(real_type eps) const;
 
     // Calculate the screening functions \f$ \Phi_1 \f$ and \f$ \Phi_2 \f$
-    inline CELER_FUNCTION ScreeningFunctions
-    screening_phi1_phi2(real_type delta) const;
+    inline CELER_FUNCTION Real2 screening_phi(real_type delta) const;
 
-    // Calculate the auxiliary screening function \f$ F_1 \f$
-    inline CELER_FUNCTION real_type screening_f1(real_type delta) const;
-
-    // Calculate the auxiliary screening function \f$ F_2 \f$
-    inline CELER_FUNCTION real_type screening_f2(real_type delta) const;
+    // Calculate the auxiliary screening functions \f$ F_1 \f$ and \f$ F_2 \f$
+    inline CELER_FUNCTION Real2 screening_f(real_type delta) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -222,10 +220,9 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
-        real_type const f10 = this->screening_f1(delta_min) - f_z_;
-        real_type const f20 = this->screening_f2(delta_min) - f_z_;
-        BernoulliDistribution choose_f1g1(ipow<2>(half - epsilon_min) * f10,
-                                          real_type(1.5) * f20);
+        Real2 const fmin = this->screening_f(delta_min) - f_z_;
+        BernoulliDistribution choose_f1g1(
+            ipow<2>(half - epsilon_min) * fmin[0], real_type(1.5) * fmin[1]);
 
         // Rejection function g_1 or g_2. Note the it's possible for g to be
         // greater than one
@@ -248,17 +245,17 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 // Calculate g_1 rejection function
                 if (enable_lpm_)
                 {
-                    auto screening = screening_phi1_phi2(delta);
+                    auto screening = screening_phi(delta);
                     auto lpm = calc_lpm_functions_(epsilon);
                     g = lpm.xi
-                        * ((2 * lpm.phi + lpm.g) * screening.phi1
-                           - lpm.g * screening.phi2 - lpm.phi * f_z_);
+                        * ((2 * lpm.phi + lpm.g) * screening[0]
+                           - lpm.g * screening[1] - lpm.phi * f_z_);
                 }
                 else
                 {
-                    g = this->screening_f1(delta) - f_z_;
+                    g = this->screening_f(delta)[0] - f_z_;
                 }
-                g /= f10;
+                g /= fmin[0];
                 CELER_ASSERT(g > 0);
             }
             else
@@ -276,17 +273,17 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 // Calculate g_2 rejection function
                 if (enable_lpm_)
                 {
-                    auto screening = screening_phi1_phi2(delta);
+                    auto screening = screening_phi(delta);
                     auto lpm = calc_lpm_functions_(epsilon);
                     g = half * lpm.xi
-                        * ((2 * lpm.phi + lpm.g) * screening.phi1
-                           + lpm.g * screening.phi2 - (lpm.g + lpm.phi) * f_z_);
+                        * ((2 * lpm.phi + lpm.g) * screening[0]
+                           + lpm.g * screening[1] - (lpm.g + lpm.phi) * f_z_);
                 }
                 else
                 {
-                    g = this->screening_f2(delta) - f_z_;
+                    g = this->screening_f(delta)[1] - f_z_;
                 }
-                g /= f20;
+                g /= fmin[1];
                 CELER_ASSERT(g > 0);
             }
             // TODO: use rejection
@@ -348,22 +345,25 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
 //---------------------------------------------------------------------------//
 /*!
  * Screening functions \f$ \Phi_1(\delta) \f$ and \f$ \Phi_2(\delta) \f$.
+ *
+ * These correspond to \em f in Butcher
  */
-CELER_FUNCTION auto BetheHeitlerInteractor::screening_phi1_phi2(
-    real_type delta) const -> ScreeningFunctions
+CELER_FUNCTION auto
+BetheHeitlerInteractor::screening_phi(real_type delta) const -> Real2
 {
     using R = real_type;
 
-    ScreeningFunctions result;
+    Real2 result;
     if (delta > R(1.4))
     {
-        result.phi1 = R(21.0190) - R(4.145) * std::log(delta + R(0.958));
-        result.phi2 = result.phi1;
+        result[0] = R(21.0190) - R(4.145) * std::log(delta + R(0.958));
+        result[1] = result[0];
     }
     else
     {
-        result.phi1 = R(20.806) - delta * (R(3.190) - R(0.5710) * delta);
-        result.phi2 = R(20.234) - delta * (R(2.126) - R(0.0903) * delta);
+        using PolyQuad = PolyEvaluator<real_type, 2>;
+        result[0] = PolyQuad{20.806, -3.190, 0.5710}(delta);
+        result[1] = PolyQuad{20.234, -2.126, 0.0903}(delta);
     }
     return result;
 }
@@ -373,27 +373,23 @@ CELER_FUNCTION auto BetheHeitlerInteractor::screening_phi1_phi2(
  * Auxiliary screening functions \f$ F_1(\delta) \f$ and \f$ F_2(\delta) \f$.
  *
  * The functions \f$ F_1 = 3 \Phi_1(\delta) - \Phi_2(\delta) \f$
- * and \f$ F_2 = 1.5\Phi_1(\delta) - 0.5\Phi_2(\delta) \f$
+ * and \f$ F_2 = 1.5\Phi_1(\delta) + 0.5\Phi_2(\delta) \f$
  * are decreasing functions of \f$ \delta \f$ for all \f$ \delta \f$
  * in \f$ [\delta_\textrm{min}, \delta_\textrm{max}] \f$.
  * They reach their maximum value at
  * \f$ \delta_\textrm{min} = \delta(\epsilon = 1/2)\f$. They are used in the
  * composition + rejection technique for sampling \f$ \epsilon \f$.
+ *
+ * Note that there's a typo in the Geant4 manual in the formula for F2:
+ * subtraction should be addition.
  */
-CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f1(real_type delta) const
+CELER_FUNCTION auto
+BetheHeitlerInteractor::screening_f(real_type delta) const -> Real2
 {
     using R = real_type;
-
-    return delta > R(1.4) ? R(42.038) - R(8.29) * std::log(delta + R(0.958))
-                          : R(42.184) - delta * (R(7.444) - R(1.623) * delta);
+    auto temp = screening_phi(delta);
+    return {3 * temp[0] - temp[1], R{1.5} * temp[0] + R{0.5} * temp[1]};
 }
 
-CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f2(real_type delta) const
-{
-    using R = real_type;
-
-    return delta > R(1.4) ? R(42.038) - R(8.29) * std::log(delta + R(0.958))
-                          : R(41.326) - delta * (R(5.848) - R(0.902) * delta);
-}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
