@@ -172,7 +172,6 @@ void UnitProto::build(ProtoBuilder& input) const
     }
 
     // Loop over all volumes to construct
-    detail::LogicBuilder build_logic;
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
@@ -183,7 +182,7 @@ void UnitProto::build(ProtoBuilder& input) const
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
-        auto&& [faces, logic] = build_logic(
+        auto&& [faces, logic] = detail::build_logic_repr(
             detail::PostfixLogicBuilderPolicy{
                 csg_unit.tree, &sorted_local_surfaces, vi.logic},
             node_id);

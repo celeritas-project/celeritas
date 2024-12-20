@@ -14,7 +14,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/detail/LogicBuilderPolicies.hh"
 
 namespace celeritas
@@ -33,8 +32,7 @@ namespace detail
  * of the logic evaluation itself.
  */
 template<class LogicBuilderPolicy>
-auto LogicBuilder::operator()(LogicBuilderPolicy&& policy,
-                              NodeId n) const -> result_type
+result_type build_logic_repr(LogicBuilderPolicy&& policy, NodeId n)
 {
     static_assert(std::is_invocable_v<LogicBuilderPolicy, NodeId>);
 
@@ -75,11 +73,11 @@ auto LogicBuilder::operator()(LogicBuilderPolicy&& policy,
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template auto
-LogicBuilder::operator()<InfixLogicBuilderPolicy>(InfixLogicBuilderPolicy&&,
-                                                  NodeId) const -> result_type;
-template auto LogicBuilder::operator()<PostfixLogicBuilderPolicy>(
-    PostfixLogicBuilderPolicy&&, NodeId) const -> result_type;
+template result_type
+build_logic_repr<InfixLogicBuilderPolicy>(InfixLogicBuilderPolicy&&, NodeId);
+template result_type
+build_logic_repr<PostfixLogicBuilderPolicy>(PostfixLogicBuilderPolicy&&,
+                                            NodeId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

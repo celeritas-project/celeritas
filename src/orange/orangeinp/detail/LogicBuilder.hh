@@ -17,9 +17,13 @@ namespace celeritas
 {
 namespace orangeinp
 {
-class CsgTree;
 namespace detail
 {
+//---------------------------------------------------------------------------//
+using VecLogic = std::vector<logic_int>;
+using VecSurface = std::vector<LocalSurfaceId>;
+using result_type = std::pair<VecSurface, VecLogic>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a logic representation of a node.
@@ -32,27 +36,12 @@ namespace detail
  * of this volume, and the logical representation using \em face IDs, i.e. with
  * the surfaces remapped to index of the surface in the face vector.
  *
- * The call operator is templated on a policy class that determines the logic
+ * The function is templated on a policy class that determines the logic
  * representation. The policy class must have an operator() that takes a NodeId
  * and be constructible from a CsgTree, VecSurface const*, and VecLogic*.
  */
-class LogicBuilder
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecLogic = std::vector<logic_int>;
-    using VecSurface = std::vector<LocalSurfaceId>;
-    using result_type = std::pair<VecSurface, VecLogic>;
-    //!@}
-
-  public:
-    LogicBuilder() = default;
-
-    // Convert a single node to a given notation
-    template<class LogicBuilderPolicy>
-    result_type operator()(LogicBuilderPolicy&& policy, NodeId n) const;
-};
+template<class LogicBuilderPolicy>
+result_type build_logic_repr(LogicBuilderPolicy&& policy, NodeId n);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
