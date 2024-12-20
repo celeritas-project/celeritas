@@ -257,7 +257,7 @@ TEST(TurnTest, basic)
 {
     EXPECT_STREQ("tr", Turn::unit_type::label());
     EXPECT_SOFT_EQ(0.5, Turn{0.5}.value());
-    EXPECT_DOUBLE_EQ(2 * m_pi, native_value_from(Turn{1}));
+    EXPECT_REAL_EQ(2 * m_pi, native_value_from(Turn{1}));
 }
 
 TEST(TurnTest, math)
