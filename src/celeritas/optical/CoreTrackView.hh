@@ -221,8 +221,8 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
 {
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
-    sim.status(TrackStatus::killed);
-    sim.post_step_action({});
+    sim.status(TrackStatus::errored);
+    sim.post_step_action(params_.scalars.tracking_cut_action);
 }
 
 //---------------------------------------------------------------------------//

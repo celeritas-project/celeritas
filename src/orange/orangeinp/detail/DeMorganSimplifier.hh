@@ -17,6 +17,7 @@ namespace celeritas
 {
 namespace orangeinp
 {
+struct SimplifiedCsgTree;
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -46,7 +47,7 @@ class DeMorganSimplifier
     explicit DeMorganSimplifier(CsgTree const&);
 
     // Perform the simplification
-    CsgTree operator()();
+    SimplifiedCsgTree operator()();
 
   private:
     //! CsgTree node 0 is always True{} and can't be the parent of any node

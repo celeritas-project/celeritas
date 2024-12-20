@@ -518,8 +518,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
         "Celeritas core state initialization complete",
         "No Cherenkov photons to generate",
         "Generated 964 Scintillation photons from 2 distributions",
-        R"(Exceeded step count of 1: aborting optical transport loop with 32 active tracks, 0 alive tracks, 32 vacancies, and 932 queued)",
-        R"(Generated 964 optical photons which completed 32 total steps over 1 iterations)",
+        R"(Generated 964 optical photons which completed 964 total steps over 31 iterations)",
         "Deallocating host core state (stream 0)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -527,7 +526,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "debug", "debug", "error", "debug", "debug"};
+        = {"status", "status", "debug", "debug", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
@@ -548,15 +547,15 @@ TEST_F(LArSphereOffloadTest, host_generate)
         "Celeritas core state initialization complete",
         "Generated 4258 Cherenkov photons from 4 distributions",
         "Generated 319935 Scintillation photons from 4 distributions",
-        R"(Exceeded step count of 1: aborting optical transport loop with 262144 active tracks, 0 alive tracks, 262144 vacancies, and 62049 queued)",
-        R"(Generated 324193 optical photons which completed 262144 total steps over 1 iterations)",
-        "Deallocating host core state (stream 0)"};
+        R"(Generated 324193 optical photons which completed 324193 total steps over 2 iterations)",
+        "Deallocating host core state (stream 0)",
+    };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "debug", "debug", "error", "debug", "debug"};
+        = {"status", "status", "debug", "debug", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(2, result.optical_launch_step);

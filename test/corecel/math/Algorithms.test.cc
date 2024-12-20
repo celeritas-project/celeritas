@@ -572,5 +572,20 @@ TEST(MathTest, signum)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST(PortabilityTest, popcount)
+{
+    unsigned int x = 0xAA;
+    EXPECT_EQ(4, popcount(x));
+
+    x &= 0xF;
+    EXPECT_EQ(2, popcount(x));
+    x >>= 2;
+    EXPECT_EQ(1, popcount(x));
+    x >>= 2;
+    EXPECT_EQ(0, popcount(x));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

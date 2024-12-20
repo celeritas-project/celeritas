@@ -12,6 +12,7 @@
 
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/orangeinp/CsgTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "ProtoInterface.hh"
@@ -130,6 +131,7 @@ class UnitProto : public ProtoInterface
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
         std::string label;
+        UnitSimplification simplification{UnitSimplification::none};
 
         // True if fully defined
         explicit inline operator bool() const;
