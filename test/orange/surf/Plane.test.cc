@@ -16,8 +16,7 @@ namespace celeritas
 {
 namespace test
 {
-
-using constants::sqrt_two;
+constexpr auto sqrt_two = real_type{constants::sqrt_two};
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS

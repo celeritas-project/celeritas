@@ -17,7 +17,9 @@ namespace detail
 {
 namespace test
 {
-using constants::pi;
+constexpr real_type pi{constants::pi};
+
+//---------------------------------------------------------------------------//
 // r_b = 1, a = 0, t = 0
 TEST(involute, point_one)
 {
@@ -48,11 +50,13 @@ TEST(involute, point_three)
     real_type r_b = 1;
     real_type a = pi * 0.5;
     detail::InvolutePoint calc_point{r_b, a};
-    auto point = calc_point(clamp_to_nonneg(pi));
+    auto point = calc_point(real_type{pi});
 
     EXPECT_SOFT_EQ(-pi, point[0]);
     EXPECT_SOFT_EQ(-1, point[1]);
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail
 }  // namespace celeritas

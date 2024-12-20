@@ -18,7 +18,7 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
-using constants::pi;
+constexpr real_type pi{constants::pi};
 using Sign = Chirality;
 Sign ccw = Chirality::left;
 Sign cw = Chirality::right;
@@ -131,7 +131,7 @@ TEST(SolveSurface, no_roots)
     // tmin = 2 and tmax = 4
     {
         real_type r_b = 3.0;
-        real_type a = pi;
+        real_type a{pi};
         auto sign = ccw;
 
         real_type x = -4.101853006408607;
@@ -628,7 +628,7 @@ TEST(Components, line_angle_param)
     // beta = -pi/3
     {
         real_type u = 0.5;
-        real_type v = std::sin(pi / 3);
+        real_type v = std::sin(pi / real_type{3});
 
         auto beta = InvoluteSolver::line_angle_param(u, v);
         EXPECT_SOFT_EQ(-pi / 3, beta);

@@ -20,8 +20,8 @@ namespace celeritas
 {
 namespace test
 {
-using constants::sqrt_three;
-using constants::sqrt_two;
+constexpr real_type sqrt_three{constants::sqrt_three};
+constexpr real_type sqrt_two{constants::sqrt_two};
 
 //---------------------------------------------------------------------------//
 //! Return the string form of a surface

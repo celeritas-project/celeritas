@@ -707,7 +707,7 @@ void Involute::build(IntersectSurfaceBuilder& insert_surface) const
         insert_surface(sense,
                        InvSurf{xy,
                                radii_[0],
-                               eumod(a_[i], 2 * constants::pi),
+                               eumod(a_[i], real_type(2 * constants::pi)),
                                sign_,
                                t_bounds_[0],
                                t_bounds_[1] + a_[1] - a_[0]},
@@ -852,7 +852,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     CELER_ASSERT(offset >= 0 && offset < 1);
 
     // Change of angle in radians per side
-    real_type const delta_rad = 2 * pi / static_cast<real_type>(num_sides_);
+    real_type const delta_rad = 2 * pi / real_type(num_sides_);
 
     // Build prismatic sides
     for (auto n : range(num_sides_))
@@ -870,7 +870,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
 
     // Apothem is interior, circumradius exterior
     insert_surface(Sense::inside,
-                   make_xyradial_bbox(apothem_ / std::cos(pi / num_sides_)));
+                   make_xyradial_bbox(apothem_ / std::cos(delta_rad / 2)));
 
     auto interior_bbox = make_xyradial_bbox(apothem_);
     interior_bbox.shrink(Bound::lo, Axis::z, -hh_);

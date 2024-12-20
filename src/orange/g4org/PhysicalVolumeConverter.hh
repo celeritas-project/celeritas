@@ -42,7 +42,7 @@ class PhysicalVolumeConverter
         //! Write output about volumes being converted
         bool verbose{false};
         //! Scale factor, customizable for unit testing
-        double scale = celeritas::lengthunits::millimeter;
+        double scale{celeritas::lengthunits::millimeter};
     };
 
   public:

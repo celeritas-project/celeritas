@@ -19,12 +19,13 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+constexpr auto sqrt_third = real_type{1} / constants::sqrt_three;
+
 class SphereTest : public Test
 {
   protected:
     using Intersections = Sphere::Intersections;
 
-    static constexpr real_type sqrt_third = 1 / constants::sqrt_three;
     static constexpr Real3 inward{-sqrt_third, -sqrt_third, -sqrt_third};
     static constexpr Real3 outward{sqrt_third, sqrt_third, sqrt_third};
 };

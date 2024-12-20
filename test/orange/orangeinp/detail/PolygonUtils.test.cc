@@ -28,7 +28,6 @@ namespace test
 
 using Real2 = Array<real_type, 2>;
 using VecReal2 = std::vector<Real2>;
-using constants::pi;
 
 constexpr auto ccw = Orientation::counterclockwise;
 constexpr auto cw = Orientation::clockwise;
@@ -78,6 +77,8 @@ TEST(PolygonUtilsTest, is_same_orientation)
 
 TEST(PolygonUtilsTest, convex)
 {
+    constexpr real_type pi{constants::pi};
+
     static Real2 const cw_points[] = {{1, 1}, {1, 2}, {2, 2}, {2, 1}};
     EXPECT_TRUE(is_convex(make_span(cw_points)));
 

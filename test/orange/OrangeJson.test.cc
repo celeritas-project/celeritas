@@ -33,7 +33,7 @@ class JsonOrangeTest : public OrangeGeoTestBase
 {
   public:
     size_type num_track_slots() const override { return 2; }
-    real_type unit_length() const override { return 1; }
+    Constant unit_length() const override { return Constant{1}; }
 
     void SetUp() final
     {
