@@ -9,6 +9,7 @@
 
 #include <cmath>
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 
 #include "Algorithms.hh"
@@ -20,7 +21,10 @@ namespace celeritas
 //! Unit for 2*pi radians
 struct TwoPi
 {
-    static real_type value() { return 2 * static_cast<real_type>(m_pi); }
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        return 2 * constants::pi;
+    }
     //! Text label for output
     static char const* label() { return "tr"; }
 };
@@ -29,7 +33,10 @@ struct TwoPi
 //! Unit for pi/2 radians
 struct HalfPi
 {
-    static real_type value() { return static_cast<real_type>(m_pi / 2); }
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        return constants::pi / 2;
+    }
     //! Text label for output
     static char const* label() { return "qtr"; }
 };
@@ -41,6 +48,8 @@ struct HalfPi
  * Turns are a useful way of representing angles without the historical
  * arbitrariness of degrees or the roundoff errors of radians. See, for
  * example, https://www.computerenhance.com/p/turns-are-better-than-radians .
+ *
+ * \todo Template on real type and template the functions below.
  */
 using Turn = Quantity<TwoPi, real_type>;
 

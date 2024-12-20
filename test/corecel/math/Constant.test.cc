@@ -20,15 +20,19 @@ namespace test
 TEST(ConstantTest, comparison)
 {
     constexpr Constant pi{3.14};
-    // EXPECT_TRUE(pi > 3);
+    EXPECT_TRUE(pi > 3);
     EXPECT_TRUE(pi > 3.0);
     EXPECT_TRUE(pi > 3.0f);
     EXPECT_TRUE(pi > Constant{3});
-    // EXPECT_FALSE(pi == 3);
+    EXPECT_FALSE(pi == 3);
     EXPECT_FALSE(pi == 3.0);
     EXPECT_FALSE(pi == 3.0f);
     EXPECT_FALSE(pi == Constant{3});
-    // EXPECT_TRUE(pi < 4);
+    EXPECT_TRUE(pi != 3);
+    EXPECT_TRUE(pi == 3.14);
+    EXPECT_TRUE(pi == 3.14f);
+    EXPECT_TRUE(pi == Constant{3.14});
+    EXPECT_TRUE(pi < 4);
     EXPECT_TRUE(pi < 4.0);
     EXPECT_TRUE(pi < 4.0f);
     EXPECT_TRUE(pi < Constant{4});
@@ -55,6 +59,14 @@ TEST(ConstantTest, multiplication)
     {
         auto halfpi = Constant{0.5} * pi;
         EXPECT_TRUE((std::is_same_v<Constant, decltype(halfpi)>));
+    }
+
+    {
+        // Multiplication is performed at single precision,
+        // then promoted to double
+        auto expr = 1.23f * pi * 2 + 4.0;
+        EXPECT_TRUE((std::is_same_v<double, decltype(expr)>));
+        EXPECT_EQ(1.23f * 3.14f * 2 + 4.0, expr);
     }
 }
 

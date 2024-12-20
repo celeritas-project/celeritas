@@ -21,21 +21,23 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-constexpr double pi = m_pi;
+using constants::pi;
+inline constexpr double m_pi{pi};
 
 // One revolution = 2pi radians
 struct TwoPi
 {
-    static double value() { return 2 * pi; }
+    static constexpr Constant value() { return 2 * pi; }
 };
-using Revolution = Quantity<TwoPi>;
+using Revolution = Quantity<TwoPi, double>;
 
 struct DozenUnit
 {
     static constexpr int value() { return 12; }
     static constexpr char const* label() { return "dozen"; }
 };
+
+using Dozen = Quantity<DozenUnit, int>;
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -48,7 +50,7 @@ TEST(QuantityTest, constexpr_attributes)
     EXPECT_TRUE(std::is_standard_layout<Revolution>::value);
     EXPECT_TRUE(std::is_default_constructible<Revolution>::value);
 
-    EXPECT_TRUE((std::is_same_v<Quantity<DozenUnit>::value_type, int>));
+    EXPECT_TRUE((std::is_same_v<Dozen::value_type, int>));
 }
 
 TEST(QuantityTest, usage)
@@ -62,7 +64,7 @@ TEST(QuantityTest, usage)
 
     // Hypothetical return value for user
     Revolution spacing{dtheta};
-    EXPECT_SOFT_EQ(2 * pi / 16, native_value_from(spacing));
+    EXPECT_SOFT_EQ(2 * m_pi / 16, native_value_from(spacing));
 
     // Create a quantity from a literal value in the native unit system
     auto half_rev = native_value_to<Revolution>(pi);
@@ -70,7 +72,6 @@ TEST(QuantityTest, usage)
     EXPECT_DOUBLE_EQ(0.5, value_as<Revolution>(half_rev));
 
     // Check integer division works correctly
-    using Dozen = Quantity<DozenUnit>;
     auto two_dozen = native_value_to<Dozen>(24);
     EXPECT_TRUE((std::is_same_v<decltype(two_dozen), Dozen>));
     EXPECT_EQ(2, value_as<Dozen>(two_dozen));
@@ -93,7 +94,6 @@ TEST(QuantityTest, zeros)
     EXPECT_EQ(0, value_as<Revolution>(zero_turn));
 
     // Check int/untyped commparisons
-    using Dozen = Quantity<DozenUnit, int>;
     EXPECT_GT(Dozen{1}, zero_quantity());
     EXPECT_LT(Dozen{1}, max_quantity());
 }
@@ -102,13 +102,19 @@ TEST(QuantityTest, mixed_precision)
 {
     using RevInt = Quantity<TwoPi, int>;
     auto fourpi = native_value_from(RevInt{2});
-    EXPECT_TRUE((std::is_same_v<decltype(fourpi), double>));
-    EXPECT_SOFT_EQ(4 * pi, fourpi);
+    EXPECT_TRUE((std::is_same_v<decltype(fourpi), Constant>));
+    EXPECT_SOFT_EQ(4 * m_pi, static_cast<double>(fourpi));
 
     using DozenDbl = Quantity<DozenUnit, double>;
     auto two_dozen = native_value_to<DozenDbl>(24);
     EXPECT_TRUE((std::is_same_v<decltype(two_dozen), DozenDbl>));
     EXPECT_SOFT_EQ(2, two_dozen.value());
+
+    using DozenFlt = Quantity<DozenUnit, float>;
+    {
+        auto two_dozen_flt = native_value_to<DozenFlt>(24);
+        EXPECT_SOFT_EQ(2, two_dozen_flt.value());
+    }
 }
 
 TEST(QuantityTest, comparators)
@@ -181,9 +187,10 @@ TEST(QuantityTest, math)
         EXPECT_DOUBLE_EQ(3, divd.value());
     }
 
-    // Test mixed precision
+    // Test mixed integer/double
     {
-        EXPECT_DOUBLE_EQ(4 * pi, native_value_from(RevInt{2}));
+        EXPECT_DOUBLE_EQ(4 * m_pi,
+                         static_cast<double>(native_value_from(RevInt{2})));
         auto added = RevFlt{1.5} + RevInt{1};
         EXPECT_TRUE((std::is_same<decltype(added), RevFlt>::value));
     }
@@ -196,7 +203,6 @@ TEST(QuantityTest, math)
 
 TEST(QuantityTest, swappiness)
 {
-    using Dozen = Quantity<DozenUnit>;
     Dozen dozen{1}, gross{12};
     {
         // ADL should prefer swap implementation
@@ -217,8 +223,6 @@ TEST(QuantityTest, swappiness)
 
 TEST(QuantityTest, io)
 {
-    using Dozen = Quantity<DozenUnit>;
-
     {
         SCOPED_TRACE("Input as scalar");
         nlohmann::json inp = int{123};
@@ -253,7 +257,7 @@ TEST(TurnTest, basic)
 {
     EXPECT_STREQ("tr", Turn::unit_type::label());
     EXPECT_SOFT_EQ(0.5, Turn{0.5}.value());
-    EXPECT_REAL_EQ(2 * pi, native_value_from(Turn{1}));
+    EXPECT_DOUBLE_EQ(2 * m_pi, native_value_from(Turn{1}));
 }
 
 TEST(TurnTest, math)
@@ -268,7 +272,8 @@ TEST(QuarterTurnTest, basic)
     EXPECT_STREQ("qtr", QuarterTurn::unit_type::label());
     EXPECT_EQ(-1, QuarterTurn{-1}.value());
     EXPECT_EQ(1, QuarterTurn{1}.value());
-    EXPECT_REAL_EQ(2 * pi, native_value_from(QuarterTurn{4}));
+    EXPECT_DOUBLE_EQ(2 * m_pi,
+                     static_cast<double>(native_value_from(QuarterTurn{4})));
 }
 
 TEST(QuarterTurnTest, sincos)
