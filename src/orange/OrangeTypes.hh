@@ -108,8 +108,8 @@ enum class Sense : bool
  */
 enum SenseFlags : unsigned char
 {
-    flipped = 0x1,
-    cached = 0x2,
+    flipped = 0x1,  //!< Sense is flipped
+    cached = 0x2,  //!< Sense is cached
 };
 
 //! Modifiers for the sense calculation

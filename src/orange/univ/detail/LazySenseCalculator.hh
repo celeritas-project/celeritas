@@ -24,8 +24,16 @@ namespace detail
 /*!
  * Calculate senses with a fixed particle position.
  *
- * This is an implementation detail used in initialization *and* complex
- * intersection.
+ * This is an implementation detail used in initialization, boundary crossing,
+ * simple *and* complex intersection. Instances of this class are specific to a
+ * volume, and a position.  Calling an instance evaluates the sense of a
+ * volume's face with respect to the given position. This class is used to
+ * lazily calculate sense during evaluation of a logic expression, caching
+ * previously calculater senses, and potentially short-circuiting unnecessary
+ * evaluation.
+ *
+ * The OnFace constructor's parameter is used to store the first face that we
+ * are "on".
  */
 class LazySenseCalculator
 {
