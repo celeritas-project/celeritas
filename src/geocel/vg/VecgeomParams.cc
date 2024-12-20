@@ -253,10 +253,11 @@ void VecgeomParams::build_volumes_vgdml(std::string const& filename)
     ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
 
 #ifdef VECGEOM_GDML
-    vgdml::Frontend::Load(filename,
-                          /* validate_xml_schema = */ false,
-                          /* mm_unit = */ lengthunits::millimeter,
-                          /* verbose = */ vecgeom_verbosity());
+    vgdml::Frontend::Load(
+        filename,
+        /* validate_xml_schema = */ false,
+        /* mm_unit = */ static_cast<double>(lengthunits::millimeter),
+        /* verbose = */ vecgeom_verbosity());
 #else
     CELER_DISCARD(filename);
     CELER_NOT_CONFIGURED("VGDML");

@@ -154,7 +154,7 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos,
 {
     auto geo = this->make_geo_track_view();
     GeoTrackInitializer init{pos, make_unit_vector(dir)};
-    init.pos *= this->unit_length();
+    init.pos *= static_cast<real_type>(this->unit_length());
     geo = init;
     return geo;
 }
@@ -178,7 +178,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
     auto const& vol_inst = this->geometry()->volume_instances();
-    real_type const inv_length = 1 / this->unit_length();
+    real_type const inv_length = real_type{1} / this->unit_length();
 
     if (geo.is_outside())
     {

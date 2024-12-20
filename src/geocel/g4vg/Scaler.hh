@@ -43,7 +43,7 @@ class Scaler
     }
 
   private:
-    inline static constexpr double scale_ = celeritas::lengthunits::millimeter;
+    inline static constexpr double scale_{celeritas::lengthunits::millimeter};
 };
 
 //---------------------------------------------------------------------------//
