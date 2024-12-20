@@ -12,6 +12,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/math/Constant.hh"
 #include "corecel/math/UnitUtils.hh"
 
 #include "Constants.hh"
@@ -30,7 +31,7 @@ namespace units
 //! Natural unit of speed
 struct CLight
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return constants::c_light;
     }
@@ -40,7 +41,7 @@ struct CLight
 //! Natural unit of charge (positive electron)
 struct EElectron
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return constants::e_electron;
     }
@@ -56,10 +57,10 @@ struct EElectron
 //! Atom-scale energy
 struct ElectronVolt
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-        return units::megaelectronvolt / real_type(1e6);
+        return units::megaelectronvolt / Constant(1e6);
 #else
         return constants::e_electron * units::volt;
 #endif
@@ -70,12 +71,12 @@ struct ElectronVolt
 //! Nucleus-scale energy
 struct Mev
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
         return units::megaelectronvolt;
 #else
-        return real_type(1e6) * constants::e_electron * units::volt;
+        return Constant(1e6) * constants::e_electron * units::volt;
 #endif
     }
     static char const* label() { return "MeV"; }
@@ -96,7 +97,7 @@ struct MevPerC : UnitDivide<Mev, CLight>
 //! Atomic mass units [amu]
 struct Amu
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return constants::atomic_mass;
     }
@@ -106,16 +107,16 @@ struct Amu
 //! Barn cross section [b]
 struct Barn
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::barn; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return units::barn; }
     static char const* label() { return "b"; }
 };
 
 //! Millibarn cross section [mb]
 struct Millibarn
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
-        return real_type(1e-3) * units::barn;
+        return Constant(1e-3) * units::barn;
     }
     static char const* label() { return "mb"; }
 };
@@ -123,7 +124,7 @@ struct Millibarn
 //! Amount of substance \f$N_a\f$
 struct Mol
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return constants::na_avogadro;
     }
@@ -138,7 +139,7 @@ struct Mol
 
 struct Centimeter
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::centimeter;
     }
@@ -147,20 +148,20 @@ struct Centimeter
 
 struct Gram
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::gram; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return units::gram; }
     static char const* label() { return "g"; }
 };
 
 struct Gauss
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::gauss; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return units::gauss; }
     static char const* label() { return "G"; }
 };
 
 //! Inverse cubic centimeter for number densities
 struct InvCentimeterCubed
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return 1 / (units::centimeter * units::centimeter * units::centimeter);
     }
@@ -186,13 +187,13 @@ struct GramPerCentimeterCubed : UnitProduct<Gram, InvCentimeterCubed>
 
 struct Meter
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::meter; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return units::meter; }
     static char const* label() { return "m"; }
 };
 
 struct Kilogram
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::kilogram;
     }
@@ -201,13 +202,13 @@ struct Kilogram
 
 struct Second
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::second; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return units::second; }
     static char const* label() { return "s"; }
 };
 
 struct Tesla
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::tesla; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return units::tesla; }
     static char const* label() { return "T"; }
 };
 
@@ -219,7 +220,7 @@ struct Tesla
 
 struct Millimeter
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::millimeter;
     }
@@ -228,7 +229,7 @@ struct Millimeter
 
 struct Nanosecond
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::nanosecond;
     }
@@ -238,17 +239,17 @@ struct Nanosecond
 //! Unit mass in CLHEP system
 struct ClhepUnitMass
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         if constexpr (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
         {
             // Floating point errors make the true expression below difficult
             // to be exactly unity
-            return real_type(1);
+            return Constant(1);
         }
         else
         {
-            return constants::e_electron / coulomb * kilogram * real_type(1e-6);
+            return constants::e_electron / coulomb * kilogram * Constant(1e-6);
         }
     }
     static char const* label() { return "mass_clhep"; }
@@ -257,7 +258,10 @@ struct ClhepUnitMass
 //! Unit magnetic flux density in CLHEP system
 struct ClhepUnitBField
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return 1e3 * tesla; }
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        return Constant{1e3} * tesla;
+    }
     static char const* label() { return "field_clhep"; }
 };
 
@@ -270,14 +274,14 @@ struct ClhepUnitBField
 //! Mark as being in the native/builtin unit system
 struct Native
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return 1; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return Constant{1}; }
 };
 
 //! Annotate a quantity represented the logarithm of (E/MeV)
 struct LogMev
 {
     //! Conversion factor is not multiplicative
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return 0; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return Constant{0}; }
 };
 
 //!@}

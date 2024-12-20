@@ -23,12 +23,12 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::SBPositronXsCorrector;
-
 namespace celeritas
 {
 namespace test
 {
+using detail::SBPositronXsCorrector;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -272,7 +272,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         {
             struct ScaleXs
             {
-                using Xs = Quantity<units::Millibarn>;
+                using Xs = RealQuantity<units::Millibarn>;
 
                 real_type operator()(Energy) const { return 0.5; }
 

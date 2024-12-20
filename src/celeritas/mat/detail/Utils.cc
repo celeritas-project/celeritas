@@ -31,7 +31,7 @@ namespace detail
  * This is accurate to 16 digits of precision through Z=92, as compared to 5
  * or 6 digits for equation 34.26 which appears in RPP.
  */
-real_type calc_coulomb_correction(AtomicNumber atomic_number)
+double calc_coulomb_correction(AtomicNumber atomic_number)
 {
     CELER_EXPECT(atomic_number);
     using constants::alpha_fine_structure;
@@ -53,10 +53,10 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
                                   4.6566290650337837e-10,
                                   1.1641550172700519e-10};
 
-    real_type const alphazsq
-        = ipow<2>(alpha_fine_structure * atomic_number.unchecked_get());
-    real_type fz = 1 / (1 + alphazsq);
-    real_type azpow = 1;
+    double const alphazsq = ipow<2>(static_cast<double>(alpha_fine_structure)
+                                    * atomic_number.unchecked_get());
+    double fz = 1 / (1 + alphazsq);
+    double azpow = 1;
     for (double zeta_i : zeta)
     {
         fz += azpow * zeta_i;
@@ -74,7 +74,7 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
  * See ElementView::mass_radiation_coeff for details on this calculation and
  * how it's used.
  */
-real_type calc_mass_rad_coeff(ElementRecord const& el)
+double calc_mass_rad_coeff(ElementRecord const& el)
 {
     CELER_EXPECT(el.atomic_number);
     CELER_EXPECT(el.atomic_mass > zero_quantity());
@@ -82,10 +82,10 @@ real_type calc_mass_rad_coeff(ElementRecord const& el)
     using constants::alpha_fine_structure;
     using constants::r_electron;
 
-    real_type const z_real = el.atomic_number.unchecked_get();
+    double const z_real = el.atomic_number.unchecked_get();
 
     // Table 34.2 for calculating lrad/lrad prime
-    real_type lrad, lrad_prime;
+    double lrad, lrad_prime;
     switch (el.atomic_number.unchecked_get())
     {
             // clang-format off
@@ -95,13 +95,13 @@ real_type calc_mass_rad_coeff(ElementRecord const& el)
         case 4: lrad = 4.71; lrad_prime = 5.924; break;
             // clang-format on
         default:
-            lrad = std::log(184.15 * std::pow(z_real, real_type(-1) / 3));
-            lrad_prime = std::log(1194.0 * std::pow(z_real, real_type(-2) / 3));
+            lrad = std::log(184.15 * std::pow(z_real, double(-1) / 3));
+            lrad_prime = std::log(1194.0 * std::pow(z_real, double(-2) / 3));
     }
 
     // Eq 34.25
-    constexpr real_type inv_x0_factor = 4 * alpha_fine_structure
-                                        * ipow<2>(r_electron);
+    constexpr auto inv_x0_factor = 4 * alpha_fine_structure
+                                   * ipow<2>(r_electron);
     return inv_x0_factor / native_value_from(el.atomic_mass)
            * (ipow<2>(z_real) * (lrad - el.coulomb_correction)
               + z_real * lrad_prime);

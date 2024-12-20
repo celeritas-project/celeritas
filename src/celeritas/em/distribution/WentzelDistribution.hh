@@ -111,7 +111,7 @@ class WentzelDistribution
 
     //// TYPES ////
 
-    using InvMomSq = Quantity<UnitInverse<units::MevMomentumSq::unit_type>>;
+    using InvMomSq = RealQuantity<UnitInverse<units::MevMomentumSq::unit_type>>;
 
     //// HELPER FUNCTIONS ////
 

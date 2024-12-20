@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/Constant.hh"
 #include "corecel/math/UnitUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/UnitTypes.hh"
@@ -20,10 +21,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 //! Special partly-natural unit [MeV / len]
-using MevPerLen = Quantity<UnitDivide<units::Mev, units::Native>>;
+using MevPerLen = RealQuantity<UnitDivide<units::Mev, units::Native>>;
 
 //! Migdal's constant used for Bremsstrahlung [len^3]
-CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
+CELER_CONSTEXPR_FUNCTION Constant migdal_constant()
 {
     using namespace constants;
 
@@ -47,7 +48,7 @@ CELER_CONSTEXPR_FUNCTION MevPerLen lpm_constant()
 {
     using namespace constants;
 
-    constexpr real_type electron_mass_csq = electron_mass * ipow<2>(c_light);
+    constexpr auto electron_mass_csq = electron_mass * ipow<2>(c_light);
 
     return native_value_to<MevPerLen>(alpha_fine_structure
                                       * ipow<2>(electron_mass_csq)

@@ -27,7 +27,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using units::MevEnergy;
-using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -56,7 +56,7 @@ class EnergyLossDistributionTest : public Test
         = CollectionStateStore<MaterialStateData, MemSpace::host>;
     using ParticleStateStore
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
 
     void SetUp() override
     {

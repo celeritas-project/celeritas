@@ -89,11 +89,11 @@ class CherenkovGenerator
  */
 CELER_FUNCTION
 CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
-                                     NativeCRef<CherenkovData> const& shared,
-                                     GeneratorDistributionData const& dist)
+                                       NativeCRef<CherenkovData> const& shared,
+                                       GeneratorDistributionData const& dist)
     : dist_(dist)
     , calc_refractive_index_(material.make_refractive_index_calculator())
-    , sample_phi_(0, 2 * constants::pi)
+    , sample_phi_(0, real_type(2 * constants::pi))
 {
     CELER_EXPECT(shared);
     CELER_EXPECT(dist_);

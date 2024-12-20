@@ -23,8 +23,6 @@
 #include "celeritas_test.hh"
 #include "../GeantTestBase.hh"
 
-using namespace celeritas::units;
-
 namespace celeritas
 {
 namespace test
@@ -33,6 +31,9 @@ namespace test
 // Helper functions
 namespace
 {
+
+using namespace celeritas::units;
+
 template<class Iter>
 std::vector<std::string> to_vec_string(Iter iter, Iter end)
 {
@@ -44,14 +45,14 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
     return result;
 }
 
-double to_inv_cm(double v)
+real_type to_inv_cm(real_type v)
 {
     return native_value_to<InvCmXs>(v).value();
 }
 
-double to_sec(double v)
+real_type to_sec(real_type v)
 {
-    return native_value_to<Quantity<Second>>(v).value();
+    return native_value_to<RealQuantity<Second>>(v).value();
 }
 
 auto const geant4_version = Version::from_string(celeritas_geant4_version);
@@ -1028,7 +1029,8 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_DOUBLE_EQ(0.04, em_params.msc_range_factor);
     EXPECT_DOUBLE_EQ(0.6, em_params.msc_safety_factor);
     EXPECT_REAL_EQ(0.1, to_cm(em_params.msc_lambda_limit));
-    EXPECT_REAL_EQ(constants::pi, em_params.msc_theta_limit);
+    EXPECT_DOUBLE_EQ(static_cast<double>(constants::pi),
+                     em_params.msc_theta_limit);
     EXPECT_EQ(false, em_params.apply_cuts);
     EXPECT_EQ(1, em_params.screening_factor);
     EXPECT_EQ(1, em_params.angle_limit_factor);
@@ -1766,7 +1768,7 @@ TEST_F(LarSphere, optical)
     auto const& wls_mat = optical.wls;
     EXPECT_TRUE(wls_mat);
     EXPECT_REAL_EQ(3, wls_mat.mean_num_photons);
-    EXPECT_REAL_EQ(6 * nanosecond, wls_mat.time_constant);
+    EXPECT_REAL_EQ(6e-9, to_sec(wls_mat.time_constant));
     EXPECT_EQ(wls_mat.component.vector_type, wls_mfp.vector_type);
 
     std::vector<double> abslen_grid, comp_grid;

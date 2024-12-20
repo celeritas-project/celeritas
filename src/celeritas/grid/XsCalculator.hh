@@ -47,7 +47,7 @@ class XsCalculator
   public:
     //!@{
     //! \name Type aliases
-    using Energy = Quantity<XsGridData::EnergyUnits>;
+    using Energy = RealQuantity<XsGridData::EnergyUnits>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}

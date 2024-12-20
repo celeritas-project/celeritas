@@ -143,7 +143,8 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         // boundary, otherwise pretty close to forward peaked
         real_type min_angle = (geo.is_on_boundary() ? real_type(0.9) : 0);
         real_type mu = UniformRealDistribution<>{min_angle, 1}(rng);
-        real_type phi = UniformRealDistribution<>{0, 2 * constants::pi}(rng);
+        real_type phi
+            = UniformRealDistribution<>{0, real_type(2 * constants::pi)}(rng);
 
         Real3 dir = geo.dir();
         dir = rotate(from_spherical(mu, phi), dir);

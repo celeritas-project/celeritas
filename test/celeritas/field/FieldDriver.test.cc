@@ -13,6 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
@@ -28,20 +29,20 @@
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
-using celeritas::constants::sqrt_two;
-using celeritas::units::ElementaryCharge;
-using celeritas::units::MevEnergy;
-using celeritas::units::MevMass;
-using celeritas::units::MevMomentum;
-
-template<class E>
-using DiagnosticDPStepper
-    = celeritas::test::DiagnosticStepper<celeritas::DormandPrinceStepper<E>>;
-
 namespace celeritas
 {
 namespace test
 {
+
+constexpr real_type sqrt_two{constants::sqrt_two};
+using units::ElementaryCharge;
+using units::MevEnergy;
+using units::MevMass;
+using units::MevMomentum;
+
+template<class E>
+using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -167,8 +168,6 @@ TEST_F(FieldDriverTest, types)
 // different substeps
 TEST_F(FieldDriverTest, unpleasant_field)
 {
-    constexpr auto cm = units::centimeter;
-
     FieldDriverOptions driver_options;
     driver_options.max_nsteps = 32;
 
@@ -188,7 +187,7 @@ TEST_F(FieldDriverTest, unpleasant_field)
     real_type distance{0};
     for (auto i : range(1, 6))
     {
-        auto result = driver.advance(i * cm, state);
+        auto result = driver.advance(from_cm(i), state);
         distance += result.step;
         state = result.state;
     }
@@ -201,8 +200,6 @@ TEST_F(FieldDriverTest, unpleasant_field)
 // doesn't happen for any of the other more well-behaved fields).
 TEST_F(FieldDriverTest, horrible_field)
 {
-    constexpr auto cm = units::centimeter;
-
     FieldDriverOptions driver_options;
     driver_options.max_nsteps = 32;
 
@@ -222,7 +219,7 @@ TEST_F(FieldDriverTest, horrible_field)
     real_type accum{0};
     for (int i = 1; i < 5; ++i)
     {
-        auto result = driver.advance(0.05 * cm, state);
+        auto result = driver.advance(from_cm(0.05), state);
         accum += result.step;
         state = result.state;
     }
