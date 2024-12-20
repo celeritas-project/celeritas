@@ -17,7 +17,6 @@
 #include "detail/InfixEvaluator.hh"
 #include "detail/LazySenseCalculator.hh"
 #include "detail/LogicEvaluator.hh"
-#include "detail/SenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"
 #include "detail/Types.hh"
 #include "detail/Utils.hh"

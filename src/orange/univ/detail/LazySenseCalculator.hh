@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
@@ -53,15 +54,14 @@ class LazySenseCalculator
     //! Flip the sense of a face
     CELER_FUNCTION void flip_sense(FaceId face_id)
     {
-        sense_flags_[face_id.get()][SenseFlags::flipped].flip();
-
-        // If the sense is cached, flip it, otherwise it will be flipped when
-        // we calculate it
-        if (sense_flags_[face_id.get()][SenseFlags::cached])
+        // If the sense isn't cached yet, calculate it
+        if (CELER_UNLIKELY(!sense_flags_[face_id.get()][SenseFlags::cached]))
         {
-            sense_cache_[face_id.get()]
-                = celeritas::flip_sense(sense_cache_[face_id.get()]);
+            (*this)(face_id);
         }
+        // flip it
+        sense_cache_[face_id.get()]
+            = celeritas::flip_sense(sense_cache_[face_id.get()]);
     }
 
   private:
@@ -139,10 +139,6 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
     {
         // Sense is known a priori
         sense = face_.sense();
-    }
-    if (mods[SenseFlags::flipped])
-    {
-        sense = celeritas::flip_sense(sense);
     }
 
     CELER_ENSURE(!face_ || face_.id() < vol_.num_faces());
