@@ -426,3 +426,23 @@ ZOrder to_zorder(char c);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+
+//---------------------------------------------------------------------------//
+// STD::HASH SPECIALIZATION FOR HOST CODE
+//---------------------------------------------------------------------------//
+//! \cond
+namespace std
+{
+//! Specialization for std::hash for unordered storage.
+template<>
+struct hash<celeritas::Sense>
+{
+    using argument_type = celeritas::Sense;
+    using result_type = std::size_t;
+    result_type operator()(argument_type const& sense) const noexcept
+    {
+        return std::hash<bool>()(static_cast<bool>(sense));
+    }
+};
+}  // namespace std
+//! \endcond
