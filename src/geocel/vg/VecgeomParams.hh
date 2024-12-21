@@ -46,7 +46,7 @@ class VecgeomParams final : public GeoParamsInterface,
     explicit VecgeomParams(G4VPhysicalVolume const* world);
 
     // Clean up VecGeom on destruction
-    ~VecgeomParams();
+    ~VecgeomParams() final;
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return true; }
