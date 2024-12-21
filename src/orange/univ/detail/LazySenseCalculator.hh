@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/univ/detail/Types.hh"
 

@@ -17,6 +17,7 @@
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
+#include "SenseUtils.hh"
 #include "univ/detail/Types.hh"
 
 #include "detail/BIHData.hh"

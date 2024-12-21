@@ -10,6 +10,7 @@
 #include <ostream>
 
 #include "corecel/cont/VariantUtils.hh"
+#include "orange/SenseUtils.hh"
 
 #include "../CsgTree.hh"
 
