@@ -16,6 +16,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/Bitset.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "geocel/Types.hh"  // IWYU pragma: export
 
@@ -428,41 +429,51 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(SignedSense s)
  */
 class SenseMeta
 {
+  private:
+    enum : size_type
+    {
+        sense_bit,
+        cached_bit,
+    };
+
   public:
     constexpr SenseMeta() = default;
 
     //! Construct with a sense value
     CELER_CONSTEXPR_FUNCTION SenseMeta(Sense sense)
-        : sense_(sense), cached_(true)
     {
+        sense_[sense_bit] = static_cast<bool>(sense);
+        sense_[cached_bit] = true;
     }
 
     //! Convert to a sense value
-    CELER_CONSTEXPR_FUNCTION operator Sense() const { return sense_; }
+    CELER_CONSTEXPR_FUNCTION operator Sense() const
+    {
+        return to_sense(sense_[sense_bit]);
+    }
 
     //! Convert to a boolean value
     CELER_CONSTEXPR_FUNCTION explicit operator bool() const
     {
-        return static_cast<bool>(sense_);
+        return sense_[sense_bit];
     }
 
     //! Assign a sense value
     CELER_CONSTEXPR_FUNCTION SenseMeta& operator=(Sense sense)
     {
-        sense_ = sense;
-        cached_ = true;
+        sense_[sense_bit] = static_cast<bool>(sense);
+        sense_[cached_bit] = true;
         return *this;
     }
 
     //! Check wether there is a cached sense value
-    CELER_CONSTEXPR_FUNCTION bool cached() const { return cached_; }
+    CELER_CONSTEXPR_FUNCTION bool cached() const { return sense_[cached_bit]; }
 
     //! Invalidate the cached sense value
-    CELER_CONSTEXPR_FUNCTION void invalidate() { cached_ = false; }
+    CELER_CONSTEXPR_FUNCTION void invalidate() { sense_.reset(); }
 
   private:
-    Sense sense_{to_sense(false)};
-    bool cached_{false};
+    Bitset<2> sense_;
 };
 
 //---------------------------------------------------------------------------//
