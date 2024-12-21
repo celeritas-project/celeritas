@@ -105,7 +105,7 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
     auto& cached_sense = sense_cache_[face_id.get()];
     if (cached_sense.cached())
     {
-        return sense_cache_[face_id.get()];
+        return cached_sense;
     }
 
     if (face_id != face_.id())
