@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -84,6 +85,8 @@ BaseLogicBuilderPolicy<BuilderPolicy>::BaseLogicBuilderPolicy(
     CsgTree const& tree, VecSurface const* vs)
     : visit_node_{tree}, mapping_{vs}
 {
+    static_assert(std::is_base_of_v<BaseLogicBuilderPolicy, BuilderPolicy>,
+                  "CRTP: template parameter must be derived class");
 }
 
 //---------------------------------------------------------------------------//
