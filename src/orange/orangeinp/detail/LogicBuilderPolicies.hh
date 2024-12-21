@@ -26,8 +26,8 @@ namespace detail
 /*!
  * Base class for logic builder policies following CRTP pattern.
  *
- * call operator for Negated and Joined are not implemented in the base policy
- * and must be provided by the derived class.
+ * The call operator for Negated and Joined are not implemented in the base
+ * policy and must be provided by the derived class.
  */
 template<class BuilderPolicy>
 class BaseLogicBuilderPolicy
@@ -44,10 +44,8 @@ class BaseLogicBuilderPolicy
                   "face and surface ints");
 
   public:
-    // Construct with optional mapping and logic vector to append to
-    inline BaseLogicBuilderPolicy(CsgTree const& tree,
-                                  VecSurface const* vs,
-                                  VecLogic& logic);
+    // Construct with optional mapping
+    inline BaseLogicBuilderPolicy(CsgTree const& tree, VecSurface const* vs);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -70,19 +68,21 @@ class BaseLogicBuilderPolicy
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_;
-    VecLogic& logic_;
+    VecLogic logic_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with pointer to the logic expression.
+ * Construct with optional mapping.
  *
- * The surface mapping vector is *optional*.
+ * The optional surface mapping is an ordered vector of *existing* surface IDs.
+ * Those surface IDs will be replaced by the index in the array. All existing
+ * surface IDs must be present!
  */
 template<class BuilderPolicy>
 BaseLogicBuilderPolicy<BuilderPolicy>::BaseLogicBuilderPolicy(
-    CsgTree const& tree, VecSurface const* vs, VecLogic& logic)
-    : visit_node_{tree}, mapping_{vs}, logic_{logic}
+    CsgTree const& tree, VecSurface const* vs)
+    : visit_node_{tree}, mapping_{vs}
 {
 }
 

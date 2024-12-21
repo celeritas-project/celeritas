@@ -183,11 +183,11 @@ void UnitProto::build(ProtoBuilder& input) const
 
         // Construct logic and faces with remapped surfaces
         auto&& [faces, logic] = detail::build_logic_repr(
-            detail::PostfixLogicBuilderPolicy{
-                csg_unit.tree, &sorted_local_surfaces, vi.logic},
+            detail::PostfixLogicBuilderPolicy{csg_unit.tree,
+                                              &sorted_local_surfaces},
             node_id);
-        vi.logic = std::move(logic);
         vi.faces = std::move(faces);
+        vi.logic = std::move(logic);
         // Set bounding box
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
