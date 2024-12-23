@@ -29,6 +29,10 @@
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
 
+#if CELERITAS_USE_GEANT4
+#    include <G4VPhysicalVolume.hh>
+#endif
+
 namespace celeritas
 {
 namespace test
@@ -700,6 +704,117 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
+// MULTI-LEVEL TEST
+//---------------------------------------------------------------------------//
+
+class MultiLevelTest : public VecgeomVgdmlTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_vgdml("multi-level.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MultiLevelTest, accessors)
+{
+    auto const& geo = *this->geometry();
+    EXPECT_EQ(3, geo.max_depth());
+
+    auto vol_names = [&geo] {
+        auto const& vols = geo.volumes();
+        std::vector<std::string> result;
+        for (auto vid : range(VolumeId{vols.size()}))
+        {
+            result.push_back(vols.at(vid).name);
+        }
+        return result;
+    }();
+    static std::string const expected_vol_names[] = {"sph", "box", "world"};
+    EXPECT_VEC_EQ(expected_vol_names, vol_names);
+
+    auto vol_inst_names = [&geo] {
+        auto const& vols = geo.volume_instances();
+        std::vector<std::string> result;
+        for (auto viid : range(VolumeInstanceId{vols.size()}))
+        {
+            result.push_back(vols.at(viid).name);
+        }
+        return result;
+    }();
+    static std::string const expected_vol_inst_names[] = {
+        "boxsph1",
+        "boxsph2",
+        "topsph1",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topsph2",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MultiLevelTest, trace)
+{
+    {
+        auto result = this->track({-19.9, 7.5, 0}, {1, 0, 0});
+
+        static char const* const expected_volumes[] = {
+            "world",
+            "box",
+            "sph",
+            "box",
+            "world",
+            "box",
+            "sph",
+            "box",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static char const* const expected_volume_instances[] = {
+            "world_PV",
+            "topbox2",
+            "boxsph2",
+            "topbox2",
+            "world_PV",
+            "topbox1",
+            "boxsph2",
+            "topbox1",
+            "world_PV",
+        };
+        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        static real_type const expected_distances[] = {
+            2.4,
+            3,
+            4,
+            8,
+            5,
+            3,
+            4,
+            8,
+            6.5,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            1.2,
+            1.5,
+            2,
+            3.0990195135928,
+            2.5,
+            1.5,
+            2,
+            3.0990195135928,
+            3.25,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+//---------------------------------------------------------------------------//
 // SOLIDS TEST
 //---------------------------------------------------------------------------//
 
@@ -1312,6 +1427,77 @@ TEST_F(FourLevelsGeantTest, levels)
 
 //---------------------------------------------------------------------------//
 
+class MultiLevelGeantTest : public VecgeomGeantTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml("multi-level.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MultiLevelGeantTest, accessors)
+{
+    auto const& geo = *this->geometry();
+    EXPECT_EQ(3, geo.max_depth());
+
+    auto vol_names = [&geo] {
+        auto const& vols = geo.volumes();
+        std::vector<std::string> result;
+        for (auto vid : range(VolumeId{vols.size()}))
+        {
+            result.push_back(vols.at(vid).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_names[] = {"sph", "box", "world"};
+    EXPECT_VEC_EQ(expected_vol_names, vol_names);
+
+    auto vol_inst_names = [&geo] {
+        auto const& vols = geo.volume_instances();
+        std::vector<std::string> result;
+        for (auto viid : range(VolumeInstanceId{vols.size()}))
+        {
+            result.push_back(vols.at(viid).name);
+        }
+        return result;
+    }();
+    static char const* const expected_vol_inst_names[] = {
+        "topsph1",
+        "boxsph1",
+        "boxsph2",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topsph2",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+
+    auto g4names = [&geo] {
+        std::vector<std::string> result;
+        for (auto viid : range(VolumeInstanceId{geo.volume_instances().size()}))
+        {
+#if CELERITAS_USE_GEANT4
+            if (auto* g4pv = geo.id_to_pv(viid))
+            {
+                result.push_back(g4pv->GetName());
+            }
+            else
+#endif
+            {
+                result.push_back("<NULL>");
+            }
+        }
+        return result;
+    }();
+    EXPECT_VEC_EQ(expected_vol_inst_names, g4names);
+}
+
+//---------------------------------------------------------------------------//
+
 #define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
 class SolidsGeantTest : public VecgeomGeantTestBase
 {
@@ -1408,9 +1594,9 @@ TEST_F(SolidsGeantTest, geant_volumes)
 {
     {
         auto result = this->get_import_geant_volumes();
-        static int const expected_volumes[]
-            = {0,  1,  2,  3,  4,  5,  6,  7,  -1, 9,  10, 15, 16,
-               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30};
+        static int const expected_volumes[] = {
+            0, 1, 2, 3, 4, 5, 6, 7, -1, 9, 10, 15, 16, 17, 18, 19, 20, 21, 22,
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
     }

@@ -58,6 +58,9 @@ T trace(SquareMatrix<T, 3> const& mat)
  * use strides, or multiply by constants. All matrix orderings are C-style:
  * mat[i][j] is for row i, column j .
  *
+ * Note that this uses \c celeritas::fma which supports types other than
+ * floating point.
+ *
  * \warning This implementation is limited and slow.
  */
 template<class T, size_type N>

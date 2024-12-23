@@ -38,7 +38,7 @@ void launch_kernel(size_type num_threads, F&& execute_thread)
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
-    for (size_type i = 0; i != num_threads; ++i)
+    for (size_type i = 0; i < num_threads; ++i)
     {
         CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
     }

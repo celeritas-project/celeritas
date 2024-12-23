@@ -26,8 +26,10 @@ list(APPEND SOURCES
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
   detail/HitProcessor.cc
+  detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc
   detail/SensDetInserter.cc
+  detail/TouchableUpdaterInterface.cc
 )
 
 celeritas_polysource(ExceptionConverter)
@@ -55,7 +57,7 @@ list(APPEND PUBLIC_DEPS ${_g4_public})
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(accel ${SOURCES})
+celeritas_add_src_library(accel ${SOURCES})
 celeritas_target_link_libraries(accel
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}

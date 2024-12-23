@@ -464,7 +464,7 @@ class DebugError : public std::logic_error
     CELER_DEFAULT_COPY_MOVE(DebugError);
 
     // Default destructor to anchor vtable
-    ~DebugError();
+    ~DebugError() override;
 
     //! Access the debug data
     DebugErrorDetails const& details() const { return details_; }
@@ -485,7 +485,7 @@ class RuntimeError : public std::runtime_error
     CELER_DEFAULT_COPY_MOVE(RuntimeError);
 
     // Default destructor to anchor vtable
-    ~RuntimeError();
+    ~RuntimeError() override;
 
     //! Access detailed information
     RuntimeErrorDetails const& details() const { return details_; }

@@ -56,6 +56,8 @@ class EventReader : public EventReaderInterface
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(EventReader);
 
+    ~EventReader() override = default;
+
     // Read a single event from the event record
     result_type operator()() final;
 

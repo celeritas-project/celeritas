@@ -61,7 +61,7 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
     for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
     {
         real_type process_xs = 0;
-        if (auto id = phys.value_grid(ValueGridType::macro_xs, ppid))
+        if (auto id = phys.macro_xs_grid(ppid))
         {
             auto calc_xs = phys.make_calculator<XsCalculator>(id);
             process_xs = calc_xs(energy);
@@ -82,13 +82,10 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
     // Calc minimum range
     auto const inf = numeric_limits<real_type>::infinity();
     real_type step = inf;
-    for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
+    if (auto id = phys.range_grid())
     {
-        if (auto id = phys.value_grid(ValueGridType::range, ppid))
-        {
-            auto calc_range = phys.make_calculator<RangeCalculator>(id);
-            step = min(step, calc_range(energy));
-        }
+        auto calc_range = phys.make_calculator<RangeCalculator>(id);
+        step = min(step, calc_range(energy));
     }
     if (step != inf)
     {

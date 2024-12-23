@@ -47,11 +47,12 @@ class ShapeBase : public ObjectInterface
     //! Interior intersect region interface for construction and access
     virtual IntersectRegionInterface const& interior() const = 0;
 
+    ~ShapeBase() override = default;
+
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
     ShapeBase() = default;
-    virtual ~ShapeBase() = default;
     CELER_DEFAULT_COPY_MOVE(ShapeBase);
     //!@}
 };

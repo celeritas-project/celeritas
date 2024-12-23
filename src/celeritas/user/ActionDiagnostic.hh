@@ -63,7 +63,7 @@ class ActionDiagnostic final : public CoreStepActionInterface,
     explicit ActionDiagnostic(ActionId id);
 
     // Default destructor
-    ~ActionDiagnostic();
+    ~ActionDiagnostic() final;
 
     //!@{
     //! \name Action interface

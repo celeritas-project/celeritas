@@ -32,6 +32,11 @@ struct PreStepExecutor
 CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
 {
     auto sim = track.sim();
+    if (sim.status() == TrackStatus::killed)
+    {
+        // Deactivate tracks killed in previous loop
+        sim.status(TrackStatus::inactive);
+    }
     if (sim.status() == TrackStatus::inactive)
     {
         // Clear step limit and actions for an empty track slot
@@ -47,7 +52,16 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
 
     CELER_ASSERT(sim.status() == TrackStatus::initializing
                  || sim.status() == TrackStatus::alive);
-    sim.status(TrackStatus::alive);
+
+    if (sim.status() == TrackStatus::initializing)
+    {
+        sim.reset_step_limit();
+        sim.status(TrackStatus::alive);
+    }
+
+    // TODO: reset secondaries
+    // TODO: calculate step limit
+    CELER_ENSURE(sim.step_length() > 0);
 }
 
 //---------------------------------------------------------------------------//

@@ -63,6 +63,7 @@ struct CoreScalars
     // TODO: maybe replace with a surface crossing manager to handle boundary
     // conditions (see CoreParams.cc)
     ActionId boundary_action;
+    ActionId tracking_cut_action;
 
     StreamId::size_type max_streams{0};
 

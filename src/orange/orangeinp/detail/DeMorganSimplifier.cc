@@ -16,6 +16,7 @@
 #include "corecel/cont/Range.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/CsgTypes.hh"
 
 namespace celeritas
@@ -87,10 +88,18 @@ DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree)
  * Perform the simplification. The state of the instance isn't cleared, so only
  * call this once.
  */
-CsgTree DeMorganSimplifier::operator()()
+SimplifiedCsgTree DeMorganSimplifier::operator()()
 {
     this->find_join_negations();
-    return this->build_simplified_tree();
+    auto simplified_tree{this->build_simplified_tree()};
+    std::vector<NodeId> equivalent_nodes;
+    equivalent_nodes.reserve(tree_.size());
+    for (auto node_id : range(tree_.size()))
+    {
+        equivalent_nodes.push_back(
+            node_ids_translation_[node_id].equivalent_node());
+    }
+    return {simplified_tree, equivalent_nodes};
 }
 
 //---------------------------------------------------------------------------//

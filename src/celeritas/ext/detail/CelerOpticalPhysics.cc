@@ -20,6 +20,8 @@
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
 #include <G4Version.hh>
+
+#include "corecel/Macros.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #    include <G4OpticalParameters.hh>
@@ -43,7 +45,7 @@ namespace
  */
 enum class OpticalProcessType
 {
-    cerenkov,
+    cherenkov,
     scintillation,
     absorption,
     rayleigh,
@@ -54,13 +56,40 @@ enum class OpticalProcessType
     size_,
 };
 
+/*!
+ * Wrapper around a unique pointer to accomodate keeping track whether we
+ * delegated ownership to Geant4. We have to assume that Geant4 won't free the
+ * memory before we're done reading it...
+ */
+template<class T>
+class ObservingUniquePtr
+{
+  public:
+    explicit ObservingUniquePtr(std::unique_ptr<T> ptr)
+        : uptr_(std::move(ptr)), ptr_{uptr_.get()}
+    {
+    }
+    // False positive(fixed in clang-tidy-18)
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
+    CELER_DEFAULT_MOVE_DELETE_COPY(ObservingUniquePtr);
+    ~ObservingUniquePtr() = default;
+
+    T* release() noexcept { return uptr_.release(); }
+    operator T*() const noexcept { return ptr_; }
+    T* operator->() const noexcept { return ptr_; }
+
+  private:
+    std::unique_ptr<T> uptr_;
+    T* ptr_;
+};
+
 #if G4VERSION_NUMBER >= 1070
 G4OpticalProcessIndex
 optical_process_type_to_geant_index(OpticalProcessType value)
 {
     switch (value)
     {
-        case OpticalProcessType::cerenkov:
+        case OpticalProcessType::cherenkov:
             return kCerenkov;
         case OpticalProcessType::scintillation:
             return kScintillation;
@@ -106,8 +135,8 @@ bool process_is_active(
 #else
     switch (process)
     {
-        case OpticalProcessType::cerenkov:
-            return bool(options.cerenkov);
+        case OpticalProcessType::cherenkov:
+            return bool(options.cherenkov);
         case OpticalProcessType::scintillation:
             return bool(options.scintillation);
         case OpticalProcessType::absorption:
@@ -146,7 +175,7 @@ CelerOpticalPhysics::CelerOpticalPhysics(Options const& options)
         params->SetProcessActivation(G4OpticalProcessName(i), flag);
     };
 
-    activate_process(kCerenkov, bool(options_.cerenkov));
+    activate_process(kCerenkov, bool(options_.cherenkov));
     activate_process(kScintillation, bool(options_.scintillation));
     activate_process(kAbsorption, options_.absorption);
     activate_process(kRayleigh, options_.rayleigh_scattering);
@@ -157,12 +186,12 @@ CelerOpticalPhysics::CelerOpticalPhysics(Options const& options)
     activate_process(
         kWLS2, options_.wavelength_shifting2 != WLSTimeProfileSelection::none);
 
-    // Cerenkov
-    params->SetCerenkovStackPhotons(options_.cerenkov.stack_photons);
+    // Cherenkov
+    params->SetCerenkovStackPhotons(options_.cherenkov.stack_photons);
     params->SetCerenkovTrackSecondariesFirst(
-        options_.cerenkov.track_secondaries_first);
-    params->SetCerenkovMaxPhotonsPerStep(options_.cerenkov.max_photons);
-    params->SetCerenkovMaxBetaChange(options_.cerenkov.max_beta_change);
+        options_.cherenkov.track_secondaries_first);
+    params->SetCerenkovMaxPhotonsPerStep(options_.cherenkov.max_photons);
+    params->SetCerenkovMaxBetaChange(options_.cherenkov.max_beta_change);
 
     // Scintillation
     params->SetScintStackPhotons(options_.scintillation.stack_photons);
@@ -239,13 +268,13 @@ void CelerOpticalPhysics::ConstructProcess()
 
     // NB: boundary is also used later on in loop over particles,
     // though it's only ever applicable to G4OpticalPhotons
-    auto boundary = std::make_unique<G4OpBoundaryProcess>();
+    auto boundary = ObservingUniquePtr{std::make_unique<G4OpBoundaryProcess>()};
 #if G4VERSION_NUMBER < 1070
     boundary->SetInvokeSD(options_.boundary.invoke_sd);
 #endif
     if (process_is_active(OpticalProcessType::boundary, options_))
     {
-        process_manager->AddDiscreteProcess(boundary.get());
+        process_manager->AddDiscreteProcess(boundary.release());
         CELER_LOG(debug)
             << "Loaded Optical boundary process with G4OpBoundaryProcess "
                "process";
@@ -275,7 +304,7 @@ void CelerOpticalPhysics::ConstructProcess()
 
     // Add photon-generating processes to all particles they apply to
     // TODO: Eventually replace with Celeritas step collector processes
-    auto scint = std::make_unique<G4Scintillation>();
+    auto scint = ObservingUniquePtr{std::make_unique<G4Scintillation>()};
 #if G4VERSION_NUMBER < 1070
     scint->SetStackPhotons(options_.scintillation.stack_photons);
     scint->SetTrackSecondariesFirst(
@@ -290,13 +319,13 @@ void CelerOpticalPhysics::ConstructProcess()
 #endif
     scint->AddSaturation(G4LossTableManager::Instance()->EmSaturation());
 
-    auto cerenkov = std::make_unique<G4Cerenkov>();
+    auto cherenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
 #if G4VERSION_NUMBER < 1070
-    cerenkov->SetStackPhotons(options_.cerenkov.stack_photons);
-    cerenkov->SetTrackSecondariesFirst(
-        options_.cerenkov.track_secondaries_first);
-    cerenkov->SetMaxNumPhotonsPerStep(options_.cerenkov.max_photons);
-    cerenkov->SetMaxBetaChangePerStep(options_.cerenkov.max_beta_change);
+    cherenkov->SetStackPhotons(options_.cherenkov.stack_photons);
+    cherenkov->SetTrackSecondariesFirst(
+        options_.cherenkov.track_secondaries_first);
+    cherenkov->SetMaxNumPhotonsPerStep(options_.cherenkov.max_photons);
+    cherenkov->SetMaxBetaChangePerStep(options_.cherenkov.max_beta_change);
 #endif
 
     auto particle_iterator = GetParticleIterator();
@@ -308,21 +337,21 @@ void CelerOpticalPhysics::ConstructProcess()
         process_manager = p->GetProcessManager();
         CELER_ASSERT(process_manager);
 
-        if (cerenkov->IsApplicable(*p)
-            && process_is_active(OpticalProcessType::cerenkov, options_))
+        if (cherenkov->IsApplicable(*p)
+            && process_is_active(OpticalProcessType::cherenkov, options_))
         {
-            process_manager->AddProcess(cerenkov.get());
-            process_manager->SetProcessOrdering(cerenkov.get(), idxPostStep);
-            CELER_LOG(debug) << "Loaded Optical Cerenkov with G4Cerenkov "
+            process_manager->AddProcess(cherenkov.release());
+            process_manager->SetProcessOrdering(cherenkov, idxPostStep);
+            CELER_LOG(debug) << "Loaded Optical Cherenkov with G4Cerenkov "
                                 "process for particle "
                              << p->GetParticleName();
         }
         if (scint->IsApplicable(*p)
             && process_is_active(OpticalProcessType::scintillation, options_))
         {
-            process_manager->AddProcess(scint.get());
-            process_manager->SetProcessOrderingToLast(scint.get(), idxAtRest);
-            process_manager->SetProcessOrderingToLast(scint.get(), idxPostStep);
+            process_manager->AddProcess(scint.release());
+            process_manager->SetProcessOrderingToLast(scint, idxAtRest);
+            process_manager->SetProcessOrderingToLast(scint, idxPostStep);
             CELER_LOG(debug)
                 << "Loaded Optical Scintillation with G4Scintillation "
                    "process for particle "
@@ -331,13 +360,9 @@ void CelerOpticalPhysics::ConstructProcess()
         if (boundary->IsApplicable(*p)
             && process_is_active(OpticalProcessType::boundary, options_))
         {
-            process_manager->SetProcessOrderingToLast(boundary.get(),
-                                                      idxPostStep);
+            process_manager->SetProcessOrderingToLast(boundary, idxPostStep);
         }
     }
-    boundary.release();
-    cerenkov.release();
-    scint.release();
 }
 
 }  // namespace detail

@@ -21,6 +21,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // Bitset of signals that have been called
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 sig_atomic_t volatile g_celer_signal_bits_ = 0;
 
 //---------------------------------------------------------------------------//

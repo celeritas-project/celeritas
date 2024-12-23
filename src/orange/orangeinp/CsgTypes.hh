@@ -13,6 +13,8 @@
 #include <variant>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/OpaqueId.hh"
 #include "corecel/math/HashUtils.hh"
 #include "orange/OrangeTypes.hh"
@@ -68,6 +70,16 @@ struct Joined
 
 //! Generic node
 using Node = std::variant<True, False, Aliased, Negated, Surface, Joined>;
+
+/*!
+ * Optional transformations to apply when building a CsgUnit.
+ */
+enum class UnitSimplification : size_type
+{
+    none = 0,  //!< No simplification
+    infix_logic,  //!< CsgTree suitable for infix logic evaluation
+    size_
+};
 
 //---------------------------------------------------------------------------//
 // Equality operators
@@ -205,7 +217,8 @@ struct hash<celeritas::orangeinp::Joined>
 {
     using argument_type = celeritas::orangeinp::Joined;
     using result_type = std::size_t;
-    result_type operator()(argument_type const& val) const noexcept
+    result_type operator()(argument_type const& val) const
+        noexcept(!CELERITAS_DEBUG)
     {
         result_type result;
         celeritas::Hasher hash{&result};

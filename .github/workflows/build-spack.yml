@@ -29,6 +29,12 @@ jobs:
           - geometry: "vecgeom"
             special: "vgsurf"
             geant: "11.0"
+          - geometry: "geant4"
+            special: null
+            geant: "11.0"
+          - geometry: "vecgeom"
+            special: "clang-tidy"
+            geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "100Mi"
@@ -41,13 +47,14 @@ jobs:
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
       CC: "clang-15"
       CXX: "clang++-15"
+      CLANG_TIDY: "clang-tidy-15"
     runs-on: ubuntu-22.04
     continue-on-error: false
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: 383
+          fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
       - name: Setup Spack
         uses: spack/setup-spack@0ce61628ed8a32a5664cf01a0e0b5a4834a3b413 # 2024/03
@@ -140,8 +147,6 @@ jobs:
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:${VECGEOM_PREFIX_PATH}" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${VECGEOM_PREFIX_PATH}/lib" >> $GITHUB_ENV
       - name: Configure Celeritas
-        env:
-          CLANG_TIDY: "clang-tidy-15"
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           if [ "${{matrix.geant}}" == "11.0" ]; then
@@ -150,11 +155,35 @@ jobs:
             test -n "${G4LEDATA}"
           fi
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+      - name: Run incremental clang-tidy
+        id: clang-tidy
+        if: ${{matrix.special == 'clang-tidy'}}
+        env:
+          BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
+        run: |
+          if [ "${{github.event_name}}" == "schedule" ]; then
+            echo "Full clang-tidy check on scheduled run."
+            ninja -Cbuild -k0
+            exit $?
+          fi
+          BASE=$(git merge-base origin/${BASE_REF} HEAD)
+          ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)
+          set +e
+          CC_FILES=$(grep -E '^(src|app|example)/.*\.cc$' - <<< "$ALL_FILES")
+          set -e
+          if [ -z "$CC_FILES" ]; then
+            echo "No files to run clang-tidy on."
+            exit 0
+          fi
+          echo "Running clang-tidy on: $CC_FILES"
+          ${{env.CLANG_TIDY}} -p build $CC_FILES
+          exit $?
       - name: Build all
         id: build
+        if: ${{matrix.special != 'clang-tidy'}}
         working-directory: build
-        continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
+<<<<<<< HEAD
           ninja -v -k0
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
@@ -162,6 +191,9 @@ jobs:
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+=======
+            ninja -v -k0
+>>>>>>> develop
       - name: Regenerate ROOT test data
         if: ${{
           matrix.geant == '11.0'
@@ -207,14 +239,15 @@ jobs:
         # TODO: ASAN requires flags downstream
         if: >-
           ${{
-            matrix.special != 'asanlite'
+            (matrix.special != 'asanlite')
+            && (matrix.special != 'clang-tidy')
           }}
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         id: install
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{!cancelled() && steps.build.outcome == 'success' && matrix.special != 'clang-tidy'}}
         working-directory: build
         run: |
           ninja install

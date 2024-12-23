@@ -83,6 +83,12 @@ RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
 {
     CELER_EXPECT(root_manager_);
 
+    // Disable volume instance id selections (not implemented by this class)
+    for (auto p : range(StepPoint::size_))
+    {
+        selection_.points[p].volume_instance_ids = false;
+    }
+
     if (!filter_)
     {
         // Write all data by default

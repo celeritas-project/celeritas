@@ -55,6 +55,8 @@ class AuxStateVec
     // Allow moving; copying is prohibited due to unique pointers
     CELER_DEFAULT_MOVE_DELETE_COPY(AuxStateVec);
 
+    ~AuxStateVec() = default;
+
     // Access auxiliary state interfaces
     inline AuxStateInterface& at(AuxId);
     inline AuxStateInterface const& at(AuxId) const;

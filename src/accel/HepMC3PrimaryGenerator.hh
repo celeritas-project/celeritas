@@ -51,6 +51,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     explicit HepMC3PrimaryGenerator(std::string const& filename);
 
     CELER_DELETE_COPY_MOVE(HepMC3PrimaryGenerator);
+    ~HepMC3PrimaryGenerator() final = default;
 
     //! Add primaries to Geant4 event
     void GeneratePrimaryVertex(G4Event* g4_event) final;

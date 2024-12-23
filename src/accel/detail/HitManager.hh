@@ -53,13 +53,14 @@ class HitManager final : public StepInterface
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using SPProcessor = std::shared_ptr<HitProcessor>;
+    using SPConstGeo = std::shared_ptr<GeoParams const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}
 
   public:
     // Construct with Celeritas objects for mapping
-    HitManager(GeoParams const& geo,
+    HitManager(SPConstGeo geo,
                ParticleParams const& par,
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
@@ -90,7 +91,7 @@ class HitManager final : public StepInterface
     SPConstVecLV const& geant_vols() const { return geant_vols_; }
 
     //! Access the Celeritas volume IDs corresponding to the detectors
-    VecVolId const& celer_vols() const { return vecgeom_vols_; }
+    VecVolId const& celer_vols() const { return celer_vols_; }
 
     //! Access mapped particles if recreating G4Tracks later
     VecParticle const& geant_particles() const { return particles_; }
@@ -99,9 +100,10 @@ class HitManager final : public StepInterface
     using VecLV = std::vector<G4LogicalVolume const*>;
 
     bool nonzero_energy_deposition_{};
-    VecVolId vecgeom_vols_;
+    VecVolId celer_vols_;
 
     // Hit processor setup
+    SPConstGeo geo_;
     SPConstVecLV geant_vols_;
     VecParticle particles_;
     StepSelection selection_;

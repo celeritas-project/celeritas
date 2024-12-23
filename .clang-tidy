@@ -1,9 +1,15 @@
 ---
 Checks: |
   -*
-  clang-analyzer-cplusplus.Move
-  clang-analyzer-cplusplus.NewDeleteLeaks
-  clang-analyzer-core.StackAddressEscape
+  clang-analyzer-core.*
+  clang-analyzer-deadcode.*
+  clang-analyzer-cplusplus.*
+  -clang-analyzer-cplusplus.NewDelete
+  performance-*
+  -performance-avoid-endl
+  -performance-unnecessary-value-param
+  -performance-enum-size
+  -performance-noexcept-destructor
   cppcoreguidelines-*
   -cppcoreguidelines-owning-memory
   -cppcoreguidelines-narrowing-conversions
@@ -17,16 +23,31 @@ Checks: |
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay
   -cppcoreguidelines-avoid-const-or-ref-data-members
   -cppcoreguidelines-pro-bounds-constant-array-index
+  -cppcoreguidelines-noexcept-swap
+  -cppcoreguidelines-noexcept-move-operations
+  -cppcoreguidelines-noexcept-destructor
+  -cppcoreguidelines-virtual-class-destructor
+  -cppcoreguidelines-c-copy-assignment-signature
+  -cppcoreguidelines-missing-std-forward
+  -cppcoreguidelines-special-member-functions
   bugprone-*
   -bugprone-sizeof-expression
   -bugprone-narrowing-conversions
   -bugprone-macro-parentheses
   -bugprone-easily-swappable-parameters
   -bugprone-implicit-widening-of-multiplication-result
+  -bugprone-exception-escape
+WarningsAsErrors: '*'
 CheckOptions:
   cppcoreguidelines-macro-usage.CheckCapsOnly: true
   cppcoreguidelines-avoid-do-while.IgnoreMacros: true
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: true
-HeaderFilterRegex: ''
+  cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove: true
+  cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
+  cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
+  performance-move-const-arg.CheckTriviallyCopyableMove: false
+  performance-move-const-arg.CheckMoveToConstRef: false
+
+HeaderFilterRegex: '(example|app|src/(accel|celeritas|corecel|orange|geocel))/.*\.hh$'
 FormatStyle: file
 ...

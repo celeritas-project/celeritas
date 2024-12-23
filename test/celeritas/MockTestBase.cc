@@ -9,8 +9,8 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -161,7 +161,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.use_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
-        inp.xs = {Barn{1.0}, Barn{1.0}};
+        inp.xs = {Barn{1.0}, Barn{1.0}, Barn{1.0}};
         inp.energy_loss = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }

@@ -30,9 +30,8 @@ struct CascadeParticle
     };
 
     ParticleType type{ParticleType::unknown};  //!< Particle type
-    units::MevMass mass;  // !< Particle mass
-    FourVector four_vec;  //!< Four momentum in natural MevMomentum and
-                          //!< MevEnergy units
+    units::MevMass mass;  //!< Particle mass
+    FourVector four_vec;  //!< Four momentum in natural units
 };
 
 //---------------------------------------------------------------------------//

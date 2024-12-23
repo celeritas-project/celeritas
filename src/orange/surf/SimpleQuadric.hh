@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -69,14 +71,14 @@ class SimpleQuadric
     explicit inline CELER_FUNCTION SimpleQuadric(Span<R, StorageSpan::extent>);
 
     // Promote from a plane
-    explicit SimpleQuadric(Plane const& other) noexcept;
+    explicit SimpleQuadric(Plane const& other) noexcept(!CELERITAS_DEBUG);
 
     // Promote from an axis-aligned cylinder
     template<Axis T>
     explicit SimpleQuadric(CylAligned<T> const& other) noexcept;
 
     // Promote from a sphere
-    explicit SimpleQuadric(Sphere const& other) noexcept;
+    explicit SimpleQuadric(Sphere const& other) noexcept(!CELERITAS_DEBUG);
 
     // Promote from a cone
     template<Axis T>

@@ -55,7 +55,7 @@ class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
         PDGNumber pdg_code;  //!< See "Review of Particle Physics"
         units::MevMass mass;  //!< Rest mass [MeV / c^2]
         units::ElementaryCharge charge;  //!< Charge in units of [e]
-        real_type decay_constant;  //!< Decay constant [1/s]
+        real_type decay_constant;  //!< Decay constant [1/time]
     };
 
     //! Input data to construct this class

@@ -32,10 +32,7 @@ class Model : public OpticalStepActionInterface, public ConcreteAction
     using ConcreteAction::ConcreteAction;
 
     //! Action order for optical models is always post-step
-    StepActionOrder order() const override final
-    {
-        return StepActionOrder::post;
-    }
+    StepActionOrder order() const override { return StepActionOrder::post; }
 
     //! Build mean free path grids for all optical materials
     virtual void build_mfps(OpticalMaterialId mat, MfpBuilder& build) const = 0;

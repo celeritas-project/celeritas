@@ -48,7 +48,7 @@ namespace celeritas
  * \endcode
  */
 template<template<Ownership, MemSpace> class P>
-class CollectionMirror : public ParamsDataInterface<P>
+class CollectionMirror final : public ParamsDataInterface<P>
 {
   public:
     //!@{

@@ -19,7 +19,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Properties of a single particle track.
+ * Properties of a single optical photon.
  */
 class ParticleTrackView
 {
@@ -49,10 +49,10 @@ class ParticleTrackView
     // Access the polarization
     CELER_FORCEINLINE_FUNCTION Real3 const& polarization() const;
 
-    // Change the particle's energy [MeV]
+    // Change the photon's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);
 
-    // Change the particle's polarization
+    // Change the photon's polarization
     inline CELER_FUNCTION void polarization(Real3 const&);
 
   private:

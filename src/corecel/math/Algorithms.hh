@@ -15,6 +15,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
+#include "NumericLimits.hh"
+
 #include "detail/AlgorithmsImpl.hh"
 
 #if !defined(CELER_DEVICE_SOURCE) && !defined(CELERITAS_SINCOSPI_PREFIX)
@@ -37,6 +39,7 @@ forward(typename std::remove_reference<T>::type& v) noexcept
 //! \cond (CELERITAS_DOC_DEV)
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 forward(typename std::remove_reference<T>::type&& v) noexcept
 {
     return static_cast<T&&>(v);
@@ -513,6 +516,37 @@ CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate a hypotenuse.
+ *
+ * This does \em not conform to IEEE754 by returning infinity in edge cases
+ * (e.g., one argument is infinite and the other NaN). Similarly, it is not
+ * symmetric with respect to the function arguments.
+ *
+ * To improve accuracy we could use [1].
+ *
+ * [1] C.F. Borges, An Improved Algorithm for hypot(a,b), (2019).
+ *     http://arxiv.org/abs/1904.09481 (accessed November 19, 2024).
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T hypot(T a, T b)
+{
+    return std::sqrt(fma(b, b, ipow<2>(a)));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a hypotenuse.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T hypot(T a, T b, T c)
+{
+    T result = fma(b, b, ipow<2>(a));
+    result = fma(c, c, result);
+    return std::sqrt(result);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Integer division, rounding up, for positive numbers.
  */
 template<class T>
@@ -707,6 +741,27 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
 }
 //!@}
 //!@}
+
+//---------------------------------------------------------------------------//
+// Portable utilities functions
+//---------------------------------------------------------------------------//
+/*!
+ * Count the number of set bits in an integer.
+ */
+#if defined(_MSC_VER)
+inline int popcount(unsigned int x) noexcept
+#else
+inline constexpr int popcount(unsigned int x) noexcept
+#endif
+{
+#if CELER_DEVICE_COMPILE
+    return __popc(x);
+#elif defined(_MSC_VER)
+    return __popcnt(x);
+#else
+    return __builtin_popcount(x);
+#endif
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
