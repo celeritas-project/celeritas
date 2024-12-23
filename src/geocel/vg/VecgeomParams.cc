@@ -10,6 +10,10 @@
 #include <cstddef>
 #include <vector>
 #include <VecGeom/base/Config.h>
+#
+#ifndef VECGEOM_VERSION
+#    include <VecGeom/base/Version.h>
+#endif
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
@@ -382,7 +386,7 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-#if VECGEOM_VERSION < 0x020000
+#if VECGEOM_VERSION <= 0x020000
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
 #else
         vecgeom::ABBoxManager<real_type>::Instance()
@@ -619,7 +623,7 @@ void VecgeomParams::build_metadata()
         VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
 
         // Calculate bounding box
-#if VECGEOM_VERSION < 0x020000
+#if VECGEOM_VERSION <= 0x020000
         auto bbox_mgr = ABBoxManager::Instance();
 #else
         auto bbox_mgr = ABBoxManager<real_type>::Instance();
