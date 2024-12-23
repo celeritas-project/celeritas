@@ -18,7 +18,7 @@ namespace units
 namespace test
 {
 //---------------------------------------------------------------------------//
-// Locally replace the Celeritas "real" expectatoin for one that forces
+// Locally replace the Celeritas "real" expectation for one that forces
 // Constant objects to double-precision
 #undef EXPECT_REAL_EQ
 #define EXPECT_REAL_EQ(a, b) \
