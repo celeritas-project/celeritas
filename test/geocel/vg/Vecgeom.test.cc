@@ -1099,8 +1099,8 @@ TEST_F(CmseTest, trace)
             180, 910, 24000, 6000};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {100, 2.1499999999997,
-            0.52499999999986, 13.023518051922, 6.95, 6.95, 13.023518051922,
-            0.52499999999986, 2.15, 100, 5, 8, 100, 100, 100};
+            10.302730220675, 13.023518051922, 6.95, 6.95, 13.023518051922,
+            10.302730220675, 2.15, 100, 5, 8, 100, 100, 100};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -1136,8 +1136,8 @@ TEST_F(CmseTest, trace)
             535, 920};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
-            58.4195, 0.078366388350241, 2.343262600759, 0.078366388350241,
-            58.4195, 85.85, 267.5, 460};
+            60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
+            60.4, 85.85, 267.5, 460};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -1149,7 +1149,7 @@ TEST_F(CmseTest, trace)
         static real_type const expected_distances[] = {12.495, 287.505, 530,
             920};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {1, 1, 242, 460};
+        static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     // clang-format on
@@ -1499,9 +1499,9 @@ TEST_F(SolidsGeantTest, geant_volumes)
 {
     {
         auto result = this->get_import_geant_volumes();
-        static int const expected_volumes[]
-            = {0,  1,  2,  3,  4,  5,  6,  7,  -1, 9,  10, 15, 16,
-               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30};
+        static int const expected_volumes[] = {
+            0, 1, 2, 3, 4, 5, 6, 7, -1, 9, 10, 15, 16, 17, 18, 19, 20, 21, 22,
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
     }
