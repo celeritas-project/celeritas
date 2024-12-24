@@ -82,7 +82,7 @@ class BetheHeitlerInteractor
     // Shared model data
     BetheHeitlerData const& shared_;
     // Incident gamma energy
-    real_type const inc_energy_;
+    Energy const inc_energy_;
     // Incident direction
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle
@@ -98,6 +98,12 @@ class BetheHeitlerInteractor
     real_type f_z_;
 
     //// CONSTANTS ////
+
+    //! Energy below which nucleus is effectively fully screened
+    static CELER_CONSTEXPR_FUNCTION Energy full_screening_threshold()
+    {
+        return units::MevEnergy{2};
+    }
 
     //! Energy above which the Coulomb correction is applied [MeV]
     static CELER_CONSTEXPR_FUNCTION Energy coulomb_corr_threshold()
@@ -139,22 +145,21 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     MaterialView const& material,
     ElementView const& element)
     : shared_(shared)
-    , inc_energy_(value_as<Energy>(particle.energy()))
+    , inc_energy_(particle.energy())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , enable_lpm_(shared.enable_lpm
-                  && inc_energy_ > value_as<Energy>(lpm_threshold()))
-    , calc_lpm_functions_(material,
-                          element,
-                          shared_.dielectric_suppression(),
-                          Energy{inc_energy_})
+    , enable_lpm_(shared.enable_lpm && inc_energy_ > lpm_threshold())
+    , calc_lpm_functions_(
+          material, element, shared_.dielectric_suppression(), inc_energy_)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
-    CELER_EXPECT(inc_energy_ >= 2 * value_as<Mass>(shared_.electron_mass));
+    CELER_EXPECT(value_as<Energy>(inc_energy_)
+                 >= 2 * value_as<Mass>(shared_.electron_mass));
 
-    epsilon0_ = value_as<Mass>(shared_.electron_mass) / inc_energy_;
+    epsilon0_ = value_as<Mass>(shared_.electron_mass)
+                / value_as<Energy>(inc_energy_);
 
-    if (inc_energy_ < value_as<Energy>(units::MevEnergy{2}))
+    if (inc_energy_ < full_screening_threshold())
     {
         // Don't reject: just sample uniformly
         screening_ = 0;
@@ -164,9 +169,9 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     {
         screening_ = epsilon0_ * 136 / element.cbrt_z();
         f_z_ = real_type(8) / real_type(3) * element.log_z();
-        if (inc_energy_ > value_as<Energy>(coulomb_corr_threshold()))
+        if (inc_energy_ > coulomb_corr_threshold())
         {
-            // Apply Coulomg correction function
+            // Apply Coulomb correction function
             f_z_ += 8 * element.coulomb_correction();
         }
     }
@@ -189,10 +194,11 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     constexpr real_type half = 0.5;
 
-    // If E_gamma < 2 MeV, rejection not needed -- just sample uniformly
+    // Sample fraction of energy given to electron
     real_type epsilon;
     if (screening_ == 0)
     {
+        // If E_gamma < 2 MeV, rejection not needed -- just sample uniformly
         UniformRealDistribution<real_type> sample_eps(epsilon0_, half);
         epsilon = sample_eps(rng);
     }
@@ -214,12 +220,12 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // introduced, where \epsilon_1 is the solution to
         // \Phi(\delta(\epsilon)) - F(Z)/2 = 0.
         real_type const epsilon1
-            = half - half * std::sqrt(1 - delta_min / delta_max);
+            = half * (1 - std::sqrt(1 - delta_min / delta_max));
         real_type const epsilon_min = celeritas::max(epsilon0_, epsilon1);
 
-        // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
-        // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
-        // Physics Reference 10.6)
+        // Decide to choose f1, g1 [brems] or f2, g2 [pair production]
+        // based on N1, N2 (factors from corrected Bethe-Heitler cross section;
+        // c.f. Eq. 6.6 of Geant4 Physics Reference 10.6)
         Real2 const fmin = this->screening_f(delta_min) - f_z_;
         BernoulliDistribution choose_f1g1(
             ipow<2>(half - epsilon_min) * fmin[0], real_type(1.5) * fmin[1]);
@@ -261,8 +267,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
             else
             {
                 // Used to sample from f2
-                epsilon = epsilon_min
-                          + (half - epsilon_min) * generate_canonical(rng);
+                epsilon = UniformRealDistribution{epsilon_min, half}(rng);
                 CELER_ASSERT(epsilon >= epsilon_min && epsilon <= half);
 
                 // Calculate delta given the element atomic number and sampled
@@ -286,7 +291,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 g /= fmin[1];
                 CELER_ASSERT(g > 0);
             }
-            // TODO: use rejection
+            // TODO: use rejection?
         } while (g < generate_canonical(rng));
     }
 
@@ -298,9 +303,9 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     secondaries[0].particle_id = shared_.ids.electron;
     secondaries[1].particle_id = shared_.ids.positron;
 
-    secondaries[0].energy = Energy{(1 - epsilon) * inc_energy_
+    secondaries[0].energy = Energy{(1 - epsilon) * value_as<Energy>(inc_energy_)
                                    - value_as<Mass>(shared_.electron_mass)};
-    secondaries[1].energy = Energy{epsilon * inc_energy_
+    secondaries[1].energy = Energy{epsilon * value_as<Energy>(inc_energy_)
                                    - value_as<Mass>(shared_.electron_mass)};
 
     // Select charges for child particles (e-, e+) randomly
@@ -311,21 +316,23 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     // Sample secondary directions.  Note that momentum is not exactly
     // conserved.
-    real_type phi
+    real_type const phi
         = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
+    auto sample_angle = [&](Energy e) {
+        return TsaiUrbanDistribution{e, shared_.electron_mass}(rng);
+    };
 
     // Electron
-    TsaiUrbanDistribution sample_electron_angle(secondaries[0].energy,
-                                                shared_.electron_mass);
-    real_type cost = sample_electron_angle(rng);
     secondaries[0].direction
-        = rotate(from_spherical(cost, phi), inc_direction_);
-    // Positron
-    TsaiUrbanDistribution sample_positron_angle(secondaries[1].energy,
-                                                shared_.electron_mass);
-    cost = sample_positron_angle(rng);
+        = rotate(from_spherical(sample_angle(secondaries[0].energy), phi),
+                 inc_direction_);
+
+    // Positron (opposite azimuthal angle)
     secondaries[1].direction
-        = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);
+        = rotate(from_spherical(sample_angle(secondaries[1].energy),
+                                phi + constants::pi),
+                 inc_direction_);
+
     return result;
 }
 
@@ -346,7 +353,9 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
 /*!
  * Screening functions \f$ \Phi_1(\delta) \f$ and \f$ \Phi_2(\delta) \f$.
  *
- * These correspond to \em f in Butcher
+ * These correspond to \em f in Butcher: the first screening function is based
+ * on the bremsstrahlung cross sections, and the second is due to pair
+ * production.
  */
 CELER_FUNCTION auto
 BetheHeitlerInteractor::screening_phi(real_type delta) const -> Real2
