@@ -123,10 +123,10 @@ class BetheHeitlerInteractor
     inline CELER_FUNCTION real_type impact_parameter(real_type eps) const;
 
     // Calculate the screening functions \f$ \Phi_1 \f$ and \f$ \Phi_2 \f$
-    inline CELER_FUNCTION Real2 screening_phi(real_type delta) const;
+    static inline CELER_FUNCTION Real2 screening_phi(real_type delta);
 
     // Calculate the auxiliary screening functions \f$ F_1 \f$ and \f$ F_2 \f$
-    inline CELER_FUNCTION Real2 screening_f(real_type delta) const;
+    static inline CELER_FUNCTION Real2 screening_f(real_type delta);
 };
 
 //---------------------------------------------------------------------------//
@@ -355,10 +355,10 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
  *
  * These correspond to \em f in Butcher: the first screening function is based
  * on the bremsstrahlung cross sections, and the second is due to pair
- * production.
+ * production. The values are improved function fits by M Novak (Geant4).
  */
 CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_phi(real_type delta) const -> Real2
+BetheHeitlerInteractor::screening_phi(real_type delta) -> Real2
 {
     using R = real_type;
 
@@ -393,7 +393,7 @@ BetheHeitlerInteractor::screening_phi(real_type delta) const -> Real2
  * subtraction should be addition.
  */
 CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_f(real_type delta) const -> Real2
+BetheHeitlerInteractor::screening_f(real_type delta) -> Real2
 {
     using R = real_type;
     auto temp = screening_phi(delta);
