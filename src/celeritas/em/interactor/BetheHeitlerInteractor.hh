@@ -94,13 +94,13 @@ class BetheHeitlerInteractor
     // Minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
     real_type epsilon0_;
     // 136/Z^1/3 factor on the screening variable, or zero for low energy
-    real_type screening_;
+    real_type screen_delta_;
     real_type f_z_;
 
     //// CONSTANTS ////
 
-    //! Energy below which nucleus is effectively fully screened
-    static CELER_CONSTEXPR_FUNCTION Energy full_screening_threshold()
+    //! Energy below which screening can be neglected
+    static CELER_CONSTEXPR_FUNCTION Energy no_screening_threshold()
     {
         return units::MevEnergy{2};
     }
@@ -159,15 +159,15 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     epsilon0_ = value_as<Mass>(shared_.electron_mass)
                 / value_as<Energy>(inc_energy_);
 
-    if (inc_energy_ < full_screening_threshold())
+    if (inc_energy_ < no_screening_threshold())
     {
         // Don't reject: just sample uniformly
-        screening_ = 0;
+        screen_delta_ = 0;
         f_z_ = 0;
     }
     else
     {
-        screening_ = epsilon0_ * 136 / element.cbrt_z();
+        screen_delta_ = epsilon0_ * 136 / element.cbrt_z();
         f_z_ = real_type(8) / real_type(3) * element.log_z();
         if (inc_energy_ > coulomb_corr_threshold())
         {
@@ -196,7 +196,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     // Sample fraction of energy given to electron
     real_type epsilon;
-    if (screening_ == 0)
+    if (screen_delta_ == 0)
     {
         // If E_gamma < 2 MeV, rejection not needed -- just sample uniformly
         UniformRealDistribution<real_type> sample_eps(epsilon0_, half);
@@ -207,7 +207,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Calculate the minimum (when \epsilon = 1/2) and maximum (when
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
-        real_type const delta_min = 4 * screening_;
+        real_type const delta_min = 4 * screen_delta_;
         real_type const delta_max
             = std::exp((real_type(42.038) - f_z_) / real_type(8.29))
               - real_type(0.958);
@@ -346,7 +346,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 CELER_FUNCTION real_type
 BetheHeitlerInteractor::impact_parameter(real_type eps) const
 {
-    return screening_ / (eps * (1 - eps));
+    return screen_delta_ / (eps * (1 - eps));
 }
 
 //---------------------------------------------------------------------------//
