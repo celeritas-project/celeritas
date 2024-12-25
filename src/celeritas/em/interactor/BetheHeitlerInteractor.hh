@@ -299,37 +299,34 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     Interaction result = Interaction::from_absorption();
     result.secondaries = {secondaries, 2};
 
-    // Outgoing secondaries are electron and positron
+    // Outgoing secondaries are electron and positron with randomly selected
+    // charges
     secondaries[0].particle_id = shared_.ids.electron;
     secondaries[1].particle_id = shared_.ids.positron;
 
+    // Incident energy split between the particles, with rest mass subtracted
     secondaries[0].energy = Energy{(1 - epsilon) * value_as<Energy>(inc_energy_)
                                    - value_as<Mass>(shared_.electron_mass)};
     secondaries[1].energy = Energy{epsilon * value_as<Energy>(inc_energy_)
                                    - value_as<Mass>(shared_.electron_mass)};
-
-    // Select charges for child particles (e-, e+) randomly
     if (BernoulliDistribution(half)(rng))
     {
         trivial_swap(secondaries[0].energy, secondaries[1].energy);
     }
 
-    // Sample secondary directions.  Note that momentum is not exactly
-    // conserved.
+    // Sample secondary directions: note that momentum is not exactly conserved
     real_type const phi
         = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
-    auto sample_angle = [&](Energy e) {
+    auto sample_costheta = [&](Energy e) {
         return TsaiUrbanDistribution{e, shared_.electron_mass}(rng);
     };
 
-    // Electron
+    // Note that positron has opposite azimuthal angle
     secondaries[0].direction
-        = rotate(from_spherical(sample_angle(secondaries[0].energy), phi),
+        = rotate(from_spherical(sample_costheta(secondaries[0].energy), phi),
                  inc_direction_);
-
-    // Positron (opposite azimuthal angle)
     secondaries[1].direction
-        = rotate(from_spherical(sample_angle(secondaries[1].energy),
+        = rotate(from_spherical(sample_costheta(secondaries[1].energy),
                                 phi + constants::pi),
                  inc_direction_);
 
