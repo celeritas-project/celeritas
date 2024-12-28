@@ -24,7 +24,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-constexpr auto pi = static_cast<real_type>(constants::pi);
 constexpr auto tol = SoftEqual<real_type>{}.rel();
 
 //---------------------------------------------------------------------------//
@@ -59,6 +58,7 @@ TEST(RegulaFalsi, trigometric)
     DiagnosticRealFunc f{[](real_type t) { return std::cos(t); }};
     RegulaFalsiRootFinder find_root{f, tol};
 
+    constexpr real_type pi = static_cast<real_type>(constants::pi);
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_EQ(3, f.exchange_count());
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0.5, 3.0));

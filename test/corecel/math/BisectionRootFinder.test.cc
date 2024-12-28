@@ -24,7 +24,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-constexpr auto pi = static_cast<real_type>(constants::pi);
 constexpr auto tol = SoftEqual<real_type>{}.rel();
 
 //---------------------------------------------------------------------------//
@@ -59,6 +58,7 @@ TEST(Bisection, trigometric)
 
     BisectionRootFinder find_root{f, tol};
 
+    constexpr auto pi = static_cast<real_type>(constants::pi);
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
     EXPECT_SOFT_EQ(pi * 2.5, find_root(2 * pi, 3 * pi));

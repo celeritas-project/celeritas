@@ -77,8 +77,6 @@ TEST(PolygonUtilsTest, is_same_orientation)
 
 TEST(PolygonUtilsTest, convex)
 {
-    constexpr real_type pi{constants::pi};
-
     static Real2 const cw_points[] = {{1, 1}, {1, 2}, {2, 2}, {2, 1}};
     EXPECT_TRUE(is_convex(make_span(cw_points)));
 
@@ -88,7 +86,8 @@ TEST(PolygonUtilsTest, convex)
     VecReal2 oct{8};
     for (size_type i = 0; i < 8; ++i)
     {
-        oct[i] = {std::cos(2 * pi * i / 8), std::sin(2 * pi * i / 8)};
+        oct[i] = {std::cos(static_cast<real_type>(2 * constants::pi * i / 8)),
+                  std::sin(static_cast<real_type>(2 * constants::pi * i / 8))};
     }
     EXPECT_TRUE(is_convex(make_span(oct)));
 

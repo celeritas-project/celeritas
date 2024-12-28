@@ -22,7 +22,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using constants::pi;
-inline constexpr double m_pi{pi};
 
 // One revolution = 2pi radians
 struct TwoPi
@@ -64,7 +63,7 @@ TEST(QuantityTest, usage)
 
     // Hypothetical return value for user
     Revolution spacing{dtheta};
-    EXPECT_SOFT_EQ(2 * m_pi / 16, native_value_from(spacing));
+    EXPECT_SOFT_EQ(2 * pi / 16, native_value_from(spacing));
 
     // Create a quantity from a literal value in the native unit system
     auto half_rev = native_value_to<Revolution>(pi);
@@ -103,7 +102,7 @@ TEST(QuantityTest, mixed_precision)
     using RevInt = Quantity<TwoPi, int>;
     auto fourpi = native_value_from(RevInt{2});
     EXPECT_TRUE((std::is_same_v<decltype(fourpi), Constant>));
-    EXPECT_SOFT_EQ(4 * m_pi, static_cast<double>(fourpi));
+    EXPECT_SOFT_EQ(4 * pi, static_cast<double>(fourpi));
 
     using DozenDbl = Quantity<DozenUnit, double>;
     auto two_dozen = native_value_to<DozenDbl>(24);
@@ -189,7 +188,7 @@ TEST(QuantityTest, math)
 
     // Test mixed integer/double
     {
-        EXPECT_DOUBLE_EQ(4 * m_pi,
+        EXPECT_DOUBLE_EQ(static_cast<double>(4 * pi),
                          static_cast<double>(native_value_from(RevInt{2})));
         auto added = RevFlt{1.5} + RevInt{1};
         EXPECT_TRUE((std::is_same<decltype(added), RevFlt>::value));
@@ -257,7 +256,7 @@ TEST(TurnTest, basic)
 {
     EXPECT_STREQ("tr", Turn::unit_type::label());
     EXPECT_SOFT_EQ(0.5, Turn{0.5}.value());
-    EXPECT_REAL_EQ(2 * m_pi, native_value_from(Turn{1}));
+    EXPECT_REAL_EQ(static_cast<real_type>(2 * pi), native_value_from(Turn{1}));
 }
 
 TEST(TurnTest, math)
@@ -272,7 +271,7 @@ TEST(QuarterTurnTest, basic)
     EXPECT_STREQ("qtr", QuarterTurn::unit_type::label());
     EXPECT_EQ(-1, QuarterTurn{-1}.value());
     EXPECT_EQ(1, QuarterTurn{1}.value());
-    EXPECT_DOUBLE_EQ(2 * m_pi,
+    EXPECT_DOUBLE_EQ(static_cast<double>(2 * pi),
                      static_cast<double>(native_value_from(QuarterTurn{4})));
 }
 
