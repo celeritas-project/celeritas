@@ -1,0 +1,40 @@
+spack:
+  specs:
+    - adios2
+    - cmake
+    - "geant4@11.0"
+    - git
+    - "googletest@1.10:"
+    - hepmc3
+    - mpi
+    - ninja
+    - nlohmann-json
+    - "python@3.6:"
+    - "root@6.28:"
+  concretizer:
+    unify: true
+  compilers:
+    - compiler:
+        spec: rocmcc@=5.7.1
+        paths:
+          cc: /opt/rocm/llvm/bin/clang
+          cxx: /opt/rocm/llvm/bin/clang++
+          f77:
+          fc:
+        modules: []
+        flags: {}
+        operating_system: ubuntu22.04
+        target: x86_64_v3
+  packages:
+    all:
+      target:
+      - x86_64_v3
+      # MI210, see https://llvm.org/docs/AMDGPUUsage.html
+      #variants: +rocm amdgpu_target=gfx90a cxxstd=17
+      variants: cxxstd=17
+      compiler: ["rocmcc@5.7.1"]
+    root:
+      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=17
+  config:
+    install_tree: /opt/software
+  view: /opt/view
