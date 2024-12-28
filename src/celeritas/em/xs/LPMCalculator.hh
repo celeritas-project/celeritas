@@ -47,12 +47,12 @@ namespace celeritas
 class LPMCalculator
 {
   public:
-    //! Evaluated LPM suppression functions
+    //! Evaluated LPM suppression functions default to "low energy" values
     struct LPMFunctions
     {
-        real_type xi;  //!< Near-unity logarithmic factor
-        real_type g;  //!< Pair production factor
-        real_type phi;
+        real_type xi{1};  //!< Near-unity logarithmic factor
+        real_type g{1};  //!< Pair production factor
+        real_type phi{1};
     };
 
   public:
@@ -149,7 +149,6 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
 
         // Recalculate \f$ \xi \$ from the modified suppression variable (Eq.
         // 16 in Stanev)
-        xi = 2;
         if (s > 1)
         {
             xi = 1;
@@ -157,6 +156,10 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
         else if (s > s1)
         {
             xi = 1 + std::log(s) / std::log(s1);
+        }
+        else
+        {
+            xi = 2;
         }
     }
 

@@ -31,7 +31,7 @@ class GeantOrangeTest : public OrangeGeoTestBase
             << "Converting Geant4 requires double-precision reals";
         this->build_gdml_geometry(this->geometry_basename() + ".gdml");
     }
-    real_type unit_length() const final { return lengthunits::centimeter; }
+    Constant unit_length() const final { return lengthunits::centimeter; }
 };
 
 //---------------------------------------------------------------------------//

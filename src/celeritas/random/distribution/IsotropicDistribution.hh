@@ -53,7 +53,7 @@ class IsotropicDistribution
  */
 template<class RealType>
 CELER_FUNCTION IsotropicDistribution<RealType>::IsotropicDistribution()
-    : sample_costheta_(-1, 1), sample_phi_(0, 2 * constants::pi)
+    : sample_costheta_(-1, 1), sample_phi_(0, real_type(2 * constants::pi))
 {
 }
 

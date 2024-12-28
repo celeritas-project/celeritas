@@ -9,6 +9,7 @@
 
 #include <cmath>
 
+#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
@@ -156,6 +157,8 @@ real_type MuBremsDiffXsCalculator::operator()(Energy energy)
 {
     CELER_EXPECT(energy > zero_quantity());
 
+    using namespace celeritas::constants;
+
     if (value_as<Energy>(energy) >= inc_energy_)
     {
         return 0;
@@ -169,7 +172,6 @@ real_type MuBremsDiffXsCalculator::operator()(Energy energy)
                       / (total_energy_ - value_as<Energy>(energy));
 
     // Calculate the contribution to the cross section from the nucleus
-    real_type sqrt_euler = std::sqrt(constants::euler);
     real_type phi_n = clamp_to_nonneg(std::log(
         b_ * inv_cbrt_z_ * (inc_mass_ + delta * (d_n_ * sqrt_euler - 2))
         / (d_n_ * (electron_mass_ + delta * sqrt_euler * b_ * inv_cbrt_z_))));
@@ -193,8 +195,8 @@ real_type MuBremsDiffXsCalculator::operator()(Energy energy)
     }
 
     // Calculate the differential cross section
-    return 16 * constants::alpha_fine_structure * constants::na_avogadro
-           * ipow<2>(electron_mass_ * constants::r_electron) * atomic_number_
+    return 16 * alpha_fine_structure * na_avogadro
+           * ipow<2>(electron_mass_ * r_electron) * atomic_number_
            * (atomic_number_ * phi_n + phi_e)
            * (1 - v * (1 - real_type(0.75) * v))
            / (3 * inc_mass_sq_ * value_as<Energy>(energy) * atomic_mass_);

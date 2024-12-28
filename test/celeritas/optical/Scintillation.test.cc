@@ -34,7 +34,7 @@ namespace test
 
 using celeritas::test::from_cm;
 using celeritas::test::to_cm;
-using TimeSecond = celeritas::Quantity<celeritas::units::Second>;
+using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -98,8 +98,8 @@ class MaterialScintillationTest : public ScintillationTestBase
     //! Create material components
     std::vector<ImportScintComponent> build_material_components()
     {
-        static constexpr real_type nm = units::meter * 1e-9;
-        static constexpr real_type ns = units::nanosecond;
+        static constexpr real_type nm{units::meter * 1e-9};
+        static constexpr real_type ns{units::nanosecond};
 
         // Note second component has zero rise time
         std::vector<ImportScintComponent> comps;

@@ -99,7 +99,7 @@ ScintillationGenerator::ScintillationGenerator(
     : dist_(dist)
     , shared_(shared)
     , sample_cost_(-1, 1)
-    , sample_phi_(0, 2 * constants::pi)
+    , sample_phi_(0, real_type(2 * constants::pi))
     , is_neutral_{dist_.charge == zero_quantity()}
 {
     if (shared_.scintillation_by_particle())

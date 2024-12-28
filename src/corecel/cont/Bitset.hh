@@ -8,6 +8,8 @@
 #pragma once
 
 #include <climits>
+#include <cstdint>
+#include <type_traits>
 
 #include "corecel/Config.hh"
 
@@ -27,7 +29,7 @@ namespace celeritas
  * for our current use case. Given that GPU typically use 32-bit words, this
  * uses unsigned int as the word type instead of the unsigned long used by the
  * standard library. This container is not thread-safe, multiple threads are
- * likely to manipulate the same word, even we accessing different indices.
+ * likely to manipulate the same word, even when accessing different indices.
  *
  * The following methods are not implemented:
  * - conversions to string, to_ulong, to_ullong
@@ -44,7 +46,10 @@ class Bitset
   public:
     //!@{
     //! \name Type aliases
-    using word_type = unsigned int;
+    using word_type = std::conditional_t<
+        (N <= 8),
+        std::uint8_t,
+        std::conditional_t<(N <= 16), std::uint16_t, size_type>>;
     //!@}
 
     class reference;
@@ -53,7 +58,7 @@ class Bitset
     //// CONSTRUCTORS ////
 
     // Default construct with zeros for all bits
-    Bitset() = default;
+    constexpr Bitset() = default;
 
     // Construct implicitly from a bitset encoded as an integer
     CELER_CONSTEXPR_FUNCTION Bitset(word_type value) noexcept;
@@ -149,6 +154,9 @@ class Bitset
     // Create a mask for a given bit index
     static CELER_CONSTEXPR_FUNCTION word_type mask(size_type pos) noexcept;
 
+    // Create a negative mask for a given bit index
+    static CELER_CONSTEXPR_FUNCTION word_type neg_mask(size_type pos) noexcept;
+
     // Get the word for a given bit position
     CELER_CONSTEXPR_FUNCTION word_type get_word(size_type pos) const
         noexcept(!CELERITAS_DEBUG);
@@ -185,7 +193,7 @@ class Bitset<N>::reference
     {
     }
 
-    reference(reference const&) = default;
+    constexpr reference(reference const&) = default;
 
     ~reference() noexcept = default;
 
@@ -199,7 +207,7 @@ class Bitset<N>::reference
         }
         else
         {
-            *word_pointer_ &= ~Bitset::mask(bit_pos_);
+            *word_pointer_ &= Bitset::neg_mask(bit_pos_);
         }
         return *this;
     }
@@ -216,7 +224,7 @@ class Bitset<N>::reference
             }
             else
             {
-                *word_pointer_ &= ~Bitset::mask(bit_pos_);
+                *word_pointer_ &= Bitset::neg_mask(bit_pos_);
             }
         }
         return *this;
@@ -313,7 +321,7 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
 {
     for (size_type i = 0; i < num_words_ - 1; ++i)
     {
-        if (words_[i] != ~word_type(0))
+        if (words_[i] != static_cast<word_type>(~word_type(0)))
         {
             return false;
         }
@@ -321,7 +329,8 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
 
     // Only compare the last word up to the last bit of the bitset
     return this->last_word()
-           == (~word_type(0) >> (num_words_ * bits_per_word_ - N));
+           == (static_cast<word_type>(~word_type(0))
+               >> (num_words_ * bits_per_word_ - N));
 }
 
 //---------------------------------------------------------------------------//
@@ -416,7 +425,7 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::set() noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
-        words_[i] = ~word_type(0);
+        words_[i] = static_cast<word_type>(~word_type(0));
     }
 
     // Clear unused bits on the last word
@@ -456,7 +465,7 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>&
 Bitset<N>::reset(size_type pos) noexcept(!CELERITAS_DEBUG)
 {
     CELER_EXPECT(pos < N);
-    this->get_word(pos) &= ~Bitset::mask(pos);
+    this->get_word(pos) &= Bitset::neg_mask(pos);
     return *this;
 }
 
@@ -513,6 +522,19 @@ Bitset<N>::mask(size_type pos) noexcept -> word_type
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create a negative mask (a single 0 bit) for a given bit index. The purpose
+ * of this function is to cast a potentially promoted word_type (from ~) back
+ * to the original word_type.
+ */
+template<size_type N>
+CELER_CONSTEXPR_FUNCTION auto
+Bitset<N>::neg_mask(size_type pos) noexcept -> word_type
+{
+    return ~(word_type(1) << Bitset::which_bit(pos));
+}
+
+//---------------------------------------------------------------------------//
 //! Get the word for a given bit position
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION auto Bitset<N>::get_word(size_type pos) const
@@ -556,7 +578,8 @@ CELER_CONSTEXPR_FUNCTION void Bitset<N>::sanitize() noexcept
     constexpr size_type extra_bits = N % bits_per_word_;
     if constexpr (extra_bits != 0)
     {
-        this->last_word() &= ~((~word_type(0)) << extra_bits);
+        this->last_word() &= static_cast<word_type>(
+            ~(static_cast<word_type>(~word_type(0)) << extra_bits));
     }
 }
 

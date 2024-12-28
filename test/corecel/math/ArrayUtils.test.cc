@@ -18,6 +18,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+inline constexpr auto m_pi = constants::pi;
 
 using Real3 = Array<real_type, 3>;
 using Dbl3 = Array<double, 3>;

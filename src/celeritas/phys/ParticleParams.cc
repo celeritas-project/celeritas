@@ -51,7 +51,7 @@ ParticleParams::from_import(ImportData const& data)
         defs[i].charge = units::ElementaryCharge(particle.charge);
         defs[i].decay_constant = (particle.is_stable
                                       ? constants::stable_decay_constant
-                                      : 1. / particle.lifetime);
+                                      : 1 / particle.lifetime);
     }
 
     // Sort by increasing mass, then by PDG code (positive before negative of

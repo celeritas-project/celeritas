@@ -19,8 +19,7 @@ namespace detail
 {
 namespace test
 {
-
-using constants::sqrt_two;
+constexpr real_type sqrt_two{constants::sqrt_two};
 
 //---------------------------------------------------------------------------//
 

@@ -20,26 +20,26 @@ namespace units
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Quantities for atomic scale/natural units
-using ElementaryCharge = Quantity<EElectron>;
-using MevEnergy = Quantity<Mev>;
-using LogMevEnergy = Quantity<LogMev>;
-using MevMass = Quantity<MevPerCsq>;
-using MevMomentum = Quantity<MevPerC>;
-using MevMomentumSq = Quantity<UnitProduct<MevPerC, MevPerC>>;
-using LightSpeed = Quantity<CLight>;
-using AmuMass = Quantity<Amu>;
+using ElementaryCharge = RealQuantity<EElectron>;
+using MevEnergy = RealQuantity<Mev>;
+using LogMevEnergy = RealQuantity<LogMev>;
+using MevMass = RealQuantity<MevPerCsq>;
+using MevMomentum = RealQuantity<MevPerC>;
+using MevMomentumSq = RealQuantity<UnitProduct<MevPerC, MevPerC>>;
+using LightSpeed = RealQuantity<CLight>;
+using AmuMass = RealQuantity<Amu>;
 //!@}
 
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Quantities for manual input and/or test harnesses
-using BarnXs = Quantity<Barn>;
-using CmLength = Quantity<Centimeter>;
-using InvCmXs = Quantity<UnitInverse<Centimeter>>;
-using InvCcDensity = Quantity<InvCentimeterCubed>;
-using MolCcDensity = Quantity<MolPerCentimeterCubed>;
-using GramCcDensity = Quantity<GramPerCentimeterCubed>;
-using FieldTesla = Quantity<Tesla>;
+using BarnXs = RealQuantity<Barn>;
+using CmLength = RealQuantity<Centimeter>;
+using InvCmXs = RealQuantity<UnitInverse<Centimeter>>;
+using InvCcDensity = RealQuantity<InvCentimeterCubed>;
+using MolCcDensity = RealQuantity<MolPerCentimeterCubed>;
+using GramCcDensity = RealQuantity<GramPerCentimeterCubed>;
+using FieldTesla = RealQuantity<Tesla>;
 //!@}
 //---------------------------------------------------------------------------//
 }  // namespace units

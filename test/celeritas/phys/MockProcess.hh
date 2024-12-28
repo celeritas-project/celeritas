@@ -23,24 +23,24 @@ namespace test
 //! Energy loss rate [MeV/cm] per volume [cm^-3] -> [MeV * cm^2]
 struct MevCmSq
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::Mev::value() * ipow<2>(units::centimeter);
     }
 };
 
-using MevCmSqLossDens = Quantity<MevCmSq>;
+using MevCmSqLossDens = RealQuantity<MevCmSq>;
 
 //! Energy loss rate
 struct MevPerCm
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::Mev::value() / units::centimeter;
     }
 };
 
-using MevPerCmLoss = Quantity<MevPerCm>;
+using MevPerCmLoss = RealQuantity<MevPerCm>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -63,7 +63,7 @@ class MockProcess : public Process
   public:
     //!@{
     //! \name Type aliases
-    using BarnMicroXs = Quantity<units::Barn>;
+    using BarnMicroXs = RealQuantity<units::Barn>;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;

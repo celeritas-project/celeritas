@@ -21,10 +21,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+constexpr auto sqrt_two = real_type{constants::sqrt_two};
 
 TEST(SimpleQuadricTest, construction)
 {
-    using constants::sqrt_two;
     // Plane
     SimpleQuadric p{Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two}};
 

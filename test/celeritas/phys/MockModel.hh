@@ -29,7 +29,7 @@ class MockModel final : public Model
   public:
     //!@{
     //! \name Type aliases
-    using BarnMicroXs = Quantity<units::Barn>;
+    using BarnMicroXs = RealQuantity<units::Barn>;
     using ModelCallback = std::function<void(ActionId)>;
     using VecMicroXs = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;

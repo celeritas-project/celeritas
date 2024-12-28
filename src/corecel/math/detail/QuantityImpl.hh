@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 
+#include "../Constant.hh"
 #include "../NumericLimits.hh"
 
 namespace celeritas
@@ -50,6 +51,7 @@ struct UnitlessQuantity
 {
 };
 
+//---------------------------------------------------------------------------//
 //! Helper class for getting attributes about a member function
 template<class T>
 struct AccessorTraits;

@@ -154,7 +154,7 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
     UniformFieldParams field_params;
-    field_params.field = {0, 0, 1 * units::tesla};
+    field_params.field = {0, 0, static_cast<real_type>(1 * units::tesla)};
     auto msc = UrbanMscParams::from_import(
         *this->particle(), *this->material(), this->imported_data());
 

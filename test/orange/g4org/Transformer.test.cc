@@ -32,7 +32,7 @@ namespace g4org
 namespace test
 {
 //---------------------------------------------------------------------------//
-constexpr auto mm = ::celeritas::lengthunits::millimeter;
+constexpr real_type mm{::celeritas::lengthunits::millimeter};
 
 Real3 from_geant(G4ThreeVector const& tv)
 {

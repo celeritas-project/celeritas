@@ -44,14 +44,14 @@ namespace test
 
 struct InvCentimeter
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return 1 / units::centimeter;
     }
     static char const* label() { return "1/cm"; }
 };
 
-using InvCmLength = Quantity<InvCentimeter>;
+using InvCmLength = RealQuantity<InvCentimeter>;
 using celeritas::test::from_cm;
 
 //---------------------------------------------------------------------------//

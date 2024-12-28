@@ -20,7 +20,7 @@ namespace celeritas
 // CONSTANTS
 //---------------------------------------------------------------------------//
 //! Value of a unit Celeritas length in the CLHEP unit system
-inline constexpr real_type clhep_length = 1 / lengthunits::millimeter;
+inline constexpr double clhep_length{1 / lengthunits::millimeter};
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -70,7 +70,7 @@ inline Real3 convert_from_geant(double const vec[3], double units)
  * Convert a native Celeritas quantity to a Geant4 value with CLHEP units.
  */
 template<class T>
-constexpr inline T convert_to_geant(T const& val, T units)
+constexpr inline double convert_to_geant(T const& val, double units)
 {
     return val * units;
 }

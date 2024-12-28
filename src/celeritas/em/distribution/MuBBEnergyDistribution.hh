@@ -109,7 +109,7 @@ class MuBBEnergyDistribution
     }
 
     //! Fine structure constant over two pi
-    static CELER_CONSTEXPR_FUNCTION real_type alpha_over_twopi()
+    static CELER_CONSTEXPR_FUNCTION Constant alpha_over_twopi()
     {
         return constants::alpha_fine_structure / (2 * constants::pi);
     }

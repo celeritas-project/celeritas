@@ -28,7 +28,6 @@ namespace test
 
 using Real2 = Array<real_type, 2>;
 using VecReal2 = std::vector<Real2>;
-using constants::pi;
 
 constexpr auto ccw = Orientation::counterclockwise;
 constexpr auto cw = Orientation::clockwise;
@@ -87,7 +86,8 @@ TEST(PolygonUtilsTest, convex)
     VecReal2 oct{8};
     for (size_type i = 0; i < 8; ++i)
     {
-        oct[i] = {std::cos(2 * pi * i / 8), std::sin(2 * pi * i / 8)};
+        oct[i] = {std::cos(static_cast<real_type>(2 * constants::pi * i / 8)),
+                  std::sin(static_cast<real_type>(2 * constants::pi * i / 8))};
     }
     EXPECT_TRUE(is_convex(make_span(oct)));
 

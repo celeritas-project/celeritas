@@ -511,7 +511,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     auto const& params = *solid.GetOriginalParameters();
 
     // Convert from circumradius to apothem
-    double const radius_factor = std::cos(m_pi / params.numSide);
+    double const radius_factor = cospi(1 / static_cast<double>(params.numSide));
 
     std::vector<double> zs(params.Num_z_planes);
     std::vector<double> rmin(zs.size());

@@ -43,7 +43,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
         if (!coulomb)
         {
             // Set the maximum scattering angle for Wentzel VI MSC
-            return constants::pi;
+            return real_type(constants::pi);
         }
         if (!wentzel)
         {
@@ -121,7 +121,8 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
     prefactors.reserve(materials.num_isotopes());
     for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
     {
-        using InvMomSq = Quantity<UnitInverse<units::MevMomentumSq::unit_type>>;
+        using InvMomSq
+            = RealQuantity<UnitInverse<units::MevMomentumSq::unit_type>>;
 
         auto&& iso_view = materials.get(iso_id);
         prefactors.push_back(value_as<InvMomSq>(

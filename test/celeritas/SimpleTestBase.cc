@@ -84,10 +84,10 @@ auto SimpleTestBase::build_cutoff() -> SPConstCutoff
     input.cutoffs = {
         {pdg::gamma(),
          {{MevEnergy{0.01}, 0.1 * millimeter},
-          {MevEnergy{100}, 100 * centimeter}}},
+          {MevEnergy{100}, 100.0 * centimeter}}},
         {pdg::electron(),
-         {{MevEnergy{1000}, 1000 * centimeter},
-          {MevEnergy{1000}, 1000 * centimeter}}},
+         {{MevEnergy{1000}, 1000.0 * centimeter},
+          {MevEnergy{1000}, 1000.0 * centimeter}}},
     };
 
     return std::make_shared<CutoffParams>(std::move(input));

@@ -11,9 +11,9 @@
 #include <type_traits>
 
 #include "corecel/Assert.hh"
+#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 
 #include "GenerateCanonical.hh"
@@ -178,7 +178,8 @@ NormalDistribution<RealType>::operator()(Generator& rng) -> result_type
         return std::fma(spare_, stddev_, mean_);
     }
 
-    constexpr auto twopi = static_cast<RealType>(2 * m_pi);
+    // TODO: use sincospi here
+    constexpr auto twopi = static_cast<RealType>(2 * constants::pi);
     real_type theta = twopi * generate_canonical<RealType>(rng);
     real_type r = std::sqrt(-2 * std::log(generate_canonical<RealType>(rng)));
     spare_ = r * std::cos(theta);

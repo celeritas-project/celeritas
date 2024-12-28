@@ -67,7 +67,7 @@ class EnergyLossHelper
     //! \name Type aliases
     using FluctuationRef = NativeCRef<FluctuationData>;
     using Energy = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
     using Mass = units::MevMass;
     using Charge = units::ElementaryCharge;
     using Model = EnergyLossFluctuationModel;

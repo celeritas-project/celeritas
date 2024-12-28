@@ -26,7 +26,8 @@ Converter::Converter(Options&& opts) : opts_{std::move(opts)}
 {
     if (!opts_.tol)
     {
-        opts_.tol = Tolerance<>::from_default(lengthunits::millimeter);
+        opts_.tol
+            = Tolerance<>::from_default(real_type{lengthunits::millimeter});
     }
 
     if (real_type{1} - ipow<2>(opts_.tol.rel) == real_type{1})

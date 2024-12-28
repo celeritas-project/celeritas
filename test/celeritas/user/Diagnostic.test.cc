@@ -68,7 +68,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
     {
         auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
-        field_params.field = {0, 0, 1 * units::tesla};
+        field_params.field = {0, 0, real_type(1 * units::tesla)};
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
 
