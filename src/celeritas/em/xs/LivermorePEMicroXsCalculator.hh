@@ -29,7 +29,7 @@ class LivermorePEMicroXsCalculator
     //!@{
     //! \name Type aliases
     using ParamsRef = LivermorePERef;
-    using Energy = Quantity<LivermoreSubshell::EnergyUnits>;
+    using Energy = RealQuantity<LivermoreSubshell::EnergyUnits>;
     using BarnXs = units::BarnXs;
     //!@}
 

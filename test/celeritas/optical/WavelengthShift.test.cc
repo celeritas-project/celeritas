@@ -24,7 +24,7 @@ namespace optical
 {
 namespace test
 {
-using TimeSecond = celeritas::Quantity<celeritas::units::Second>;
+using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
 
 //---------------------------------------------------------------------------//
 /*!

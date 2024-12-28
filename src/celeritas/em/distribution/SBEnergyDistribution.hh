@@ -23,7 +23,7 @@ namespace celeritas
  */
 struct SBElectronXsCorrector
 {
-    using Xs = Quantity<SBElementTableData::XsUnits>;
+    using Xs = RealQuantity<SBElementTableData::XsUnits>;
 
     //! No cross section scaling for any exiting energy
     CELER_FUNCTION real_type operator()(units::MevEnergy) const { return 1; }
@@ -103,7 +103,7 @@ class SBEnergyDistribution
     //! \name Type aliases
     using SBData = NativeCRef<SeltzerBergerData>;
     using Energy = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:

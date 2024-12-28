@@ -315,8 +315,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     }
 
     // Sample secondary directions: note that momentum is not exactly conserved
-    real_type const phi
-        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
+    real_type const phi = UniformRealDistribution<real_type>(
+        0, real_type(2 * constants::pi))(rng);
     auto sample_costheta = [&](Energy e) {
         return TsaiUrbanDistribution{e, shared_.electron_mass}(rng);
     };

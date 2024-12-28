@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "corecel/Constants.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -19,6 +21,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+using constants::pi;
 
 struct Foo
 {
@@ -139,6 +142,7 @@ TEST(AlgorithmsTest, clamp_to_nonneg)
 
     EXPECT_DOUBLE_EQ(1.2345, clamp_to_nonneg(1.2345));
     EXPECT_DOUBLE_EQ(0.0, clamp_to_nonneg(-123));
+    EXPECT_EQ(pi, clamp_to_nonneg(pi));
     EXPECT_TRUE(std::isnan(clamp_to_nonneg(nan)));
 }
 
@@ -311,6 +315,8 @@ TEST(MathTest, ipow)
     EXPECT_FLOAT_EQ(0.001f, ipow<3>(0.1f));
     EXPECT_EQ(1e4, ipow<4>(10.0));
     EXPECT_TRUE((std::is_same<int, decltype(ipow<4>(5))>::value));
+
+    EXPECT_EQ(pi * pi, static_cast<double>(ipow<2>(pi)));
 }
 
 //---------------------------------------------------------------------------//
@@ -525,14 +531,14 @@ TEST(MathTest, sincos)
 
 TEST(MathTest, sincospi)
 {
-    EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.1), sinpi(0.1));
-    EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.1), cospi(0.1));
+    EXPECT_DOUBLE_EQ(std::sin(pi * 0.1), sinpi(0.1));
+    EXPECT_DOUBLE_EQ(std::cos(pi * 0.1), cospi(0.1));
 
     {
         double s{0}, c{0};
         sincospi(0.123, &s, &c);
-        EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.123), s);
-        EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.123), c);
+        EXPECT_DOUBLE_EQ(std::sin(pi * 0.123), s);
+        EXPECT_DOUBLE_EQ(std::cos(pi * 0.123), c);
 
         // Test special cases
         sincospi(0, &s, &c);
@@ -557,8 +563,8 @@ TEST(MathTest, sincospi)
         float s{0}, c{0};
         sincospi(inp, &s, &c);
         EXPECT_FLOAT_EQ(1.0f, c);
-        EXPECT_FLOAT_EQ(std::sin(static_cast<float>(m_pi * inp)), s);
-        EXPECT_FLOAT_EQ(std::cos(static_cast<float>(m_pi * inp)), c);
+        EXPECT_FLOAT_EQ(std::sin(static_cast<float>(pi * inp)), s);
+        EXPECT_FLOAT_EQ(std::cos(static_cast<float>(pi * inp)), c);
     }
 }
 

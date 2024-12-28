@@ -58,7 +58,7 @@ class SBPositronXsCorrector
     //!@{
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
-    using Xs = Quantity<SBElementTableData::XsUnits>;
+    using Xs = RealQuantity<SBElementTableData::XsUnits>;
     //!@}
 
   public:

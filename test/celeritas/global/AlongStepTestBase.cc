@@ -24,12 +24,15 @@
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-using TimeSecond = celeritas::Quantity<celeritas::units::Second>;
-
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+using TimeSecond = RealQuantity<celeritas::units::Second>;
+}
+
 //---------------------------------------------------------------------------//
 auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 {

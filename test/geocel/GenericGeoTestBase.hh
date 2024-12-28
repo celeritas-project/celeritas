@@ -89,7 +89,7 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     virtual size_type num_track_slots() const { return 1; }
 
     //! Unit length for "track" testing and other results
-    virtual real_type unit_length() const { return lengthunits::centimeter; }
+    virtual Constant unit_length() const { return lengthunits::centimeter; }
 
     //! Construct from celeritas test data and "basename" value
     SPConstGeo build_geometry_from_basename();

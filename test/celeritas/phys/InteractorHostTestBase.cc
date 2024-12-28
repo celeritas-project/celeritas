@@ -28,7 +28,7 @@ InteractorHostBase::InteractorHostBase()
 {
     using namespace constants;
     using namespace units;
-    using InvSecond = Quantity<UnitInverse<Second>>;
+    using InvSecond = RealQuantity<UnitInverse<Second>>;
     constexpr auto zero = zero_quantity();
 
     constexpr MevMass emass{0.5109989461};

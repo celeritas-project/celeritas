@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantUnits.hh
+//! \sa geocel/g4/Convert.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,10 +17,9 @@ namespace celeritas
 // CONSTANTS
 //---------------------------------------------------------------------------//
 //! Value of a unit Celeritas field in the CLHEP unit system
-inline constexpr real_type clhep_field = 1
-                                         / units::ClhepTraits::BField::value();
+inline constexpr double clhep_field{1 / units::ClhepTraits::BField::value()};
 //! Value of a unit Celeritas time in the CLHEP unit system
-inline constexpr real_type clhep_time = 1 / units::ClhepTraits::Time::value();
+inline constexpr double clhep_time{1 / units::ClhepTraits::Time::value()};
 
 //---------------------------------------------------------------------------//
 /*!

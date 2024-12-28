@@ -45,19 +45,19 @@ struct UrbanMscParameters
     //! The minimum value of the true path length limit: 0.01 nm
     static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
     {
-        return real_type(0.01) * units::nanometer;
+        return 0.01 * units::nanometer;
     }
 
     //! Minimum true path when not calculated in the step limiting
     static CELER_CONSTEXPR_FUNCTION real_type limit_min()
     {
-        return 10 * limit_min_fix();
+        return 10.0 * limit_min_fix();
     }
 
     //! For steps below this value, true = geometrical (no MSC to be applied)
     static CELER_CONSTEXPR_FUNCTION real_type min_step()
     {
-        return 1 * units::nanometer;
+        return real_type{1} * units::nanometer;
     }
 
     //! Below this endpoint energy, don't sample scattering: 1 eV

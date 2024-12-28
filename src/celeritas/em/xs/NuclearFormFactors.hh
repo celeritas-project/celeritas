@@ -24,8 +24,8 @@ struct NuclearFormFactorTraits
     using AtomicMassNumber = AtomicNumber;
     using Momentum = units::MevMomentum;
     using MomentumSq = units::MevMomentumSq;
-    using InvMomentum = Quantity<UnitInverse<Momentum::unit_type>>;
-    using InvMomentumSq = Quantity<UnitInverse<MomentumSq::unit_type>>;
+    using InvMomentum = RealQuantity<UnitInverse<Momentum::unit_type>>;
+    using InvMomentumSq = RealQuantity<UnitInverse<MomentumSq::unit_type>>;
     using FFType = NuclearFormFactorType;
     //!@}
 

@@ -44,7 +44,7 @@ class EnergyLossGaussianDistribution
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:

@@ -58,7 +58,8 @@ struct ExitingDirectionSampler
     template<class Engine>
     inline CELER_FUNCTION Real3 operator()(Engine& rng)
     {
-        UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
+        UniformRealDistribution<real_type> sample_phi(
+            0, real_type(2 * constants::pi));
         return rotate(from_spherical(costheta, sample_phi(rng)), direction);
     }
 };

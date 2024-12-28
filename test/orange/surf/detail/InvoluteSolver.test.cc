@@ -18,7 +18,7 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
-using constants::pi;
+constexpr real_type pi{constants::pi};
 using Sign = Chirality;
 Sign ccw = Chirality::left;
 Sign cw = Chirality::right;

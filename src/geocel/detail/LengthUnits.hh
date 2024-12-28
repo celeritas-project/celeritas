@@ -11,30 +11,32 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
-
-#define CELER_ICRT inline constexpr real_type
+#include "corecel/math/Constant.hh"
 
 namespace celeritas
 {
 namespace lengthunits
 {
 //---------------------------------------------------------------------------//
+#define CELER_ICRT inline constexpr Constant
+
 #if CELERITAS_UNITS == CELERITAS_UNITS_CGS
-CELER_ICRT meter = 100;
-CELER_ICRT centimeter = 1;
-CELER_ICRT millimeter = 0.1;
+CELER_ICRT meter{100};
+CELER_ICRT centimeter{1};
+CELER_ICRT millimeter{0.1};
 #elif CELERITAS_UNITS == CELERITAS_UNITS_SI
-CELER_ICRT meter = 1;
-CELER_ICRT centimeter = 0.01;
-CELER_ICRT millimeter = 0.001;
+CELER_ICRT meter{1};
+CELER_ICRT centimeter{0.01};
+CELER_ICRT millimeter{0.001};
 #elif CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-CELER_ICRT meter = 1000;
-CELER_ICRT centimeter = 10;
-CELER_ICRT millimeter = 1;
+CELER_ICRT meter{1000};
+CELER_ICRT centimeter{10};
+CELER_ICRT millimeter{1};
 #else
 #    error "CELERITAS_UNITS is undefined"
 #endif
 
+#undef CELER_ICRT
 //---------------------------------------------------------------------------//
 }  // namespace lengthunits
 }  // namespace celeritas

@@ -33,7 +33,7 @@ namespace celeritas
 struct Applicability
 {
     using EnergyUnits = units::Mev;
-    using Energy = Quantity<EnergyUnits>;
+    using Energy = RealQuantity<EnergyUnits>;
 
     MaterialId material{};
     ParticleId particle{};

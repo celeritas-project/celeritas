@@ -30,7 +30,7 @@ struct LivermoreSubshell
 {
     using EnergyUnits = units::Mev;
     using XsUnits = units::Barn;
-    using Energy = Quantity<EnergyUnits>;
+    using Energy = RealQuantity<EnergyUnits>;
     using Real6 = Array<real_type, 6>;
 
     // Binding energy of the electron

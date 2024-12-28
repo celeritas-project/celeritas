@@ -103,7 +103,7 @@ CELER_FUNCTION MuPairProductionInteractor::MuPairProductionInteractor(
     , inc_energy_(particle.energy())
     , inc_mass_(particle.mass())
     , inc_momentum_(value_as<Momentum>(particle.momentum()))
-    , sample_phi_(0, 2 * constants::pi)
+    , sample_phi_(0, real_type(2 * constants::pi))
     , sample_energy_(shared, particle, cutoffs, element)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.mu_minus

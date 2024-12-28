@@ -22,8 +22,8 @@ namespace
     template void SurfaceClipper::operator()(IN<Axis::y> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::z> const&) const
 
-constexpr real_type sqrt_half = constants::sqrt_two / 2;
-constexpr real_type sqrt_third = constants::sqrt_three / 2;
+constexpr auto sqrt_half = constants::sqrt_two / 2;
+constexpr auto sqrt_third = constants::sqrt_three / 2;
 //---------------------------------------------------------------------------//
 }  // namespace
 

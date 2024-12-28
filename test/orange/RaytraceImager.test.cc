@@ -180,7 +180,7 @@ template<class P>
 class RaytraceImagerTest : public OrangeGeoTestBase
 {
   protected:
-    real_type unit_length() const override { return 1; }
+    Constant unit_length() const override { return Constant{1}; }
 
     void SetUp() override
     {
