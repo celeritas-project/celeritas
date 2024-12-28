@@ -25,8 +25,17 @@ namespace orangeinp
 namespace detail
 {
 //---------------------------------------------------------------------------//
-using VecLogic = std::vector<logic_int>;
-using VecSurface = std::vector<LocalSurfaceId>;
+/*!
+ * Result of building a logic representation of a node.
+ */
+struct BuildLogicResult
+{
+    using VecLogic = std::vector<logic_int>;
+    using VecSurface = std::vector<LocalSurfaceId>;
+
+    VecSurface faces;
+    VecLogic logic;
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -45,8 +54,7 @@ using VecSurface = std::vector<LocalSurfaceId>;
  * of the logic evaluation itself.
  */
 template<class LogicBuilderPolicy>
-inline std::pair<VecSurface, VecLogic>
-build_logic(LogicBuilderPolicy&& policy, NodeId n)
+inline BuildLogicResult build_logic(LogicBuilderPolicy&& policy, NodeId n)
 {
     static_assert(std::is_invocable_v<LogicBuilderPolicy, NodeId>);
     static_assert(std::is_rvalue_reference_v<LogicBuilderPolicy&&>,
@@ -58,7 +66,7 @@ build_logic(LogicBuilderPolicy&& policy, NodeId n)
     policy(n);
 
     // Construct sorted vector of faces
-    VecSurface faces;
+    BuildLogicResult::VecSurface faces;
     for (auto const& v : lgc)
     {
         if (!logic::is_operator_token(v))
