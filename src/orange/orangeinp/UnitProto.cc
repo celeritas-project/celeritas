@@ -29,11 +29,10 @@
 #include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
+#include "detail/BuildLogicUtils.hh"
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
-#include "detail/LogicBuilder.hh"
-#include "detail/LogicBuilderPolicies.hh"
 #include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
@@ -182,7 +181,7 @@ void UnitProto::build(ProtoBuilder& input) const
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
-        auto&& [faces, logic] = detail::build_logic_repr(
+        auto&& [faces, logic] = detail::build_logic(
             detail::PostfixLogicBuilderPolicy{csg_unit.tree,
                                               &sorted_local_surfaces},
             node_id);

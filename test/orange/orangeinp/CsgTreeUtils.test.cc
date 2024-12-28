@@ -10,9 +10,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTypes.hh"
+#include "orange/orangeinp/detail/BuildLogicUtils.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
-#include "orange/orangeinp/detail/LogicBuilder.hh"
-#include "orange/orangeinp/detail/LogicBuilderPolicies.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 #include "orange/surf/VariantSurface.hh"
 
@@ -21,7 +20,7 @@
 
 using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
-using celeritas::orangeinp::detail::build_logic_repr;
+using celeritas::orangeinp::detail::build_logic;
 using celeritas::orangeinp::detail::InfixLogicBuilderPolicy;
 using celeritas::orangeinp::detail::InternalSurfaceFlagger;
 using celeritas::orangeinp::detail::PostfixLogicBuilderPolicy;
@@ -108,7 +107,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     auto build_postfix = [&](N n, detail::VecSurface* mapping = nullptr) {
-        return build_logic_repr(PostfixLogicBuilderPolicy{tree_, mapping}, n);
+        return build_logic(PostfixLogicBuilderPolicy{tree_, mapping}, n);
     };
 
     {
@@ -266,7 +265,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     auto build_infix = [&](N n, detail::VecSurface* mapping = nullptr) {
         detail::VecLogic lgc;
-        return build_logic_repr(InfixLogicBuilderPolicy{tree_, mapping}, n);
+        return build_logic(InfixLogicBuilderPolicy{tree_, mapping}, n);
     };
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
