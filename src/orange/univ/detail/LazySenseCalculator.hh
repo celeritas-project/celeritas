@@ -86,7 +86,11 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          Real3 const& pos,
                                          Span<SenseMeta> sense_cache,
                                          OnFace& face)
-    : visit_{visit}, vol_(vol), pos_{pos}, sense_cache_{sense_cache}, face_(face)
+    : visit_{visit}
+    , vol_(vol)
+    , pos_{pos}
+    , sense_cache_{sense_cache.first(vol_.num_faces())}
+    , face_(face)
 {
     for (auto& sense : sense_cache_)
     {
