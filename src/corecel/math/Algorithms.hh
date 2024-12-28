@@ -757,8 +757,8 @@ inline constexpr int popcount(T x) noexcept
 {
     static_assert(sizeof(T) <= 8,
                   "popcount is only defined for 32-bit and 64-bit integers");
-    static_assert(std::is_integral_v<T>,
-                  "popcount is only defined for integral types");
+    static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>,
+                  "popcount is only defined for unsigned integral types");
 
     if constexpr (sizeof(T) <= 4)
     {
@@ -771,16 +771,13 @@ inline constexpr int popcount(T x) noexcept
 #endif
     }
 
-    if constexpr (sizeof(T) <= 8)
-    {
 #if CELER_DEVICE_COMPILE
-        return __popcll(x);
+    return __popcll(x);
 #elif defined(_MSC_VER)
-        return __popcnt64(x);
+    return __popcnt64(x);
 #else
-        return __builtin_popcountl(x);
+    return __builtin_popcountl(x);
 #endif
-    }
 }
 
 //---------------------------------------------------------------------------//
