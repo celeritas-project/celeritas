@@ -321,7 +321,7 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
 {
     for (size_type i = 0; i < num_words_ - 1; ++i)
     {
-        if (words_[i] != static_cast<word_type>(~0u))
+        if (words_[i] != static_cast<word_type>(~word_type(0)))
         {
             return false;
         }
@@ -329,7 +329,7 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
 
     // Only compare the last word up to the last bit of the bitset
     return this->last_word()
-           == (static_cast<word_type>(~0u)
+           == (static_cast<word_type>(~word_type(0))
                >> (num_words_ * bits_per_word_ - N));
 }
 
@@ -425,7 +425,7 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::set() noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
-        words_[i] = static_cast<word_type>(~0u);
+        words_[i] = static_cast<word_type>(~word_type(0));
     }
 
     // Clear unused bits on the last word
@@ -578,7 +578,8 @@ CELER_CONSTEXPR_FUNCTION void Bitset<N>::sanitize() noexcept
     constexpr size_type extra_bits = N % bits_per_word_;
     if constexpr (extra_bits != 0)
     {
-        this->last_word() &= static_cast<word_type>(~(~0u << extra_bits));
+        this->last_word() &= static_cast<word_type>(
+            ~(static_cast<word_type>(~word_type(0)) << extra_bits));
     }
 }
 

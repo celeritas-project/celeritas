@@ -748,19 +748,39 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
 /*!
  * Count the number of set bits in an integer.
  */
+template<class T>
 #if defined(_MSC_VER)
-inline int popcount(unsigned int x) noexcept
+inline int popcount(T x) noexcept
 #else
-inline constexpr int popcount(unsigned int x) noexcept
+inline constexpr int popcount(T x) noexcept
 #endif
 {
+    static_assert(sizeof(T) <= 8,
+                  "popcount is only defined for 32-bit and 64-bit integers");
+    static_assert(std::is_integral_v<T>,
+                  "popcount is only defined for integral types");
+
+    if constexpr (sizeof(T) <= 4)
+    {
 #if CELER_DEVICE_COMPILE
-    return __popc(x);
+        return __popc(x);
 #elif defined(_MSC_VER)
-    return __popcnt(x);
+        return __popcnt(x);
 #else
-    return __builtin_popcount(x);
+        return __builtin_popcount(x);
 #endif
+    }
+
+    if constexpr (sizeof(T) <= 8)
+    {
+#if CELER_DEVICE_COMPILE
+        return __popcll(x);
+#elif defined(_MSC_VER)
+        return __popcnt64(x);
+#else
+        return __builtin_popcountl(x);
+#endif
+    }
 }
 
 //---------------------------------------------------------------------------//
