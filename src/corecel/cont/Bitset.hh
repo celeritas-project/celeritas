@@ -49,7 +49,7 @@ class Bitset
     using word_type = std::conditional_t<
         (N <= 8),
         std::uint8_t,
-        std::conditional_t<(N <= 16), std::uint16_t, std::uint32_t>>;
+        std::conditional_t<(N <= 16), std::uint16_t, size_type>>;
     //!@}
 
     class reference;
