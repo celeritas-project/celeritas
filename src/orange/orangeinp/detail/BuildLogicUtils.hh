@@ -53,11 +53,11 @@ struct BuildLogicResult
  * of access, since they're always evaluated sequentially rather than as part
  * of the logic evaluation itself.
  */
-template<class LogicBuilderPolicy>
-inline BuildLogicResult build_logic(LogicBuilderPolicy&& policy, NodeId n)
+template<class BuildLogicPolicy>
+inline BuildLogicResult build_logic(BuildLogicPolicy&& policy, NodeId n)
 {
-    static_assert(std::is_invocable_v<LogicBuilderPolicy, NodeId>);
-    static_assert(std::is_rvalue_reference_v<LogicBuilderPolicy&&>,
+    static_assert(std::is_invocable_v<BuildLogicPolicy, NodeId>);
+    static_assert(std::is_rvalue_reference_v<BuildLogicPolicy&&>,
                   "Will move from policy: rvalue ref expected");
 
     // Construct logic vector as local surface IDs
@@ -101,7 +101,7 @@ inline BuildLogicResult build_logic(LogicBuilderPolicy&& policy, NodeId n)
  * policy and must be provided by the derived class.
  */
 template<class BuilderPolicy>
-class BaseLogicBuilderPolicy
+class BaseBuildLogicPolicy
 {
   public:
     //!@{
@@ -116,7 +116,7 @@ class BaseLogicBuilderPolicy
 
   public:
     // Construct with optional mapping
-    inline BaseLogicBuilderPolicy(CsgTree const& tree, VecSurface const* vs);
+    inline BaseBuildLogicPolicy(CsgTree const& tree, VecSurface const* vs);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -151,11 +151,11 @@ class BaseLogicBuilderPolicy
  * surface IDs must be present!
  */
 template<class BuilderPolicy>
-BaseLogicBuilderPolicy<BuilderPolicy>::BaseLogicBuilderPolicy(
-    CsgTree const& tree, VecSurface const* vs)
+BaseBuildLogicPolicy<BuilderPolicy>::BaseBuildLogicPolicy(CsgTree const& tree,
+                                                          VecSurface const* vs)
     : visit_node_{tree}, mapping_{vs}
 {
-    static_assert(std::is_base_of_v<BaseLogicBuilderPolicy, BuilderPolicy>,
+    static_assert(std::is_base_of_v<BaseBuildLogicPolicy, BuilderPolicy>,
                   "CRTP: template parameter must be derived class");
 }
 
@@ -164,7 +164,7 @@ BaseLogicBuilderPolicy<BuilderPolicy>::BaseLogicBuilderPolicy(
  * Build from a node ID.
  */
 template<class BuilderPolicy>
-void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(NodeId const& n)
+void BaseBuildLogicPolicy<BuilderPolicy>::operator()(NodeId const& n)
 {
     visit_node_(static_cast<BuilderPolicy&>(*this), n);
 }
@@ -174,7 +174,7 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(NodeId const& n)
  * Append the "true" token.
  */
 template<class BuilderPolicy>
-void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(True const&)
+void BaseBuildLogicPolicy<BuilderPolicy>::operator()(True const&)
 {
     logic_.push_back(logic::ltrue);
 }
@@ -186,7 +186,7 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(True const&)
  * The 'false' standin is always aliased to "not true" in the CSG tree.
  */
 template<class BuilderPolicy>
-void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(False const&)
+void BaseBuildLogicPolicy<BuilderPolicy>::operator()(False const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
@@ -196,7 +196,7 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(False const&)
  * Push a surface ID.
  */
 template<class BuilderPolicy>
-void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Surface const& s)
+void BaseBuildLogicPolicy<BuilderPolicy>::operator()(Surface const& s)
 {
     CELER_EXPECT(s.id < logic::lbegin);
     // Get index of original surface or remapped
@@ -225,7 +225,7 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Surface const& s)
  * could be reachable for testing purposes.
  */
 template<class BuilderPolicy>
-void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Aliased const& n)
+void BaseBuildLogicPolicy<BuilderPolicy>::operator()(Aliased const& n)
 {
     (*this)(n.node);
 }
@@ -234,32 +234,31 @@ void BaseLogicBuilderPolicy<BuilderPolicy>::operator()(Aliased const& n)
 /*!
  * Recursively construct a logic vector from a node with postfix operation.
  *
- * This is a policy used as template parameter of the \c
- * LogicBuilder::operator(). The user invokes this class with a node ID
- * (usually representing a cell), and then this class recurses into
- * the daughters using a tree visitor.
+ * This is a policy used as template parameter of the \c build_logic function.
+ * The user invokes this class with a node ID (usually representing a cell),
+ * and then this class recurses into the daughters using a tree visitor.
  *
  * Example: \verbatim
     all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
     all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
  * \endverbatim
  */
-class PostfixLogicBuilderPolicy
-    : public BaseLogicBuilderPolicy<PostfixLogicBuilderPolicy>
+class PostfixBuildLogicPolicy
+    : public BaseBuildLogicPolicy<PostfixBuildLogicPolicy>
 {
   public:
     //!@{
     //! \name Type aliases
-    using BaseLogicBuilderPolicy::VecLogic;
-    using BaseLogicBuilderPolicy::VecSurface;
+    using BaseBuildLogicPolicy::VecLogic;
+    using BaseBuildLogicPolicy::VecSurface;
     //!@}
 
   public:
-    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
+    using BaseBuildLogicPolicy::BaseBuildLogicPolicy;
 
     //!@{
     //! \name Visit a node directly
-    using BaseLogicBuilderPolicy::operator();
+    using BaseBuildLogicPolicy::operator();
     // Visit a negated node and append 'not'
     void operator()(Negated const& n)
     {
@@ -287,32 +286,30 @@ class PostfixLogicBuilderPolicy
 /*!
  * Recursively construct a logic vector from a node with infix operation.
  *
- * This is a policy used as template parameter of the \c
- * LogicBuilder::operator(). The user invokes this class with a node ID
- * (usually representing a cell), and then this class recurses into the
- * daughters using a tree visitor.
+ * This is a policy used as template parameter of \c build_logic.
+ * The user invokes this class with a node ID (usually representing a cell),
+ * and then this class recurses into the daughters using a tree visitor.
  *
  * Example: \verbatim
     all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
     all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
  * \endverbatim
  */
-class InfixLogicBuilderPolicy
-    : public BaseLogicBuilderPolicy<InfixLogicBuilderPolicy>
+class InfixBuildLogicPolicy : public BaseBuildLogicPolicy<InfixBuildLogicPolicy>
 {
   public:
     //!@{
     //! \name Type aliases
-    using BaseLogicBuilderPolicy::VecLogic;
-    using BaseLogicBuilderPolicy::VecSurface;
+    using BaseBuildLogicPolicy::VecLogic;
+    using BaseBuildLogicPolicy::VecSurface;
     //!@}
 
   public:
-    using BaseLogicBuilderPolicy::BaseLogicBuilderPolicy;
+    using BaseBuildLogicPolicy::BaseBuildLogicPolicy;
 
     //!@{
     //! \name Visit a node directly
-    using BaseLogicBuilderPolicy::operator();
+    using BaseBuildLogicPolicy::operator();
     //! Append 'not' and visit a negated node
     void operator()(Negated const& n)
     {

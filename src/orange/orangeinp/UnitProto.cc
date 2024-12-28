@@ -182,8 +182,8 @@ void UnitProto::build(ProtoBuilder& input) const
 
         // Construct logic and faces with remapped surfaces
         auto&& [faces, logic] = detail::build_logic(
-            detail::PostfixLogicBuilderPolicy{csg_unit.tree,
-                                              &sorted_local_surfaces},
+            detail::PostfixBuildLogicPolicy{csg_unit.tree,
+                                            &sorted_local_surfaces},
             node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);

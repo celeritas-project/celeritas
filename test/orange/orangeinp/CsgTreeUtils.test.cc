@@ -21,9 +21,9 @@
 using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
 using celeritas::orangeinp::detail::build_logic;
-using celeritas::orangeinp::detail::InfixLogicBuilderPolicy;
+using celeritas::orangeinp::detail::InfixBuildLogicPolicy;
 using celeritas::orangeinp::detail::InternalSurfaceFlagger;
-using celeritas::orangeinp::detail::PostfixLogicBuilderPolicy;
+using celeritas::orangeinp::detail::PostfixBuildLogicPolicy;
 
 namespace celeritas
 {
@@ -108,7 +108,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     auto build_postfix
         = [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
-              return build_logic(PostfixLogicBuilderPolicy{tree_, mapping}, n);
+              return build_logic(PostfixBuildLogicPolicy{tree_, mapping}, n);
           };
 
     {
@@ -267,7 +267,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     auto build_infix
         = [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
               detail::BuildLogicResult::VecLogic lgc;
-              return build_logic(InfixLogicBuilderPolicy{tree_, mapping}, n);
+              return build_logic(InfixBuildLogicPolicy{tree_, mapping}, n);
           };
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
