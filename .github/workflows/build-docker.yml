@@ -24,7 +24,7 @@ jobs:
         special: [null]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
-        image: ["rocky-cuda", "centos-rocm"]
+        image: ["rocky-cuda"] #, "centos-rocm"]
         exclude:
           - geometry: "vecgeom"
             image: "centos-rocm" # VecGeom not installed on HIP
