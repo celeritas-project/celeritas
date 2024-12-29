@@ -31,16 +31,12 @@ jobs:
           - buildtype: "debug"
             image: "centos-rocm" # Debug builds don't work with HIP
         include:
-          - special: "asan"
-            geometry: "orange"
-            buildtype: "reldeb"
-            image: "centos-rocm"
           - geometry: "vecgeom"
             buildtype: "reldeb"
             image: "rocky-cuda"
     env:
       CELER_TEST_STRICT: 1
-      CELER_DISABLE_DEVICE: 1 # IMPORTANT
+      CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                 matrix.buildtype,
@@ -51,8 +47,8 @@ jobs:
     container:
       image: >-
         docker.io/celeritas/${{
-             matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-05-17'
-          || matrix.image == 'centos-rocm' && 'ci-ubuntu-rocm5:2024-05-17'
+             matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-12-29'
+          || matrix.image == 'centos-rocm' && 'ci-ubuntu-rocm6:2024-12-29'
         }}
     steps:
       - name: Set up environment

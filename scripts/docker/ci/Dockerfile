@@ -52,22 +52,6 @@ elif [ "$DOCKERFILE_DISTRO" = "rocky" ] ; then \
   && pip3 install boto3  && rm -rf /var/cache/dnf  && dnf clean all ; \
 fi
 
-# Install vecgeom if requested
-ARG VECGEOM
-RUN if [ -n "${VECGEOM}" ] ; then \
-  . /etc/profile.d/celeritas_spack_env.sh \
-  && cd /opt \
-  && git clone https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
-  && cd vecgeom-src \
-  && git checkout ${VECGEOM} \
-  && mkdir build \
-  && cd build \
-  && cmake -DVECGEOM_BACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVECGEOM_BUILTIN_VECCORE:BOOL=ON -DVECGEOM_NO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=17 -DVECGEOM_ENABLE_CUDA:BOOL=ON -DVECGEOM_GDML:BOOL=ON -DVECGEOM_GEANT4:BOOL=OFF -DVECGEOM_ROOT:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DCMAKE_CUDA_ARCHITECTURES:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja .. \
-  && ninja install \
-  && rm -rf /opt/vecgeom-src \
-  && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh ; \
-fi
-
 ENTRYPOINT ["/bin/bash", "/opt/docker/entrypoint.bash"]
 SHELL ["entrypoint-shell"]
 CMD ["entrypoint-cmd"]

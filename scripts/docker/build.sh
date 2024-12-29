@@ -9,7 +9,7 @@ if [ -z "$1" ]; then
 fi
 
 # Note: when changing spack version, UPDATE PATCHES in dev/Dockerfile
-SPACK_VERSION=v0.22.0
+SPACK_VERSION=develop-2024-12-22
 CONFIG=$1
 DOCKER=docker
 BUILDARGS=
@@ -31,24 +31,22 @@ case $CONFIG in
     CONFIG=rocky-cuda12
     ;;
   hip )
-    CONFIG=ubuntu-rocm5
+    CONFIG=ubuntu-rocm6
     ;;
 esac
  
-case $CONFIG in 
+case $CONFIG in
   rocky-cuda12)
     # ***IMPORTANT***: update the following after modification
     # - cuda external version in dev/rocky-cuda12
     # - CI versions listed in README.md
     DOCKERFILE_DISTRO=rocky
-    BASE_TAG=nvidia/cuda:12.4.1-devel-rockylinux9
-    VECGEOM=v1.2.8
+    BASE_TAG=nvidia/cuda:12.6.3-devel-rockylinux9
     ;;
-  ubuntu-rocm5)
+  ubuntu-rocm6)
     # ***IMPORTANT***: update hip external version in dev/ubuntu-rocm5!
     DOCKERFILE_DISTRO=ubuntu
-    BASE_TAG=rocm/dev-ubuntu-22.04:5.7.1-complete
-    VECGEOM=
+    BASE_TAG=rocm/dev-ubuntu-24.04:6.3.1
     ;;
   *)
     echo "Invalid configure type: $1"
@@ -68,7 +66,6 @@ ${DOCKER} build -t dev-${CONFIG} \
 
 ${DOCKER} build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
-  --build-arg VECGEOM=${VECGEOM} \
   --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
   ${BUILDARGS} \
   ci

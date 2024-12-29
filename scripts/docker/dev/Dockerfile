@@ -57,7 +57,7 @@ SHELL ["docker-shell"]
 
 RUN docker-shell spack bootstrap now \
   && spack bootstrap status --optional \
-  && spack spec hdf5+mpi
+  && spack spec root
 
 ENTRYPOINT ["/bin/bash", "/opt/spack/share/spack/docker/entrypoint.bash"]
 CMD ["interactive-shell"]
@@ -65,9 +65,6 @@ CMD ["interactive-shell"]
 ###############################################################################
 # Install
 ###############################################################################
-
-# Patches for spack v0.22.0
-RUN curl -LfsS https://github.com/spack/spack/pull/44245.patch | git -C /opt/spack apply -
 
 ARG CONFIG
 COPY ${CONFIG}.yaml /opt/spack-environment/spack.yaml
