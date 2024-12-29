@@ -28,11 +28,11 @@ namespace detail
  *
  * This is an implementation detail used in initialization, boundary crossing,
  * simple *and* complex intersection. Instances of this class are specific to a
- * volume, and a position.  Calling an instance evaluates the sense of a
+ * volume, and a position. Calling an instance evaluates the sense of a
  * volume's face with respect to the given position. This class is used to
  * lazily calculate sense during evaluation of a logic expression, caching
- * previously calculater senses, and potentially short-circuiting unnecessary
- * evaluation.
+ * previously calculated senses, allowing potential short-circuiting
+ * of unnecessary sense evaluation.
  *
  * The OnFace constructor's parameter is used to store the first face that we
  * are "on".
@@ -102,8 +102,8 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
 /*!
  * Calculate senses for the given volume.
  *
- * If the point is exactly on one of the volume's surfaces, the \c face value
- * of the return will be set.
+ * If the point is exactly on one of the volume's surfaces, the \c face
+ * reference passed during instance construction will be set.
  */
 CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
