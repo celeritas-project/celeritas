@@ -109,13 +109,14 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
-        "jobs": 16,
+        "jobs": 4,
         "timeout": 180
       },
       "output": {
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 65536,
-        "outputOnFailure": true
+        "outputOnFailure": true,
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
       }
     },
     {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},

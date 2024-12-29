@@ -30,7 +30,7 @@ case $CONFIG in
     # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
     CONFIG=rocky-cuda12
     ;;
-  hip )
+  rocm )
     CONFIG=ubuntu-rocm6
     ;;
 esac

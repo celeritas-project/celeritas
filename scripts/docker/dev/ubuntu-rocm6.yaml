@@ -10,7 +10,6 @@ spack:
     - ninja
     - nlohmann-json
     - "python@3.6:"
-    - "root@6.28:"
   concretizer:
     unify: true
   compilers:
