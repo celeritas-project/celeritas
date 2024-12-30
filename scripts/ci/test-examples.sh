@@ -37,7 +37,7 @@ build_local
 ./minimal
 
 
-if [ -z "CELER_DISABLE_ACCEL_EXAMPLES" ]; then
+if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error
