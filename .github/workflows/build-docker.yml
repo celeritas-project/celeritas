@@ -24,12 +24,12 @@ jobs:
         special: [null]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
-        image: ["rocky-cuda"] #, "centos-rocm"]
+        image: ["rocky-cuda"] #, "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
-            image: "centos-rocm" # VecGeom not installed on HIP
+            image: "ubuntu-rocm" # VecGeom not installed on HIP
           - buildtype: "debug"
-            image: "centos-rocm" # Debug builds don't work with HIP
+            image: "ubuntu-rocm" # Debug builds don't work with HIP
         include:
           - geometry: "vecgeom"
             buildtype: "reldeb"
@@ -48,7 +48,7 @@ jobs:
       image: >-
         docker.io/celeritas/${{
              matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-12-29'
-          || matrix.image == 'centos-rocm' && 'ci-ubuntu-rocm6:2024-12-29'
+          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm6:2024-12-29'
         }}
     steps:
       - name: Set up environment
@@ -74,7 +74,6 @@ jobs:
           ninja
       - name: Test Celeritas
         id: test
-        working-directory: build
         run: |
           ctest --preset=base
       - name: Install Celeritas
@@ -93,14 +92,10 @@ jobs:
         # TODO: rocm+ndebug fails to propagate HIP library link
         if: >-
           ${{
-            !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
+            !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
           }}
         run: |
           . /etc/profile
-          if [ "${{matrix.geometry}}" = "vecgeom" ]; then
-            # TODO: vecgeom is loosey goosey about symbols whereas Ubuntu is strict
-            export LDFLAGS=-Wl,--no-as-needed ${LDFLAGS}
-          fi
           ./scripts/ci/test-examples.sh
       - name: Upload test results
         if: >-
