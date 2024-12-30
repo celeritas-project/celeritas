@@ -32,6 +32,8 @@ build_local() {
   ninja
 }
 
+export CELER_LOG=debug CELER_LOG_LOCAL=debug
+
 cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
