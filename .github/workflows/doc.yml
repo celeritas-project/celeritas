@@ -35,16 +35,16 @@ jobs:
         # Disable expensive graphs for PRs also
         run: |
           mkdir build && cd build
-          cmake --preset=${CMAKE_PRESET} \
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{ github.workflow == 'pull_request'
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO"'
              || ''}} \
-            -GNinja \
             ..
       - name: Build documentation
         working-directory: build
         run: |
-          ninja doxygen
+          cmake --build --preset=base --target doxygen
           find doc/doxygen-html -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
@@ -63,7 +63,7 @@ jobs:
         run: |
             sudo apt-get -y update
             sudo apt-get -y install \
-                cmake graphviz ninja-build doxygen gcc
+                cmake graphviz ninja-build doxygen nlohmann-json3-dev gcc
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10' 
@@ -79,17 +79,16 @@ jobs:
       - name: Configure celeritas
         run: |
           mkdir build && cd build
-          cmake \
-            -DCELERITAS_BUILD_DOCS=ON \
-            -DDOXYGEN_HAVE_DOT="NO" \
-            ${{ github.workflow == 'pr'
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
+            ${{ github.workflow == 'pull_request'
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
              || ''}} \
-            -GNinja ..
+            ..
       - name: Build user documentation
         working-directory: build
         run: |
-          ninja doc
+          cmake --build --preset=base --target doc
           find doc/html -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
