@@ -49,7 +49,9 @@ By default, sensitive detectors are automatically mapped from Geant4 to
 Celeritas using the ``enabled`` option of
 :cpp:struct:`celeritas::SDSetupOptions`. If no SDs are present (e.g., in a test
 problem, or one which has only a "stepping manager" which is not presently
-compatible with Celeritas), the Celeritas setup will fail with an error like::
+compatible with Celeritas), the Celeritas setup will fail with an error like:
+
+.. code-block:: none
 
    *** G4Exception : celer0001
          issued by : accel/detail/HitManager.cc:210
