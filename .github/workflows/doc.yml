@@ -34,8 +34,8 @@ jobs:
         # Turn warnings into errors only for PRs
         # Disable expensive graphs for PRs also
         run: |
-          mkdir build && cd build
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{ github.workflow == 'pull_request'
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO"'
@@ -78,8 +78,8 @@ jobs:
             pip install -r scripts/doc-requirements.txt
       - name: Configure celeritas
         run: |
-          mkdir build && cd build
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{ github.workflow == 'pull_request'
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
