@@ -37,7 +37,7 @@ jobs:
           cmake \
             -DCELERITAS_BUILD_DOCS=ON \
             -DCELERITAS_DOXYGEN_BUILD_TESTS=ON \
-            ${{ github.workflow == 'pr'
+            ${{ github.workflow == 'pull_request'
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO"'
              || ''}} \
             -GNinja \
