@@ -168,6 +168,18 @@
       }
     }
   ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "nativeToolOptions": ["-k0"],
+      "verbose": true
+    },
+    {
+      "name": "doc",
+      "inherits": "base"
+    }
+  ],
   "testPresets": [
     {
       "name": "base",

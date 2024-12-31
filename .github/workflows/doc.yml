@@ -46,7 +46,7 @@ jobs:
             ..
       - name: Build documentation
         run: |
-          cmake --build --preset=base --target ${CELER_TARGET}
+          cmake --build --preset=${CMAKE_PRESET} --target ${CELER_TARGET}
           find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
@@ -92,7 +92,7 @@ jobs:
             ..
       - name: Build documentation
         run: |
-          cmake --build --preset=base --target ${CELER_TARGET}
+          cmake --build --preset=${CMAKE_PRESET} --target ${CELER_TARGET}
           find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
