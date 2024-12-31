@@ -18,6 +18,9 @@ env:
 
 jobs:
   dev:
+    env:
+      CELER_TARGET: doxygen
+      CELER_UPLOAD_DIR: build/doc/doxygen-html
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -42,15 +45,14 @@ jobs:
              || ''}} \
             ..
       - name: Build documentation
-        working-directory: build
         run: |
-          cmake --build --preset=base --target doxygen
-          find doc/doxygen-html -name '*.md5' -exec rm {} +
+          cmake --build --preset=base --target ${CELER_TARGET}
+          find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
         uses: actions/upload-artifact@v4
         with:
-          path: build/doc/doxygen-html
+          path: ${{env.CELER_UPLOAD_DIR}}
           name: doc-dev
           if-no-files-found: error
           overwrite: true
@@ -58,6 +60,9 @@ jobs:
 
   user:
     runs-on: ubuntu-latest
+    env:
+      CELER_TARGET: doc
+      CELER_UPLOAD_DIR: build/doc/html
     steps:
       - name: Install dependencies
         run: |
@@ -85,16 +90,15 @@ jobs:
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
              || ''}} \
             ..
-      - name: Build user documentation
-        working-directory: build
+      - name: Build documentation
         run: |
-          cmake --build --preset=base --target doc
-          find doc/html -name '*.md5' -exec rm {} +
+          cmake --build --preset=base --target ${CELER_TARGET}
+          find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
         uses: actions/upload-artifact@v4
         with:
-          path: build/doc/html
+          path: ${{env.CELER_UPLOAD_DIR}}
           name: doc-user
           if-no-files-found: error
           overwrite: true
