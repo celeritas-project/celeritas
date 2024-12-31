@@ -69,7 +69,10 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
         setup_options.make_along_step = celeritas::UniformAlongStepFactory();
-        setup_options.geometry_output_file = "simple-example.gdml";
+
+        // NOTE: since no SD is enabled, we must manually disable Celeritas hit
+        // processing
+        setup_options.sd.enabled = false;
     }
 
     G4VPhysicalVolume* Construct() final
