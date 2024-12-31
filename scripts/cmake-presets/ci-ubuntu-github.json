@@ -35,6 +35,17 @@
       }
     },
     {
+      "name": "doc",
+      "inherits": ["base"],
+      "displayName": "Build only documentation",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DOXYGEN_BUILD_TESTS":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "spack",
       "inherits": ["base"],
       "displayName": "use spack toolchain",
