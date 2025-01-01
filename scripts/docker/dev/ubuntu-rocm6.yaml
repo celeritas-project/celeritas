@@ -24,22 +24,24 @@ spack:
         flags: {}
         operating_system: ubuntu24.04
         target: x86_64
+  packages:
+    rocrand:
       externals:
       - spec: rocrand@6.3.1
         prefix: /opt/rocm
+    hiprand:
       externals:
       - spec: hiprand@6.3.1
         prefix: /opt/rocm
+    rocthrust:
       externals:
       - spec: rocthrust@6.3.1
         prefix: /opt/rocm
-  packages:
     all:
       target:
       - x86_64_v3
       # MI250x, see https://llvm.org/docs/AMDGPUUsage.html
       variants: +rocm amdgpu_target=gfx90a cxxstd=17
-      variants: cxxstd=17
       compiler: ["rocmcc@6.3.1"]
     root:
       variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=17

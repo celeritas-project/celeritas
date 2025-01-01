@@ -29,14 +29,12 @@ RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then \
      build-essential ca-certificates curl file g++ gcc gfortran git gnupg2 iproute2 locales make mercurial subversion python3 python3-pip python3-setuptools unzip zstd \
      hiprand-dev rocrand-dev rocthrust-dev hipblas-dev \
   && locale-gen en_US.UTF-8 \
-  && pip3 install boto3 \
   && rm -rf /var/lib/apt/lists/* ; \
 elif [ "$DOCKERFILE_DISTRO" = "rocky" ] ; then \
   dnf update -y  \
   && dnf install -y epel-release  \
   && dnf update -y  \
   && dnf --enablerepo epel install -y bzip2 curl-minimal file findutils gcc-c++ gcc gcc-gfortran git gnupg2 hg hostname iproute make patch python3 python3-pip python3-setuptools svn unzip xz zstd \
-  && pip3 install boto3  \
   && rm -rf /var/cache/dnf  \
   && dnf clean all ; \
 fi
