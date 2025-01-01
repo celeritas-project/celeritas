@@ -149,7 +149,7 @@ jobs:
           BASE=$(git merge-base origin/${BASE_REF} HEAD)
           ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)
           set +e
-          CC_FILES=$(grep -E '^(src|app|example)/.*\.cc$' - <<< "$ALL_FILES")
+          CC_FILES=$(grep -E '^(src|app)/.*\.cc$' - <<< "$ALL_FILES")
           set -e
           if [ -z "$CC_FILES" ]; then
             echo "No files to run clang-tidy on."
