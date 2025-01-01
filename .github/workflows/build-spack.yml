@@ -233,6 +233,7 @@ jobs:
             ${{
               (   (matrix.special == 'minimal')
                || (matrix.special == 'float')
+               || !matrix.geant
               ) && '1' || ''
             }}
         if: >-
