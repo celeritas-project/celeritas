@@ -34,11 +34,12 @@ build_local() {
 
 export CELER_LOG=debug CELER_LOG_LOCAL=debug
 
+# Run minimal example
 cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-
+# Run Geant4 app example(s)
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local

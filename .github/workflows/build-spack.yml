@@ -70,7 +70,7 @@ jobs:
         with:
           ref: ${{env.SPACK_REF}}
           buildcache: true
-          color: true  
+          color: true
           path: spack-src
       - name: Initialize spack environment
         run: |
@@ -208,6 +208,8 @@ jobs:
             (matrix.special != 'asanlite')
             && (matrix.special != 'clang-tidy')
           }}
+        env:
+          CELER_DISABLE_ACCEL_EXAMPLES: 1 # Only run minimal example
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
@@ -228,11 +230,12 @@ jobs:
           ./bin/celer-sim --version
       - name: Build examples
         # TODO: ASAN requires flags downstream
-        env: 
+        env:
           CELER_DISABLE_ACCEL_EXAMPLES: >-
             ${{
               (   (matrix.special == 'minimal')
                || (matrix.special == 'float')
+               || !matrix.geant
               ) && '1' || ''
             }}
         if: >-
