@@ -307,11 +307,13 @@ void LocalTransporter::Finalize()
     {
         // Geant4 navigation states *MUST* be deallocated on the thread in
         // which they're allocated
-        CELER_LOG_LOCAL(debug) << "Deallocating navigation states";
         auto state = std::dynamic_pointer_cast<CoreState<MemSpace::host>>(
             step_->sp_state());
         CELER_ASSERT(state);
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+        CELER_LOG_LOCAL(debug) << "Deallocating navigation states";
         state->ref().geometry.reset();
+#endif
     }
 
     // Reset all data
