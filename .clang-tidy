@@ -53,7 +53,8 @@ CheckOptions:
     G__DICTIONARY;
     G__ROOT;
     __TheDictionaryInitializer
-
+HeaderFileExtensions:         ['hh']
+ImplementationFileExtensions: ['cc']
 HeaderFilterRegex: '(app|src/(accel|celeritas|corecel|orange|geocel))/.*\.hh$'
 FormatStyle: file
 ...
