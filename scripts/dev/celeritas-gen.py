@@ -16,15 +16,29 @@ import sys
 
 ###############################################################################
 
-CXX_TOP = '''\
-//{modeline:-^75s}//
-// Copyright UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
-// SPDX-License-Identifier: (Apache-2.0 OR MIT)
-//---------------------------------------------------------------------------//
-//! \\file {dirname}{basename}
-//---------------------------------------------------------------------------//
-'''
+def _make_top(comment_prefix, preamble=None, postamble=None):
+    lines = []
+    def _append_lines(s):
+        if s:
+            if isinstance(s, str):
+                lines.append(s)
+            else:
+                lines.extend(s)
+    _append_lines(preamble)
+    lines.extend(comment_prefix + " " + line for line in [
+        "Copyright Celeritas contributors: see top-level COPYRIGHT file for details",
+        "SPDX-License-Identifier: (Apache-2.0 OR MIT)",
+    ])
+    _append_lines(postamble)
+    lines.append("")
+    return "\n".join(lines)
+
+_C_SEP = "".join(["//", "-" * 75, "//"]) # //-----...---//
+CXX_TOP = _make_top(
+    "//",
+    "//{modeline:-^75s}//",
+    [_C_SEP, "//! \\file {dirname}{basename}", _C_SEP]
+)
 
 HEADER_FILE = '''\
 #pragma once
@@ -74,6 +88,18 @@ CODE_FILE = '''\
 
 //---------------------------------------------------------------------------//
 {namespace_end}
+'''
+
+C_HEADER_FILE = '''\
+#pragma once
+
+//---------------------------------------------------------------------------//
+'''
+
+C_CODE_FILE = '''\
+#include "{name}.{hext}"
+
+//---------------------------------------------------------------------------//
 '''
 
 TEST_HARNESS_FILE = '''\
@@ -287,21 +313,7 @@ void {lowabbr}_test(
 '''
 
 
-SWIG_FILE = '''\
-%{{
-#include "{name}.{hext}"
-%}}
-
-%include "{name}.{hext}"
-'''
-
-
-CMAKE_TOP = '''\
-#{modeline:-^77s}#
-# Copyright UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
-# SPDX-License-Identifier: (Apache-2.0 OR MIT)
-'''
+CMAKE_TOP = _make_top("#", "#{modeline:-^77s}#")
 
 CMAKELISTS_FILE = '''\
 #-----------------------------------------------------------------------------#
@@ -342,12 +354,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 '''
 
-PYTHON_TOP = '''\
-#!/usr/bin/env python3
-# Copyright UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
-# SPDX-License-Identifier: (Apache-2.0 OR MIT)
-'''
+PYTHON_TOP = _make_top("#", "#!/usr/bin/env python")
 
 PYTHON_FILE = '''\
 """
@@ -355,22 +362,17 @@ PYTHON_FILE = '''\
 
 '''
 
-SHELL_TOP = '''\
-#!/bin/sh -ex
-# Copyright UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
-# SPDX-License-Identifier: (Apache-2.0 OR MIT)
-'''
+SHELL_TOP = _make_top(
+    "#",
+    ["#!/bin/sh -ex", "#{modeline:-^77s}#"],
+    "#{:-^77s}#".format("")
+)
 
 SHELL_FILE = '''\
 
 '''
 
-OMN_TOP = '''\
-! Copyright UT-Battelle, LLC, and other Celeritas developers.
-! See the top-level COPYRIGHT file for details.
-! SPDX-License-Identifier: (Apache-2.0 OR MIT)
-'''
+OMN_TOP = _make_top("!")
 
 ORANGE_FILE = '''
 [GEOMETRY]
@@ -403,11 +405,7 @@ comp galactic
 shapes world_box ~mycyl
 '''
 
-RST_TOP = '''\
-.. Copyright UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
-.. SPDX-License-Identifier: CC-BY-4.0
-'''
+RST_TOP = _make_top("..")
 
 RST_FILE = '''
 .. _{name}:
@@ -440,12 +438,13 @@ These are useful for heavily nested documentation such as API descriptions. ::
 
 TEMPLATES = {
     'hh': HEADER_FILE,
+    'c': C_CODE_FILE,
+    'h': C_HEADER_FILE,
     'cc': CODE_FILE,
     'cu': CODE_FILE,
     'test.cc': TEST_HARNESS_FILE,
     'test.cu': TEST_CODE_FILE,
     'test.hh': TEST_HEADER_FILE,
-    'i': SWIG_FILE,
     'cmake': CMAKE_FILE,
     'CMakeLists.txt': CMAKELISTS_FILE,
     'py': PYTHON_FILE,
@@ -456,32 +455,33 @@ TEMPLATES = {
 
 LANG = {
     'h': "C",
+    'c': "C",
     'hh': "C++",
     'cc': "C++",
-    'cu': "CUDA",
-    'cmake': "CMake",
-    'CMakeLists.txt': "CMake",
-    'py': "Python",
-    'sh': "Shell",
-    'omn': "Omnibus",
-    'rst': "RST",
+    'cu': "cuda",
+    'cmake': "cmake",
+    'CMakeLists.txt': "cmake",
+    'py': "python",
+    'sh': "sh",
+    'omn': "omnibus",
+    'rst': "rst",
 }
 
 TOPS = {
     'C': CXX_TOP,
     'C++': CXX_TOP,
-    'CUDA': CXX_TOP,
-    'CMake': CMAKE_TOP,
-    'Python': PYTHON_TOP,
-    'Shell': SHELL_TOP,
-    'Omnibus': OMN_TOP,
-    'RST': RST_TOP,
+    'cuda': CXX_TOP,
+    'cmake': CMAKE_TOP,
+    'python': PYTHON_TOP,
+    'sh': SHELL_TOP,
+    'omnibus': OMN_TOP,
+    'rst': RST_TOP,
 }
 
 HEXT = {
     'C': "h",
     'C++': "hh",
-    'CUDA': "hh",
+    'cuda': "hh",
 }
 
 
@@ -492,6 +492,9 @@ def generate(repodir, filename, namespace):
 
     dirname = os.path.relpath(filename, start=repodir)
     all_dirs = dirname.split(os.sep)[:-1]
+    if not all_dirs:
+        print("Cannot generate files in the top level of the repository")
+        sys.exit(1)
 
     if namespace is None:
         namespace = 'celeritas'
@@ -536,8 +539,8 @@ def generate(repodir, filename, namespace):
     variables = {
         'longext': longext,
         'ext': ext,
-        'hext': "hh",
-        'modeline': "-*-{}-*-".format(lang),
+        'hext': "hh" if lang != "C" else "h",
+        'modeline': f"-*- {lang} -*-",
         'name': name,
         'namespace': namespace,
         'namespace_begin': "\n".join(nsbeg),
