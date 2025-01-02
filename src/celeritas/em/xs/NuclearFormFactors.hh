@@ -151,7 +151,7 @@ class GaussianNuclearFormFactor : public ExpNuclearFormFactor
  * [FMS93] J.M. Fernández-Varea, R. Mayol, F. Salvat, Cross sections for
  *       elastic scattering of fast electrons and positrons by atoms, Nuclear
  *       Instruments and Methods in Physics Research Section B: Beam
- * Interactions with Materials and Atoms 82 (1993) 39–45.
+ *       Interactions with Materials and Atoms 82 (1993) 39–45.
  *       https://doi.org/10.1016/0168-583X(93)95079-K.
  */
 class UUNuclearFormFactor : public NuclearFormFactorTraits
