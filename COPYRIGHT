@@ -6,7 +6,17 @@ or http://www.apache.org/licenses/LICENSE-2.0) or the MIT license,
 (LICENSE-MIT or http://opensource.org/licenses/MIT), at your option.
 
 Copyrights and patents in the Celeritas project are retained by contributors.
-No copyright assignment is required to contribute to Celeritas.
+No copyright assignment is required to contribute to Celeritas, but by
+submitting content in a pull request, you are confirming that you have the
+right to make your contribution to Celeritas, and that if you are making your
+contribution in the course of your employment, that such contributions are
+authorized by your employer.
+
+Celeritas was originally developed in 2020 by developers at Oak Ridge National
+Laboratory (UT-Battelle, LLC), Fermi National Accelerator Laboratory
+(Fermi Research Alliance, LLC), Argonne National Laboratory
+(UChicago Argonne, LLC), and Lawrence Berkeley National Laboratory (University
+of California).
 
 
 SPDX usage
