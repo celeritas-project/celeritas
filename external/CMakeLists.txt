@@ -48,6 +48,8 @@ if(CELERITAS_EXTERNAL_Perfetto)
     Perfetto
     # v45.0
     URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
+    # consider as system, we don't want it to be checked by clang-tidy
+    SYSTEM
   )
   list(APPEND _celer_external_packages Perfetto)
 endif()
