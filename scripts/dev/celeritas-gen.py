@@ -540,7 +540,7 @@ def generate(repodir, filename, namespace):
         'longext': longext,
         'ext': ext,
         'hext': "hh" if lang != "C" else "h",
-        'modeline': f"-*- {lang} -*-",
+        'modeline': f" -*- {lang} -*- ",
         'name': name,
         'namespace': namespace,
         'namespace_begin': "\n".join(nsbeg),
