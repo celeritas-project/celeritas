@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#!/usr/bin/env python
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """\
 Generate file stubs for Celeritas.
