@@ -41,7 +41,8 @@ spack:
       target:
       - x86_64_v3
       # MI250x, see https://llvm.org/docs/AMDGPUUsage.html
-      variants: +rocm amdgpu_target=gfx90a cxxstd=17
+      #variants: +rocm amdgpu_target=gfx90a cxxstd=17
+      variants: cxxstd=17
       compiler: ["rocmcc@6.3.1"]
     root:
       variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=17
