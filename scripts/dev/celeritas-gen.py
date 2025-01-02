@@ -18,7 +18,7 @@ import sys
 
 CXX_TOP = '''\
 //{modeline:-^75s}//
-// Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+// Copyright UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -298,7 +298,7 @@ SWIG_FILE = '''\
 
 CMAKE_TOP = '''\
 #{modeline:-^77s}#
-# Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+# Copyright UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -344,7 +344,7 @@ endfunction()
 
 PYTHON_TOP = '''\
 #!/usr/bin/env python3
-# Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+# Copyright UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -357,7 +357,7 @@ PYTHON_FILE = '''\
 
 SHELL_TOP = '''\
 #!/bin/sh -ex
-# Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+# Copyright UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -367,7 +367,7 @@ SHELL_FILE = '''\
 '''
 
 OMN_TOP = '''\
-! Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+! Copyright UT-Battelle, LLC, and other Celeritas developers.
 ! See the top-level COPYRIGHT file for details.
 ! SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -404,7 +404,7 @@ shapes world_box ~mycyl
 '''
 
 RST_TOP = '''\
-.. Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+.. Copyright UT-Battelle, LLC, and other Celeritas developers.
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 '''
@@ -437,8 +437,6 @@ These are useful for heavily nested documentation such as API descriptions. ::
     // Celeritas is C++.
     int i = 0;
 '''
-
-YEAR = datetime.today().year
 
 TEMPLATES = {
     'hh': HEADER_FILE,
@@ -548,8 +546,7 @@ def generate(repodir, filename, namespace):
         'dirname': dirname,
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
-        'year': YEAR,
-        'corecel_ns': "", # or "celeritas::" or someday "corecel::"
+        'corecel_ns': "", # or "celeritas::" or someday(?) "corecel::"
         'celeritas_ns': "",
     }
     with open(filename, 'w') as f:
