@@ -154,7 +154,7 @@ jobs:
           CC_FILES=$(grep -E '^(src|app)/.*\.cc$' - <<< "$ALL_FILES")
 
           # Get list of files from compile_commands.json and filter CC_FILES
-          COMPILED_FILES=$(jq -r '.[].file' compile_commands.json)
+          COMPILED_FILES=$(jq -r '.[].file' build/compile_commands.json)
           CC_FILES=$(echo "$CC_FILES" | while read -r file; do
             if echo "$COMPILED_FILES" | grep -qE "^.*/${file}$"; then
               echo "$file"
