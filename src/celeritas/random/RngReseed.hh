@@ -28,7 +28,7 @@ void reseed_rng(HostCRef<RngParamsData> const&,
                 StreamId,
                 UniqueEventId);
 
-#if !CELER_USE_DEVICE
+#if !CELER_USE_DEVICE && (!defined(__DOXYGEN__) || __DOXYGEN__ > 0x010908)
 //---------------------------------------------------------------------------//
 /*!
  * Reinitialize the RNG states on device at the start of an event.

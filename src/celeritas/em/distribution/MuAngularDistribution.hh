@@ -12,7 +12,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random//distribution/GenerateCanonical.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
@@ -35,8 +35,8 @@ namespace celeritas
    r_{\text{max}} = frac{\pi}{2} E' / m \min(1, E' / \epsilon),
  * \f]
  * and where \f$ m \f$ is the incident muon mass, \f$ E \f$ is incident energy,
- * \$ \epsilon \f$ is the emitted energy, \f$ E' = E - \epsilon \f$, and \f$
- * \xi \sim U(0,1) \f$.
+ * \f$ \epsilon \f$ is the emitted energy,
+ * \f$ E' = E - \epsilon \f$, and \f$ \xi \sim U(0,1) \f$.
  *
  * \note This performs the same sampling routine as in Geant4's \c
  * G4ModifiedMephi class and documented in section 11.2.4 of the Geant4 Physics
@@ -64,7 +64,7 @@ class MuAngularDistribution
     // Incident particle Lorentz factor
     real_type gamma_;
     // r_max^2 / (1 + r_max^2)
-    real_type a_over_xi_;
+    UniformRealDistribution<real_type> sample_a_;
 };
 
 //---------------------------------------------------------------------------//
@@ -80,11 +80,10 @@ MuAngularDistribution::MuAngularDistribution(Energy inc_energy,
     : gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(inc_mass))
 {
     real_type r_max_sq = ipow<2>(
-        gamma_ * constants::pi * real_type(0.5)
-        * min<real_type>(
-            1,
-            gamma_ * value_as<Mass>(inc_mass) / value_as<Energy>(energy) - 1));
-    a_over_xi_ = r_max_sq / (1 + r_max_sq);
+        real_type(0.5) * constants::pi * gamma_
+        * min(real_type(1),
+              gamma_ * value_as<Mass>(inc_mass) / value_as<Energy>(energy) - 1));
+    sample_a_ = {0, r_max_sq / (1 + r_max_sq)};
 }
 
 //---------------------------------------------------------------------------//
@@ -94,7 +93,7 @@ MuAngularDistribution::MuAngularDistribution(Energy inc_energy,
 template<class Engine>
 CELER_FUNCTION real_type MuAngularDistribution::operator()(Engine& rng)
 {
-    real_type a = generate_canonical(rng) * a_over_xi_;
+    real_type a = sample_a_(rng);
     return std::cos(std::sqrt(a / (1 - a)) / gamma_);
 }
 

@@ -23,6 +23,7 @@
 #include <G4Positron.hh>
 #include <G4Region.hh>
 #include <G4RegionStore.hh>
+#include <G4SDManager.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4Threading.hh>
 #include <G4ThreeVector.hh>
@@ -48,6 +49,7 @@
 #include <accel/SharedParams.hh>
 #include <accel/SimpleOffload.hh>
 #include <accel/TrackingManagerOffload.hh>
+#include <corecel/Assert.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
@@ -64,6 +66,32 @@ G4ThreadLocal celeritas::LocalTransporter local_transporter;
 // Simple interface to running celeritas
 G4ThreadLocal celeritas::SimpleOffload simple_offload;
 
+class SensitiveDetector final : public G4VSensitiveDetector
+{
+  public:
+    explicit SensitiveDetector(std::string name)
+        : G4VSensitiveDetector{std::move(name)}
+    {
+    }
+
+    double edep() const { return edep_; }
+
+  protected:
+    void Initialize(G4HCofThisEvent*) final { edep_ = 0; }
+    bool ProcessHits(G4Step* step, G4TouchableHistory*) final
+    {
+        CELER_ASSERT(step);
+        edep_ += step->GetTotalEnergyDeposit();
+        return true;
+    }
+
+  private:
+    double edep_{0};
+};
+
+// Simple (not best practice) way of accessing SD
+G4ThreadLocal SensitiveDetector const* global_sd{nullptr};
+
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
@@ -73,6 +101,9 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
         setup_options.make_along_step = celeritas::UniformAlongStepFactory();
+
+        // Export a GDML file with the problem setup and SDs
+        setup_options.geometry_output_file = "simple-example.gdml";
     }
 
     G4VPhysicalVolume* Construct() final
@@ -80,13 +111,24 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
         CELER_LOG_LOCAL(status) << "Setting up detector";
         auto* box = new G4Box("world", 1000 * cm, 1000 * cm, 1000 * cm);
         auto* lv = new G4LogicalVolume(box, aluminum_, "world");
+        world_lv_ = lv;
         auto* pv = new G4PVPlacement(
             0, G4ThreeVector{}, lv, "world", nullptr, false, 0);
         return pv;
     }
 
+    void ConstructSDandField() final
+    {
+        auto* sd_manager = G4SDManager::GetSDMpointer();
+        auto detector = std::make_unique<SensitiveDetector>("example-sd");
+        world_lv_->SetSensitiveDetector(detector.get());
+        global_sd = detector.get();
+        sd_manager->AddNewDetector(detector.release());
+    }
+
   private:
-    G4Material* aluminum_;
+    G4Material* aluminum_{nullptr};
+    G4LogicalVolume* world_lv_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
@@ -155,6 +197,19 @@ class EventAction final : public G4UserEventAction
     void BeginOfEventAction(G4Event const* event) final
     {
         simple_offload.BeginOfEventAction(event);
+    }
+    void EndOfEventAction(G4Event const* event) final
+    {
+        // Log total energy deposition
+        if (global_sd)
+        {
+            CELER_LOG(info) << "Total energy deposited: "
+                            << (global_sd->edep() / CLHEP::MeV) << " MeV";
+        }
+        else
+        {
+            CELER_LOG(error) << "Global SD was not set";
+        }
     }
 };
 

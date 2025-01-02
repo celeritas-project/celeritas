@@ -25,9 +25,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for \c CoulombScatteringInteractor .
- *
- * Samples the polar scattering angle for the Wentzel Coulomb scattering model.
+ * Sample the polar scattering angle cosine for Wentzel Coulomb scattering.
  *
  * This chooses between sampling scattering off an electron or nucleus based on
  * the relative cross sections. Electron scattering angle imposes a maximum
@@ -37,12 +35,17 @@ namespace celeritas
  * nuclear cross sections (calculated by \c WentzelHelper) and nuclear form
  * factors (see \c ExpNuclearFormFactor, \c GaussianNuclearFormFactor, and \c
  * UUNuclearFormFactor ) that describe an approximate spatial charge
- * distribution of the nucleus.
+ * distribution of the nucleus. The class is used by \c
+ * CoulombScatteringInteractor .
  *
  * The polar angle distribution is given in [Fern] eqn 88 and is normalized on
  the interval
  * \f$ cos\theta \in [\cos\theta_\mathrm{min}, \cos\theta_\mathrm{max}] \f$.
- * The sampling function for \f$ \mu = \frac{1}{2}(1 - \cos\theta) \f$ is
+ * The sampling function for the angular deflection
+ * \f[
+ * \mu(\theta) \equiv \frac{1}{2}(1 - \cos\theta)
+ * \f]
+ * is
  * \f[
    \mu = \mu_1 + \frac{(A + \mu_1) \xi (\mu_2 - \mu_1)}{A + \mu_2 - \xi (\mu_2
    - \mu_1)},
@@ -173,7 +176,7 @@ WentzelDistribution::WentzelDistribution(
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the polar scattered angle of the incident particle.
+ * Sample the cosine polar scattered angle of the incident particle.
  */
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
