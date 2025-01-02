@@ -24,7 +24,7 @@ jobs:
         special: [null]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
-        image: ["rocky-cuda"] #, "ubuntu-rocm"]
+        image: ["rocky-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
             image: "ubuntu-rocm" # VecGeom not installed on HIP
@@ -48,7 +48,7 @@ jobs:
       image: >-
         docker.io/celeritas/${{
              matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-12-29'
-          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm6:2024-12-29'
+          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm6:2025-01-02'
         }}
     steps:
       - name: Set up environment
