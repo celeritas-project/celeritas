@@ -44,4 +44,6 @@ right to make your contribution to Celeritas, and that if you are making your
 contribution in the course of your employment, that such contributions are
 authorized by your employer.*
 
-See [the top-level COPYRIGHT file](https://github.com/celeritas-project/celeritas/blob/develop/COPYRIGHT) for details on code copyright, or [the documentation COPYRIGHT file](https://github.com/celeritas-project/celeritas/blob/develop/doc/COPYRIGHT) for the documentation license.
+See [the top-level COPYRIGHT file](https://github.com/celeritas-project/celeritas/blob/develop/COPYRIGHT)
+for details on code copyright, or [the documentation COPYRIGHT file](https://github.com/celeritas-project/celeritas/blob/develop/doc/COPYRIGHT)
+for the documentation license.
