@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/grid/InverseRangeCalculator.hh
@@ -44,7 +43,7 @@ class InverseRangeCalculator
   public:
     //!@{
     //! \name Type aliases
-    using Energy = Quantity<XsGridData::EnergyUnits>;
+    using Energy = RealQuantity<XsGridData::EnergyUnits>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}

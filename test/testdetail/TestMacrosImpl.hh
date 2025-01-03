@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file testdetail/TestMacrosImpl.hh
@@ -16,6 +15,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/Constant.hh"
 #include "corecel/math/SoftEqual.hh"
 
 namespace celeritas
@@ -36,20 +36,14 @@ trunc_string(unsigned int digits, char const* str, char const* trunc);
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-//! Whether soft equivalence can be performed on the given types.
-template<class T1, class T2>
-constexpr bool can_soft_equiv()
-{
-    return (std::is_floating_point_v<T1> || std::is_floating_point_v<T2>)
-           && std::is_convertible_v<T1, T2>;
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Get a "least common denominator" for soft comparisons.
  */
 template<class T1, class T2>
-struct SoftPrecisionType;
+struct SoftPrecisionType
+{
+    using type = void;
+};
 
 template<class T>
 struct SoftPrecisionType<T, T>
@@ -77,6 +71,35 @@ struct SoftPrecisionType<int, T>
 {
     using type = T;
 };
+
+// Allow reference type to be a constant
+template<class T>
+struct SoftPrecisionType<Constant, T>
+{
+    using type = T;
+};
+
+// Allow actual type to be a constant (used in Constants test)
+template<class T>
+struct SoftPrecisionType<T, Constant>
+{
+    using type = T;
+};
+
+// Allow both to be constants
+template<>
+struct SoftPrecisionType<Constant, Constant>
+{
+    using type = double;
+};
+
+//---------------------------------------------------------------------------//
+//! Whether soft equivalence can be performed on the given types.
+template<class T1, class T2>
+constexpr bool can_soft_equiv()
+{
+    return !std::is_same_v<typename SoftPrecisionType<T1, T2>::type, void>;
+}
 
 //---------------------------------------------------------------------------//
 //! Compare a range of values.
@@ -165,9 +188,9 @@ template<class Value_E, class Value_A, class Value_R>
     using ValueT = typename SoftPrecisionType<VE, VA>::type;
     using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
-    return IsSoftEquivImpl(expected,
+    return IsSoftEquivImpl(static_cast<ValueT>(expected),
                            expected_expr,
-                           actual,
+                           static_cast<ValueT>(actual),
                            actual_expr,
                            BinaryOp{static_cast<ValueT>(rel)});
 }

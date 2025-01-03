@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/Vecgeom.test.cc
@@ -1228,8 +1227,7 @@ TEST_F(CmseTest, trace)
         static real_type const expected_distances[] = {12.495, 287.505, 530,
             920};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type expected_hw_safety[] = {6.2475, 47.9499999999998,
-            242, 460};
+        static real_type expected_hw_safety[] = {6.2475, 47.95, 242, 460};
         if (vecgeom_version > Version{2})
         {
             // TODO: check why surface model gives worse safeties for these pts
@@ -1593,9 +1591,9 @@ TEST_F(SolidsGeantTest, geant_volumes)
 {
     {
         auto result = this->get_import_geant_volumes();
-        static int const expected_volumes[]
-            = {0,  1,  2,  3,  4,  5,  6,  7,  -1, 9,  10, 15, 16,
-               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30};
+        static int const expected_volumes[] = {
+            0, 1, 2, 3, 4, 5, 6, 7, -1, 9, 10, 15, 16, 17, 18, 19, 20, 21, 22,
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
     }

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/xs/NuclearFormFactors.hh
@@ -24,8 +23,8 @@ struct NuclearFormFactorTraits
     using AtomicMassNumber = AtomicNumber;
     using Momentum = units::MevMomentum;
     using MomentumSq = units::MevMomentumSq;
-    using InvMomentum = Quantity<UnitInverse<Momentum::unit_type>>;
-    using InvMomentumSq = Quantity<UnitInverse<MomentumSq::unit_type>>;
+    using InvMomentum = RealQuantity<UnitInverse<Momentum::unit_type>>;
+    using InvMomentumSq = RealQuantity<UnitInverse<MomentumSq::unit_type>>;
     using FFType = NuclearFormFactorType;
     //!@}
 
@@ -151,7 +150,7 @@ class GaussianNuclearFormFactor : public ExpNuclearFormFactor
  * [FMS93] J.M. Fernández-Varea, R. Mayol, F. Salvat, Cross sections for
  *       elastic scattering of fast electrons and positrons by atoms, Nuclear
  *       Instruments and Methods in Physics Research Section B: Beam
- * Interactions with Materials and Atoms 82 (1993) 39–45.
+ *       Interactions with Materials and Atoms 82 (1993) 39–45.
  *       https://doi.org/10.1016/0168-583X(93)95079-K.
  */
 class UUNuclearFormFactor : public NuclearFormFactorTraits

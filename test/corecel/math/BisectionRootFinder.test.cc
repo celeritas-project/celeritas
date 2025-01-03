@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/BisectionRootFinder.test.cc
@@ -18,13 +17,14 @@
 #include "DiagnosticRealFunc.hh"
 #include "celeritas_test.hh"
 
-using celeritas::constants::pi;
-inline constexpr auto tol = celeritas::SoftEqual<>{}.rel();
-
 namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+
+constexpr auto tol = SoftEqual<real_type>{}.rel();
+
 //---------------------------------------------------------------------------//
 
 // Solve: (x-2)(x+2) = 0
@@ -57,6 +57,7 @@ TEST(Bisection, trigometric)
 
     BisectionRootFinder find_root{f, tol};
 
+    constexpr auto pi = static_cast<real_type>(constants::pi);
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
     EXPECT_SOFT_EQ(pi * 2.5, find_root(2 * pi, 3 * pi));

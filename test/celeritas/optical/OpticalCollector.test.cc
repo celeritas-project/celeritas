@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/OpticalCollector.test.cc
@@ -154,7 +153,7 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
     UniformFieldParams field_params;
-    field_params.field = {0, 0, 1 * units::tesla};
+    field_params.field = {0, 0, static_cast<real_type>(1 * units::tesla)};
     auto msc = UrbanMscParams::from_import(
         *this->particle(), *this->material(), this->imported_data());
 

@@ -8,7 +8,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  celer_upload_doc:  >-
+  CMAKE_PRESET: doc
+  CELER_UPLOAD_DOC:  >-
     ${{  github.ref_name == 'develop'
       || contains(github.ref_name, 'backports/')
       || contains(github.head_ref, 'release-')
@@ -17,13 +18,16 @@ env:
 
 jobs:
   dev:
+    env:
+      CELER_TARGET: doxygen
+      CELER_UPLOAD_DIR: build/doc/doxygen-html
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
         run: |
             sudo apt-get -y update
             sudo apt-get -y install \
-                cmake graphviz ninja-build doxygen gcc
+                cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
@@ -33,25 +37,22 @@ jobs:
         # Turn warnings into errors only for PRs
         # Disable expensive graphs for PRs also
         run: |
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           mkdir build && cd build
-          cmake \
-            -DCELERITAS_BUILD_DOCS=ON \
-            -DCELERITAS_DOXYGEN_BUILD_TESTS=ON \
-            ${{ github.workflow == 'pr'
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
+            ${{ github.workflow == 'pull_request'
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO"'
              || ''}} \
-            -GNinja \
             ..
       - name: Build documentation
-        working-directory: build
         run: |
-          ninja doxygen
-          find doc/doxygen-html -name '*.md5' -exec rm {} +
+          cmake --build --preset=${CMAKE_PRESET} --target ${CELER_TARGET}
+          find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
-        if: ${{env.celer_upload_doc}}
+        if: ${{env.CELER_UPLOAD_DOC}}
         uses: actions/upload-artifact@v4
         with:
-          path: build/doc/doxygen-html
+          path: ${{env.CELER_UPLOAD_DIR}}
           name: doc-dev
           if-no-files-found: error
           overwrite: true
@@ -59,12 +60,15 @@ jobs:
 
   user:
     runs-on: ubuntu-latest
+    env:
+      CELER_TARGET: doc
+      CELER_UPLOAD_DIR: build/doc/html
     steps:
       - name: Install dependencies
         run: |
             sudo apt-get -y update
             sudo apt-get -y install \
-                cmake graphviz ninja-build doxygen gcc
+                cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10' 
@@ -79,24 +83,22 @@ jobs:
             pip install -r scripts/doc-requirements.txt
       - name: Configure celeritas
         run: |
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           mkdir build && cd build
-          cmake \
-            -DCELERITAS_BUILD_DOCS=ON \
-            -DDOXYGEN_HAVE_DOT="NO" \
-            ${{ github.workflow == 'pr'
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
+            ${{ github.workflow == 'pull_request'
              && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
              || ''}} \
-            -GNinja ..
-      - name: Build user documentation
-        working-directory: build
+            ..
+      - name: Build documentation
         run: |
-          ninja doc
-          find doc/html -name '*.md5' -exec rm {} +
+          cmake --build --preset=${CMAKE_PRESET} --target ${CELER_TARGET}
+          find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
-        if: ${{env.celer_upload_doc}}
+        if: ${{env.CELER_UPLOAD_DOC}}
         uses: actions/upload-artifact@v4
         with:
-          path: build/doc/html
+          path: ${{env.CELER_UPLOAD_DIR}}
           name: doc-user
           if-no-files-found: error
           overwrite: true

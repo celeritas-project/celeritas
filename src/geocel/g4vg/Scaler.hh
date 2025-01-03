@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/g4vg/Scaler.hh
@@ -43,7 +42,7 @@ class Scaler
     }
 
   private:
-    inline static constexpr double scale_ = celeritas::lengthunits::millimeter;
+    inline static constexpr double scale_{celeritas::lengthunits::millimeter};
 };
 
 //---------------------------------------------------------------------------//

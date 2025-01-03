@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/xs/LivermorePEMicroXsCalculator.hh
@@ -29,7 +28,7 @@ class LivermorePEMicroXsCalculator
     //!@{
     //! \name Type aliases
     using ParamsRef = LivermorePERef;
-    using Energy = Quantity<LivermoreSubshell::EnergyUnits>;
+    using Energy = RealQuantity<LivermoreSubshell::EnergyUnits>;
     using BarnXs = units::BarnXs;
     //!@}
 

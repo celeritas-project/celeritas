@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/Units.hh
@@ -11,10 +10,11 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
+#include "corecel/math/Constant.hh"
 
 namespace celeritas
 {
-
+//---------------------------------------------------------------------------//
 /*!
  * Units in Celeritas for macro-scale quantities.
  *
@@ -60,16 +60,16 @@ namespace units
 {
 //---------------------------------------------------------------------------//
 
-#define CELER_ICRT inline constexpr real_type
+#define CELER_ICRT inline constexpr Constant
 
 #if CELERITAS_UNITS == CELERITAS_UNITS_CGS
 //!@{
 //! \name Units with numerical value defined to be 1 for CGS
-CELER_ICRT centimeter = 1;  //!< Length
-CELER_ICRT gram = 1;  //!< Mass
-CELER_ICRT second = 1;  //!< Time
-CELER_ICRT gauss = 1;  //!< Field strength
-CELER_ICRT kelvin = 1;  //!< Temperature
+CELER_ICRT centimeter{1};  //!< Length
+CELER_ICRT gram{1};  //!< Mass
+CELER_ICRT second{1};  //!< Time
+CELER_ICRT gauss{1};  //!< Field strength
+CELER_ICRT kelvin{1};  //!< Temperature
 //!@}
 
 //!@{
@@ -91,18 +91,18 @@ CELER_ICRT farad = coulomb / volt;
 
 //!@{
 //! \name CLHEP units
-CELER_ICRT millimeter = real_type(0.1) * centimeter;
-CELER_ICRT nanosecond = real_type(1e-9) * second;
+CELER_ICRT millimeter = Constant{0.1} * centimeter;
+CELER_ICRT nanosecond = Constant{1e-9} * second;
 //!@}
 
 #elif CELERITAS_UNITS == CELERITAS_UNITS_SI
 //!@{
 //! \name Units with numerical value defined to be 1 for SI
-CELER_ICRT second = 1;  //!< Time
-CELER_ICRT meter = 1;  //!< Length
-CELER_ICRT kilogram = 1;  //!< Mass
-CELER_ICRT kelvin = 1;  //!< Temperature
-CELER_ICRT coulomb = 1;  //!< Charge
+CELER_ICRT second{1};  //!< Time
+CELER_ICRT meter{1};  //!< Length
+CELER_ICRT kilogram{1};  //!< Mass
+CELER_ICRT kelvin{1};  //!< Temperature
+CELER_ICRT coulomb{1};  //!< Charge
 //!@}
 
 //!@{
@@ -117,33 +117,34 @@ CELER_ICRT farad = coulomb / volt;
 
 //!@{
 //! \name CGS units
-CELER_ICRT gauss = real_type(1e-4) * tesla;
-CELER_ICRT centimeter = real_type(1e-2) * meter;
-CELER_ICRT gram = real_type(1e-3) * kilogram;
+CELER_ICRT gauss = Constant{1e-4} * tesla;
+CELER_ICRT centimeter = Constant{1e-2} * meter;
+CELER_ICRT gram = Constant{1e-3} * kilogram;
 //!@}
 
 //!@{
 //! \name CLHEP units
-CELER_ICRT millimeter = real_type(1e-3) * meter;
-CELER_ICRT nanosecond = real_type(1e-9) * second;
+CELER_ICRT millimeter = Constant{1e-3} * meter;
+CELER_ICRT nanosecond = Constant{1e-9} * second;
 //!@}
 
 #elif CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
 
 //!@{
 //! \name Units with numerical value defined to be 1 for CLHEP
-CELER_ICRT millimeter = 1;  //!< Length
-CELER_ICRT megaelectronvolt = 1;  //!< Energy
-CELER_ICRT nanosecond = 1;  //!< Time
-CELER_ICRT e_electron = 1;  //!< Charge
-CELER_ICRT kelvin = 1;  //!< Temperature
+CELER_ICRT millimeter{1};  //!< Length
+CELER_ICRT megaelectronvolt{1};  //!< Energy
+CELER_ICRT nanosecond{1};  //!< Time
+CELER_ICRT e_electron{1};  //!< Charge
+CELER_ICRT kelvin{1};  //!< Temperature
 //!@}
 
-CELER_ICRT coulomb = e_electron / 1.602176634e-19;  //! Value from SI 2019
-CELER_ICRT volt = real_type(1e-6) * (megaelectronvolt / e_electron);
+// Note: conversion constant is the value from SI 2019
+CELER_ICRT coulomb = e_electron / Constant{1.602176634e-19};
+CELER_ICRT volt = Constant{1e-6} * (megaelectronvolt / e_electron);
 CELER_ICRT joule = coulomb * volt;
 
-CELER_ICRT second = real_type(1e9) * nanosecond;
+CELER_ICRT second = Constant{1e9} * nanosecond;
 CELER_ICRT meter = 1000 * millimeter;
 
 CELER_ICRT ampere = coulomb / second;
@@ -154,19 +155,19 @@ CELER_ICRT newton = joule / meter;
 
 //!@{
 //! \name CGS-specific units
-CELER_ICRT centimeter = real_type(10) * millimeter;
-CELER_ICRT gram = real_type(1e-3) * kilogram;
-CELER_ICRT gauss = real_type(1e-4) * tesla;
+CELER_ICRT centimeter = 10 * millimeter;
+CELER_ICRT gram = Constant{1e-3} * kilogram;
+CELER_ICRT gauss = Constant{1e-4} * tesla;
 //!@}
 
 #endif
 
 //!@{
 //! \name Other common units
-CELER_ICRT micrometer = real_type(1e-4) * centimeter;
-CELER_ICRT nanometer = real_type(1e-7) * centimeter;
-CELER_ICRT femtometer = real_type(1e-13) * centimeter;
-CELER_ICRT barn = real_type(1e-24) * centimeter * centimeter;
+CELER_ICRT micrometer = Constant{1e-4} * centimeter;
+CELER_ICRT nanometer = Constant{1e-7} * centimeter;
+CELER_ICRT femtometer = Constant{1e-13} * centimeter;
+CELER_ICRT barn = Constant{1e-24} * centimeter * centimeter;
 //!@}
 
 #undef CELER_ICRT
