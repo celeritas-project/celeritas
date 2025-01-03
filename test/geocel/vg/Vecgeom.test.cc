@@ -1592,7 +1592,8 @@ TEST_F(SolidsGeantTest, geant_volumes)
     {
         auto result = this->get_import_geant_volumes();
         static int const expected_volumes[] = {
-            0, 1, 2, 3, 4, 5, 6, 7, -1, 9, 10, 15, 16, 17, 18, 19, 20, 21, 22,
+            0,  1,  2,  3,  4,  5,  6,  7,  -1, 9,  10, 15, 16,
+            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30,
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
