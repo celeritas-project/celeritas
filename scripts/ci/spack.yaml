@@ -25,9 +25,9 @@ spack:
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb cxxstd=20
     all:
       require:
-      - '%clang@18'
+      - "%clang@18 target=zen2" # FIXME: genericize on next rebuild
       - any_of: [+ipo, '@:']
       - any_of: [build_system=cmake, '@:']
       - any_of: [build_type=Release, '@:']
       - any_of: [generator=ninja, '@:']
-      - any_of: [cxxstd=20, cxxstd=17, '@:']
+      - any_of: [cxxstd=default, '@:'] # replaced by build-spack.yaml

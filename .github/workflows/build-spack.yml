@@ -68,7 +68,9 @@ jobs:
           curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48347.patch?full_index=1 | git apply -
       - name: Initialize spack environment
         run: |
-          cp scripts/ci/spack.yaml .
+          sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
+            scripts/ci/spack.yaml > spack.yaml
+          spack -vd -e . config add packages:all:require:"any_of: ['cxxstd=${{env.CXXSTD}}', '@:']"
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
             spack -e . add vecgeom+gdml
           fi
@@ -81,14 +83,10 @@ jobs:
           if [ "${{matrix.geant}}" != "" ]; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          spack -e . config blame packages
-          # FIXME: genericize target when we rebuild next time
-          spack -vd -e . config add packages:all:require:"'%clang@18 target=zen2'"
-          spack -vd -e . config add packages:all:require:"any_of: ['cxxstd=${{env.CXXSTD}}', '@:']"
-          spack -e . config blame packages
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
+          cat spack.yaml
       - name: Cache concretization
         uses: actions/cache@v4
         with:
