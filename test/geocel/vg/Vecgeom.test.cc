@@ -516,8 +516,8 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(vecgeom_version < Version(2) ? 1.e-8 : 1.e-13,
-        to_cm(next.distance));
+    EXPECT_SOFT_EQ(vecgeom_version <= Version(2) ? 1.e-8 : 1.e-13,
+                   to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
@@ -530,7 +530,7 @@ TEST_F(FourLevelsTest, reentrant_boundary)
     // Travel nearly tangent to the right edge of the sphere, then scatter to
     // still outside
     next = geo.find_next_step(from_cm(1.0));
-    if (vecgeom_version < Version(2))
+    if (vecgeom_version <= Version(2))
     {
         EXPECT_SOFT_EQ(0.00031622777925735285, to_cm(next.distance));
     }
@@ -830,8 +830,7 @@ class SolidsTest : public VecgeomVgdmlTestBase
     {
         if (vecgeom_version >= Version{2})
         {
-            static std::string_view const levels[]
-                = {"warning", "warning", "warning"};
+            static std::string_view const levels[] = {"warning", "warning"};
             return make_span(levels);
         }
         else if (geant4_version >= Version{11})
@@ -1194,7 +1193,7 @@ TEST_F(CmseTest, trace)
             28.702447147997, 17.999999999999, 14.474999999999, 29.931406871193,
             40.276406871193, 57.573593128807, 57.573593128807, 57.573593128807,
             57.573593128807};
-        if (vecgeom_version >= Version{2})
+        if (vecgeom_version > Version{2})
         {
             // TODO: check why surface model gives worse safeties for these pts
             expected_hw_safety[3] = 29.931406871193;
@@ -1231,7 +1230,7 @@ TEST_F(CmseTest, trace)
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type expected_hw_safety[] = {6.2475, 47.9499999999998,
             242, 460};
-        if (vecgeom_version >= Version{2})
+        if (vecgeom_version > Version{2})
         {
             // TODO: check why surface model gives worse safeties for these pts
             expected_hw_safety[1] = 48.0601836893075;
