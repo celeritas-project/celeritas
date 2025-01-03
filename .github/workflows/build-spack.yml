@@ -81,10 +81,12 @@ jobs:
           if [ "${{matrix.geant}}" != "" ]; then
             spack -e . add geant4@${{matrix.geant}}
           fi
+          spack -e . config blame packages
           # FIXME: genericize target when we rebuild next time
-          spack -e . config add packages:all:require:"'%clang@18 target=zen2'"
-          spack -e . config add packages:all:require:"any_of: ['cxxstd=${{env.CXXSTD}}', '@:']"
-          spack -e . compiler find --mixed-toolchain
+          spack -vd -e . config add packages:all:require:"'%clang@18 target=zen2'"
+          spack -vd -e . config add packages:all:require:"any_of: ['cxxstd=${{env.CXXSTD}}', '@:']"
+          spack -e . config blame packages
+          spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
       - name: Cache concretization
