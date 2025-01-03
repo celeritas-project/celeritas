@@ -68,7 +68,7 @@ jobs:
         run: |
           cp scripts/ci/spack.yaml .
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
-            spack -e . add vecgeom
+            spack -e . add vecgeom+gdml
           fi
           if [ "${{matrix.special}}" != "minimal" ] && [  "${{matrix.special}}" != "asanlite" ] ; then
             spack -e . add root
