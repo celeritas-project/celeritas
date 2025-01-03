@@ -15,7 +15,7 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Install dependencies
         run: |
