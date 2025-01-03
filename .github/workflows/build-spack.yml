@@ -28,7 +28,6 @@ jobs:
       matrix:
         geometry: ["vecgeom"]
         special: [null]
-        clang: [18]
         include:
           - geometry: "orange"
             special: "minimal"
@@ -58,9 +57,9 @@ jobs:
                   matrix.special)}}
       SPACK_VIEW: "/opt/spack-view"
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
-      CC: "clang-${{matrix.clang}}"
-      CXX: "clang++-${{matrix.clang}}"
-      CLANG_TIDY: "clang-tidy-${{matrix.clang}}"
+      CC: "clang-18"
+      CXX: "clang++-18"
+      CLANG_TIDY: "clang-tidy-18"
     runs-on: ubuntu-24.04
     continue-on-error: false
     steps:
@@ -94,7 +93,7 @@ jobs:
           if [ "${{matrix.geant}}" != "" ]; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          spack -e . config add packages:all:require:"'%clang@${{matrix.clang}} target=x86_64_v3'"
+          spack -e . config add packages:all:require:"'%clang@18 target=x86_64_v3'"
           spack -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
