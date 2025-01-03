@@ -43,6 +43,8 @@ jobs:
       CC: "clang-18"
       CXX: "clang++-18"
       CLANG_TIDY: "clang-tidy-18"
+      CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
+                 && 17 || 20}}
     runs-on: ubuntu-24.04
     continue-on-error: false
     steps:
@@ -70,13 +72,18 @@ jobs:
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
             spack -e . add vecgeom+gdml
           fi
-          if [ "${{matrix.special}}" != "minimal" ] && [  "${{matrix.special}}" != "asanlite" ] ; then
+          if ${{(matrix.special != 'minimal'
+                 && matrix.special != 'asanlite'
+                 && env.CXXSTD == '20')
+                && 'true' || 'false'}}; then
             spack -e . add root
           fi
           if [ "${{matrix.geant}}" != "" ]; then
             spack -e . add geant4@${{matrix.geant}}
           fi
+          # FIXME: genericize target when we rebuild next time
           spack -e . config add packages:all:require:"'%clang@18 target=zen2'"
+          spack -e . config add packages:all:require:"any_of: [cxxstd=${{env.CXXSTD}}, '@:']"
           spack -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
