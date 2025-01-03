@@ -95,8 +95,7 @@ if(CELERITAS_USE_VecGeom)
       "MultiLevelGeantTest.*"
       "ZnenvGeantTest.*"
     )
-    if(VecGeom_VERSION VERSION_LESS 2.0.0)
-      MESSAGE(STATUS "VecGeom_VERSION < 2.0.0: adding SolidsGeantTest.*") 
+    if(NOT VecGeom_SURF_FOUND)
       list(APPEND _vecgeom_tests "SolidsGeantTest.*")
     endif()
   endif()
