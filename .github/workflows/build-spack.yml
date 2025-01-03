@@ -3,6 +3,7 @@
 # - spack version
 # - any required spack patches
 # - runner versions
+# - scripts/ci/spack.yaml
 name: build-spack
 on:
   workflow_dispatch:
