@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/Constants.test.cc
@@ -29,20 +28,19 @@ namespace test
 //---------------------------------------------------------------------------//
 // CLHEP units introduce extra error due to repeated operations with
 // non-representable values
-real_type constexpr clhep_tol
-    = SoftEqual<real_type>{}.rel()
-      * (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP ? 5 : 1);
+auto constexpr clhep_tol = SoftEqual<real_type>{}.rel()
+                           * (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP ? 5 : 1);
 
 TEST(ConstantsTest, mathematical)
 {
-    EXPECT_REAL_EQ(euler, std::exp(1.0));
-    EXPECT_REAL_EQ(pi, std::acos(-1.0));
-    EXPECT_REAL_EQ(sqrt_two, std::sqrt(2.0));
-    EXPECT_REAL_EQ(sqrt_three, std::sqrt(3.0));
+    EXPECT_DOUBLE_EQ(static_cast<double>(euler), std::exp(1.0));
+    EXPECT_DOUBLE_EQ(static_cast<double>(pi), std::acos(-1.0));
+    EXPECT_DOUBLE_EQ(static_cast<double>(sqrt_two), std::sqrt(2.0));
+    EXPECT_DOUBLE_EQ(static_cast<double>(sqrt_three), std::sqrt(3.0));
 }
 
 //! Test that no precision is lost for cm<->m and other integer factors.
-TEST(ConstantsTest, TEST_IF_CELERITAS_DOUBLE(exact_equivalence))
+TEST(ConstantsTest, exact_equivalence)
 {
     using celeritas::units::centimeter;
     using celeritas::units::second;

@@ -31,6 +31,7 @@ The easiest way to install Celeritas as a library/app is with Spack:
 git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
 # Add Spack to the shell environment
 # For bash/zsh/sh (See [spack-start] for other shell)
+. spack/share/spack/setup-env.sh
 ```
 - Install Celeritas with
 ```console
@@ -70,7 +71,7 @@ Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
 
 # Installation for developers
 
@@ -129,7 +130,7 @@ The full set of configurations is viewable on CI platform [GitHub Actions][gha])
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
-[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/FieldPropagator.test.cc
@@ -42,8 +41,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using constants::pi;
-using constants::sqrt_three;
+constexpr real_type pi{constants::pi};
+constexpr real_type sqrt_three{constants::sqrt_three};
 
 template<class E>
 using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
@@ -448,7 +447,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
 TEST_F(TwoBoxesTest, electron_super_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
-    UniformZField field(1 * units::tesla);
+    UniformZField field(static_cast<real_type>(1 * units::tesla));
     FieldDriverOptions driver_options;
 
     std::vector<real_type> intersect_distance;
@@ -1208,7 +1207,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 {
     auto particle = this->make_particle_view(pdg::electron(),
                                              MevEnergy{4.25402379798713e-01});
-    UniformZField field(1 * units::tesla);
+    UniformZField field(real_type(1 * units::tesla));
     FieldDriverOptions driver_options;
 
     auto geo = this->make_geo_track_view(
@@ -1255,7 +1254,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
 TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 {
-    UniformZField field(1 * units::tesla);
+    UniformZField field(real_type(1 * units::tesla));
     FieldDriverOptions driver_options;
     driver_options.max_substeps = 100;
 

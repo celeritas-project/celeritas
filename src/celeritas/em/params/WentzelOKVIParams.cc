@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/params/WentzelOKVIParams.cc
@@ -43,7 +42,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
         if (!coulomb)
         {
             // Set the maximum scattering angle for Wentzel VI MSC
-            return constants::pi;
+            return real_type(constants::pi);
         }
         if (!wentzel)
         {
@@ -121,7 +120,8 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
     prefactors.reserve(materials.num_isotopes());
     for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
     {
-        using InvMomSq = Quantity<UnitInverse<units::MevMomentumSq::unit_type>>;
+        using InvMomSq
+            = RealQuantity<UnitInverse<units::MevMomentumSq::unit_type>>;
 
         auto&& iso_view = materials.get(iso_id);
         prefactors.push_back(value_as<InvMomSq>(

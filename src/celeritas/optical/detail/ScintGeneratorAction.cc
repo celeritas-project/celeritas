@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/detail/ScintGeneratorAction.cc
@@ -118,6 +117,7 @@ void ScintGeneratorAction::step_impl(CoreParams const& core_params,
                                         offload.offsets,
                                         buffer_size,
                                         core_state.stream_id());
+    optical_state.counters().num_generated += count;
 
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);

@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -363,14 +362,6 @@ celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
-
-if(CELERITAS_USE_CUDA)
-  celeritas_add_test(random/curand/CurandPerformance.test.cc GPU
-    SOURCES random/curand/CurandPerformance.test.cu
-    LINK_LIBRARIES Celeritas::DeviceToolkit
-    ${_disable_if_debug}
-  )
-endif()
 
 #-----------------------------------------------------------------------------#
 # Track

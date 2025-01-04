@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/g4org/PhysicalVolumeConverter.hh
@@ -42,7 +41,7 @@ class PhysicalVolumeConverter
         //! Write output about volumes being converted
         bool verbose{false};
         //! Scale factor, customizable for unit testing
-        double scale = celeritas::lengthunits::millimeter;
+        double scale{celeritas::lengthunits::millimeter};
     };
 
   public:

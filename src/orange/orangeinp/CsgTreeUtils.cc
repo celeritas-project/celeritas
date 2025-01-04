@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/CsgTreeUtils.cc
@@ -173,7 +172,7 @@ void simplify(CsgTree* tree, NodeId start)
  * This is required if the tree's logic expression is used with
  * \c InfixEvaluator as negated joins are not supported.
  */
-CsgTree transform_negated_joins(CsgTree const& tree)
+SimplifiedCsgTree transform_negated_joins(CsgTree const& tree)
 {
     return detail::DeMorganSimplifier{tree}();
 }

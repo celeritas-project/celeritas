@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/detail/CherenkovGeneratorAction.cc
@@ -113,13 +112,19 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
 
     auto& offload = offload_state.store.ref();
     auto& buffer_size = offload_state.buffer_size.cherenkov;
-    CELER_ASSERT(buffer_size > 0);
+    if (buffer_size == 0)
+    {
+        // No new cherenkov photons: perhaps tracks are all subluminal
+        CELER_LOG_LOCAL(debug) << "No Cherenkov photons to generate";
+        return;
+    }
 
     // Calculate the cumulative sum of the number of photons in the buffered
     // distributions. These values are used to determine which thread will
     // generate initializers from which distribution
     auto count = inclusive_scan_photons(
         offload.cherenkov, offload.offsets, buffer_size, core_state.stream_id());
+    optical_state.counters().num_generated += count;
 
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);

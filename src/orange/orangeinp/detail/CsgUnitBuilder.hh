@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/CsgUnitBuilder.hh
@@ -106,6 +105,9 @@ class CsgUnitBuilder
     // Fill a volume node with a daughter using the local transform
     void
     fill_volume(LocalVolumeId, UniverseId, VariantTransform const& transform);
+
+    // Simplify negated joins for Infix evaluation
+    void simplifiy_joins();
 
   private:
     CsgUnit* unit_;

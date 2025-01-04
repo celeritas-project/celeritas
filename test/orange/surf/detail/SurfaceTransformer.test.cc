@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/detail/SurfaceTransformer.test.cc
@@ -27,7 +26,7 @@ namespace detail
 {
 namespace test
 {
-using constants::sqrt_two;
+constexpr real_type sqrt_two{constants::sqrt_two};
 
 //---------------------------------------------------------------------------//
 

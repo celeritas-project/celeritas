@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/data/CommonCoulombData.hh
@@ -17,7 +16,10 @@ namespace celeritas
 /*!
  * Physics IDs for MSC.
  *
- * TODO these will probably be changed to a map over all particle IDs.
+ * \todo If we want to extend this *generally*, we should have an array (length
+ * \c ParticleParams::size() ) that maps IDs to "model parameters". For
+ * example, electrons and positrons probably map to the same ID. Light ions and
+ * protons probably do as well.
  */
 struct CoulombIds
 {

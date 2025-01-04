@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/CsgTreeUtils.test.cc
@@ -16,6 +15,7 @@
 #include "orange/surf/VariantSurface.hh"
 
 #include "CsgTestUtils.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 using N = celeritas::orangeinp::NodeId;
@@ -559,19 +559,22 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     auto s1 = this->insert(Surface{S{1}});
     auto n0 = this->insert(Negated{s1});
     auto j0 = this->insert(Joined{op_and, {s0, n0}});
-    auto simplified = transform_negated_joins(tree_);
 
     // Check a well-formed tree
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, }",
         to_string(tree_));
-
     // Check that we have a noop
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+            "all{2,4}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{N{0}, N{1}, N{2}, N{3}, N{4}, N{5}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     auto n1 = this->insert(Negated{j0});
 
@@ -580,13 +583,17 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: not{5}, }",
         to_string(tree_));
-
     // Check an easy case with just a single negated operand
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "any{3,4}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "any{3,4}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{4}, N{}, N{}, N{5}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     // Check a well-formed tree
     auto j1 = this->insert(Joined{op_or, {s0, n0}});
@@ -597,11 +604,16 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Check that the non-negated operand maps to correct new node_ids and
     // that not{2} is not deleted
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "not{4}, 6: any{3,4}, 7: any{2,5}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "not{4}, 6: any{3,4}, 7: any{2,5}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{4}, N{5}, N{}, N{6}, N{7}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     // Check a well-formed tree
     auto n2 = this->insert(Negated{j1});
@@ -609,13 +621,18 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, }",
         to_string(tree_));
-
-    // Check that the two operands are transformed, removing dangling operators
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "any{3,4}, 6: all{3,4}, }",
-        to_string(simplified));
+    // Check that the two operands are transformed, removing dangling
+    // operators
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "any{3,4}, 6: all{3,4}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{4}, N{}, N{}, N{5}, N{}, N{6}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     // Check a well-formed tree
     auto s2 = this->insert(Surface{S{2}});
@@ -625,13 +642,17 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
         "not{9}, }",
         to_string(tree_));
-
     // Check that disjoint trees are correctly handled
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{4}, N{}, N{}, N{5}, N{}, N{6}, N{7}, N{8}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     // Check a well-formed tree
     auto j2 = this->insert(Joined{op_and, {j0, j1}});
@@ -642,12 +663,27 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Add a non-transformed operand with suboperands
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
-        "surface 2, 11: not{10}, 12: all{7,9}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
+            "surface 2, 11: not{10}, 12: all{7,9}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{N{0},
+                                         N{1},
+                                         N{2},
+                                         N{4},
+                                         N{5},
+                                         N{7},
+                                         N{6},
+                                         N{9},
+                                         N{8},
+                                         N{10},
+                                         N{11},
+                                         N{12}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     // Check a well-formed tree
     auto n3 = this->insert(Negated{j2});
@@ -659,11 +695,27 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Top-level operand is negated and should be simplified, no need to
     // duplicate intermediary Joined nodes
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{N{0},
+                                         N{1},
+                                         N{2},
+                                         N{4},
+                                         N{},
+                                         N{},
+                                         N{5},
+                                         N{},
+                                         N{6},
+                                         N{7},
+                                         N{8},
+                                         N{},
+                                         N{9}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     // Check a well-formed tree
     auto j3 = this->insert(Joined{op_and, {n1, n2, n3}});
@@ -674,12 +726,29 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Top-level joined has Negated{Joined{}} chldrens
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, 10: "
-        "all{5,6,9}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, 10: "
+            "all{5,6,9}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{N{0},
+                                         N{1},
+                                         N{2},
+                                         N{4},
+                                         N{},
+                                         N{},
+                                         N{5},
+                                         N{},
+                                         N{6},
+                                         N{7},
+                                         N{8},
+                                         N{},
+                                         N{9},
+                                         N{10}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     // Check a well-formed tree
     this->insert(Negated{j3});
@@ -690,13 +759,32 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Complex case with a negated join with negated join as children
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
-        "surface 2, 11: not{10}, 12: any{6,8}, 13: all{7,9}, 14: any{7,9,13}, "
-        "}",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
+            "surface 2, 11: not{10}, 12: any{6,8}, 13: all{7,9}, 14: "
+            "any{7,9,13}, "
+            "}",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{N{0},
+                                         N{1},
+                                         N{2},
+                                         N{4},
+                                         N{5},
+                                         N{7},
+                                         N{6},
+                                         N{9},
+                                         N{8},
+                                         N{10},
+                                         N{11},
+                                         N{13},
+                                         N{12},
+                                         N{},
+                                         N{14}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     tree_ = {};
 
@@ -717,11 +805,16 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(tree_));
 
     // Complex case with a negated join with negated children
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: all{2,3}, 5: "
-        "surface 2, 6: not{5}, 7: all{4,6}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: all{2,3}, 5: "
+            "surface 2, 6: not{5}, 7: all{4,6}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{3}, N{}, N{}, N{}, N{4}, N{5}, N{6}, N{7}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 
     tree_ = {};
     s0 = this->insert(S{0});
@@ -735,11 +828,16 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
         "not{3}, 6: all{4,5}, 7: any{4,5}, 8: not{7}, }",
         to_string(tree_));
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-        "not{3}, 6: all{4,5}, 7: all{2,3}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
+            "not{3}, 6: all{4,5}, 7: all{2,3}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{3}, N{4}, N{5}, N{6}, N{}, N{7}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 }
 
 TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
@@ -764,18 +862,20 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         to_string(tree_));
 
     // Complex case with a negated join with negated children
-    auto simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-        "not{3}, 6: all{2,3}, 7: any{4,5}, 8: surface 2, 9: not{8}, 10: "
-        "all{6,9}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
+            "not{3}, 6: all{2,3}, 7: any{4,5}, 8: surface 2, 9: not{8}, 10: "
+            "all{6,9}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{3}, N{4}, N{5}, N{7}, N{6}, N{8}, N{9}, N{10}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        constexpr N expected_volumes[]{N{7}, N{10}, N{6}};
+        EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
+    }
     // Check that the new volumes map to the correct node
-    auto& volumes = simplified.volumes();
-    ASSERT_EQ(volumes.size(), 3);
-    EXPECT_EQ(volumes[0], NodeId{7});
-    EXPECT_EQ(volumes[1], NodeId{10});
-    EXPECT_EQ(volumes[2], NodeId{6});
 
     tree_ = {};
     auto mz = this->insert_surface(PlaneZ{-1.0});
@@ -793,15 +893,36 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
     this->insert(Joined{op_and, {mz, below_pz}});
     tree_.insert_volume(inner_cyl);
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, 10: "
-        "surface 3, 11: not{10}, 12: all{2,5,11}, 13: all{8,12}, 14: surface "
-        "4, 15: all{2,5,14}, 16: all{2,5}, }",
-        to_string(simplified));
-    ASSERT_EQ(volumes.size(), 1);
-    EXPECT_EQ(volumes[0], NodeId{9});
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, "
+            "10: "
+            "surface 3, 11: not{10}, 12: all{2,5,11}, 13: all{8,12}, 14: "
+            "surface "
+            "4, 15: all{2,5,14}, 16: all{2,5}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{N{0},
+                                         N{1},
+                                         N{2},
+                                         N{4},
+                                         N{5},
+                                         N{6},
+                                         N{7},
+                                         N{9},
+                                         N{10},
+                                         N{11},
+                                         N{12},
+                                         N{8},
+                                         N{13},
+                                         N{14},
+                                         N{15},
+                                         N{16}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        constexpr N expected_volumes[]{N{9}};
+        EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
+    }
 
     tree_ = {};
     EXPECT_EQ(N{2}, this->insert(Surface{S{0}}));  // mz
@@ -855,20 +976,32 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         to_string(tree_));
 
     tree_.insert_volume(N{16});
-    simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, 10: "
-        "surface 3, 11: not{10}, 12: any{3,4,10}, 13: all{2,5,11}, 14: "
-        "surface 4, 15: not{14}, 16: surface 5, 17: not{16}, 18: any{15,17}, "
-        "19: all{14,16}, 20: any{8,13,18}, 21: all{9,12,19}, 22: surface 6, "
-        "23: not{22}, 24: surface 7, 25: not{24}, 26: any{6,23,24}, 27: "
-        "any{10,23,24}, 28: all{11,22,25}, 29: surface 8, 30: not{29}, 31: "
-        "surface 9, 32: not{31}, 33: any{30,32}, 34: any{26,28,33}, 35: "
-        "all{21,34}, }",
-        to_string(simplified));
-    ASSERT_EQ(volumes.size(), 1);
-    EXPECT_EQ(volumes[0], NodeId{20});
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, "
+            "10: "
+            "surface 3, 11: not{10}, 12: any{3,4,10}, 13: all{2,5,11}, 14: "
+            "surface 4, 15: not{14}, 16: surface 5, 17: not{16}, 18: "
+            "any{15,17}, "
+            "19: all{14,16}, 20: any{8,13,18}, 21: all{9,12,19}, 22: surface "
+            "6, "
+            "23: not{22}, 24: surface 7, 25: not{24}, 26: any{6,23,24}, 27: "
+            "any{10,23,24}, 28: all{11,22,25}, 29: surface 8, 30: not{29}, "
+            "31: "
+            "surface 9, 32: not{31}, 33: any{30,32}, 34: any{26,28,33}, 35: "
+            "all{21,34}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0},  N{1},  N{2},  N{4},  N{5},  N{6},  N{7},  N{9},
+            N{10}, N{11}, N{13}, N{12}, N{14}, N{16}, N{19}, N{21},
+            N{20}, N{22}, N{24}, N{25}, N{},   N{28}, N{27}, N{29},
+            N{31}, N{},   N{},   N{34}, N{35}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        constexpr N expected_volumes[]{N{20}};
+        EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
+    }
 }
 
 TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
@@ -883,11 +1016,16 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: ->{5}, 7: not{5}, }",
         to_string(tree_));
-    auto simplified = transform_negated_joins(tree_);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "not{4}, 6: any{3,4}, 7: all{2,5}, }",
-        to_string(simplified));
+    {
+        auto simplified = transform_negated_joins(tree_);
+        EXPECT_EQ(
+            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+            "not{4}, 6: any{3,4}, 7: all{2,5}, }",
+            to_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0}, N{1}, N{2}, N{4}, N{5}, N{}, N{7}, N{6}};
+        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+    }
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

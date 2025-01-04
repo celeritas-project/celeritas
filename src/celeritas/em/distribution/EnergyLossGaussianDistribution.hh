@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/distribution/EnergyLossGaussianDistribution.hh
@@ -44,7 +43,7 @@ class EnergyLossGaussianDistribution
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:

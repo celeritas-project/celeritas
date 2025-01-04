@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ParticleTrackView.hh
@@ -19,7 +18,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Properties of a single particle track.
+ * Properties of a single optical photon.
  */
 class ParticleTrackView
 {
@@ -49,10 +48,10 @@ class ParticleTrackView
     // Access the polarization
     CELER_FORCEINLINE_FUNCTION Real3 const& polarization() const;
 
-    // Change the particle's energy [MeV]
+    // Change the photon's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);
 
-    // Change the particle's polarization
+    // Change the photon's polarization
     inline CELER_FUNCTION void polarization(Real3 const&);
 
   private:

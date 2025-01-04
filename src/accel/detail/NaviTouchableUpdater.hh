@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/detail/NaviTouchableUpdater.hh
@@ -40,7 +39,7 @@ class NaviTouchableUpdater final : public TouchableUpdaterInterface
 
   public:
     //! Maximum step to try within the current volume [len]
-    static constexpr double max_step() { return 1 * units::millimeter; }
+    static constexpr double max_step() { return 1.0 * units::millimeter; }
 
     //! Warn when the step is greater than this amount [len]
     static constexpr double max_quiet_step()
