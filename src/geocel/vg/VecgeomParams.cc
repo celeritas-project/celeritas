@@ -51,10 +51,6 @@
 #include "VecgeomData.hh"  // IWYU pragma: associated
 
 #include "detail/VecgeomCompatibility.hh"
-
-#if CELERITAS_VECGEOM_SURFACE
-#    include "VecgeomParams.surface.hh"
-#endif
 #include "detail/VecgeomSetup.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
@@ -386,11 +382,10 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-#if VECGEOM_VERSION <= 0x020000
+#if VECGEOM_VERSION < 0x020000
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
 #else
-        vecgeom::ABBoxManager<real_type>::Instance()
-            .InitABBoxesForCompleteGeometry();
+        vecgeom::ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
 #endif
     }
 
@@ -623,10 +618,10 @@ void VecgeomParams::build_metadata()
         VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
 
         // Calculate bounding box
-#if VECGEOM_VERSION <= 0x020000
+#if VECGEOM_VERSION < 0x020000
         auto bbox_mgr = ABBoxManager::Instance();
 #else
-        auto bbox_mgr = ABBoxManager<real_type>::Instance();
+        auto bbox_mgr = ABBoxManager_t::Instance();
 #endif
         Vector3D<real_type> lower, upper;
         bbox_mgr.ComputeABBox(pv, &lower, &upper);
