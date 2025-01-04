@@ -63,9 +63,9 @@ jobs:
       - name: Patch spack
         working-directory: spack-src
         run: |
-          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48328.patch?full_index=1 | git apply -
-          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48332.patch?full_index=1 | git apply -
-          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48347.patch?full_index=1 | git apply -
+          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48328.diff | patch -p1
+          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48332.diff | patch -p1
+          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48347.diff | patch -p1
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
