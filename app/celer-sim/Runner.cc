@@ -119,11 +119,9 @@ size_type calc_num_streams(RunnerInput const& inp, size_type num_events)
 /*!
  * Construct on all threads from a JSON input and shared output manager.
  */
-Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
+Runner::Runner(RunnerInput const& inp)
 {
     using SPImporter = std::shared_ptr<ImporterInterface>;
-
-    CELER_EXPECT(output);
 
     this->setup_globals(inp);
 
@@ -152,7 +150,7 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     auto const imported = (*import)();
 
     ScopedRootErrorHandler scoped_root_error;
-    this->build_core_params(inp, std::move(output), g4world, imported);
+    this->build_core_params(inp, g4world, imported);
     this->build_diagnostics(inp);
     this->build_step_collectors(inp);
     this->build_optical_collector(inp, imported);
@@ -278,7 +276,6 @@ void Runner::setup_globals(RunnerInput const& inp) const
  * Construct core parameters.
  */
 void Runner::build_core_params(RunnerInput const& inp,
-                               SPOutputRegistry&& outreg,
                                G4VPhysicalVolume const* g4world,
                                ImportData const& imported)
 {
@@ -289,7 +286,7 @@ void Runner::build_core_params(RunnerInput const& inp,
 
     // Create action manager
     params.action_reg = std::make_shared<ActionRegistry>();
-    params.output_reg = std::move(outreg);
+    params.output_reg = std::make_shared<OutputRegistry>();
 
     // Load geometry: use existing world volume or reload from geometry file
     params.geometry = [&geo_file = inp.geometry_file, g4world] {

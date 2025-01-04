@@ -24,7 +24,6 @@ namespace celeritas
 {
 class CoreParams;
 class OpticalCollector;
-class OutputRegistry;
 class ParticleParams;
 class RootFileManager;
 class StepCollector;
@@ -49,12 +48,11 @@ class Runner
     using Input = RunnerInput;
     using MapStrDouble = std::unordered_map<std::string, double>;
     using RunnerResult = TransporterResult;
-    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     //!@}
 
   public:
-    // Construct on all threads from a JSON input and shared output manager
-    Runner(RunnerInput const& inp, SPOutputRegistry output);
+    // Construct on all threads from a parsed JSON input
+    Runner(RunnerInput const& inp);
 
     // Warm up by running a single step with no active tracks
     void warm_up();
@@ -73,6 +71,9 @@ class Runner
 
     // Get the accumulated action times
     MapStrDouble get_action_times() const;
+
+    // Access core params
+    CoreParams const& core_params() const { return *core_params_; }
 
   private:
     //// TYPES ////
@@ -99,7 +100,6 @@ class Runner
 
     void setup_globals(RunnerInput const&) const;
     void build_core_params(RunnerInput const&,
-                           SPOutputRegistry&&,
                            G4VPhysicalVolume const*,
                            ImportData const&);
     void build_step_collectors(RunnerInput const&);
