@@ -104,7 +104,6 @@ jobs:
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
-          cat spack.yaml
       - name: Cache concretization
         uses: actions/cache@v4
         with:
