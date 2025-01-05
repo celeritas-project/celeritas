@@ -121,6 +121,13 @@ size_type calc_num_streams(RunnerInput const& inp, size_type num_events)
  */
 Runner::Runner(RunnerInput const& inp)
 {
+    CELER_VALIDATE(inp.event_file.empty() != !inp.primary_options,
+                   << "either a event filename or options to generate "
+                      "primaries must be provided (but not both)");
+    CELER_VALIDATE(!inp.mctruth_filter || !inp.mctruth_file.empty(),
+                   << "'mctruth_filter' cannot be specified without providing "
+                      "'mctruth_file'");
+
     using SPImporter = std::shared_ptr<ImporterInterface>;
 
     this->setup_globals(inp);

@@ -132,6 +132,11 @@ void GlobalSetup::ReadInput(std::string const& filename)
         CELER_ASSERT(instream);
         nlohmann::json::parse(*instream).get_to(input_);
 
+        CELER_VALIDATE(input_.event_file.empty()
+                           == static_cast<bool>(input_.primary_options),
+                       << "either a HepMC3 filename or options to generate "
+                          "primaries must be provided (but not both)");
+
         if (input_.cuda_stack_size != RunInput::unspecified)
         {
             options_->cuda_stack_size = input_.cuda_stack_size;
