@@ -23,7 +23,7 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Tally post-step actions for each particle type.
+ * Tally number of steps taken by each particle type.
  *
  * This adds an \c step-diagnostic entry to the \c result category of the
  * main Celeritas output that bins the total number of steps taken by a track,

@@ -45,7 +45,7 @@ inp::Input to_input(SetupOptions const& so)
 
     {
         inp::StateCapacity c;
-        c.tracks = so.max_num_tracks ;
+        c.tracks = so.max_num_tracks;
         c.initializers = so.initializer_capacity;
         c.secondaries = so.secondary_stack_factor * c.tracks;
         c.primaries = so.auto_flush;
@@ -67,13 +67,13 @@ inp::Input to_input(SetupOptions const& so)
     {
         inp::Device d;
         d.default_stream = r.default_stream;
-        d.stack_size =  r.cuda_stack_size;
+        d.stack_size = r.cuda_stack_size;
         d.heap_size = r.cuda_heap_size;
 
         i.tuning.device = std::move(d);
     }
 
-    i.tuning.track_order = [&]{
+    i.tuning.track_order = [&] {
         auto track_order = so.track_order;
         if (track_order != TrackOrder::size_)
             return track_order;

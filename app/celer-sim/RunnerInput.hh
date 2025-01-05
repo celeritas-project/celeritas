@@ -49,7 +49,7 @@ struct RunnerInput
         explicit operator bool() const
         {
             return num_events > 0 && num_merged > 0;
-        };
+        }
     };
 
     struct OpticalOptions
@@ -65,7 +65,7 @@ struct RunnerInput
         {
             return num_track_slots > 0 && buffer_capacity > 0
                    && initializer_capacity > 0 && auto_flush > 0;
-        };
+        }
     };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{0};
