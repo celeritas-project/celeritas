@@ -107,7 +107,8 @@ $ make && ctest
 ```
 
 Celeritas guarantees full compatibility and correctness only on the
-combinations of compilers and dependencies tested under continuous integration:
+combinations of compilers and dependencies tested under continuous integration.
+See the configure output from the [GitHub runners](https://github.com/celeritas-project/celeritas/actions/workflows/push.yml) for the full list of combinations.
 - Compilers and standard:
     - GCC 8, 11, 12, 14
     - Clang 10, 15, 18
@@ -115,7 +116,7 @@ combinations of compilers and dependencies tested under continuous integration:
     - ROCm Clang 18
     - C++17 and C++20
 - Dependencies:
-    - Geant4 11.0.3
+    - Geant4 11.0.4
     - VecGeom 1.2.10
 
 Partial compatibility and correctness is available for an extended range of

@@ -1,9 +1,9 @@
 # Build directly on the GitHub runner with caching
 # NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
-# - spack version
-# - any required spack patches
-# - runner versions
-# - scripts/ci/spack.yaml
+# - Spack version
+# - Any required spack patches
+# - Github runner versions
+# - Environment versions at scripts/ci/spack.yaml
 name: build-spack
 on:
   workflow_dispatch:
@@ -79,12 +79,12 @@ jobs:
           buildcache: true
           color: true
           path: spack-src
-      - name: Patch spack
+      - name: Patch spack # To be deleted; see associated github pulls
         working-directory: spack-src
         run: |
-          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48328.diff | patch -p1
-          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48332.diff | patch -p1
-          curl -LfsS https://patch-diff.githubusercontent.com/spack/spack/pull/48347.diff | patch -p1
+          curl -LfsS https://github.com/spack/spack/pull/48328.diff | patch -p1
+          curl -LfsS https://github.com/spack/spack/pull/48332.diff | patch -p1
+          curl -LfsS https://github.com/spack/spack/pull/48347.diff | patch -p1
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
