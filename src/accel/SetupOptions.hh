@@ -20,6 +20,11 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
+namespace inp
+{
+struct Input;
+}
+
 struct AlongStepFactoryInput;
 //---------------------------------------------------------------------------//
 /*!
@@ -213,6 +218,9 @@ struct SetupOptions
 // Find volumes by name for SDSetupOptions
 std::unordered_set<G4LogicalVolume const*>
     FindVolumes(std::unordered_set<std::string>);
+
+// Convert to Celeritas input
+inp::Input to_input(SetupOptions const& so);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
