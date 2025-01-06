@@ -15,7 +15,6 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 cmake_policy(VERSION 3.18...3.31)
-cmake_policy(SET CMP0175 OLD)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
