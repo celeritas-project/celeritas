@@ -25,7 +25,8 @@ namespace inp
  * When used in MPI parallel (e.g., one process per GPU), each rank has this
  * many.
  *
- * \note The \c primaries is a minimum tuning parameter, not a maximum.
+ * \note The \c primaries is a minimum tuning parameter, not a maximum. It was
+ * previously named \c auto_flush .
  *
  * Defaults:
  * - \c secondary: twice the number of track slots.

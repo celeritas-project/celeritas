@@ -6,7 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "RunInput.hh"
 
+#include <fstream>
+
 #include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/inp/Input.hh"
 #include "accel/SharedParams.hh"
 
 namespace celeritas
@@ -57,23 +62,23 @@ RunInput::operator bool() const
            && (step_diagnostic_bins > 0 || !step_diagnostic);
 }
 
-//---------------------------------------------------------------------------
-// Convert RunInput to celeritas::inp::Input
-//---------------------------------------------------------------------------
-
-celeritas::inp::Input to_input(const celeritas::app::RunInput& run_input)
+//---------------------------------------------------------------------------//
+inp::Input to_input(RunInput const& run_input)
 {
     using namespace celeritas;
 
     inp::Input result;
 
-    // Environment options
-    if (run_input.cuda_stack_size != RunInput::unspecified ||
-        run_input.cuda_heap_size != RunInput::unspecified)
+    result.tuning.environ
+        = {run_input.environ.begin(), run_input.environ.end()};
+
+    // TODO: add option to enable/disable rather than checking device/env
+    if (celeritas::device())
     {
         inp::Device device;
         device.stack_size = run_input.cuda_stack_size;
         device.heap_size = run_input.cuda_heap_size;
+        device.default_stream = run_input.default_stream;
         result.tuning.device = std::move(device);
     }
 
@@ -89,7 +94,7 @@ celeritas::inp::Input to_input(const celeritas::app::RunInput& run_input)
     else if (run_input.primary_options)
     {
         inp::PrimaryGenerator generator;
-        generator = run_input.primary_options; // Assuming compatibility
+        // generator = run_input.primary_options; // Assuming compatibility
         result.events = std::move(generator);
     }
 
@@ -107,48 +112,88 @@ celeritas::inp::Input to_input(const celeritas::app::RunInput& run_input)
     {
         inp::TrackingLimits limits;
         limits.steps = run_input.max_steps;
-        limits.field_substeps = run_input.auto_flush; // Assuming similarity
         result.tracking.limits = std::move(limits);
     }
 
-    // Physics setup
-    result.physics.ignore_processes = run_input.physics_options.ignore_processes;
+    result.tuning.track_order = [&] {
+        auto track_order = run_input.track_order;
+        if (track_order != TrackOrder::size_)
+            return track_order;
+
+        if (result.tuning.device)
+        {
+            // Device is activated: initializing by charge is more performant
+            return TrackOrder::init_charge;
+        }
+
+        // Device is not active: don't ort
+        return TrackOrder::none;
+    }();
 
     // Field setup
-    if (run_input.field != RunInput::no_field())
+    if (run_input.field_type == "rzmap")
+    {
+        CELER_LOG_LOCAL(info)
+            << "Loading RZMapField from " << run_input.field_file;
+        std::ifstream inp(run_input.field_file);
+        CELER_VALIDATE(inp,
+                       << "failed to open field map file at '"
+                       << run_input.field_file << "'");
+
+        // Read RZ map from file
+        RZMapFieldInput rzmap;
+        inp >> rzmap;
+
+        // Replace driver options with user options
+        rzmap.driver_options = run_input.field_options;
+
+        result.field = std::move(rzmap);
+    }
+    else if (run_input.field_type == "uniform")
     {
         inp::UniformField field;
         field.strength = run_input.field;
-        field.driver_options = run_input.field_options;
-        result.field = std::move(field);
+
+        auto field_val = norm(field.strength);
+        CELER_LOG_LOCAL(info)
+            << "Using a uniform field " << field_val << " [T]";
+        if (field_val > 0)
+        {
+            field.driver_options = run_input.field_options;
+            result.field = std::move(field);
+        }
+    }
+    else
+    {
+        CELER_VALIDATE(
+            false, << "invalid field type '" << run_input.field_type << "'");
     }
 
-    // Sensitive detector
-    if (run_input.sd_type != RunInput::SensitiveDetectorType::none)
+    if (run_input.sd_type != SensitiveDetectorType::none)
     {
-        inp::Scoring scoring;
-        if (run_input.sd_type == RunInput::SensitiveDetectorType::simple_calo)
-        {
-            scoring.simple_calo.emplace();
-        }
-        else if (run_input.sd_type == RunInput::SensitiveDetectorType::event_hit)
-        {
-            scoring.sd.emplace(); // Assuming default SensitiveDetector
-        }
-        result.scoring = std::move(scoring);
+        // Activate Geant4 SD callbacks
+        result.scoring.sd.emplace();
     }
 
     // Diagnostics
-    result.diagnostics.output_file = run_input.output_file;
-    result.diagnostics.export_files.physics = run_input.physics_output_file;
-    result.diagnostics.export_files.offload = run_input.offload_output_file;
-    result.diagnostics.timers.action = run_input.action_times;
+    auto& d = result.diagnostics;
+    d.output_file = run_input.output_file;
+    d.export_files.physics = run_input.physics_output_file;
+    d.export_files.offload = run_input.offload_output_file;
+    d.timers.action = run_input.action_times;
 
     if (!run_input.slot_diagnostic_prefix.empty())
     {
         inp::SlotDiagnostic slot_diag;
         slot_diag.basename = run_input.slot_diagnostic_prefix;
-        result.diagnostics.slot = std::move(slot_diag);
+        d.slot = std::move(slot_diag);
+    }
+
+    if (run_input.step_diagnostic)
+    {
+        inp::StepDiagnostic step;
+        step.bins = run_input.step_diagnostic_bins;
+        d.step = std::move(step);
     }
 
     return result;

@@ -85,6 +85,7 @@ struct Physics
 
     // TODO: particle selection
     // TODO: user process builder
+    // TODO: where/how should celer-g4 set up physics list?
 };
 
 //---------------------------------------------------------------------------//

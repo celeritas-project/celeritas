@@ -45,7 +45,7 @@ struct UniformField
 };
 
 //---------------------------------------------------------------------------//
-// TODO: move field input here
+// TODO: move field input here, make variant input/filename?
 using RZMapField = ::celeritas::RZMapFieldInput;
 
 //---------------------------------------------------------------------------//

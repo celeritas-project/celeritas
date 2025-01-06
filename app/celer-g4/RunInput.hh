@@ -25,6 +25,12 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+namespace inp
+{
+struct Input;
+}
+
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -120,6 +126,8 @@ struct RunInput
 
 char const* to_cstring(PhysicsListSelection value);
 char const* to_cstring(SensitiveDetectorType value);
+
+inp::Input to_input(RunInput const& run_input);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

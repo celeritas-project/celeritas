@@ -76,7 +76,8 @@ inp::Input to_input(SetupOptions const& so)
         inp::StateCapacity c;
         c.tracks = so.max_num_tracks;
         c.initializers = so.initializer_capacity;
-        c.secondaries = so.secondary_stack_factor * c.tracks;
+        c.secondaries
+            = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         c.primaries = so.auto_flush;
 
         i.tuning.capacity = std::move(c);
