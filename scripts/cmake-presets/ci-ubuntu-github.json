@@ -97,6 +97,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Perfetto":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_STANDARD": "17",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_CLANG_TIDY": {"type": "PATH", "value": "$env{CLANG_TIDY}"}
       }
