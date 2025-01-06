@@ -6,6 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
+#include <string>
+
+#include "corecel/Types.hh"
+#include "celeritas/user/RootStepWriterInput.hh"
+
 namespace celeritas
 {
 namespace inp
@@ -100,6 +106,9 @@ struct Diagnostics
 
     //! Accumulate post-step actions for each particle type
     bool action{false};
+
+    //! Store track counts per step iteration
+    bool step_counters{false};
 
     //! Accumulate steps per track
     std::optional<StepDiagnostic> step;

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <vector>
+
 #include "corecel/Types.hh"
 
 namespace celeritas

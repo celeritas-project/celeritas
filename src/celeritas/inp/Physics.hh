@@ -6,32 +6,43 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Field.h"
+#include <string>
+#include <vector>
+
+#include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
+struct AlongStepFactoryInput;
+
 namespace inp
 {
+#if 0
 //---------------------------------------------------------------------------//
 /*!
  * Set up multiple scattering options.
+ *
+ * TODO: some of these are moved from \c ImportEmParameters : we should import
+ * more and change them around a bit.
  */
 struct MscOptions
 {
     MscStepLimitAlgorithm step_limit{MscStepLimitAlgorithm::safety};
 
     //! MSC range factor for e-/e+
-    double range_factor{0.04};
+    real_type range_factor{0.04};
     //! MSC safety factor
-    double safety_factor{0.6};
+    real_type safety_factor{0.6};
     //! MSC lambda limit [length]
-    double lambda_limit{1 * units::millimeter};
+    real_type lambda_limit{1 * units::millimeter};
     //! Polar angle limit between single and multiple Coulomb scattering
-    double theta_limit{constants::pi};
+    real_type theta_limit{constants::pi};
 
     // TODO: unit system support?
     static inline constexpr UnitSystem units{UnitSystem::native};
 };
+#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,9 +62,9 @@ struct EmPhysicsOptions
 
     //!@{
     //! \name Model options
-    // TODO: //! LPM corrections for bremsstrahlung and pair production
-    // TODO: bool lpm{true};
-    //! Use combined SB/relativistic interactor
+    //! Use LPM corrections for high-energy bremsstrahlung and pair production
+    bool lpm{true};
+    //! Use combined SB/relativistic interactor for bremsstrahlung
     bool brem_combined{false};
     //!@}
 };
@@ -66,17 +77,11 @@ struct EmPhysicsOptions
  */
 struct Physics
 {
-    using AlongStepFactory
-        = std::function<SPConstAction(AlongStepFactoryInput const&)>;
-
     //! Electromagnetic physics options
     EmPhysicsOptions em_options;
 
     //! Do not use Celeritas physics for the given Geant4 process names
     std::vector<std::string> ignore_processes;
-
-    //! REMOVE: along-step factory
-    AlongStepFactory make_along_step;
 
     // TODO: particle selection
     // TODO: user process builder

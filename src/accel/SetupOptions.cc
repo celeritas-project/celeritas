@@ -9,6 +9,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/inp/Input.hh"
 
+#include "AlongStepFactory.hh"
 #include "ExceptionConverter.hh"
 
 namespace celeritas
@@ -29,6 +30,34 @@ FindVolumes(std::unordered_set<std::string> names)
     std::unordered_set<G4LogicalVolume const*> result;
     CELER_TRY_HANDLE(result = find_geant_volumes(std::move(names)),
                      call_g4exception);
+    return result;
+}
+
+inp::SDStepPointAttributes to_input(SDSetupOptions::StepPoint const& sp)
+{
+    inp::SDStepPointAttributes result;
+    result.global_time = sp.global_time;
+    result.position = sp.position;
+    result.direction = sp.direction;
+    result.kinetic_energy = sp.kinetic_energy;
+    return result;
+}
+
+inp::SensitiveDetector to_input(SDSetupOptions const& sd)
+{
+    celeritas::inp::SensitiveDetector result;
+
+    result.ignore_zero_deposition = sd.ignore_zero_deposition;
+    result.energy_deposition = sd.energy_deposition;
+    result.locate_touchable = sd.locate_touchable;
+    result.track = sd.track;
+    result.pre = to_input(sd.pre);
+    result.post = to_input(sd.post);
+    result.force_volumes = std::set<G4LogicalVolume const*>(
+        sd.force_volumes.begin(), sd.force_volumes.end());
+    result.skip_volumes = std::set<G4LogicalVolume const*>(
+        sd.skip_volumes.begin(), sd.skip_volumes.end());
+
     return result;
 }
 
@@ -54,7 +83,6 @@ inp::Input to_input(SetupOptions const& so)
     }
     {
         inp::TrackingLimits tl;
-        tl.events = so.max_num_events;
         tl.steps = so.max_steps;
         tl.step_iters = so.max_step_iters;
         tl.field_substeps = so.max_field_substeps;
@@ -66,9 +94,9 @@ inp::Input to_input(SetupOptions const& so)
     if (celeritas::device())
     {
         inp::Device d;
-        d.default_stream = r.default_stream;
-        d.stack_size = r.cuda_stack_size;
-        d.heap_size = r.cuda_heap_size;
+        d.default_stream = so.default_stream;
+        d.stack_size = so.cuda_stack_size;
+        d.heap_size = so.cuda_heap_size;
 
         i.tuning.device = std::move(d);
     }
@@ -90,40 +118,43 @@ inp::Input to_input(SetupOptions const& so)
 
     if (so.sd.enabled)
     {
-        celeritas::inp::SensitiveDetector sd;
-
-        sd.ignore_zero_deposition = so.sd.ignore_zero_deposition;
-        sd.energy_deposition = so.sd.energy_deposition;
-        sd.locate_touchable = so.sd.locate_touchable;
-        sd.track = so.sd.track;
-        sd.pre = so.sd.pre;
-        sd.post = so.sd.post;
-        sd.force_volumes = so.sd.force_volumes;
-        sd.skip_volumes = so.sd.skip_volumes;
-        i.scoring.sensitive_detector = std::move(sd);
+        i.scoring.sd = to_input(so.sd);
     }
 
     i.tuning.num_streams = so.get_num_streams();
 
-    // TODO: map along-step to magnetic field and physics input
-    i.physics.make_along_step = so.make_along_step;
+    if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
+    {
+        CELER_NOT_IMPLEMENTED("convert uniform factory");
+        // Check if magnitude is zero
+        i.field = inp::UniformField{};
+    }
+    else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
+    {
+        i.field = u->get_field();
+    }
+    else
+    {
+        CELER_NOT_IMPLEMENTED("processing generic along-step factory");
+    }
+
     i.physics.ignore_processes = so.ignore_processes;
 
     {
-        ExportFiles ef;
+        inp::ExportFiles ef;
         ef.physics = so.physics_output_file;
         ef.offload = so.offload_output_file;
         ef.geometry = so.geometry_output_file;
-        i.diagnostics.ef = std::move(ef);
+        i.diagnostics.export_files = std::move(ef);
     }
 
     i.diagnostics.timers.action = so.action_times;
 
     if (!so.slot_diagnostic_prefix.empty())
     {
-        SlotDiagnostic sd;
-        sd.filename_base = slot_diagnostic_prefix;
-        i.diagnostics.slot_diagnostic = std::move(sd);
+        inp::SlotDiagnostic sd;
+        sd.basename = so.slot_diagnostic_prefix;
+        i.diagnostics.slot = std::move(sd);
     }
 
     return i;

@@ -8,6 +8,7 @@
 
 #include <variant>
 
+#include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 
@@ -33,8 +34,6 @@ struct NoField
  */
 struct UniformField
 {
-    using Real3 = Array<real_type, 3>;
-
     //! Default field units are tesla
     UnitSystem units{UnitSystem::si};
 

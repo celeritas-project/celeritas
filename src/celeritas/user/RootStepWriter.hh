@@ -13,8 +13,8 @@
 #include "corecel/Assert.hh"
 #include "celeritas/ext/RootUniquePtr.hh"
 
-#include "StepInterface.hh"
 #include "RootStepWriterInput.hh"
+#include "StepInterface.hh"
 
 class TTree;
 

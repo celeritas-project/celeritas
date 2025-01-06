@@ -6,6 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <variant>
+
+#include "corecel/Types.hh"
+#include "geocel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/phys/PDGNumber.hh"
+
 namespace celeritas
 {
 namespace inp
@@ -14,6 +22,7 @@ namespace inp
 //! Set up for offloading from an external programmatic source (Geant4)
 struct OffloadEvents
 {
+    // No parameters yet: perhaps list of PDGs to offload?
 };
 
 //---------------------------------------------------------------------------//
@@ -50,7 +59,7 @@ using AngleDistribution = std::variant<IsotropicAngle, MonodirectionalAngle>;
 //! Generate primaries at a single energy value
 struct Monoenergetic
 {
-    MevEnergy energy;
+    units::MevEnergy energy;
 };
 
 using EnergyDistribution = Monoenergetic;

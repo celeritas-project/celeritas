@@ -8,7 +8,6 @@
 #include "Diagnostics.hh"
 #include "Events.hh"
 #include "Field.hh"
-#include "Geometry.hh"
 #include "Physics.hh"
 #include "Scoring.hh"
 #include "Tracking.hh"

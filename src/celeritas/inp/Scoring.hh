@@ -6,7 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
+#include <set>
+#include <variant>
+#include <vector>
+
 #include "corecel/io/Label.hh"
+
 class G4LogicalVolume;
 
 namespace celeritas
