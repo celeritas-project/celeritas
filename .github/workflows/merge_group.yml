@@ -22,7 +22,7 @@ jobs:
     needs:
     - build-docker
     - build-spack
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Decide whether the needed jobs succeeded or failed
       uses: re-actors/alls-green@release/v1
