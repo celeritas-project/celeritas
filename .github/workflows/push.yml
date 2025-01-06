@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/build-spack.yml
   all:
     needs: [build-fast, build-docker, build-spack]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Success
       run: "true"

@@ -24,7 +24,7 @@ concurrency:
 jobs:
   metadata:
     name: "Save job metadata"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     # Event file is needed for EnricoMi/publish-unit-test-result-action
     - name: Upload event file
@@ -40,7 +40,7 @@ jobs:
     uses: ./.github/workflows/doc.yml
   all-prechecks:
     needs: [build-fast, build-ultralite, doc]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Success
       run: "true"
@@ -59,7 +59,7 @@ jobs:
     needs:
     - build-docker
     - build-spack
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Decide whether the needed jobs succeeded or failed
       uses: re-actors/alls-green@release/v1

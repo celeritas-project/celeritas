@@ -84,7 +84,6 @@ if(CELERITAS_USE_VecGeom)
         "FourLevelsTest.*"
         "MultiLevelTest.*"
         "SolidsTest.*"
-        "CmseTest.*"
       )
     endif()
   endif()

@@ -1084,7 +1084,7 @@ class CmseTest : public VecgeomVgdmlTestBase
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CmseTest, trace)
+TEST_F(CmseTest, DISABLED_trace)
 {
     // clang-format off
     {

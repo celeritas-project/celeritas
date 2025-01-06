@@ -27,6 +27,7 @@ spack:
       # Note: ~gsl and ~math are removed because dd4hep requires them
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb
     all:
+      # Note: C++17 is the minimum required
       # Note: for CUDA support run this command in your environment:
       # spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=<ARCH>"
       variants: cxxstd=17

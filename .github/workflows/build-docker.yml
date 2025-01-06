@@ -24,36 +24,32 @@ jobs:
         special: [null]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
-        image: ["ubuntu-cuda"] # TODO: upgrade CI images, add ["centos-rocm"]
+        image: ["rocky-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
-            image: "centos-rocm" # VecGeom not installed on HIP
+            image: "ubuntu-rocm" # VecGeom not installed on HIP
           - buildtype: "debug"
-            image: "centos-rocm" # Debug builds don't work with HIP
+            image: "ubuntu-rocm" # Debug builds don't work with HIP
         include:
           - geometry: "vecgeom"
             buildtype: "reldeb"
-            image: "ubuntu-cuda"
+            image: "rocky-cuda"
     env:
       CELER_TEST_STRICT: 1
-      CELER_DISABLE_DEVICE: 1 # IMPORTANT
+      CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                 matrix.buildtype,
                 matrix.geometry,
                 matrix.special && '-' || '',
                 matrix.special)}}
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true # TODO: DELETEME, see #1305
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
       image: >-
         docker.io/celeritas/${{
-             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-08-02'
-          || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
+             matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-12-29'
+          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm6:2025-01-02'
         }}
-      # TODO: I think this will be fixed if we upgrade checkout
-      # See https://github.com/actions/checkout/issues/956
-      options: --user root
     steps:
       - name: Set up environment
         run: |
@@ -61,10 +57,9 @@ jobs:
           echo "/opt/view/bin" >> $GITHUB_PATH
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
-      # NOTE: checkout v4 fails: https://github.com/actions/checkout/issues/1487
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 383
           fetch-tags: true
@@ -77,21 +72,10 @@ jobs:
         working-directory: build
         run: |
           ninja
-      - name: Regenerate ROOT test data
-        working-directory: build
-        # NOTE: we have to do this for now because the ROOT version on the CI image is too old:
-        # see https://github.com/root-project/root/pull/12845
-        # Revert when we update the CI images
-        run: |
-          if [ -e test ]; then
-            ninja -v -k0 update-root-test-data
-          fi
       - name: Test Celeritas
         id: test
-        working-directory: build
         run: |
-          ctest --parallel $(nproc) --timeout 180 --output-on-failure \
-            --test-output-size-passed=65536 --test-output-size-failed=1048576
+          ctest --preset=base
       - name: Install Celeritas
         working-directory: build
         run: |
@@ -108,26 +92,19 @@ jobs:
         # TODO: rocm+ndebug fails to propagate HIP library link
         if: >-
           ${{
-            !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
+            !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
           }}
         run: |
           . /etc/profile
-          if [ "${{matrix.geometry}}" = "vecgeom" ]; then
-            # TODO: vecgeom is loosey goosey about symbols whereas Ubuntu is strict
-            export LDFLAGS=-Wl,--no-as-needed ${LDFLAGS}
-          fi
           ./scripts/ci/test-examples.sh
       - name: Upload test results
-        # Note: upload-v3 doesn't seem to pick up the paths: delete the "false" line below once we 
-        # upgrade the centos/ubuntu docker images
         if: >-
           ${{
-            false &&
             always()
             && (steps.test.outcome == 'success'
                 || steps.test.outcome == 'failure')
           }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
           path: "test-output/**/*.xml"
