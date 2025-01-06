@@ -7,6 +7,7 @@
 #include "PrimaryGeneratorOptions.hh"
 
 #include "corecel/io/EnumStringMapper.hh"
+#include "celeritas/inp/Events.hh"
 #include "celeritas/random/distribution/DeltaDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
@@ -139,6 +140,89 @@ make_direction_sampler(DistributionOptions options)
                            << to_cstring(options.distribution) << "' for "
                            << sampler_name);
     }
+}
+
+celeritas::inp::PrimaryGenerator
+to_input(celeritas::PrimaryGeneratorOptions const& pgo)
+{
+    using namespace celeritas;
+
+    CELER_VALIDATE(pgo,
+                   << "Invalid PrimaryGeneratorOptions: "
+                   << "ensure all distributions and parameters are correctly "
+                      "set.");
+
+    inp::PrimaryGenerator result;
+
+    // RNG seed
+    result.seed = pgo.seed;
+
+    // PDG numbers
+    result.pdg = pgo.pdg;
+
+    // Number of events and primaries per event
+    result.num_events = pgo.num_events;
+    result.primaries_per_event = pgo.primaries_per_event;
+
+    // Position distribution
+    switch (pgo.position.distribution)
+    {
+        case DistributionSelection::delta:
+            result.shape = inp::PointShape{Real3{pgo.position.params[0],
+                                                 pgo.position.params[1],
+                                                 pgo.position.params[2]}};
+            break;
+
+        case DistributionSelection::box:
+            result.shape = inp::UniformBoxShape{Real3{pgo.position.params[0],
+                                                      pgo.position.params[1],
+                                                      pgo.position.params[2]},
+                                                Real3{pgo.position.params[3],
+                                                      pgo.position.params[4],
+                                                      pgo.position.params[5]}};
+            break;
+
+        default:
+            CELER_VALIDATE(false,
+                           << "Unsupported position distribution type '"
+                           << to_cstring(pgo.position.distribution) << "'");
+    }
+
+    // Direction distribution
+    switch (pgo.direction.distribution)
+    {
+        case DistributionSelection::delta:
+            result.angle
+                = inp::MonodirectionalAngle{Real3{pgo.direction.params[0],
+                                                  pgo.direction.params[1],
+                                                  pgo.direction.params[2]}};
+            break;
+
+        case DistributionSelection::isotropic:
+            result.angle = inp::IsotropicAngle{};
+            break;
+
+        default:
+            CELER_VALIDATE(false,
+                           << "Unsupported direction distribution type '"
+                           << to_cstring(pgo.direction.distribution) << "'");
+    }
+
+    // Energy distribution
+    switch (pgo.energy.distribution)
+    {
+        case DistributionSelection::delta:
+            result.energy
+                = inp::Monoenergetic{units::MevEnergy{pgo.energy.params[0]}};
+            break;
+
+        default:
+            CELER_VALIDATE(false,
+                           << "Unsupported energy distribution type '"
+                           << to_cstring(pgo.energy.distribution) << "'");
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
