@@ -123,8 +123,10 @@ class BaseBuildLogicPolicy
                   "face and surface ints");
 
   public:
+    // Construct without mapping
+    explicit inline BaseBuildLogicPolicy(CsgTree const& tree);
     // Construct with optional mapping
-    inline BaseBuildLogicPolicy(CsgTree const& tree, VecSurface const* vs);
+    inline BaseBuildLogicPolicy(CsgTree const& tree, VecSurface const& vs);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -146,9 +148,21 @@ class BaseBuildLogicPolicy
 
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
-    VecSurface const* mapping_;
+    VecSurface const* mapping_{nullptr};
     VecLogic logic_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without mapping.
+ */
+template<class BuilderPolicy>
+BaseBuildLogicPolicy<BuilderPolicy>::BaseBuildLogicPolicy(CsgTree const& tree)
+    : visit_node_{tree}
+{
+    static_assert(std::is_base_of_v<BaseBuildLogicPolicy, BuilderPolicy>,
+                  "CRTP: template parameter must be derived class");
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -160,8 +174,8 @@ class BaseBuildLogicPolicy
  */
 template<class BuilderPolicy>
 BaseBuildLogicPolicy<BuilderPolicy>::BaseBuildLogicPolicy(CsgTree const& tree,
-                                                          VecSurface const* vs)
-    : visit_node_{tree}, mapping_{vs}
+                                                          VecSurface const& vs)
+    : visit_node_{tree}, mapping_{&vs}
 {
     static_assert(std::is_base_of_v<BaseBuildLogicPolicy, BuilderPolicy>,
                   "CRTP: template parameter must be derived class");
