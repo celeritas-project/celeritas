@@ -1,4 +1,9 @@
 # Build directly on the GitHub runner with caching
+# NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
+# - Spack version
+# - Any required spack patches
+# - Github runner versions
+# - Environment versions at scripts/ci/spack.yaml
 name: build-spack
 on:
   workflow_dispatch:
@@ -8,7 +13,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 5fe93fee1eec46a0750bd340198bffcb92ff9eec # v0.22.0
+  SPACK_REF: 866785bd74964142e4b47bf71bee68d7426c84ee # develop@2024-12-31
 
 jobs:
   spack:
@@ -24,7 +29,7 @@ jobs:
       matrix:
         geometry: ["vecgeom"]
         special: [null]
-        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2"]
+        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
         include:
           - geometry: "orange"
             special: "minimal"
@@ -54,10 +59,12 @@ jobs:
                   matrix.special)}}
       SPACK_VIEW: "/opt/spack-view"
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
-      CC: "clang-15"
-      CXX: "clang++-15"
-      CLANG_TIDY: "clang-tidy-15"
-    runs-on: ubuntu-22.04
+      CC: "clang-18"
+      CXX: "clang++-18"
+      CLANG_TIDY: "clang-tidy-18"
+      CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
+                 && 17 || 20}}
+    runs-on: ubuntu-24.04
     continue-on-error: false
     steps:
       - name: Check out Celeritas
@@ -66,28 +73,35 @@ jobs:
           fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
       - name: Setup Spack
-        uses: spack/setup-spack@0ce61628ed8a32a5664cf01a0e0b5a4834a3b413 # 2024/03
+        uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
         with:
           ref: ${{env.SPACK_REF}}
           buildcache: true
           color: true
           path: spack-src
+      - name: Patch spack # To be deleted; see associated github pulls
+        working-directory: spack-src
+        run: |
+          curl -LfsS https://github.com/spack/spack/pull/48328.diff | patch -p1
+          curl -LfsS https://github.com/spack/spack/pull/48332.diff | patch -p1
+          curl -LfsS https://github.com/spack/spack/pull/48347.diff | patch -p1
       - name: Initialize spack environment
         run: |
-          # TODO: https://github.com/spack/spack/pull/43136
-          curl -LfsS https://github.com/spack/spack/pull/43136.patch | git -C spack-src apply -
-          cp scripts/ci/spack.yaml .
+          sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
+            scripts/ci/spack.yaml > spack.yaml
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
-            spack -e . add vecgeom
+            spack -e . add vecgeom+gdml
           fi
-          if [ "${{matrix.special}}" != "minimal" ] && [  "${{matrix.special}}" != "asanlite" ] ; then
+          if ${{(matrix.special != 'minimal'
+                 && matrix.special != 'asanlite'
+                 && env.CXXSTD == '20')
+                && 'true' || 'false'}}; then
             spack -e . add root
           fi
           if [ "${{matrix.geant}}" != "" ]; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          spack -e . config add packages:all:require:"'%clang@15 target=x86_64_v3'"
-          spack -e . compiler find
+          spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
       - name: Cache concretization
@@ -105,8 +119,11 @@ jobs:
           spack -e . env depfile -o Makefile
           make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
       - name: Save Spack installation to build cache
+        env:
+          GITHUB_ACTOR: ${{github.actor}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
-          spack -e . mirror set --push --oci-username ${{github.actor}} --oci-password "${{secrets.GITHUB_TOKEN}}" ${SPACK_BUILDCACHE}
+          spack -e . mirror set --push --oci-username-variable GITHUB_ACTOR --oci-password-variable GITHUB_TOKEN ${SPACK_BUILDCACHE}
           spack -e . buildcache push -j $(($(nproc) + 1)) --base-image ubuntu:22.04 --unsigned --update-index ${SPACK_BUILDCACHE}
         if: ${{github.event_name == 'push' && !cancelled()}}
       - name: Activate environment

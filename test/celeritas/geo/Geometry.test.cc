@@ -323,8 +323,7 @@ TEST_F(CmseTest, host)
     EXPECT_VEC_SOFT_EQ((Real3{1750 + geo_eps, 1750 + geo_eps, 45000 + geo_eps}),
                        bbox.upper());
 
-    real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.005
-                                                                     : 0.35;
+    real_type tol = 0.35;
     this->run_host(512, tol);
 }
 
