@@ -6,6 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "RunnerInput.hh"
 
+#include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/inp/Input.hh"
+
+#include "PrimaryGeneratorOptions.hh"
+
 namespace celeritas
 {
 namespace app
@@ -37,12 +42,8 @@ inp::Input to_input(RunnerInput const& r)
     }
     else if (r.primary_options)
     {
-        inp::PrimaryGenerator pg;
-        pg.seed = r.seed;
-        pg.num_events = r.primary_options.num_events;
-        pg.primaries_per_event = r.primary_options.primaries_per_event;
-        input.events = pg;
-        // TODO
+        input.events = to_input(r.primary_options);  // Existing conversion
+                                                     // logic
     }
     else
     {
@@ -65,7 +66,7 @@ inp::Input to_input(RunnerInput const& r)
     // Diagnostics
     if (!r.mctruth_file.empty())
     {
-        McTruth mct;
+        inp::McTruth mct;
         mct.output_file = r.mctruth_file;
         mct.filter = r.mctruth_filter;
         input.diagnostics.mctruth = std::move(mct);
@@ -77,8 +78,14 @@ inp::Input to_input(RunnerInput const& r)
     if (!r.slot_diagnostic_prefix.empty())
     {
         inp::SlotDiagnostic slot_diag;
-        slot_diag.filename_base = r.slot_diagnostic_prefix;
+        slot_diag.basename = r.slot_diagnostic_prefix;
         input.diagnostics.slot = std::move(slot_diag);
+    }
+    if (r.step_diagnostic)
+    {
+        inp::StepDiagnostic step_diag;
+        step_diag.bins = r.step_diagnostic_bins;
+        input.diagnostics.step = std::move(step_diag);
     }
     input.diagnostics.step_counters = r.write_track_counts;
 
@@ -91,11 +98,11 @@ inp::Input to_input(RunnerInput const& r)
 
     if (r.use_device)
     {
-        inp::Device d;
-        d.stack_size = r.cuda_stack_size;
-        d.heap_size = r.cuda_heap_size;
-        d.default_stream = r.default_stream;
-        input.tuning.device = std::move(d);
+        inp::Device device;
+        device.stack_size = r.cuda_stack_size;
+        device.heap_size = r.cuda_heap_size;
+        device.default_stream = r.default_stream;
+        input.tuning.device = std::move(device);
     }
 
     input.tuning.warm_up = r.warm_up;
@@ -111,7 +118,6 @@ inp::Input to_input(RunnerInput const& r)
     input.tracking.limits = tracking_limits;
 
     // Optional fields not in RunnerInput
-    // Step limiter for charged particles
     if (r.step_limiter > 0)
     {
         // NOTE: Step limiter not supported directly in new API
