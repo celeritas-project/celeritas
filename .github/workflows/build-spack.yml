@@ -158,8 +158,6 @@ jobs:
         env:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
-          ninja -Cbuild -k0
-          exit $?
           if [ "${{github.event_name}}" == "schedule" ]; then
             echo "Full clang-tidy check on scheduled run."
             ninja -Cbuild -k0
