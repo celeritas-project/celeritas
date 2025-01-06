@@ -49,6 +49,68 @@ void check_params_size(char const* sampler,
 }
 
 //---------------------------------------------------------------------------//
+// Helper: Convert energy distribution to inp::EnergyDistribution
+inp::EnergyDistribution inp_from_energy(DistributionOptions const& options)
+{
+    char const sampler_name[] = "energy";
+    check_params_size(sampler_name, 1, options);
+    auto const& p = options.params;
+    switch (options.distribution)
+    {
+        case DistributionSelection::delta:
+            return inp::Monoenergetic{units::MevEnergy{p[0]}};
+        default:
+            CELER_VALIDATE(false,
+                           << "invalid distribution type '"
+                           << to_cstring(options.distribution) << "' for "
+                           << sampler_name);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// Convert position distribution to inp::ShapeDistribution
+inp::ShapeDistribution inp_from_position(DistributionOptions const& options)
+{
+    char const sampler_name[] = "position";
+    check_params_size(sampler_name, 3, options);
+    auto const& p = options.params;
+    switch (options.distribution)
+    {
+        case DistributionSelection::delta:
+            return inp::PointShape{Real3{p[0], p[1], p[2]}};
+        case DistributionSelection::box:
+            return inp::UniformBoxShape{Real3{p[0], p[1], p[2]},
+                                        Real3{p[3], p[4], p[5]}};
+        default:
+            CELER_VALIDATE(false,
+                           << "invalid distribution type '"
+                           << to_cstring(options.distribution) << "' for "
+                           << sampler_name);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// Helper: Convert direction distribution to inp::AngleDistribution
+inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
+{
+    char const sampler_name[] = "direction";
+    check_params_size(sampler_name, 3, options);
+    auto const& p = options.params;
+    switch (options.distribution)
+    {
+        case DistributionSelection::delta:
+            return inp::MonodirectionalAngle{Real3{p[0], p[1], p[2]}};
+        case DistributionSelection::isotropic:
+            return inp::IsotropicAngle{};
+        default:
+            CELER_VALIDATE(false,
+                           << "invalid distribution type '"
+                           << to_cstring(options.distribution) << "' for "
+                           << sampler_name);
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -143,74 +205,9 @@ make_direction_sampler(DistributionOptions options)
 }
 
 //---------------------------------------------------------------------------//
-// Helper: Convert position distribution to inp::ShapeDistribution
-inp::ShapeDistribution inp_from_position(DistributionOptions const& pos)
-{
-    CELER_VALIDATE(pos, << "Invalid position distribution options.");
-    check_params_size("position", 3, pos);
-
-    switch (pos.distribution)
-    {
-        case DistributionSelection::delta: {
-            auto const& p = pos.params;
-            return inp::PointShape{Real3{p[0], p[1], p[2]}};
-        }
-        case DistributionSelection::box: {
-            auto const& p = pos.params;
-            return inp::UniformBoxShape{Real3{p[0], p[1], p[2]},
-                                        Real3{p[3], p[4], p[5]}};
-        }
-        default:
-            CELER_VALIDATE(false,
-                           << "Unsupported position distribution type '"
-                           << to_cstring(pos.distribution) << "'");
-    }
-}
-
-//---------------------------------------------------------------------------//
-// Helper: Convert direction distribution to inp::AngleDistribution
-inp::AngleDistribution inp_from_direction(DistributionOptions const& dir)
-{
-    CELER_VALIDATE(dir, << "Invalid direction distribution options.");
-    check_params_size("direction", 3, dir);
-
-    switch (dir.distribution)
-    {
-        case DistributionSelection::delta: {
-            auto const& p = dir.params;
-            return inp::MonodirectionalAngle{Real3{p[0], p[1], p[2]}};
-        }
-        case DistributionSelection::isotropic:
-            return inp::IsotropicAngle{};
-        default:
-            CELER_VALIDATE(false,
-                           << "Unsupported direction distribution type '"
-                           << to_cstring(dir.distribution) << "'");
-    }
-}
-
-//---------------------------------------------------------------------------//
-// Helper: Convert energy distribution to inp::EnergyDistribution
-inp::EnergyDistribution inp_from_energy(DistributionOptions const& energy)
-{
-    CELER_VALIDATE(energy, << "Invalid energy distribution options.");
-    check_params_size("energy", 1, energy);
-
-    switch (energy.distribution)
-    {
-        case DistributionSelection::delta: {
-            auto const& p = energy.params;
-            return inp::Monoenergetic{units::MevEnergy{p[0]}};
-        }
-        default:
-            CELER_VALIDATE(false,
-                           << "Unsupported energy distribution type '"
-                           << to_cstring(energy.distribution) << "'");
-    }
-}
-
-//---------------------------------------------------------------------------//
-// Convert PrimaryGeneratorOptions to inp::PrimaryGenerator
+/*!
+ * Convert PrimaryGeneratorOptions to inp::PrimaryGenerator.
+ */
 inp::PrimaryGenerator to_input(PrimaryGeneratorOptions const& pgo)
 {
     CELER_VALIDATE(pgo,

@@ -17,6 +17,11 @@
 
 namespace celeritas
 {
+namespace inp
+{
+class PrimaryGenerator;
+}
+
 //---------------------------------------------------------------------------//
 //! Distribution selection for sampling quantities in a \c PrimaryGenerator
 enum class DistributionSelection
