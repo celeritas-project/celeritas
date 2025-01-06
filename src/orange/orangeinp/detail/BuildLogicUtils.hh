@@ -38,6 +38,40 @@ struct BuildLogicResult
 
 //---------------------------------------------------------------------------//
 /*!
+ * Sort the faces of a volume and remap the logic expression.
+ */
+BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
+{
+    // Construct sorted vector of faces
+    BuildLogicResult::VecSurface faces;
+    for (auto const& v : lgc)
+    {
+        if (!logic::is_operator_token(v))
+        {
+            faces.push_back(LocalSurfaceId{v});
+        }
+    }
+
+    // Sort and uniquify the vector
+    std::sort(faces.begin(), faces.end());
+    faces.erase(std::unique(faces.begin(), faces.end()), faces.end());
+
+    // Remap logic
+    for (auto& v : lgc)
+    {
+        if (!logic::is_operator_token(v))
+        {
+            auto iter
+                = find_sorted(faces.begin(), faces.end(), LocalSurfaceId{v});
+            CELER_ASSUME(iter != faces.end());
+            v = iter - faces.begin();
+        }
+    }
+    return faces;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a logic representation of a node.
  *
  * The result is a pair of vectors: the sorted surface IDs comprising the faces
@@ -64,32 +98,7 @@ inline BuildLogicResult build_logic(BuildLogicPolicy&& policy, NodeId n)
     CELER_EXPECT(lgc.empty());
     policy(n);
 
-    // Construct sorted vector of faces
-    BuildLogicResult::VecSurface faces;
-    for (auto const& v : lgc)
-    {
-        if (!logic::is_operator_token(v))
-        {
-            faces.push_back(LocalSurfaceId{v});
-        }
-    }
-
-    // Sort and uniquify the vector
-    std::sort(faces.begin(), faces.end());
-    faces.erase(std::unique(faces.begin(), faces.end()), faces.end());
-
-    // Remap logic
-    for (auto& v : lgc)
-    {
-        if (!logic::is_operator_token(v))
-        {
-            auto iter
-                = find_sorted(faces.begin(), faces.end(), LocalSurfaceId{v});
-            CELER_ASSUME(iter != faces.end());
-            v = iter - faces.begin();
-        }
-    }
-    return {faces, std::move(lgc)};
+    return {remap_faces(lgc), std::move(lgc)};
 }
 
 //---------------------------------------------------------------------------//
