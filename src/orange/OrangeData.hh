@@ -472,7 +472,7 @@ struct OrangeStateData
     Items<UniverseId> universe;
 
     // Scratch space with dimensions {track}{max_faces}
-    Items<SenseMeta> temp_sense;
+    Items<SenseValue> temp_sense;
 
     // Scratch space with dimensions {track}{max_intersections}
     Items<FaceId> temp_face;

@@ -118,7 +118,7 @@ inline char const* to_cstring(SignedSense s)
 /*!
  * Wrapper for a sense value with associated metadata.
  */
-class SenseMeta
+class SenseValue
 {
   private:
     enum : char
@@ -128,10 +128,10 @@ class SenseMeta
     };
 
   public:
-    constexpr SenseMeta() = default;
+    constexpr SenseValue() = default;
 
     //! Construct with a sense value
-    CELER_CONSTEXPR_FUNCTION SenseMeta(Sense sense)
+    CELER_CONSTEXPR_FUNCTION SenseValue(Sense sense)
     {
         sense_[sense_bit] = static_cast<bool>(sense);
         sense_[is_assigned_bit] = true;
@@ -150,7 +150,7 @@ class SenseMeta
     }
 
     //! Assign a sense value
-    CELER_CONSTEXPR_FUNCTION SenseMeta& operator=(Sense sense)
+    CELER_CONSTEXPR_FUNCTION SenseValue& operator=(Sense sense)
     {
         sense_[sense_bit] = static_cast<bool>(sense);
         sense_[is_assigned_bit] = true;

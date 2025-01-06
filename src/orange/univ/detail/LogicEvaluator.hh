@@ -30,7 +30,7 @@ class LogicEvaluator
     //@{
     //! \name Type aliases
     using SpanConstLogic = LdgSpan<logic_int const>;
-    using SpanConstSense = Span<SenseMeta const>;
+    using SpanConstSense = Span<SenseValue const>;
     //@}
 
   public:

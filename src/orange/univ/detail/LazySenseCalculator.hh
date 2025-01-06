@@ -43,7 +43,7 @@ class LazySenseCalculator
     inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                               VolumeView const& vol,
                                               Real3 const& pos,
-                                              Span<SenseMeta> sense_cache,
+                                              Span<SenseValue> sense_cache,
                                               OnFace& face);
 
     // Calculate senses for a single face of the given volume, possibly on a
@@ -67,7 +67,7 @@ class LazySenseCalculator
     Real3 pos_;
 
     //! Temporary senses
-    Span<SenseMeta> sense_cache_;
+    Span<SenseValue> sense_cache_;
 
     //! The first face encountered that we are "on"
     OnFace& face_;
@@ -83,7 +83,7 @@ CELER_FUNCTION
 LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          VolumeView const& vol,
                                          Real3 const& pos,
-                                         Span<SenseMeta> sense_cache,
+                                         Span<SenseValue> sense_cache,
                                          OnFace& face)
     : visit_{visit}
     , vol_(vol)

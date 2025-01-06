@@ -62,9 +62,9 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
     }
 
     //! Access the shared CPU storage space for senses
-    Span<SenseMeta> sense_storage()
+    Span<SenseValue> sense_storage()
     {
-        return this->host_state().temp_sense[AllItems<SenseMeta>{}];
+        return this->host_state().temp_sense[AllItems<SenseValue>{}];
     }
 };
 
