@@ -6,7 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "SetupOptions.hh"
 
+#include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/Input.hh"
 
 #include "AlongStepFactory.hh"
@@ -126,12 +130,25 @@ inp::Input to_input(SetupOptions const& so)
 
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
-        CELER_NOT_IMPLEMENTED("convert uniform factory");
         // Check if magnitude is zero
-        result.field = inp::UniformField{};
+        UniformFieldParams params = u->get_field();
+        auto field_val = norm(params.field);
+        if (field_val > 0)
+        {
+            CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
+            inp::UniformField field;
+            field.strength = params.field;
+            field.driver_options = params.options;
+            result.field = std::move(field);
+        }
+        else
+        {
+            CELER_LOG(debug) << "No magnetic field";
+        }
     }
     else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
     {
+        CELER_LOG(debug) << "Getting RZ map field";
         result.field = u->get_field();
     }
     else

@@ -12,6 +12,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/inp/Input.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "accel/SharedParams.hh"
 
 namespace celeritas
@@ -93,9 +94,7 @@ inp::Input to_input(RunInput const& run_input)
     }
     else if (run_input.primary_options)
     {
-        inp::PrimaryGenerator generator;
-        generator = run_input.primary_options;
-        result.events = std::move(generator);
+        result.events = to_input(run_input.primary_options);
     }
 
     // Control options

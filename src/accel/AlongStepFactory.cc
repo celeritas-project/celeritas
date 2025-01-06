@@ -122,9 +122,9 @@ auto RZMapFieldAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-RZMapFieldInput UniformAlongStepFactory::get_field() const
+RZMapFieldInput RZMapFieldAlongStepFactory::get_field() const
 {
-    return this->get_fieldmap_;
+    return this->get_fieldmap_();
 }
 
 //---------------------------------------------------------------------------//

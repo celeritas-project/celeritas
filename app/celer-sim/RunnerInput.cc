@@ -10,8 +10,7 @@
 
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Input.hh"
-
-#include "PrimaryGeneratorOptions.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
@@ -25,7 +24,7 @@ inp::Input to_input(RunnerInput const& r)
     // Geometry and event configurations
     result.geometry_file = r.geometry_file;
 
-    if (!run_input.event_file.empty())
+    if (!r.event_file.empty())
     {
         if (r.file_sampling_options)
         {
@@ -42,9 +41,8 @@ inp::Input to_input(RunnerInput const& r)
             result.events = std::move(rfe);
         }
     }
-    else if (run_input.primary_options)
+    else if (r.primary_options)
     {
-        inp::PrimaryGenerator generator;
         result.events = to_input(r.primary_options);
     }
 
@@ -96,9 +94,8 @@ inp::Input to_input(RunnerInput const& r)
         capacity.secondaries = r.secondary_stack_factor * r.num_track_slots;
 
         // TODO: replace "max" with # events during construction?
-        constexpr auto LimitsT
-            = numeric_limits<decltype(capacity.events)> capacity.events
-            = r.merge_events ? LimitsT::max() : 0;
+        using LimitsT = std::numeric_limits<decltype(capacity.events)>;
+        capacity.events = r.merge_events ? LimitsT::max() : 0;
 
         result.tuning.capacity = capacity;
     }
@@ -124,8 +121,8 @@ inp::Input to_input(RunnerInput const& r)
 
         // Spline energy loss order
         CELER_VALIDATE(r.spline_eloss_order > 0 && r.spline_eloss_order <= 2,
-                       "unsupported energy loss spline order "
-                           << r.spline_eloss_order);
+                       << "unsupported energy loss spline order "
+                       << r.spline_eloss_order);
         em_options.eloss_spline = (r.spline_eloss_order == 2);
 
         // Step limiter for charged particles

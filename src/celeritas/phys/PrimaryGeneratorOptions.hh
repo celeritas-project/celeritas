@@ -90,6 +90,10 @@ struct PrimaryGeneratorOptions
 using PrimaryGeneratorEngine = std::mt19937;
 
 //---------------------------------------------------------------------------//
+// Convert PrimaryGeneratorOptions to inp::PrimaryGenerator.
+inp::PrimaryGenerator to_input(PrimaryGeneratorOptions const&);
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 

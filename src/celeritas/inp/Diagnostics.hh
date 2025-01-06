@@ -110,6 +110,9 @@ struct Diagnostics
     //! Store track counts per step iteration
     bool step_counters{false};
 
+    //! Write detailed MC truth output
+    std::optional<McTruth> mctruth;
+
     //! Accumulate steps per track
     std::optional<StepDiagnostic> step;
 };

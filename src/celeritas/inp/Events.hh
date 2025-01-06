@@ -112,7 +112,8 @@ struct ReadFileEvents
 
 //---------------------------------------------------------------------------//
 //! Mechanism for generating events for tracking
-using Events = std::variant<OffloadEvents, PrimaryGenerator, ReadFileEvents>;
+using Events
+    = std::variant<OffloadEvents, PrimaryGenerator, SampleFileEvents, ReadFileEvents>;
 
 //---------------------------------------------------------------------------//
 }  // namespace inp
