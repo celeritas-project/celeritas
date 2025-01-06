@@ -124,7 +124,7 @@ class SenseMeta
     enum : size_type
     {
         sense_bit,
-        cached_bit,
+        is_cached_bit,
     };
 
   public:
@@ -134,7 +134,7 @@ class SenseMeta
     CELER_CONSTEXPR_FUNCTION SenseMeta(Sense sense)
     {
         sense_[sense_bit] = static_cast<bool>(sense);
-        sense_[cached_bit] = true;
+        sense_[is_cached_bit] = true;
     }
 
     //! Convert to a sense value
@@ -153,12 +153,15 @@ class SenseMeta
     CELER_CONSTEXPR_FUNCTION SenseMeta& operator=(Sense sense)
     {
         sense_[sense_bit] = static_cast<bool>(sense);
-        sense_[cached_bit] = true;
+        sense_[is_cached_bit] = true;
         return *this;
     }
 
     //! Check wether there is a cached sense value
-    CELER_CONSTEXPR_FUNCTION bool cached() const { return sense_[cached_bit]; }
+    CELER_CONSTEXPR_FUNCTION bool cached() const
+    {
+        return sense_[is_cached_bit];
+    }
 
     //! Invalidate the cached sense value
     CELER_CONSTEXPR_FUNCTION void invalidate() { sense_.reset(); }
