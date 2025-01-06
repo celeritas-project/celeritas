@@ -33,6 +33,7 @@ struct SlotDiagnostic::State final : AuxStateInterface
     std::vector<int> buffer;
 
     State() = default;
+    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_MOVE_DELETE_COPY(State);
     ~State() final
     {

@@ -150,6 +150,7 @@ void RootIO::WriteObject(EventData* event_data)
     }
     else
     {
+        // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
         event_branch_->SetAddress(&event_data);
     }
 
@@ -226,7 +227,7 @@ void RootIO::Merge()
     {
         std::string file_name = file_name_ + std::to_string(i);
         files.push_back(TFile::Open(file_name.c_str()));
-        trees.push_back((TTree*)(files[i]->Get(this->TreeName())));
+        trees.push_back(dynamic_cast<TTree*>(files[i]->Get(this->TreeName())));
         list->Add(trees[i]);
 
         if (i == nthreads - 1)

@@ -51,8 +51,6 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
 class JsonProtoOutput
 {
   public:
-    // false positive with clang-tidy-15, need cleanup
-    // NOLINTNEXTLINE(bugprone-exception-escape)
     JsonProtoOutput() = default;
 
     //! Construct with the number of universes
