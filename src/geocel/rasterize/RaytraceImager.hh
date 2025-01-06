@@ -70,8 +70,6 @@ class RaytraceImager final : public ImagerInterface
 
     //// MEMBER FUNCTIONS ////
 
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_MOVE_DELETE_COPY(RaytraceImager);
 
     template<MemSpace M>

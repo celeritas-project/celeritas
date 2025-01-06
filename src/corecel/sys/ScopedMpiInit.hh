@@ -51,8 +51,6 @@ class ScopedMpiInit
 
   private:
     bool do_finalize_{false};
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     static Status status_;
 };
 
