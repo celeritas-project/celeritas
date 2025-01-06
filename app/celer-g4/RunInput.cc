@@ -57,6 +57,103 @@ RunInput::operator bool() const
            && (step_diagnostic_bins > 0 || !step_diagnostic);
 }
 
+//---------------------------------------------------------------------------
+// Convert RunInput to celeritas::inp::Input
+//---------------------------------------------------------------------------
+
+celeritas::inp::Input to_input(const celeritas::app::RunInput& run_input)
+{
+    using namespace celeritas;
+
+    inp::Input result;
+
+    // Environment options
+    if (run_input.cuda_stack_size != RunInput::unspecified ||
+        run_input.cuda_heap_size != RunInput::unspecified)
+    {
+        inp::Device device;
+        device.stack_size = run_input.cuda_stack_size;
+        device.heap_size = run_input.cuda_heap_size;
+        result.tuning.device = std::move(device);
+    }
+
+    // Problem definition
+    result.geometry_file = run_input.geometry_file;
+
+    if (!run_input.event_file.empty())
+    {
+        inp::ReadFileEvents events;
+        events.event_file = run_input.event_file;
+        result.events = std::move(events);
+    }
+    else if (run_input.primary_options)
+    {
+        inp::PrimaryGenerator generator;
+        generator = run_input.primary_options; // Assuming compatibility
+        result.events = std::move(generator);
+    }
+
+    // Control options
+    {
+        inp::StateCapacity capacity;
+        capacity.tracks = run_input.num_track_slots;
+        capacity.initializers = run_input.initializer_capacity;
+        capacity.secondaries = static_cast<size_type>(
+            run_input.secondary_stack_factor * run_input.num_track_slots);
+        capacity.primaries = run_input.auto_flush;
+        result.tuning.capacity = std::move(capacity);
+    }
+
+    {
+        inp::TrackingLimits limits;
+        limits.steps = run_input.max_steps;
+        limits.field_substeps = run_input.auto_flush; // Assuming similarity
+        result.tracking.limits = std::move(limits);
+    }
+
+    // Physics setup
+    result.physics.ignore_processes = run_input.physics_options.ignore_processes;
+
+    // Field setup
+    if (run_input.field != RunInput::no_field())
+    {
+        inp::UniformField field;
+        field.strength = run_input.field;
+        field.driver_options = run_input.field_options;
+        result.field = std::move(field);
+    }
+
+    // Sensitive detector
+    if (run_input.sd_type != RunInput::SensitiveDetectorType::none)
+    {
+        inp::Scoring scoring;
+        if (run_input.sd_type == RunInput::SensitiveDetectorType::simple_calo)
+        {
+            scoring.simple_calo.emplace();
+        }
+        else if (run_input.sd_type == RunInput::SensitiveDetectorType::event_hit)
+        {
+            scoring.sd.emplace(); // Assuming default SensitiveDetector
+        }
+        result.scoring = std::move(scoring);
+    }
+
+    // Diagnostics
+    result.diagnostics.output_file = run_input.output_file;
+    result.diagnostics.export_files.physics = run_input.physics_output_file;
+    result.diagnostics.export_files.offload = run_input.offload_output_file;
+    result.diagnostics.timers.action = run_input.action_times;
+
+    if (!run_input.slot_diagnostic_prefix.empty())
+    {
+        inp::SlotDiagnostic slot_diag;
+        slot_diag.basename = run_input.slot_diagnostic_prefix;
+        result.diagnostics.slot = std::move(slot_diag);
+    }
+
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace app
 }  // namespace celeritas
