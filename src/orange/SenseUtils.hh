@@ -116,7 +116,7 @@ inline char const* to_cstring(SignedSense s)
 // CLASSES
 //---------------------------------------------------------------------------//
 /*!
- * Wrapper for a sense value with associated metadata.
+ * Wrapper for a sense value that is optionally set.
  */
 class SenseValue
 {
