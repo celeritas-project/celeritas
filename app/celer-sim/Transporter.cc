@@ -129,10 +129,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     };
 
     constexpr size_type min_alloc{65536};
-    result.generated.reserve(std::min(min_alloc, max_steps_));
-    result.initializers.reserve(std::min(min_alloc, max_steps_));
-    result.active.reserve(std::min(min_alloc, max_steps_));
-    result.alive.reserve(std::min(min_alloc, max_steps_));
+    if (store_track_counts_)
+    {
+        result.generated.reserve(std::min(min_alloc, max_steps_));
+        result.initializers.reserve(std::min(min_alloc, max_steps_));
+        result.active.reserve(std::min(min_alloc, max_steps_));
+        result.alive.reserve(std::min(min_alloc, max_steps_));
+    }
     if (store_step_times_)
     {
         result.step_times.reserve(std::min(min_alloc, max_steps_));
