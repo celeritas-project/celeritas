@@ -42,7 +42,7 @@ struct BuildLogicResult
  *
  * The result is a pair of vectors: the sorted surface IDs comprising the faces
  * of this volume, and the logical representation using \em face IDs, i.e. with
- * the surfaces remapped to index of the surface in the face vector.
+ * the surfaces remapped to the index of the surface in the face vector.
  *
  * The function is templated on a policy class that determines the logic
  * representation. The policy class must have an operator() that takes a
