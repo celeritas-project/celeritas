@@ -165,61 +165,63 @@ to_input(celeritas::PrimaryGeneratorOptions const& pgo)
     result.primaries_per_event = pgo.primaries_per_event;
 
     // Position distribution
-    switch (pgo.position.distribution)
+    auto const& pos = pgo.position;
+    check_params_size("position", 3, pos);
+
+    switch (pos.distribution)
     {
-        case DistributionSelection::delta:
-            result.shape = inp::PointShape{Real3{pgo.position.params[0],
-                                                 pgo.position.params[1],
-                                                 pgo.position.params[2]}};
+        case DistributionSelection::delta: {
+            auto const& p = pos.params;
+            result.shape = inp::PointShape{Real3{p[0], p[1], p[2]}};
             break;
-
-        case DistributionSelection::box:
-            result.shape = inp::UniformBoxShape{Real3{pgo.position.params[0],
-                                                      pgo.position.params[1],
-                                                      pgo.position.params[2]},
-                                                Real3{pgo.position.params[3],
-                                                      pgo.position.params[4],
-                                                      pgo.position.params[5]}};
+        }
+        case DistributionSelection::box: {
+            auto const& p = pos.params;
+            result.shape = inp::UniformBoxShape{Real3{p[0], p[1], p[2]},
+                                                Real3{p[3], p[4], p[5]}};
             break;
-
+        }
         default:
             CELER_VALIDATE(false,
                            << "Unsupported position distribution type '"
-                           << to_cstring(pgo.position.distribution) << "'");
+                           << to_cstring(pos.distribution) << "'");
     }
 
     // Direction distribution
-    switch (pgo.direction.distribution)
-    {
-        case DistributionSelection::delta:
-            result.angle
-                = inp::MonodirectionalAngle{Real3{pgo.direction.params[0],
-                                                  pgo.direction.params[1],
-                                                  pgo.direction.params[2]}};
-            break;
+    auto const& dir = pgo.direction;
+    check_params_size("direction", 3, dir);
 
+    switch (dir.distribution)
+    {
+        case DistributionSelection::delta: {
+            auto const& p = dir.params;
+            result.angle = inp::MonodirectionalAngle{Real3{p[0], p[1], p[2]}};
+            break;
+        }
         case DistributionSelection::isotropic:
             result.angle = inp::IsotropicAngle{};
             break;
-
         default:
             CELER_VALIDATE(false,
                            << "Unsupported direction distribution type '"
-                           << to_cstring(pgo.direction.distribution) << "'");
+                           << to_cstring(dir.distribution) << "'");
     }
 
     // Energy distribution
-    switch (pgo.energy.distribution)
-    {
-        case DistributionSelection::delta:
-            result.energy
-                = inp::Monoenergetic{units::MevEnergy{pgo.energy.params[0]}};
-            break;
+    auto const& energy = pgo.energy;
+    check_params_size("energy", 1, energy);
 
+    switch (energy.distribution)
+    {
+        case DistributionSelection::delta: {
+            auto const& p = energy.params;
+            result.energy = inp::Monoenergetic{units::MevEnergy{p[0]}};
+            break;
+        }
         default:
             CELER_VALIDATE(false,
                            << "Unsupported energy distribution type '"
-                           << to_cstring(pgo.energy.distribution) << "'");
+                           << to_cstring(energy.distribution) << "'");
     }
 
     return result;
