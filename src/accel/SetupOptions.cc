@@ -67,10 +67,10 @@ inp::SensitiveDetector to_input(SDSetupOptions const& sd)
  */
 inp::Input to_input(SetupOptions const& so)
 {
-    inp::Input i;
+    inp::Input result;
 
-    i.geometry_file = so.geometry_file;
-    i.diagnostics.output_file = so.output_file;
+    result.geometry_file = so.geometry_file;
+    result.diagnostics.output_file = so.output_file;
 
     {
         inp::StateCapacity c;
@@ -80,7 +80,7 @@ inp::Input to_input(SetupOptions const& so)
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         c.primaries = so.auto_flush;
 
-        i.tuning.capacity = std::move(c);
+        result.tuning.capacity = std::move(c);
     }
     {
         inp::TrackingLimits tl;
@@ -88,7 +88,7 @@ inp::Input to_input(SetupOptions const& so)
         tl.step_iters = so.max_step_iters;
         tl.field_substeps = so.max_field_substeps;
 
-        i.tracking.limits = std::move(tl);
+        result.tracking.limits = std::move(tl);
     }
 
     // TODO: add option to enable/disable rather than checking device/env
@@ -99,15 +99,15 @@ inp::Input to_input(SetupOptions const& so)
         d.stack_size = so.cuda_stack_size;
         d.heap_size = so.cuda_heap_size;
 
-        i.tuning.device = std::move(d);
+        result.tuning.device = std::move(d);
     }
 
-    i.tuning.track_order = [&] {
+    result.tuning.track_order = [&] {
         auto track_order = so.track_order;
         if (track_order != TrackOrder::size_)
             return track_order;
 
-        if (i.tuning.device)
+        if (result.tuning.device)
         {
             // Device is activated: initializing by charge is more performant
             return TrackOrder::init_charge;
@@ -119,46 +119,46 @@ inp::Input to_input(SetupOptions const& so)
 
     if (so.sd.enabled)
     {
-        i.scoring.sd = to_input(so.sd);
+        result.scoring.sd = to_input(so.sd);
     }
 
-    i.tuning.num_streams = so.get_num_streams();
+    result.tuning.num_streams = so.get_num_streams();
 
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
         CELER_NOT_IMPLEMENTED("convert uniform factory");
         // Check if magnitude is zero
-        i.field = inp::UniformField{};
+        result.field = inp::UniformField{};
     }
     else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
     {
-        i.field = u->get_field();
+        result.field = u->get_field();
     }
     else
     {
         CELER_NOT_IMPLEMENTED("processing generic along-step factory");
     }
 
-    i.physics.ignore_processes = so.ignore_processes;
+    result.physics.ignore_processes = so.ignore_processes;
 
     {
         inp::ExportFiles ef;
         ef.physics = so.physics_output_file;
         ef.offload = so.offload_output_file;
         ef.geometry = so.geometry_output_file;
-        i.diagnostics.export_files = std::move(ef);
+        result.diagnostics.export_files = std::move(ef);
     }
 
-    i.diagnostics.timers.action = so.action_times;
+    result.diagnostics.timers.action = so.action_times;
 
     if (!so.slot_diagnostic_prefix.empty())
     {
         inp::SlotDiagnostic sd;
         sd.basename = so.slot_diagnostic_prefix;
-        i.diagnostics.slot = std::move(sd);
+        result.diagnostics.slot = std::move(sd);
     }
 
-    return i;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

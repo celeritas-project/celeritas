@@ -35,9 +35,7 @@ namespace app
 /*!
  * Input for a single run.
  *
- * TODO for v1.0: unify these names, combine with celer-g4, separate into
- * schemas for individual classes, ... ? and decide whether max_steps should be
- * per track or total step iterations.
+ * DEPRECATED: `RunInput` will be used instead.
  */
 struct RunnerInput
 {

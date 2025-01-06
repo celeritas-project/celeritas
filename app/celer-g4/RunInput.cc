@@ -94,7 +94,7 @@ inp::Input to_input(RunInput const& run_input)
     else if (run_input.primary_options)
     {
         inp::PrimaryGenerator generator;
-        // generator = run_input.primary_options; // Assuming compatibility
+        generator = run_input.primary_options;
         result.events = std::move(generator);
     }
 

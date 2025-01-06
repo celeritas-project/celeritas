@@ -19,7 +19,7 @@ namespace celeritas
 {
 namespace inp
 {
-class PrimaryGenerator;
+struct PrimaryGenerator;
 }
 
 //---------------------------------------------------------------------------//

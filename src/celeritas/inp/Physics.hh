@@ -68,7 +68,7 @@ struct EmPhysicsOptions
     bool brem_combined{false};
     //!@}
 
-    //! Hardcoded step limit for charged particles (none if zero)
+    //! Hardcoded maximum step for charged particles (none if zero)
     real_type step_limit{};
 };
 
@@ -85,6 +85,9 @@ struct Physics
 
     //! Do not use Celeritas physics for the given Geant4 process names
     std::vector<std::string> ignore_processes;
+
+    //! Import physics from a file instead of Geant4
+    std::string physics_file;
 
     // TODO: particle selection
     // TODO: user process builder
