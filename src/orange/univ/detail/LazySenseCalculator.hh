@@ -93,7 +93,7 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
 {
     for (auto& sense : sense_cache_)
     {
-        sense.invalidate();
+        sense.clear();
     }
 }
 
@@ -107,7 +107,7 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
 CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
     auto& cached_sense = sense_cache_[face_id.get()];
-    if (cached_sense.cached())
+    if (cached_sense.is_assigned())
     {
         return cached_sense;
     }

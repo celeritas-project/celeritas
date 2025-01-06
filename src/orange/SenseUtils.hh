@@ -121,10 +121,10 @@ inline char const* to_cstring(SignedSense s)
 class SenseMeta
 {
   private:
-    enum : size_type
+    enum : char
     {
         sense_bit,
-        is_cached_bit,
+        is_assigned_bit,
     };
 
   public:
@@ -134,7 +134,7 @@ class SenseMeta
     CELER_CONSTEXPR_FUNCTION SenseMeta(Sense sense)
     {
         sense_[sense_bit] = static_cast<bool>(sense);
-        sense_[is_cached_bit] = true;
+        sense_[is_assigned_bit] = true;
     }
 
     //! Convert to a sense value
@@ -153,18 +153,18 @@ class SenseMeta
     CELER_CONSTEXPR_FUNCTION SenseMeta& operator=(Sense sense)
     {
         sense_[sense_bit] = static_cast<bool>(sense);
-        sense_[is_cached_bit] = true;
+        sense_[is_assigned_bit] = true;
         return *this;
     }
 
     //! Check wether there is a cached sense value
-    CELER_CONSTEXPR_FUNCTION bool cached() const
+    CELER_CONSTEXPR_FUNCTION bool is_assigned() const
     {
-        return sense_[is_cached_bit];
+        return sense_[is_assigned_bit];
     }
 
-    //! Invalidate the cached sense value
-    CELER_CONSTEXPR_FUNCTION void invalidate() { sense_.reset(); }
+    //! Clear the sense value
+    CELER_CONSTEXPR_FUNCTION void clear() { sense_.reset(); }
 
   private:
     Bitset<2> sense_;
