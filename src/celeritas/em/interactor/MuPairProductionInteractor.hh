@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/interactor/MuPairProductionInteractor.hh
@@ -103,7 +102,7 @@ CELER_FUNCTION MuPairProductionInteractor::MuPairProductionInteractor(
     , inc_energy_(particle.energy())
     , inc_mass_(particle.mass())
     , inc_momentum_(value_as<Momentum>(particle.momentum()))
-    , sample_phi_(0, 2 * constants::pi)
+    , sample_phi_(0, real_type(2 * constants::pi))
     , sample_energy_(shared, particle, cutoffs, element)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.mu_minus

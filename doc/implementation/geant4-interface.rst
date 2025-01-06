@@ -1,5 +1,4 @@
-.. Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
 .. _api_g4_interface:
@@ -45,6 +44,20 @@ Celeritas. They are also necessary to set up the GPU offloading
 characteristics. Future versions of Celeritas will automate more of these
 settings.
 
+By default, sensitive detectors are automatically mapped from Geant4 to
+Celeritas using the ``enabled`` option of
+:cpp:struct:`celeritas::SDSetupOptions`. If no SDs are present (e.g., in a test
+problem, or one which has only a "stepping manager" which is not presently
+compatible with Celeritas), the Celeritas setup will fail with an error like:
+
+.. code-block:: none
+
+   *** G4Exception : celer0001
+         issued by : accel/detail/HitManager.cc:210
+   Celeritas runtime error: no G4 sensitive detectors are defined: set `SetupOptions.sd.enabled` to `false` if this is expected
+   *** Fatal Exception *** core dump ***
+
+
 .. doxygenstruct:: celeritas::SetupOptions
    :members:
    :no-link:
@@ -80,6 +93,8 @@ Interface utilities
 .. doxygenfunction:: celeritas::MakeMTLogger
 
 .. doxygenclass:: celeritas::ExceptionConverter
+
+.. doxygenstruct:: celeritas::AlongStepFactoryInput
 
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
 

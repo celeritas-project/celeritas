@@ -48,6 +48,6 @@ CheckOptions:
   performance-move-const-arg.CheckTriviallyCopyableMove: false
   performance-move-const-arg.CheckMoveToConstRef: false
 
-HeaderFilterRegex: '(example|app|src/(accel|celeritas|corecel|orange|geocel))/.*\.hh$'
+HeaderFilterRegex: '(app|src/(accel|celeritas|corecel|orange|geocel))/.*\.hh$'
 FormatStyle: file
 ...

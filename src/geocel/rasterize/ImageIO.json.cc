@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/rasterize/ImageIO.json.cc
@@ -38,7 +37,7 @@ void from_json(nlohmann::json const& j, ImageInput& v)
     IM_LOAD_REQUIRED(vertical_pixels);
     IM_LOAD_OPTION(horizontal_divisor);
 
-    real_type length{lengthunits::centimeter};
+    Constant length{lengthunits::centimeter};
     if (auto iter = j.find("_units"); iter != j.end())
     {
         switch (to_unit_system(iter->get<std::string>()))

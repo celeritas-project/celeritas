@@ -322,8 +322,8 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     CELER_ASSERT(std::fabs(costheta) <= 1);
 
     // Sample azimuthal angle, used for displacement and exiting angle
-    real_type phi
-        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
+    real_type phi = UniformRealDistribution<real_type>(
+        0, real_type{2 * constants::pi})(rng);
 
     MscInteraction result;
     result.action = MscInteraction::Action::scattered;

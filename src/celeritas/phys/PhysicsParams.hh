@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/PhysicsParams.hh
@@ -84,7 +83,7 @@ struct PhysicsParamsOptions
 
     //!@{
     //! \name Range calculation
-    real_type min_range = 1 * units::millimeter;
+    real_type min_range = real_type{1} * units::millimeter;
     real_type max_step_over_range = 0.2;
     real_type fixed_step_limiter = 0;
     //!@}
@@ -98,7 +97,7 @@ struct PhysicsParamsOptions
 
     //!@{
     //! \name Multiple scattering
-    real_type lambda_limit = 1 * units::millimeter;
+    real_type lambda_limit = real_type{1} * units::millimeter;
     real_type range_factor = 0.04;
     real_type safety_factor = 0.6;
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::safety};

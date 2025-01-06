@@ -72,6 +72,18 @@
       }
     },
     {
+      "name": ".hip-mi250",
+      "hidden": true,
+      "description": "Options to enable HIP on AMD MI250",
+      "cacheVariables": {
+        "CELERITAS_USE_CUDA":       {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_HIP":        {"type": "BOOL",   "value": "ON"},
+        "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
+        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics",
+        "CMAKE_HIP_FLAGS_DEBUG": "-g -ggdb -O"
+      }
+    },
+    {
       "name": ".ndebug",
       "hidden": true,
       "description": "Build with optimizations and without debug assertions",

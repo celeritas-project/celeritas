@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/data/LivermorePEData.hh
@@ -30,7 +29,7 @@ struct LivermoreSubshell
 {
     using EnergyUnits = units::Mev;
     using XsUnits = units::Barn;
-    using Energy = Quantity<EnergyUnits>;
+    using Energy = RealQuantity<EnergyUnits>;
     using Real6 = Array<real_type, 6>;
 
     // Binding energy of the electron

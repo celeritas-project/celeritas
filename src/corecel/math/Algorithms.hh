@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/Algorithms.hh
@@ -200,7 +199,7 @@ inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
 template<class T>
 CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
 {
-    return (v < 0) ? 0 : v;
+    return (v < T{0}) ? T{0} : v;
 }
 
 //---------------------------------------------------------------------------//
@@ -452,7 +451,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
     if constexpr (N == 0)
     {
         CELER_DISCARD(v)  // Suppress warning in older compilers
-        return 1;
+        return T{1};
     }
     else if constexpr (N % 2 == 0)
     {
@@ -465,7 +464,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 #if (__CUDACC_VER_MAJOR__ < 11) \
     || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
     // "error: missing return statement at end of non-void function"
-    return T{};
+    return T{0};
 #endif
 }
 
@@ -644,16 +643,6 @@ CELER_CONSTEXPR_FUNCTION int signum(T x)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Double-precision math constant (POSIX derivative).
- *
- * These should be used in *host* or *type-dependent* circumstances because, if
- * using \c CELERITAS_REAL_TYPE=float, this could have more accuracy than
- * \c celeritas::constants::pi .
- */
-inline constexpr double m_pi{3.14159265358979323846};
-
-//---------------------------------------------------------------------------//
 //!@{
 //! \name CUDA/HIP equivalent routines
 
@@ -748,18 +737,35 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
 /*!
  * Count the number of set bits in an integer.
  */
+template<class T>
 #if defined(_MSC_VER)
-inline int popcount(unsigned int x) noexcept
+inline int popcount(T x) noexcept
 #else
-inline constexpr int popcount(unsigned int x) noexcept
+inline constexpr int popcount(T x) noexcept
 #endif
 {
+    static_assert(sizeof(T) <= 8,
+                  "popcount is only defined for 32-bit and 64-bit integers");
+    static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>,
+                  "popcount is only defined for unsigned integral types");
+
+    if constexpr (sizeof(T) <= 4)
+    {
 #if CELER_DEVICE_COMPILE
-    return __popc(x);
+        return __popc(x);
 #elif defined(_MSC_VER)
-    return __popcnt(x);
+        return __popcnt(x);
 #else
-    return __builtin_popcount(x);
+        return __builtin_popcount(x);
+#endif
+    }
+
+#if CELER_DEVICE_COMPILE
+    return __popcll(x);
+#elif defined(_MSC_VER)
+    return __popcnt64(x);
+#else
+    return __builtin_popcountl(x);
 #endif
 }
 

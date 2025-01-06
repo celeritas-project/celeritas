@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/distribution/SBEnergyDistribution.hh
@@ -23,7 +22,7 @@ namespace celeritas
  */
 struct SBElectronXsCorrector
 {
-    using Xs = Quantity<SBElementTableData::XsUnits>;
+    using Xs = RealQuantity<SBElementTableData::XsUnits>;
 
     //! No cross section scaling for any exiting energy
     CELER_FUNCTION real_type operator()(units::MevEnergy) const { return 1; }
@@ -103,7 +102,7 @@ class SBEnergyDistribution
     //! \name Type aliases
     using SBData = NativeCRef<SeltzerBergerData>;
     using Energy = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/CherenkovGenerator.hh
@@ -89,11 +88,11 @@ class CherenkovGenerator
  */
 CELER_FUNCTION
 CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
-                                     NativeCRef<CherenkovData> const& shared,
-                                     GeneratorDistributionData const& dist)
+                                       NativeCRef<CherenkovData> const& shared,
+                                       GeneratorDistributionData const& dist)
     : dist_(dist)
     , calc_refractive_index_(material.make_refractive_index_calculator())
-    , sample_phi_(0, 2 * constants::pi)
+    , sample_phi_(0, real_type(2 * constants::pi))
 {
     CELER_EXPECT(shared);
     CELER_EXPECT(dist_);

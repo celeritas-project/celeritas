@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/distribution/MuBBEnergyDistribution.hh
@@ -109,7 +108,7 @@ class MuBBEnergyDistribution
     }
 
     //! Fine structure constant over two pi
-    static CELER_CONSTEXPR_FUNCTION real_type alpha_over_twopi()
+    static CELER_CONSTEXPR_FUNCTION Constant alpha_over_twopi()
     {
         return constants::alpha_fine_structure / (2 * constants::pi);
     }

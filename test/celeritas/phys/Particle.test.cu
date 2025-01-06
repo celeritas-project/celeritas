@@ -36,7 +36,7 @@ __global__ void ptv_test_kernel(unsigned int size,
                                 ParticleTrackInitializer const* init,
                                 double* result)
 {
-    using InvSecDecay = Quantity<UnitInverse<units::Second>>;
+    using InvSecDecay = RealQuantity<UnitInverse<units::Second>>;
 
     auto local_tid
         = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};

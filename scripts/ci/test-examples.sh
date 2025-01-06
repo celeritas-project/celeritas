@@ -32,12 +32,15 @@ build_local() {
   ninja
 }
 
+export CELER_LOG=debug CELER_LOG_LOCAL=debug
+
+# Run minimal example
 cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-
-if [ -z "CELER_DISABLE_ACCEL_EXAMPLES" ]; then
+# Run Geant4 app example(s)
+if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error
