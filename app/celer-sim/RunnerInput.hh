@@ -98,6 +98,8 @@ struct RunnerInput
     std::string slot_diagnostic_prefix;  //!< Base name for slot diagnostic
     bool write_track_counts{true};  //!< Output track counts for each step
     bool write_step_times{true};  //!< Output elapsed times for each step
+    bool transporter_result{true};  //!< Output transporter result event data
+    size_type log_progress{1};  //!< CELER_LOG progress every N events
 
     // Control
     unsigned int seed{};
@@ -140,7 +142,7 @@ struct RunnerInput
                && num_track_slots > 0 && max_steps > 0
                && initializer_capacity > 0 && secondary_stack_factor > 0
                && (step_diagnostic_bins > 0 || !step_diagnostic)
-               && (field == no_field() || field_options);
+               && log_progress > 0 && (field == no_field() || field_options);
     }
 };
 

@@ -78,6 +78,8 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(slot_diagnostic_prefix);
     LDIO_LOAD_OPTION(write_track_counts);
     LDIO_LOAD_OPTION(write_step_times);
+    LDIO_LOAD_OPTION(transporter_result);
+    LDIO_LOAD_OPTION(log_progress);
 
     LDIO_LOAD_DEPRECATED(max_num_tracks, num_track_slots);
     LDIO_LOAD_DEPRECATED(sync, action_times);
@@ -177,6 +179,8 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(slot_diagnostic_prefix);
     LDIO_SAVE(write_track_counts);
     LDIO_SAVE(write_step_times);
+    LDIO_SAVE(transporter_result);
+    LDIO_SAVE(log_progress);
 
     LDIO_SAVE(seed);
     LDIO_SAVE(num_track_slots);

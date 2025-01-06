@@ -92,7 +92,10 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     Runner run_stream(*run_input, output);
     SimulationResult result;
     result.setup_time = get_setup_time();
-    result.events.resize(run_stream.num_events());
+    if (run_input->transporter_result)
+    {
+        result.events.resize(run_stream.num_events());
+    }
 
     // Allocate device streams, or use the default stream if there is only one.
     size_type num_streams = run_stream.num_streams();
@@ -115,7 +118,11 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     if (run_input->merge_events)
     {
         // Run all events simultaneously on a single stream
-        result.events.front() = run_stream();
+        auto event_result = run_stream();
+        if (run_input->transporter_result)
+        {
+            result.events.front() = std::move(event_result);
+        }
     }
     else
     {
@@ -130,12 +137,18 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
             activate_device_local();
 
             // Run a single event on a single thread
-            CELER_TRY_HANDLE(result.events[event] = run_stream(
+            TransporterResult event_result;
+            CELER_TRY_HANDLE(event_result = run_stream(
                                  StreamId(get_openmp_thread()), EventId(event)),
                              capture_exception);
+            if (run_input->transporter_result)
+            {
+                result.events[event] = std::move(event_result);
+            }
         }
         log_and_rethrow(std::move(capture_exception));
     }
+
     result.action_times = run_stream.get_action_times();
     result.total_time = get_transport_time();
     record_mem = {};

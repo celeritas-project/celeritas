@@ -739,9 +739,9 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
  */
 template<class T>
 #if defined(_MSC_VER)
-inline int popcount(T x) noexcept
+CELER_FORCEINLINE_FUNCTION int popcount(T x) noexcept
 #else
-inline constexpr int popcount(T x) noexcept
+CELER_CONSTEXPR_FUNCTION int popcount(T x) noexcept
 #endif
 {
     static_assert(sizeof(T) <= 8,

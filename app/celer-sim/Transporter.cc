@@ -19,8 +19,8 @@
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/sys/TraceCounter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "corecel/sys/TraceCounter.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -33,6 +33,22 @@ namespace celeritas
 {
 namespace app
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Log progress after N events when requested.
+ */
+void log_progress(EventId const id, size_type const num_primaries)
+{
+    CELER_EXPECT(id);
+    CELER_EXPECT(num_primaries > 0);
+    CELER_LOG_LOCAL(status)
+        << "Event " << id.unchecked_get() << ": transporting " << num_primaries
+        << (num_primaries == 1 ? " primary" : " primaries");
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 //! Default virtual destructor
 TransporterBase::~TransporterBase() = default;
@@ -45,10 +61,12 @@ template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp)
     : max_steps_(inp.max_steps)
     , num_streams_(inp.params->max_streams())
+    , log_progress_(inp.log_progress)
     , store_track_counts_(inp.store_track_counts)
     , store_step_times_(inp.store_step_times)
 {
     CELER_EXPECT(inp);
+    CELER_VALIDATE(log_progress_ > 0, << "log_progress must be positive");
 
     // Create stepper
     CELER_LOG_LOCAL(status) << "Creating states";
@@ -111,10 +129,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     };
 
     constexpr size_type min_alloc{65536};
-    result.generated.reserve(std::min(min_alloc, max_steps_));
-    result.initializers.reserve(std::min(min_alloc, max_steps_));
-    result.active.reserve(std::min(min_alloc, max_steps_));
-    result.alive.reserve(std::min(min_alloc, max_steps_));
+    if (store_track_counts_)
+    {
+        result.generated.reserve(std::min(min_alloc, max_steps_));
+        result.initializers.reserve(std::min(min_alloc, max_steps_));
+        result.active.reserve(std::min(min_alloc, max_steps_));
+        result.alive.reserve(std::min(min_alloc, max_steps_));
+    }
     if (store_step_times_)
     {
         result.step_times.reserve(std::min(min_alloc, max_steps_));
@@ -126,8 +147,12 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 #else
     ScopedSignalHandler interrupted{SIGINT};
 #endif
-    CELER_LOG_LOCAL(status)
-        << "Transporting " << primaries.size() << " primaries";
+
+    if (auto const evt_id = primaries.front().event_id;
+        evt_id.get() % log_progress_ == 0)
+    {
+        log_progress(evt_id, primaries.size());
+    }
 
     StepTimer record_step_time{store_step_times_ ? &result.step_times
                                                  : nullptr};

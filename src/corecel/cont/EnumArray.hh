@@ -26,8 +26,6 @@ namespace celeritas
  * \todo The template parameters are reversed!!!
  */
 template<class E, class T>
-// TODO Remove in clang-tidy-18
-// NOLINTNEXTLINE(bugprone-reserved-identifier)
 struct EnumArray
 {
     static_assert(std::is_enum<E>::value, "Template parameter must be an enum");
