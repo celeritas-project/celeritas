@@ -1,0 +1,51 @@
+spack:
+  specs:
+    - adios2
+    - cmake
+    - "geant4@11.0"
+    - git
+    - "googletest@1.10:"
+    - hepmc3
+    - mpi
+    - ninja
+    - nlohmann-json
+    - "python@3.6:"
+  concretizer:
+    unify: true
+  compilers:
+    - compiler:
+        spec: rocmcc@=6.3.1
+        paths:
+          cc: /opt/rocm/llvm/bin/clang
+          cxx: /opt/rocm/llvm/bin/clang++
+          f77: /usr/bin/gfortran
+          fc: /usr/bin/gfortran
+        modules: []
+        flags: {}
+        operating_system: ubuntu24.04
+        target: x86_64
+  packages:
+    rocrand:
+      externals:
+      - spec: rocrand@6.3.1
+        prefix: /opt/rocm
+    hiprand:
+      externals:
+      - spec: hiprand@6.3.1
+        prefix: /opt/rocm
+    rocthrust:
+      externals:
+      - spec: rocthrust@6.3.1
+        prefix: /opt/rocm
+    all:
+      target:
+      - x86_64_v3
+      # MI250x, see https://llvm.org/docs/AMDGPUUsage.html
+      #variants: +rocm amdgpu_target=gfx90a cxxstd=17
+      variants: cxxstd=17
+      compiler: ["rocmcc@6.3.1"]
+    root:
+      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=17
+  config:
+    install_tree: /opt/software
+  view: /opt/view

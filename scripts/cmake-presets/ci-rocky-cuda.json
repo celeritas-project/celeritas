@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "version": 6,
+  "cmakeMinimumRequired": {"major": 3, "minor": 23, "patch": 0},
   "configurePresets": [
     {
       "name": "base",
@@ -40,10 +40,8 @@
     {
       "name": ".vecgeom",
       "hidden": true,
-      "description": "Options to enable VecGeom on Ubuntu",
+      "description": "Options to enable VecGeom",
       "cacheVariables": {
-        "CMAKE_EXE_LINKER_FLAGS": "-Wl,--no-as-needed",
-        "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--no-as-needed",
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     },
@@ -111,13 +109,14 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
-        "jobs": 16,
+        "jobs": 4,
         "timeout": 180
       },
       "output": {
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 65536,
-        "outputOnFailure": true
+        "outputOnFailure": true,
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
       }
     },
     {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},
