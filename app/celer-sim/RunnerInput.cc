@@ -107,9 +107,31 @@ inp::Input to_input(RunnerInput const& r)
 
     input.tuning.warm_up = r.warm_up;
 
+    // Environment
+    input.tuning.environ = {r.environ.begin(), r.environ.end()};
+
     // Physics
     inp::EmPhysicsOptions em_options;
     em_options.brem_combined = r.brem_combined;
+
+    // Spline energy loss order
+    if (r.spline_eloss_order == 2)
+    {
+        em_options.eloss_spline = true;
+    }
+    else if (r.spline_eloss_order == 1)
+    {
+        em_options.eloss_spline = false;
+    }
+    else
+    {
+        CELERITAS_VALIDATE(
+            false, << "Invalid spline_eloss_order: " << r.spline_eloss_order);
+    }
+
+    // Step limiter for charged particles
+    em_options.step_limit = r.step_limiter;
+
     input.physics.em_options = em_options;
 
     // Tracking
@@ -117,11 +139,27 @@ inp::Input to_input(RunnerInput const& r)
     tracking_limits.steps = r.max_steps;
     input.tracking.limits = tracking_limits;
 
-    // Optional fields not in RunnerInput
-    if (r.step_limiter > 0)
+    // Optical options
+    if (r.optical)
     {
-        // NOTE: Step limiter not supported directly in new API
+        inp::StateCapacity optical_capacity;
+        optical_capacity.tracks = r.optical.num_track_slots;
+        optical_capacity.initializers = r.optical.initializer_capacity;
+        optical_capacity.primaries = r.optical.auto_flush;
+        input.tuning.optical_capacity = std::move(optical_capacity);
     }
+
+    // Simple calorimeter scoring
+    if (!r.simple_calo.empty())
+    {
+        inp::SimpleCalo calo;
+        calo.volumes = r.simple_calo;
+        input.scoring.simple_calo = std::move(calo);
+    }
+
+    // Optional fields not in RunnerInput
+    // - `physics_file`: No equivalent field in the new API.
+    // - `merge_events`: No equivalent field in the new API.
 
     return input;
 }

@@ -67,6 +67,9 @@ struct EmPhysicsOptions
     //! Use combined SB/relativistic interactor for bremsstrahlung
     bool brem_combined{false};
     //!@}
+
+    //! Hardcoded step limit for charged particles (none if zero)
+    real_type step_limit{};
 };
 
 //---------------------------------------------------------------------------//
