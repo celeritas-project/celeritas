@@ -15,7 +15,7 @@ jobs:
   build-docs:
     uses: ./.github/workflows/doc.yml
   build-site:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-docs
     steps:
       - uses: actions/setup-python@v5
@@ -60,7 +60,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-site
     permissions:
       contents: read

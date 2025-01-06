@@ -15,13 +15,13 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Install dependencies
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
-            ccache cmake ninja-build nlohmann-json3-dev
+            ccache cmake ninja-build nlohmann-json3-dev libpng-dev
       - name: Check out Celeritas
         uses: actions/checkout@v4
       - name: Cache ccache
