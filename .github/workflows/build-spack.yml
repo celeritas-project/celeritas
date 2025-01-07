@@ -167,6 +167,14 @@ jobs:
           ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)
           set +e
           CC_FILES=$(grep -E '^(src|app)/.*\.cc$' - <<< "$ALL_FILES")
+
+          # Get list of files from compile_commands.json and filter CC_FILES
+          COMPILED_FILES=$(jq -r '.[].file' build/compile_commands.json)
+          CC_FILES=$(echo "$CC_FILES" | while read -r file; do
+            if echo "$COMPILED_FILES" | grep -qE "^.*/${file}$"; then
+              echo "$file"
+            fi
+          done)
           set -e
           if [ -z "$CC_FILES" ]; then
             echo "No files to run clang-tidy on."

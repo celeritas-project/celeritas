@@ -96,8 +96,6 @@ class Span
         : s_(other.data(), other.size())
     {
     }
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_COPY_MOVE(Span);
     ~Span() = default;
 

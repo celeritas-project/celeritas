@@ -9,6 +9,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/SenseUtils.hh"
 
 namespace celeritas
 {
@@ -163,7 +164,7 @@ struct LocalState
     Real3 dir;
     LocalVolumeId volume;
     OnLocalSurface surface;
-    Span<Sense> temp_sense;
+    Span<SenseValue> temp_sense;
     TempNextFace temp_next;
 };
 
