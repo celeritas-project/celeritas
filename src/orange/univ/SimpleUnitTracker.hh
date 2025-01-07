@@ -174,7 +174,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
                                                 state.pos,
                                                 state.temp_sense,
                                                 on_surface);
-        auto inside = detail::LogicEvaluator(vol.logic())(calc_senses);
+        auto inside = detail::InfixEvaluator(vol.logic())(calc_senses);
         return inside;
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
@@ -218,7 +218,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
                                                 state.pos,
                                                 state.temp_sense,
                                                 on_face);
-        if (detail::LogicEvaluator(vol.logic())(calc_senses))
+        if (detail::InfixEvaluator(vol.logic())(calc_senses))
         {
             // Inside: find and save the local surface ID, and end the search
             on_surface = get_surface(vol, on_face);
@@ -532,7 +532,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     auto calc_senses = detail::LazySenseCalculator(
         this->make_surface_visitor(), vol, state.pos, state.temp_sense, on_face);
     // Current senses should put us inside the volume
-    detail::LogicEvaluator is_inside(vol.logic());
+    detail::InfixEvaluator is_inside(vol.logic());
     CELER_ASSERT(is_inside(calc_senses));
 
     // Loop over distances and surface indices to cross by iterating over
@@ -628,7 +628,7 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
                                               state.temp_sense,
                                               on_face};
 
-            if (detail::LogicEvaluator{vol.logic()}(calc_senses))
+            if (detail::InfixEvaluator{vol.logic()}(calc_senses))
             {
                 // We are in this new volume by crossing the tested surface.
                 // Get the sense corresponding to this "crossed" surface.

@@ -130,7 +130,7 @@ class UnitProto : public ProtoInterface
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
         std::string label;
-        UnitSimplification simplification{UnitSimplification::none};
+        UnitSimplification simplification{UnitSimplification::infix_logic};
 
         // True if fully defined
         explicit inline operator bool() const;
