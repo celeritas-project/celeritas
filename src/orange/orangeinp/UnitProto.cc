@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/UnitProto.cc
@@ -456,6 +455,11 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                                unknowns.end(),
                                ", ",
                                write_node_labels);
+        }
+
+        if (input_.simplification == UnitSimplification::infix_logic)
+        {
+            unit_builder.simplifiy_joins();
         }
 
         /*! \todo We can sometimes eliminate CSG surfaces and nodes that aren't

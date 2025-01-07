@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/DeMorganSimplifier.hh
@@ -17,6 +16,7 @@ namespace celeritas
 {
 namespace orangeinp
 {
+struct SimplifiedCsgTree;
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -46,7 +46,7 @@ class DeMorganSimplifier
     explicit DeMorganSimplifier(CsgTree const&);
 
     // Perform the simplification
-    CsgTree operator()();
+    SimplifiedCsgTree operator()();
 
   private:
     //! CsgTree node 0 is always True{} and can't be the parent of any node

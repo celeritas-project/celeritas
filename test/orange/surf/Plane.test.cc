@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/Plane.test.cc
@@ -16,8 +15,7 @@ namespace celeritas
 {
 namespace test
 {
-
-using constants::sqrt_two;
+constexpr auto sqrt_two = real_type{constants::sqrt_two};
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/OffloadData.hh
@@ -24,7 +23,7 @@ namespace celeritas
 /*!
  * Current sizes of the buffers of distribution data.
  *
- * These sizes are updated by value on the host at each step.
+ * These sizes are updated by value on the host at each core step.
  */
 struct OffloadBufferSize
 {

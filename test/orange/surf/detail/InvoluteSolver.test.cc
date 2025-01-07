@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/detail/InvoluteSolver.test.cc
@@ -18,7 +17,7 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
-using constants::pi;
+constexpr real_type pi{constants::pi};
 using Sign = Chirality;
 Sign ccw = Chirality::left;
 Sign cw = Chirality::right;

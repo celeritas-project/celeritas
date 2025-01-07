@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/g4vg/SolidConverter.cc
@@ -496,7 +495,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         rmaxs[i] = scale_(params.Rmax[i] * radius_factor);
     }
 
-    auto phistart = std::fmod(params.Start_angle, 2 * constants::pi);
+    auto phistart = std::fmod(params.Start_angle,
+                              static_cast<double>(2 * constants::pi));
 
     return GeoManager::MakeInstance<UnplacedPolyhedron>(phistart,
                                                         params.Opening_angle,

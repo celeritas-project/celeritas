@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/ScopedMpiInit.hh
@@ -52,8 +51,6 @@ class ScopedMpiInit
 
   private:
     bool do_finalize_{false};
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     static Status status_;
 };
 

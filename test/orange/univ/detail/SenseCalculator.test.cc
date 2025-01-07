@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/univ/detail/SenseCalculator.test.cc
@@ -63,9 +62,9 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
     }
 
     //! Access the shared CPU storage space for senses
-    Span<Sense> sense_storage()
+    Span<SenseValue> sense_storage()
     {
-        return this->host_state().temp_sense[AllItems<Sense>{}];
+        return this->host_state().temp_sense[AllItems<SenseValue>{}];
     }
 };
 

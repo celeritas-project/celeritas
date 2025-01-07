@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/InvalidOrangeTestBase.cc
@@ -64,7 +63,7 @@ auto InvalidOrangeTestBase::build_geometry() -> SPConstGeo
     using namespace orangeinp;
     constexpr auto inside = Sense::inside;
     constexpr auto outside = Sense::outside;
-    constexpr auto cm = units::centimeter;
+    constexpr real_type cm{units::centimeter};
 
     // Construct shapes
     auto outer = make_sph("outer", 15 * cm);

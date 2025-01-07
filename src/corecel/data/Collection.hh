@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/Collection.hh
@@ -277,8 +276,6 @@ class Collection
     //! Default constructors
     Collection() = default;
     Collection(Collection const&) = default;
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection(Collection&&) = default;
     //!@}
 
@@ -295,8 +292,6 @@ class Collection
     //!@{
     //! Default assignment
     Collection& operator=(Collection const& other) = default;
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection& operator=(Collection&& other) = default;
     //!@}
 

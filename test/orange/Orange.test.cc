@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/Orange.test.cc
@@ -20,18 +19,18 @@
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
-using celeritas::constants::sqrt_two;
-
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
 
+constexpr real_type sqrt_two{constants::sqrt_two};
+
 class OrangeTest : public OrangeGeoTestBase
 {
   protected:
-    real_type unit_length() const override { return 1; }
+    Constant unit_length() const override { return Constant{1}; }
 };
 
 //---------------------------------------------------------------------------//

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/VecgeomParams.cc
@@ -253,10 +252,11 @@ void VecgeomParams::build_volumes_vgdml(std::string const& filename)
     ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
 
 #ifdef VECGEOM_GDML
-    vgdml::Frontend::Load(filename,
-                          /* validate_xml_schema = */ false,
-                          /* mm_unit = */ lengthunits::millimeter,
-                          /* verbose = */ vecgeom_verbosity());
+    vgdml::Frontend::Load(
+        filename,
+        /* validate_xml_schema = */ false,
+        /* mm_unit = */ static_cast<double>(lengthunits::millimeter),
+        /* verbose = */ vecgeom_verbosity());
 #else
     CELER_DISCARD(filename);
     CELER_NOT_CONFIGURED("VGDML");

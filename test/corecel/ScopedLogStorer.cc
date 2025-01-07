@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/ScopedLogStorer.cc
@@ -65,7 +64,7 @@ void ScopedLogStorer::operator()(LogProvenance, LogLevel lev, std::string msg)
     if (lev >= debug_level)
     {
         std::clog << color_code('x') << to_cstring(lev) << ": " << msg
-                  << std::endl;
+                  << color_code(' ') << std::endl;
     }
     if (lev < min_level_)
     {

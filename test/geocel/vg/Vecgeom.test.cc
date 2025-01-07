@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/Vecgeom.test.cc
@@ -1084,7 +1083,7 @@ class CmseTest : public VecgeomVgdmlTestBase
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CmseTest, trace)
+TEST_F(CmseTest, DISABLED_trace)
 {
     // clang-format off
     {

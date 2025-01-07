@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/cont/EnumArray.hh
@@ -27,8 +26,6 @@ namespace celeritas
  * \todo The template parameters are reversed!!!
  */
 template<class E, class T>
-// TODO Remove in clang-tidy-18
-// NOLINTNEXTLINE(bugprone-reserved-identifier)
 struct EnumArray
 {
     static_assert(std::is_enum<E>::value, "Template parameter must be an enum");

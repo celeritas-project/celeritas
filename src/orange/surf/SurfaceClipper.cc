@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/SurfaceClipper.cc
@@ -22,8 +21,8 @@ namespace
     template void SurfaceClipper::operator()(IN<Axis::y> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::z> const&) const
 
-constexpr real_type sqrt_half = constants::sqrt_two / 2;
-constexpr real_type sqrt_third = constants::sqrt_three / 2;
+constexpr auto sqrt_half = constants::sqrt_two / 2;
+constexpr auto sqrt_third = constants::sqrt_three / 2;
 //---------------------------------------------------------------------------//
 }  // namespace
 

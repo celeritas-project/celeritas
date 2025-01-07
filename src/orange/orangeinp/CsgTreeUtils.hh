@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/CsgTreeUtils.hh
@@ -12,13 +11,27 @@
 
 #include "orange/OrangeTypes.hh"
 
+#include "CsgTree.hh"
 #include "CsgTypes.hh"
 
 namespace celeritas
 {
 namespace orangeinp
 {
-class CsgTree;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Result of a DeMorgan simplification.
+ */
+struct SimplifiedCsgTree
+{
+    //! The simplified tree
+    CsgTree tree;
+    //! Has the same size as the original tree, indexed by old node id, with
+    //! the value pointing to the equivalent node in the simplified tree
+    std::vector<NodeId> new_nodes;
+};
+
 //---------------------------------------------------------------------------//
 
 // Replace a node in the tree with a boolean constant
@@ -33,7 +46,7 @@ orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);
 void simplify(CsgTree* tree, orangeinp::NodeId start);
 
 // Replace ~&(xs...) with |(~xs...) and ~|(xs...) with &(~xs...)
-[[nodiscard]] CsgTree transform_negated_joins(CsgTree const& tree);
+[[nodiscard]] SimplifiedCsgTree transform_negated_joins(CsgTree const& tree);
 
 // Transform a CSG node into a string expression
 [[nodiscard]] std::string
