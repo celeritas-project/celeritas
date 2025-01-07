@@ -126,8 +126,9 @@ Geant4:
 - 11.1-11.3: [no support for default Rayleigh scattering cross section](see
   https://github.com/celeritas-project/celeritas/issues/1091)
 
-Note also that navigation bugs in older versions of Geant4 and VecGeom can
-cause test failures in Celeritas.
+Note also that navigation bugs in Geant4 and VecGeom older than the versions
+listed above *will* cause failures in some geometry-related unit tests. Future
+behavior changes in external packages may also cause failures.
 
 Since we compile with extra warning flags and avoid non-portable code, most
 other compilers *should* work.
