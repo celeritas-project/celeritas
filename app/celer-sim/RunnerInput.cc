@@ -91,7 +91,8 @@ inp::Input to_input(RunnerInput const& r)
         inp::StateCapacity capacity;
         capacity.tracks = r.num_track_slots;
         capacity.initializers = r.initializer_capacity;
-        capacity.secondaries = r.secondary_stack_factor * r.num_track_slots;
+        capacity.secondaries = static_cast<size_type>(r.secondary_stack_factor
+                                                      * r.num_track_slots);
 
         // TODO: replace "max" with # events during construction?
         using LimitsT = std::numeric_limits<decltype(capacity.events)>;
