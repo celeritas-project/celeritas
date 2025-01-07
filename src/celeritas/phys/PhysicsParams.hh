@@ -73,9 +73,8 @@ class ParticleParams;
  *   is used. If it is 2+, the spline interpolation is used for energy loss
  *   using the specified order. Default value is 1
  *
- * NOTE: min_range/max_step_over_range are not accessible through Geant4, and
- * they can also be set to be different for electrons, mu/hadrons, and ions
- * (they are set in Geant4 with \c G4EmParameters::SetStepFunction()).
+ * \todo min_range/max_step_over_range should be extended to be per particle
+ * (or particle "grouping", e.g. electron/muon+hadron/light ion/ion).
  */
 struct PhysicsParamsOptions
 {
@@ -93,6 +92,7 @@ struct PhysicsParamsOptions
     real_type min_eprime_over_e = 0.8;
     real_type linear_loss_limit = 0.01;
     Energy lowest_electron_energy = Energy{0.001};
+    size_type spline_eloss_order = 1;
     //!@}
 
     //!@{
@@ -105,8 +105,6 @@ struct PhysicsParamsOptions
 
     real_type secondary_stack_factor = 3;
     bool disable_integral_xs = false;
-
-    size_type spline_eloss_order = 1;
 };
 
 //---------------------------------------------------------------------------//

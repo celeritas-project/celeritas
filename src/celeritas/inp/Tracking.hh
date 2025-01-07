@@ -14,7 +14,7 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 /*!
- * Hard cutoffs for counter.
+ * Hard cutoffs for counters.
  */
 struct TrackingLimits
 {
@@ -28,6 +28,9 @@ struct TrackingLimits
     size_type step_iters{unlimited};
     //! Integration substeps during field propagation before ending the step
     size_type field_substeps{100};
+
+    //! Stop electron/positron below this energy
+    Energy electron_energy = Energy{0.001};
 };
 
 //---------------------------------------------------------------------------//
@@ -38,6 +41,9 @@ struct Tracking
 {
     //! Hard-coded cutoffs before giving up
     TrackingLimits limits;
+
+    //! Hardcoded maximum step for debugging charged particles (none if zero)
+    real_type force_step_limit{};
 };
 
 //---------------------------------------------------------------------------//

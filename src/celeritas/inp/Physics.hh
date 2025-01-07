@@ -28,6 +28,7 @@ namespace inp
  */
 struct MscOptions
 {
+    //! Algorithm for step behavior near boundaries
     MscStepLimitAlgorithm step_limit{MscStepLimitAlgorithm::safety};
 
     //! MSC range factor for e-/e+
@@ -67,9 +68,6 @@ struct EmPhysicsOptions
     //! Use combined SB/relativistic interactor for bremsstrahlung
     bool brem_combined{false};
     //!@}
-
-    //! Hardcoded maximum step for charged particles (none if zero)
-    real_type step_limit{};
 };
 
 //---------------------------------------------------------------------------//
@@ -92,6 +90,7 @@ struct Physics
     // TODO: particle selection
     // TODO: user process builder
     // TODO: where/how should celer-g4 set up physics list?
+    // TODO: read Geant4, then callback to update?
 };
 
 //---------------------------------------------------------------------------//
