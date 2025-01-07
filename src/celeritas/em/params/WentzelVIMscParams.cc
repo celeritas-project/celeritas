@@ -48,8 +48,9 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
 
     detail::MscParamsHelper helper(
         particles, mdata_vec, ImportModelClass::wentzel_vi_uni);
-    helper.build_ids(&host_data.ids);
+    helper.build_ids(&host_data.ids, &host_data.id_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
+    host_data.num_particles = helper.particle_ids().size();
 
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
