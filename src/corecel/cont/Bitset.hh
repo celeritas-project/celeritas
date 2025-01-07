@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/cont/Bitset.hh
+//! \file corecel/cont/EnumBitset.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -25,9 +25,9 @@ namespace celeritas
  *
  * This implementation is based on libstdc++'s std::bitset implementation.
  * It it a subset of the C++ standard, but it should be sufficient
- * for our current use case. Given that GPU typically use 32-bit words, this
- * uses unsigned int as the word type instead of the unsigned long used by the
- * standard library. This container is not thread-safe, multiple threads are
+ * for our current use case. To reduce memory bandwidth, the storage type can
+ * shrink for small bitsets or grow for large ones.
+ * This container is not thread-safe: multiple threads are
  * likely to manipulate the same word, even when accessing different indices.
  *
  * The following methods are not implemented:
@@ -37,10 +37,11 @@ namespace celeritas
  * - hash support
  * - construct from string, from_ullong
  */
-template<size_type N>
-class Bitset
+template<class T>
+class EnumBitset
 {
-    static_assert(N > 0, "Zero-sized bitset is not supported");
+    static_assert(std::is_enum<E>::value, "Template parameter must be an enum");
+    static constexpr size_type N = static_cast<size_type>(key_type::size_);
 
   public:
     //!@{
@@ -57,30 +58,30 @@ class Bitset
     //// CONSTRUCTORS ////
 
     // Default construct with zeros for all bits
-    constexpr Bitset() = default;
+    constexpr EnumBitset() = default;
 
     // Construct implicitly from a bitset encoded as an integer
-    CELER_CONSTEXPR_FUNCTION Bitset(word_type value) noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset(word_type value) noexcept;
 
     //// COMPARISON ////
 
     // Test equality with another bitset
     CELER_CONSTEXPR_FUNCTION bool
-    operator==(Bitset const& other) const noexcept;
+    operator==(EnumBitset const& other) const noexcept;
 
     // Test equality with another bitset
     CELER_CONSTEXPR_FUNCTION bool
-    operator!=(Bitset const& other) const noexcept;
+    operator!=(EnumBitset const& other) const noexcept;
 
     //// ACCESSORS ////
 
     // Access to a single bit
-    CELER_CONSTEXPR_FUNCTION bool operator[](size_type pos) const
+    CELER_CONSTEXPR_FUNCTION bool operator[](T pos) const
         noexcept(!CELERITAS_DEBUG);
 
     // Mutable access to a single bit
     CELER_CONSTEXPR_FUNCTION reference
-    operator[](size_type pos) noexcept(!CELERITAS_DEBUG);
+    operator[](T pos) noexcept(!CELERITAS_DEBUG);
 
     // Check if all bits are set
     CELER_CONSTEXPR_FUNCTION bool all() const noexcept;
@@ -100,37 +101,39 @@ class Bitset
     //// MUTATORS ////
 
     // Bitwise AND with another bitset
-    CELER_CONSTEXPR_FUNCTION Bitset& operator&=(Bitset const& other) noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset&
+    operator&=(Bitset const& other) noexcept;
 
     // Bitwise OR with another bitset
-    CELER_CONSTEXPR_FUNCTION Bitset& operator|=(Bitset const& other) noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset&
+    operator|=(Bitset const& other) noexcept;
 
     // Bitwise XOR with another bitset
-    CELER_CONSTEXPR_FUNCTION Bitset& operator^=(Bitset const& other) noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset&
+    operator^=(Bitset const& other) noexcept;
 
     // Return a copy with all bits flipped (bianry NOT)
-    CELER_CONSTEXPR_FUNCTION Bitset operator~() const noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset operator~() const noexcept;
 
     // Set all bits
-    CELER_CONSTEXPR_FUNCTION Bitset& set() noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset& set() noexcept;
 
     // Set the bit at position pos
-    CELER_CONSTEXPR_FUNCTION Bitset&
-    set(size_type pos, bool value = true) noexcept(!CELERITAS_DEBUG);
+    CELER_CONSTEXPR_FUNCTION EnumBitset&
+    set(T pos, bool value = true) noexcept(!CELERITAS_DEBUG);
 
     // Reset all bits
-    CELER_CONSTEXPR_FUNCTION Bitset& reset() noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset& reset() noexcept;
 
     // Reset the bit at position pos
-    CELER_CONSTEXPR_FUNCTION Bitset&
-    reset(size_type pos) noexcept(!CELERITAS_DEBUG);
+    CELER_CONSTEXPR_FUNCTION EnumBitset&
+    reset(T pos) noexcept(!CELERITAS_DEBUG);
 
     // Flip all bits
-    CELER_CONSTEXPR_FUNCTION Bitset& flip() noexcept;
+    CELER_CONSTEXPR_FUNCTION EnumBitset& flip() noexcept;
 
     // Flip the bit at position pos
-    CELER_CONSTEXPR_FUNCTION Bitset&
-    flip(size_type pos) noexcept(!CELERITAS_DEBUG);
+    CELER_CONSTEXPR_FUNCTION EnumBitset& flip(T pos) noexcept(!CELERITAS_DEBUG);
 
   private:
     //// CONSTANTS ////
@@ -146,18 +149,18 @@ class Bitset
     //// HELPER FUNCTIONS ////
 
     // Find the word index for a given bit position
-    static CELER_CONSTEXPR_FUNCTION size_type which_word(size_type pos) noexcept;
+    static CELER_CONSTEXPR_FUNCTION size_type which_word(T pos) noexcept;
     // Find the bit index in a word
-    static CELER_CONSTEXPR_FUNCTION size_type which_bit(size_type pos) noexcept;
+    static CELER_CONSTEXPR_FUNCTION size_type which_bit(T pos) noexcept;
 
     // Create a mask for a given bit index
-    static CELER_CONSTEXPR_FUNCTION word_type mask(size_type pos) noexcept;
+    static CELER_CONSTEXPR_FUNCTION word_type mask(T pos) noexcept;
 
     // Create a negative mask for a given bit index
-    static CELER_CONSTEXPR_FUNCTION word_type neg_mask(size_type pos) noexcept;
+    static CELER_CONSTEXPR_FUNCTION word_type neg_mask(T pos) noexcept;
 
     // Get the word for a given bit position
-    CELER_CONSTEXPR_FUNCTION word_type get_word(size_type pos) const
+    CELER_CONSTEXPR_FUNCTION word_type get_word(T pos) const
         noexcept(!CELERITAS_DEBUG);
 
     // Get the word for a given bit position
@@ -175,20 +178,20 @@ class Bitset
 };
 
 //---------------------------------------------------------------------------//
-// Bitset::reference definitions
+// EnumBitset::reference definitions
 //---------------------------------------------------------------------------//
 /*!
  * Reference to a single bit in the bitset.
  *
  * This is used to implement the mutable operator[].
  */
-template<size_type N>
-class Bitset<N>::reference
+template<class T>
+class EnumBitset<T>::reference
 {
   public:
     CELER_CONSTEXPR_FUNCTION
-    reference(Bitset& b, size_type pos) noexcept
-        : word_pointer_(&b.get_word(pos)), bit_pos_(Bitset::which_bit(pos))
+    reference(EnumBitset& b, size_type pos) noexcept
+        : word_pointer_(&b.get_word(pos)), bit_pos_(EnumBitset::which_bit(pos))
     {
     }
 
@@ -202,11 +205,11 @@ class Bitset<N>::reference
     {
         if (x)
         {
-            *word_pointer_ |= Bitset::mask(bit_pos_);
+            *word_pointer_ |= EnumBitset::mask(bit_pos_);
         }
         else
         {
-            *word_pointer_ &= Bitset::neg_mask(bit_pos_);
+            *word_pointer_ &= EnumBitset::neg_mask(bit_pos_);
         }
         return *this;
     }
@@ -217,13 +220,13 @@ class Bitset<N>::reference
     {
         if (this != &j)
         {
-            if (*j.word_pointer_ & Bitset::mask(j.bit_pos_))
+            if (*j.word_pointer_ & EnumBitset::mask(j.bit_pos_))
             {
-                *word_pointer_ |= Bitset::mask(bit_pos_);
+                *word_pointer_ |= EnumBitset::mask(bit_pos_);
             }
             else
             {
-                *word_pointer_ &= Bitset::neg_mask(bit_pos_);
+                *word_pointer_ &= EnumBitset::neg_mask(bit_pos_);
             }
         }
         return *this;
@@ -237,14 +240,14 @@ class Bitset<N>::reference
     CELER_CONSTEXPR_FUNCTION
     operator bool() const noexcept
     {
-        return (*word_pointer_ & Bitset::mask(bit_pos_)) != 0;
+        return (*word_pointer_ & EnumBitset::mask(bit_pos_)) != 0;
     }
 
     //! To support b[i].flip();
     CELER_CONSTEXPR_FUNCTION
     reference& flip() noexcept
     {
-        *word_pointer_ ^= Bitset::mask(bit_pos_);
+        *word_pointer_ ^= EnumBitset::mask(bit_pos_);
         return *this;
     }
 
@@ -257,8 +260,8 @@ class Bitset<N>::reference
 // INLINE MEMBER FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Construct from a word value
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>::Bitset(word_type value) noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>::Bitset(word_type value) noexcept
     : words_{value}
 {
     if constexpr (num_words_ == 1)
@@ -269,9 +272,9 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>::Bitset(word_type value) noexcept
 
 //---------------------------------------------------------------------------//
 //! Compare for equality
-template<size_type N>
+template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-Bitset<N>::operator==(Bitset const& other) const noexcept
+EnumBitset<T>::operator==(Bitset const& other) const noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -285,29 +288,29 @@ Bitset<N>::operator==(Bitset const& other) const noexcept
 
 //---------------------------------------------------------------------------//
 //! Compare for inequality
-template<size_type N>
+template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-Bitset<N>::operator!=(Bitset const& other) const noexcept
+EnumBitset<T>::operator!=(Bitset const& other) const noexcept
 {
     return !(*this == other);
 }
 
 //---------------------------------------------------------------------------//
 //! Access a single bit
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION bool Bitset<N>::operator[](size_type pos) const
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool EnumBitset<T>::operator[](size_type pos) const
     noexcept(!CELERITAS_DEBUG)
 {
     CELER_EXPECT(pos < N);
-    return (this->get_word(pos) & Bitset::mask(pos))
+    return (this->get_word(pos) & EnumBitset::mask(pos))
            != static_cast<word_type>(0);
 }
 
 //---------------------------------------------------------------------------//
 //! Mutable access to a single bit
-template<size_type N>
+template<class T>
 CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::operator[](size_type pos) noexcept(!CELERITAS_DEBUG) -> reference
+EnumBitset<T>::operator[](size_type pos) noexcept(!CELERITAS_DEBUG) -> reference
 {
     CELER_EXPECT(pos < N);
     return reference(*this, pos);
@@ -315,8 +318,8 @@ Bitset<N>::operator[](size_type pos) noexcept(!CELERITAS_DEBUG) -> reference
 
 //---------------------------------------------------------------------------//
 //! Check if all bits are set
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool EnumBitset<T>::all() const noexcept
 {
     for (size_type i = 0; i < num_words_ - 1; ++i)
     {
@@ -334,8 +337,8 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::all() const noexcept
 
 //---------------------------------------------------------------------------//
 //! Check if any bits are set
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION bool Bitset<N>::any() const noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool EnumBitset<T>::any() const noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -350,16 +353,16 @@ CELER_CONSTEXPR_FUNCTION bool Bitset<N>::any() const noexcept
 
 //---------------------------------------------------------------------------//
 //! Check if no bits are set
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION bool Bitset<N>::none() const noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool EnumBitset<T>::none() const noexcept
 {
     return !this->any();
 }
 
 //---------------------------------------------------------------------------//
 //! Number of bits set to true
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::count() const noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION size_type EnumBitset<T>::count() const noexcept
 {
     size_type count = 0;
     for (size_type i = 0; i < num_words_; ++i)
@@ -372,9 +375,9 @@ CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::count() const noexcept
 
 //---------------------------------------------------------------------------//
 //! Bitwise AND with another bitset
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>&
-Bitset<N>::operator&=(Bitset const& other) noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>&
+EnumBitset<T>::operator&=(Bitset const& other) noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -385,9 +388,9 @@ Bitset<N>::operator&=(Bitset const& other) noexcept
 
 //---------------------------------------------------------------------------//
 //! Bitwise OR with another bitset
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>&
-Bitset<N>::operator|=(Bitset const& other) noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>&
+EnumBitset<T>::operator|=(Bitset const& other) noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -398,9 +401,9 @@ Bitset<N>::operator|=(Bitset const& other) noexcept
 
 //---------------------------------------------------------------------------//
 //! Bitwise XOR with another bitset
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>&
-Bitset<N>::operator^=(Bitset const& other) noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>&
+EnumBitset<T>::operator^=(Bitset const& other) noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -411,16 +414,16 @@ Bitset<N>::operator^=(Bitset const& other) noexcept
 
 //---------------------------------------------------------------------------//
 //! Return a copy with all bits flipped (bianry NOT)
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N> Bitset<N>::operator~() const noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T> Bitset<T>::operator~() const noexcept
 {
-    return Bitset{*this}.flip();
+    return EnumBitset{*this}.flip();
 }
 
 //---------------------------------------------------------------------------//
 //! Set all bits
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::set() noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>& Bitset<T>::set() noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -435,9 +438,9 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::set() noexcept
 
 //---------------------------------------------------------------------------//
 //! Set the bit at position pos
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>&
-Bitset<N>::set(size_type pos, bool value) noexcept(!CELERITAS_DEBUG)
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>&
+EnumBitset<T>::set(size_type pos, bool value) noexcept(!CELERITAS_DEBUG)
 {
     CELER_EXPECT(pos < N);
     (*this)[pos] = value;
@@ -446,8 +449,8 @@ Bitset<N>::set(size_type pos, bool value) noexcept(!CELERITAS_DEBUG)
 
 //---------------------------------------------------------------------------//
 //! Reset all bits
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::reset() noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>& Bitset<T>::reset() noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -459,19 +462,19 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::reset() noexcept
 
 //---------------------------------------------------------------------------//
 //! Reset the bit at position pos
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>&
-Bitset<N>::reset(size_type pos) noexcept(!CELERITAS_DEBUG)
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>&
+EnumBitset<T>::reset(size_type pos) noexcept(!CELERITAS_DEBUG)
 {
     CELER_EXPECT(pos < N);
-    this->get_word(pos) &= Bitset::neg_mask(pos);
+    this->get_word(pos) &= EnumBitset::neg_mask(pos);
     return *this;
 }
 
 //---------------------------------------------------------------------------//
 //! Flip all bits
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::flip() noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>& Bitset<T>::flip() noexcept
 {
     for (size_type i = 0; i < num_words_; ++i)
     {
@@ -486,38 +489,37 @@ CELER_CONSTEXPR_FUNCTION Bitset<N>& Bitset<N>::flip() noexcept
 
 //---------------------------------------------------------------------------//
 //! Flip the bit at position pos
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>&
-Bitset<N>::flip(size_type pos) noexcept(!CELERITAS_DEBUG)
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>&
+EnumBitset<T>::flip(size_type pos) noexcept(!CELERITAS_DEBUG)
 {
     CELER_EXPECT(pos < N);
-    this->get_word(pos) ^= Bitset::mask(pos);
+    this->get_word(pos) ^= EnumBitset::mask(pos);
     return *this;
 }
 
 //---------------------------------------------------------------------------//
 //! Find the word index for a given bit position
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::which_word(size_type pos) noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION size_type EnumBitset<T>::which_word(T pos) noexcept
 {
-    return pos / bits_per_word_;
+    return static_cast<size_type>(pos) / bits_per_word_;
 }
 
 //---------------------------------------------------------------------------//
 //! Find the bit index in a word
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::which_bit(size_type pos) noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION size_type EnumBitset<T>::which_bit(T pos) noexcept
 {
-    return pos % bits_per_word_;
+    return static_cast<size_type>(pos) % bits_per_word_;
 }
 
 //---------------------------------------------------------------------------//
 //! Create a mask for a given bit index
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::mask(size_type pos) noexcept -> word_type
+template<class T>
+CELER_CONSTEXPR_FUNCTION auto EnumBitset<T>::mask(T pos) noexcept -> word_type
 {
-    return word_type(1) << Bitset::which_bit(pos);
+    return word_type(1) << EnumBitset::which_bit(pos);
 }
 
 //---------------------------------------------------------------------------//
@@ -526,53 +528,54 @@ Bitset<N>::mask(size_type pos) noexcept -> word_type
  * of this function is to cast a potentially promoted word_type (from ~) back
  * to the original word_type.
  */
-template<size_type N>
+template<class T>
 CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::neg_mask(size_type pos) noexcept -> word_type
+EnumBitset<T>::neg_mask(T pos) noexcept -> word_type
 {
-    return ~(word_type(1) << Bitset::which_bit(pos));
+    return ~(word_type(1) << EnumBitset::which_bit(pos));
 }
 
 //---------------------------------------------------------------------------//
 //! Get the word for a given bit position
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto Bitset<N>::get_word(size_type pos) const
+template<class T>
+CELER_CONSTEXPR_FUNCTION auto EnumBitset<T>::get_word(T pos) const
     noexcept(!CELERITAS_DEBUG) -> word_type
 {
-    CELER_EXPECT(pos < N);
-    return words_[Bitset::which_word(pos)];
+    CELER_EXPECT(pos != T::size_);
+    return words_[EnumBitset::which_word(pos)];
 }
 
 //---------------------------------------------------------------------------//
 //! Get the word for a given bit position
-template<size_type N>
+template<class T>
 CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::get_word(size_type pos) noexcept(!CELERITAS_DEBUG) -> word_type&
+EnumBitset<T>::get_word(size_type pos) noexcept(!CELERITAS_DEBUG) -> word_type&
 {
-    CELER_EXPECT(pos < N);
-    return words_[Bitset::which_word(pos)];
+    CELER_EXPECT(pos != T::size_);
+    return words_[EnumBitset::which_word(pos)];
 }
 
 //---------------------------------------------------------------------------//
 //! Get the last word of the bitset
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() noexcept -> word_type&
+template<class T>
+CELER_CONSTEXPR_FUNCTION auto EnumBitset<T>::last_word() noexcept -> word_type&
 {
     return words_[num_words_ - 1];
 }
 
 //---------------------------------------------------------------------------//
 //! Get the last word of the bitset
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() const noexcept -> word_type
+template<class T>
+CELER_CONSTEXPR_FUNCTION auto
+EnumBitset<T>::last_word() const noexcept -> word_type
 {
     return words_[num_words_ - 1];
 }
 
 //---------------------------------------------------------------------------//
 //! Clear unused bits in the last word
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION void Bitset<N>::sanitize() noexcept
+template<class T>
+CELER_CONSTEXPR_FUNCTION void EnumBitset<T>::sanitize() noexcept
 {
     constexpr size_type extra_bits = N % bits_per_word_;
     if constexpr (extra_bits != 0)
@@ -586,29 +589,29 @@ CELER_CONSTEXPR_FUNCTION void Bitset<N>::sanitize() noexcept
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Bitwise AND
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>
-operator&(Bitset<N> const& lhs, Bitset<N> const& rhs)
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>
+operator&(EnumBitset<T> const& lhs, Bitset<T> const& rhs)
 {
-    return Bitset{lhs} &= rhs;
+    return EnumBitset{lhs} &= rhs;
 }
 
 //---------------------------------------------------------------------------//
 //! Bitwise OR
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>
-operator|(Bitset<N> const& lhs, Bitset<N> const& rhs)
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>
+operator|(EnumBitset<T> const& lhs, Bitset<T> const& rhs)
 {
-    return Bitset{lhs} |= rhs;
+    return EnumBitset{lhs} |= rhs;
 }
 
 //---------------------------------------------------------------------------//
 //! Bitwise XOR
-template<size_type N>
-CELER_CONSTEXPR_FUNCTION Bitset<N>
-operator^(Bitset<N> const& lhs, Bitset<N> const& rhs)
+template<class T>
+CELER_CONSTEXPR_FUNCTION EnumBitset<T>
+operator^(EnumBitset<T> const& lhs, Bitset<T> const& rhs)
 {
-    return Bitset{lhs} ^= rhs;
+    return EnumBitset{lhs} ^= rhs;
 }
 
 //---------------------------------------------------------------------------//
