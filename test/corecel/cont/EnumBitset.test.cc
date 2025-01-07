@@ -22,6 +22,20 @@ namespace test
 template<typename T>
 class EnumBitsetTest : public Test
 {
+  protected:
+    static constexpr size_type N = T::value;
+
+    enum class MyEnum
+    {
+        // Normal enums would have values before this next one...
+        antepenultimate = N - 3,
+        penultimate,
+        last,
+        size_
+    };
+
+    static_assert(static_cast<int>(MyEnum::antepenultimate) >= 0
+                  && static_cast<int>(MyEnum::size_) == N);
 };
 
 template<size_type N>
@@ -38,27 +52,16 @@ using TestTypes = ::testing::Types<
 
 TYPED_TEST_SUITE(EnumBitsetTest, TestTypes, );
 
-TYPED_TEST(EnumBitsetTest, all)
+TYPED_TEST(EnumBitsetTest, twiddling)
 {
-    constexpr size_type N = TypeParam::value;
-
-    enum class MyEnum
-    {
-        // Normal enums would have values before this next one...
-        antepenultimate = N - 3,
-        penultimate,
-        last,
-        size_
-    };
-    static_assert(static_cast<int>(MyEnum::antepenultimate) >= 0
-                  && static_cast<int>(MyEnum::size_) == N);
+    using MyEnum = typename EnumBitsetTest<TypeParam>::MyEnum;
     using MyEnumBitset = EnumBitset<MyEnum>;
+    using reference = typename MyEnumBitset::reference;
 
+    constexpr auto N = TypeParam::value;
     constexpr auto last = MyEnum::last;
     constexpr auto penult = MyEnum::penultimate;
-    constexpr auto antepen = MyEnum::antepenultimate;
 
-    using reference = typename MyEnumBitset::reference;
     MyEnumBitset x;
     EXPECT_TRUE(x.none());
     EXPECT_FALSE(x.any());
@@ -124,6 +127,20 @@ TYPED_TEST(EnumBitsetTest, all)
     EXPECT_TRUE(x[last]);
     x.reset(last);
     EXPECT_FALSE(x[last]);
+}
+
+TYPED_TEST(EnumBitsetTest, binary_ops)
+{
+    using MyEnum = typename EnumBitsetTest<TypeParam>::MyEnum;
+    using MyEnumBitset = EnumBitset<MyEnum>;
+
+    constexpr auto N = TypeParam::value;
+    constexpr auto last = MyEnum::last;
+    constexpr auto penult = MyEnum::penultimate;
+    constexpr auto antepen = MyEnum::antepenultimate;
+
+    MyEnumBitset x;
+    x.flip(antepen);
 
     MyEnumBitset y;
     EXPECT_NE(x, y);
@@ -155,8 +172,16 @@ TYPED_TEST(EnumBitsetTest, all)
     EXPECT_TRUE(x[last]);
     EXPECT_FALSE(x[penult]);
     EXPECT_FALSE(x[antepen]);
+}
 
+TYPED_TEST(EnumBitsetTest, flag_init)
+{
+    using MyEnum = typename EnumBitsetTest<TypeParam>::MyEnum;
+    using MyEnumBitset = EnumBitset<MyEnum>;
     using flags = typename MyEnumBitset::word_type;
+
+    constexpr auto N = TypeParam::value;
+
     flags init{0};
     init = ~init;
     MyEnumBitset z(init);
