@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Bitset.hh"
+#include "corecel/cont/EnumBitset.hh"
 
 #include "OrangeTypes.hh"
 
@@ -120,12 +120,15 @@ inline char const* to_cstring(SignedSense s)
  */
 class SenseValue
 {
-  private:
-    enum : char
+    enum class Bits : char
     {
-        sense_bit,
-        is_assigned_bit,
+        sense,
+        is_assigned,
+        size_
     };
+
+    static inline constexpr auto sense_bit = Bits::sense;
+    static inline constexpr auto is_assigned_bit = Bits::is_assigned;
 
   public:
     constexpr SenseValue() = default;
@@ -167,7 +170,7 @@ class SenseValue
     CELER_CONSTEXPR_FUNCTION void clear() { sense_.reset(); }
 
   private:
-    Bitset<2> sense_;
+    EnumBitset<Bits> sense_;
 };
 
 }  // namespace celeritas
