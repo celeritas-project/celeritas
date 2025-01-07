@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/io/ImportMaterial.hh"
 
 #include "GeantMaterialPropertyGetter.hh"
@@ -50,10 +51,8 @@ GeantOpticalModelImporter::GeantOpticalModelImporter(
         opt_to_mat_[opt_id.get()] = material->GetMaterialPropertiesTable();
     }
 
-    CELER_ASSERT(std::all_of(
-        opt_to_mat_.begin(), opt_to_mat_.end(), [](auto const* mpt) {
-            return static_cast<bool>(mpt);
-        }));
+    CELER_ASSERT(
+        std::all_of(opt_to_mat_.begin(), opt_to_mat_.end(), LogicalTrue{}));
 }
 
 //---------------------------------------------------------------------------//

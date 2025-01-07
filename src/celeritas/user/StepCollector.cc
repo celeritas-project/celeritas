@@ -46,10 +46,8 @@ StepCollector::StepCollector(SPConstGeo geo,
                              ActionRegistry* action_registry)
 {
     CELER_EXPECT(!callbacks.empty());
-    CELER_EXPECT(std::all_of(
-        callbacks.begin(), callbacks.end(), [](SPStepInterface const& i) {
-            return static_cast<bool>(i);
-        }));
+    CELER_EXPECT(
+        std::all_of(callbacks.begin(), callbacks.end(), LogicalTrue{}));
     CELER_EXPECT(geo);
     CELER_EXPECT(aux_registry);
     CELER_EXPECT(action_registry);

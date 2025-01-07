@@ -115,6 +115,32 @@ struct Less<void>
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Evaluate whether the argument is "true".
+ *
+ * This is useful for calls to \c std::all_of .
+ */
+template<class T = void>
+struct LogicalTrue
+{
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return static_cast<bool>(value);
+    }
+};
+
+//! Specialization of LogicalTrue with template deduction
+template<>
+struct LogicalTrue<void>
+{
+    template<class T>
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return static_cast<bool>(value);
+    }
+};
+
+//---------------------------------------------------------------------------//
 // Replace/extend <algorithm>
 //---------------------------------------------------------------------------//
 /*!
