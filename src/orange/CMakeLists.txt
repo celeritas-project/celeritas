@@ -50,7 +50,6 @@ list(APPEND SOURCES
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
-  orangeinp/detail/PostfixLogicBuilder.cc
   orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/SenseEvaluator.cc

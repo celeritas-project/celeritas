@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.18...3.31)
 
 # Set Celeritas_VERSION using git tags using the following format
 set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
@@ -14,7 +14,6 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
   "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
-cmake_policy(VERSION 3.18...3.28)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
