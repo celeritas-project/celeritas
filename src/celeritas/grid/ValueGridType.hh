@@ -22,7 +22,7 @@ enum class ValueGridType
 };
 
 template<class T>
-using ValueGridArray = EnumArray<ValueGridType, T>;
+using ValueGridArray = EnumArray<T, ValueGridType>;
 
 // Get the string representation of a grid
 char const* to_cstring(ValueGridType grid);

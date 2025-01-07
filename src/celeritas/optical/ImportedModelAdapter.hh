@@ -54,7 +54,7 @@ class ImportedModels
     ImportedModelId builtin_model_id(IMC imc) const;
 
   private:
-    EnumArray<IMC, ImportedModelId> builtin_id_map_;
+    EnumArray<ImportedModelId, IMC> builtin_id_map_;
     std::vector<ImportOpticalModel> models_;
 };
 

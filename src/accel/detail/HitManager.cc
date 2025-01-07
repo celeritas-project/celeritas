@@ -16,7 +16,6 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"

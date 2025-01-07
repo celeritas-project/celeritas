@@ -43,8 +43,8 @@ class BIHPartitioner
         Axis axis = Axis::size_;
         real_type position = std::numeric_limits<real_type>::infinity();
 
-        EnumArray<Side, VecIndices> indices;
-        EnumArray<Side, FastBBox> bboxes;
+        EnumArray<VecIndices, Side> indices;
+        EnumArray<FastBBox, Side> bboxes;
 
         explicit operator bool() const
         {

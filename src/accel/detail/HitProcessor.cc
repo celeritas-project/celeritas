@@ -190,7 +190,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
-    EnumArray<StepPoint, G4StepPoint*> points
+    EnumArray<G4StepPoint*, StepPoint> points
         = {step_->GetPreStepPoint(), step_->GetPostStepPoint()};
 
     for (auto i : range(out.size()))

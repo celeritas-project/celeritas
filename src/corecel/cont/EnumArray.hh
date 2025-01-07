@@ -22,10 +22,8 @@ namespace celeritas
  *
  * The enum *must* be a zero-indexed contiguous enumeration with a \c size_
  * enumeration as its last value.
- *
- * \todo The template parameters are reversed!!!
  */
-template<class E, class T>
+template<class T, class E>
 struct EnumArray
 {
     static_assert(std::is_enum<E>::value, "Template parameter must be an enum");
@@ -43,10 +41,7 @@ struct EnumArray
     using const_iterator = const_pointer;
     //!@}
 
-    enum
-    {
-        N = static_cast<size_type>(key_type::size_)
-    };
+    static constexpr size_type N = static_cast<size_type>(key_type::size_);
 
     //// DATA ////
 

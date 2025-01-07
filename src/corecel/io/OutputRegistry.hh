@@ -51,9 +51,10 @@ class OutputRegistry
 
   private:
     using Category = OutputInterface::Category;
+    using Interfaces = std::map<std::string, SPConstInterface>;
 
     // Interfaces by category
-    EnumArray<Category, std::map<std::string, SPConstInterface>> interfaces_;
+    EnumArray<Interfaces, Category> interfaces_;
 };
 
 //---------------------------------------------------------------------------//

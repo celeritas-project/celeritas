@@ -68,7 +68,7 @@ bool needs_micro_xs(ImportModelClass value)
 {
     CELER_EXPECT(value < ImportModelClass::size_);
 
-    using ModelBoolArray = EnumArray<ImportModelClass, bool>;
+    using ModelBoolArray = EnumArray<bool, ImportModelClass>;
 
     static ModelBoolArray const needs_xs = [] {
         ModelBoolArray result;

@@ -54,7 +54,7 @@ class UniverseInserter
     CollectionBuilder<size_type> surfaces_;
     CollectionBuilder<size_type> volumes_;
 
-    EnumArray<UniverseType, size_type> num_universe_types_{};
+    EnumArray<size_type, UniverseType> num_universe_types_{};
     size_type accum_surface_{0};
     size_type accum_volume_{0};
 };

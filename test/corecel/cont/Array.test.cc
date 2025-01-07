@@ -67,7 +67,7 @@ TEST(ArrayTest, all)
 
 TEST(EnumArrayTest, all)
 {
-    EnumArray<Color, int> x = {1, 3, 2};
+    EnumArray<int, Color> x = {1, 3, 2};
     EXPECT_EQ(3, x.size());
 
     EXPECT_FALSE(x.empty());

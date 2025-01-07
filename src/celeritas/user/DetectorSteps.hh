@@ -71,7 +71,7 @@ struct DetectorStepOutput
     //// DATA ////
 
     // Pre- and post-step data
-    EnumArray<StepPoint, DetectorStepPointOutput> points;
+    EnumArray<DetectorStepPointOutput, StepPoint> points;
 
     // Detector ID and track ID are always set
     PinnedVec<DetectorId> detector;

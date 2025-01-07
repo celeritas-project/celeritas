@@ -59,7 +59,7 @@ class SignedPermutation
     //!@{
     //! \name Type aliases
     using SignedAxis = std::pair<char, Axis>;
-    using SignedAxes = EnumArray<Axis, SignedAxis>;
+    using SignedAxes = EnumArray<SignedAxis, Axis>;
     using StorageSpan = Span<real_type const, 1>;
     using DataArray = Array<real_type, 1>;
     using UIntT = short unsigned int;

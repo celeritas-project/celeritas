@@ -71,7 +71,7 @@ struct StepPointSelection
  */
 struct StepSelection
 {
-    EnumArray<StepPoint, StepPointSelection> points;
+    EnumArray<StepPointSelection, StepPoint> points;
 
     bool event_id{false};
     bool parent_id{false};
@@ -245,7 +245,7 @@ struct StepStateDataImpl
     //// DATA ////
 
     // Pre- and post-step data
-    EnumArray<StepPoint, StepPointData> points;
+    EnumArray<StepPointData, StepPoint> points;
 
     //! Track ID is always assigned (but will be false for inactive tracks)
     StateItems<TrackId> track_id;

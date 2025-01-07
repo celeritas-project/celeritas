@@ -26,7 +26,7 @@ SignedPermutation::SignedPermutation()
  */
 SignedPermutation::SignedPermutation(SignedAxes permutation) : compressed_{0}
 {
-    EnumArray<Axis, bool> encountered_ax{false, false, false};
+    EnumArray<bool, Axis> encountered_ax{false, false, false};
 
     SquareMatrix<int, 3> explicit_mat;
 

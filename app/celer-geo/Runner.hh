@@ -68,7 +68,7 @@ class Runner
     using SPImager = std::shared_ptr<ImagerInterface>;
 
     template<class T>
-    using GeoArray = EnumArray<Geometry, T>;
+    using GeoArray = EnumArray<T, Geometry>;
 
     //// DATA ////
 

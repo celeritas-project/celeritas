@@ -13,7 +13,6 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"

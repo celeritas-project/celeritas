@@ -47,7 +47,7 @@ struct GeneratorDistributionData
     real_type step_length{};
     units::ElementaryCharge charge;
     OpticalMaterialId material;
-    EnumArray<StepPoint, GeneratorStepData> points;
+    EnumArray<GeneratorStepData, StepPoint> points;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const

@@ -57,7 +57,7 @@ TEST(StringEnumMapperTest, from_cstring)
 TEST(StringEnumMapperTest, from_generic)
 {
     // NOTE: string storage must exceed lifetime of string enum mapper
-    EnumArray<CeleritasLabs, std::string> storage;
+    EnumArray<std::string, CeleritasLabs> storage;
     auto capstring = [&storage](CeleritasLabs lab) -> std::string_view {
         std::string temp = to_cstring(lab);
         std::transform(

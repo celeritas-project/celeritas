@@ -81,7 +81,7 @@ class RootStepWriter final : public StepInterface
         int particle = 0;  //!< PDG number
         real_type energy_deposition = 0;  //!< [MeV]
         real_type step_length = 0;  //!< [len]
-        EnumArray<StepPoint, TStepPoint> points;
+        EnumArray<TStepPoint, StepPoint> points;
     };
 
   public:
