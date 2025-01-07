@@ -40,7 +40,7 @@ struct BuildLogicResult
 /*!
  * Sort the faces of a volume and remap the logic expression.
  */
-BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
+inline BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
 {
     // Construct sorted vector of faces
     BuildLogicResult::VecSurface faces;
