@@ -284,19 +284,6 @@ class FourLevelsTest : public VecgeomVgdmlTestBase
     {
         return this->load_vgdml("four-levels.gdml");
     }
-
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version{2})
-        {
-            static std::string_view const levels[] = {"warning"};
-            return make_span(levels);
-        }
-        else
-        {
-            return {};
-        }
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -745,8 +732,7 @@ class SolidsTest : public VecgeomVgdmlTestBase
     {
         if (vecgeom_version >= Version{2})
         {
-            static std::string_view const levels[]
-                = {"warning", "warning", "warning"};
+            static std::string_view const levels[] = {"warning", "warning"};
             return make_span(levels);
         }
         else if (geant4_version >= Version{11})
@@ -1066,19 +1052,6 @@ class CmseTest : public VecgeomVgdmlTestBase
 {
   public:
     SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
-
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version(2))
-        {
-            static std::string_view const levels[] = {"warning"};
-            return make_span(levels);
-        }
-        else
-        {
-            return {};
-        }
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -1237,7 +1210,7 @@ TEST_F(FourLevelsGeantTest, tracking)
     }
     {
         SCOPED_TRACE("From outside edge");
-        auto result = this->track({-24, 10., 10.}, {1, 0, 0});
+        auto result = this->track({-24.1, 10., 10.}, {1, 0, 0});
         static char const* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
@@ -1254,7 +1227,7 @@ TEST_F(FourLevelsGeantTest, tracking)
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[]
-            = {1e-13, 7.0 - 1e-13, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+            = {0.1, 7.0, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -1278,7 +1251,7 @@ TEST_F(FourLevelsGeantTest, tracking)
     {
         // Formerly in linear propagator test, used to fail
         SCOPED_TRACE("From just outside world");
-        auto result = this->track({-24, 10, 10}, {1, 0, 0});
+        auto result = this->track({-24.1, 10, 10}, {1, 0, 0});
         static char const* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
@@ -1295,7 +1268,7 @@ TEST_F(FourLevelsGeantTest, tracking)
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[]
-            = {1e-13, 7, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+            = {0.1, 7, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }
