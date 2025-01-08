@@ -127,8 +127,8 @@ class SenseValue
         size_
     };
 
-    static inline constexpr auto sense_bit = Bits::sense;
-    static inline constexpr auto is_assigned_bit = Bits::is_assigned;
+    static constexpr auto sense_bit = Bits::sense;
+    static constexpr auto is_assigned_bit = Bits::is_assigned;
 
   public:
     constexpr SenseValue() = default;

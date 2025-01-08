@@ -36,11 +36,18 @@ namespace celeritas
  * - shift operators
  * - hash support
  * - construct from string, from_ullong
+ *
+ * Because bitsets should have a one-to-one mapping between a bit index and a
+ * flag, we template on an \code enum class \endcode so that each bit
+ * corresponds to an enumeration values. This makes indexing type safe.
  */
 template<class E>
 class EnumBitset
 {
-    static_assert(std::is_enum<E>::value, "Template parameter must be an enum");
+    static_assert(std::is_enum_v<E>, "Template parameter must be an enum");
+    static_assert(sizeof(std::underlying_type_t<E>) <= sizeof(size_type),
+                  "Size of enum's underlying type must be smaller than "
+                  "size_type");
     static constexpr size_type N = static_cast<size_type>(E::size_);
 
   public:
