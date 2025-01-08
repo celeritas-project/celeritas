@@ -126,7 +126,7 @@ TEST_F(OneVolumeTest, obz)
     EXPECT_VEC_SOFT_EQ(Real3({3.1, 3.6, 4.1}), data.reals[outer_range]);
 
     // Check translation id
-    EXPECT_EQ(10, obz_record.transform_id.get());
+    EXPECT_EQ(10, obz_record.trans_id.get());
 }
 
 //---------------------------------------------------------------------------//

@@ -170,7 +170,7 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
     {
         std::ostringstream os;
         os << node.unchecked_get() << ": t=";
-        if (auto t = reg.transform_id)
+        if (auto t = reg.trans_id)
         {
             os << t.unchecked_get();
             if (t < u.transforms.size())
@@ -235,7 +235,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
                 os << "<MISSING>";
             }
             os << ", t=";
-            if (auto t = d->transform_id)
+            if (auto t = d->trans_id)
             {
                 os << t.unchecked_get();
             }

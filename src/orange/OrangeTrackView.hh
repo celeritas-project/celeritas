@@ -329,7 +329,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         {
             auto const& daughter = params_.daughters[daughter_id];
             // Apply "transform down" based on stored transform
-            apply_transform(transform_down_local, daughter.transform_id);
+            apply_transform(transform_down_local, daughter.trans_id);
             // Update universe and increase level depth
             univ_id = daughter.universe_id;
             ++level;
@@ -734,7 +734,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
                 local.pos = t.transform_down(local.pos);
                 local.dir = t.rotate_down(local.dir);
             };
-            apply_transform(transform_down_local, daughter.transform_id);
+            apply_transform(transform_down_local, daughter.trans_id);
             universe = daughter.universe_id;
         }
 
@@ -1182,7 +1182,7 @@ CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa)
 CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id)
 {
     CELER_EXPECT(daughter_id);
-    return params_.daughters[daughter_id].transform_id;
+    return params_.daughters[daughter_id].trans_id;
 }
 
 //---------------------------------------------------------------------------//

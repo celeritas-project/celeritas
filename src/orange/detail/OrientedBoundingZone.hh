@@ -31,7 +31,7 @@ namespace detail
  * coordinate system.
  *
  * Consequently, points in the unit's coordinate system must be first
- * transformed by \c transform_id into the OBZ coordinate system (resulting in
+ * transformed by \c trans_id into the OBZ coordinate system (resulting in
  * "trans_pos"), then offset, i.e. translated, by \c inner_offset_id or
  * \c outer_offset_id into the inner or outer bbox coordinate system (resulting
  * in "offset_pos"). It is noted that these offset positions are always
@@ -266,7 +266,7 @@ CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
     TransformVisitor apply_transform(*sp_.transforms, *sp_.reals);
     auto transform_down = [&pos](auto&& t) { return t.transform_down(pos); };
 
-    return apply_transform(transform_down, obz_record_.transform_id);
+    return apply_transform(transform_down, obz_record_.trans_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -276,8 +276,8 @@ CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
  * This function also reflects the point into quadrant one.
  */
 CELER_FUNCTION auto
-OrientedBoundingZone::apply_offset(Real3 const& trans_pos,
-                                   BBoxType bbt) -> OffsetPos
+OrientedBoundingZone::apply_offset(Real3 const& trans_pos, BBoxType bbt)
+    -> OffsetPos
 {
     TransformVisitor apply_transform(*sp_.transforms, *sp_.reals);
     auto transform_down

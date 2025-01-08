@@ -111,7 +111,7 @@ void to_json(nlohmann::json& j, CsgUnit const& unit)
         {
             auto entry = nlohmann::json{
                 {"exterior", reg.bounds.exterior},
-                {"transform", reg.transform_id.unchecked_get()},
+                {"transform", reg.trans_id.unchecked_get()},
             };
             if (reg.bounds.interior)
             {
@@ -141,7 +141,7 @@ void to_json(nlohmann::json& j, CsgUnit const& unit)
             else if (auto* d = std::get_if<Daughter>(&unit.fills[i]))
             {
                 entry["universe"] = d->universe_id.unchecked_get();
-                entry["transform"] = d->transform_id.unchecked_get();
+                entry["transform"] = d->trans_id.unchecked_get();
             }
             result.push_back(entry);
         }
