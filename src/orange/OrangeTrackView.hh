@@ -284,14 +284,14 @@ OrangeTrackView::operator=(Initializer_t const& init)
     };
 
     // Recurse into daughter universes starting with the outermost universe
-    UniverseId uid = top_universe_id();
+    UniverseId univ_id = top_universe_id();
     DaughterId daughter_id;
     LevelId level{0};
     do
     {
         TrackerVisitor visit_tracker{params_};
         auto tinit = visit_tracker(
-            [&local](auto&& t) { return t.initialize(local); }, uid);
+            [&local](auto&& t) { return t.initialize(local); }, univ_id);
 
         if (!tinit.volume || tinit.surface)
         {
@@ -307,7 +307,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
                 msg << "started on a surface ("
                     << tinit.surface.id().unchecked_get() << ")";
             }
-            msg << " in universe " << uid.unchecked_get()
+            msg << " in universe " << univ_id.unchecked_get()
                 << " at local position " << repr(local.pos);
 #endif
             // Mark as failed and place in local "exterior" to end the search
@@ -320,10 +320,10 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.vol() = tinit.volume;
         lsa.pos() = local.pos;
         lsa.dir() = local.dir;
-        lsa.universe() = uid;
+        lsa.universe() = univ_id;
 
         daughter_id = visit_tracker(
-            [&tinit](auto&& t) { return t.daughter(tinit.volume); }, uid);
+            [&tinit](auto&& t) { return t.daughter(tinit.volume); }, univ_id);
 
         if (daughter_id)
         {
@@ -331,7 +331,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
             // Apply "transform down" based on stored transform
             apply_transform(transform_down_local, daughter.transform_id);
             // Update universe and increase level depth
-            uid = daughter.universe_id;
+            univ_id = daughter.universe_id;
             ++level;
         }
 
@@ -964,15 +964,15 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     LevelId min_level{0};
 
     // Find the nearest intersection from level 0 to current level
-    // inclusive, prefering the shallowest level (i.e., lowest uid)
+    // inclusive, prefering the shallowest level (i.e., lowest univ_id)
     for (auto levelid : range(LevelId{1}, this->level() + 1))
     {
-        auto uid = this->make_lsa(levelid).universe();
+        auto univ_id = this->make_lsa(levelid).universe();
         auto local_isect = visit_tracker(
             [local_state = this->make_local_state(levelid), &isect](auto&& t) {
                 return t.intersect(local_state, isect.distance);
             },
-            uid);
+            univ_id);
 
         if (local_isect.distance < isect.distance)
         {
@@ -1156,8 +1156,8 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
 /*!
  * Make a LevelStateAccessor for the current thread and a given level.
  */
-CELER_FORCEINLINE_FUNCTION auto
-OrangeTrackView::make_lsa(LevelId level) const -> LSA
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
+    -> LSA
 {
     return LSA(&states_, track_slot_, level);
 }

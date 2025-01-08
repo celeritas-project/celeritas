@@ -340,8 +340,8 @@ void UnitProto::build(ProtoBuilder& input) const
                 std::size_t daughter_index = iter->get<int>();
                 CELER_ASSERT(daughter_index < input_.daughters.size());
                 auto const& daughter = input_.daughters[daughter_index];
-                auto uid = input.find_universe_id(daughter.fill.get());
-                *iter = uid.unchecked_get();
+                auto univ_id = input.find_universe_id(daughter.fill.get());
+                *iter = univ_id.unchecked_get();
             }
         }
 
