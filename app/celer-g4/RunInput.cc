@@ -125,7 +125,7 @@ inp::Input to_input(RunInput const& run_input)
             return TrackOrder::init_charge;
         }
 
-        // Device is not active: don't ort
+        // Device is not active: don't sort
         return TrackOrder::none;
     }();
 

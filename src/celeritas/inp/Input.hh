@@ -20,6 +20,26 @@ namespace inp
 //---------------------------------------------------------------------------//
 /*!
  * Celeritas setup.
+ *
+ * There are three categories of input types:
+ * - Exclusive Celeritas inputs: state size, other diagnostic and tuning
+ *   parameters. Also some parameters we \em cannot deduce from Geant4: e.g.,
+ *   sensitive detector attributes.
+ * - Parameters that we want to use to drive Geant4 for celer-g4, or
+ *   pull from Geant4 if we're not. This would include geometry
+ *   definition (GDML), magnetic field, EM
+ *   parameters, active processes, and maybe someday the scoring setup.
+ * - Problem setup options that we cannot directly understand from Geant4 but
+ *   must be provided directly to lower-level Celeritas objects. In particular,
+ *   we need to be able to allow users to add custom processes, magnetic
+ *   fields, etc.
+ *
+ * OPEN QUESTIONS:
+ * - Some parameters we want to use \em only when we're driving Geant4 and
+ *   aren't used for Celeritas: hadronic physics list, certain physics options.
+ *   Do those go here or in a separate data structure?
+ * - Do we add callbacks to the "physics" section to inject new processes? To
+ *   the "scoring"/"diagnostics" to add additional actions?
  */
 struct Input
 {

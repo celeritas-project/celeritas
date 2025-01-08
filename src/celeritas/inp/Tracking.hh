@@ -30,7 +30,7 @@ struct TrackingLimits
     size_type field_substeps{100};
 
     //! Stop electron/positron below this energy
-    Energy electron_energy = Energy{0.001};
+    // TODO: Energy electron_energy = Energy{0.001};
 };
 
 //---------------------------------------------------------------------------//
