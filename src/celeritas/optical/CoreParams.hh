@@ -75,6 +75,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //!@{
     //! \name Data interface
+
     //! Access data on the host
     HostRef const& host_ref() const final { return host_ref_; }
     //! Access data on the device

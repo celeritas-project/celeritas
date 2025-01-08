@@ -98,10 +98,7 @@ JoinObjects<Op>::JoinObjects(std::string&& label, VecObject&& objects)
     : label_{std::move(label)}, objects_{std::move(objects)}
 {
     CELER_EXPECT(!label_.empty());
-    CELER_EXPECT(std::all_of(
-        objects_.begin(), objects_.end(), [](SPConstObject const& obj) {
-            return static_cast<bool>(obj);
-        }));
+    CELER_EXPECT(std::all_of(objects_.begin(), objects_.end(), LogicalTrue{}));
     CELER_EXPECT(!objects_.empty());
 }
 

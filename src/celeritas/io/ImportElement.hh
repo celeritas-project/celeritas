@@ -39,7 +39,7 @@ struct ImportIsotope
 struct ImportElement
 {
     //!@{
-    //! \name type aliases
+    //! \name Type aliases
     using IsotopeIndex = unsigned int;
     using IsotopeFrac = std::pair<IsotopeIndex, double>;
     using VecIsotopeFrac = std::vector<IsotopeFrac>;

@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 

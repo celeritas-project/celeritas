@@ -48,7 +48,7 @@ OrangeInput to_input(UnitInput u)
 /*!
  * Convert a vector of senses to a string.
  */
-std::string OrangeGeoTestBase::senses_to_string(Span<Sense const> senses)
+std::string OrangeGeoTestBase::senses_to_string(Span<SenseValue const> senses)
 {
     std::ostringstream os;
     os << '{' << join(senses.begin(), senses.end(), ' ', [](Sense s) {

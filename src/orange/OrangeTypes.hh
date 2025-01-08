@@ -10,7 +10,6 @@
 #include <cstddef>
 #include <functional>
 #include <type_traits>
-#include <utility>
 
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
@@ -351,84 +350,12 @@ extern template struct Tolerance<double>;
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!
- * Convert a boolean value to a Sense enum.
- */
-CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
-{
-    return static_cast<Sense>(s);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Change the sense across a surface.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
-{
-    return static_cast<Sense>(!static_cast<bool>(orig));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Change the sense across a surface.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense flip_sense(SignedSense orig)
-{
-    using IntT = std::underlying_type_t<SignedSense>;
-    return static_cast<SignedSense>(-static_cast<IntT>(orig));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
 [[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
 flip_boundary(BoundaryResult orig)
 {
     return static_cast<BoundaryResult>(!static_cast<bool>(orig));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Evaluate the sense based on the LHS expression of the quadric equation.
- *
- * This is an optimized jump-free version of:
- * \code
-    return quadric == 0 ? SignedSense::on
-        : quadric < 0 ? SignedSense::inside
-        : SignedSense::outside;
- * \endcode
- * as
- * \code
-    int gz = !(quadric <= 0) ? 1 : 0;
-    int lz = quadric < 0 ? 1 : 0;
-    return static_cast<SignedSense>(gz - lz);
- * \endcode
- * and compressed into a single line.
- *
- * NaN values are treated as "outside".
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense
-real_to_sense(real_type quadric)
-{
-    return static_cast<SignedSense>(!(quadric <= 0) - (quadric < 0));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a signed sense to a Sense enum.
- */
-CELER_CONSTEXPR_FUNCTION Sense to_sense(SignedSense s)
-{
-    return Sense(static_cast<int>(s) >= 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a signed sense to a surface state.
- */
-CELER_CONSTEXPR_FUNCTION SurfaceState to_surface_state(SignedSense s)
-{
-    return s == SignedSense::on ? SurfaceState::on : SurfaceState::off;
 }
 
 //---------------------------------------------------------------------------//
@@ -466,20 +393,11 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
-//! Get a printable character corresponding to a sense.
-inline constexpr char to_char(Sense s)
-{
-    return s == Sense::inside ? '-' : '+';
-}
-
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
 
 // Get a string corresponding to a transform type
 char const* to_cstring(TransformType);
-
-// Get a string corresponding to a signed sense
-char const* to_cstring(SignedSense);
 
 // Get a string corresponding to a surface state
 inline char const* to_cstring(SurfaceState s)

@@ -464,6 +464,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
     transporter_input_->store_step_times = inp.write_step_times;
     transporter_input_->action_times = inp.action_times;
     transporter_input_->params = core_params_;
+    transporter_input_->log_progress = inp.log_progress;
 }
 
 //---------------------------------------------------------------------------//

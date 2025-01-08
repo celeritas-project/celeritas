@@ -32,6 +32,7 @@ struct IntersectSurfaceState
 {
     //!@{
     //! \name Input state
+
     //! Local-to-global transform
     VariantTransform const* transform{nullptr};
     //! Name of the object being built
@@ -42,6 +43,7 @@ struct IntersectSurfaceState
 
     //!@{
     //! \name Output state
+
     //! Local (to intersecting surface state) interior/exterior
     BoundingZone local_bzone = BoundingZone::from_infinite();
     //! Global (to unit) interior/exterior

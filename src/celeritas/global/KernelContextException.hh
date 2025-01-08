@@ -64,6 +64,7 @@ class KernelContextException : public RichContextException
 
     //!@{
     //! \name Track accessors
+
     //! Kernel thread ID
     ThreadId thread() const { return thread_; }
     //! Track slot ID

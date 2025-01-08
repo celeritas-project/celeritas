@@ -434,11 +434,6 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     add_custom_command(
       TARGET update-root-test-data
       POST_BUILD
-      DEPENDS
-        celer-export-geant
-        "${_gdml}"
-        "${_basename}.geant.json"
-        "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
       COMMAND
         "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
         "$<TARGET_FILE:celer-export-geant>"

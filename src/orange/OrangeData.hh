@@ -16,6 +16,7 @@
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
+#include "SenseUtils.hh"
 #include "univ/detail/Types.hh"
 
 #include "detail/BIHData.hh"
@@ -471,7 +472,7 @@ struct OrangeStateData
     Items<UniverseId> universe;
 
     // Scratch space with dimensions {track}{max_faces}
-    Items<Sense> temp_sense;
+    Items<SenseValue> temp_sense;
 
     // Scratch space with dimensions {track}{max_intersections}
     Items<FaceId> temp_face;

@@ -9,6 +9,7 @@
 #include <ostream>
 
 #include "corecel/cont/VariantUtils.hh"
+#include "orange/SenseUtils.hh"
 
 #include "../CsgTree.hh"
 
@@ -45,6 +46,7 @@ class InfixStringBuilder
 
     //!@{
     //! \name Visit a node directly
+
     // Append 'true'
     inline void operator()(True const&);
     // False is never explicitly part of the node tree

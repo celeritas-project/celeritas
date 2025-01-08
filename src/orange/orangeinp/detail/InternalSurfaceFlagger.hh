@@ -37,6 +37,7 @@ class InternalSurfaceFlagger
 
     //!@{
     //! \name Visit a node directly
+
     // No surface crossings
     bool operator()(True const&) { return simple; }
     // False is never explicitly part of the node tree
