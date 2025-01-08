@@ -337,7 +337,7 @@ struct BIHTreeData
 /*!
  * Persistent data used by ORANGE implementation.
  *
- * Most data will be accessed through the invidual units, which reference data
+ * Most data will be accessed through the individual units, which reference data
  * in the "storage" below. The type and index for a universe ID will determine
  * the class type and data of the Tracker to instantiate. If *only* simple
  * units are present, then the \c simple_units data structure will just be
