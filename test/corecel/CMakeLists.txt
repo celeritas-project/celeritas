@@ -27,7 +27,8 @@ celeritas_add_test(OpaqueId.test.cc)
 
 # Cont
 celeritas_add_test(cont/Array.test.cc)
-celeritas_add_test(cont/EnumBitset.test.cc)
+celeritas_add_test(cont/EnumBitset.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(cont/InitializedValue.test.cc)
 celeritas_add_test(cont/Span.test.cc)
 celeritas_add_test(cont/LabelIdMultiMap.test.cc)

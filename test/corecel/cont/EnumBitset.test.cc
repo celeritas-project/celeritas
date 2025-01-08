@@ -4,10 +4,13 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/cont/EnumBitset.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/cont/EnumBitset.hh"
+
 #include <climits>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/EnumBitset.hh"
+#include "corecel/cont/EnumBitsetIO.json.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 #include "celeritas_test.hh"
 
@@ -17,6 +20,44 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTS
+//---------------------------------------------------------------------------//
+enum class Colors
+{
+    red,
+    green,
+    blue,
+    size_
+};
+
+char const* to_cstring(Colors c)
+{
+    static EnumStringMapper<Colors> const get_impl{"red", "green", "blue"};
+
+    return get_impl(c);
+}
+
+TEST(EnumJson, output)
+{
+    EnumBitset<Colors> c;
+
+    {
+        // Empty set
+        nlohmann::json out = c;
+        static char const expected[] = R"json([])json";
+        EXPECT_JSON_EQ(expected, out.dump());
+    }
+
+    c[Colors::red] = true;
+    c[Colors::blue] = true;
+
+    {
+        // Two values
+        nlohmann::json out = c;
+        static char const expected[] = R"json(["red","blue"])json";
+        EXPECT_JSON_EQ(expected, out.dump());
+    }
+}
+
 //---------------------------------------------------------------------------//
 
 template<typename T>

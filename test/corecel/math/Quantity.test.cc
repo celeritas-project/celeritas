@@ -247,7 +247,7 @@ TEST(QuantityTest, io)
         SCOPED_TRACE("Output");
         nlohmann::json out = Dozen{2};
         static char const expected[] = R"json([2,"dozen"])json";
-        EXPECT_EQ(std::string(expected), std::string(out.dump()));
+        EXPECT_JSON_EQ(expected, out.dump());
     }
 }
 

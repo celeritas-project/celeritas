@@ -7,7 +7,6 @@
 #include "corecel/io/EnumStringMapper.hh"
 
 #include "celeritas_test.hh"
-// #include "EnumStringMapper.test.hh"
 
 namespace celeritas
 {
@@ -20,12 +19,6 @@ enum class CeleritasLabs
     fermilab,
     ornl,
     size_
-};
-
-enum class InvalidEnum
-{
-    foo,
-    bar
 };
 
 //---------------------------------------------------------------------------//
@@ -49,6 +42,13 @@ TEST(EnumStringMapperTest, compiler_error)
     static EnumStringMapper<CeleritasLabs> const too_short{"argonne", "ornl"};
     static EnumStringMapper<CeleritasLabs> const too_long{
         "argonne", "ornl", "foo", "bar"};
+
+    enum class InvalidEnum
+    {
+        foo,
+        bar
+    };
+
     static EnumStringMapper<InvalidEnum> const no_size{"foo", "bar"};
 }
 #endif
