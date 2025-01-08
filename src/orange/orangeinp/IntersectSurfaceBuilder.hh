@@ -48,7 +48,7 @@ class IntersectSurfaceBuilder
 {
   public:
     //!@{
-    //! \name Types
+    //! \name Type aliases
     using Tol = Tolerance<>;
     //!@}
 

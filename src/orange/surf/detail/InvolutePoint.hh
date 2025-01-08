@@ -32,8 +32,9 @@ class InvolutePoint
 {
   public:
     //!@{
-    //! \name Type alias
+    //! \name Type aliases
     using Real2 = Array<real_type, 2>;
+    //!@}
 
   public:
     // Construct involute from parameters
@@ -50,6 +51,7 @@ class InvolutePoint
 
   private:
     //// DATA ////
+
     // Involute parameters
     real_type r_b_;
     real_type a_;

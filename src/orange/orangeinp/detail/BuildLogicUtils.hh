@@ -281,13 +281,15 @@ class PostfixBuildLogicPolicy
     //!@{
     //! \name Visit a node directly
     using BaseBuildLogicPolicy::operator();
-    // Visit a negated node and append 'not'
+
+    //! Visit a negated node and append 'not'.
     void operator()(Negated const& n)
     {
         (*this)(n.node);
         logic().push_back(logic::lnot);
     }
-    // Visit daughter nodes and append the conjunction.
+
+    //! Visit daughter nodes and append the conjunction.
     void operator()(Joined const& n)
     {
         CELER_EXPECT(n.nodes.size() > 1);
@@ -302,6 +304,7 @@ class PostfixBuildLogicPolicy
             logic().push_back(n.op);
         }
     }
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
@@ -332,7 +335,8 @@ class InfixBuildLogicPolicy : public BaseBuildLogicPolicy<InfixBuildLogicPolicy>
     //!@{
     //! \name Visit a node directly
     using BaseBuildLogicPolicy::operator();
-    //! Append 'not' and visit a negated node
+
+    //! Append 'not' and visit a negated node.
     void operator()(Negated const& n)
     {
         this->logic().push_back(logic::lnot);

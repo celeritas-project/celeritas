@@ -61,6 +61,7 @@ class GeantSimpleCalo final : public OutputInterface
 
     //!@{
     //! \name Output interface
+
     //! Category of data to write
     Category category() const final { return Category::result; }
     // Key for the entry inside the category
