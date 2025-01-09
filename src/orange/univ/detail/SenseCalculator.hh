@@ -70,7 +70,7 @@ SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
     CELER_EXPECT(vol.num_faces() <= storage.size());
     LazySenseCalculator lazy_sense_calculator(visit, vol, pos, face);
     // Fill the temp logic vector with values for all surfaces in the volume
-    for (FaceId cur_face : range(FaceId{sense_storage_.size()}))
+    for (FaceId cur_face : range(FaceId{vol.num_faces()}))
     {
         sense_storage_[cur_face.unchecked_get()]
             = lazy_sense_calculator(cur_face);
