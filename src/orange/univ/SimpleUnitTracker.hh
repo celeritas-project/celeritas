@@ -165,18 +165,17 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
 
-    detail::SenseCalculator calc_senses(
-        this->make_surface_visitor(), state.pos, state.temp_sense);
-
     // Use the BIH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
-    bool on_surface{false};
-    auto is_inside
-        = [this, &calc_senses, &on_surface](LocalVolumeId id) -> bool {
+    detail::OnFace on_surface;
+    auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
         VolumeView vol = this->make_local_volume(id);
-        auto logic_state = calc_senses(vol);
-        on_surface = static_cast<bool>(logic_state.face);
-        return detail::LogicEvaluator(vol.logic())(logic_state.senses);
+        auto logic_state = detail::SenseCalculator(this->make_surface_visitor(),
+                                                   vol,
+                                                   state.pos,
+                                                   state.temp_sense,
+                                                   on_surface)();
+        return detail::LogicEvaluator(vol.logic())(logic_state);
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 
@@ -202,12 +201,10 @@ CELER_FUNCTION auto
 SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
-    detail::SenseCalculator calc_senses(
-        this->make_surface_visitor(), state.pos, state.temp_sense);
 
     detail::OnLocalSurface on_surface;
-    auto is_inside = [this, &state, &calc_senses, &on_surface](
-                         LocalVolumeId const& id) -> bool {
+    auto is_inside
+        = [this, &state, &on_surface](LocalVolumeId const& id) -> bool {
         if (id == state.volume)
         {
             // Cannot cross surface into the same volume
@@ -215,13 +212,17 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
         }
 
         VolumeView vol = this->make_local_volume(id);
-        auto logic_state
-            = calc_senses(vol, detail::find_face(vol, state.surface));
+        detail::OnFace face{detail::find_face(vol, state.surface)};
+        auto logic_state = detail::SenseCalculator(this->make_surface_visitor(),
+                                                   vol,
+                                                   state.pos,
+                                                   state.temp_sense,
+                                                   face)();
 
-        if (detail::LogicEvaluator(vol.logic())(logic_state.senses))
+        if (detail::LogicEvaluator(vol.logic())(logic_state))
         {
             // Inside: find and save the local surface ID, and end the search
-            on_surface = get_surface(vol, logic_state.face);
+            on_surface = get_surface(vol, face);
             return true;
         }
         return false;
@@ -528,13 +529,16 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     CELER_ASSERT(num_isect > 0);
 
     // Calculate local senses, taking current face into account
-    auto logic_state = detail::SenseCalculator(
-        this->make_surface_visitor(), state.pos, state.temp_sense)(
-        vol, detail::find_face(vol, state.surface));
+    detail::OnFace on_face(detail::find_face(vol, state.surface));
+    auto logic_state = detail::SenseCalculator(this->make_surface_visitor(),
+                                               vol,
+                                               state.pos,
+                                               state.temp_sense,
+                                               on_face)();
 
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(is_inside(logic_state.senses));
+    CELER_ASSERT(is_inside(logic_state));
 
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].
@@ -547,9 +551,9 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         // Face being crossed in this ordered intersection
         FaceId face = state.temp_next.face[isect];
         // Flip the sense of the face being crossed
-        Sense new_sense = flip_sense(logic_state.senses[face.get()]);
-        logic_state.senses[face.unchecked_get()] = new_sense;
-        if (!is_inside(logic_state.senses))
+        Sense new_sense = flip_sense(logic_state[face.get()]);
+        logic_state[face.unchecked_get()] = new_sense;
+        if (!is_inside(logic_state))
         {
             // Flipping this sense puts us outside the current volume: in
             // other words, only after crossing all the internal surfaces along
@@ -620,10 +624,11 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
         {
             CELER_ASSERT(vid != state.volume);
             VolumeView vol = this->make_local_volume(vid);
+            detail::OnFace face;
             auto logic_state = detail::SenseCalculator{
-                this->make_surface_visitor(), pos, state.temp_sense}(vol);
+                this->make_surface_visitor(), vol, pos, state.temp_sense, face}();
 
-            if (detail::LogicEvaluator{vol.logic()}(logic_state.senses))
+            if (detail::LogicEvaluator{vol.logic()}(logic_state))
             {
                 // We are in this new volume by crossing the tested surface.
                 // Get the sense corresponding to this "crossed" surface.
@@ -633,8 +638,7 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
                 Intersection result;
                 result.distance = state.temp_next.distance[isect];
                 result.surface = detail::OnLocalSurface{
-                    surface,
-                    flip_sense(logic_state.senses[face.unchecked_get()])};
+                    surface, flip_sense(logic_state[face.unchecked_get()])};
                 return result;
             }
         }

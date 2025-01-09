@@ -9,7 +9,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
+#include "orange/univ/detail/Types.hh"
 
 #include "LazySenseCalculator.hh"
 #include "../VolumeView.hh"
@@ -28,32 +30,29 @@ namespace detail
 class SenseCalculator
 {
   public:
-    //! Return result
-    struct result_type
-    {
-        Span<SenseValue> senses;  //!< Calculated senses for the volume
-        OnFace face;  //!< The first face encountered that we are "on"
-    };
-
-  public:
     // Construct from persistent, current, and temporary data
     inline CELER_FUNCTION SenseCalculator(LocalSurfaceVisitor const& visit,
+                                          VolumeView const& vol,
                                           Real3 const& pos,
-                                          Span<SenseValue> storage);
+                                          Span<SenseValue> storage,
+                                          OnFace& face);
 
     // Calculate senses for the given volume, possibly on a face
-    inline CELER_FUNCTION result_type operator()(VolumeView const& vol,
-                                                 OnFace face = {});
+    inline CELER_FUNCTION Span<SenseValue> operator()();
 
   private:
     //! Apply a function to a local surface
     LocalSurfaceVisitor visit_;
+
+    VolumeView vol_;
 
     //! Local position
     Real3 pos_;
 
     //! Temporary senses
     Span<SenseValue> sense_storage_;
+
+    OnFace& face_;
 };
 
 //---------------------------------------------------------------------------//
@@ -64,9 +63,11 @@ class SenseCalculator
  */
 CELER_FUNCTION
 SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
+                                 VolumeView const& vol,
                                  Real3 const& pos,
-                                 Span<SenseValue> storage)
-    : visit_{visit}, pos_(pos), sense_storage_(storage)
+                                 Span<SenseValue> storage,
+                                 OnFace& face)
+    : visit_{visit}, vol_{vol}, pos_{pos}, sense_storage_{storage}, face_{face}
 {
 }
 
@@ -74,30 +75,27 @@ SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
 /*!
  * Calculate senses for the given volume.
  *
- * If the point is exactly on one of the volume's surfaces, the \c face value
- * of the return will be set.
+ * If the point is exactly on one of the volume's surfaces, the \c face
+ * reference passed during instance construction will be set.
  */
-CELER_FUNCTION auto
-SenseCalculator::operator()(VolumeView const& vol, OnFace face) -> result_type
+CELER_FUNCTION Span<SenseValue> SenseCalculator::operator()()
 {
-    CELER_EXPECT(vol.num_faces() <= sense_storage_.size());
-    CELER_EXPECT(!face || face.id() < vol.num_faces());
+    CELER_EXPECT(vol_.num_faces() <= sense_storage_.size());
+    CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
 
     // Resulting senses are a subset of the storage; and the face is preserved
-    result_type result;
-    result.senses = sense_storage_.first(vol.num_faces());
-    result.face = face;
-    LazySenseCalculator lazy_sense_calculator(visit_, vol, pos_, result.face);
+
+    auto senses = sense_storage_.first(vol_.num_faces());
+    LazySenseCalculator lazy_sense_calculator(visit_, vol_, pos_, face_);
 
     // Fill the temp logic vector with values for all surfaces in the volume
-    for (FaceId cur_face : range(FaceId{vol.num_faces()}))
+    for (FaceId cur_face : range(FaceId{vol_.num_faces()}))
     {
-        result.senses[cur_face.unchecked_get()]
-            = lazy_sense_calculator(cur_face);
+        senses[cur_face.unchecked_get()] = lazy_sense_calculator(cur_face);
     }
 
-    CELER_ENSURE(!result.face || result.face.id() < result.senses.size());
-    return result;
+    CELER_ENSURE(!face_ || face_.id() < senses.size());
+    return senses;
 }
 
 //---------------------------------------------------------------------------//
