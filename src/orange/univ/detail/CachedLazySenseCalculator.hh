@@ -95,12 +95,12 @@ CachedLazySenseCalculator::CachedLazySenseCalculator(
 CELER_FUNCTION auto
 CachedLazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
-    if (auto& cached_sense = sense_cache_[face_id.get()];
-        cached_sense.is_assigned())
+    auto& cached_sense = sense_cache_[face_id.get()];
+    if (!cached_sense.is_assigned())
     {
-        return cached_sense;
+        cached_sense = lazy_sense_calculator_(face_id);
     }
-    return lazy_sense_calculator_(face_id);
+    return cached_sense;
 }
 
 //---------------------------------------------------------------------------//
