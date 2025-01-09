@@ -88,6 +88,9 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
  */
 CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
+    CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
+    CELER_EXPECT(face_id < vol_.num_faces());
+
     Sense sense;
     if (face_id != face_.id())
     {
