@@ -11,7 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
-#include "SurfaceFunctors.hh"
+#include "LazySenseCalculator.hh"
 #include "../VolumeView.hh"
 
 namespace celeritas
@@ -87,29 +87,13 @@ SenseCalculator::operator()(VolumeView const& vol, OnFace face) -> result_type
     result_type result;
     result.senses = sense_storage_.first(vol.num_faces());
     result.face = face;
+    LazySenseCalculator lazy_sense_calculator(visit_, vol, pos_, result.face);
 
     // Fill the temp logic vector with values for all surfaces in the volume
     for (FaceId cur_face : range(FaceId{vol.num_faces()}))
     {
-        Sense cur_sense;
-        if (cur_face != face.id())
-        {
-            // Calculate sense
-            SignedSense ss = visit_(CalcSense{pos_}, vol.get_surface(cur_face));
-            cur_sense = to_sense(ss);
-            if (!result.face && ss == SignedSense::on)
-            {
-                // This is the first face that we're exactly on: save it
-                result.face = {cur_face, cur_sense};
-            }
-        }
-        else
-        {
-            // Sense is known a priori
-            cur_sense = face.sense();
-        }
-        // Save sense to result scratch space
-        result.senses[cur_face.unchecked_get()] = cur_sense;
+        result.senses[cur_face.unchecked_get()]
+            = lazy_sense_calculator(cur_face);
     }
 
     CELER_ENSURE(!result.face || result.face.id() < result.senses.size());
