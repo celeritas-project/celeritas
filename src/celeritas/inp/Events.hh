@@ -19,13 +19,6 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Set up for offloading from an external programmatic source (Geant4)
-struct OffloadEvents
-{
-    // No parameters yet: perhaps list of PDGs to offload?
-};
-
-//---------------------------------------------------------------------------//
 //! Sample a single point
 struct PointShape
 {
@@ -112,8 +105,7 @@ struct ReadFileEvents
 
 //---------------------------------------------------------------------------//
 //! Mechanism for generating events for tracking
-using Events
-    = std::variant<OffloadEvents, PrimaryGenerator, SampleFileEvents, ReadFileEvents>;
+using Events = std::variant<PrimaryGenerator, SampleFileEvents, ReadFileEvents>;
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

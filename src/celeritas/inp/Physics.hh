@@ -11,11 +11,15 @@
 
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/model/SeltzerBergerModel.hh"
+#include "celeritas/em/process/BremsstrahlungProcess.hh"
+#include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/process/RayleighProcess.hh"
+#include "celeritas/phys/AtomicNumber.hh"
+#include "celeritas/phys/ProcessBuilder.hh"
 
 namespace celeritas
 {
-struct AlongStepFactoryInput;
-
 namespace inp
 {
 #if 0
@@ -45,6 +49,31 @@ struct MscOptions
 };
 #endif
 
+struct SeltzerBergerBremsModel
+{
+    using Table = std::map<AtomicNumber, ImportPhysics2DVector>;
+
+    Table sb_tables;
+    // microscopic cross sections
+};
+
+struct RelBremsModel
+{
+    bool enable_lpm{true};  //!> Account for LPM effect at very high energies
+    MicroXsTable micros;
+};
+
+struct BremsstrahlungProcess
+{
+    std::optional<SeltzerBergerBremsModel> sb;
+    std::optional<RelBremsModel> rel;
+    bool combined_model{true};  //!> Use a unified relativistic/SB
+                                //! interactor
+    bool use_integral_xs{true};  //!> Use integral method for sampling
+                                 //! discrete interaction length
+    // macroscopic cross sections
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up electromagnetic physics options.
@@ -70,6 +99,34 @@ struct EmPhysicsOptions
     //!@}
 };
 
+struct EmPhysics
+{
+    std::optional<BremsstrahlungProcess> brems;
+    std::optional<GammaConversionProcess> pp;
+    std::optional<ThreeGamma> three_gamma;
+    EmPhysicsOptions em_options;
+};
+
+struct EmExtraPhysics
+{
+};
+
+struct OpticalPhysics
+{
+    // Optical material map
+    // Properties per material
+};
+
+struct MuDecayPhysics
+{
+    // Optical material map
+    // Properties per material
+};
+struct HadronicPhysics
+{
+    // ftfp_bert vs qgsp_bic
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up physics options.
@@ -78,14 +135,20 @@ struct EmPhysicsOptions
  */
 struct Physics
 {
+    // If false, use geant4 defaults
+    std::optional<EmPhysics> em;
+    std::optional<OpticalPhysics> optical;
+    std::optional<HadronicPhysics> hadronic;
+
     //! Electromagnetic physics options
-    EmPhysicsOptions em_options;
 
     //! Do not use Celeritas physics for the given Geant4 process names
     std::vector<std::string> ignore_processes;
 
+    ProcessBuilder::UserBuildFunction user_processes;
+
     //! Import physics from a file instead of Geant4
-    std::string physics_file;
+    // TODO: external driver only std::string physics_file;
 
     // TODO: particle selection
     // TODO: user process builder
