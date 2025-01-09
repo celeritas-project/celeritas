@@ -13,9 +13,9 @@
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
-#include "detail/CachedLazySenseCalculator.hh"
 #include "detail/InfixEvaluator.hh"
 #include "detail/LogicEvaluator.hh"
+#include "detail/SenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
@@ -171,12 +171,11 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     detail::OnFace on_surface;
     auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
         VolumeView vol = this->make_local_volume(id);
-        auto calc_senses
-            = detail::CachedLazySenseCalculator(this->make_surface_visitor(),
-                                                vol,
-                                                state.pos,
-                                                state.temp_sense,
-                                                on_surface);
+        auto calc_senses = detail::SenseCalculator(this->make_surface_visitor(),
+                                                   vol,
+                                                   state.pos,
+                                                   state.temp_sense,
+                                                   on_surface);
         return detail::LogicEvaluator(vol.logic())(calc_senses);
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
@@ -215,8 +214,11 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
 
         VolumeView vol = this->make_local_volume(id);
         detail::OnFace face{detail::find_face(vol, state.surface)};
-        auto calc_senses = detail::CachedLazySenseCalculator(
-            this->make_surface_visitor(), vol, state.pos, state.temp_sense, face);
+        auto calc_senses = detail::SenseCalculator(this->make_surface_visitor(),
+                                                   vol,
+                                                   state.pos,
+                                                   state.temp_sense,
+                                                   face);
 
         if (detail::LogicEvaluator(vol.logic())(calc_senses))
         {
@@ -529,7 +531,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
     // Calculate local senses, taking current face into account
     detail::OnFace on_face(detail::find_face(vol, state.surface));
-    auto calc_senses = detail::CachedLazySenseCalculator(
+    auto calc_senses = detail::SenseCalculator(
         this->make_surface_visitor(), vol, state.pos, state.temp_sense, on_face);
 
     // Current senses should put us inside the volume
@@ -621,7 +623,7 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
             CELER_ASSERT(vol_id != state.volume);
             VolumeView vol = this->make_local_volume(vol_id);
             detail::OnFace face;
-            auto calc_senses = detail::CachedLazySenseCalculator{
+            auto calc_senses = detail::SenseCalculator{
                 this->make_surface_visitor(), vol, pos, state.temp_sense, face};
 
             if (detail::LogicEvaluator{vol.logic()}(calc_senses))
