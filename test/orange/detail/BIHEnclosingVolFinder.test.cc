@@ -34,11 +34,11 @@ class BIHEnclosingVolFinderTest : public Test
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 
-    static constexpr bool valid_volid_(LocalVolumeId vol_id)
+    static constexpr bool valid_vol_id_(LocalVolumeId vol_id)
     {
         return static_cast<bool>(vol_id);
     };
-    static constexpr bool odd_volid_(LocalVolumeId vol_id)
+    static constexpr bool odd_vol_id_(LocalVolumeId vol_id)
     {
         return vol_id.unchecked_get() % 2 != 0;
     };
@@ -77,12 +77,12 @@ TEST_F(BIHEnclosingVolFinderTest, basic)
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.8, 0.5, 110}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.8, 0.5, 30}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{2}, find_volume({2.0, 0.6, 40}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{3}, find_volume({2.9, 0.7, 50}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{4}, find_volume({2.9, -0.7, 50}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{5}, find_volume({2.9, -0.7, 50}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.8, 0.5, 110}, valid_vol_id_));
+    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.8, 0.5, 30}, valid_vol_id_));
+    EXPECT_EQ(LocalVolumeId{2}, find_volume({2.0, 0.6, 40}, valid_vol_id_));
+    EXPECT_EQ(LocalVolumeId{3}, find_volume({2.9, 0.7, 50}, valid_vol_id_));
+    EXPECT_EQ(LocalVolumeId{4}, find_volume({2.9, -0.7, 50}, valid_vol_id_));
+    EXPECT_EQ(LocalVolumeId{5}, find_volume({2.9, -0.7, 50}, odd_vol_id_));
 }
 
 //---------------------------------------------------------------------------//
@@ -119,7 +119,7 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.8, 0.5, 110}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.8, 0.5, 110}, valid_vol_id_));
 
     size_type index{1};
     for (auto i : range(3))
@@ -128,7 +128,7 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
         {
             constexpr real_type half{0.5};
             EXPECT_EQ(LocalVolumeId{index++},
-                      find_volume({half + i, half + j, 30}, valid_volid_));
+                      find_volume({half + i, half + j, 30}, valid_vol_id_));
         }
     }
 }
@@ -147,7 +147,7 @@ TEST_F(BIHEnclosingVolFinderTest, single_finite_volume)
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, multiple_nonpartitionable_volumes)
@@ -161,8 +161,8 @@ TEST_F(BIHEnclosingVolFinderTest, multiple_nonpartitionable_volumes)
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
+    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_vol_id_));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, single_infinite_volume)
@@ -175,7 +175,7 @@ TEST_F(BIHEnclosingVolFinderTest, single_infinite_volume)
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, multiple_infinite_volumes)
@@ -189,8 +189,8 @@ TEST_F(BIHEnclosingVolFinderTest, multiple_infinite_volumes)
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
+    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_vol_id_));
 }
 
 //---------------------------------------------------------------------------//

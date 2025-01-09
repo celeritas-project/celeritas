@@ -33,10 +33,10 @@ struct OrientedBoundingZoneInput
     //! Outer bounding box
     BBox outer;
     //! Local to global transformation
-    TransformId transform_id;
+    TransformId trans_id;
 
     //! Whether the obz definition is valid
-    explicit operator bool() const { return inner && outer && transform_id; }
+    explicit operator bool() const { return inner && outer && trans_id; }
 };
 
 //---------------------------------------------------------------------------//

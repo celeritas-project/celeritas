@@ -128,7 +128,8 @@ class SimpleUnitTracker
     inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
 
     // Create a Volumes object from the params
-    inline CELER_FUNCTION VolumeView make_local_volume(LocalVolumeId vid) const;
+    inline CELER_FUNCTION VolumeView
+    make_local_volume(LocalVolumeId vol_id) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -294,11 +295,11 @@ SimpleUnitTracker::intersect(LocalState const& state,
  * necessarily slow down the simulation.
  */
 CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
-                                                   LocalVolumeId volid) const
+                                                   LocalVolumeId vol_id) const
 {
-    CELER_EXPECT(volid);
+    CELER_EXPECT(vol_id);
 
-    VolumeView vol = this->make_local_volume(volid);
+    VolumeView vol = this->make_local_volume(vol_id);
     if (!vol.simple_safety())
     {
         // Has a tricky surface: we can't use the simple algorithm to calculate
@@ -617,10 +618,10 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
 
         // Loop over volumes connected to this surface.
         //! \todo Accelerate by intersecting neighbors with BVH grid
-        for (LocalVolumeId vid : this->get_neighbors(surface))
+        for (LocalVolumeId vol_id : this->get_neighbors(surface))
         {
-            CELER_ASSERT(vid != state.volume);
-            VolumeView vol = this->make_local_volume(vid);
+            CELER_ASSERT(vol_id != state.volume);
+            VolumeView vol = this->make_local_volume(vol_id);
             detail::OnFace face;
             auto calc_senses = detail::SenseCalculator{
                 this->make_surface_visitor(), vol, pos, state.temp_sense, face};
@@ -660,9 +661,9 @@ SimpleUnitTracker::make_surface_visitor() const
  * Create a Volume view object from the params for this unit.
  */
 CELER_FORCEINLINE_FUNCTION VolumeView
-SimpleUnitTracker::make_local_volume(LocalVolumeId vid) const
+SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const
 {
-    return VolumeView{params_, unit_record_, vid};
+    return VolumeView{params_, unit_record_, vol_id};
 }
 
 //---------------------------------------------------------------------------//
