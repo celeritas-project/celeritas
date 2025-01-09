@@ -90,8 +90,10 @@ TEST_F(LazySenseCalculatorTest, one_volume)
                                     this->make_volume_view(LocalVolumeId{0}),
                                     Real3{123, 345, 567},
                                     face);
-
-    EXPECT_THROW(calc_senses(FaceId{0}), DebugError);
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(calc_senses(FaceId{0}), DebugError);
+    }
 }
 
 TEST_F(LazySenseCalculatorTest, two_volumes)
