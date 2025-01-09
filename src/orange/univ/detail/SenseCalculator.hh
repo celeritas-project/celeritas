@@ -97,7 +97,7 @@ SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
  */
 CELER_FUNCTION Sense SenseCalculator::operator()(FaceId face_id)
 {
-    CELER_EXPECT(face_id < sense_storage_.size());
+    CELER_EXPECT(face_id < vol_.num_faces());
 
     return sense_storage_[face_id.unchecked_get()];
 }
