@@ -231,7 +231,8 @@ TYPED_TEST(SenseCalculatorTest, five_volumes)
                 this->sense_storage()[cur_face.unchecked_get()]
                     = calc_senses(cur_face);
             }
-            else
+            else if constexpr (std::is_same_v<MySenseCalc,
+                                              CachedLazySenseCalculator>)
             {
                 calc_senses(cur_face);
             }
