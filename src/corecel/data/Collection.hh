@@ -266,8 +266,8 @@ class Collection
     using AllItemsT = AllItems<T, M>;
     //!@}
 
-    static constexpr inline Ownership ownership = W;
-    static constexpr inline MemSpace memspace = M;
+    static constexpr Ownership ownership = W;
+    static constexpr MemSpace memspace = M;
 
   public:
     //// CONSTRUCTION ////
