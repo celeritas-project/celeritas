@@ -76,7 +76,7 @@ CachedLazySenseCalculator::CachedLazySenseCalculator(
     Real3 const& pos,
     Span<SenseValue> sense_cache,
     OnFace& face)
-    : lazy_sense_calculator_(visit, vol, pos, face)
+    : lazy_sense_calculator_{visit, vol, pos, face}
     , sense_cache_{sense_cache.first(vol.num_faces())}
 {
     for (auto& sense : sense_cache_)
@@ -95,6 +95,7 @@ CachedLazySenseCalculator::CachedLazySenseCalculator(
 CELER_FUNCTION auto
 CachedLazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
+    CELER_EXPECT(face_id < sense_cache_.size());
     auto& cached_sense = sense_cache_[face_id.get()];
     if (!cached_sense.is_assigned())
     {

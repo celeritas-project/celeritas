@@ -55,7 +55,7 @@ class LazySenseCalculator
     LocalSurfaceVisitor visit_;
 
     //! Volume to calculate senses for
-    VolumeView const& vol_;
+    VolumeView vol_;
 
     //! Local position
     Real3 pos_;
@@ -75,7 +75,7 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          VolumeView const& vol,
                                          Real3 const& pos,
                                          OnFace& face)
-    : visit_{visit}, vol_(vol), pos_{pos}, face_(face)
+    : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}
 {
 }
 
@@ -88,8 +88,8 @@ LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
  */
 CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 {
-    CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
     CELER_EXPECT(face_id < vol_.num_faces());
+    CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
 
     Sense sense;
     if (face_id != face_.id())
