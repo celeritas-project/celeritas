@@ -49,18 +49,8 @@ class SenseCalculator
     }
 
   private:
-    //! Apply a function to a local surface
-    LocalSurfaceVisitor visit_;
-
-    VolumeView vol_;
-
-    //! Local position
-    Real3 pos_;
-
     //! Temporary senses
     Span<SenseValue> sense_storage_;
-
-    OnFace& face_;
 };
 
 //---------------------------------------------------------------------------//
@@ -75,18 +65,18 @@ SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
                                  Real3 const& pos,
                                  Span<SenseValue> storage,
                                  OnFace& face)
-    : visit_{visit}, vol_{vol}, pos_{pos}, sense_storage_{storage}, face_{face}
+    : sense_storage_{storage.first(vol.num_faces())}
 {
-    CELER_EXPECT(vol_.num_faces() <= sense_storage_.size());
-    LazySenseCalculator lazy_sense_calculator(visit_, vol_, pos_, face_);
+    CELER_EXPECT(vol.num_faces() <= storage.size());
+    LazySenseCalculator lazy_sense_calculator(visit, vol, pos, face);
     // Fill the temp logic vector with values for all surfaces in the volume
-    auto senses = sense_storage_.first(vol_.num_faces());
-    for (FaceId cur_face : range(FaceId{vol_.num_faces()}))
+    for (FaceId cur_face : range(FaceId{sense_storage_.size()}))
     {
-        senses[cur_face.unchecked_get()] = lazy_sense_calculator(cur_face);
+        sense_storage_[cur_face.unchecked_get()]
+            = lazy_sense_calculator(cur_face);
     }
 
-    CELER_ENSURE(!face_ || face_.id() < senses.size());
+    CELER_ENSURE(!face || face.id() < sense_storage_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -98,7 +88,7 @@ SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
  */
 CELER_FUNCTION Sense SenseCalculator::operator()(FaceId face_id)
 {
-    CELER_EXPECT(face_id < vol_.num_faces());
+    CELER_EXPECT(face_id < sense_storage_.size());
 
     return sense_storage_[face_id.unchecked_get()];
 }

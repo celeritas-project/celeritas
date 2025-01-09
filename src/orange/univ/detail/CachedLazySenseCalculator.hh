@@ -56,6 +56,7 @@ class CachedLazySenseCalculator
     }
 
   private:
+    //! Sense calculator for the volume
     LazySenseCalculator lazy_sense_calculator_;
 
     //! Temporary senses
