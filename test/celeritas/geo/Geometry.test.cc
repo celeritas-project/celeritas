@@ -312,8 +312,8 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 //---------------------------------------------------------------------------//
 // CMSE
 //---------------------------------------------------------------------------//
-
-TEST_F(CmseTest, host)
+// TODO: ensure reference values are the same for all CI platforms (see #1570)
+TEST_F(CmseTest, DISABLE_host)
 {
     auto const& bbox = this->geometry()->bbox();
     real_type const geo_eps
