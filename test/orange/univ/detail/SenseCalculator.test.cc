@@ -222,8 +222,9 @@ TYPED_TEST(SenseCalculatorTest, five_volumes)
     // this->describe(std::cout);
 
     auto calc_senses = [&](VolumeView vol, Real3 pos, OnFace face = {}) {
-        MySenseCalc calc_senses = this->construct_sense_calculator(
-            this->make_surf_visitor(), vol, pos, face);
+        [[maybe_unused]] MySenseCalc calc_senses
+            = this->construct_sense_calculator(
+                this->make_surf_visitor(), vol, pos, face);
         for (FaceId cur_face : range(FaceId{vol.num_faces()}))
         {
             if constexpr (std::is_same_v<MySenseCalc, LazySenseCalculator>)
