@@ -113,7 +113,7 @@ TYPED_TEST(SenseCalculatorTest, one_volume)
 {
     using MySenseCalc = TypeParam;
     {
-        typename SenseCalculatorTest<MySenseCalc>::OneVolInput geo_inp;
+        typename TestFixture::OneVolInput geo_inp;
         this->build_geometry(geo_inp);
     }
 
@@ -134,7 +134,7 @@ TYPED_TEST(SenseCalculatorTest, two_volumes)
 {
     using MySenseCalc = TypeParam;
     {
-        typename SenseCalculatorTest<TypeParam>::TwoVolInput geo_inp;
+        typename TestFixture::TwoVolInput geo_inp;
         geo_inp.radius = 1.5;
         this->build_geometry(geo_inp);
     }

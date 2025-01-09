@@ -26,7 +26,8 @@ namespace detail
  * Calculate senses with a fixed particle position.
  *
  * This is an implementation detail used in initialization *and* complex
- * intersection.
+ * intersection. Senses are eagerly calculated for all faces in the volume at
+ * construction.
  */
 class SenseCalculator
 {

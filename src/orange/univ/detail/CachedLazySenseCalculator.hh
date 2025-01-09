@@ -29,8 +29,7 @@ namespace detail
  * volume, and a position. Calling an instance evaluates the sense of a
  * volume's face with respect to the given position. This class is used to
  * lazily calculate sense during evaluation of a logic expression, caching
- * previously calculated senses, allowing potential short-circuiting
- * of unnecessary sense evaluation.
+ * previously calculated senses.
  *
  * The OnFace constructor's parameter is used to store the first face that we
  * are "on".
