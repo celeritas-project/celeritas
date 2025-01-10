@@ -1,0 +1,38 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file example/accel/offload-template/src/EventAction.cc
+//---------------------------------------------------------------------------//
+#include "EventAction.hh"
+
+#include <accel/ExceptionConverter.hh>
+
+#include "Celeritas.hh"
+#include "G4Event.hh"
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct empty.
+ */
+EventAction::EventAction() : G4UserEventAction() {}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize event in Celeritas.
+ */
+void EventAction::BeginOfEventAction(G4Event const* event)
+{
+    celeritas::ExceptionConverter call_g4exception{"celer0002"};
+    CelerLocalTransporter().InitializeEvent(event->GetEventID());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Flush any remaining particles to Celeritas.
+ */
+void EventAction::EndOfEventAction(G4Event const*)
+{
+    celeritas::ExceptionConverter call_g4exception{"celer0004"};
+    CELER_TRY_HANDLE(CelerLocalTransporter().Flush(), call_g4exception);
+}
