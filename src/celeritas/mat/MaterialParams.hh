@@ -112,6 +112,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     //!@{
     //! \name Material metadata
+
     //! Number of materials
     MaterialId::size_type num_materials() const { return mat_labels_.size(); }
 
@@ -127,6 +128,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     //!@{
     //! \name Element metadata
+
     //! Number of distinct elements definitions
     ElementId::size_type num_elements() const { return el_labels_.size(); }
 
@@ -142,6 +144,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     //!@{
     //! \name Isotope metadata
+
     //! Number of distinct isotope definitions
     IsotopeId::size_type num_isotopes() const { return isot_labels_.size(); }
 

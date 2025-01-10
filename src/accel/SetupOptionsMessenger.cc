@@ -28,7 +28,7 @@ struct UICommandTraits;
 template<>
 struct UICommandTraits<std::string>
 {
-    static inline constexpr char type_info = 's';
+    static constexpr char type_info = 's';
     static std::string const& to_string(G4String const& v) { return v; }
     static std::string from_string(G4String const& v) { return v; }
 };
@@ -36,7 +36,7 @@ struct UICommandTraits<std::string>
 template<>
 struct UICommandTraits<bool>
 {
-    static inline constexpr char type_info = 'b';
+    static constexpr char type_info = 'b';
     static G4String to_string(bool v)
     {
         return G4UIcommand::ConvertToString(v);
@@ -50,7 +50,7 @@ struct UICommandTraits<bool>
 template<class T>
 struct UICommandTraits<T, std::enable_if_t<std::is_integral_v<T>>>
 {
-    static inline constexpr char type_info = 'i';
+    static constexpr char type_info = 'i';
     static std::string to_string(T v) { return std::to_string(v); }
     static long from_string(G4String const& v)
     {
@@ -69,7 +69,7 @@ struct UICommandTraits<T, std::enable_if_t<std::is_integral_v<T>>>
 template<>
 struct UICommandTraits<double>
 {
-    static inline constexpr char type_info = 'd';
+    static constexpr char type_info = 'd';
     static G4String to_string(double v)
     {
         return G4UIcommand::ConvertToString(v);

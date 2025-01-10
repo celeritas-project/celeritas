@@ -46,6 +46,7 @@ class StatusChecker final : public AuxParamsInterface,
 
     //!@{
     //! \name Aux/action metadata interface
+
     //! Label for the auxiliary data and action
     std::string_view label() const final { return "status-check"; }
     // Description of the action
@@ -54,6 +55,7 @@ class StatusChecker final : public AuxParamsInterface,
 
     //!@{
     //! \name Aux params interface
+
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
     // Build state data for a stream
@@ -62,6 +64,7 @@ class StatusChecker final : public AuxParamsInterface,
 
     //!@{
     //! \name Begin run interface
+
     //! Index of this class instance in its registry
     ActionId action_id() const final { return action_id_; }
     // Set host data at the beginning of a run
@@ -72,6 +75,7 @@ class StatusChecker final : public AuxParamsInterface,
 
     //!@{
     //! \name Data interface
+
     //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
     //! Access data on device

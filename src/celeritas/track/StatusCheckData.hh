@@ -24,8 +24,7 @@ struct StatusCheckParamsData
 
     celeritas::Collection<StepActionOrder, W, M, ActionId> orders;
 
-    static inline constexpr StepActionOrder implicit_order
-        = StepActionOrder::size_;
+    static constexpr StepActionOrder implicit_order = StepActionOrder::size_;
 
     //// METHODS ////
 

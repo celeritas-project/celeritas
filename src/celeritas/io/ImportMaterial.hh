@@ -96,9 +96,7 @@ struct ImportPhysMaterial
     using MapIntCutoff = std::map<PdgInt, ImportProductionCut>;
     //!@}
 
-#ifndef SWIG
-    static inline constexpr Index unspecified = -1;
-#endif
+    static constexpr Index unspecified = -1;
 
     Index geo_material_id{};  //!< Index in geo_materials list
     Index optical_material_id{unspecified};  //!< Optional index in optical mat

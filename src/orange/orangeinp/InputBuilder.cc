@@ -31,11 +31,11 @@ namespace
 void write_protos(detail::ProtoMap const& map, std::string const& filename)
 {
     auto result = nlohmann::json(std::vector<std::nullptr_t>(map.size()));
-    for (auto uid : range(UniverseId{map.size()}))
+    for (auto univ_id : range(UniverseId{map.size()}))
     {
         JsonPimpl j;
-        map.at(uid)->output(&j);
-        result[uid.get()] = std::move(j.obj);
+        map.at(univ_id)->output(&j);
+        result[univ_id.get()] = std::move(j.obj);
     }
 
     std::ofstream outf(filename);
@@ -61,10 +61,10 @@ class JsonProtoOutput
     }
 
     //! Save JSON
-    void operator()(UniverseId uid, JsonPimpl&& jpo)
+    void operator()(UniverseId univ_id, JsonPimpl&& jpo)
     {
-        CELER_EXPECT(uid < output_.size());
-        output_[uid.unchecked_get()] = std::move(jpo.obj);
+        CELER_EXPECT(univ_id < output_.size());
+        output_[univ_id.unchecked_get()] = std::move(jpo.obj);
     }
 
     //! Write debug information to a file
@@ -127,9 +127,9 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         }
         return pbopts;
     }());
-    for (auto uid : range(UniverseId{protos.size()}))
+    for (auto univ_id : range(UniverseId{protos.size()}))
     {
-        protos.at(uid)->build(builder);
+        protos.at(univ_id)->build(builder);
     }
 
     if (!opts_.debug_output_file.empty())

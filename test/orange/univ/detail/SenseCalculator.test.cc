@@ -6,11 +6,21 @@
 //---------------------------------------------------------------------------//
 #include "orange/univ/detail/SenseCalculator.hh"
 
+#include <type_traits>
+
+#include "corecel/Assert.hh"
+#include "corecel/cont/Span.hh"
 #include "orange/OrangeGeoTestBase.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/univ/VolumeView.hh"
+#include "orange/univ/detail/CachedLazySenseCalculator.hh"
+#include "orange/univ/detail/LazySenseCalculator.hh"
+#include "orange/univ/detail/Types.hh"
 
 #include "celeritas_test.hh"
+#include "gtest/gtest.h"
 
 namespace celeritas
 {
@@ -46,6 +56,7 @@ TEST(Types, OnFace)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
+template<class MySenseCalculator>
 class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
@@ -66,32 +77,64 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
     {
         return this->host_state().temp_sense[AllItems<SenseValue>{}];
     }
+
+    template<class MSC = MySenseCalculator,
+             std::enable_if_t<std::is_same_v<MSC, LazySenseCalculator>, bool> = true>
+    MSC construct_sense_calculator(LocalSurfaceVisitor const& visit,
+                                   VolumeView const& vol,
+                                   Real3 const& pos,
+                                   OnFace& face)
+    {
+        return MSC(visit, vol, pos, face);
+    }
+
+    template<class MSC = MySenseCalculator,
+             std::enable_if_t<!std::is_same_v<MSC, LazySenseCalculator>, bool>
+             = true>
+    MSC construct_sense_calculator(LocalSurfaceVisitor const& visit,
+                                   VolumeView const& vol,
+                                   Real3 const& pos,
+                                   OnFace& face)
+    {
+        return MSC(visit, vol, pos, this->sense_storage(), face);
+    }
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(SenseCalculatorTest, one_volume)
+using TestTypes = ::testing::
+    Types<SenseCalculator, CachedLazySenseCalculator, LazySenseCalculator>;
+
+TYPED_TEST_SUITE(SenseCalculatorTest, TestTypes, );
+
+TYPED_TEST(SenseCalculatorTest, one_volume)
 {
+    using MySenseCalc = TypeParam;
     {
-        OneVolInput geo_inp;
+        typename TestFixture::OneVolInput geo_inp;
         this->build_geometry(geo_inp);
     }
 
     // Test this degenerate case (no surfaces)
-    SenseCalculator calc_senses(
-        this->make_surf_visitor(), Real3{123, 345, 567}, this->sense_storage());
-
-    auto result = calc_senses(this->make_volume_view(LocalVolumeId{0}));
-    EXPECT_EQ(0, result.senses.size());
-    EXPECT_FALSE(result.face);
+    OnFace face;
+    MySenseCalc calc_senses = this->construct_sense_calculator(
+        this->make_surf_visitor(),
+        this->make_volume_view(LocalVolumeId{0}),
+        Real3{123, 345, 567},
+        face);
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(calc_senses(FaceId{0}), DebugError);
+    }
 }
 
-TEST_F(SenseCalculatorTest, two_volumes)
+TYPED_TEST(SenseCalculatorTest, two_volumes)
 {
+    using MySenseCalc = TypeParam;
     {
-        TwoVolInput geo_inp;
+        typename TestFixture::TwoVolInput geo_inp;
         geo_inp.radius = 1.5;
         this->build_geometry(geo_inp);
     }
@@ -103,59 +146,100 @@ TEST_F(SenseCalculatorTest, two_volumes)
 
     {
         // Point is in the inner sphere
-        SenseCalculator calc_senses(
-            this->make_surf_visitor(), Real3{0, 0.5, 0}, this->sense_storage());
+        Real3 pos{0, 0.5, 0};
         {
+            OnFace face;
+            MySenseCalc calc_senses = this->construct_sense_calculator(
+                this->make_surf_visitor(), inner, pos, face);
             // Test inner sphere, not on a face
-            auto result = calc_senses(inner);
-            ASSERT_EQ(1, result.senses.size());
-            EXPECT_EQ(Sense::inside, result.senses[0]);
-            EXPECT_FALSE(result.face);
+            auto result = calc_senses(FaceId{0});
+            EXPECT_EQ(Sense::inside, result);
+            EXPECT_FALSE(face);
         }
         {
+            OnFace face;
+            MySenseCalc calc_senses = this->construct_sense_calculator(
+                this->make_surf_visitor(), outer, pos, face);
             // Test not-sphere, not on a face
-            auto result = calc_senses(outer);
-            ASSERT_EQ(1, result.senses.size());
-            EXPECT_EQ(Sense::inside, result.senses[0]);
-            EXPECT_FALSE(result.face);
+            auto result = calc_senses(FaceId{0});
+            EXPECT_EQ(Sense::inside, result);
+            EXPECT_FALSE(face);
         }
     }
     {
         // Point is in on the boundary: should register as "on" the face
-        SenseCalculator calc_senses(
-            this->make_surf_visitor(), Real3{1.5, 0, 0}, this->sense_storage());
+        Real3 pos{1.5, 0, 0};
         {
-            auto result = calc_senses(inner);
-            ASSERT_EQ(1, result.senses.size());
-            EXPECT_EQ(Sense::outside, result.senses[0]);
-            EXPECT_EQ(FaceId{0}, result.face.id());
-            EXPECT_EQ(Sense::outside, result.face.sense());
+            OnFace face;
+            MySenseCalc calc_senses = this->construct_sense_calculator(
+                this->make_surf_visitor(), inner, pos, face);
+            auto result = calc_senses(FaceId{0});
+            EXPECT_EQ(Sense::outside, result);
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
+            if constexpr (std::is_same_v<SenseCalculator, MySenseCalc>
+                          || std::is_same_v<CachedLazySenseCalculator,
+                                            MySenseCalc>)
+            {
+                calc_senses.flip_sense(FaceId{0});
+                EXPECT_EQ(Sense::inside, calc_senses(FaceId{0}));
+            }
         }
         {
-            auto result = calc_senses(inner, OnFace{FaceId{0}, Sense::inside});
-            ASSERT_EQ(1, result.senses.size());
-            EXPECT_EQ(Sense::inside, result.senses[0]);
-            EXPECT_EQ(FaceId{0}, result.face.id());
-            EXPECT_EQ(Sense::inside, result.face.sense());
+            OnFace face{FaceId{0}, Sense::inside};
+            MySenseCalc calc_senses = this->construct_sense_calculator(
+                this->make_surf_visitor(), inner, pos, face);
+            auto result = calc_senses(FaceId{0});
+            EXPECT_EQ(Sense::inside, result);
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::inside, face.sense());
+            if constexpr (std::is_same_v<SenseCalculator, MySenseCalc>
+                          || std::is_same_v<CachedLazySenseCalculator,
+                                            MySenseCalc>)
+            {
+                calc_senses.flip_sense(FaceId{0});
+                EXPECT_EQ(Sense::outside, calc_senses(FaceId{0}));
+            }
         }
     }
     {
+        OnFace face;
         // Point is in the outer sphere
-        SenseCalculator calc_senses(
-            this->make_surf_visitor(), Real3{2, 0, 0}, this->sense_storage());
+        MySenseCalc calc_senses = this->construct_sense_calculator(
+            this->make_surf_visitor(), inner, Real3{2, 0, 0}, face);
         {
-            auto result = calc_senses(inner);
-            ASSERT_EQ(1, result.senses.size());
-            EXPECT_EQ(Sense::outside, result.senses[0]);
-            EXPECT_FALSE(result.face);
+            auto result = calc_senses(FaceId{0});
+            EXPECT_EQ(Sense::outside, result);
+            EXPECT_FALSE(face);
         }
     }
 }
 
-TEST_F(SenseCalculatorTest, five_volumes)
+TYPED_TEST(SenseCalculatorTest, five_volumes)
 {
+    using MySenseCalc = TypeParam;
     this->build_geometry("five-volumes.org.json");
     // this->describe(std::cout);
+
+    auto calc_senses = [&](VolumeView vol, Real3 pos, OnFace face = {}) {
+        [[maybe_unused]] MySenseCalc calc_senses
+            = this->construct_sense_calculator(
+                this->make_surf_visitor(), vol, pos, face);
+        for (FaceId cur_face : range(FaceId{vol.num_faces()}))
+        {
+            if constexpr (std::is_same_v<MySenseCalc, LazySenseCalculator>)
+            {
+                this->sense_storage()[cur_face.unchecked_get()]
+                    = calc_senses(cur_face);
+            }
+            else if constexpr (std::is_same_v<MySenseCalc,
+                                              CachedLazySenseCalculator>)
+            {
+                calc_senses(cur_face);
+            }
+        }
+        return std::pair{this->sense_storage().first(vol.num_faces()), face};
+    };
 
     // Volume definitions
     VolumeView vol_b = this->make_volume_view(LocalVolumeId{2});
@@ -164,75 +248,76 @@ TEST_F(SenseCalculatorTest, five_volumes)
 
     {
         // Point is in the inner sphere
-        SenseCalculator calc_senses(this->make_surf_visitor(),
-                                    Real3{-.25, -.25, 0},
-                                    this->sense_storage());
+        Real3 pos{-.25, -.25, 0};
         {
             // Test inner sphere
-            auto result = calc_senses(vol_e);
-            EXPECT_EQ("{-}", senses_to_string(result.senses));
-            EXPECT_FALSE(result.face);
+            auto&& [storage, face] = calc_senses(vol_e, pos);
+            EXPECT_EQ("{-}", this->senses_to_string(storage));
+            EXPECT_FALSE(face);
         }
         {
             // Test between spheres
-            auto result = calc_senses(vol_c);
-            EXPECT_EQ("{- -}", senses_to_string(result.senses));
+            auto&& [storage, face] = calc_senses(vol_c, pos);
+            EXPECT_EQ("{- -}", this->senses_to_string(storage));
         }
         {
             // Test square (faces: 3, 5, 6, 7, 8, 9, 10)
-            auto result = calc_senses(vol_b);
-            EXPECT_EQ("{- + - - - - +}", senses_to_string(result.senses));
+            auto&& [storage, face] = calc_senses(vol_b, pos);
+            EXPECT_EQ("{- + - - - - +}", this->senses_to_string(storage));
         }
     }
     {
         // Point is between spheres, on square edge (surface 8)
-        SenseCalculator calc_senses(this->make_surf_visitor(),
-                                    Real3{0.5, -0.25, 0},
-                                    this->sense_storage());
+        Real3 pos{0.5, -0.25, 0};
         {
             // Test inner sphere
-            auto result = calc_senses(vol_e);
-            EXPECT_EQ("{+}", senses_to_string(result.senses));
-            EXPECT_FALSE(result.face);
+            auto&& [storage, face] = calc_senses(vol_e, pos);
+            EXPECT_EQ("{+}", this->senses_to_string(storage));
+            EXPECT_FALSE(face);
         }
         {
             // Test between spheres
-            auto result = calc_senses(vol_c);
-            EXPECT_EQ("{- +}", senses_to_string(result.senses));
+            auto&& [storage, face] = calc_senses(vol_c, pos);
+            EXPECT_EQ("{- +}", this->senses_to_string(storage));
         }
         {
             // Test square (faces: 1 through 7)
-            auto result = calc_senses(vol_b);
-            EXPECT_EQ("{- + - - + - +}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{4}, result.face.id());
-            EXPECT_EQ(Sense::outside, result.face.sense());
+            auto&& [storage, face] = calc_senses(vol_b, pos);
+            EXPECT_EQ("{- + - - + - +}", this->senses_to_string(storage));
+            EXPECT_EQ(FaceId{4}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
         }
         {
             // Test square with correct face (surface 8, face 4)
-            auto result = calc_senses(vol_b, OnFace{FaceId{4}, Sense::outside});
-            EXPECT_EQ("{- + - - + - +}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{4}, result.face.id());
-            EXPECT_EQ(Sense::outside, result.face.sense());
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{4}, Sense::outside});
+            EXPECT_EQ("{- + - - + - +}", this->senses_to_string(storage));
+            EXPECT_EQ(FaceId{4}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
         }
         {
             // Test square with flipped sense
-            auto result = calc_senses(vol_b, OnFace{FaceId{4}, Sense::inside});
-            EXPECT_EQ("{- + - - - - +}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{4}, result.face.id());
-            EXPECT_EQ(Sense::inside, result.face.sense());
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{4}, Sense::inside});
+            EXPECT_EQ("{- + - - - - +}", this->senses_to_string(storage));
+            EXPECT_EQ(FaceId{4}, face.id());
+            EXPECT_EQ(Sense::inside, face.sense());
         }
         {
             // Test square with "incorrect" face that gets assigned anyway
-            auto result = calc_senses(vol_b, OnFace{FaceId{1}, Sense::inside});
-            EXPECT_EQ("{- - - - + - +}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{1}, result.face.id());
-            EXPECT_EQ(Sense::inside, result.face.sense());
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{1}, Sense::inside});
+
+            EXPECT_EQ("{- - - - + - +}", this->senses_to_string(storage));
+            EXPECT_EQ(FaceId{1}, face.id());
+            EXPECT_EQ(Sense::inside, face.sense());
         }
         if (CELERITAS_DEBUG)
         {
             // Out-of-range face ID
-            EXPECT_THROW(calc_senses(vol_b, OnFace{FaceId{8}, Sense::inside}),
-                         DebugError);
+            EXPECT_THROW(
+                calc_senses(vol_b, pos, OnFace{FaceId{8}, Sense::inside}),
+                DebugError);
         }
     }
     {
@@ -240,29 +325,29 @@ TEST_F(SenseCalculatorTest, five_volumes)
         // given then the lower face ID will be the one considered "on".
         // +x = surface 9 = face 5
         // -y = surface 10 = face 6
-        SenseCalculator calc_senses(this->make_surf_visitor(),
-                                    Real3{1.5, -1.0, 0},
-                                    this->sense_storage());
+        Real3 pos{1.5, -1.0, 0};
         {
             // Test natural sense
-            auto result = calc_senses(vol_b);
-            EXPECT_EQ("{- + - + + + +}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{5}, result.face.id());
-            EXPECT_EQ(Sense::outside, result.face.sense());
+            auto&& [storage, face] = calc_senses(vol_b, pos);
+            EXPECT_EQ("{- + - + + + +}", this->senses_to_string(storage));
+            EXPECT_EQ(FaceId{5}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
         }
         {
             // Test with lower face, flipped sense
-            auto result = calc_senses(vol_b, OnFace{FaceId{5}, Sense::inside});
-            EXPECT_EQ("{- + - + + - +}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{5}, result.face.id());
-            EXPECT_EQ(Sense::inside, result.face.sense());
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{5}, Sense::inside});
+            EXPECT_EQ("{- + - + + - +}", this->senses_to_string(storage));
+            EXPECT_EQ(FaceId{5}, face.id());
+            EXPECT_EQ(Sense::inside, face.sense());
         }
         {
             // Test with right face, flipped sense
-            auto result = calc_senses(vol_b, OnFace{FaceId{6}, Sense::inside});
-            EXPECT_EQ("{- + - + + + -}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{6}, result.face.id());
-            EXPECT_EQ(Sense::inside, result.face.sense());
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{6}, Sense::inside});
+            EXPECT_EQ("{- + - + + + -}", this->senses_to_string(storage));
+            EXPECT_EQ(FaceId{6}, face.id());
+            EXPECT_EQ(Sense::inside, face.sense());
         }
     }
 }

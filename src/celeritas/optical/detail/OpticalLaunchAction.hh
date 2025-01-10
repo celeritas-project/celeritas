@@ -78,6 +78,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     //!@{
     //! \name Aux/action metadata interface
+
     //! Short name for the action
     std::string_view label() const final { return "optical-offload-launch"; }
     // Name of the action (for user output)
@@ -86,6 +87,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     //!@{
     //! \name Aux interface
+
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
     // Build optical core state data for a stream
@@ -94,6 +96,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     //!@{
     //! \name Action interface
+
     //! ID of the model
     ActionId action_id() const final { return action_id_; }
     //! Dependency ordering of the action

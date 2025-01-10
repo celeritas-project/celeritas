@@ -37,7 +37,7 @@ template<class T, class Finalizer = detail::DefaultFinalize<T>>
 class InitializedValue
 {
   private:
-    static inline constexpr bool ne_finalize_
+    static constexpr bool ne_finalize_
         = noexcept(std::declval<Finalizer>()(std::declval<T&>()));
 
   public:

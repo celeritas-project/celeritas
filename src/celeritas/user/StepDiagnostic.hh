@@ -55,6 +55,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
 
     //!@{
     //! \name ExplicitAction interface
+
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
@@ -71,6 +72,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
 
     //!@{
     //! \name Output interface
+
     //! Category of data to write
     Category category() const final { return Category::result; }
     // Write output to the given JSON object
