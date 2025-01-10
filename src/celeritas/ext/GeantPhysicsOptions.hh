@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantPhysicsOptions.hh
@@ -100,6 +99,7 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Gamma physics
+
     //! Enable Compton scattering
     bool compton_scattering{true};
     //! Enable the photoelectric effect
@@ -114,6 +114,7 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Electron and positron physics
+
     //! Enable discrete Coulomb
     bool coulomb_scattering{false};
     //! Enable e- and e+ ionization
@@ -133,6 +134,7 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Physics options
+
     //! Number of log-spaced bins per factor of 10 in energy
     int em_bins_per_decade{7};
     //! Enable universal energy fluctuations
@@ -145,6 +147,7 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Cutoff options
+
     //! Lowest energy of any EM physics process
     MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
     //! Highest energy of any EM physics process
@@ -161,6 +164,7 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Multiple scattering configuration
+
     //! E-/e+ range factor for MSC models
     double msc_range_factor{0.04};
     //! Safety factor for MSC models

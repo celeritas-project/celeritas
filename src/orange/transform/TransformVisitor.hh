@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/transform/TransformVisitor.hh
@@ -28,7 +27,7 @@ namespace celeritas
  TransformVisitor visit_transform{params_};
  auto new_pos = visit_transform(
     [&pos](auto&& t) { return t.transform_up(pos); },
-    daughter.transform_id);
+    daughter.trans_id);
  \endcode
  */
 class TransformVisitor

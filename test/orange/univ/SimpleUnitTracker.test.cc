@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/univ/SimpleUnitTracker.test.cc
@@ -141,7 +140,7 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
 
     auto const& hsref = this->host_state();
     auto face_storage = hsref.temp_face[AllItems<FaceId>{}];
-    state.temp_sense = hsref.temp_sense[AllItems<Sense>{}];
+    state.temp_sense = hsref.temp_sense[AllItems<SenseValue>{}];
     state.temp_next.face = face_storage.data();
     state.temp_next.distance
         = hsref.temp_distance[AllItems<real_type>{}].data();

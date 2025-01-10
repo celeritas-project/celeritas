@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/CsgUnit.hh
@@ -54,7 +53,7 @@ struct CsgUnit
     struct Region
     {
         BoundingZone bounds;  //!< Interior/exterior bbox
-        TransformId transform_id;  //!< Region-to-unit transform
+        TransformId trans_id;  //!< Region-to-unit transform
     };
 
     //// DATA ////

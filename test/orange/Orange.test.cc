@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/Orange.test.cc
@@ -127,7 +126,7 @@ TEST_F(OneVolumeTest, obz)
     EXPECT_VEC_SOFT_EQ(Real3({3.1, 3.6, 4.1}), data.reals[outer_range]);
 
     // Check translation id
-    EXPECT_EQ(10, obz_record.transform_id.get());
+    EXPECT_EQ(10, obz_record.trans_id.get());
 }
 
 //---------------------------------------------------------------------------//

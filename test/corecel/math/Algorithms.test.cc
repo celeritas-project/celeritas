@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/Algorithms.test.cc
@@ -86,7 +85,7 @@ TEST(UtilityTest, exchange)
 TEST(AlgorithmsTest, all_of)
 {
     static bool const items[] = {true, false, true, true};
-    auto is_true = [](bool b) { return b; };
+    LogicalTrue<bool> is_true;
     EXPECT_TRUE(all_of(std::begin(items), std::begin(items), is_true));
     EXPECT_FALSE(all_of(std::begin(items), std::end(items), is_true));
     EXPECT_TRUE(all_of(std::begin(items) + 2, std::end(items), is_true));
@@ -95,7 +94,7 @@ TEST(AlgorithmsTest, all_of)
 TEST(AlgorithmsTest, any_of)
 {
     static bool const items[] = {false, true, false, false};
-    auto is_true = [](bool b) { return b; };
+    LogicalTrue<> is_true;
     EXPECT_FALSE(any_of(std::begin(items), std::begin(items), is_true));
     EXPECT_TRUE(any_of(std::begin(items), std::end(items), is_true));
     EXPECT_FALSE(any_of(std::begin(items) + 2, std::end(items), is_true));

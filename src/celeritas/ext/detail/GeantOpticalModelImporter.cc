@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/detail/GeantOpticalModelImporter.cc
@@ -12,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/io/ImportMaterial.hh"
 
 #include "GeantMaterialPropertyGetter.hh"
@@ -51,10 +51,8 @@ GeantOpticalModelImporter::GeantOpticalModelImporter(
         opt_to_mat_[opt_id.get()] = material->GetMaterialPropertiesTable();
     }
 
-    CELER_ASSERT(std::all_of(
-        opt_to_mat_.begin(), opt_to_mat_.end(), [](auto const* mpt) {
-            return static_cast<bool>(mpt);
-        }));
+    CELER_ASSERT(
+        std::all_of(opt_to_mat_.begin(), opt_to_mat_.end(), LogicalTrue{}));
 }
 
 //---------------------------------------------------------------------------//

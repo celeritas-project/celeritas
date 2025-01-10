@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/UnitProto.cc
@@ -9,6 +8,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <utility>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
@@ -28,10 +28,10 @@
 #include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
+#include "detail/BuildLogicUtils.hh"
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
-#include "detail/PostfixLogicBuilder.hh"
 #include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
@@ -48,15 +48,11 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
     CELER_VALIDATE(input_, << "no fill, daughters, or volumes are defined");
     CELER_VALIDATE(std::all_of(input_.materials.begin(),
                                input_.materials.begin(),
-                               [](MaterialInput const& m) {
-                                   return static_cast<bool>(m);
-                               }),
+                               LogicalTrue{}),
                    << "incomplete material definition(s)");
     CELER_VALIDATE(std::all_of(input_.daughters.begin(),
                                input_.daughters.begin(),
-                               [](DaughterInput const& d) {
-                                   return static_cast<bool>(d);
-                               }),
+                               LogicalTrue{}),
                    << "incomplete daughter definition(s)");
     CELER_VALIDATE(input_.boundary.zorder == ZOrder::media
                        || input_.boundary.zorder == ZOrder::exterior,
@@ -170,8 +166,6 @@ void UnitProto::build(ProtoBuilder& input) const
     }
 
     // Loop over all volumes to construct
-    detail::PostfixLogicBuilder build_logic{csg_unit.tree,
-                                            sorted_local_surfaces};
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
@@ -182,10 +176,12 @@ void UnitProto::build(ProtoBuilder& input) const
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
-        auto&& [faces, logic] = build_logic(node_id);
+        auto&& [faces, logic] = detail::build_logic(
+            detail::PostfixBuildLogicPolicy{csg_unit.tree,
+                                            sorted_local_surfaces},
+            node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);
-
         // Set bounding box
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
@@ -194,7 +190,7 @@ void UnitProto::build(ProtoBuilder& input) const
         // Set bounding zone
         vi.obz.inner = region_iter->second.bounds.interior;
         vi.obz.outer = region_iter->second.bounds.exterior;
-        vi.obz.transform_id = region_iter->second.transform_id;
+        vi.obz.trans_id = region_iter->second.trans_id;
 
         /*!
          * \todo "simple safety" flag is set inside "unit inserter": move here
@@ -272,9 +268,9 @@ void UnitProto::build(ProtoBuilder& input) const
         // Save the transform
         auto const* fill = std::get_if<Daughter>(&csg_unit.fills[vol_id.get()]);
         CELER_ASSERT(fill);
-        auto transform_id = fill->transform_id;
-        CELER_ASSERT(transform_id < csg_unit.transforms.size());
-        iter->second.transform = csg_unit.transforms[transform_id.get()];
+        auto trans_id = fill->trans_id;
+        CELER_ASSERT(trans_id < csg_unit.transforms.size());
+        iter->second.transform = csg_unit.transforms[trans_id.get()];
 
         // Update bounding box of the daughter universe by inverting the
         // daughter-to-parent reference transform and applying it to the
@@ -344,8 +340,8 @@ void UnitProto::build(ProtoBuilder& input) const
                 std::size_t daughter_index = iter->get<int>();
                 CELER_ASSERT(daughter_index < input_.daughters.size());
                 auto const& daughter = input_.daughters[daughter_index];
-                auto uid = input.find_universe_id(daughter.fill.get());
-                *iter = uid.unchecked_get();
+                auto univ_id = input.find_universe_id(daughter.fill.get());
+                *iter = univ_id.unchecked_get();
             }
         }
 

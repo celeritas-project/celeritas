@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/SimpleCalo.hh
@@ -62,6 +61,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     //!@{
     //! \name Step interface
+
     // Map volume names to detector IDs and exclude tracks with no deposition
     Filters filters() const final;
     // Save energy deposition and pre-step volume
@@ -74,6 +74,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     //!@{
     //! \name Output interface
+
     // Category of data to write
     Category category() const final { return Category::result; }
     // Key for the entry inside the category.

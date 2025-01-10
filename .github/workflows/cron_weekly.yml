@@ -26,7 +26,7 @@ jobs:
     - build-fast
     - build-spack
     - build-ultralite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Check that all jobs succeeded
       uses: re-actors/alls-green@release/v1

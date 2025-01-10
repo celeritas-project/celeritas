@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/univ/detail/InfixEvaluator.hh
@@ -81,7 +80,7 @@ CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
     {
         if (logic_int const lgc{logic_[i]}; !logic::is_operator_token(lgc))
         {
-            result = eval_sense(FaceId{lgc});
+            result = static_cast<bool>(eval_sense(FaceId{lgc}));
         }
         else if ((lgc == logic::lor && result)
                  || (lgc == logic::land && !result))
@@ -111,7 +110,7 @@ CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
             // negation of a sub-expression is not supported
             CELER_ASSUME(i + 1 < logic_.size());
             CELER_EXPECT(!logic::is_operator_token(logic_[i + 1]));
-            result = !eval_sense(FaceId{logic_[++i]});
+            result = !static_cast<bool>(eval_sense(FaceId{logic_[++i]}));
         }
         ++i;
     }

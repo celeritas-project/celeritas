@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/detail/InvolutePoint.hh
@@ -33,8 +32,9 @@ class InvolutePoint
 {
   public:
     //!@{
-    //! \name Type alias
+    //! \name Type aliases
     using Real2 = Array<real_type, 2>;
+    //!@}
 
   public:
     // Construct involute from parameters
@@ -51,6 +51,7 @@ class InvolutePoint
 
   private:
     //// DATA ////
+
     // Involute parameters
     real_type r_b_;
     real_type a_;

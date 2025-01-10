@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeTypes.cc
@@ -143,24 +142,6 @@ char const* to_cstring(TransformType value)
         "transformation",
     };
     return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to a signed sense.
- */
-char const* to_cstring(SignedSense s)
-{
-    switch (s)
-    {
-        case SignedSense::inside:
-            return "inside";
-        case SignedSense::on:
-            return "on";
-        case SignedSense::outside:
-            return "outside";
-    }
-    return "<invalid>";
 }
 
 //---------------------------------------------------------------------------//

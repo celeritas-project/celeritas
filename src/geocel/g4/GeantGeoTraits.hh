@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/g4/GeantGeoTraits.hh
@@ -41,10 +40,10 @@ struct GeoTraits<GeantGeoParams>
     using TrackView = GeantGeoTrackView;
 
     //! Descriptive name for the geometry
-    static constexpr inline char const* name = "Geant4";
+    static constexpr char const* name = "Geant4";
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr inline char const* ext = ".gdml";
+    static constexpr char const* ext = ".gdml";
 };
 #else
 //! Geant4 is unavailable

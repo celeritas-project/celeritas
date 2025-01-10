@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/CsgUnitBuilder.cc
@@ -91,7 +90,7 @@ void CsgUnitBuilder::insert_region(NodeId n,
                      == static_cast<bool>(existing.bounds.interior));
         CELER_ASSERT(static_cast<bool>(bzone.exterior)
                      == static_cast<bool>(existing.bounds.exterior));
-        if (trans_id != existing.transform_id)
+        if (trans_id != existing.trans_id)
         {
             /*! \todo We should implement transform soft equivalence.
              *  \todo Transformed shapes that are later defined as volumes (in
@@ -104,7 +103,7 @@ void CsgUnitBuilder::insert_region(NodeId n,
                 << "While re-inserting logically equivalent region '"
                 << join(md.begin(), md.end(), "' = '")
                 << "': existing transform "
-                << StreamableVariant{this->transform(existing.transform_id)}
+                << StreamableVariant{this->transform(existing.trans_id)}
                 << " differs from new transform "
                 << StreamableVariant{this->transform(trans_id)};
         }
@@ -185,8 +184,8 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v,
 
     Daughter new_daughter;
     new_daughter.universe_id = u;
-    new_daughter.transform_id = this->insert_transform(transform);
-    CELER_ASSERT(new_daughter.transform_id < unit_->transforms.size());
+    new_daughter.trans_id = this->insert_transform(transform);
+    CELER_ASSERT(new_daughter.trans_id < unit_->transforms.size());
 
     // Save fill
     unit_->fills[v.unchecked_get()] = std::move(new_daughter);

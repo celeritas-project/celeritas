@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/TracingSession.hh
@@ -61,7 +60,7 @@ class TracingSession
     CELER_DELETE_COPY_MOVE(TracingSession);
 
   private:
-    static inline constexpr int system_fd_{-1};
+    static constexpr int system_fd_{-1};
     struct Deleter
     {
         void operator()(perfetto::TracingSession*);

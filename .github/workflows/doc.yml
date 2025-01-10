@@ -21,7 +21,7 @@ jobs:
     env:
       CELER_TARGET: doxygen
       CELER_UPLOAD_DIR: build/doc/doxygen-html
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Install dependencies
         run: |
@@ -59,7 +59,7 @@ jobs:
           retention-days: 1 # developer docs can be large
 
   user:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CELER_TARGET: doc
       CELER_UPLOAD_DIR: build/doc/html

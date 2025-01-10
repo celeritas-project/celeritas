@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/Algorithms.hh
@@ -112,6 +111,32 @@ struct Less<void>
     operator()(T&& lhs, U&& rhs) const -> decltype(auto)
     {
         return ::celeritas::forward<T>(lhs) < ::celeritas::forward<U>(rhs);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate whether the argument is "true".
+ *
+ * This is useful for calls to \c std::all_of .
+ */
+template<class T = void>
+struct LogicalTrue
+{
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return static_cast<bool>(value);
+    }
+};
+
+//! Specialization of LogicalTrue with template deduction
+template<>
+struct LogicalTrue<void>
+{
+    template<class T>
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return static_cast<bool>(value);
     }
 };
 
@@ -740,9 +765,9 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
  */
 template<class T>
 #if defined(_MSC_VER)
-inline int popcount(T x) noexcept
+CELER_FORCEINLINE_FUNCTION int popcount(T x) noexcept
 #else
-inline constexpr int popcount(T x) noexcept
+CELER_CONSTEXPR_FUNCTION int popcount(T x) noexcept
 #endif
 {
     static_assert(sizeof(T) <= 8,

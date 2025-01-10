@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/detail/PropagationApplier.hh
@@ -113,8 +112,6 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
 #if CELERITAS_DEBUG
         Real3 const orig_pos = track.make_geo_view().pos();
 #endif
-        // False positive(fixed in clang-tidy-18)
-        // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
         auto propagate = make_propagator(track);
         p = propagate(sim.step_length());
         tracks_can_loop = propagate.tracks_can_loop();
