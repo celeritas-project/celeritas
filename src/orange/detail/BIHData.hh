@@ -95,7 +95,7 @@ struct BIHTree
     ItemRange<BIHLeafNode> leaf_nodes;
 
     //! Local volumes that have infinite bounding boxes
-    ItemRange<LocalVolumeId> inf_volids;
+    ItemRange<LocalVolumeId> inf_vol_ids;
 
     explicit CELER_FUNCTION operator bool() const
     {

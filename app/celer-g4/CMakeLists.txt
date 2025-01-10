@@ -88,7 +88,7 @@ if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   set(_props DISABLED true)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  # FIXME: geant4 navigator doesn't work at scale, nor through accel
+  # FIXME: geant4 navigator doesn't work with field navigator
   set(_props DISABLED true)
 endif()
 if(CELERITAS_REAL_TYPE STREQUAL "float")

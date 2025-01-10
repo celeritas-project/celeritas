@@ -23,6 +23,7 @@
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
@@ -84,9 +85,8 @@ PhysicsParams::PhysicsParams(Input inp)
     , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
-    CELER_EXPECT(std::all_of(processes_.begin(),
-                             processes_.end(),
-                             [](SPConstProcess const& p) { return bool(p); }));
+    CELER_EXPECT(
+        std::all_of(processes_.begin(), processes_.end(), LogicalTrue{}));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);

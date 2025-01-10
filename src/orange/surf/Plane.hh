@@ -11,6 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/SenseUtils.hh"
 
 namespace celeritas
 {

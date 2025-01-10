@@ -45,6 +45,7 @@ class StepParams : public ParamsDataInterface<StepParamsData>,
 
     //!@{
     //! \name Aux interface
+
     //! Short name for the aux data
     std::string_view label() const final { return "detector-step"; }
     //! Index of this class instance in its registry
@@ -55,6 +56,7 @@ class StepParams : public ParamsDataInterface<StepParamsData>,
 
     //!@{
     //! \name Data interface
+
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }
     //! Access physics properties on the device

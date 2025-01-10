@@ -53,7 +53,7 @@ struct CsgUnit
     struct Region
     {
         BoundingZone bounds;  //!< Interior/exterior bbox
-        TransformId transform_id;  //!< Region-to-unit transform
+        TransformId trans_id;  //!< Region-to-unit transform
     };
 
     //// DATA ////

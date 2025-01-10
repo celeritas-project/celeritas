@@ -60,7 +60,7 @@ class OrangeGeoTestBase : public OrangeTestBase
 
   public:
     // Convert a vector of senses to a string
-    static std::string senses_to_string(Span<Sense const> senses);
+    static std::string senses_to_string(Span<SenseValue const> senses);
 
     // Convert a string to a sense vector
     static std::vector<Sense> string_to_senses(std::string const& s);
@@ -108,10 +108,10 @@ class OrangeGeoTestBase : public OrangeTestBase
     std::string id_to_label(LocalSurfaceId surfid) const;
 
     // Cell name (or sentinel if no surface)
-    std::string id_to_label(UniverseId uid, LocalVolumeId volid) const;
+    std::string id_to_label(UniverseId uid, LocalVolumeId vol_id) const;
 
     // Cell name (or sentinel if no surface) within UniverseId{0}
-    std::string id_to_label(LocalVolumeId volid) const;
+    std::string id_to_label(LocalVolumeId vol_id) const;
 
     // Print geometry description
     void describe(std::ostream& os) const;

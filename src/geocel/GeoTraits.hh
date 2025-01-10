@@ -42,10 +42,10 @@ struct GeoTraits
     using TrackView = void;
 
     //! Descriptive name for the geometry
-    static constexpr inline char const* name = nullptr;
+    static constexpr char const* name = nullptr;
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr inline char const* ext = nullptr;
+    static constexpr char const* ext = nullptr;
 };
 
 //---------------------------------------------------------------------------//
@@ -68,8 +68,8 @@ struct NotConfiguredGeoTraits
     template<Ownership W, MemSpace M>
     using StateData = void;
     using TrackView = void;
-    static constexpr inline char const* name = nullptr;
-    static constexpr inline char const* ext = nullptr;
+    static constexpr char const* name = nullptr;
+    static constexpr char const* ext = nullptr;
 };
 
 //---------------------------------------------------------------------------//

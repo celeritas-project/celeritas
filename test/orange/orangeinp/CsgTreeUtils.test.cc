@@ -6,10 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/CsgTreeUtils.hh"
 
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTypes.hh"
+#include "orange/orangeinp/detail/BuildLogicUtils.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
-#include "orange/orangeinp/detail/PostfixLogicBuilder.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 #include "orange/surf/VariantSurface.hh"
 
@@ -19,8 +20,10 @@
 
 using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
+using celeritas::orangeinp::detail::build_logic;
+using celeritas::orangeinp::detail::InfixBuildLogicPolicy;
 using celeritas::orangeinp::detail::InternalSurfaceFlagger;
-using celeritas::orangeinp::detail::PostfixLogicBuilder;
+using celeritas::orangeinp::detail::PostfixBuildLogicPolicy;
 
 namespace celeritas
 {
@@ -103,7 +106,15 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
-    PostfixLogicBuilder build_postfix(tree_);
+    auto build_postfix =
+        [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+            if (mapping)
+            {
+                return build_logic(PostfixBuildLogicPolicy{tree_, *mapping}, n);
+            }
+            return build_logic(PostfixBuildLogicPolicy{tree_}, n);
+        };
+
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
         auto&& [faces, lgc] = build_postfix(mz);
@@ -220,11 +231,174 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         static S const expected_remapped_surf[] = {S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
 
-        PostfixLogicBuilder build_postfix(tree_, remapped_surf);
-        auto&& [faces, lgc] = build_postfix(shell);
+        auto&& [faces, lgc] = build_postfix(shell, &remapped_surf);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
+        static S const expected_faces[] = {S{0u}, S{1u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+    }
+}
+
+TEST_F(CsgTreeUtilsTest, infix_simplify)
+{
+    // NOTE: mz = below = "false"
+    auto mz = this->insert_surface(PlaneZ{-1.0});
+    auto pz = this->insert_surface(PlaneZ{1.0});
+    auto below_pz = this->insert(Negated{pz});
+    auto r_inner = this->insert_surface(CCylZ{0.5});
+    auto inside_inner = this->insert(Negated{r_inner});
+    auto inner_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_inner}});
+    auto r_outer = this->insert_surface(CCylZ{1.0});
+    auto inside_outer = this->insert(Negated{r_outer});
+    auto outer_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_outer}});
+    auto not_inner = this->insert(Negated{inner_cyl});
+    auto shell = this->insert(Joined{op_and, {not_inner, outer_cyl}});
+    auto bdy_outer = this->insert_surface(CCylZ{4.0});
+    auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
+    auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
+
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
+        "all{2,4,9}, 11: not{7}, 12: all{10,11}, 13: surface 4, 14: "
+        "all{2,4,13}, 15: all{2,4}, }",
+        to_string(tree_));
+
+    // Test infix and internal surface flagger
+    InternalSurfaceFlagger has_internal_surfaces(tree_);
+    auto build_infix =
+        [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+            if (mapping)
+            {
+                return build_logic(InfixBuildLogicPolicy{tree_, *mapping}, n);
+            }
+            return build_logic(InfixBuildLogicPolicy{tree_}, n);
+        };
+    {
+        EXPECT_FALSE(has_internal_surfaces(mz));
+        auto&& [faces, lgc] = build_infix(mz);
+
+        static size_type expected_lgc[] = {0};
+        static S const expected_faces[] = {S{0u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+
+        // NOTE: inside and outside are flipped
+        static_assert(Sense::inside == to_sense(false));
+        EXPECT_EQ(SignedSense::outside, is_inside(mz, {0, 0, -2}));
+        EXPECT_EQ(SignedSense::on, is_inside(mz, {0, 0, -1}));
+        EXPECT_EQ(SignedSense::inside, is_inside(mz, {0, 0, 2}));
+    }
+    {
+        EXPECT_FALSE(has_internal_surfaces(below_pz));
+        auto&& [faces, lgc] = build_infix(below_pz);
+
+        static size_type expected_lgc[] = {logic::lnot, 0};
+        static S const expected_faces[] = {S{1u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+
+        EXPECT_EQ(SignedSense::inside, is_inside(below_pz, {0, 0, 0.5}));
+        EXPECT_EQ(SignedSense::on, is_inside(below_pz, {0, 0, 1}));
+        EXPECT_EQ(SignedSense::outside, is_inside(below_pz, {0, 0, 2}));
+    }
+    {
+        EXPECT_FALSE(has_internal_surfaces(zslab));
+        auto&& [faces, lgc] = build_infix(zslab);
+
+        static size_type const expected_lgc[]
+            = {logic::lopen, 0u, logic::land, logic::lnot, 1u, logic::lclose};
+        static S const expected_faces[] = {S{0u}, S{1u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+
+        EXPECT_EQ(SignedSense::inside, is_inside(zslab, {0, 0, 0}));
+        EXPECT_EQ(SignedSense::on, is_inside(zslab, {0, 0, 1}));
+        EXPECT_EQ(SignedSense::outside, is_inside(zslab, {0, 0, -2}));
+    }
+    {
+        EXPECT_FALSE(has_internal_surfaces(inner_cyl));
+        auto&& [faces, lgc] = build_infix(inner_cyl);
+
+        static size_type const expected_lgc[] = {logic::lopen,
+                                                 0u,
+                                                 logic::land,
+                                                 logic::lnot,
+                                                 1u,
+                                                 logic::land,
+                                                 logic::lnot,
+                                                 2u,
+                                                 logic::lclose};
+        static S const expected_faces[] = {S{0u}, S{1u}, S{2u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+
+        EXPECT_EQ("all(+0, -1, -2)", build_infix_string(tree_, inner_cyl));
+    }
+    {
+        EXPECT_TRUE(has_internal_surfaces(shell));
+        auto&& [faces, lgc] = build_infix(shell);
+
+        static size_type const expected_lgc[]
+            = {logic::lopen,  logic::lopen, 0u,
+               logic::land,   logic::lnot,  1u,
+               logic::land,   logic::lnot,  3u,
+               logic::lclose, logic::land,  logic::lnot,
+               logic::lopen,  0u,           logic::land,
+               logic::lnot,   1u,           logic::land,
+               logic::lnot,   2u,           logic::lclose,
+               logic::lclose};
+        static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+
+        EXPECT_EQ("all(all(+0, -1, -3), !all(+0, -1, -2))",
+                  build_infix_string(tree_, shell));
+
+        EXPECT_EQ(SignedSense::outside, is_inside(shell, {0, 0, 0}));
+        EXPECT_EQ(SignedSense::on, is_inside(shell, {0, 0, 1}));
+        EXPECT_EQ(SignedSense::inside, is_inside(shell, {0.75, 0, 0}));
+        EXPECT_EQ(SignedSense::outside, is_inside(shell, {1.25, 0, 0}));
+        EXPECT_EQ(SignedSense::outside, is_inside(shell, {0, 0, -2}));
+    }
+    {
+        EXPECT_FALSE(has_internal_surfaces(bdy));
+        auto&& [faces, lgc] = build_infix(bdy);
+
+        static size_type const expected_lgc[] = {logic::lopen,
+                                                 0u,
+                                                 logic::land,
+                                                 logic::lnot,
+                                                 1u,
+                                                 logic::land,
+                                                 2u,
+                                                 logic::lclose};
+        static S const expected_faces[] = {S{0u}, S{1u}, S{4u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+        EXPECT_EQ("all(+0, -1, +4)", build_infix_string(tree_, bdy));
+    }
+
+    // Imply inside boundary
+    replace_and_simplify(&tree_, bdy, True{});
+
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "
+        "not{5}, 7: ->{6}, 8: surface 3, 9: not{8}, 10: ->{9}, 11: ->{5}, 12: "
+        "all{5,9}, 13: ->{0}, 14: ->{0}, 15: ->{0}, }",
+        to_string(tree_));
+
+    // Test infix builder with remapping
+    {
+        auto remapped_surf = calc_surfaces(tree_);
+        static S const expected_remapped_surf[] = {S{2u}, S{3u}};
+        EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
+        auto&& [faces, lgc] = build_infix(shell, &remapped_surf);
+
+        static size_type const expected_lgc[]
+            = {logic::lopen, 0u, logic::land, logic::lnot, 1u, logic::lclose};
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);

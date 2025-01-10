@@ -30,6 +30,7 @@ class OffloadParams final : public AuxParamsInterface,
 
     //!@{
     //! \name Aux interface
+
     //! Short name for the action
     std::string_view label() const final { return "optical-offload"; }
     //! Index of this class instance in its registry
@@ -40,6 +41,7 @@ class OffloadParams final : public AuxParamsInterface,
 
     //!@{
     //! \name Data interface
+
     //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
     //! Access data on device

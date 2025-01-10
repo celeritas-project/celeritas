@@ -108,6 +108,7 @@ struct Array
 
     //!@{
     //! \name  Operations
+
     //! Fill the array with a constant value
     CELER_CONSTEXPR_FUNCTION void fill(const_reference value)
     {

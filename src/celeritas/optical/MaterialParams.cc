@@ -40,9 +40,7 @@ MaterialParams::from_import(ImportData const& data,
 
     CELER_VALIDATE(std::all_of(data.optical_materials.begin(),
                                data.optical_materials.end(),
-                               [](ImportOpticalMaterial const& m) {
-                                   return static_cast<bool>(m);
-                               }),
+                               LogicalTrue{}),
                    << "one or more optical materials lack required data");
 
     Input inp;

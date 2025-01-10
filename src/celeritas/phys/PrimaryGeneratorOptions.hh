@@ -11,6 +11,7 @@
 #include <random>
 
 #include "corecel/io/StringEnumMapper.hh"
+#include "corecel/math/Algorithms.hh"
 #include "geocel/Types.hh"
 
 #include "PDGNumber.hh"
@@ -72,9 +73,7 @@ struct PrimaryGeneratorOptions
     explicit operator bool() const
     {
         return !pdg.empty()
-               && std::all_of(pdg.begin(),
-                              pdg.end(),
-                              [](PDGNumber p) { return static_cast<bool>(p); })
+               && std::all_of(pdg.begin(), pdg.end(), LogicalTrue{})
                && num_events > 0 && primaries_per_event > 0 && energy
                && position && direction;
     }

@@ -106,10 +106,10 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     std::vector<LocalSurfaceId::size_type> temp_faces;
     j.at("faces").get_to(temp_faces);
     value.faces.reserve(temp_faces.size());
-    for (auto surfid : temp_faces)
+    for (auto surf_id : temp_faces)
     {
-        CELER_ASSERT(surfid != LocalSurfaceId{}.unchecked_get());
-        value.faces.emplace_back(surfid);
+        CELER_ASSERT(surf_id != LocalSurfaceId{}.unchecked_get());
+        value.faces.emplace_back(surf_id);
     }
 
     // Read scalars, including optional flags
@@ -180,9 +180,9 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
     // Convert faces from OpaqueId
     std::vector<LocalSurfaceId::size_type> temp_faces;
     temp_faces.reserve(value.faces.size());
-    for (auto surfid : value.faces)
+    for (auto surf_id : value.faces)
     {
-        temp_faces.emplace_back(surfid.unchecked_get());
+        temp_faces.emplace_back(surf_id.unchecked_get());
     }
     j["faces"] = std::move(temp_faces);
 

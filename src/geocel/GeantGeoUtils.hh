@@ -132,6 +132,16 @@ inline std::string make_gdml_name(G4LogicalVolume const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
+
+inline std::ostream& operator<<(std::ostream&, PrintableNavHistory const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline std::ostream& operator<<(std::ostream&, PrintableLV const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
 #endif
 
 //---------------------------------------------------------------------------//

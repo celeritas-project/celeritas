@@ -882,6 +882,7 @@ class SolidsTest : public VecgeomVgdmlTestBase
         if (vecgeom_version >= Version{2})
         {
             static std::string_view const levels[] = {"warning", "warning"};
+            static std::string_view const levels[] = {"warning", "warning"};
             return make_span(levels);
         }
         else if (geant4_version >= Version{11})
@@ -1379,7 +1380,7 @@ TEST_F(FourLevelsGeantTest, tracking)
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
-        SCOPED_TRACE("From outside edge");
+        SCOPED_TRACE("From exactly on outside edge");
         auto result = this->track({-24, 10., 10.}, {1, 0, 0});
         if (vecgeom_version < Version{2})
         {

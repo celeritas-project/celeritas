@@ -266,8 +266,8 @@ class Collection
     using AllItemsT = AllItems<T, M>;
     //!@}
 
-    static constexpr inline Ownership ownership = W;
-    static constexpr inline MemSpace memspace = M;
+    static constexpr Ownership ownership = W;
+    static constexpr MemSpace memspace = M;
 
   public:
     //// CONSTRUCTION ////
@@ -276,8 +276,6 @@ class Collection
     //! Default constructors
     Collection() = default;
     Collection(Collection const&) = default;
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection(Collection&&) = default;
     //!@}
 
@@ -294,8 +292,6 @@ class Collection
     //!@{
     //! Default assignment
     Collection& operator=(Collection const& other) = default;
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection& operator=(Collection&& other) = default;
     //!@}
 

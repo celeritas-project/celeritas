@@ -128,6 +128,7 @@ struct GeantOpticalPhysicsOptions
 {
     //!@{
     //! \name Optical photon creation physics
+
     //! Cherenkov radiation options
     CherenkovPhysicsOptions cherenkov;
     //! Scintillation options
@@ -136,6 +137,7 @@ struct GeantOpticalPhysicsOptions
 
     //!@{
     //! \name Optical photon physics
+
     //! Enable wavelength shifting and select a time profile
     WLSTimeProfileSelection wavelength_shifting{WLSTimeProfileSelection::delta};
     //! Enable second wavelength shifting type and select a time profile (TODO:

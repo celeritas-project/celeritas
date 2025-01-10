@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridType.hh"
@@ -46,9 +47,7 @@ ImportedProcesses::from_import(ImportData const& data,
                                SPConstParticles particle_params)
 {
     CELER_EXPECT(std::all_of(
-        data.processes.begin(),
-        data.processes.end(),
-        [](ImportProcess const& ip) { return static_cast<bool>(ip); }));
+        data.processes.begin(), data.processes.end(), LogicalTrue{}));
     CELER_EXPECT(particle_params);
 
     // Sort processes based on particle def IDs, process types, etc.
