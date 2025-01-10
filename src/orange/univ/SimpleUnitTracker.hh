@@ -11,6 +11,7 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHEnclosingVolFinder.hh"
+#include "orange/detail/BIHIntersectingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
@@ -199,7 +200,8 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
  * Find the local volume on the opposite side of a surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initialization
+SimpleUnitTracker::cross_boundary(LocalState const& state) const
+    -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
 
@@ -258,8 +260,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
 /*!
  * Calculate distance-to-intercept for the next surface.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState const& state) const
+    -> Intersection
 {
     Intersection result = this->intersect_impl(state, detail::IsFinite{});
     return result;
@@ -270,8 +272,8 @@ SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
  * Calculate distance-to-intercept for the next surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state,
-                             real_type max_dist) const -> Intersection
+SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
+    -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
     Intersection result
@@ -391,8 +393,8 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  */
 template<class F>
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(LocalState const& state,
-                                  F&& is_valid) const -> Intersection
+SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
+    -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
@@ -592,8 +594,10 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
  * volume (alternatively we could introduce a mapping between Face and
  * LocalSurfaceId).
  */
-CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
-    LocalState const& state, size_type num_isect) const -> Intersection
+CELER_FUNCTION auto
+SimpleUnitTracker::background_intersect(LocalState const& state,
+                                        size_type num_isect) const
+    -> Intersection
 {
     // Calculate bump distance
     real_type const bump_dist
@@ -613,32 +617,52 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
         // senses, since we can't know the change in sense of the
         // target surface without marching through all interior surfaces.
         // Assume that bumping past the surface means not on any surface.
-        Real3 pos{state.pos};
-        axpy(state.temp_next.distance[isect] + bump_dist, state.dir, &pos);
+        Real3 bumped_pos{state.pos};
+        axpy(state.temp_next.distance[isect] + bump_dist,
+             state.dir,
+             &bumped_pos);
 
-        // Loop over volumes connected to this surface.
-        //! \todo Accelerate by intersecting neighbors with BVH grid
-        for (LocalVolumeId vol_id : this->get_neighbors(surface))
-        {
-            CELER_ASSERT(vol_id != state.volume);
+        detail::BIHIntersectingVolFinder find_intersection{
+            unit_record_.bih_tree, params_.bih_tree_data};
+
+        auto is_intersecting = [this, &state, &surface, &isect](
+                                   LocalVolumeId vol_id,
+                                   detail::BIHIntersectingVolFinder::Ray ray,
+                                   real_type max_search_dist
+                                   [[maybe_unused]]) -> Intersection {
             VolumeView vol = this->make_local_volume(vol_id);
             detail::OnFace face;
-            auto calc_senses = detail::SenseCalculator{
-                this->make_surface_visitor(), vol, pos, state.temp_sense, face};
+            auto calc_senses
+                = detail::SenseCalculator{this->make_surface_visitor(),
+                                          vol,
+                                          ray.pos,
+                                          state.temp_sense,
+                                          face};
 
             if (detail::LogicEvaluator{vol.logic()}(calc_senses))
             {
-                // We are in this new volume by crossing the tested surface.
-                // Get the sense corresponding to this "crossed" surface.
+                // We are in this new volume by crossing the tested
+                // surface. Get the sense corresponding to this "crossed"
+                // surface.
                 auto face = vol.find_face(surface);
                 CELER_ASSERT(face);
-
                 Intersection result;
                 result.distance = state.temp_next.distance[isect];
                 result.surface = detail::OnLocalSurface{
                     surface, flip_sense(calc_senses(face))};
                 return result;
             }
+            else
+            {
+                return Intersection{};
+            }
+        };
+
+        auto result
+            = find_intersection({bumped_pos, state.dir}, is_intersecting);
+        if (result)
+        {
+            return result;
         }
     }
 
