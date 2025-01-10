@@ -45,6 +45,7 @@ class SenseEvaluator
 
     //!@{
     //! \name Visit a node directly
+
     //! Point is always inside
     result_type operator()(True const&) const { return SignedSense::inside; }
     //! Point is always outside

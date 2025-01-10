@@ -26,7 +26,7 @@ namespace celeritas
  TrackerVisitor visit_tracker{params_};
  auto new_pos = visit_tracker(
     [&pos](auto&& u) { return u.initialize(pos); },
-    uid);
+    univ_id);
  \endcode
  */
 class TrackerVisitor

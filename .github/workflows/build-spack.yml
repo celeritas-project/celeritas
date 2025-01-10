@@ -260,7 +260,6 @@ jobs:
             ${{
               (   (matrix.special == 'minimal')
                || (matrix.special == 'float')
-               || (matrix.geometry == 'geant4')
                || !matrix.geant
               ) && '1' || ''
             }}

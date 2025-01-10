@@ -49,7 +49,7 @@ class RegulaFalsiRootFinder
     real_type tol_;
 
     // Maximum amount of iterations
-    static constexpr inline int max_iters_ = 50;
+    static constexpr int max_iters_ = 50;
 };
 
 //---------------------------------------------------------------------------//

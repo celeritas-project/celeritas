@@ -129,6 +129,7 @@ struct SetupOptions
 
     //!@{
     //! \name I/O
+
     //! GDML filename (optional: defaults to exporting existing Geant4)
     std::string geometry_file;
     //! Filename for JSON diagnostic output
@@ -143,6 +144,7 @@ struct SetupOptions
 
     //!@{
     //! \name Celeritas stepper options
+
     //! Number of track "slots" to be transported simultaneously
     size_type max_num_tracks{};
     //! Maximum number of events in use (DEPRECATED: remove in v0.6)
@@ -161,6 +163,7 @@ struct SetupOptions
 
     //!@{
     //! \name Track reordering options
+
     TrackOrder track_order{Device::num_devices() ? TrackOrder::init_charge
                                                  : TrackOrder::none};
     //!@}
@@ -170,11 +173,13 @@ struct SetupOptions
 
     //!@{
     //! \name Stepping actions
+
     AlongStepFactory make_along_step;
     //!@}
 
     //!@{
     //! \name Field options
+
     size_type max_field_substeps{100};
     //!@}
 
@@ -183,12 +188,14 @@ struct SetupOptions
 
     //!@{
     //! \name Physics options
+
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
     //!@}
 
     //!@{
     //! \name CUDA options
+
     //! Per-thread stack size (may be needed for VecGeom) [B]
     size_type cuda_stack_size{};
     //! Dynamic heap size (may be needed for VecGeom) [B]
@@ -201,6 +208,7 @@ struct SetupOptions
 
     //!@{
     //! \name Diagnostic setup
+
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
     //!@}

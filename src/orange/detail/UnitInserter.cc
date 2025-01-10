@@ -479,7 +479,7 @@ void UnitInserter::process_obz_record(VolumeRecord* vol_record,
     obz_record.offset_ids = {inner_offset_id, outer_offset_id};
 
     // Set transformation
-    obz_record.transform_id = obz_input.transform_id;
+    obz_record.trans_id = obz_input.trans_id;
 
     // Save the OBZ record to the volume record
     vol_record->obz_id = obz_records_.push_back(obz_record);
@@ -494,7 +494,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
 {
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;
-    daughter.transform_id = insert_transform_(daughter_input.transform);
+    daughter.trans_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);
     vol_record->flags |= VolumeRecord::embedded_universe;

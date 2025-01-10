@@ -48,7 +48,7 @@ class DepthCalculator
     std::unordered_map<UniverseId, size_type> depths_;
 
     // Check cache or calculate
-    size_type operator()(UniverseId uid);
+    size_type operator()(UniverseId univ_id);
 };
 
 //---------------------------------------------------------------------------//

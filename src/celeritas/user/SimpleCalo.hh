@@ -61,6 +61,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     //!@{
     //! \name Step interface
+
     // Map volume names to detector IDs and exclude tracks with no deposition
     Filters filters() const final;
     // Save energy deposition and pre-step volume
@@ -73,6 +74,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     //!@{
     //! \name Output interface
+
     // Category of data to write
     Category category() const final { return Category::result; }
     // Key for the entry inside the category.

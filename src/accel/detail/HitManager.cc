@@ -83,8 +83,10 @@ HitManager::HitManager(SPConstGeo geo,
         }
     }
 
-    // Hit processors *must* be allocated on the thread they're used because of
-    // geant4 thread-local SDs. There must be one per thread.
+    // Hit processors MUST be allocated on the thread they're used because of
+    // geant4 thread-local SDs. They MUST also be DEallocated on the same
+    // thread they're created due to Geant4 thread-local allocators.
+    // There must be one hit processor per thread.
     processor_weakptrs_.resize(num_streams);
     processors_.resize(num_streams);
 
