@@ -12,8 +12,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
-#include "orange/univ/detail/CachedLazySenseCalculator.hh"
 
+#include "detail/CachedLazySenseCalculator.hh"
 #include "detail/InfixEvaluator.hh"
 #include "detail/LazySenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"
@@ -165,15 +165,14 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
-    detail::OnFace on_surface;
     // Use the BIH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
-    auto is_inside = [&, this](LocalVolumeId id) -> bool {
+    detail::OnFace on_surface;
+    auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
         VolumeView vol = this->make_local_volume(id);
         detail::LazySenseCalculator calc_senses(
             this->make_surface_visitor(), vol, state.pos, on_surface);
-        auto inside = detail::InfixEvaluator(vol.logic())(calc_senses);
-        return inside;
+        return detail::InfixEvaluator(vol.logic())(calc_senses);
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 
@@ -210,7 +209,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
         }
 
         VolumeView vol = this->make_local_volume(id);
-        auto on_face = detail::find_face(vol, state.surface);
+        detail::OnFace on_face = detail::find_face(vol, state.surface);
         detail::LazySenseCalculator calc_senses(
             this->make_surface_visitor(), vol, state.pos, on_face);
         if (detail::InfixEvaluator(vol.logic())(calc_senses))
@@ -522,8 +521,8 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 {
     CELER_ASSERT(num_isect > 0);
 
-    detail::OnFace on_face = detail::find_face(vol, state.surface);
     // Calculate local senses, taking current face into account
+    detail::OnFace on_face = detail::find_face(vol, state.surface);
     auto calc_senses = detail::CachedLazySenseCalculator(
         this->make_surface_visitor(), vol, state.pos, state.temp_sense, on_face);
     // Current senses should put us inside the volume
