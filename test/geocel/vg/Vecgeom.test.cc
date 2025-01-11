@@ -882,7 +882,6 @@ class SolidsTest : public VecgeomVgdmlTestBase
         if (vecgeom_version >= Version{2})
         {
             static std::string_view const levels[] = {"warning", "warning"};
-            static std::string_view const levels[] = {"warning", "warning"};
             return make_span(levels);
         }
         else if (geant4_version >= Version{11})
