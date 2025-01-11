@@ -22,7 +22,7 @@ namespace celeritas
 {
 namespace inp
 {
-struct Input;
+struct FrameworkInput;
 }
 
 struct AlongStepFactoryInput;
@@ -168,9 +168,7 @@ struct SetupOptions
 
     //!@{
     //! \name Track reordering options
-
-    TrackOrder track_order{Device::num_devices() ? TrackOrder::init_charge
-                                                 : TrackOrder::none};
+    TrackOrder track_order{TrackOrder::size_};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)
@@ -227,8 +225,8 @@ struct SetupOptions
 std::unordered_set<G4LogicalVolume const*>
     FindVolumes(std::unordered_set<std::string>);
 
-// Convert to Celeritas input
-inp::Input to_input(SetupOptions const& so);
+// Construct a framework input
+inp::FrameworkInput to_inp(SetupOptions const& so);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

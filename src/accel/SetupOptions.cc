@@ -11,31 +11,17 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
-#include "celeritas/inp/Input.hh"
+#include "celeritas/inp/FrameworkInput.hh"
+#include "celeritas/inp/Problem.hh"
 
 #include "AlongStepFactory.hh"
 #include "ExceptionConverter.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Find volumes by name for SDSetupOptions.
- *
- * Example:
- * \code
-   setup.sd.force_volumes = FindVolumes({"foo", "bar"});
- * \endcode
- */
-std::unordered_set<G4LogicalVolume const*>
-FindVolumes(std::unordered_set<std::string> names)
+namespace
 {
-    ExceptionConverter call_g4exception{"celer0006"};
-    std::unordered_set<G4LogicalVolume const*> result;
-    CELER_TRY_HANDLE(result = find_geant_volumes(std::move(names)),
-                     call_g4exception);
-    return result;
-}
+//---------------------------------------------------------------------------//
 
 inp::SDStepPointAttributes to_input(SDSetupOptions::StepPoint const& sp)
 {
@@ -67,14 +53,41 @@ inp::SensitiveDetector to_input(SDSetupOptions const& sd)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert to Celeritas input.
+ * Construct system attributes from setup options.
  */
-inp::Input to_input(SetupOptions const& so)
+inp::System load_system(SetupOptions const& so)
 {
-    inp::Input result;
+    inp::System s;
+    if (celeritas::Device::num_devices())
+    {
+        inp::Device d;
+        d.stack_size = so.cuda_stack_size;
+        d.heap_size = so.cuda_heap_size;
 
-    result.geometry_file = so.geometry_file;
-    result.diagnostics.output_file = so.output_file;
+        s.device = d;
+    }
+    return s;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * FrameworkInput adapter function.
+ */
+struct ProblemSetup
+{
+    SetupOptions const& so;
+
+    void operator()(inp::Problem&) const;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set a Celeritas problem input definition.
+ */
+void ProblemSetup::operator()(inp::Problem& p) const
+{
+    p.model.geometry_file = so.geometry_file;
+    p.diagnostics.output_file = so.output_file;
 
     {
         inp::StateCapacity c;
@@ -84,7 +97,7 @@ inp::Input to_input(SetupOptions const& so)
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         c.primaries = so.auto_flush;
 
-        result.tuning.capacity = std::move(c);
+        p.tuning.capacity = std::move(c);
     }
     {
         inp::TrackingLimits tl;
@@ -92,41 +105,29 @@ inp::Input to_input(SetupOptions const& so)
         tl.step_iters = so.max_step_iters;
         tl.field_substeps = so.max_field_substeps;
 
-        result.tracking.limits = std::move(tl);
+        p.tracking.limits = std::move(tl);
     }
 
-    // TODO: add option to enable/disable rather than checking device/env
-    if (celeritas::device())
+    p.tuning.num_streams = so.get_num_streams();
+
+    if (so.track_order != TrackOrder::size_)
     {
-        inp::Device d;
-        d.default_stream = so.default_stream;
-        d.stack_size = so.cuda_stack_size;
-        d.heap_size = so.cuda_heap_size;
-
-        result.tuning.device = std::move(d);
+        p.tuning.track_order = so.track_order;
     }
 
-    result.tuning.track_order = [&] {
-        auto track_order = so.track_order;
-        if (track_order != TrackOrder::size_)
-            return track_order;
+    if (celeritas::Device::num_devices())
+    {
+        inp::DeviceDebug dd;
+        dd.default_stream = so.default_stream;
+        dd.sync_stream = so.action_times;
 
-        if (result.tuning.device)
-        {
-            // Device is activated: initializing by charge is more performant
-            return TrackOrder::init_charge;
-        }
-
-        // Device is not active: don't ort
-        return TrackOrder::none;
-    }();
+        p.tuning.device_debug = std::move(dd);
+    }
 
     if (so.sd.enabled)
     {
-        result.scoring.sd = to_input(so.sd);
+        p.scoring.sd = to_input(so.sd);
     }
-
-    result.tuning.num_streams = so.get_num_streams();
 
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
@@ -139,7 +140,7 @@ inp::Input to_input(SetupOptions const& so)
             inp::UniformField field;
             field.strength = params.field;
             field.driver_options = params.options;
-            result.field = std::move(field);
+            p.field = std::move(field);
         }
         else
         {
@@ -149,32 +150,65 @@ inp::Input to_input(SetupOptions const& so)
     else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting RZ map field";
-        result.field = u->get_field();
+        p.field = u->get_field();
     }
     else
     {
         CELER_NOT_IMPLEMENTED("processing generic along-step factory");
     }
 
-    result.physics.ignore_processes = so.ignore_processes;
-
     {
         inp::ExportFiles ef;
         ef.physics = so.physics_output_file;
         ef.offload = so.offload_output_file;
         ef.geometry = so.geometry_output_file;
-        result.diagnostics.export_files = std::move(ef);
+        p.diagnostics.export_files = std::move(ef);
     }
 
-    result.diagnostics.timers.action = so.action_times;
+    p.diagnostics.timers.action = so.action_times;
 
     if (!so.slot_diagnostic_prefix.empty())
     {
         inp::SlotDiagnostic sd;
         sd.basename = so.slot_diagnostic_prefix;
-        result.diagnostics.slot = std::move(sd);
+        p.diagnostics.slot = std::move(sd);
     }
+}
 
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find volumes by name for SDSetupOptions.
+ *
+ * Example:
+ * \code
+   setup.sd.force_volumes = FindVolumes({"foo", "bar"});
+ * \endcode
+ */
+std::unordered_set<G4LogicalVolume const*>
+FindVolumes(std::unordered_set<std::string> names)
+{
+    ExceptionConverter call_g4exception{"celer0006"};
+    std::unordered_set<G4LogicalVolume const*> result;
+    CELER_TRY_HANDLE(result = find_geant_volumes(std::move(names)),
+                     call_g4exception);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a framework input from setup options.
+ *
+ * \note The setup options *must* stay in scope until problem initialization!
+ */
+inp::FrameworkInput to_inp(SetupOptions const& so)
+{
+    inp::FrameworkInput result;
+    result.system = load_system(so);
+    result.geant.ignore_processes = so.ignore_processes;
+    result.adjuster = ProblemSetup{so};
     return result;
 }
 

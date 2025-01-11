@@ -559,6 +559,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.capacity = options.initializer_capacity;
         input.max_events = 1;  // TODO: use special "max events" case
         input.track_order = options.track_order;
+        if (input.track_order == TrackOrder::size_)
+        {
+            input.track_order = celeritas::device() ? TrackOrder::init_charge
+                                                    : TrackOrder::none;
+            CELER_LOG(info)
+                << "Set track ordering to default: " << input.track_order;
+        }
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 

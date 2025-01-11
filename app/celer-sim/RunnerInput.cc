@@ -29,10 +29,10 @@ inp::System load_system(RunnerInput const& ri)
 
     if (ri.use_device)
     {
-        inp::Device device;
-        device.stack_size = ri.cuda_stack_size;
-        device.heap_size = ri.cuda_heap_size;
-        s.device = std::move(device);
+        inp::Device d;
+        d.stack_size = ri.cuda_stack_size;
+        d.heap_size = ri.cuda_heap_size;
+        s.device = std::move(d);
     }
     return s;
 }
