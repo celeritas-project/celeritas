@@ -106,6 +106,8 @@ list(APPEND SOURCES
   random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
+  setup/Import.cc
+  setup/System.cc
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc

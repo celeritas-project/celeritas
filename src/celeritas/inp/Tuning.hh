@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <map>
 #include <optional>
 
 #include "celeritas/Types.hh"
@@ -49,28 +48,14 @@ struct StateCapacity
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up GPU capabilities and debugging options.
- *
- * Stream sharing and synchronization might be helpful for debugging potential
- * race conditions or improving timing accuracy (at the cost of reducing
- * performance).
- *
- * The CUDA heap and stack sizes may be needed for VecGeom, which has dynamic
- * resource requirements.
+ * When using GPU, change execution options that make it easier to debug.
  */
-struct Device
+struct DeviceDebug
 {
     //! Launch all kernels on the default stream
     bool default_stream{false};
     //! Synchronize the stream after every kernel launch
     bool sync_stream{false};
-
-    //! Per-thread CUDA stack size (ignored if zero) [B]
-    size_type stack_size{};
-    //! Global dynamic CUDA heap size (ignored if zero) [B]
-    size_type heap_size{};
-
-    // TODO: could add preferred device ID, etc.
 };
 
 //---------------------------------------------------------------------------//
@@ -88,23 +73,20 @@ struct Tuning
     //! Per-process state sizes for *optical* tracking loop
     std::optional<StateCapacity> optical_capacity;
 
-    //! REMOVE: number of streams
+    //! TO BE REMOVED: number of streams
     size_type num_streams{};
-
-    //! Optional: activate GPU
-    std::optional<Device> device;
 
     //! Track sorting and initialization
     std::optional<TrackOrder> track_order;
+
+    //! Debug options for device
+    std::optional<DeviceDebug> device_debug;
 
     //! Perform a no-op step at the beginning to improve timing measurements
     bool warm_up{false};
 
     //! Random number generator seed
     size_type seed{};
-
-    //! Environment variables used for program setup/diagnostic
-    std::map<std::string, std::string> environ;
 };
 
 //---------------------------------------------------------------------------//
