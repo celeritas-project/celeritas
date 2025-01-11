@@ -347,7 +347,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                     // Safety/safety plus step limit algorithm
                     UrbanMscSafetyStepLimit calc_limit(msc_params,
                                                        helper,
-                                                       par.energy(),
+                                                       par,
                                                        &phys,
                                                        phys.material_id(),
                                                        on_boundary,
@@ -547,7 +547,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
             }
             UrbanMscSafetyStepLimit calc_limit(msc_params,
                                                helper,
-                                               par.energy(),
+                                               par,
                                                &phys,
                                                mat.material_id(),
                                                geo.is_on_boundary(),

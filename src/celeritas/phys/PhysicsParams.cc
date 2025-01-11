@@ -249,8 +249,12 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
                    << "invalid safety_factor=" << opts.safety_factor
                    << " (should be >= 0.1)");
     CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
-                   << "invalid range_factor=" << opts.range_factor
+                   << "invalid e-/e+ range_factor=" << opts.range_factor
                    << " (should be within 0 < limit < 1)");
+    CELER_VALIDATE(
+        opts.muhad_range_factor > 0 && opts.muhad_range_factor < 1,
+        << "invalid muon/hadron range_factor=" << opts.muhad_range_factor
+        << " (should be within 0 < limit < 1)");
     CELER_VALIDATE(opts.spline_eloss_order > 0,
                    << "invalid spline_eloss_order=" << opts.spline_eloss_order
                    << " (should be > 0)");
@@ -262,17 +266,22 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
     data->scalars.lambda_limit = opts.lambda_limit;
     data->scalars.range_factor = opts.range_factor;
+    data->scalars.muhad_range_factor = opts.muhad_range_factor;
     data->scalars.safety_factor = opts.safety_factor;
     data->scalars.step_limit_algorithm = opts.step_limit_algorithm;
+    data->scalars.muhad_step_limit_algorithm = opts.muhad_step_limit_algorithm;
     data->scalars.spline_eloss_order = opts.spline_eloss_order;
-    if (data->scalars.step_limit_algorithm
-        == MscStepLimitAlgorithm::distance_to_boundary)
+    for (auto* alg : {&data->scalars.step_limit_algorithm,
+                      &data->scalars.muhad_step_limit_algorithm})
     {
-        CELER_LOG(warning) << "Unsupported step limit algorithm '"
-                           << to_cstring(data->scalars.step_limit_algorithm)
-                           << "': defaulting to '"
-                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
-        data->scalars.step_limit_algorithm = MscStepLimitAlgorithm::safety;
+        if (*alg == MscStepLimitAlgorithm::distance_to_boundary)
+        {
+            CELER_LOG(warning)
+                << "Unsupported step limit algorithm '" << to_cstring(*alg)
+                << "': defaulting to '"
+                << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+            *alg = MscStepLimitAlgorithm::safety;
+        }
     }
 }
 

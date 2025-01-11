@@ -66,7 +66,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
     detail::MscParamsHelper helper(
         particles, mdata_vec, ImportModelClass::urban_msc);
-    helper.build_ids(&host_data.ids, &host_data.id_to_xs);
+    helper.build_ids(&host_data.ids, &host_data.pid_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
 
     // Save electron mass
@@ -79,26 +79,27 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     size_type num_particles = min<size_type>(helper.particle_ids().size(), 3);
 
     // Map from particle ID to index in particle and material-dependent data
-    std::vector<size_type> id_to_pm(particles.size(), size_type(-1));
+    std::vector<size_type> pid_to_pm(particles.size(),
+                                     UrbanMscParameters::inapplicable());
     for (auto par_id : helper.particle_ids())
     {
-        CELER_ASSERT(par_id < id_to_pm.size());
+        CELER_ASSERT(par_id < pid_to_pm.size());
         if (par_id == host_data.ids.electron)
         {
-            id_to_pm[par_id.unchecked_get()] = 0;
+            pid_to_pm[par_id.unchecked_get()] = 0;
         }
         else if (par_id == host_data.ids.positron)
         {
-            id_to_pm[par_id.unchecked_get()] = 1;
+            pid_to_pm[par_id.unchecked_get()] = 1;
         }
         else
         {
             // Muons and charged hadrons
-            id_to_pm[par_id.unchecked_get()] = 2;
+            pid_to_pm[par_id.unchecked_get()] = 2;
         }
     }
-    make_builder(&host_data.id_to_pm)
-        .insert_back(id_to_pm.begin(), id_to_pm.end());
+    make_builder(&host_data.pid_to_pm)
+        .insert_back(pid_to_pm.begin(), pid_to_pm.end());
 
     // Coefficients for scaled Z: {electron, positron, muon/hadron}
     static Array<double, 3> const a_coeff{{0.87, 0.70, 0.87}};

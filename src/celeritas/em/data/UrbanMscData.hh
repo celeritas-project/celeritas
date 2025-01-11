@@ -38,6 +38,12 @@ struct UrbanMscParameters
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 
+    //! Special value indicating MSC does not apply to a particle type
+    static CELER_CONSTEXPR_FUNCTION size_type inapplicable()
+    {
+        return size_type(-1);
+    }
+
     //! Fraction of the range below which a step is assumed constant xs
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 0.05; }
 
@@ -145,9 +151,9 @@ struct UrbanMscData
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
     //! Map from particle ID to index in particle and material-dependent data
-    ParticleItems<size_type> id_to_pm;
+    ParticleItems<size_type> pid_to_pm;
     //! Map from particle ID to index in cross sections
-    ParticleItems<size_type> id_to_xs;
+    ParticleItems<size_type> pid_to_xs;
     //! Particle and material-dependent data
     Items<UrbanMscParMatData> par_mat_data;  //!< [mat][particle]
     //! Scaled xs data
@@ -162,7 +168,7 @@ struct UrbanMscData
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && !material_data.empty()
-               && !id_to_pm.empty() && !id_to_xs.empty()
+               && !pid_to_pm.empty() && !pid_to_xs.empty()
                && !par_mat_data.empty() && !xs.empty() && !reals.empty();
     }
 
@@ -175,8 +181,8 @@ struct UrbanMscData
         electron_mass = other.electron_mass;
         params = other.params;
         material_data = other.material_data;
-        id_to_pm = other.id_to_pm;
-        id_to_xs = other.id_to_xs;
+        pid_to_pm = other.pid_to_pm;
+        pid_to_xs = other.pid_to_xs;
         par_mat_data = other.par_mat_data;
         xs = other.xs;
         reals = other.reals;

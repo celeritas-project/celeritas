@@ -56,10 +56,12 @@ class ParticleParams;
  *   step size to \f$ f_r \cdot max(r, \lambda) \f$ at the start of a track or
  *   after entering a volume, where \f$ f_r \f$ is the range factor, \f$ r \f$
  *   is the range, and \f$ \lambda \f$ is the mean free path.
+ * - \c muhad_range_factor: range factor for muons and hadrons.
  * - \c safety_factor: used in the MSC step limitation algorithm to restrict
  *   the step size to \f$ f_s s \f$, where \f$ f_s \f$ is the safety factor and
  *   \f$  s \f$ is the safety distance.
  * - \c step_limit_algorithm: algorithm used to determine the MSC step limit.
+ * - \c muhad_step_limit_algorithm: algorithm for muons and hadrons.
  * - \c secondary_stack_factor: the number of secondary slots per track slot
  *   allocated.
  * - \c disable_integral_xs: for particles with energy loss processes, the
@@ -99,8 +101,11 @@ struct PhysicsParamsOptions
     //! \name Multiple scattering
     real_type lambda_limit = real_type{1} * units::millimeter;
     real_type range_factor = 0.04;
+    real_type muhad_range_factor = 0.2;
     real_type safety_factor = 0.6;
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::safety};
+    MscStepLimitAlgorithm muhad_step_limit_algorithm{
+        MscStepLimitAlgorithm::minimal};
     //!@}
 
     real_type secondary_stack_factor = 3;

@@ -11,6 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsGridData.hh"
@@ -31,7 +32,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
                                  ImportModelClass model_class)
     : particles_(particles)
     , model_class_(model_class)
-    , pid_to_xs_(particles_.size(), size_type(-1))
+    , pid_to_xs_(particles_.size(), UrbanMscParameters::inapplicable())
 {
     // Filter MSC data by model and particle type
     for (ImportMscModel const& imm : mdata)
@@ -46,7 +47,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
         if (!pid)
             continue;
 
-        if (pid_to_xs_[pid.get()] == size_type(-1))
+        if (pid_to_xs_[pid.get()] == UrbanMscParameters::inapplicable())
         {
             // Save mapping of particle ID to index in cross section table
             pid_to_xs_[pid.get()] = xs_tables_.size();
@@ -78,14 +79,14 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
 /*!
  * Validate and save MSC IDs.
  */
-void MscParamsHelper::build_ids(CoulombIds* ids, IndexValues* id_to_xs) const
+void MscParamsHelper::build_ids(CoulombIds* ids, IndexValues* pid_to_xs) const
 {
     ids->electron = particles_.find(pdg::electron());
     ids->positron = particles_.find(pdg::positron());
     CELER_VALIDATE(ids->electron && ids->positron,
                    << "missing e-/e+ (required for MSC)");
 
-    make_builder(id_to_xs).insert_back(pid_to_xs_.begin(), pid_to_xs_.end());
+    make_builder(pid_to_xs).insert_back(pid_to_xs_.begin(), pid_to_xs_.end());
 }
 
 //---------------------------------------------------------------------------//

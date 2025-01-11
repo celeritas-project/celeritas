@@ -165,8 +165,10 @@ struct GeantPhysicsOptions
     //!@{
     //! \name Multiple scattering configuration
 
-    //! E-/e+ range factor for MSC models
+    //! e-/e+ range factor for MSC models
     double msc_range_factor{0.04};
+    //! Muon/hadron range factor for MSC models
+    double msc_muhad_range_factor{0.2};
     //! Safety factor for MSC models
     double msc_safety_factor{0.6};
     //! Lambda limit for MSC models [len]
@@ -175,8 +177,11 @@ struct GeantPhysicsOptions
     double msc_theta_limit{constants::pi};
     //! Factor for dynamic computation of angular limit between SS and MSC
     double angle_limit_factor{1};
-    //! Step limit algorithm for MSC models
+    //! e-/e+ step limit algorithm for MSC models
     MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
+    //! Muon/hadron step limit algorithm for MSC models
+    MscStepLimitAlgorithm msc_muhad_step_algorithm{
+        MscStepLimitAlgorithm::minimal};
     //! Nuclear form factor model for Coulomm scattering
     NuclearFormFactorType form_factor{NuclearFormFactorType::exponential};
     //!@}
@@ -216,11 +221,13 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.lowest_electron_energy == b.lowest_electron_energy
            && a.apply_cuts == b.apply_cuts
            && a.msc_range_factor == b.msc_range_factor
+           && a.msc_muhad_range_factor == b.msc_muhad_range_factor
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit
            && a.msc_theta_limit == b.msc_theta_limit
            && a.angle_limit_factor == b.angle_limit_factor
            && a.msc_step_algorithm == b.msc_step_algorithm
+           && a.msc_muhad_step_algorithm == b.msc_muhad_step_algorithm
            && a.form_factor == b.form_factor
            && a.verbose == b.verbose
            && a.optical == b.optical;

@@ -124,7 +124,10 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
         from_form_factor_type(options.form_factor));
     em_parameters.SetMscStepLimitType(
         from_msc_step_algorithm(options.msc_step_algorithm));
+    em_parameters.SetMscMuHadStepLimitType(
+        from_msc_step_algorithm(options.msc_muhad_step_algorithm));
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
+    em_parameters.SetMscMuHadRangeFactor(options.msc_muhad_range_factor);
 #if G4VERSION_NUMBER >= 1060
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 

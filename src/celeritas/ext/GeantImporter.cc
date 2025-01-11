@@ -1016,7 +1016,10 @@ ImportEmParameters import_em_parameters()
     import.lowest_electron_energy = g4.LowestElectronEnergy() * mev_scale;
     import.auger = g4.Auger();
     import.msc_step_algorithm = to_msc_step_algorithm(g4.MscStepLimitType());
+    import.msc_muhad_step_algorithm
+        = to_msc_step_algorithm(g4.MscMuHadStepLimitType());
     import.msc_range_factor = g4.MscRangeFactor();
+    import.msc_muhad_range_factor = g4.MscMuHadRangeFactor();
 #if G4VERSION_NUMBER >= 1060
     import.msc_safety_factor = g4.MscSafetyFactor();
     import.msc_lambda_limit = g4.MscLambdaLimit() * len_scale;

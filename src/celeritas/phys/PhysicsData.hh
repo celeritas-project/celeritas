@@ -242,9 +242,12 @@ struct PhysicsParamsScalars
 
     // User-configurable multiple scattering options
     real_type lambda_limit{};  //!< lambda limit
-    real_type range_factor{};  //!< range factor for e-/e+ (0.2 for muon/h)
+    real_type range_factor{};  //!< range factor for e-/e+
+    real_type muhad_range_factor{};  //!< range factor for muon/h
     real_type safety_factor{};  //!< safety factor
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::size_};
+    MscStepLimitAlgorithm muhad_step_limit_algorithm{
+        MscStepLimitAlgorithm::size_};
 
     real_type secondary_stack_factor = 3;  //!< Secondary storage per state
                                            //!< size
@@ -263,8 +266,11 @@ struct PhysicsParamsScalars
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
                && spline_eloss_order > 0 && lambda_limit > 0
-               && range_factor > 0 && range_factor < 1 && safety_factor >= 0.1
-               && step_limit_algorithm != MscStepLimitAlgorithm::size_;
+               && range_factor > 0 && range_factor < 1
+               && muhad_range_factor > 0 && muhad_range_factor < 1
+               && safety_factor >= 0.1
+               && step_limit_algorithm != MscStepLimitAlgorithm::size_
+               && muhad_step_limit_algorithm != MscStepLimitAlgorithm::size_;
     }
 
     //! Stop early due to MSC limitation

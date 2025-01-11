@@ -80,6 +80,9 @@ class UrbanMscHelper
     // Scaled cross section data for this particle+material
     inline CELER_FUNCTION XsGridData const& xs() const;
 
+    // Whether the particle is a muon or hadron
+    inline CELER_FUNCTION bool is_muhad() const;
+
   private:
     //// DATA ////
 
@@ -107,8 +110,6 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
     , physics_(physics)
     , lambda_(this->calc_msc_mfp(particle_.energy()))
 {
-    CELER_EXPECT(particle.particle_id() == shared_.ids.electron
-                 || particle.particle_id() == shared_.ids.positron);
 }
 
 //---------------------------------------------------------------------------//
@@ -180,8 +181,8 @@ UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
 CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
 {
     size_type num_particles = shared_.xs.size() / shared_.material_data.size();
-    size_type par_idx = shared_.id_to_xs[particle_.particle_id()];
-    CELER_ASSERT(par_idx < num_particles);
+    size_type par_idx = shared_.pid_to_xs[particle_.particle_id()];
+    CELER_ASSERT(par_idx != UrbanMscParameters::inapplicable());
 
     size_type idx = physics_.material_id().get() * num_particles + par_idx;
     CELER_ASSERT(idx < shared_.xs.size());
@@ -197,13 +198,23 @@ CELER_FUNCTION UrbanMscParMatData const& UrbanMscHelper::pmdata() const
 {
     size_type num_particles = shared_.par_mat_data.size()
                               / shared_.material_data.size();
-    size_type par_idx = shared_.id_to_pm[particle_.particle_id()];
-    CELER_ASSERT(par_idx < num_particles);
+    size_type par_idx = shared_.pid_to_pm[particle_.particle_id()];
+    CELER_ASSERT(par_idx != UrbanMscParameters::inapplicable());
 
     size_type idx = physics_.material_id().get() * num_particles + par_idx;
     CELER_ASSERT(idx < shared_.par_mat_data.size());
 
     return shared_.par_mat_data[ItemId<UrbanMscParMatData>(idx)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the particle is a muon or hadron.
+ */
+CELER_FUNCTION bool UrbanMscHelper::is_muhad() const
+{
+    return !(particle_.particle_id() == shared_.ids.electron
+             || particle_.particle_id() == shared_.ids.positron);
 }
 
 //---------------------------------------------------------------------------//
