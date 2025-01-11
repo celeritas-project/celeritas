@@ -62,6 +62,21 @@ struct Timers
 
 //---------------------------------------------------------------------------//
 /*!
+ * Output track diagnostic counters.
+ *
+ * These include the number of tracks generated, active, aborted, and alive;
+ * as well as the number of initializers (or the high water mark thereof).
+ */
+struct Counters
+{
+    //! Write diagnostics for each step
+    bool step{false};
+    //! Write diagnostics for each event (or run, if multiple events)
+    bool event{false};
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Write out MC truth data.
  */
 struct McTruth
@@ -98,6 +113,9 @@ struct Diagnostics
     //! Write elapsed times for each step
     Timers timers;
 
+    //! Store step/track counts
+    Counters counters;
+
     //! Write Perfetto tracing data to this filename
     std::string perfetto_file;
 
@@ -107,14 +125,14 @@ struct Diagnostics
     //! Accumulate post-step actions for each particle type
     bool action{false};
 
-    //! Store track counts per step iteration
-    bool step_counters{false};
-
     //! Write detailed MC truth output
     std::optional<McTruth> mctruth;
 
-    //! Accumulate steps per track
+    //! Bin number of steps per track
     std::optional<StepDiagnostic> step;
+
+    //! Log stepping loop progress every N events
+    size_type log_frequency{1};
 };
 
 //---------------------------------------------------------------------------//

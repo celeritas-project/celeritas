@@ -17,6 +17,16 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
+//! Physics list selection (TODO: move)
+enum class PhysicsListSelection
+{
+    ftfp_bert,
+    celer_ftfp_bert,  //!< FTFP BERT with Celeritas EM standard physics
+    celer_em,  //!< Celeritas EM standard physics only
+    size_,
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Set up a Geant4 run manager and problem.
  *
@@ -29,7 +39,7 @@ namespace inp
  */
 struct GeantSetup
 {
-    PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};
+    PhysicsListSelection physics_list{PhysicsListSelection::size_};
 
     //! TODO: most of these will be moved to Problem::Physics;
     //! some options (e.g., gamma_general) will not be applicable to Celeritas
@@ -51,6 +61,9 @@ struct GeantSetup
  *
  * The input \c Problem can be an embedded struct or a path to a file to
  * import.
+ *
+ * \todo physics_import will be a `std::optional<GeantImport>` after all the
+ * \c ImportData is merged into \c Problem .
  */
 struct StandaloneInput
 {
@@ -61,8 +74,8 @@ struct StandaloneInput
     //! Set up Geant4 (if all the data isn't serialized)
     std::optional<GeantSetup> geant_setup;
 
-    //! If using Geant4 or overriding existing data
-    std::optional<GeantImport> geant;
+    //! Whether using Geant4 or loading from ROOT
+    std::variant<GeantImport, FileImport> physics_import;
     //! If using Geant4 or overriding or sparse input?
     std::optional<GeantDataImport> geant_data;
     //! If loading from an existing input, option to update data

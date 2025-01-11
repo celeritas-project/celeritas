@@ -64,6 +64,8 @@ struct DeviceDebug
  *
  * Defaults:
  * - \c track_order: \c init_charge on GPU, \c none on CPU
+ *
+ * \todo 'seed' doesn't really belong here, not sure where to put it though
  */
 struct Tuning
 {

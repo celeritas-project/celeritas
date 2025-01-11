@@ -14,7 +14,6 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
@@ -29,13 +28,16 @@
 
 namespace celeritas
 {
+namespace inp
+{
+struct StandaloneInput;
+}
+
 namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
- *
- * DEPRECATED: `RunInput` will be used instead.
  */
 struct RunnerInput
 {
@@ -143,6 +145,10 @@ struct RunnerInput
                && log_progress > 0 && (field == no_field() || field_options);
     }
 };
+
+//---------------------------------------------------------------------------//
+// Convert to standalone input format
+inp::StandaloneInput to_input(RunnerInput const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

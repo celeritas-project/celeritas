@@ -35,7 +35,7 @@ struct BremsProcess
 //! \name Process aliases
 //! \todo rename `em/model` to match, merge muon and electron proceses
 
-using BremsProcess = BremsstrahlungProcess;
+using BremsstrahlungProcess = BremsProcess;
 #if 0
 using ComptonProcess = ComptonScatProcess;
 using CoulombScatteringProcess = CoulombScatProcess;

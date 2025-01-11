@@ -34,16 +34,6 @@ struct Input;
 namespace app
 {
 //---------------------------------------------------------------------------//
-//! Physics list selection
-enum class PhysicsListSelection
-{
-    ftfp_bert,
-    celer_ftfp_bert,  //!< FTFP BERT with Celeritas EM standard physics
-    celer_em,  //!< Celeritas EM standard physics only
-    size_,
-};
-
-//---------------------------------------------------------------------------//
 //! Sensitive detector capability
 enum class SensitiveDetectorType
 {

@@ -9,154 +9,206 @@
 #include <limits>
 
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/inp/Input.hh"
+#include "celeritas/inp/Import.hh"
+#include "celeritas/inp/Problem.hh"
+#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
 namespace app
 {
-//---------------------------------------------------------------------------//
-inp::Input to_input(RunnerInput const& r)
+namespace
 {
-    inp::Input result;
+//---------------------------------------------------------------------------//
+inp::System load_system(RunnerInput const& ri)
+{
+    inp::System s;
+
+    s.environ = {ri.environ.begin(), ri.environ.end()};
+
+    if (ri.use_device)
+    {
+        inp::Device device;
+        device.stack_size = ri.cuda_stack_size;
+        device.heap_size = ri.cuda_heap_size;
+        s.device = std::move(device);
+    }
+    return s;
+}
+
+//---------------------------------------------------------------------------//
+inp::Problem load_problem(RunnerInput const& ri)
+{
+    inp::Problem p;
 
     // Geometry and event configurations
-    result.geometry_file = r.geometry_file;
-
-    if (!r.event_file.empty())
-    {
-        if (r.file_sampling_options)
-        {
-            inp::SampleFileEvents sfe;
-            sfe.num_events = r.file_sampling_options.num_events;
-            sfe.num_merged = r.file_sampling_options.num_merged;
-            sfe.event_file = r.event_file;
-            result.events = std::move(sfe);
-        }
-        else
-        {
-            inp::ReadFileEvents rfe;
-            rfe.event_file = r.event_file;
-            result.events = std::move(rfe);
-        }
-    }
-    else if (r.primary_options)
-    {
-        result.events = to_input(r.primary_options);
-    }
+    p.model.geometry_file = ri.geometry_file;
 
     // Magnetic field
-    if (r.field == RunnerInput::no_field())
+    if (ri.field == RunnerInput::no_field())
     {
-        result.field = inp::NoField{};
+        p.field = inp::NoField{};
     }
     else
     {
         inp::UniformField field;
-        field.strength = r.field;
-        field.driver_options = r.field_options;
-        result.field = field;
+        field.strength = ri.field;
+        field.driver_options = ri.field_options;
+        p.field = field;
     }
 
     // Diagnostics
-    auto& d = result.diagnostics;
-    if (!r.mctruth_file.empty())
     {
-        inp::McTruth mct;
-        mct.output_file = r.mctruth_file;
-        mct.filter = r.mctruth_filter;
-        d.mctruth = std::move(mct);
+        auto& d = p.diagnostics;
+        if (!ri.mctruth_file.empty())
+        {
+            inp::McTruth mct;
+            mct.output_file = ri.mctruth_file;
+            mct.filter = ri.mctruth_filter;
+            d.mctruth = std::move(mct);
+        }
+        d.perfetto_file = ri.tracing_file;
+        d.timers.action = ri.action_times;
+        d.timers.step = ri.write_step_times;
+        d.action = ri.action_diagnostic;
+        if (!ri.slot_diagnostic_prefix.empty())
+        {
+            inp::SlotDiagnostic slot_diag;
+            slot_diag.basename = ri.slot_diagnostic_prefix;
+            d.slot = std::move(slot_diag);
+        }
+        if (ri.step_diagnostic)
+        {
+            inp::StepDiagnostic step_diag;
+            step_diag.bins = ri.step_diagnostic_bins;
+            d.step = std::move(step_diag);
+        }
+        d.counters.step = ri.write_track_counts;
+        d.counters.event = ri.transporter_result;
     }
-    d.perfetto_file = r.tracing_file;
-    d.timers.action = r.action_times;
-    d.timers.step = r.write_step_times;
-    d.action = r.action_diagnostic;
-    if (!r.slot_diagnostic_prefix.empty())
-    {
-        inp::SlotDiagnostic slot_diag;
-        slot_diag.basename = r.slot_diagnostic_prefix;
-        d.slot = std::move(slot_diag);
-    }
-    if (r.step_diagnostic)
-    {
-        inp::StepDiagnostic step_diag;
-        step_diag.bins = r.step_diagnostic_bins;
-        d.step = std::move(step_diag);
-    }
-    d.step_counters = r.write_track_counts;
 
     // Tuning
     {
         inp::StateCapacity capacity;
-        capacity.tracks = r.num_track_slots;
-        capacity.initializers = r.initializer_capacity;
-        capacity.secondaries = static_cast<size_type>(r.secondary_stack_factor
-                                                      * r.num_track_slots);
+        capacity.tracks = ri.num_track_slots;
+        capacity.initializers = ri.initializer_capacity;
+        capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
+                                                      * ri.num_track_slots);
 
         // TODO: replace "max" with # events during construction?
         using LimitsT = std::numeric_limits<decltype(capacity.events)>;
-        capacity.events = r.merge_events ? LimitsT::max() : 0;
+        capacity.events = ri.merge_events ? LimitsT::max() : 0;
 
-        result.tuning.capacity = capacity;
+        p.tuning.capacity = capacity;
+
+        p.tuning.warm_up = ri.warm_up;
+        p.tuning.seed = ri.seed;
     }
 
-    if (r.use_device)
+    if (ri.use_device)
     {
-        inp::Device device;
-        device.stack_size = r.cuda_stack_size;
-        device.heap_size = r.cuda_heap_size;
-        device.default_stream = r.default_stream;
-        result.tuning.device = std::move(device);
+        inp::DeviceDebug dd;
+        dd.default_stream = ri.default_stream;
+        dd.sync_stream = ri.action_times;
+        p.tuning.device_debug = std::move(dd);
     }
-
-    result.tuning.warm_up = r.warm_up;
-
-    // Environment
-    result.tuning.environ = {r.environ.begin(), r.environ.end()};
 
     // Physics
     {
-        inp::EmPhysicsOptions em_options;
-        em_options.brem_combined = r.brem_combined;
+        CELER_ASSERT(p.physics.em);
+        auto& em = *p.physics.em;
+
+        CELER_ASSERT(em.brems);
+        em.brems->combined_model = ri.brem_combined;
 
         // Spline energy loss order
-        CELER_VALIDATE(r.spline_eloss_order > 0 && r.spline_eloss_order <= 2,
+        CELER_VALIDATE(ri.spline_eloss_order > 0 && ri.spline_eloss_order <= 2,
                        << "unsupported energy loss spline order "
-                       << r.spline_eloss_order);
-        em_options.eloss_spline = (r.spline_eloss_order == 2);
-
-        // Step limiter for charged particles
-        em_options.step_limit = r.step_limiter;
-
-        result.physics.em_options = std::move(em_options);
-        result.physics.physics_file = r.physics_file;
+                       << ri.spline_eloss_order);
+        em.eloss_spline = (ri.spline_eloss_order == 2);
     }
 
     // Tracking
-    inp::TrackingLimits tracking_limits;
-    tracking_limits.steps = r.max_steps;
-    result.tracking.limits = tracking_limits;
+    p.tracking.limits.steps = ri.max_steps;
+    p.tracking.force_step_limit = ri.step_limiter;
 
     // Optical options
-    if (r.optical)
+    if (ri.optical)
     {
         inp::StateCapacity optical_capacity;
-        optical_capacity.tracks = r.optical.num_track_slots;
-        optical_capacity.initializers = r.optical.initializer_capacity;
-        optical_capacity.primaries = r.optical.auto_flush;
-        result.tuning.optical_capacity = std::move(optical_capacity);
+        optical_capacity.tracks = ri.optical.num_track_slots;
+        optical_capacity.initializers = ri.optical.initializer_capacity;
+        optical_capacity.primaries = ri.optical.auto_flush;
+        p.tuning.optical_capacity = std::move(optical_capacity);
     }
 
     // Simple calorimeter scoring
-    if (!r.simple_calo.empty())
+    if (!ri.simple_calo.empty())
     {
         inp::SimpleCalo calo;
-        calo.volumes = r.simple_calo;
-        result.scoring.simple_calo = std::move(calo);
+        calo.volumes = ri.simple_calo;
+        p.scoring.simple_calo = std::move(calo);
     }
 
-    return result;
+    return p;
+}
+
+//---------------------------------------------------------------------------//
+inp::Events load_events(RunnerInput const& ri)
+{
+    CELER_VALIDATE(ri.event_file.empty() != !ri.primary_options,
+                   << "either a event filename or options to generate "
+                      "primaries must be provided (but not both)");
+
+    if (!ri.event_file.empty())
+    {
+        if (ri.file_sampling_options)
+        {
+            inp::SampleFileEvents sfe;
+            sfe.num_events = ri.file_sampling_options.num_events;
+            sfe.num_merged = ri.file_sampling_options.num_merged;
+            sfe.event_file = ri.event_file;
+            return sfe;
+        }
+
+        inp::ReadFileEvents rfe;
+        rfe.event_file = ri.event_file;
+        return rfe;
+    }
+
+    CELER_ASSERT(ri.primary_options);
+    return to_input(ri.primary_options);
+}
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert to standalone input format.
+ */
+inp::StandaloneInput to_input(RunnerInput const& ri)
+{
+    inp::StandaloneInput si;
+
+    si.system = load_system(ri);
+    si.problem = load_problem(ri);
+    if (!ri.physics_file.empty())
+    {
+        // Read ROOT input
+        si.physics_import = inp::FileImport{ri.physics_file};
+    }
+    else
+    {
+        // Set up Geant4
+        si.geant_setup = inp::GeantSetup{inp::PhysicsListSelection::celer_em,
+                                         ri.physics_options};
+        si.physics_import = inp::GeantImport{};
+    }
+    si.geant_data = inp::GeantDataImport{};
+    si.events = load_events(ri);
+
+    return si;
 }
 
 //---------------------------------------------------------------------------//

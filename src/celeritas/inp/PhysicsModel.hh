@@ -30,7 +30,7 @@ struct MuBremsModel
 //! \name Model aliases
 //! \todo rename `em/model` to match
 
-using SBBremsModel = SeltzerBergerBremsModel;
+using SeltzerBergerBremsModel = SBBremsModel;
 using RelativisticBremModel = RelBremsModel;
 using MuBremsstrahlungModel = MuBremsModel;
 

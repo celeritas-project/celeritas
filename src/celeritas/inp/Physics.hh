@@ -51,6 +51,14 @@ struct EmPhysics
 
 //---------------------------------------------------------------------------//
 /*!
+ * Optical physics processes and options.
+ */
+struct OpticalPhysics
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Set up physics options.
  *
  * \todo Move optical and hadronic physics options from \c GeantPhysicsOptions
@@ -60,9 +68,9 @@ struct EmPhysics
 struct Physics
 {
     std::optional<EmPhysics> em{std::in_place};
+    std::optional<OpticalPhysics> optical;
 
 #if 0
-    std::optional<OpticalPhysics> optical;
     std::optional<HadronicPhysics> hadronic;
 #endif
 };
