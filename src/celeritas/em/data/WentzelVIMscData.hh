@@ -54,7 +54,7 @@ struct WentzelVIMscData
 
     //! Particle IDs
     CoulombIds ids;
-    //! Mass of of electron in MeV
+    //! Mass of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options
     WentzelVIMscParameters params;

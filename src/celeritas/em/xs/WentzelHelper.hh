@@ -97,19 +97,19 @@ class WentzelHelper
     //// HELPER FUNCTIONS ////
 
     // Calculate the Moliere screening coefficient
-    inline CELER_FUNCTION real_type
-    calc_screening_coefficient(ParticleTrackView const& particle) const;
+    inline CELER_FUNCTION real_type calc_screening_coefficient(
+        ParticleTrackView const&, CoulombIds const&) const;
 
     // Calculate the screening coefficient R^2 for electrons
     static CELER_CONSTEXPR_FUNCTION MomentumSq screen_r_sq_elec();
 
     // Calculate the multiplicative factor for the cross section
-    inline CELER_FUNCTION real_type
-    calc_kin_factor(ParticleTrackView const&) const;
+    inline CELER_FUNCTION real_type calc_kin_factor(ParticleTrackView const&,
+                                                    Mass) const;
 
     // Calculate the (cosine of) the maximum scattering angle off of electrons
     inline CELER_FUNCTION real_type calc_cos_thetamax_electron(
-        ParticleTrackView const&, CoulombIds const&, Energy) const;
+        ParticleTrackView const&, CoulombIds const&, Energy, Mass) const;
 
     // Calculate the (cosine of) the maximum scattering angle off of a nucleus
     inline CELER_FUNCTION real_type calc_cos_thetamax_nuclear(
@@ -136,14 +136,14 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
                              CoulombIds const& ids,
                              Energy cutoff)
     : target_z_(target_z)
-    , screening_coefficient_(this->calc_screening_coefficient(particle)
+    , screening_coefficient_(this->calc_screening_coefficient(particle, ids)
                              * wentzel.params.screening_factor)
-    , kin_factor_(this->calc_kin_factor(particle))
+    , kin_factor_(this->calc_kin_factor(particle, wentzel.electron_mass))
     , mott_factor_(particle.particle_id() == ids.electron
                        ? 1 + real_type(2e-4) * ipow<2>(target_z_.get())
                        : 1)
-    , cos_thetamax_elec_(
-          this->calc_cos_thetamax_electron(particle, ids, cutoff))
+    , cos_thetamax_elec_(this->calc_cos_thetamax_electron(
+          particle, ids, cutoff, wentzel.electron_mass))
     , cos_thetamax_nuc_(
           this->calc_cos_thetamax_nuclear(particle, material, wentzel))
 {
@@ -200,11 +200,10 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_factor(
  *  89, no. 6 (March 15, 1953): 1256–66.
  * https://doi.org/10.1103/PhysRev.89.1256.
  *
- *
  * \note The \c screenZ in Geant4 is equal to twice the screening coefficient.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
-    ParticleTrackView const& particle) const
+    ParticleTrackView const& particle, CoulombIds const& ids) const
 {
     // TODO: Reference for just proton correction?
     real_type correction = 1;
@@ -214,16 +213,29 @@ CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
         // TODO: tau correction factor and "min" value are of unknown
         // provenance. The equation in Fernandez 1993 has factor=1, no special
         // casing for z=1, and no "min" for the correction
-        real_type tau = value_as<Energy>(particle.energy())
-                        / value_as<Mass>(particle.mass());
-        real_type factor = std::sqrt(tau / (tau + sq_cbrt_z));
-
+        real_type factor;
+        real_type z_factor = 1;
+        if (particle.particle_id() == ids.electron
+            || particle.particle_id() == ids.positron)
+        {
+            // Electrons and positrons
+            real_type tau = value_as<Energy>(particle.energy())
+                            / value_as<Mass>(particle.mass());
+            factor = std::sqrt(tau / (tau + sq_cbrt_z));
+        }
+        else
+        {
+            // Muons and hadrons
+            factor = ipow<2>(value_as<Charge>(particle.charge()));
+            z_factor += std::exp(-ipow<2>(target_z_.get()) * real_type(0.001));
+        }
         correction = min(target_z_.get() * real_type{1.13},
                          real_type{1.13}
                              + real_type{3.76}
                                    * ipow<2>(target_z_.get()
                                              * constants::alpha_fine_structure)
-                                   * factor / particle.beta_sq());
+                                   * factor / particle.beta_sq())
+                     * z_factor;
     }
 
     return correction * sq_cbrt_z
@@ -267,16 +279,12 @@ CELER_CONSTEXPR_FUNCTION auto WentzelHelper::screen_r_sq_elec() -> MomentumSq
  * classical electron radius, atomic number of the target atom, charge,
  * relativistic speed, and momentum of the incident particle, respectively.
  */
-CELER_FUNCTION real_type
-WentzelHelper::calc_kin_factor(ParticleTrackView const& particle) const
+CELER_FUNCTION real_type WentzelHelper::calc_kin_factor(
+    ParticleTrackView const& particle, Mass electron_mass) const
 {
-    real_type constexpr twopi_mrsq
-        = 2 * constants::pi
-          * ipow<2>(native_value_to<Mass>(constants::electron_mass).value()
-                    * constants::r_electron);
-
-    return twopi_mrsq * target_z_.get()
-           * ipow<2>(value_as<Charge>(particle.charge()))
+    return 2 * constants::pi
+           * ipow<2>(value_as<Mass>(electron_mass) * constants::r_electron)
+           * target_z_.get() * ipow<2>(value_as<Charge>(particle.charge()))
            / (particle.beta_sq()
               * value_as<MomentumSq>(particle.momentum_sq()));
 }
@@ -288,27 +296,45 @@ WentzelHelper::calc_kin_factor(ParticleTrackView const& particle) const
  * This calculates the cosine of the maximum polar angle that the incident
  * particle can scatter off of the target's electrons.
  */
-CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
-    ParticleTrackView const& particle, CoulombIds const& ids, Energy cutoff) const
+CELER_FUNCTION real_type
+WentzelHelper::calc_cos_thetamax_electron(ParticleTrackView const& particle,
+                                          CoulombIds const& ids,
+                                          Energy cutoff,
+                                          Mass electron_mass) const
 {
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
 
-    real_type max_energy = particle.particle_id() == ids.electron
-                               ? real_type{0.5} * inc_energy
-                               : inc_energy;
-    real_type final_energy = inc_energy
-                             - min(value_as<Energy>(cutoff), max_energy);
-
-    if (final_energy > 0)
+    if (particle.particle_id() == ids.electron
+        || particle.particle_id() == ids.positron)
     {
-        real_type incident_ratio = 1 + 2 * mass / inc_energy;
-        real_type final_ratio = 1 + 2 * mass / final_energy;
-        real_type cos_t_max = std::sqrt(incident_ratio / final_ratio);
-
-        return clamp(cos_t_max, real_type{0}, real_type{1});
+        // Electrons and positrons
+        real_type max_energy = particle.particle_id() == ids.electron
+                                   ? real_type{0.5} * inc_energy
+                                   : inc_energy;
+        real_type final_energy = inc_energy
+                                 - min(value_as<Energy>(cutoff), max_energy);
+        if (final_energy > 0)
+        {
+            real_type inc_ratio = 1 + 2 * mass / inc_energy;
+            real_type final_ratio = 1 + 2 * mass / final_energy;
+            return clamp<real_type>(std::sqrt(inc_ratio / final_ratio), 0, 1);
+        }
+        return 0;
     }
-    return 0;
+    else
+    {
+        // Muons and hadrons
+        real_type mass_ratio = value_as<Mass>(electron_mass) / mass;
+        real_type tau = inc_energy / mass;
+        real_type max_energy
+            = 2 * value_as<Mass>(electron_mass) * tau * (tau + 2)
+              / (1 + 2 * mass_ratio * (tau + 1) + ipow<2>(mass_ratio));
+        return 1
+               - min(value_as<Energy>(cutoff), max_energy)
+                     * value_as<Mass>(electron_mass)
+                     / value_as<MomentumSq>(particle.momentum_sq());
+    }
 }
 
 //---------------------------------------------------------------------------//

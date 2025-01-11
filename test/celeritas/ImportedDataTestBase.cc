@@ -75,8 +75,8 @@ auto ImportedDataTestBase::build_sim() -> SPConstSim
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_wentzel() -> SPConstWentzelOKVI
 {
-    return WentzelOKVIParams::from_import(this->imported_data(),
-                                          this->material());
+    return WentzelOKVIParams::from_import(
+        this->imported_data(), this->material(), this->particle());
 }
 
 //---------------------------------------------------------------------------//
