@@ -24,7 +24,7 @@ void system(inp::System const& sys)
 {
     // Set up environment
     auto& env = celeritas::environment();
-    for (auto const& kv : sys.environ)
+    for (auto&& kv : sys.environ)
     {
         env.insert(kv);
         // TODO: log extant variables
@@ -46,7 +46,7 @@ void system(inp::System const& sys)
             set_cuda_stack_size(size);
         }
     }
-};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace setup
