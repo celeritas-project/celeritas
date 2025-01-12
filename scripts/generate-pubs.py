@@ -54,6 +54,19 @@ def collection_items_top(zot, name, *, limit=8):
     log("✔\n")
 
 
+def get_citation_key(item):
+    for line in item['extra'].splitlines():
+        (key, _, value) = line.partition(':')
+        if key.lower() == "citation key":
+            return value.strip()
+    return None
+
+
+def append_citation_key(bits, e):
+    if (ck := get_citation_key(e)):
+        bits.append(f"*[{ck}]*:")
+
+
 def format_name(c):
     if (name := c.get('name')):
         return name
@@ -82,6 +95,7 @@ def append_names(bits, creators, /, **kwargs):
 
 def format_presentation(e):
     bits = []
+    append_citation_key(bits, e)
     append_names(bits, e['creators'], limit=3)
 
     bits.append("\"{title}\".".format(**e))
@@ -101,6 +115,7 @@ def format_presentation(e):
 
 def format_paper(e):
     bits = []
+    append_citation_key(bits, e)
     append_names(bits, e['creators'], limit=5)
 
     bits.append("\"{title}\".".format(**e))
@@ -129,6 +144,7 @@ def format_paper(e):
 
 def format_software(e):
     bits = []
+    append_citation_key(bits, e)
     append_names(bits, e['creators'], limit=100)
 
     title = e['title']

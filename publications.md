@@ -8,10 +8,10 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Conference papers
 
-- S. R. Johnson, A. Lund, P. Canal, S. C. Tognini, J. Esseiva, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Dec 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
-- K. Maheshwari, W. Arndt, A. M. Karimi, J. Yin, F. Suter, *et al*. "GNU Parallel: Enabling Low-Overhead HT-HPC Workflows at Extreme Scale". Atlanta, GA, Nov 2024.
+- *[gnu-parallel-2024]*: K. Maheshwari, W. Arndt, A. M. Karimi, J. Yin, F. Suter, *et al*. "GNU Parallel: Enabling Low-Overhead HT-HPC Workflows at Extreme Scale". Atlanta, GA, Nov 2024.
+- *[celer-chep-2024]*: S. R. Johnson, A. Lund, P. Canal, S. C. Tognini, J. Esseiva, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Jan 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - S. C. Tognini, P. Canal, T. M. Evans, G. Lima, A. L. Lund, *et al*. "Celeritas: GPU-accelerated particle transport for detector simulation in High Energy Physics experiments". in *Snowmass white papers*, Mar 2022. [10.48550/arXiv.2203.09467](https://doi.org/10.48550/arXiv.2203.09467)
-- S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Dec 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
+- *[celer-chep-2021]*: S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Jan 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
 
 ## Presentations
 
@@ -94,8 +94,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Technical reports
 
-- S. R. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D Report: Accelerating Geant4". Jan 2024. [www.osti.gov](https://www.osti.gov/servlets/purl/2281972/)
+- S. Johnson, S. Castro Tognini, T. Evans, A. Lund, M. Demarteau, *et al*. "Celeritas midterm SciDAC report". Nov 2024. [www.osti.gov](https://www.osti.gov/servlets/purl/2481196/)
+- *[celer-rd-2024]*: S. R. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D Report: Accelerating Geant4". Jan 2024. [www.osti.gov](https://www.osti.gov/servlets/purl/2281972/)
 
 ## Code
 
-- S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Canal, B. Morgan, T. Evans, J. Esseiva. "[Celeritas *v1246*](https://doi.org/10.11578/dc.20221011.1)". Jul 2022.
+- *[celeritas]*: S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Canal, B. Morgan, T. Evans, J. Esseiva. "[Celeritas *v0.1.0*](https://doi.org/10.11578/dc.20221011.1)". Jul 2022.
