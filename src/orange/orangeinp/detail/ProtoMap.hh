@@ -48,7 +48,7 @@ class ProtoMap
 
   private:
     std::vector<ProtoInterface const*> protos_;
-    std::unordered_map<ProtoInterface const*, UniverseId> uids_;
+    std::unordered_map<ProtoInterface const*, UniverseId> univ_ids_;
 };
 
 //---------------------------------------------------------------------------//
@@ -57,10 +57,10 @@ class ProtoMap
 /*!
  * Get the proto corresponding to a universe ID.
  */
-ProtoInterface const* ProtoMap::at(UniverseId uid) const
+ProtoInterface const* ProtoMap::at(UniverseId univ_id) const
 {
-    CELER_EXPECT(uid < this->size());
-    return protos_[uid.unchecked_get()];
+    CELER_EXPECT(univ_id < this->size());
+    return protos_[univ_id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -70,8 +70,8 @@ ProtoInterface const* ProtoMap::at(UniverseId uid) const
 UniverseId ProtoMap::find(ProtoInterface const* proto) const
 {
     CELER_EXPECT(proto);
-    auto iter = uids_.find(proto);
-    CELER_EXPECT(iter != uids_.end());
+    auto iter = univ_ids_.find(proto);
+    CELER_EXPECT(iter != univ_ids_.end());
     return iter->second;
 }
 

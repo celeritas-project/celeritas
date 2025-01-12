@@ -27,7 +27,7 @@ namespace celeritas
  TransformVisitor visit_transform{params_};
  auto new_pos = visit_transform(
     [&pos](auto&& t) { return t.transform_up(pos); },
-    daughter.transform_id);
+    daughter.trans_id);
  \endcode
  */
 class TransformVisitor

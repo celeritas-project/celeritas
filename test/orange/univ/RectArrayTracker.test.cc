@@ -55,7 +55,7 @@ class RectArrayTrackerTest : public OrangeGeoTestBase
     // Prepare for initialization across a surface
     LocalState make_state_crossing(Real3 pos,
                                    Real3 dir,
-                                   LocalVolumeId volid,
+                                   LocalVolumeId vol_id,
                                    LocalSurfaceId surfid,
                                    Sense sense);
 
@@ -92,10 +92,10 @@ LocalState RectArrayTrackerTest::make_state(Real3 pos, Real3 dir)
  * Initialize inside a volume.
  */
 LocalState
-RectArrayTrackerTest::make_state(Real3 pos, Real3 dir, LocalVolumeId volid)
+RectArrayTrackerTest::make_state(Real3 pos, Real3 dir, LocalVolumeId vol_id)
 {
     LocalState state = this->make_state(pos, dir);
-    state.volume = volid;
+    state.volume = vol_id;
     return state;
 }
 
@@ -107,11 +107,11 @@ RectArrayTrackerTest::make_state(Real3 pos, Real3 dir, LocalVolumeId volid)
  */
 LocalState RectArrayTrackerTest::make_state_crossing(Real3 pos,
                                                      Real3 dir,
-                                                     LocalVolumeId volid,
+                                                     LocalVolumeId vol_id,
                                                      LocalSurfaceId surfid,
                                                      Sense sense)
 {
-    LocalState state = this->make_state(pos, dir, volid);
+    LocalState state = this->make_state(pos, dir, vol_id);
     state.surface = {surfid, sense};
     return state;
 }
@@ -333,26 +333,26 @@ TEST_F(RectArrayTrackerTest, safety)
 
     SCOPED_TRACE("In volume {0, 0, 0}");
     {
-        auto volid = LocalVolumeId{0};
+        auto vol_id = LocalVolumeId{0};
 
-        EXPECT_SOFT_EQ(2.5, tracker.safety({0.11, 0.5, 0.5}, volid));
-        EXPECT_SOFT_EQ(0.08, tracker.safety({2.92, 0.5, 0.5}, volid));
-        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.5}, volid));
-        EXPECT_SOFT_EQ(0.08, tracker.safety({0.5, 2.92, 0.5}, volid));
-        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.01}, volid));
-        EXPECT_SOFT_EQ(0.02, tracker.safety({0.5, 2.92, 4.98}, volid));
+        EXPECT_SOFT_EQ(2.5, tracker.safety({0.11, 0.5, 0.5}, vol_id));
+        EXPECT_SOFT_EQ(0.08, tracker.safety({2.92, 0.5, 0.5}, vol_id));
+        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.5}, vol_id));
+        EXPECT_SOFT_EQ(0.08, tracker.safety({0.5, 2.92, 0.5}, vol_id));
+        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.01}, vol_id));
+        EXPECT_SOFT_EQ(0.02, tracker.safety({0.5, 2.92, 4.98}, vol_id));
     }
 
     SCOPED_TRACE("In volume {2, 2, 1}");
     {
-        auto volid = LocalVolumeId{21};
+        auto vol_id = LocalVolumeId{21};
 
-        EXPECT_SOFT_EQ(0.04, tracker.safety({6.04, 6.5, 5.5}, volid));
-        EXPECT_SOFT_EQ(0.02, tracker.safety({11.98, 6.5, 5.02}, volid));
-        EXPECT_SOFT_EQ(0.04, tracker.safety({6.5, 6.04, 5.5}, volid));
-        EXPECT_SOFT_EQ(0.02, tracker.safety({6.5, 8.98, 5.5}, volid));
-        EXPECT_SOFT_EQ(0.01, tracker.safety({6.5, 6.04, 5.01}, volid));
-        EXPECT_SOFT_EQ(0.01, tracker.safety({6.01, 8.98, 9.99}, volid));
+        EXPECT_SOFT_EQ(0.04, tracker.safety({6.04, 6.5, 5.5}, vol_id));
+        EXPECT_SOFT_EQ(0.02, tracker.safety({11.98, 6.5, 5.02}, vol_id));
+        EXPECT_SOFT_EQ(0.04, tracker.safety({6.5, 6.04, 5.5}, vol_id));
+        EXPECT_SOFT_EQ(0.02, tracker.safety({6.5, 8.98, 5.5}, vol_id));
+        EXPECT_SOFT_EQ(0.01, tracker.safety({6.5, 6.04, 5.01}, vol_id));
+        EXPECT_SOFT_EQ(0.01, tracker.safety({6.01, 8.98, 9.99}, vol_id));
     }
 }
 

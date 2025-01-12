@@ -16,7 +16,7 @@ namespace celeritas
 //! Input to \c make_write_filter (below) for filtering ROOT MC truth output
 struct SimpleRootFilterInput
 {
-    static inline constexpr size_type unspecified{static_cast<size_type>(-1)};
+    static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     std::vector<size_type> track_id;
     size_type event_id = unspecified;

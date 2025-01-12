@@ -279,7 +279,7 @@ enum class ZOrder : size_type
 struct Daughter
 {
     UniverseId universe_id;
-    TransformId transform_id;
+    TransformId trans_id;
 };
 
 //---------------------------------------------------------------------------//

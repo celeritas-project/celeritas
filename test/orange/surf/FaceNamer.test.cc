@@ -20,8 +20,8 @@ namespace test
 class FaceNamerTest : public ::celeritas::test::Test
 {
   protected:
-    static inline constexpr auto in = Sense::inside;
-    static inline constexpr auto out = Sense::outside;
+    static constexpr auto in = Sense::inside;
+    static constexpr auto out = Sense::outside;
 };
 
 TEST_F(FaceNamerTest, typed)

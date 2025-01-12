@@ -84,9 +84,9 @@ TEST_F(BIHBuilderTest, basic)
 
     BIHBuilder build(&storage_);
     auto bih_tree = build(std::move(bboxes_));
-    ASSERT_EQ(1, bih_tree.inf_volids.size());
+    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test bounding box storage
     auto bbox1 = storage_.bboxes[bih_tree.bboxes[LocalVolumeId{2}]];
@@ -272,9 +272,9 @@ TEST_F(BIHBuilderTest, grid)
 
     BIHBuilder build(&storage_);
     auto bih_tree = build(std::move(bboxes_));
-    ASSERT_EQ(1, bih_tree.inf_volids.size());
+    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
     auto inner_nodes = bih_tree.inner_nodes;
@@ -481,7 +481,7 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     BIHBuilder build(&storage_);
     auto bih_tree = build(std::move(bboxes_));
 
-    ASSERT_EQ(0, bih_tree.inf_volids.size());
+    ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
@@ -499,7 +499,7 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     BIHBuilder build(&storage_);
     auto bih_tree = build(std::move(bboxes_));
 
-    ASSERT_EQ(0, bih_tree.inf_volids.size());
+    ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
@@ -519,10 +519,10 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
 
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
-    ASSERT_EQ(1, bih_tree.inf_volids.size());
+    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
 
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 }
 
 TEST_F(BIHBuilderTest, multiple_infinite_volumes)
@@ -535,12 +535,12 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
 
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
-    ASSERT_EQ(2, bih_tree.inf_volids.size());
+    ASSERT_EQ(2, bih_tree.inf_vol_ids.size());
 
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
     EXPECT_EQ(LocalVolumeId{1},
-              storage_.local_volume_ids[bih_tree.inf_volids[1]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[1]]);
 }
 
 TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))

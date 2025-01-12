@@ -41,12 +41,12 @@ class BIHView
     // Get the bbox for a given vol_id.
     inline CELER_FUNCTION FastBBox const& bbox(LocalVolumeId vol_id) const;
 
-    // Get the volids on a given leaf node
+    // Get the vol_ids on a given leaf node
     inline CELER_FUNCTION Span<LocalVolumeId const>
-    leaf_volids(BIHLeafNode const& leaf) const;
+    leaf_vol_ids(BIHLeafNode const& leaf) const;
 
-    // Get the inf_volids
-    inline CELER_FUNCTION Span<LocalVolumeId const> inf_volids() const;
+    // Get the inf_vol_ids
+    inline CELER_FUNCTION Span<LocalVolumeId const> inf_vol_ids() const;
 
   private:
     //// DATA ////
@@ -112,21 +112,21 @@ CELER_FUNCTION FastBBox const& BIHView::bbox(LocalVolumeId vol_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- *  Get the volids on a given leaf node.
+ *  Get the vol_ids on a given leaf node.
  */
 CELER_FUNCTION Span<LocalVolumeId const>
-BIHView::leaf_volids(BIHLeafNode const& leaf) const
+BIHView::leaf_vol_ids(BIHLeafNode const& leaf) const
 {
     return storage_.local_volume_ids[leaf.vol_ids];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- *  Get the inf_volids.
+ *  Get the inf_vol_ids.
  */
-CELER_FUNCTION Span<LocalVolumeId const> BIHView::inf_volids() const
+CELER_FUNCTION Span<LocalVolumeId const> BIHView::inf_vol_ids() const
 {
-    return storage_.local_volume_ids[tree_.inf_volids];
+    return storage_.local_volume_ids[tree_.inf_vol_ids];
 }
 
 //---------------------------------------------------------------------------//

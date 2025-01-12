@@ -67,15 +67,15 @@ size_type DepthCalculator::operator()(RectArrayInput const& u)
 /*!
  * Check cache or calculate.
  */
-size_type DepthCalculator::operator()(UniverseId uid)
+size_type DepthCalculator::operator()(UniverseId univ_id)
 {
-    CELER_EXPECT(uid < num_univ_);
+    CELER_EXPECT(univ_id < num_univ_);
     // Check for cached value
-    auto&& [iter, inserted] = depths_.insert({uid, {}});
+    auto&& [iter, inserted] = depths_.insert({univ_id, {}});
     if (inserted)
     {
         // Visit and save value
-        iter->second = visit_univ_(*this, uid.unchecked_get());
+        iter->second = visit_univ_(*this, univ_id.unchecked_get());
     }
 
     // Return cached value

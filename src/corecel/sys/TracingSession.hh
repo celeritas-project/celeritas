@@ -60,7 +60,7 @@ class TracingSession
     CELER_DELETE_COPY_MOVE(TracingSession);
 
   private:
-    static inline constexpr int system_fd_{-1};
+    static constexpr int system_fd_{-1};
     struct Deleter
     {
         void operator()(perfetto::TracingSession*);

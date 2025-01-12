@@ -39,9 +39,7 @@ struct ImportVolume
     using Index = unsigned int;
     //!@}
 
-#ifndef SWIG
-    static inline constexpr Index unspecified = -1;
-#endif
+    static constexpr Index unspecified = -1;
 
     Index geo_material_id{unspecified};  //!< Material defined by geometry
     Index region_id{unspecified};  //!< Optional region associated

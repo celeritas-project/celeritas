@@ -307,22 +307,22 @@ std::string OrangeGeoTestBase::id_to_label(LocalSurfaceId surfid) const
  * Volume name (or sentinel if no volume).
  */
 std::string
-OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
+OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId vol_id) const
 {
-    if (!volid)
+    if (!vol_id)
         return "[none]";
 
     detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
-    return params_->volumes().at(ui.global_volume(uid, volid)).name;
+    return params_->volumes().at(ui.global_volume(uid, vol_id)).name;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Volume name (or sentinel if no volume) within UniverseId{0}.
  */
-std::string OrangeGeoTestBase::id_to_label(LocalVolumeId volid) const
+std::string OrangeGeoTestBase::id_to_label(LocalVolumeId vol_id) const
 {
-    return this->id_to_label(UniverseId{0}, volid);
+    return this->id_to_label(UniverseId{0}, vol_id);
 }
 
 //---------------------------------------------------------------------------//
