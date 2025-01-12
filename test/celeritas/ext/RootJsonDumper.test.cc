@@ -346,6 +346,8 @@ TEST_F(RootJsonDumperTest, all)
   "auger" : false,
   "msc_step_algorithm" : 1,
   "msc_muhad_step_algorithm" : 0,
+  "msc_displaced" : 1,
+  "msc_muhad_displaced" : 0,
   "msc_range_factor" : 0.04,
   "msc_muhad_range_factor" : 0.2,
   "msc_safety_factor" : 0.6,

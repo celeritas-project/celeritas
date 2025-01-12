@@ -265,6 +265,8 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
     data->scalars.lambda_limit = opts.lambda_limit;
+    data->scalars.displaced = opts.displaced;
+    data->scalars.muhad_displaced = opts.muhad_displaced;
     data->scalars.range_factor = opts.range_factor;
     data->scalars.muhad_range_factor = opts.muhad_range_factor;
     data->scalars.safety_factor = opts.safety_factor;

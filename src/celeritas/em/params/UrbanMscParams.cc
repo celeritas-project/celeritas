@@ -72,7 +72,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
-    // Number of different particler categories in the particle and
+    // Number of different particle categories in the particle and
     // material-dependent parameter data: electrons and positrons always, and
     // muons/hadrons if applicable
     CELER_ASSERT(helper.particle_ids().size() >= 2);

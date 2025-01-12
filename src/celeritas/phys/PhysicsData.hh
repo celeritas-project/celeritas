@@ -245,6 +245,8 @@ struct PhysicsParamsScalars
     real_type range_factor{};  //!< range factor for e-/e+
     real_type muhad_range_factor{};  //!< range factor for muon/h
     real_type safety_factor{};  //!< safety factor
+    bool displaced{};  //!< lateral displacement for e-/e+
+    bool muhad_displaced{};  //!< lateral displacement for muon/h
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::size_};
     MscStepLimitAlgorithm muhad_step_limit_algorithm{
         MscStepLimitAlgorithm::size_};

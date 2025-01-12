@@ -126,6 +126,8 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
         from_msc_step_algorithm(options.msc_step_algorithm));
     em_parameters.SetMscMuHadStepLimitType(
         from_msc_step_algorithm(options.msc_muhad_step_algorithm));
+    em_parameters.SetLateralDisplacement(options.msc_displaced);
+    em_parameters.SetMuHadLateralDisplacement(options.msc_muhad_displaced);
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
     em_parameters.SetMscMuHadRangeFactor(options.msc_muhad_range_factor);
 #if G4VERSION_NUMBER >= 1060

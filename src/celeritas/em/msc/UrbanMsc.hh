@@ -130,11 +130,19 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
         }
 
         auto rng = track.make_rng_engine();
-        displaced = true;
 
-        auto step_algorithm = msc_helper.is_muhad()
-                                  ? phys.scalars().muhad_step_limit_algorithm
-                                  : phys.scalars().step_limit_algorithm;
+        MscStepLimitAlgorithm step_algorithm;
+        if (msc_helper.is_muhad())
+        {
+            step_algorithm = phys.scalars().muhad_step_limit_algorithm;
+            displaced = phys.scalars().muhad_displaced;
+        }
+        else
+        {
+            step_algorithm = phys.scalars().step_limit_algorithm;
+            displaced = phys.scalars().displaced;
+        }
+
         if (step_algorithm == MscStepLimitAlgorithm::minimal)
         {
             // Calculate step limit using "minimal" algorithm

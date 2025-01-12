@@ -52,6 +52,9 @@ class ParticleParams;
  *   energy loss.
  * - \c lowest_electron_energy: lowest kinetic energy for electrons/positrons
  * - \c lambda_limit: limit on the MSC mean free path.
+ * - \c displaced: whether MSC lateral displacement is enabled for e-/e+
+ * - \c muhad_displaced: whether MSC lateral displacement is enabled for muons
+ *   and hadrons
  * - \c range_factor: used in the MSC step limitation algorithm to restrict the
  *   step size to \f$ f_r \cdot max(r, \lambda) \f$ at the start of a track or
  *   after entering a volume, where \f$ f_r \f$ is the range factor, \f$ r \f$
@@ -103,6 +106,8 @@ struct PhysicsParamsOptions
     real_type range_factor = 0.04;
     real_type muhad_range_factor = 0.2;
     real_type safety_factor = 0.6;
+    bool displaced = true;
+    bool muhad_displaced = false;
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::safety};
     MscStepLimitAlgorithm muhad_step_limit_algorithm{
         MscStepLimitAlgorithm::minimal};

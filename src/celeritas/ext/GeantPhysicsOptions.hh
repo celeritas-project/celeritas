@@ -165,6 +165,10 @@ struct GeantPhysicsOptions
     //!@{
     //! \name Multiple scattering configuration
 
+    //! e-/e+ lateral displacement for MSC models
+    bool msc_displaced{true};
+    //! Muon/hadron lateral displacement for MSC models
+    bool msc_muhad_displaced{false};
     //! e-/e+ range factor for MSC models
     double msc_range_factor{0.04};
     //! Muon/hadron range factor for MSC models
@@ -220,6 +224,8 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.linear_loss_limit == b.linear_loss_limit
            && a.lowest_electron_energy == b.lowest_electron_energy
            && a.apply_cuts == b.apply_cuts
+           && a.msc_displaced == b.msc_displaced
+           && a.msc_muhad_displaced == b.msc_muhad_displaced
            && a.msc_range_factor == b.msc_range_factor
            && a.msc_muhad_range_factor == b.msc_muhad_range_factor
            && a.msc_safety_factor == b.msc_safety_factor

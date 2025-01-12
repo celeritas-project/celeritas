@@ -1018,6 +1018,8 @@ ImportEmParameters import_em_parameters()
     import.msc_step_algorithm = to_msc_step_algorithm(g4.MscStepLimitType());
     import.msc_muhad_step_algorithm
         = to_msc_step_algorithm(g4.MscMuHadStepLimitType());
+    import.msc_displaced = g4.LateralDisplacement();
+    import.msc_muhad_displaced = g4.MuHadLateralDisplacement();
     import.msc_range_factor = g4.MscRangeFactor();
     import.msc_muhad_range_factor = g4.MscMuHadRangeFactor();
 #if G4VERSION_NUMBER >= 1060

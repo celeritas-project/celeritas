@@ -47,6 +47,10 @@ struct ImportEmParameters
     //! MSC step limit algorithm for muon/hadron
     MscStepLimitAlgorithm msc_muhad_step_algorithm{
         MscStepLimitAlgorithm::minimal};
+    //! MSC lateral displacement for e-/e+
+    double msc_displaced{true};
+    //! MSC lateral displacement for muon/hadron
+    double msc_muhad_displaced{false};
     //! MSC range factor for e-/e+
     double msc_range_factor{0.04};
     //! MSC range factor for muon/hadron
