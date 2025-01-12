@@ -132,7 +132,7 @@ def format_software(e):
     append_names(bits, e['creators'], limit=100)
 
     title = e['title']
-    if (version := e.get('version')):
+    if (version := e.get('versionNumber')):
         title = f"{title} *v{version}*"
     if (url := e.get('url')):
         title = f"[{title}]({url})"
