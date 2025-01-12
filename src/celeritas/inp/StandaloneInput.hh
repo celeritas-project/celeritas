@@ -8,6 +8,8 @@
 
 #include <optional>
 
+#include "celeritas/ext/GeantPhysicsOptions.hh"
+
 #include "Events.hh"
 #include "Import.hh"
 #include "Problem.hh"
@@ -17,34 +19,16 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Physics list selection (TODO: move)
-enum class PhysicsListSelection
-{
-    ftfp_bert,
-    celer_ftfp_bert,  //!< FTFP BERT with Celeritas EM standard physics
-    celer_em,  //!< Celeritas EM standard physics only
-    size_,
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Set up a Geant4 run manager and problem.
  *
  * \note We should change celer-g4 so it just uses \c GeantSetup as an outer
  * wrapper, rather than trying to be a Geant4 example.
  *
- * \todo The physics list (namely, whether to use hadronic physics or not) will
- * be combined into the "physics" problem input options.
- * \todo Should we have an option allow \c Problem::physics to be empty and add
+ * \note Most of the "physics options" will be deleted. Only a few options
+ * specific to Geant4, such as \c gamma_general , will be left.
  */
-struct GeantSetup
-{
-    PhysicsListSelection physics_list{PhysicsListSelection::size_};
-
-    //! TODO: most of these will be moved to Problem::Physics;
-    //! some options (e.g., gamma_general) will not be applicable to Celeritas
-    GeantPhysicsOptions physics_setup;
-};
+using GeantSetup = GeantPhysicsOptions;
 
 //---------------------------------------------------------------------------//
 /*!

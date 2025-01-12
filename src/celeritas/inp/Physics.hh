@@ -59,6 +59,16 @@ struct OpticalPhysics
 
 //---------------------------------------------------------------------------//
 /*!
+ * Hadronic physics processes and options.
+ *
+ * This can be used to enable or set up Geant4 hadronic physics.
+ */
+struct HadronicPhysics
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Set up physics options.
  *
  * \todo Move optical and hadronic physics options from \c GeantPhysicsOptions
@@ -69,10 +79,7 @@ struct Physics
 {
     std::optional<EmPhysics> em{std::in_place};
     std::optional<OpticalPhysics> optical;
-
-#if 0
     std::optional<HadronicPhysics> hadronic;
-#endif
 };
 
 //---------------------------------------------------------------------------//

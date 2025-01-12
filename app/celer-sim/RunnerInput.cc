@@ -104,14 +104,15 @@ inp::Problem load_problem(RunnerInput const& ri)
 
         p.tuning.warm_up = ri.warm_up;
         p.tuning.seed = ri.seed;
-    }
 
-    if (ri.use_device)
-    {
-        inp::DeviceDebug dd;
-        dd.default_stream = ri.default_stream;
-        dd.sync_stream = ri.action_times;
-        p.tuning.device_debug = std::move(dd);
+        if (ri.use_device)
+        {
+            inp::DeviceDebug dd;
+            dd.default_stream = ri.default_stream;
+            dd.sync_stream = ri.action_times;
+            p.tuning.device_debug = std::move(dd);
+        }
+        p.tuning.track_order = ri.track_order;
     }
 
     // Physics
@@ -180,6 +181,7 @@ inp::Events load_events(RunnerInput const& ri)
     CELER_ASSERT(ri.primary_options);
     return to_input(ri.primary_options);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -201,8 +203,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     else
     {
         // Set up Geant4
-        si.geant_setup = inp::GeantSetup{inp::PhysicsListSelection::celer_em,
-                                         ri.physics_options};
+        si.geant_setup = ri.physics_options;
         si.physics_import = inp::GeantImport{};
     }
     si.geant_data = inp::GeantDataImport{};

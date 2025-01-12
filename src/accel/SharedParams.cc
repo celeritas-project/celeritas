@@ -563,8 +563,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
         {
             input.track_order = celeritas::device() ? TrackOrder::init_charge
                                                     : TrackOrder::none;
-            CELER_LOG(info)
-                << "Set track ordering to default: " << input.track_order;
+            CELER_LOG(info) << "Set track ordering to default: "
+                            << to_cstring(input.track_order);
         }
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
