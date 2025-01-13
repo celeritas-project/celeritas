@@ -62,7 +62,8 @@ set(DOXYGEN_USE_MATHJAX YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
 set(DOXYGEN_ALIASES
-  "citep{2}=\"([\\1](\\2)\")"
+  "cite{1}=\"[\\1]\")"
+  "citep{2}=\"([\\1](\\2))\""
   "citet{2}=\"[\\1](\\2)\""
   "rst=\"^^\\if (0)^^\""
   "endrst=\"^^\\endif^^\""
@@ -196,10 +197,11 @@ set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 set(DOXYGEN_ALIASES
-  "citep{2}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim\""
-  "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim\""
+  "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
+  "citep{2}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
+  "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim \""
   "rst=\"^^\\verbatim embed:rst^^\""
-  "endrst=\"^^\\endverbatim\""
+  "endrst=\"^^\\endverbatim \""
 )
 
 # Annotations break breathe parsing
