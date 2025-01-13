@@ -19,10 +19,9 @@ Input
 All front ends to Celeritas, and the library interface for external
 integration, use a single interface to define properties about the simulation
 to be run. This interface is a nested set of simple struct objects that are
-used both to enable options and to set up low-level C++ data structures.
-
-.. doxygennamespace:: celeritas::input
-   :no-link:
+used both to enable options and to set up low-level C++ data structures. Many
+of the struct names in the ``inp`` namespace correspond to runtime Celeritas
+classes and objects.
 
 The highest-level problem definition input is:
 
@@ -31,7 +30,8 @@ The highest-level problem definition input is:
    :no-link:
 
 The following sections describe the members and their configuration options.
-Many of these definitions allow selection
+Note that most input classes (namespace ``inp``) match up with the runtime
+classes that they help construct. Many of these definitions allow selection
 between hard-coded C++ types via std::`variant`_ and optional types using
 std::`optional`_.
 

@@ -38,7 +38,7 @@ namespace celeritas
  * interactor at the low energy (< 1 GeV) and the relativistic bremsstrahlung
  * interactor at the high energy for the e-/e+ bremsstrahlung process.
  *
- * \todo: see if there's any occupancy/performance difference by defining the
+ * \todo See if there's any occupancy/performance difference by defining the
  * samplers *inside* the conditional on "is_relativistic".
  */
 class CombinedBremInteractor

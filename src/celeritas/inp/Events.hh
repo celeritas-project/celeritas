@@ -64,7 +64,7 @@ using EnergyDistribution = Monoenergetic;
 /*!
  * Generate from a hardcoded distribution of primary particles.
  *
- * \todo: allow programmatic setting from particle ID as well
+ * \todo Allow programmatic setting from particle ID as well
  * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
  */
 struct PrimaryGenerator

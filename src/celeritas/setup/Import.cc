@@ -10,7 +10,7 @@
 
 namespace celeritas
 {
-namespace import
+namespace setup
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -49,5 +49,5 @@ void import(inp::UpdateImport const&, inp::Problem&)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace import
+}  // namespace setup
 }  // namespace celeritas

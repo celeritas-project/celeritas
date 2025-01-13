@@ -31,7 +31,7 @@ namespace celeritas
  *
  * The field values are all indexed with R having stride 1: [Z][R]
  *
- * \todo: use C indexing instead of Fortran? Or rename to ZR field?
+ * \todo Use C indexing instead of Fortran? Or rename to ZR field?
  */
 struct RZMapFieldInput
 {
