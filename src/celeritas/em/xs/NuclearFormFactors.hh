@@ -43,16 +43,10 @@ struct NuclearFormFactorTraits
  * This nuclear form factor corresponds \c NuclearFormFactorType::exponential
  * and assumes the nuclear charge decays exponentially from its center. This
  * assumes a parameterization of the atomic nucleus valid for light and medium
- * atomic nuclei (Eq. 7 of [BKM2002]): \f[
- * R_N = 1.27A^{0.27} \,\mathrm{fm}
- * \f]
- * with a special case for the proton radius, \f$ R_p = 0.85 \f$ fm.
- *
- * [BKM2002] A.V. Butkevich, R.P. Kokoulin, G.V. Matushko, S.P. Mikheyev,
- *      Comments on multiple scattering of high-energy muons in thick layers,
- *      Nuclear Instruments and Methods in Physics Research Section A:
- *      Accelerators, Spectrometers, Detectors and Associated Equipment 488
- *      (2002) 282–294. https://doi.org/10.1016/S0168-9002(02)00478-3.
+ * atomic nuclei from Eq. 7 of \citet{butkevich-msc-2002,
+ * https://doi.org/10.1016/S0168-9002(02)00478-3} : \f[
+   R_N = 1.27A^{0.27} \,\mathrm{fm}
+ * \f] with a special case for the proton radius, \f$ R_p = 0.85 \f$ fm.
  *
  * \todo Instead of using this coarse parameterization, we should add nuclear
  * radius to the isotope properties for a more accurate treatment, and
