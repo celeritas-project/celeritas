@@ -74,32 +74,32 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
     // Number of different particle categories in the particle and
     // material-dependent parameter data: electrons and positrons always, and
-    // muons/hadrons if applicable
+    // muons/hadrons when present
     CELER_ASSERT(helper.particle_ids().size() >= 2);
     size_type num_particles = min<size_type>(helper.particle_ids().size(), 3);
 
     // Map from particle ID to index in particle and material-dependent data
-    std::vector<size_type> pid_to_pm(particles.size(),
-                                     UrbanMscParameters::inapplicable());
+    std::vector<size_type> pid_to_pmdata(particles.size(),
+                                         UrbanMscParameters::inapplicable());
     for (auto par_id : helper.particle_ids())
     {
-        CELER_ASSERT(par_id < pid_to_pm.size());
+        CELER_ASSERT(par_id < pid_to_pmdata.size());
         if (par_id == host_data.ids.electron)
         {
-            pid_to_pm[par_id.unchecked_get()] = 0;
+            pid_to_pmdata[par_id.unchecked_get()] = 0;
         }
         else if (par_id == host_data.ids.positron)
         {
-            pid_to_pm[par_id.unchecked_get()] = 1;
+            pid_to_pmdata[par_id.unchecked_get()] = 1;
         }
         else
         {
-            // Muons and charged hadrons
-            pid_to_pm[par_id.unchecked_get()] = 2;
+            // Muons and hadrons
+            pid_to_pmdata[par_id.unchecked_get()] = 2;
         }
     }
-    make_builder(&host_data.pid_to_pm)
-        .insert_back(pid_to_pm.begin(), pid_to_pm.end());
+    make_builder(&host_data.pid_to_pmdata)
+        .insert_back(pid_to_pmdata.begin(), pid_to_pmdata.end());
 
     // Coefficients for scaled Z: {electron, positron, muon/hadron}
     static Array<double, 3> const a_coeff{{0.87, 0.70, 0.87}};

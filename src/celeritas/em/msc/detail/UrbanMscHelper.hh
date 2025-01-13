@@ -192,13 +192,13 @@ CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Scaled cross section data for this particle+material.
+ * Data for this particle+material.
  */
 CELER_FUNCTION UrbanMscParMatData const& UrbanMscHelper::pmdata() const
 {
     size_type num_particles = shared_.par_mat_data.size()
                               / shared_.material_data.size();
-    size_type par_idx = shared_.pid_to_pm[particle_.particle_id()];
+    size_type par_idx = shared_.pid_to_pmdata[particle_.particle_id()];
     CELER_ASSERT(par_idx != UrbanMscParameters::inapplicable());
 
     size_type idx = physics_.material_id().get() * num_particles + par_idx;

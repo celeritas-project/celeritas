@@ -151,7 +151,7 @@ struct UrbanMscData
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
     //! Map from particle ID to index in particle and material-dependent data
-    ParticleItems<size_type> pid_to_pm;
+    ParticleItems<size_type> pid_to_pmdata;
     //! Map from particle ID to index in cross sections
     ParticleItems<size_type> pid_to_xs;
     //! Particle and material-dependent data
@@ -168,7 +168,7 @@ struct UrbanMscData
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && !material_data.empty()
-               && !pid_to_pm.empty() && !pid_to_xs.empty()
+               && !pid_to_pmdata.empty() && !pid_to_xs.empty()
                && !par_mat_data.empty() && !xs.empty() && !reals.empty();
     }
 
@@ -181,7 +181,7 @@ struct UrbanMscData
         electron_mass = other.electron_mass;
         params = other.params;
         material_data = other.material_data;
-        pid_to_pm = other.pid_to_pm;
+        pid_to_pmdata = other.pid_to_pmdata;
         pid_to_xs = other.pid_to_xs;
         par_mat_data = other.par_mat_data;
         xs = other.xs;

@@ -122,10 +122,10 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
     CELER_EXPECT(max_step_ > shared_.params.limit_min_fix());
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
-    auto step_algorithm = helper.is_muhad()
-                              ? physics->scalars().muhad_step_limit_algorithm
-                              : physics->scalars().step_limit_algorithm;
-    bool use_safety_plus = step_algorithm == MscStepLimitAlgorithm::safety_plus;
+    bool use_safety_plus = (helper.is_muhad()
+                                ? physics->scalars().muhad_step_limit_algorithm
+                                : physics->scalars().step_limit_algorithm)
+                           == MscStepLimitAlgorithm::safety_plus;
     real_type const range = physics->dedx_range();
     auto const& msc_range = physics->msc_range();
 
