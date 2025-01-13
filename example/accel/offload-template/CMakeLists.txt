@@ -3,15 +3,15 @@
 #----------------------------------------------------------------------------#
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(VERSION 3.12...3.30)
-project(g4-celeritas)
+project(offload-template)
+
+# Export/set Celeritas_ROOT environment variable pointing to its install dir
+# Defaults to celeritas/install
+set(ENV{Celeritas_ROOT} "../../../../install")
 
 #----------------------------------------------------------------------------#
 # Find packages
 find_package(Geant4 REQUIRED)
-
-# Export/set Celeritas_ROOT environment variable pointing to its install dir
-set(ENV{Celeritas_ROOT} "../../../../install")
-message(STATUS "Set Celeritas install directory: $ENV{Celeritas_ROOT}")
 find_package(Celeritas 0.5 REQUIRED)
 
 #----------------------------------------------------------------------------#

@@ -23,16 +23,14 @@ EventAction::EventAction() : G4UserEventAction() {}
  */
 void EventAction::BeginOfEventAction(G4Event const* event)
 {
-    celeritas::ExceptionConverter call_g4exception{"celer0002"};
-    CelerLocalTransporter().InitializeEvent(event->GetEventID());
+    CelerSimpleOffload().BeginOfEventAction(event);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Flush any remaining particles to Celeritas.
  */
-void EventAction::EndOfEventAction(G4Event const*)
+void EventAction::EndOfEventAction(G4Event const* event)
 {
-    celeritas::ExceptionConverter call_g4exception{"celer0004"};
-    CELER_TRY_HANDLE(CelerLocalTransporter().Flush(), call_g4exception);
+    CelerSimpleOffload().EndOfEventAction(event);
 }

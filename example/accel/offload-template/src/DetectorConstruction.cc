@@ -25,22 +25,16 @@ DetectorConstruction::DetectorConstruction() : G4VUserDetectorConstruction() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Example geometry is a Pb world box with 10 m side.
+ * Generate example geometry.
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-    // World material
+    // Construct single material world volume box
     auto const nist = G4NistManager::Instance();
     auto const world_material = nist->FindOrBuildMaterial("G4_Pb");
-
-    // World solid
-    double const world_size = 10 * m;
+    double const world_size = 1 * m;
     auto world_box = new G4Box("world_box", world_size, world_size, world_size);
-
-    // World logical volume
     auto world_lv = new G4LogicalVolume(world_box, world_material, "world_lv");
-
-    // World physical volume
     auto world_pv = new G4PVPlacement(
         nullptr, G4ThreeVector(), world_lv, "world_pv", nullptr, false, 0);
 
@@ -49,7 +43,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize sensitive detectors. This is the only Celeritas interface.
+ * Initialize sensitive detectors.
+ *
+ * Every volume that needs to be collect data from Celeritas *must* be defined
+ * as a sensitive detector.
+ *
+ * \sa \c SensitiveDetector::ProcessHits from this example.
  */
 void DetectorConstruction::ConstructSDandField()
 {

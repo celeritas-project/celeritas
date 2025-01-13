@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
+#include "Celeritas.hh"
 #include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
@@ -15,16 +16,19 @@
 /*!
  * Construct empty.
  */
-ActionInitalization::ActionInitalization() : G4VUserActionInitialization() {}
+ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up all user actions.
+ * Set up all user actions and construct Celeritas' offloading interface.
  */
-void ActionInitalization::Build() const
+void ActionInitialization::Build() const
 {
-    this->SetUserAction(new PrimaryGeneratorAction());
+    CelerSimpleOffload().Build(
+        &CelerSetupOptions(), &CelerSharedParams(), &CelerLocalTransporter());
+
     this->SetUserAction(new RunAction());
     this->SetUserAction(new EventAction());
     this->SetUserAction(new TrackingAction());
+    this->SetUserAction(new PrimaryGeneratorAction());
 }

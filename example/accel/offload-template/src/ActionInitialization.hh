@@ -12,12 +12,12 @@
 /*!
  * Initialize all user action classes.
  */
-class ActionInitalization final : public G4VUserActionInitialization
+class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
     // Construct empty
-    ActionInitalization();
+    ActionInitialization();
 
-    // Set up user actions
+    // Set up user actions and construct Celeritas offload interface
     void Build() const final;
 };

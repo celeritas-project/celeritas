@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     // Initialize physics, geometry, and actions
     run_manager.SetUserInitialization(new FTFP_BERT(/* verbosity = */ 0));
     run_manager.SetUserInitialization(new DetectorConstruction());
-    run_manager.SetUserInitialization(new ActionInitalization());
+    run_manager.SetUserInitialization(new ActionInitialization());
 
     // Run one event
     run_manager.Initialize();

@@ -10,34 +10,10 @@
 #include <accel/AlongStepFactory.hh>
 #include <celeritas/alongstep/AlongStepGeneralLinearAction.hh>
 #include <celeritas/alongstep/AlongStepUniformMscAction.hh>
-#include <celeritas/em/params/UrbanMscParams.hh>
 #include <celeritas/field/UniformFieldData.hh>
 #include <celeritas/io/ImportData.hh>
-#include <celeritas_version.h>
 
 using namespace celeritas;
-
-namespace
-{
-//---------------------------------------------------------------------------//
-std::shared_ptr<CoreStepActionInterface const>
-make_nofield_along_step(AlongStepFactoryInput const& input)
-{
-    CELER_LOG(debug) << "Creating along-step action with linear propagation";
-    std::shared_ptr<AlongStepGeneralLinearAction> asgla;
-
-    asgla = celeritas::AlongStepGeneralLinearAction::from_params(
-        input.action_id,
-        *input.material,
-        *input.particle,
-        celeritas::UrbanMscParams::from_import(
-            *input.particle, *input.material, *input.imported),
-        input.imported->em_params.energy_loss_fluct);
-
-    return asgla;
-}
-//---------------------------------------------------------------------------//
-}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -56,7 +32,7 @@ SetupOptions& CelerSetupOptions()
         so.max_num_tracks = 1024 * 16;
         so.initializer_capacity = 1024 * 128 * 4;
         so.secondary_stack_factor = 3.0;
-        so.ignore_processes = {"CoulombScat"};
+        so.ignore_processes = {"CoulombScat"};  // Ignored processes list
 
         // Use Celeritas "hit processor" to call back to Geant4 SDs.
         so.sd.enabled = true;
@@ -75,9 +51,9 @@ SetupOptions& CelerSetupOptions()
         // Save diagnostic information
         so.output_file = "celeritas-offload-diagnostic.json";
 
-        // Post-step data is used
-        so.sd.pre.position = true;
-        so.sd.pre.global_time = true;
+        // Pre/post-step data used in G4VSensitiveDetector::ProcessHits
+        so.sd.pre.kinetic_energy = true;
+        so.sd.post.kinetic_energy = true;
         return so;
     }();
     return options;
@@ -101,4 +77,14 @@ LocalTransporter& CelerLocalTransporter()
 {
     static G4ThreadLocal LocalTransporter lt;
     return lt;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Thread-local offload interface.
+ */
+SimpleOffload& CelerSimpleOffload()
+{
+    static G4ThreadLocal SimpleOffload so;
+    return so;
 }

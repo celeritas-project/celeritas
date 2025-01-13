@@ -20,8 +20,8 @@ class RunAction : public G4UserRunAction
     RunAction();
 
     // Initialize Celeritas offloading interface
-    void BeginOfRunAction(G4Run const*) final;
+    void BeginOfRunAction(G4Run const* run) final;
 
     // Finalize Celeritas offloading interface
-    void EndOfRunAction(G4Run const*) final;
+    void EndOfRunAction(G4Run const* run) final;
 };

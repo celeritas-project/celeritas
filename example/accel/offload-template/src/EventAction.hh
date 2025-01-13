@@ -23,5 +23,5 @@ class EventAction : public G4UserEventAction
     void BeginOfEventAction(G4Event const* event) final;
 
     // Flush any remaining particles to Celeritas
-    void EndOfEventAction(G4Event const*) final;
+    void EndOfEventAction(G4Event const* event) final;
 };

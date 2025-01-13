@@ -17,7 +17,7 @@ SensitiveDetector::SensitiveDetector(std::string sd_name)
 
 //---------------------------------------------------------------------------//
 /*!
- * Callback interface with Celeritas.
+ * Callback interface between Geant4 and Celeritas.
  */
 G4bool SensitiveDetector::ProcessHits(G4Step*, G4TouchableHistory*)
 {
