@@ -10,11 +10,6 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/inp/System.hh"
 
-#ifdef environ
-#    warning "The 'environ' macro is defined"
-#    undef environ
-#endif
-
 namespace celeritas
 {
 namespace setup
@@ -29,7 +24,7 @@ void system(inp::System const& sys)
 {
     // Set up environment
     auto& env = celeritas::environment();
-    for (auto const& kv : sys.environ)
+    for (auto const& kv : sys.environment)
     {
         env.insert(kv);
         // TODO: log extant variables

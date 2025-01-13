@@ -36,7 +36,7 @@ inp::System load_system(RunInput const& ri)
         s.device = std::move(d);
     }
 
-    s.environ = {ri.environ.begin(), ri.environ.end()};
+    s.environment = {ri.environ.begin(), ri.environ.end()};
 
     return s;
 }

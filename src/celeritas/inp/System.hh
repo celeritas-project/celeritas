@@ -12,11 +12,6 @@
 
 #include "celeritas/Types.hh"
 
-#ifdef environ
-#    warning "The 'environ' macro is defined"
-#    undef environ
-#endif
-
 namespace celeritas
 {
 namespace inp
@@ -55,7 +50,7 @@ struct Device
 struct System
 {
     //! Environment variables used for program setup/diagnostic
-    std::map<std::string, std::string> environ;
+    std::map<std::string, std::string> environment;
 
     //! Optional: activate GPU
     std::optional<Device> device;

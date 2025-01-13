@@ -25,7 +25,7 @@ inp::System load_system(RunnerInput const& ri)
 {
     inp::System s;
 
-    s.environ = {ri.environ.begin(), ri.environ.end()};
+    s.environment = {ri.environ.begin(), ri.environ.end()};
 
     if (ri.use_device)
     {
