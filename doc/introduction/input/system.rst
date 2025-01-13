@@ -3,9 +3,8 @@
 
 .. _inp_system:
 
-******
 System
-******
+------
 
 These are low-level system options set up once per program execution, such as
 enabling GPU.

@@ -3,9 +3,8 @@
 
 .. _inp_tracking:
 
-********
 Tracking
-********
+--------
 
 Tracking options control trade-offs between performance and accuracy.
 

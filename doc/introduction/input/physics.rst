@@ -3,9 +3,8 @@
 
 .. _inp_physics:
 
-*******
 Physics
-*******
+-------
 
 .. doxygenstruct:: celeritas::inp::Physics
 .. doxygenstruct:: celeritas::inp::EmPhysics
@@ -13,12 +12,12 @@ Physics
 .. doxygenstruct:: celeritas::inp::HadronicPhysics
 
 Processes
----------
+^^^^^^^^^
 
 .. doxygenstruct:: celeritas::inp::BremsProcess
 
 Models
----------
+^^^^^^
 
 .. doxygenstruct:: celeritas::inp::SBBremsModel
 .. doxygenstruct:: celeritas::inp::RelBremsModel

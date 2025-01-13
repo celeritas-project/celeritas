@@ -3,11 +3,10 @@
 
 .. _inp_field:
 
-*****
 Field
-*****
+-----
 
-The field currently allows a few hardcoded options. It will be extended to
+The field currently allows a few hard coded options. It will be extended to
 additional field types and may allow completely custom field implementations.
 
 .. doxygenstruct:: celeritas::inp::NoField
