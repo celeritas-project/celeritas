@@ -7,7 +7,14 @@ System
 ------
 
 These are low-level system options set up once per program execution, such as
-enabling GPU.
+enabling GPU. They are not loaded by the :cpp:struct:`Problem` definition but
+are used when :ref:`api_problem_setup`.
 
 .. doxygenstruct:: celeritas::inp::System
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::Device
+   :members:
+   :no-link:
+

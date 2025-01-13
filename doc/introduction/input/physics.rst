@@ -7,18 +7,42 @@ Physics
 -------
 
 .. doxygenstruct:: celeritas::inp::Physics
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::EmPhysics
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::OpticalPhysics
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::HadronicPhysics
+   :members:
+   :no-link:
+
 
 Processes
 ^^^^^^^^^
 
 .. doxygenstruct:: celeritas::inp::BremsProcess
+   :members:
+   :no-link:
+
 
 Models
 ^^^^^^
 
 .. doxygenstruct:: celeritas::inp::SBBremsModel
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::RelBremsModel
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::MuBremsModel
+   :members:
+   :no-link:
+

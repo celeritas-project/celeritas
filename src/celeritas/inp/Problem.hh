@@ -16,6 +16,14 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Configure Celeritas input.
+ *
+ * Note that many of these input structs match up with the runtime classes that
+ * they help construct. Future restructuring of the code may result in more
+ * direct correspondence.
+ */
 namespace inp
 {
 //---------------------------------------------------------------------------//

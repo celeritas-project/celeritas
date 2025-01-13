@@ -10,6 +10,13 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Configure Celeritas problems from input data.
+ *
+ * This implementation detail is how \c celeritas::input data is used to
+ * construct all the main Celeritas objects.
+ */
 namespace setup
 {
 //---------------------------------------------------------------------------//

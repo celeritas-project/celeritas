@@ -21,19 +21,24 @@ integration, use a single interface to define properties about the simulation
 to be run. This interface is a nested set of simple struct objects that are
 used both to enable options and to set up low-level C++ data structures.
 
+.. doxygennamespace:: celeritas::input
+   :no-link:
+
 The highest-level problem definition input is:
 
 .. doxygenstruct:: celeritas::inp::Problem
+   :members:
+   :no-link:
 
 The following sections describe the members and their configuration options.
-Note that most input classes (namespace ``inp``) match up with the runtime
-classes that they help construct. Many of these definitions allow selection
+Many of these definitions allow selection
 between hard-coded C++ types via std::`variant`_ and optional types using
 std::`optional`_.
 
 .. _variant: https://en.cppreference.com/w/cpp/utility/variant
 .. _optional: https://en.cppreference.com/w/cpp/utility/optional
 
+Problems are loaded into the framework or application front end via :ref:`api_problem_setup`.
 
 .. toctree::
    :maxdepth: 2

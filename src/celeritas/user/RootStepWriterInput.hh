@@ -13,7 +13,11 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Input to \c make_write_filter (below) for filtering ROOT MC truth output
+/*!
+ * Input options for filtering ROOT MC truth output.
+ *
+ * This is used an input to \c celeritas::RootStepWriter::make_write_filter .
+ */
 struct SimpleRootFilterInput
 {
     static constexpr size_type unspecified{static_cast<size_type>(-1)};

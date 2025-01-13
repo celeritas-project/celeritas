@@ -39,7 +39,7 @@ Standalone execution
 ^^^^^^^^^^^^^^^^^^^^
 
 Standalone execution describes how to set up physics data (either through
-Geant4 or loaded through an external file) and
+Geant4 or loaded through an external file) and other problem properties.
 
 .. doxygenstruct:: celeritas::inp::StandaloneInput
 
@@ -75,6 +75,9 @@ physics to enable (via :cpp:struct:`GeantImport`). Additional custom physics
 can be added via the ``adjuster`` parameter to set or change any loaded data.
 
 .. doxygenstruct:: celeritas::inp::FrameworkInput
+   :members:
+   :no-link:
+
 
 Importers
 ^^^^^^^^^
@@ -82,8 +85,24 @@ Importers
 Import options are read in to load problem input from various sources.
 
 .. doxygenstruct:: celeritas::inp::FileImport
-.. doxygenstruct:: celeritas::inp::GeantImport
-.. doxygenstruct:: celeritas::inp::GeantDataImport
-.. doxygenstruct:: celeritas::inp::UpdateImport
+   :members:
+   :no-link:
 
+.. doxygenstruct:: celeritas::inp::GeantImport
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::GeantDataImport
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::UpdateImport
+   :members:
+   :no-link:
+
+
+Setup
+^^^^^
+
+.. doxygennamespace:: celeritas::setup
 

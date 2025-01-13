@@ -9,5 +9,14 @@ Tuning
 Tuning options control trade-offs between performance and memory usage.
 
 .. doxygenstruct:: celeritas::inp::Tuning
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::DeviceDebug
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::StateCapacity
+   :members:
+   :no-link:
+

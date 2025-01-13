@@ -40,7 +40,7 @@ struct ExportFiles
 /*!
  * Export (possibly large!) diagnostic output about track slot contents.
  *
- * See \c celeritas::SlotDiagnostic .
+ * \sa celeritas::SlotDiagnostic
  */
 struct SlotDiagnostic
 {
@@ -78,6 +78,8 @@ struct Counters
 //---------------------------------------------------------------------------//
 /*!
  * Write out MC truth data.
+ *
+ * \sa celeritas::RootStepWriter
  */
 struct McTruth
 {
@@ -122,7 +124,11 @@ struct Diagnostics
     //! Activate slot diagnostics
     std::optional<SlotDiagnostic> slot;
 
-    //! Accumulate post-step actions for each particle type
+    /*!
+     * Accumulate post-step actions for each particle type.
+     *
+     * \sa celeritas::ActionDiagnostic
+     */
     bool action{false};
 
     //! Write detailed MC truth output
@@ -131,7 +137,7 @@ struct Diagnostics
     //! Bin number of steps per track
     std::optional<StepDiagnostic> step;
 
-    //! Log stepping loop progress every N events
+    //! Log the execution progress every N events
     size_type log_frequency{1};
 };
 

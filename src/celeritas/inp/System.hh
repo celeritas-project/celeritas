@@ -27,7 +27,7 @@ namespace inp
  * The CUDA heap and stack sizes may be needed for VecGeom, which has dynamic
  * resource requirements.
  *
- * \todo Move the \c CELER_DEVICE_ASYNC environment variable here.
+ * \todo Move the \c CELER_DEVICE_ASYNC environment variable here
  */
 struct Device
 {
@@ -43,7 +43,9 @@ struct Device
 /*!
  * Set up system parameters defined once at program startup.
  *
- * \todo: OpenMP options, MPI options, Logger verbosity
+ * \todo Add OpenMP options
+ * \todo Add MPI options
+ * \todo Add Logger verbosity
  */
 struct System
 {

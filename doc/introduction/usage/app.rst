@@ -80,7 +80,9 @@ specified with a combination of the ``field_type``, ``field``, and
 ``field_file`` keys, and detailed field driver configuration options are set
 with ``field_options`` corresponding to the ``FieldOptions`` class in :ref:`api_field_data`.
 
-.. deprecated:: The macro file usage is in the process of being replaced by JSON
+.. deprecated:: v0.5
+
+   The macro file usage is in the process of being replaced by JSON
    input for improved automation. The input parameters will be documented for
    version 1 in the :ref:`input` section and
    :ref:`api_problem_setup_standalone`.  Until then, refer to the source code

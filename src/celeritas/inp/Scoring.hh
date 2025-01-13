@@ -39,6 +39,7 @@ struct GeantSDStepPointAttributes
  *
  * By default, Celeritas connects to Geant4 sensitive detectors so that it
  * reconstructs full-fidelity hits with all available step information.
+ *
  * - By default, steps that do not deposit energy do not generate any hits.
  * - To improve performance and memory usage, determine what quantities (time,
  *   position, direction, touchable, ...) are required by your setup's
@@ -52,6 +53,7 @@ struct GeantSDStepPointAttributes
  *
  * Various attributes on the step, track, and pre/post step points may be
  * available depending on the selected options.
+ *
  * - Disabling \c track will leave \c G4Step::GetTrack as \c nullptr .
  * - Enabling \c track will set the \c Charge attribute on the
  *   pre-step.
@@ -73,9 +75,7 @@ struct GeantSDStepPointAttributes
  * FindVolumes helper function can be used to determine LV pointers from
  * the volume names.
  *
- * \note These setup options affect only the \c HitManager construction that is
- * responsible for reconstructing CPU hits and sending directly to the Geant4
- * detectors. It does not change the underlying physics.
+ * \sa celeritas::HitManager
  */
 struct GeantSensitiveDetector
 {
@@ -105,7 +105,9 @@ struct GeantSensitiveDetector
 
 //---------------------------------------------------------------------------//
 /*!
- * Integrate energy deposition in each volume over alle vents.
+ * Integrate energy deposition in each volume over all events.
+ *
+ * \sa celeritas::SimpleCalo.
  */
 struct SimpleCalo
 {
