@@ -7,7 +7,7 @@ Geant4 classes needed to initialize Celeritas, offload events, and recover step
 information.
 
 # Dependencies
-- Geant4 v10.7 or newer
+- Geant4 v11 or newer
 - Celeritas v0.5 or newer
   - `CELERITAS_USE_Geant4=ON`
 
@@ -17,6 +17,7 @@ $ mkdir build
 $ cd build
 $ cmake ..
 $ make
+$ export CELER_DISABLE_PARALLEL=1
 $ ./main
 ```
 

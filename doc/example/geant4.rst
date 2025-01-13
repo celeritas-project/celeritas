@@ -3,8 +3,16 @@
 
 .. _example_geant:
 
-Geant4 integration example
-==========================
+Geant4 integration examples
+===========================
+
+Offload template
+----------------
+
+.. include:: ../../example/offload-template/README.rst
+
+Small executables
+-----------------
 
 These small examples demonstrate how to offload tracks to Celeritas in a serial
 or multithreaded environment using:
