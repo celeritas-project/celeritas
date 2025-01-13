@@ -98,7 +98,8 @@ if celer_config['options']['sphinxbib']:
     import pybtex
     extensions.append("sphinxcontrib.bibtex")
     bibtex_bibfiles = [
-        "_static/zotero.bib",
+        "_static/references.bib",
+        "_static/celeritas.bib"
     ]
 
 if celer_config['options']['sphinxmer']:

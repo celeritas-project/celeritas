@@ -9,8 +9,6 @@ celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
 # DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
 
-set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
-
 # Use full version string instead of short version
 set(DOXYGEN_PROJECT_NUMBER "${Celeritas_VERSION_STRING}")
 
@@ -60,15 +58,6 @@ set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
 set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_USE_MATHJAX YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
-
-# For HTML docs, just mark citations with []
-# TODO: we could update generate-pubs.py to generate an anchor and then make
-# this generate a URL to celeritas-projects.github.io/...
-set(DOXYGEN_ALIASES
-  "cite{1}=\"[\\1]\" "
-  "rst=\"\\if (0)\" "
-  "endrst=\"\\endif\" "
-)
 
 # Verbosity/warning levels
 celeritas_set_default(DOXYGEN_QUIET YES)
@@ -165,8 +154,6 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 # Define a configure file with version and configuration info
-# NOTE: the resulting JSON file should be syntactically correct because
-# of how celeritas_check_python_module is implemented
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
@@ -197,12 +184,6 @@ set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
 
-set(DOXYGEN_ALIASES
-  "cite{1}=\"\\verbatim embed:rst:inline :cite:`\\1` \\endverbatim\""
-  "rst=\"\\verbatim embed:rst\" "
-  "endrst=\"\\endverbatim\" "
-)
-
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
@@ -210,7 +191,7 @@ foreach(_var
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 
-# Only process top two levels (mostly no detail)
+# Only process top two levels (mostly no detail, generated)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
@@ -229,10 +210,6 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"
@@ -246,17 +223,6 @@ doxygen_add_docs(doxygen_xml
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating Doxygen XML"
 )
-
-#-----------------------------------------------------------------------------#
-# Set up references
-# NOTE: sphinx-bibtex requires the bib file to be in the source directory, so we
-# download there and add it to .gitignore
-if(CELERITAS_USE_SphinxBibtex)
-  file(DOWNLOAD
-    https://celeritas-project.github.io/celeritas/zotero.bib
-    "${CMAKE_CURRENT_SOURCE_DIR}/_static/zotero.bib"
-  )
-endif()
 
 #-----------------------------------------------------------------------------#
 # HTML

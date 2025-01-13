@@ -22,8 +22,11 @@ namespace celeritas
  * This ratio is an adjustment of the cross section from a purely classical
  * treatment of a point nucleus in an electronic cloud (Rutherford scattering)
  * to a quantum mechanical treatment. The implementation is an interpolated
- * approximation developed in \cite{lijian-mott-1995} and described in
- * \cite{g4prm} (Release 1.11) section 8.4
+ * approximation developed in [LQZ95] and described in the Geant Physics
+ * Reference Manual [PRM] (Release 1.11) section 8.4
+ *
+ * [LQZ95] T. Lijian, H. Quing and L. Zhengming, Radiat. Phys. Chem. 45 (1995),
+ *     235-245
  *
  * The parameter \c cos_theta is the cosine of the scattered angle in the
  * z-aligned momentum frame.
