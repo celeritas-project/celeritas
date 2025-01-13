@@ -12,6 +12,11 @@
 
 #include "celeritas/Types.hh"
 
+#ifdef environ
+#    warning "The 'environ' macro is defined"
+#    undef environ
+#endif
+
 namespace celeritas
 {
 namespace inp
