@@ -1,4 +1,7 @@
-#---------------------------------*-CMake-*----------------------------------#
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 # Minimal Geant4 application with Celeritas offloading capabilities
 #----------------------------------------------------------------------------#
 cmake_minimum_required(VERSION 3.10)
