@@ -10,6 +10,7 @@
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
 #include <accel/SimpleOffload.hh>
+#include <accel/TrackingManagerOffload.hh>
 
 namespace celeritas
 {

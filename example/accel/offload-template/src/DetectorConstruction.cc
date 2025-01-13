@@ -45,8 +45,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 /*!
  * Initialize sensitive detectors.
  *
- * Every volume that needs to be collect data from Celeritas *must* be defined
- * as a sensitive detector.
+ * Every volume that needs to collect data from Celeritas *must* be defined as
+ * a sensitive detector.
  *
  * \sa \c SensitiveDetector::ProcessHits from this example.
  */

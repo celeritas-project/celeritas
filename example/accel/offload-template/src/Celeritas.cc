@@ -34,9 +34,6 @@ SetupOptions& CelerSetupOptions()
         so.secondary_stack_factor = 3.0;
         so.ignore_processes = {"CoulombScat"};  // Ignored processes list
 
-        // Use Celeritas "hit processor" to call back to Geant4 SDs.
-        so.sd.enabled = true;
-
         // Only call back for nonzero energy depositions: this is currently a
         // global option for all detectors, so if any SDs extract data from
         // tracks with no local energy deposition over the step, it must be set

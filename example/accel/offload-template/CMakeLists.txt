@@ -8,14 +8,16 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(VERSION 3.12...3.30)
 project(offload-template)
 
-# Export/set Celeritas_ROOT environment variable pointing to its install dir
-# Defaults to celeritas/install
-set(ENV{Celeritas_ROOT} "../../../../install")
-
 #-----------------------------------------------------------------------------#
 # Find packages
+find_package(Celeritas 0.5)
 find_package(Geant4 REQUIRED)
-find_package(Celeritas 0.5 REQUIRED)
+
+if(NOT Celeritas_FOUND)
+  message(FATAL_ERROR
+  "No Celeritas installation found.\n"
+  "Export Celeritas_ROOT=/path/to/celeritas/install or use CMAKE_INSTALL_PREFIX")
+endif()
 
 #-----------------------------------------------------------------------------#
 # Set up sources, include directories, and libraries
@@ -27,7 +29,6 @@ set(_sources
   src/PrimaryGeneratorAction.cc
   src/RunAction.cc
   src/SensitiveDetector.cc
-  src/TrackingAction.cc
 )
 
 set(_includes
