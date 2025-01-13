@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 # Minimal Geant4 application with Celeritas offloading capabilities
-#----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(VERSION 3.12...3.30)
 project(offload-template)
@@ -12,12 +12,12 @@ project(offload-template)
 # Defaults to celeritas/install
 set(ENV{Celeritas_ROOT} "../../../../install")
 
-#----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 # Find packages
 find_package(Geant4 REQUIRED)
 find_package(Celeritas 0.5 REQUIRED)
 
-#----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 # Set up sources, include directories, and libraries
 set(_sources
   src/ActionInitialization.cc
@@ -42,7 +42,7 @@ set(_libs
   Celeritas::accel
 )
 
-#----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 # Add executable
 add_executable(main main.cc ${_sources})
 target_include_directories(main PRIVATE $<BUILD_INTERFACE:${_includes}>)
