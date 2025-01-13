@@ -44,5 +44,6 @@ set(_libs
 add_executable(main main.cc ${_sources})
 target_include_directories(main PRIVATE $<BUILD_INTERFACE:${_includes}>)
 
+# Use Celeritas CUDA RDC utility function to correctly link libraries
 include(CudaRdcUtils)
 cuda_rdc_target_link_libraries(main ${_libs})

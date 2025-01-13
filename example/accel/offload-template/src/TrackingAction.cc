@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "TrackingAction.hh"
 
-#include <accel/ExceptionConverter.hh>
-
 #include "Celeritas.hh"
 #include "G4Electron.hh"
 #include "G4Gamma.hh"

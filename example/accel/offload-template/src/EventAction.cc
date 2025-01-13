@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "EventAction.hh"
 
-#include <accel/ExceptionConverter.hh>
-
 #include "Celeritas.hh"
 #include "G4Event.hh"
 
