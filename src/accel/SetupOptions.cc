@@ -23,9 +23,9 @@ namespace
 {
 //---------------------------------------------------------------------------//
 
-inp::SDStepPointAttributes to_input(SDSetupOptions::StepPoint const& sp)
+auto to_input(SDSetupOptions::StepPoint const& sp)
 {
-    inp::SDStepPointAttributes result;
+    inp::GeantSDStepPointAttributes result;
     result.global_time = sp.global_time;
     result.position = sp.position;
     result.direction = sp.direction;
@@ -33,9 +33,9 @@ inp::SDStepPointAttributes to_input(SDSetupOptions::StepPoint const& sp)
     return result;
 }
 
-inp::SensitiveDetector to_input(SDSetupOptions const& sd)
+auto to_input(SDSetupOptions const& sd)
 {
-    celeritas::inp::SensitiveDetector result;
+    inp::GeantSensitiveDetector result;
 
     result.ignore_zero_deposition = sd.ignore_zero_deposition;
     result.energy_deposition = sd.energy_deposition;

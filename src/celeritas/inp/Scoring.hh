@@ -93,9 +93,9 @@ struct GeantSensitiveDetector
     bool track{true};
 
     //! Options for saving and converting beginning-of-step data
-    SDStepPointAttributes pre;
+    GeantSDStepPointAttributes pre;
     //! Options for saving and converting end-of-step data
-    SDStepPointAttributes post;
+    GeantSDStepPointAttributes post;
 
     //! Manually list LVs that don't have an SD on the master thread
     VariantSetVolume force_volumes;
