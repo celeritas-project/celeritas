@@ -4,7 +4,7 @@
 .. _inp_tuning:
 
 Tuning
-------
+======
 
 Tuning options control trade-offs between performance and memory usage.
 

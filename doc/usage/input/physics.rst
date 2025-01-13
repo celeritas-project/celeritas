@@ -4,7 +4,7 @@
 .. _inp_physics:
 
 Physics
--------
+=======
 
 .. doxygenstruct:: celeritas::inp::Physics
    :members:
@@ -24,7 +24,7 @@ Physics
 
 
 Processes
-^^^^^^^^^
+---------
 
 .. doxygenstruct:: celeritas::inp::BremsProcess
    :members:
@@ -32,7 +32,7 @@ Processes
 
 
 Models
-^^^^^^
+------
 
 .. doxygenstruct:: celeritas::inp::SBBremsModel
    :members:

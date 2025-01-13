@@ -3,8 +3,9 @@
 
 .. _input:
 
+*****
 Input
-=====
+*****
 
 .. note:: This section is a sneak preview of Celeritas 1.0 input. It is *not*
    currently exposed to users.

@@ -4,7 +4,7 @@
 .. _model:
 
 Model
------
+=====
 
 This specifies the problem geometry and material properties.
 

@@ -154,6 +154,8 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 # Define a configure file with version and configuration info
+# NOTE: the resulting JSON file should be syntactically correct because
+# of how celeritas_check_python_module is implemented
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
@@ -227,6 +229,17 @@ doxygen_add_docs(doxygen_xml
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating Doxygen XML"
 )
+
+#-----------------------------------------------------------------------------#
+# Set up references
+# NOTE: sphinx-bibtex requires the bib file to be in the source directory, so we
+# download there and add it to .gitignore
+if(CELERITAS_USE_SphinxBibtex)
+  file(DOWNLOAD
+    https://celeritas-project.github.io/celeritas/zotero.bib
+    "${CMAKE_CURRENT_SOURCE_DIR}/_static/zotero.bib"
+  )
+endif()
 
 #-----------------------------------------------------------------------------#
 # HTML

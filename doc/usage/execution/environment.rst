@@ -4,7 +4,7 @@
 .. _environment:
 
 Environment variables
----------------------
+=====================
 
 .. note:: Many of these environment variables will eventually be replaced by
    :ref:`inp_tuning` and :ref:`inp_system` options in Celeritas v1.0 and beyond.
