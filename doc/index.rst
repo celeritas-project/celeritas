@@ -96,7 +96,7 @@ projected computing capacity that relies on traditional multicore CPU hardware
 
 At the same time as LHC demands more compute capacity, the HPC landscape
 has changed so that GPUs are responsible for larger amounts of processing
-power due to their energy efficiency :cite:`khan-2021`. Similarly,
+power due to their energy efficiency :cite:`khan-top500-2021`. Similarly,
 as machine learning tools become more widespread across all scientific
 disciplines, GPU uptake will continue to grow. In this scenario, the
 primary goal of Celeritas is to enable HEP simulation to take advantage of
