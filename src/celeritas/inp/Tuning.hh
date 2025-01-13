@@ -18,11 +18,16 @@ namespace inp
 /*!
  * Set up per-process state capacities.
  *
- * If used in a multithread "event-parallel" context, each state gets a
- * fraction divided by the number of threads.
+ * Capacities are defined as the number per application process: this means
+ * that in a multithreaded context it implies "strong scaling" (i.e., the
+ * allocations are divided among threads), and in a multiprocess context it
+ * implies "weak scaling" (the problem size grows with the number of
+ * processes).
  *
- * When used in MPI parallel (e.g., one process per GPU), each rank has this
- * many.
+ * In other words, if used in a multithread "event-parallel" context, each
+ * state gets the specified \c tracks divided by the number of threads.  When
+ * used in MPI parallel (e.g., one process per GPU), each process \em rank has
+ * \c tracks total threads.
  *
  * \note The \c primaries is a minimum tuning parameter, not a maximum. It was
  * previously named \c auto_flush .

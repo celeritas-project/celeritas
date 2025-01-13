@@ -11,16 +11,19 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
+//! Seltzer-Berger bremsstrahlung model
 struct SBBremsModel
 {
 };
 
+//! Relativistic bremsstrahlung model
 struct RelBremsModel
 {
     //! Account for LPM effect at very high energies
     bool enable_lpm{true};
 };
 
+//! Muon bremsstrahlung model
 struct MuBremsModel
 {
 };

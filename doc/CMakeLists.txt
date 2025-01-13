@@ -191,7 +191,7 @@ foreach(_var
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 
-# Only process top two levels (mostly no detail, generated)
+# Only process top two levels (mostly no detail)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
@@ -210,6 +210,10 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"

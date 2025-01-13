@@ -70,6 +70,9 @@ struct AlongStepFactoryInput;
  * \note These setup options affect only the \c HitManager construction that is
  * responsible for reconstructing CPU hits and sending directly to the Geant4
  * detectors. It does not change the underlying physics.
+ *
+ * \note This class will be replaced in v1.0
+ *       by \c celeritas::inp::SensitiveDetector .
  */
 struct SDSetupOptions
 {
@@ -111,6 +114,9 @@ struct SDSetupOptions
  *
  * The interface for the "along-step factory" (input parameters and output) is
  * described in \c AlongStepFactoryInterface .
+ *
+ * \note This class will be replaced in v1.0
+ *       by \c celeritas::inp::FrameworkInput .
  */
 struct SetupOptions
 {

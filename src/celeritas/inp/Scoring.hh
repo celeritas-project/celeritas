@@ -21,11 +21,15 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 //! Options for saving attributes at each step point
-struct SDStepPointAttributes
+struct GeantSDStepPointAttributes
 {
+    //! Store the time since the start of the event
     bool global_time{true};
+    //! Store the step point position
     bool position{true};
-    bool direction{true};  //!< AKA momentum direction
+    //! Store the step point direction (AKA momentum direction)
+    bool direction{true};
+    //! Store the step point energy
     bool kinetic_energy{true};
 };
 
@@ -35,7 +39,6 @@ struct SDStepPointAttributes
  *
  * By default, Celeritas connects to Geant4 sensitive detectors so that it
  * reconstructs full-fidelity hits with all available step information.
- * - If your problem has no SDs, you must set \c enabled to \c false.
  * - By default, steps that do not deposit energy do not generate any hits.
  * - To improve performance and memory usage, determine what quantities (time,
  *   position, direction, touchable, ...) are required by your setup's
@@ -74,8 +77,9 @@ struct SDStepPointAttributes
  * responsible for reconstructing CPU hits and sending directly to the Geant4
  * detectors. It does not change the underlying physics.
  */
-struct SensitiveDetector
+struct GeantSensitiveDetector
 {
+    //! Provide either a set of labels or a set of pointers to Geant4 objects
     using VariantSetVolume
         = std::variant<std::set<Label>, std::set<G4LogicalVolume const*>>;
 
@@ -112,11 +116,14 @@ struct SimpleCalo
 //---------------------------------------------------------------------------//
 /*!
  * Enable scoring of hits or other quantities.
+ *
+ * If the problem to be executed has no sensitive detectors, \c sd must be
+ * \c std::nullopt (unset).
  */
 struct Scoring
 {
     //! Enable Geant4 sensitive detector integration
-    std::optional<SensitiveDetector> sd;
+    std::optional<GeantSensitiveDetector> sd;
 
     //! Add simple on-device calorimeters integrated over events
     std::optional<SimpleCalo> simple_calo;

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/GeantImport.hh
+//! \file celeritas/inp/Import.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,13 +32,14 @@ struct FileImport
 //---------------------------------------------------------------------------//
 /*!
  * Options for importing data from in-memory Geant4.
+ *
+ * \todo We will add options to select EM, extended EM, and/or optical physics,
+ * which will activate Celeritas offloading of those particle types.
  */
 struct GeantImport
 {
     //! Do not use Celeritas physics for the given Geant4 process names
     std::vector<std::string> ignore_processes;
-
-    // TODO: other GeantImportDataSelection options for em/optical?
 };
 
 //---------------------------------------------------------------------------//
@@ -67,7 +68,9 @@ struct GeantDataImport
  */
 struct UpdateImport
 {
+    //! Replace existing diagnostics
     bool diagnostics{true};
+    //! Replace existing tuning parameters
     bool tuning{true};
 
     //! Path to the file

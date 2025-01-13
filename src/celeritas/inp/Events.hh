@@ -32,6 +32,7 @@ struct UniformBoxShape
     Real3 upper{0, 0, 0};
 };
 
+//! Choose a spatial distribution for the primary generator
 using ShapeDistribution = std::variant<PointShape, UniformBoxShape>;
 
 //---------------------------------------------------------------------------//
@@ -46,6 +47,7 @@ struct MonodirectionalAngle
     Real3 dir{0, 0, 1};
 };
 
+//! Choose an angular distribution for the primary generator
 using AngleDistribution = std::variant<IsotropicAngle, MonodirectionalAngle>;
 
 //---------------------------------------------------------------------------//
@@ -55,6 +57,7 @@ struct Monoenergetic
     units::MevEnergy energy;
 };
 
+//! Choose an angular distribution for the primary generator
 using EnergyDistribution = Monoenergetic;
 
 //---------------------------------------------------------------------------//

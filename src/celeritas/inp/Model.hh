@@ -16,7 +16,7 @@ namespace inp
  */
 struct Model
 {
-    //! Path to GDML (or ORANGE override) file, empty to import from Geant4.
+    //! Path to GDML (or ORANGE override) file, empty to import from Geant4
     std::string geometry_file;
 
     // TODO: Materials

@@ -26,6 +26,8 @@ namespace inp
  *
  * The CUDA heap and stack sizes may be needed for VecGeom, which has dynamic
  * resource requirements.
+ *
+ * \todo Move the \c CELER_DEVICE_ASYNC environment variable here.
  */
 struct Device
 {

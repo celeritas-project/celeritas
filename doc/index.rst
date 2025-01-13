@@ -77,6 +77,56 @@ Celeritas to transport on GPU.
 
 .. ***************************************************************************
 
+.. _input:
+
+*****
+Input
+*****
+
+.. note:: This section is a sneak preview of Celeritas 1.0 input. It is *not*
+   currently exposed to users.
+
+.. only:: nobreathe
+
+   .. warning:: The breathe_ extension was not used when building this version
+      of the documentation. The input definitions will not be displayed.
+
+   .. _breathe: https://github.com/michaeljones/breathe#readme
+
+All front ends to Celeritas, and the library interface for external
+integration, use a single interface to define properties about the simulation
+to be run. This interface is a nested set of simple struct objects that are
+used both to enable options and to set up low-level C++ data structures.
+
+The highest-level problem definition input is:
+
+.. doxygenstruct:: celeritas::inp::Problem
+
+The following sections describe the members and their configuration options.
+Note that most input classes (namespace ``inp``) match up with the runtime
+classes that they help construct. Many of these definitions allow selection
+between hard-coded C++ types via std::`variant`_ and optional types using
+std::`optional`_.
+
+.. _variant: https://en.cppreference.com/w/cpp/utility/variant
+.. _optional: https://en.cppreference.com/w/cpp/utility/optional
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Input definition
+
+   input/model.rst
+   input/physics.rst
+   input/field.rst
+   input/scoring.rst
+   input/tracking.rst
+   input/tuning.rst
+   input/diagnostics.rst
+   input/system.rst
+
+.. ***************************************************************************
+
 .. _api:
 
 **************
@@ -85,8 +135,8 @@ Implementation
 
 .. only:: nobreathe
 
-   .. note:: The breathe_ extension was not used when building this version of
-      the documentation. The API documentation will not be rendered below.
+   .. warning:: The breathe_ extension was not used when building this version
+      of the documentation. The API documentation will not be rendered below.
 
    .. _breathe: https://github.com/michaeljones/breathe#readme
 
