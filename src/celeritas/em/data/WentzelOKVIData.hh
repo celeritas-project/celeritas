@@ -50,12 +50,10 @@ struct CoulombParameters
  * Per-element data used by the Coulomb scattering and Wentzel VI models.
  *
  * The matrix of coefficients used to approximate the ratio of the Mott to
- * Rutherford cross sections was developed in T. Lijian, H. Quing and L.
- * Zhengming, Radiat. Phys. Chem. 45 (1995), 235-245. Using the same procedure
- * as in Lijian, the coefficients were extended in M.J. Boschini et al, Radiat.
- * Phys. Chem. 90 (2013), 39-66 (doi.org/10.1016/j.radphyschem.2013.04.020) to
- * include positrons and the interaction of electrons and positrons with higher
- * Z nuclei (1 <= Z <= 118).
+ * Rutherford cross sections was developed in \cite{lijian-mott-1995}.
+ * Using the same procedure as in Lijian, the coefficients were extended in
+ * \cite{boschini-mott-1993} to include positrons and the interaction of
+ * electrons and positrons with higher Z nuclei (1 <= Z <= 118).
  */
 struct MottElementData
 {

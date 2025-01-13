@@ -28,9 +28,10 @@ namespace celeritas
  * which is expected to become isotropic in the low energy limit.
  *
  * \note This performs the same sampling routine as in Geant4's
- * ModifiedTsai class, based on derivation from Tsai (Rev Mod Phys 49,421(1977)
+ * ModifiedTsai class, based on derivation from \cite{tsai-1974}
  * and documented in section 6.5.2 (pair-production), and 10.2.1 and 10.2.4
- * (bremsstrahlung) of the Geant4 Physics Reference (release 10.6).
+ * (bremsstrahlung) of the Geant4 Physics Reference \cite{g4prm}
+ * (release 10.6).
  */
 class TsaiUrbanDistribution
 {

@@ -56,8 +56,8 @@ enum class EnergyLossFluctuationModel
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4UniversalFluctuation, as documented in section 7.3 in the Geant4 Physics
- * Reference Manual and in PHYS332 and PHYS333 in GEANT3, CERN Program Library
- * Long Writeup, W5013 (1993).
+ * Reference Manual \cite{g4prm} and in PHYS332 and PHYS333 in the GEANT3
+ * manual \cite{geant3-1993}.
  */
 class EnergyLossHelper
 {

@@ -9,6 +9,8 @@ celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
 # DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
 
+set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
+
 # Use full version string instead of short version
 set(DOXYGEN_PROJECT_NUMBER "${Celeritas_VERSION_STRING}")
 
@@ -58,6 +60,15 @@ set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
 set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_USE_MATHJAX YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
+
+# For HTML docs, just mark citations with []
+# TODO: we could update generate-pubs.py to generate an anchor and then make
+# this generate a URL to celeritas-projects.github.io/...
+set(DOXYGEN_ALIASES
+  "cite{1}=\"[\\1]\" "
+  "rst=\"\\if (0)\" "
+  "endrst=\"\\endif\" "
+)
 
 # Verbosity/warning levels
 celeritas_set_default(DOXYGEN_QUIET YES)
@@ -185,6 +196,12 @@ set(DOXYGEN_GENERATE_XML YES)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
+
+set(DOXYGEN_ALIASES
+  "cite{1}=\"\\verbatim embed:rst:inline :cite:`\\1` \\endverbatim\""
+  "rst=\"\\verbatim embed:rst\" "
+  "endrst=\"\\endverbatim\" "
+)
 
 # Annotations break breathe parsing
 foreach(_var
