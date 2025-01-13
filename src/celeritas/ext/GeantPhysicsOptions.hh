@@ -60,14 +60,14 @@ struct GeantMuonPhysicsOptions
     bool bremsstrahlung{false};
     //! Enable muon single Coulomb scattering
     bool coulomb{false};
-    //! Enable muon multiple Coulomb scattering
-    bool msc{false};
+    //! Enable multiple coulomb scattering and select a model
+    MscModelSelection msc{MscModelSelection::none};
 
     //! True if any process is activated
     explicit operator bool() const
     {
         return pair_production || ionization || bremsstrahlung || coulomb
-               || msc;
+               || msc != MscModelSelection::none;
     }
 };
 
