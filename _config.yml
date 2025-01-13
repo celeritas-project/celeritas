@@ -10,3 +10,4 @@ include:
 - _includes
 - _layouts
 - _sources
+- _static
