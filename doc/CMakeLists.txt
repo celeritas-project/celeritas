@@ -61,13 +61,11 @@ set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_USE_MATHJAX YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
-# For HTML docs, just mark citations with []
-# TODO: we could update generate-pubs.py to generate an anchor and then make
-# this generate a URL to celeritas-projects.github.io/...
 set(DOXYGEN_ALIASES
-  "cite{1}=\"[\\1]\" "
-  "rst=\"\\if (0)\" "
-  "endrst=\"\\endif\" "
+  "citep{2}=\"([\\1](\\2)\")"
+  "citet{2}=\"[\\1](\\2)\""
+  "rst=\"^^\\if (0)^^\""
+  "endrst=\"^^\\endif^^\""
 )
 
 # Verbosity/warning levels
@@ -198,9 +196,10 @@ set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 set(DOXYGEN_ALIASES
-  "cite{1}=\"\\verbatim embed:rst:inline :cite:`\\1` \\endverbatim\""
-  "rst=\"\\verbatim embed:rst\" "
-  "endrst=\"\\endverbatim\" "
+  "citep{2}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim\""
+  "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim\""
+  "rst=\"^^\\verbatim embed:rst^^\""
+  "endrst=\"^^\\endverbatim\""
 )
 
 # Annotations break breathe parsing

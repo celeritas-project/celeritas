@@ -29,8 +29,11 @@ into the Celeritas build system (see :ref:`dependencies`). High-level classes
 should describe the functionality of the class in a way understandable to both
 power users and developers, and such classes should be included in the
 :ref:`api` section. Citations to the Celeritas Zotero database can be
-referenced inline code using the special ``\cite{whatever-2025}`` Doxygen
-alias set up inside the Celeritas doc :file:`CMakeLists.txt`. Inline
+referenced inline code using the special ``\citep{whatever-2025,
+https://doi.org/.../}`` Doxygen
+alias set up inside the Celeritas doc :file:`CMakeLists.txt`. (Another form,
+``\citet``, will insert the reference "textually" as opposed to
+"parenthetically".) Inline
 ReStructured Text to be added to the user manual can be injected using the
 custom aliases ``\rst`` and ``\endrst``.
 
