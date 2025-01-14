@@ -19,12 +19,14 @@ Build and run
 -------------
 
 .. code-block:: sh
+
    $ mkdir build
    $ cd build
    $ cmake ..
    $ make
    $ export CELER_DISABLE_PARALLEL=1
-   $ ./main
+   $ ./run-offload
+
 
 Boilerplate offloading code
 ---------------------------
