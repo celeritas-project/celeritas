@@ -1,12 +1,12 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/distribution/MuPPEnergyDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/grid/FindInterp.hh"
@@ -155,7 +155,7 @@ MuPPEnergyDistribution::MuPPEnergyDistribution(
     , max_pair_energy_(inc_energy_
                        + value_as<Mass>(particle.mass())
                              * (1
-                                - real_type(0.75) * std::sqrt(constants::euler)
+                                - real_type(0.75) * constants::sqrt_euler
                                       * element.cbrt_z()))
     , min_energy_(max(value_as<Energy>(cutoffs.energy(shared.ids.positron)),
                       min_pair_energy_))

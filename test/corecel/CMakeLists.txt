@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -28,6 +27,7 @@ celeritas_add_test(OpaqueId.test.cc)
 
 # Cont
 celeritas_add_test(cont/Array.test.cc)
+celeritas_add_test(cont/Bitset.test.cc)
 celeritas_add_test(cont/InitializedValue.test.cc)
 celeritas_add_test(cont/Span.test.cc)
 celeritas_add_test(cont/LabelIdMultiMap.test.cc)
@@ -72,6 +72,7 @@ celeritas_add_test(math/Algorithms.test.cc)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
 celeritas_add_test(math/CdfUtils.test.cc)
+celeritas_add_test(math/Constant.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
 celeritas_add_test(math/Integrator.test.cc)
 celeritas_add_device_test(math/NumericLimits)

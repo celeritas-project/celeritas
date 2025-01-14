@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/univ/RectArrayTracker.hh
@@ -232,12 +231,12 @@ RectArrayTracker::intersect(LocalState const& state,
  * always always occurs along a line parallel to an axis.
  */
 CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
-                                                  LocalVolumeId volid) const
+                                                  LocalVolumeId vol_id) const
 {
-    CELER_EXPECT(volid && volid.get() < this->num_volumes());
+    CELER_EXPECT(vol_id && vol_id.get() < this->num_volumes());
 
     VolumeInverseIndexer to_coords(record_.dims);
-    auto coords = to_coords(volid.unchecked_get());
+    auto coords = to_coords(vol_id.unchecked_get());
 
     real_type min_dist = numeric_limits<real_type>::infinity();
 

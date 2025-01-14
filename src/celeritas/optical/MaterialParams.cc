@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/MaterialParams.cc
@@ -41,9 +40,7 @@ MaterialParams::from_import(ImportData const& data,
 
     CELER_VALIDATE(std::all_of(data.optical_materials.begin(),
                                data.optical_materials.end(),
-                               [](ImportOpticalMaterial const& m) {
-                                   return static_cast<bool>(m);
-                               }),
+                               LogicalTrue{}),
                    << "one or more optical materials lack required data");
 
     Input inp;

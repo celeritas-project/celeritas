@@ -1,11 +1,11 @@
 {
-  "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "version": 6,
+  "cmakeMinimumRequired": {"major": 3, "minor": 23, "patch": 0},
   "configurePresets": [
     {
       "name": "base",
-      "displayName": "CentOS7/rocm-docker default options",
-      "inherits": [".hip-mi100", "default"],
+      "displayName": "Ubuntu 22/rocm-docker default options",
+      "inherits": [".hip-mi250", "default"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
@@ -69,7 +69,8 @@
       "output": {
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 65536,
-        "outputOnFailure": true
+        "outputOnFailure": true,
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
       }
     },
     {"name": "ndebug-orange-float", "configurePreset": "ndebug-orange-float", "inherits": "base"},

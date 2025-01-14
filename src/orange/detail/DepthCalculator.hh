@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/DepthCalculator.hh
@@ -49,7 +48,7 @@ class DepthCalculator
     std::unordered_map<UniverseId, size_type> depths_;
 
     // Check cache or calculate
-    size_type operator()(UniverseId uid);
+    size_type operator()(UniverseId univ_id);
 };
 
 //---------------------------------------------------------------------------//

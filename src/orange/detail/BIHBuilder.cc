@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHBuilder.cc
@@ -47,7 +46,7 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
 
     // Separate infinite bounding boxes from finite
     VecIndices indices;
-    VecIndices inf_volids;
+    VecIndices inf_vol_ids;
     for (auto i : range(temp_.bboxes.size()))
     {
         LocalVolumeId id(i);
@@ -64,7 +63,7 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
              * \todo make an exception for "EXTERIOR" volume and remove the
              * "infinite volume" exceptions?
              */
-            inf_volids.push_back(id);
+            inf_vol_ids.push_back(id);
         }
         else
         {
@@ -80,8 +79,8 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
     tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         bboxes_.insert_back(temp_.bboxes.begin(), temp_.bboxes.end()));
 
-    tree.inf_volids
-        = local_volume_ids_.insert_back(inf_volids.begin(), inf_volids.end());
+    tree.inf_vol_ids = local_volume_ids_.insert_back(inf_vol_ids.begin(),
+                                                     inf_vol_ids.end());
 
     if (!indices.empty())
     {

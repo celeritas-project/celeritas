@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -89,7 +88,7 @@ if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   set(_props DISABLED true)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  # FIXME: geant4 navigator doesn't work at scale, nor through accel
+  # FIXME: geant4 navigator doesn't work with field navigator
   set(_props DISABLED true)
 endif()
 if(CELERITAS_REAL_TYPE STREQUAL "float")

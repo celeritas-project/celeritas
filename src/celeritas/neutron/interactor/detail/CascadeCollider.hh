@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/neutron/interactor/detail/CascadeCollider.hh
@@ -118,7 +117,7 @@ CascadeCollider::CascadeCollider(NeutronInelasticRef const& shared,
     , target_(target)
     , ch_id_(ChannelId{
           static_cast<size_type>((bullet_.type == target_.type) ? 0 : 1)})
-    , sample_phi_(0, 2 * constants::pi)
+    , sample_phi_(0, static_cast<real_type>(2 * constants::pi))
 {
     // Initialize the boost velocity and momentum in the center of mass frame
     FourVector sum_four_vec = bullet_.four_vec + target_.four_vec;

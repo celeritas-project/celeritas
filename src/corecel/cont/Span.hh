@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/cont/Span.hh
@@ -97,8 +96,6 @@ class Span
         : s_(other.data(), other.size())
     {
     }
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_COPY_MOVE(Span);
     ~Span() = default;
 

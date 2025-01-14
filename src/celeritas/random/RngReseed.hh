@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/RngReseed.hh
@@ -28,7 +27,7 @@ void reseed_rng(HostCRef<RngParamsData> const&,
                 StreamId,
                 UniqueEventId);
 
-#if !CELER_USE_DEVICE
+#if !CELER_USE_DEVICE && (!defined(__DOXYGEN__) || __DOXYGEN__ > 0x010908)
 //---------------------------------------------------------------------------//
 /*!
  * Reinitialize the RNG states on device at the start of an event.

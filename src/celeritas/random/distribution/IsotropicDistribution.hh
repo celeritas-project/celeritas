@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/IsotropicDistribution.hh
@@ -53,7 +52,7 @@ class IsotropicDistribution
  */
 template<class RealType>
 CELER_FUNCTION IsotropicDistribution<RealType>::IsotropicDistribution()
-    : sample_costheta_(-1, 1), sample_phi_(0, 2 * constants::pi)
+    : sample_costheta_(-1, 1), sample_phi_(0, real_type(2 * constants::pi))
 {
 }
 

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/detail/HitManager.cc
@@ -84,8 +83,10 @@ HitManager::HitManager(SPConstGeo geo,
         }
     }
 
-    // Hit processors *must* be allocated on the thread they're used because of
-    // geant4 thread-local SDs. There must be one per thread.
+    // Hit processors MUST be allocated on the thread they're used because of
+    // geant4 thread-local SDs. They MUST also be DEallocated on the same
+    // thread they're created due to Geant4 thread-local allocators.
+    // There must be one hit processor per thread.
     processor_weakptrs_.resize(num_streams);
     processors_.resize(num_streams);
 

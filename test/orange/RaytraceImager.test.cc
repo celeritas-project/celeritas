@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/RaytraceImager.test.cc
@@ -180,7 +179,7 @@ template<class P>
 class RaytraceImagerTest : public OrangeGeoTestBase
 {
   protected:
-    real_type unit_length() const override { return 1; }
+    Constant unit_length() const override { return Constant{1}; }
 
     void SetUp() override
     {

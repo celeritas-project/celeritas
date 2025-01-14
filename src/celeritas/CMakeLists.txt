@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -294,10 +293,12 @@ celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
+celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/BoundaryAction)
-celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
+celeritas_polysource(optical/action/TrackingCutAction)
+celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/detail/CherenkovGeneratorAction)
 celeritas_polysource(optical/detail/CherenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/ProtoBuilder.hh
@@ -107,10 +106,10 @@ UniverseId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
 /*!
  * Get the bounding box of a universe.
  */
-BBox const& ProtoBuilder::bbox(UniverseId uid) const
+BBox const& ProtoBuilder::bbox(UniverseId univ_id) const
 {
-    CELER_EXPECT(uid < bboxes_.size());
-    return bboxes_[uid.get()];
+    CELER_EXPECT(univ_id < bboxes_.size());
+    return bboxes_[univ_id.get()];
 }
 
 //---------------------------------------------------------------------------//

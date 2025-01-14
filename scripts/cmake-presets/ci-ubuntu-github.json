@@ -35,13 +35,24 @@
       }
     },
     {
+      "name": "doc",
+      "inherits": ["base"],
+      "displayName": "Build only documentation",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DOXYGEN_BUILD_TESTS":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "spack",
       "inherits": ["base"],
       "displayName": "use spack toolchain",
       "cacheVariables": {
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    null,
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
@@ -78,12 +89,15 @@
     },
     {
       "name": "reldeb-vecgeom-clang-tidy",
-      "description": "Build with ORANGE and clang-tidy checks",
-      "inherits": ["spack", ".vecgeom"],
+      "description": "Build with VecGeom and clang-tidy checks",
+      "inherits": [".vecgeom", "spack"],
       "cacheVariables": {
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Perfetto":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_SCAN_FOR_MODULES":  {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_CLANG_TIDY": {"type": "PATH", "value": "$env{CLANG_TIDY}"}
       }
@@ -155,6 +169,18 @@
         "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "nativeToolOptions": ["-k0"],
+      "verbose": true
+    },
+    {
+      "name": "doc",
+      "inherits": "base"
     }
   ],
   "testPresets": [

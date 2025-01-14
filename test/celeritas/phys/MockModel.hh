@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/MockModel.hh
@@ -29,7 +28,7 @@ class MockModel final : public Model
   public:
     //!@{
     //! \name Type aliases
-    using BarnMicroXs = Quantity<units::Barn>;
+    using BarnMicroXs = RealQuantity<units::Barn>;
     using ModelCallback = std::function<void(ActionId)>;
     using VecMicroXs = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;

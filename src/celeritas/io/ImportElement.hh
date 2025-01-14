@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/io/ImportElement.hh
@@ -40,7 +39,7 @@ struct ImportIsotope
 struct ImportElement
 {
     //!@{
-    //! \name type aliases
+    //! \name Type aliases
     using IsotopeIndex = unsigned int;
     using IsotopeFrac = std::pair<IsotopeIndex, double>;
     using VecIsotopeFrac = std::vector<IsotopeFrac>;

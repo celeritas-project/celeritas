@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHEnclosingVolFinder.hh
@@ -52,8 +51,8 @@ class BIHEnclosingVolFinder
     //// HELPER FUNCTIONS ////
 
     // Get the ID of the next node in the traversal sequence
-    inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId const& current_id,
-                                              BIHNodeId const& previous_id,
+    inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId current_id,
+                                              BIHNodeId previous_id,
                                               Real3 const& pos) const;
 
     // Determine if traversal shall proceed down a given edge
@@ -130,8 +129,8 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
  *  Get the ID of the next node in the traversal sequence.
  */
 CELER_FUNCTION
-BIHNodeId BIHEnclosingVolFinder::next_node(BIHNodeId const& current_id,
-                                           BIHNodeId const& previous_id,
+BIHNodeId BIHEnclosingVolFinder::next_node(BIHNodeId current_id,
+                                           BIHNodeId previous_id,
                                            Real3 const& pos) const
 {
     using Side = BIHInnerNode::Side;
@@ -209,7 +208,7 @@ template<class F>
 CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
     BIHLeafNode const& leaf_node, Real3 const& pos, F&& is_inside) const
 {
-    for (auto id : view_.leaf_volids(leaf_node))
+    for (auto id : view_.leaf_vol_ids(leaf_node))
     {
         if (this->visit_bbox(id, pos) && is_inside(id))
         {
@@ -227,7 +226,7 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
 {
-    for (auto id : view_.inf_volids())
+    for (auto id : view_.inf_vol_ids())
     {
         if (is_inside(id))
         {

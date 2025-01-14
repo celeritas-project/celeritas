@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celer-g4/TimerOutput.hh
@@ -40,6 +39,7 @@ class TimerOutput final : public OutputInterface
 
     //!@{
     //! \name Output interface
+
     //! Category of data to write
     Category category() const final { return Category::result; }
     //! Key for the entry inside the category.

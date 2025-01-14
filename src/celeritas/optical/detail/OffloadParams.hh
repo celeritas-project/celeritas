@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/detail/OffloadParams.hh
@@ -31,6 +30,7 @@ class OffloadParams final : public AuxParamsInterface,
 
     //!@{
     //! \name Aux interface
+
     //! Short name for the action
     std::string_view label() const final { return "optical-offload"; }
     //! Index of this class instance in its registry
@@ -41,6 +41,7 @@ class OffloadParams final : public AuxParamsInterface,
 
     //!@{
     //! \name Data interface
+
     //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
     //! Access data on device

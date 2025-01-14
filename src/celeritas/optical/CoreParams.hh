@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/CoreParams.hh
@@ -76,6 +75,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //!@{
     //! \name Data interface
+
     //! Access data on the host
     HostRef const& host_ref() const final { return host_ref_; }
     //! Access data on the device

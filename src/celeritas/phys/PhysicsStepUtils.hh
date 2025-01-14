@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/PhysicsStepUtils.hh
@@ -44,6 +43,9 @@ calc_physics_step_limit(MaterialTrackView const& material,
     /*! \todo For particles with decay, macro XS calculation will incorporate
      * decay probability, dividing decay constant by speed to become 1/len to
      * compete with interactions.
+     *
+     * \todo For neutral particles that haven't changed material since the last
+     * step, we can reuse the previously calculated cross section.
      */
 
     // Loop over all processes that apply to this track (based on particle

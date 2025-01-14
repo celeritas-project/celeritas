@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/xs/WentzelHelper.hh
@@ -59,7 +58,7 @@ class WentzelHelper
         return screening_coefficient_;
     }
 
-    //! Get the Mott factor
+    //! Get the Mott factor (maximum, used for rejection)
     CELER_FUNCTION real_type mott_factor() const { return mott_factor_; }
 
     //! Get the multiplicative factor for the cross section
@@ -102,7 +101,7 @@ class WentzelHelper
     calc_screening_coefficient(ParticleTrackView const& particle) const;
 
     // Calculate the screening coefficient R^2 for electrons
-    CELER_CONSTEXPR_FUNCTION real_type screen_r_sq_elec() const;
+    static CELER_CONSTEXPR_FUNCTION MomentumSq screen_r_sq_elec();
 
     // Calculate the multiplicative factor for the cross section
     inline CELER_FUNCTION real_type
@@ -195,6 +194,13 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_factor(
 /*!
  * Calculate the Moliere screening coefficient as in [PRM] eqn 8.51.
  *
+ * See Eq.32 in [Fern], referencing Bethe's re-derivation of Moliere
+ * scattering:
+ *  Bethe, H. A. “Moliere’s Theory of Multiple Scattering.” Physical Review
+ *  89, no. 6 (March 15, 1953): 1256–66.
+ * https://doi.org/10.1103/PhysRev.89.1256.
+ *
+ *
  * \note The \c screenZ in Geant4 is equal to twice the screening coefficient.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
@@ -205,9 +211,11 @@ CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
     real_type sq_cbrt_z = fastpow(real_type(target_z_.get()), real_type{2} / 3);
     if (target_z_.get() > 1)
     {
+        // TODO: tau correction factor and "min" value are of unknown
+        // provenance. The equation in Fernandez 1993 has factor=1, no special
+        // casing for z=1, and no "min" for the correction
         real_type tau = value_as<Energy>(particle.energy())
                         / value_as<Mass>(particle.mass());
-        // TODO: Reference for this factor?
         real_type factor = std::sqrt(tau / (tau + sq_cbrt_z));
 
         correction = min(target_z_.get() * real_type{1.13},
@@ -218,7 +226,8 @@ CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
                                    * factor / particle.beta_sq());
     }
 
-    return correction * this->screen_r_sq_elec() * sq_cbrt_z
+    return correction * sq_cbrt_z
+           * value_as<MomentumSq>(this->screen_r_sq_elec())
            / value_as<MomentumSq>(particle.momentum_sq());
 }
 
@@ -237,14 +246,13 @@ CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
    C_{TF} = \frac{1}{2} \left(\frac{3\pi}{4}\right)^{2/3}.
  * \f]
  */
-CELER_CONSTEXPR_FUNCTION real_type WentzelHelper::screen_r_sq_elec() const
+CELER_CONSTEXPR_FUNCTION auto WentzelHelper::screen_r_sq_elec() -> MomentumSq
 {
     //! Thomas-Fermi constant \f$ C_{TF} \f$
-    constexpr real_type ctf = 0.8853413770001135;
+    constexpr Constant ctf{0.8853413770001135};
 
     return native_value_to<MomentumSq>(
-               ipow<2>(constants::hbar_planck / (2 * ctf * constants::a0_bohr)))
-        .value();
+        ipow<2>(constants::hbar_planck / (2 * ctf * constants::a0_bohr)));
 }
 
 //---------------------------------------------------------------------------//

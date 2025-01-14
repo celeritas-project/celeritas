@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/VecgeomParams.hh
@@ -46,7 +45,7 @@ class VecgeomParams final : public GeoParamsInterface,
     explicit VecgeomParams(G4VPhysicalVolume const* world);
 
     // Clean up VecGeom on destruction
-    ~VecgeomParams();
+    ~VecgeomParams() final;
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return true; }

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeData.hh
@@ -17,6 +16,7 @@
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
+#include "SenseUtils.hh"
 #include "univ/detail/Types.hh"
 
 #include "detail/BIHData.hh"
@@ -28,10 +28,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 //! Local ID of exterior volume for unit-type universes
-static inline constexpr LocalVolumeId orange_exterior_volume{0};
+inline constexpr LocalVolumeId orange_exterior_volume{0};
 
 //! ID of the top-level (global/world, level=0) universe (scene)
-static inline constexpr UniverseId orange_global_universe{0};
+inline constexpr UniverseId orange_global_universe{0};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -152,12 +152,12 @@ struct OrientedBoundingZoneRecord
 
     // Transformation from the OBZ coordinate system to the unit coordinate
     // system
-    TransformId transform_id;
+    TransformId trans_id;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return offset_ids[0] && offset_ids[1] && transform_id;
+        return offset_ids[0] && offset_ids[1] && trans_id;
     }
 };
 
@@ -337,11 +337,11 @@ struct BIHTreeData
 /*!
  * Persistent data used by ORANGE implementation.
  *
- * Most data will be accessed through the invidual units, which reference data
- * in the "storage" below. The type and index for a universe ID will determine
- * the class type and data of the Tracker to instantiate. If *only* simple
- * units are present, then the \c simple_units data structure will just be
- * equal to a range (with the total number of universes present). Use
+ * Most data will be accessed through the individual units, which reference
+ * data in the "storage" below. The type and index for a universe ID will
+ * determine the class type and data of the Tracker to instantiate. If *only*
+ * simple units are present, then the \c simple_units data structure will just
+ * be equal to a range (with the total number of universes present). Use
  * `universe_types` to switch on the type of universe; then `universe_indices`
  * to index into `simple_units` or `rect_arrays` or ...
  */
@@ -472,7 +472,7 @@ struct OrangeStateData
     Items<UniverseId> universe;
 
     // Scratch space with dimensions {track}{max_faces}
-    Items<Sense> temp_sense;
+    Items<SenseValue> temp_sense;
 
     // Scratch space with dimensions {track}{max_intersections}
     Items<FaceId> temp_face;

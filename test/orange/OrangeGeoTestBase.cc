@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeGeoTestBase.cc
@@ -49,7 +48,7 @@ OrangeInput to_input(UnitInput u)
 /*!
  * Convert a vector of senses to a string.
  */
-std::string OrangeGeoTestBase::senses_to_string(Span<Sense const> senses)
+std::string OrangeGeoTestBase::senses_to_string(Span<SenseValue const> senses)
 {
     std::ostringstream os;
     os << '{' << join(senses.begin(), senses.end(), ' ', [](Sense s) {
@@ -308,22 +307,22 @@ std::string OrangeGeoTestBase::id_to_label(LocalSurfaceId surfid) const
  * Volume name (or sentinel if no volume).
  */
 std::string
-OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
+OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId vol_id) const
 {
-    if (!volid)
+    if (!vol_id)
         return "[none]";
 
     detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
-    return params_->volumes().at(ui.global_volume(uid, volid)).name;
+    return params_->volumes().at(ui.global_volume(uid, vol_id)).name;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Volume name (or sentinel if no volume) within UniverseId{0}.
  */
-std::string OrangeGeoTestBase::id_to_label(LocalVolumeId volid) const
+std::string OrangeGeoTestBase::id_to_label(LocalVolumeId vol_id) const
 {
-    return this->id_to_label(UniverseId{0}, volid);
+    return this->id_to_label(UniverseId{0}, vol_id);
 }
 
 //---------------------------------------------------------------------------//

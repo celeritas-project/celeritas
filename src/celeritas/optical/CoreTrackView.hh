@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/CoreTrackView.hh
@@ -221,8 +220,8 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
 {
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
-    sim.status(TrackStatus::killed);
-    sim.post_step_action({});
+    sim.status(TrackStatus::errored);
+    sim.post_step_action(params_.scalars.tracking_cut_action);
 }
 
 //---------------------------------------------------------------------------//

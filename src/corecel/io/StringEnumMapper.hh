@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/StringEnumMapper.hh
@@ -91,7 +90,6 @@ StringEnumMapper<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
  */
 template<class T>
 template<class U>
-// TODO Remove in clang-tidy-18
 // NOLINTNEXTLINE(bugprone-forwarding-reference-overload)
 StringEnumMapper<T>::StringEnumMapper(U&& enum_to_string, char const* desc)
     : description_(desc)

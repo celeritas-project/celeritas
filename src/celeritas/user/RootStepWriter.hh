@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/RootStepWriter.hh
@@ -28,7 +27,7 @@ class RootFileManager;
 //! Input to \c make_write_filter (below) for filtering ROOT MC truth output
 struct SimpleRootFilterInput
 {
-    static inline constexpr size_type unspecified{static_cast<size_type>(-1)};
+    static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     std::vector<size_type> track_id;
     size_type event_id = unspecified;
@@ -59,7 +58,7 @@ class RootStepWriter final : public StepInterface
 {
   public:
     // Unspecified step attribute data value
-    static inline constexpr size_type unspecified{static_cast<size_type>(-1)};
+    static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     //! Truth step point data; Naming convention must match StepPointStateData
     struct TStepPoint

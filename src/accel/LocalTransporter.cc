@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/LocalTransporter.cc
@@ -132,17 +131,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         }
     }
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        /*!
-         * \todo Add support for Geant4 navigation wrapper, which requires
-         * calling \c state.ref().geometry.reset() on the local transporter
-         * thread due to thread-allocated navigator data.
-         */
-        CELER_NOT_IMPLEMENTED(
-            "offloading when using Celeritas Geant4 navigation wrapper");
-    }
-
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
     StreamId stream_id{static_cast<size_type>(thread_id)};
@@ -169,6 +157,8 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
 
     // Save state for reductions at the end
     params.set_state(stream_id.get(), step_->sp_state());
+
+    CELER_ENSURE(*this);
 }
 
 //---------------------------------------------------------------------------//
@@ -311,6 +301,19 @@ void LocalTransporter::Finalize()
     CELER_VALIDATE(buffer_.empty(),
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
+
+    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        // Geant4 navigation states *MUST* be deallocated on the thread in
+        // which they're allocated
+        auto state = std::dynamic_pointer_cast<CoreState<MemSpace::host>>(
+            step_->sp_state());
+        CELER_ASSERT(state);
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+        CELER_LOG_LOCAL(debug) << "Deallocating navigation states";
+        state->ref().geometry.reset();
+#endif
+    }
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";

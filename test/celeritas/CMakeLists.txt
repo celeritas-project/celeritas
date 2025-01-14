@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -366,14 +365,6 @@ celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
 
-if(CELERITAS_USE_CUDA)
-  celeritas_add_test(random/curand/CurandPerformance.test.cc GPU
-    SOURCES random/curand/CurandPerformance.test.cu
-    LINK_LIBRARIES Celeritas::DeviceToolkit
-    ${_disable_if_debug}
-  )
-endif()
-
 #-----------------------------------------------------------------------------#
 # Track
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
@@ -445,11 +436,6 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     add_custom_command(
       TARGET update-root-test-data
       POST_BUILD
-      DEPENDS
-        celer-export-geant
-        "${_gdml}"
-        "${_basename}.geant.json"
-        "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
       COMMAND
         "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
         "$<TARGET_FILE:celer-export-geant>"
