@@ -526,12 +526,14 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
     // Calculate local senses, taking current face into account
     detail::OnFace on_face(detail::find_face(vol, state.surface));
-    auto calc_senses = detail::LazySenseCalculator(
-        this->make_surface_visitor(), vol, state.pos, on_face);
 
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(is_inside(calc_senses));
+    CELER_ASSERT(is_inside(detail::LazySenseCalculator(
+        this->make_surface_visitor(), vol, state.pos, on_face)));
+
+    real_type const bump_dist
+        = detail::BumpCalculator{params_.scalars.tol}(state.pos);
 
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].
@@ -546,13 +548,14 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         FaceId face = state.temp_next.face[isect];
         Real3 pos = state.pos;
 
-        // cross the internal surface, effectively flipping previous internal
-        // senses
-        axpy(distance, state.dir, &pos);
-        // evaluate senses from the new position, flipping the sense of the
-        // face being crossed
-        auto calc_senses = detail::IntersectLazySenseCalculator(
-            this->make_surface_visitor(), vol, pos, face, on_face);
+        // // cross the internal surface, effectively flipping previous
+        // internal
+        // // senses
+        axpy(distance + bump_dist, state.dir, &pos);
+        // // evaluate senses from the new position
+        auto calc_senses = detail::LazySenseCalculator(
+            this->make_surface_visitor(), vol, pos, on_face);
+
         if (!is_inside(calc_senses))
         {
             // Flipping this sense puts us outside the current volume: in
