@@ -25,6 +25,10 @@ ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 //---------------------------------------------------------------------------//
 /*!
  * Set up all user actions and Celeritas offload interface.
+ *
+ * \note In the case of a Geant4 multithreaded application a separate
+ * \c CelerSimpleOffload::BuildForMaster function call should be added to
+ * the \c G4VUserActionInitialization::BuildForMaster implementation.
  */
 void ActionInitialization::Build() const
 {
@@ -32,7 +36,11 @@ void ActionInitialization::Build() const
     CelerSimpleOffload().Build(
         &CelerSetupOptions(), &CelerSharedParams(), &CelerLocalTransporter());
 
-    // Add Celeritas tracking manager to electrons, positrons, and gammas
+    // Add Celeritas tracking manager to electrons, positrons, and gammas.
+    // celeritas::TrackingManagerOffload automatically assigns available
+    // physics processes to the selected particles and offloads them to
+    // Celeritas by updating their G4TrackStatus to fStopAndKill in Geant4 and
+    // creating a new track in Celeritas.
     auto* celer_tracking = new celeritas::TrackingManagerOffload(
         &CelerSharedParams(), &CelerLocalTransporter());
     G4Electron::Definition()->SetTrackingManager(celer_tracking);

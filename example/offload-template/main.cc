@@ -3,17 +3,18 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file example/offload-template/main.cc
-//! \brief Minimal Geant4 application with Celeritas offloading.
+//! \brief Minimal single-threaded Geant4 application with Celeritas offloading
 //---------------------------------------------------------------------------//
+#include <memory>
 #include <FTFP_BERT.hh>
-#include <G4RunManager.hh>
+#include <G4RunManagerFactory.hh>
 
 #include "src/ActionInitialization.hh"
 #include "src/DetectorConstruction.hh"
 
 //---------------------------------------------------------------------------//
 /*!
- * Geant4-Celeritas offloading template.
+ * Geant4-Celeritas single-threaded offloading template.
  *
  * See README for details.
  */
@@ -26,18 +27,19 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // Construct run manager
-    G4RunManager run_manager;
-    run_manager.SetVerboseLevel(1);  // Print minimal information about the run
+    std::unique_ptr<G4RunManager> run_manager;
+    run_manager.reset(
+        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
 
     // Initialize physics, geometry, and actions
-    run_manager.SetUserInitialization(new FTFP_BERT(/* verbosity = */ 0));
-    run_manager.SetUserInitialization(new DetectorConstruction());
-    run_manager.SetUserInitialization(new ActionInitialization());
+    run_manager->SetUserInitialization(new FTFP_BERT(/* verbosity = */ 0));
+    run_manager->SetUserInitialization(new DetectorConstruction());
+    run_manager->SetUserInitialization(new ActionInitialization());
 
     // Run one event
-    run_manager.Initialize();
-    run_manager.BeamOn(1);
+    run_manager->SetVerboseLevel(1);  // Print minimal run information
+    run_manager->Initialize();
+    run_manager->BeamOn(1);
 
     return EXIT_SUCCESS;
 }

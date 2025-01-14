@@ -20,8 +20,9 @@ if(NOT Celeritas_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------#
-# Set up sources, include directories, and libraries
-set(_sources
+# Add executable
+add_executable(run-offload
+  main.cc
   src/ActionInitialization.cc
   src/Celeritas.cc
   src/DetectorConstruction.cc
@@ -31,23 +32,14 @@ set(_sources
   src/SensitiveDetector.cc
 )
 
-set(_includes
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${Geant4_INCLUDE_DIR}
-  ${Celeritas_ROOT}/include
+target_include_directories(run-offload PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
-set(_libs
+# Use Celeritas CUDA RDC utility function to correctly link libraries
+include(CudaRdcUtils)
+cuda_rdc_target_link_libraries(run-offload
   ${Geant4_LIBRARIES}
   Celeritas::celeritas
   Celeritas::accel
 )
-
-#-----------------------------------------------------------------------------#
-# Add executable
-add_executable(run-offload main.cc ${_sources})
-target_include_directories(run-offload PRIVATE $<BUILD_INTERFACE:${_includes}>)
-
-# Use Celeritas CUDA RDC utility function to correctly link libraries
-include(CudaRdcUtils)
-cuda_rdc_target_link_libraries(run-offload ${_libs})
