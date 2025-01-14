@@ -551,9 +551,12 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         // cross the internal surface, effectively flipping
         // internal senses
         axpy(distance + bump_dist, state.dir, &pos);
+
+        // reset on_face since we'll be bumping the position
+        on_face = {};
         // evaluate senses from the new position
         auto calc_senses = detail::LazySenseCalculator(
-            this->make_surface_visitor(), vol, pos, on_face);
+            this->make_surface_visitor(), vol, std::move(pos), on_face);
 
         if (!is_inside(calc_senses))
         {
@@ -561,12 +564,9 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
             // other words, only after crossing all the internal surfaces along
             // this direction do we hit a surface that actually puts us
             // outside.
-            Intersection result;
-            result.surface
-                = {vol.get_surface(face), flip_sense(calc_senses(face))};
-            result.distance = distance;
-            CELER_ENSURE(result.distance > 0 && !std::isinf(result.distance));
-            return result;
+            CELER_ENSURE(distance > 0 && !std::isinf(distance));
+            return {{vol.get_surface(face), flip_sense(calc_senses(face))},
+                    distance};
         }
     }
 
