@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/offload-template/src/ActionInitialization.hh
+//! \file example/offload-template/src/ActionInitialization.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

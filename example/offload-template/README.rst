@@ -32,7 +32,7 @@ $ ./main
     briefly described below.
 - `G4VUserActionInitialization`
   - `Build`: Construct Celeritas Simple Offload interface with user-defined
-    options (from `Celeritas.cc`)
+    options (from `Celeritas.cc`) and assign the Celeritas tracking manager to the appropriate particles
 - `G4UserRunAction`
   - `BeginOfRunAction`: Initialize Celeritas global shared data on master and
     worker threads
@@ -40,9 +40,6 @@ $ ./main
 - `G4UserEventAction`
   - `BeginOfEventAction`: Initialize event in Celeritas
   - `EndOfEventAction`: Flush remaining particles
-- `G4UserTrackingAction`
-  - `PreUserTrackingAction`: Kill relevant particles in Geant4; offload their
-    state to Celeritas
 - `G4VSensitiveDetector`
   - `ProcessHits`: Currently the *only* Celeritas callback interface to Geant4;
   at each step, Celeritas sends data back as a `G4Step` to be processed by

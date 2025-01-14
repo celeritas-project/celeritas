@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/offload-template/src/Celeritas.hh
+//! \file example/offload-template/src/Celeritas.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,7 +10,6 @@
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
 #include <accel/SimpleOffload.hh>
-#include <accel/TrackingManagerOffload.hh>
 
 namespace celeritas
 {
@@ -25,5 +24,5 @@ celeritas::SetupOptions& CelerSetupOptions();
 celeritas::SharedParams& CelerSharedParams();
 // Thread-local transporter
 celeritas::LocalTransporter& CelerLocalTransporter();
-// Thread-local offload
+// Thread-local offload user interface
 celeritas::SimpleOffload& CelerSimpleOffload();

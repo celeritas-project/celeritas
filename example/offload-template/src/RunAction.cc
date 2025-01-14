@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/offload-template/src/RunAction.cc
+//! \file example/offload-template/src/RunAction.cc
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 

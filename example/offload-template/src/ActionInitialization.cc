@@ -2,9 +2,11 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/offload-template/src/ActionInitialization.cc
+//! \file example/offload-template/src/ActionInitialization.cc
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
+
+#include <accel/TrackingManagerOffload.hh>
 
 #include "Celeritas.hh"
 #include "EventAction.hh"
@@ -22,7 +24,7 @@ ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up all user actions and Celeritas' offloading interface.
+ * Set up all user actions and Celeritas offload interface.
  */
 void ActionInitialization::Build() const
 {

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/offload-template/src/Celeritas.cc
+//! \file example/offload-template/src/Celeritas.cc
 //---------------------------------------------------------------------------//
 #include "Celeritas.hh"
 

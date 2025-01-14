@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/offload-template/main.cc
+//! \file example/offload-template/main.cc
 //! \brief Minimal Geant4 application with Celeritas offloading.
 //---------------------------------------------------------------------------//
 #include <FTFP_BERT.hh>
