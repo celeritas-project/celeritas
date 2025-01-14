@@ -145,6 +145,8 @@ jobs:
           ccache -z
       - name: Configure Celeritas
         run: |
+          # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
+          git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           if [ "${{matrix.geant}}" == "11.0" ]; then
             # Test overriding of Geant4 environment variables
