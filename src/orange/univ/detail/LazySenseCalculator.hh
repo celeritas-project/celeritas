@@ -113,57 +113,5 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
 }
 
 //---------------------------------------------------------------------------//
-class IntersectLazySenseCalculator
-{
-  public:
-    // Construct from persistent, current, and temporary data
-    inline CELER_FUNCTION
-    IntersectLazySenseCalculator(LocalSurfaceVisitor const& visit,
-                                 VolumeView const& vol,
-                                 Real3 const& pos,
-                                 FaceId crossing_face,
-                                 OnFace& face);
-
-    // Calculate senses for a single face of the given volume, possibly on a
-    // face
-    inline CELER_FUNCTION Sense operator()(FaceId face_id);
-
-  private:
-    //! Apply a function to a local surface
-    LazySenseCalculator lsc_;
-
-    //! The face being crossed
-    FaceId crossing_face_;
-
-    //! The sense value of the crossing face
-    SenseValue sense_;
-};
-
-//---------------------------------------------------------------------------//
-IntersectLazySenseCalculator::IntersectLazySenseCalculator(
-    LocalSurfaceVisitor const& visit,
-    VolumeView const& vol,
-    Real3 const& pos,
-    FaceId crossing_face,
-    OnFace& face)
-    : lsc_{visit, vol, pos, face}, crossing_face_{crossing_face}
-{
-}
-
-//---------------------------------------------------------------------------//
-auto IntersectLazySenseCalculator::operator()(FaceId face_id) -> Sense
-{
-    if (crossing_face_ && face_id == crossing_face_)
-    {
-        if (!sense_.is_assigned())
-        {
-            sense_ = flip_sense(lsc_(face_id));
-        }
-        return sense_;
-    }
-    return lsc_(face_id);
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

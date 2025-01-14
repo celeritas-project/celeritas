@@ -548,11 +548,10 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         FaceId face = state.temp_next.face[isect];
         Real3 pos = state.pos;
 
-        // // cross the internal surface, effectively flipping previous
-        // internal
-        // // senses
+        // cross the internal surface, effectively flipping
+        // internal senses
         axpy(distance + bump_dist, state.dir, &pos);
-        // // evaluate senses from the new position
+        // evaluate senses from the new position
         auto calc_senses = detail::LazySenseCalculator(
             this->make_surface_visitor(), vol, pos, on_face);
 
