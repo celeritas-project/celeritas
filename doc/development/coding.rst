@@ -28,14 +28,34 @@ semi-automatically into this user manual via the Breathe tool integrated
 into the Celeritas build system (see :ref:`dependencies`). High-level classes
 should describe the functionality of the class in a way understandable to both
 power users and developers, and such classes should be included in the
-:ref:`api` section. Citations to the Celeritas Zotero database can be
-referenced inline code using the special ``\citep{whatever-2025,
-https://doi.org/.../}`` Doxygen
+:ref:`api` section. Inline ReStructured Text can be added to the user manual
+using the custom aliases ``\rst`` and ``\endrst``.
+
+Citations to the Celeritas Zotero database can be referenced inline code using
+the special ``\citep{whatever-2025, https://doi.org/.../}`` Doxygen
 alias set up inside the Celeritas doc :file:`CMakeLists.txt`. (Another form,
 ``\citet``, will insert the reference "textually" as opposed to
-"parenthetically".) Inline
-ReStructured Text to be added to the user manual can be injected using the
-custom aliases ``\rst`` and ``\endrst``.
+"parenthetically"; and use the single-argument ``\cite`` if you do not have a
+DOI.) The procedure to set up a citation correctly is:
+
+1.  First, set up `Better BibTeX for Zotero`_ and ensure you have access to the
+    `Celeritas group`_ library (Contact @tmdelellis if you are not a member of
+    the group.)
+2.  Add the reference to the appropriate subdirectory of the Zotero Celeritas
+    References subgroup.  If you have a DOI, use the handy magic wand icon to
+    "Add items by identifier".
+3.  In the Extra field of the resulting item, add a special line: ``Citation
+    key: author-keyword-year`` to set up a stable BibTeX citation key.
+4.  Ask the code manager to update the Zotero-generated .bib file that lives
+    in the ``gh-pages-bases`` branch. (NOTE: this is necessary before the pull
+    request passes, and we will add a github action to update the bibliography
+    file.)
+5.  Subsequent Github action builds should pull in the new bib file for
+    generating documentation. For your local build, you may have to remove the
+    :file:`source/doc/_static/zotero.bib` file so that CMake will re-download it.
+
+.. _Better BibTeX for Zotero: https://github.com/retorquere/zotero-better-bibtex
+.. _Celeritas group: https://www.zotero.org/groups/2380941/celeritas/library
 
 Test thoroughly
 ---------------
