@@ -39,8 +39,15 @@ cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-# Run Geant4 app example(s)
+# Run Geant4 app examples
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
+  # Run offload-template
+  cd "${CELER_SOURCE_DIR}/example/offload-template"
+  build_local
+  export CELER_DISABLE_PARALLEL=1
+  ./run-offload
+
+  # Run small accel examples
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error

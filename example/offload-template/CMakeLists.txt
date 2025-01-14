@@ -45,9 +45,9 @@ set(_libs
 
 #-----------------------------------------------------------------------------#
 # Add executable
-add_executable(main main.cc ${_sources})
-target_include_directories(main PRIVATE $<BUILD_INTERFACE:${_includes}>)
+add_executable(run-offload main.cc ${_sources})
+target_include_directories(run-offload PRIVATE $<BUILD_INTERFACE:${_includes}>)
 
 # Use Celeritas CUDA RDC utility function to correctly link libraries
 include(CudaRdcUtils)
-cuda_rdc_target_link_libraries(main ${_libs})
+cuda_rdc_target_link_libraries(run-offload ${_libs})
