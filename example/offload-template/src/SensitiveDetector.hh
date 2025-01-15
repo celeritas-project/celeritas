@@ -12,6 +12,8 @@
 //---------------------------------------------------------------------------//
 /*!
  * Sensitive detector class.
+ *
+ * This is currently the *only* interface between Geant4 and Celeritas.
  */
 class SensitiveDetector : public G4VSensitiveDetector
 {

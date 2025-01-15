@@ -11,7 +11,7 @@
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate primaries.
+ * Initialize Celeritas offloading interface.
  */
 class RunAction : public G4UserRunAction
 {

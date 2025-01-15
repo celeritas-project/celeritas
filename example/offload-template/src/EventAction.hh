@@ -11,7 +11,7 @@
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate primaries.
+ * Initialize events in Celeritas.
  */
 class EventAction : public G4UserEventAction
 {

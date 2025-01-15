@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file example/offload-template/main.cc
-//! \brief Minimal single-threaded Geant4 application with Celeritas offloading
+//! \brief Minimal Geant4 application with Celeritas offloading
 //---------------------------------------------------------------------------//
 #include <memory>
 #include <FTFP_BERT.hh>
@@ -14,7 +14,7 @@
 
 //---------------------------------------------------------------------------//
 /*!
- * Geant4-Celeritas single-threaded offloading template.
+ * Geant4-Celeritas offloading template.
  *
  * See README for details.
  */

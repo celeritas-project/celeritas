@@ -10,7 +10,9 @@
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize all user action classes.
+ * Initialize all user action classes, set up Celeritas offloading interface,
+ * and assign the Celeritas' implementation of \c G4VTrackingManager to the
+ * particles that should be offloaded.
  */
 class ActionInitialization final : public G4VUserActionInitialization
 {

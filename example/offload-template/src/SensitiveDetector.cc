@@ -24,7 +24,10 @@ G4bool SensitiveDetector::ProcessHits(G4Step*, G4TouchableHistory*)
     // -----------------------------------------------------
     // Only existing interface between Celeritas and Geant4
     // -----------------------------------------------------
-    // Data processed through other methods (e.g. SteppingAction) will not be
-    // correctly passed to the I/O during an offloaded run.
+    // Data processed through other classes (e.g. G4UserSteppingAction) will
+    // not be correctly passed to the I/O during an offloaded run.
+    //
+    // See SetupOptions::SDSetupOptions (in Celeritas.cc) to enable the
+    // necessary pre/post step attributes needed
     return true;
 }
