@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
     std::unique_ptr<G4RunManager> run_manager;
     run_manager.reset(
-        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
+        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default));
 
     // Initialize physics, geometry, and actions
     run_manager->SetUserInitialization(new FTFP_BERT(/* verbosity = */ 0));
@@ -37,9 +37,7 @@ int main(int argc, char* argv[])
     run_manager->SetUserInitialization(new ActionInitialization());
 
     // Run one event
-    run_manager->SetVerboseLevel(1);  // Print minimal run information
     run_manager->Initialize();
     run_manager->BeamOn(1);
-
     return EXIT_SUCCESS;
 }

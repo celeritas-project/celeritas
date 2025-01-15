@@ -18,6 +18,9 @@ class ActionInitialization final : public G4VUserActionInitialization
     // Construct empty
     ActionInitialization();
 
-    // Set up user actions and construct Celeritas offload interface
+    // Master thread user actions and Celeritas offload interface
+    void BuildForMaster() const final;
+
+    // Worker thread actions and Celeritas offload interface
     void Build() const final;
 };

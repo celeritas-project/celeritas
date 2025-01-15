@@ -24,15 +24,26 @@ ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up all user actions and Celeritas offload interface.
- *
- * \note In the case of a Geant4 multithreaded application a separate
- * \c CelerSimpleOffload::BuildForMaster function call should be added to
- * the \c G4VUserActionInitialization::BuildForMaster implementation.
+ * Set up Celeritas offload on master thread and initialize it via the
+ * \c G4UserRunAction .
+ */
+void ActionInitialization::BuildForMaster() const
+{
+    // Construct Celeritas offloading interface on master thread
+    CelerSimpleOffload().BuildForMaster(&CelerSetupOptions(),
+                                        &CelerSharedParams());
+
+    // RunAction is responsible for initializing Celeritas
+    this->SetUserAction(new RunAction());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up all worker thread user actions and Celeritas offload interface.
  */
 void ActionInitialization::Build() const
 {
-    // Construct Celeritas offloading interface
+    // Construct Celeritas offloading interface on worker thread
     CelerSimpleOffload().Build(
         &CelerSetupOptions(), &CelerSharedParams(), &CelerLocalTransporter());
 

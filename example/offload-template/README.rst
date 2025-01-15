@@ -4,8 +4,7 @@ Geant4-Celeritas offloading template
 This is a template for Geant4 applications with Celeritas physics offloading
 capabilities. It shows how to link Celeritas against Geant4 in the
 :code:`CMakeLists.txt` and the Geant4 classes needed to initialize Celeritas,
-offload events, and recover step information. This example is single-threaded
-only, but provides directions for a multi-threaded implementation.
+offload events, and recover step information.
 
 Dependencies
 ------------
@@ -40,9 +39,9 @@ Boilerplate offloading code
      briefly described below.
 
 :code:`G4VUserActionInitialization`
-  :code:`Build`: constructs Celeritas Simple Offload interface with
-  user-defined options (from `Celeritas.cc`) and assigns the Celeritas tracking
-  manager to the appropriate particles.
+  :code:`Build` and `BuildForMaster` construct Celeritas Simple Offload
+    interface with user-defined options (from `Celeritas.cc`) and assign the
+    Celeritas tracking manager to the appropriate particles.
 
 :code:`G4UserRunAction`
   :code:`BeginOfRunAction` initializes Celeritas global shared data on master
