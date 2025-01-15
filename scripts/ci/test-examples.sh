@@ -46,9 +46,7 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
     # Run offload-template only on Geant4 v11
     cd "${CELER_SOURCE_DIR}/example/offload-template"
     build_local
-    export CELER_DISABLE_PARALLEL=1
     ./run-offload
-    unset CELER_DISABLE_PARALLEL
   fi
 
   # Run small accel examples
