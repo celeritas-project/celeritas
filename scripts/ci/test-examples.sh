@@ -41,11 +41,15 @@ build_local
 
 # Run Geant4 app examples
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
-  # Run offload-template
-  cd "${CELER_SOURCE_DIR}/example/offload-template"
-  build_local
-  export CELER_DISABLE_PARALLEL=1
-  ./run-offload
+  if [ "$(echo $CELER_GEANT4_VERSION | awk -F. '{print $1*100 + $2}')" \
+      -ge 1100 ]; then
+    # Run offload-template only on Geant4 v11 
+    cd "${CELER_SOURCE_DIR}/example/offload-template"
+    build_local
+    export CELER_DISABLE_PARALLEL=1
+    ctest -V --no-tests=error
+    unset CELER_DISABLE_PARALLEL
+  fi
 
   # Run small accel examples
   cd "${CELER_SOURCE_DIR}/example/accel"
