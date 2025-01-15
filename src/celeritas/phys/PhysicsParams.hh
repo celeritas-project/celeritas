@@ -79,8 +79,8 @@ struct ParticleOptions
     MscStepLimitAlgorithm step_limit_algorithm;
     //!@}
 
-    //! Default options for electrons/positrons
-    static ParticleOptions default_em()
+    //! Default options for light particles (electrons/positrons)
+    static ParticleOptions default_light()
     {
         ParticleOptions opts;
         opts.min_range = real_type{1} * units::millimeter;
@@ -92,8 +92,8 @@ struct ParticleOptions
         return opts;
     };
 
-    //! Default options for muons/hadrons
-    static ParticleOptions default_muhad()
+    //! Default options for heavy particles (muons/hadrons)
+    static ParticleOptions default_heavy()
     {
         ParticleOptions opts;
         opts.min_range = 0.1 * units::millimeter;
@@ -157,8 +157,8 @@ struct PhysicsParamsOptions
 
     //!@{
     //! \name Particle-dependent parameters
-    ParticleOptions em{ParticleOptions::default_em()};
-    ParticleOptions muhad{ParticleOptions::default_muhad()};
+    ParticleOptions light{ParticleOptions::default_light()};
+    ParticleOptions heavy{ParticleOptions::default_heavy()};
     //!@}
 
     real_type secondary_stack_factor{3};

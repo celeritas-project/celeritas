@@ -284,8 +284,8 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.safety_factor = opts.safety_factor;
     data->scalars.spline_eloss_order = opts.spline_eloss_order;
 
-    this->build_particle_options(opts.em, &data->scalars.em);
-    this->build_particle_options(opts.muhad, &data->scalars.muhad);
+    this->build_particle_options(opts.light, &data->scalars.light);
+    this->build_particle_options(opts.heavy, &data->scalars.heavy);
 }
 
 //---------------------------------------------------------------------------//

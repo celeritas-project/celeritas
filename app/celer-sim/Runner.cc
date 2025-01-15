@@ -350,22 +350,22 @@ void Runner::build_core_params(RunnerInput const& inp,
         input.options.secondary_stack_factor = inp.secondary_stack_factor;
         input.options.spline_eloss_order = inp.spline_eloss_order;
         input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
-        input.options.em.lowest_energy = ParticleOptions::Energy(
+        input.options.light.lowest_energy = ParticleOptions::Energy(
             imported.em_params.lowest_electron_energy);
-        input.options.muhad.lowest_energy
+        input.options.heavy.lowest_energy
             = ParticleOptions::Energy(imported.em_params.lowest_muhad_energy);
 
         // Set multiple scattering options
-        input.options.em.range_factor = imported.em_params.msc_range_factor;
-        input.options.muhad.range_factor
+        input.options.light.range_factor = imported.em_params.msc_range_factor;
+        input.options.heavy.range_factor
             = imported.em_params.msc_muhad_range_factor;
         input.options.safety_factor = imported.em_params.msc_safety_factor;
         input.options.lambda_limit = imported.em_params.msc_lambda_limit;
-        input.options.em.displaced = imported.em_params.msc_displaced;
-        input.options.muhad.displaced = imported.em_params.msc_muhad_displaced;
-        input.options.em.step_limit_algorithm
+        input.options.light.displaced = imported.em_params.msc_displaced;
+        input.options.heavy.displaced = imported.em_params.msc_muhad_displaced;
+        input.options.light.step_limit_algorithm
             = imported.em_params.msc_step_algorithm;
-        input.options.muhad.step_limit_algorithm
+        input.options.heavy.step_limit_algorithm
             = imported.em_params.msc_muhad_step_algorithm;
 
         // Build processes

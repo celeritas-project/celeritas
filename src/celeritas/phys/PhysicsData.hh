@@ -270,8 +270,8 @@ struct PhysicsParamsScalars
     real_type safety_factor{};  //!< safety factor
 
     // Particle-dependent user-configurable constants
-    ParticleScalars em;
-    ParticleScalars muhad;
+    ParticleScalars light;
+    ParticleScalars heavy;
 
     //! Order for energy loss interpolation
     size_type spline_eloss_order{};
@@ -290,7 +290,7 @@ struct PhysicsParamsScalars
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
                && spline_eloss_order > 0 && lambda_limit > 0
-               && safety_factor >= 0.1 && em && muhad;
+               && safety_factor >= 0.1 && light && heavy;
     }
 
     //! Stop early due to MSC limitation

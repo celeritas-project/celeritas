@@ -654,16 +654,17 @@ PhysicsTrackView::scalars() const
 /*!
  * Access particle-dependent scalar properties.
  *
- * These properties are different for electrons/positrons and muons/hadrons.
+ * These properties are different for light particles (electrons/positrons) and
+ * heavy particles (muons/hadrons).
  */
 CELER_FORCEINLINE_FUNCTION ParticleScalars const&
 PhysicsTrackView::particle_scalars() const
 {
     if (is_heavy_)
     {
-        return params_.scalars.muhad;
+        return params_.scalars.heavy;
     }
-    return params_.scalars.em;
+    return params_.scalars.light;
 }
 
 //---------------------------------------------------------------------------//

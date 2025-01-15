@@ -403,7 +403,7 @@ class StepLimiterTest : public PhysicsStepUtilsTest
     {
         PhysicsOptions opts;
 
-        opts.em.min_range = inf;  // Use analytic range instead of scaled
+        opts.light.min_range = inf;  // Use analytic range instead of scaled
         opts.fixed_step_limiter = 1e-3 * units::centimeter;
         return opts;
     }
