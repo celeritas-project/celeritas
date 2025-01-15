@@ -4,75 +4,80 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/setup/Events.cc
 //---------------------------------------------------------------------------//
+#include "Events.hh"
+
+#include <vector>
+
+#include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/StringUtils.hh"
+#include "corecel/sys/ScopedMem.hh"
+#include "celeritas/io/EventReader.hh"
+#include "celeritas/io/RootEventReader.hh"
+#include "celeritas/phys/PrimaryGenerator.hh"
+#include "celeritas/phys/RootEventSampler.hh"
 
 namespace celeritas
 {
 namespace setup
 {
-//---------------------------------------------------------------------------//
-/*!
- * Read events from a file or build using a primary generator.
- *
- * This returns the total number of events.
- */
-size_type
-Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
+namespace
 {
-    ScopedMem record_mem("Runner.build_events");
-
-    if (inp.merge_events)
+//---------------------------------------------------------------------------//
+auto read_events(EventReaderInterface&& generate)
+{
+    std::vector<std::vector<Primary>> result;
+    auto event = generate();
+    while (!event.empty())
     {
-        // All events will be transported simultaneously on a single stream
-        events_.resize(1);
+        result.push_back(event);
+        event = generate();
     }
-
-    auto read_events = [&](auto&& generate) {
-        auto event = generate();
-        while (!event.empty())
-        {
-            if (inp.merge_events)
-            {
-                events_.front().insert(
-                    events_.front().end(), event.begin(), event.end());
-            }
-            else
-            {
-                events_.push_back(event);
-            }
-            event = generate();
-        }
-        return generate.num_events();
-    };
-
-    if (inp.primary_options)
-    {
-        return read_events(
-            PrimaryGenerator::from_options(particles, inp.primary_options));
-    }
-    else if (ends_with(inp.event_file, ".root"))
-    {
-        if (inp.file_sampling_options)
-        {
-            // Sampling options are assigned; use ROOT event sampler
-            return read_events(
-                RootEventSampler(inp.event_file,
-                                 particles,
-                                 inp.file_sampling_options.num_events,
-                                 inp.file_sampling_options.num_merged,
-                                 inp.seed));
-        }
-        else
-        {
-            // Use event reader
-            return read_events(RootEventReader(inp.event_file, particles));
-        }
-    }
-    else
-    {
-        // Assume filename is one of the HepMC3-supported extensions
-        return read_events(EventReader(inp.event_file, particles));
-    }
+    return result;
 }
 
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load events from a file.
+ */
+std::vector<std::vector<Primary>>
+events(inp::Events const& e,
+       std::shared_ptr<ParticleParams const> const& particles)
+{
+    CELER_EXPECT(particles);
+    ScopedMem record_mem("Runner.build_events");
+
+    return std::visit(
+        Overload{
+            [&particles](inp::PrimaryGenerator const& pg) {
+                return read_events(PrimaryGenerator{pg, *particles});
+            },
+            [&particles](inp::SampleFileEvents const& sfe) {
+                return read_events(RootEventSampler{sfe.event_file,
+                                                    particles,
+                                                    sfe.num_events,
+                                                    sfe.num_merged,
+                                                    sfe.seed});
+            },
+            [&particles](inp::ReadFileEvents const& rfe) {
+                if (ends_with(rfe.event_file, ".root"))
+                {
+                    return read_events(
+                        RootEventReader{rfe.event_file, particles});
+                }
+                else
+                {
+                    // Assume filename is one of the HepMC3-supported
+                    // extensions
+                    return read_events(EventReader{rfe.event_file, particles});
+                }
+            },
+        },
+        e);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace setup
 }  // namespace celeritas
