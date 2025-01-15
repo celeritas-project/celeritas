@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -32,7 +32,10 @@ namespace optical
 
 //! Alias for MaterialId in core Celeritas namespace
 using CoreMaterialId = ::celeritas::MaterialId;
-}
+
+//! Function to build optical models with a given action id
+using ModelBuilder = std::function<std::shared_ptr<class Model>(ActionId)>;
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

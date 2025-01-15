@@ -10,7 +10,6 @@
 #include <algorithm>
 
 #include "celeritas/Types.hh"
-#include "celeritas/optical/ModelBuilder.hh"
 #include "celeritas/optical/model/AbsorptionModel.hh"
 #include "celeritas/optical/model/RayleighModel.hh"
 

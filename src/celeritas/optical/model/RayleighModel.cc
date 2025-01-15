@@ -15,7 +15,6 @@
 #include "../ImportedMaterials.hh"
 #include "../MaterialParams.hh"
 #include "../MfpBuilder.hh"
-#include "../ModelBuilder.hh"
 
 namespace celeritas
 {
@@ -23,45 +22,16 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Builder for optical Rayleigh scattering model.
- */
-class RayleighModelBuilder final : public ModelBuilder
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPModel = ModelBuilder::SPModel;
-    using SPConstImported = RayleighModel::SPConstImported;
-    using Input = RayleighModel::Input;
-    //!@}
-
-  public:
-    RayleighModelBuilder(SPConstImported imported, Input input)
-        : imported_(std::move(imported)), input_(std::move(input))
-    {
-        CELER_EXPECT(imported_);
-    }
-
-    SPModel operator()(ActionId id) const final
-    {
-        return std::make_shared<RayleighModel>(id, imported_, input_);
-    }
-
-  private:
-    SPConstImported imported_;
-    Input input_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Create a model builder for Rayleigh scattering from imported data and
  * material parameters.
  */
-std::shared_ptr<ModelBuilder>
-RayleighModel::make_builder(SPConstImported imported, Input input)
+ModelBuilder RayleighModel::make_builder(SPConstImported imported, Input input)
 {
-    return std::make_shared<RayleighModelBuilder>(std::move(imported),
-                                                  std::move(input));
+    CELER_EXPECT(imported);
+    return [imported = std::move(imported),
+            input = std::move(input)](ActionId id) {
+        return std::make_shared<RayleighModel>(id, imported, input);
+    };
 }
 
 //---------------------------------------------------------------------------//
