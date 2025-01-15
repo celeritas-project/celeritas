@@ -30,8 +30,8 @@ DetectorConstruction::DetectorConstruction() : G4VUserDetectorConstruction() {}
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
     // Construct single material world volume box
-    auto* const nist = G4NistManager::Instance();
-    auto* const world_material = nist->FindOrBuildMaterial("G4_Pb");
+    auto* nist = G4NistManager::Instance();
+    auto* world_material = nist->FindOrBuildMaterial("G4_Pb");
     double const world_size = 1 * m;
     auto* world_box
         = new G4Box("world_box", world_size, world_size, world_size);
