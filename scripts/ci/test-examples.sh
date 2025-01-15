@@ -43,11 +43,11 @@ build_local
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
   if [ "$(echo $CELER_GEANT4_VERSION | awk -F. '{print $1*100 + $2}')" \
       -ge 1100 ]; then
-    # Run offload-template only on Geant4 v11 
+    # Run offload-template only on Geant4 v11
     cd "${CELER_SOURCE_DIR}/example/offload-template"
     build_local
     export CELER_DISABLE_PARALLEL=1
-    ctest -V --no-tests=error
+    ./run-offload
     unset CELER_DISABLE_PARALLEL
   fi
 
