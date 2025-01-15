@@ -150,6 +150,12 @@ class PhysicsTrackView
     // Access scalar properties
     CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const& scalars() const;
 
+    // Access particle-dependent scalar properties
+    CELER_FORCEINLINE_FUNCTION ParticleScalars const& particle_scalars() const;
+
+    // Whether the particle is an electron or positron
+    CELER_FORCEINLINE_FUNCTION bool is_electron() const;
+
     // Number of particle types
     inline CELER_FUNCTION size_type num_particles() const;
 
@@ -618,7 +624,8 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
     CELER_ASSERT(range >= 0);
-    real_type const rho = params_.scalars.min_range;
+    auto const& scalars = this->particle_scalars();
+    real_type const rho = scalars.min_range;
     if (range < rho * (1 + celeritas::sqrt_tol()))
     {
         // Small range returns the step. The fudge factor avoids floating point
@@ -627,7 +634,7 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
         return range;
     }
 
-    real_type const alpha = params_.scalars.max_step_over_range;
+    real_type const alpha = scalars.max_step_over_range;
     real_type step = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(step > 0 && step <= range);
     return step;
@@ -641,6 +648,32 @@ CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const&
 PhysicsTrackView::scalars() const
 {
     return params_.scalars;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access particle-dependent scalar properties.
+ *
+ * These properties are different for electrons/positrons and muons/hadrons.
+ */
+CELER_FORCEINLINE_FUNCTION ParticleScalars const&
+PhysicsTrackView::particle_scalars() const
+{
+    if (this->is_electron())
+    {
+        return params_.scalars.em;
+    }
+    return params_.scalars.muhad;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the particle is an electron or positron.
+ */
+CELER_FORCEINLINE_FUNCTION bool PhysicsTrackView::is_electron() const
+{
+    return particle_ == params_.scalars.electron
+           || particle_ == params_.scalars.positron;
 }
 
 //---------------------------------------------------------------------------//

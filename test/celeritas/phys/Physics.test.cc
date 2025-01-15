@@ -141,7 +141,7 @@ TEST_F(PhysicsParamsTest, output)
         GTEST_SKIP() << "Test results are based on CGS units";
     }
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"em.lowest_energy":[0.001,"MeV"],"em.max_step_over_range":0.2,"em.min_range":0.1,"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"min_eprime_over_e":0.8,"muhad.lowest_energy":[0.001,"MeV"],"muhad.max_step_over_range":0.2,"muhad.min_range":0.1,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
         to_string(out));
 }
 
@@ -278,7 +278,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
     // Range-to-step for different ranges
     // (additionally tested in calc_eloss_range)
-    real_type rho = params_ref.scalars.min_range;
+    real_type rho = params_ref.scalars.em.min_range;
     std::vector<real_type> step;
     real_type const eps = std::numeric_limits<real_type>::epsilon();
 
@@ -470,8 +470,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.min_range);
-    EXPECT_SOFT_EQ(0.2, params_ref.scalars.max_step_over_range);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.em.min_range);
+    EXPECT_SOFT_EQ(0.2, params_ref.scalars.em.max_step_over_range);
     std::vector<real_type> eloss;
     std::vector<real_type> range;
     std::vector<real_type> step;

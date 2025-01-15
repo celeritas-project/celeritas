@@ -525,10 +525,26 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.relaxation = nullptr;  // TODO: add later?
         input.action_registry = params.action_reg.get();
 
+        // Set physics options
         input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
-        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
+        input.options.em.lowest_energy = ParticleOptions::Energy(
             imported->em_params.lowest_electron_energy);
+        input.options.muhad.lowest_energy
+            = ParticleOptions::Energy(imported->em_params.lowest_muhad_energy);
         input.options.secondary_stack_factor = options.secondary_stack_factor;
+
+        // Set multiple scattering options
+        input.options.em.range_factor = imported->em_params.msc_range_factor;
+        input.options.muhad.range_factor
+            = imported->em_params.msc_muhad_range_factor;
+        input.options.safety_factor = imported->em_params.msc_safety_factor;
+        input.options.lambda_limit = imported->em_params.msc_lambda_limit;
+        input.options.em.displaced = imported->em_params.msc_displaced;
+        input.options.muhad.displaced = imported->em_params.msc_muhad_displaced;
+        input.options.em.step_limit_algorithm
+            = imported->em_params.msc_step_algorithm;
+        input.options.muhad.step_limit_algorithm
+            = imported->em_params.msc_muhad_step_algorithm;
 
         return std::make_shared<PhysicsParams>(std::move(input));
     }();

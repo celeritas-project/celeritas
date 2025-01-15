@@ -253,7 +253,10 @@ auto MockTestBase::build_init() -> SPConstTrackInit
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_physics_options() const -> PhysicsOptions
 {
-    return {};
+    PhysicsOptions options;
+    // Use e-/e+ parameters for "mock" particles to preserve test results
+    options.muhad = options.em;
+    return options;
 }
 
 //---------------------------------------------------------------------------//

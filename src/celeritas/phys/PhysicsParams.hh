@@ -34,7 +34,10 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Physics configuration options.
+ * Particle-dependent physics configuration options.
+ *
+ * These parameters have different values for electrons/positrons and
+ * muons/hadrons.
  *
  * Input options are:
  * - \c min_range: below this value, there is no extra transformation from
@@ -42,6 +45,46 @@ class ParticleParams;
  * - \c max_step_over_range: at higher energy (longer range), gradually
  *   decrease the maximum step length until it's this fraction of the tabulated
  *   range.
+ * - \c lowest_energy: tracking cutoff kinetic energy.
+ * - \c displaced: whether MSC lateral displacement is enabled for e-/e+
+ * - \c range_factor: used in the MSC step limitation algorithm to restrict the
+ *   step size to \f$ f_r \cdot max(r, \lambda) \f$ at the start of a track or
+ *   after entering a volume, where \f$ f_r \f$ is the range factor, \f$ r \f$
+ *   is the range, and \f$ \lambda \f$ is the mean free path.
+ * - \c step_limit_algorithm: algorithm used to determine the MSC step limit.
+ *
+ * NOTE: min_range/max_step_over_range are not accessible through Geant4, and
+ * they can also be set to be different for electrons, mu/hadrons, and ions
+ * (they are set in Geant4 with \c G4EmParameters::SetStepFunction()).
+ */
+struct ParticleOptions
+{
+    using Energy = units::MevEnergy;
+
+    //!@{
+    //! \name Range calculation
+    real_type min_range;
+    real_type max_step_over_range;
+    //!@}
+
+    //!@{
+    //! \name Energy loss
+    Energy lowest_energy;
+    //!@}
+
+    //!@{
+    //! \name Multiple scattering
+    bool displaced;
+    real_type range_factor;
+    MscStepLimitAlgorithm step_limit_algorithm;
+    //!@}
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Physics configuration options.
+ *
+ * Input options are:
  * - \c fixed_step_limiter: if nonzero, prevent any tracks from taking a step
  *   longer than this length.
  * - \c min_eprime_over_e: energy scaling fraction used to estimate the maximum
@@ -50,16 +93,10 @@ class ParticleParams;
  * - \c linear_loss_limit: if the mean energy loss along a step is greater than
  *   this fractional value of the pre-step kinetic energy, recalculate the
  *   energy loss.
- * - \c lowest_electron_energy: lowest kinetic energy for electrons/positrons
  * - \c lambda_limit: limit on the MSC mean free path.
- * - \c range_factor: used in the MSC step limitation algorithm to restrict the
- *   step size to \f$ f_r \cdot max(r, \lambda) \f$ at the start of a track or
- *   after entering a volume, where \f$ f_r \f$ is the range factor, \f$ r \f$
- *   is the range, and \f$ \lambda \f$ is the mean free path.
  * - \c safety_factor: used in the MSC step limitation algorithm to restrict
  *   the step size to \f$ f_s s \f$, where \f$ f_s \f$ is the safety factor and
  *   \f$  s \f$ is the safety distance.
- * - \c step_limit_algorithm: algorithm used to determine the MSC step limit.
  * - \c secondary_stack_factor: the number of secondary slots per track slot
  *   allocated.
  * - \c disable_integral_xs: for particles with energy loss processes, the
@@ -71,42 +108,67 @@ class ParticleParams;
  *   \c spline_eloss_order: the order of interpolation to be used for the
  *   spline interpolation. If it is 1, then the existing linear interpolation
  *   is used. If it is 2+, the spline interpolation is used for energy loss
- *   using the specified order. Default value is 1
- *
- * NOTE: min_range/max_step_over_range are not accessible through Geant4, and
- * they can also be set to be different for electrons, mu/hadrons, and ions
- * (they are set in Geant4 with \c G4EmParameters::SetStepFunction()).
+ *   using the specified order. Default value is 1.
  */
 struct PhysicsParamsOptions
 {
-    using Energy = units::MevEnergy;
-
     //!@{
     //! \name Range calculation
-    real_type min_range = real_type{1} * units::millimeter;
-    real_type max_step_over_range = 0.2;
-    real_type fixed_step_limiter = 0;
+    real_type fixed_step_limiter;
     //!@}
 
     //!@{
     //! \name Energy loss
-    real_type min_eprime_over_e = 0.8;
-    real_type linear_loss_limit = 0.01;
-    Energy lowest_electron_energy = Energy{0.001};
+    real_type min_eprime_over_e;
+    real_type linear_loss_limit;
     //!@}
 
     //!@{
     //! \name Multiple scattering
-    real_type lambda_limit = real_type{1} * units::millimeter;
-    real_type range_factor = 0.04;
-    real_type safety_factor = 0.6;
-    MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::safety};
+    real_type lambda_limit;
+    real_type safety_factor;
     //!@}
 
-    real_type secondary_stack_factor = 3;
-    bool disable_integral_xs = false;
+    //!@{
+    //! \name Particle-dependent parameters
+    ParticleOptions em;
+    ParticleOptions muhad;
+    //!@}
 
-    size_type spline_eloss_order = 1;
+    real_type secondary_stack_factor;
+    bool disable_integral_xs;
+    size_type spline_eloss_order;
+
+    //! Default constructor
+    PhysicsParamsOptions()
+    {
+        // Range calculation
+        em.min_range = real_type{1} * units::millimeter;
+        muhad.min_range = 0.1 * units::millimeter;
+        em.max_step_over_range = 0.2;
+        muhad.max_step_over_range = 0.2;
+        fixed_step_limiter = 0;
+
+        // Energy loss
+        min_eprime_over_e = 0.8;
+        linear_loss_limit = 0.01;
+        em.lowest_energy = ParticleOptions::Energy{0.001};
+        muhad.lowest_energy = ParticleOptions::Energy{0.001};
+
+        // Multiple scattering
+        lambda_limit = real_type{1} * units::millimeter;
+        safety_factor = 0.6;
+        em.displaced = true;
+        muhad.displaced = false;
+        em.range_factor = 0.04;
+        muhad.range_factor = 0.2;
+        em.step_limit_algorithm = MscStepLimitAlgorithm::safety;
+        muhad.step_limit_algorithm = MscStepLimitAlgorithm::minimal;
+
+        secondary_stack_factor = 3;
+        disable_integral_xs = false;
+        spline_eloss_order = 1;
+    };
 };
 
 //---------------------------------------------------------------------------//
@@ -223,6 +285,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
   private:
     VecModel build_models(ActionRegistry*) const;
     void build_options(Options const& opts, HostValue* data) const;
+    void build_particle_options(ParticleOptions const&, ParticleScalars*) const;
     void build_ids(ParticleParams const& particles, HostValue* data) const;
     void build_xs(Options const& opts,
                   MaterialParams const& mats,

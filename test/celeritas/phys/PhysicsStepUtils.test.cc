@@ -43,7 +43,10 @@ class PhysicsStepUtilsTest : public MockTestBase
 
     PhysicsOptions build_physics_options() const override
     {
-        return PhysicsOptions{};
+        PhysicsOptions options;
+        // Use e-/e+ parameters for "mock" particles to preserve test results
+        options.muhad = options.em;
+        return options;
     }
 
     void SetUp() override
@@ -406,7 +409,7 @@ class StepLimiterTest : public PhysicsStepUtilsTest
     {
         PhysicsOptions opts;
 
-        opts.min_range = inf;  // Use analytic range instead of scaled
+        opts.em.min_range = inf;  // Use analytic range instead of scaled
         opts.fixed_step_limiter = 1e-3 * units::centimeter;
         return opts;
     }
