@@ -543,6 +543,9 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     detail::LogicEvaluator is_inside(vol.logic());
     CELER_ASSERT(is_inside(calc_sense));
 
+    // previous isect distance for move delta
+    real_type previous_distance{0};
+
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].
     // Evaluate the logic expression at each crossing to determine whether
@@ -560,7 +563,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
             // Calculate sense from old position
             return detail::OnFace{face, flip_sense(calc_sense(face))};
         }();
-        axpy(distance, state.dir, &pos);
+        axpy(distance - previous_distance, state.dir, &pos);
 
         if (!is_inside(calc_sense))
         {
@@ -574,6 +577,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
                 {vol.get_surface(on_face.id()), flip_sense(on_face.sense())},
                 distance};
         }
+        previous_distance = distance;
     }
 
     // No intersection: perhaps leaving an exterior volume? Perhaps geometry

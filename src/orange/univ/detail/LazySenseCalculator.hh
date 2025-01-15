@@ -40,7 +40,7 @@ class LazySenseCalculator
 {
   public:
     // Construct from persistent, current, and temporary data
-    inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor&& visit,
+    inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                               VolumeView const& vol,
                                               Real3 const& pos,
                                               OnFace& face);
@@ -70,11 +70,11 @@ class LazySenseCalculator
  * Construct from persistent, current, and temporary data.
  */
 CELER_FUNCTION
-LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor&& visit,
+LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
                                          VolumeView const& vol,
                                          Real3 const& pos,
                                          OnFace& face)
-    : visit_{std::move(visit)}, vol_{vol}, pos_{pos}, face_{face}
+    : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}
 {
 }
 
