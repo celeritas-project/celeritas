@@ -39,8 +39,7 @@ ModelImporter::ModelImporter(ImportData const& data,
     CELER_EXPECT(std::string(data.units) == units::NativeTraits::label());
 
     input_.imported = ImportedModels::from_import(data);
-    input_.import_material
-        = ImportedMaterials::from_import(data, *input_.core_material);
+    input_.import_material = ImportedMaterials::from_import(data);
 
     CELER_ENSURE(input_.imported);
     CELER_ENSURE(input_.import_material);

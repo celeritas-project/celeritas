@@ -108,6 +108,12 @@ auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
             OpticalMaterialId(opt_mat % input.properties.size()));
     }
 
+    // mock MaterialId == OpticalMaterialId
+    for (auto mat : range(MaterialId(input.properties.size())))
+    {
+        input.optical_to_core.push_back(mat);
+    }
+
     return std::make_shared<MaterialParams const>(std::move(input));
 }
 

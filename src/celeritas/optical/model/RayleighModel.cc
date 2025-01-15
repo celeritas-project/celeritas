@@ -113,15 +113,15 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
     }
     else
     {
-        auto core_mat_view = input_.core_materials->get(
-            input_.imported_materials->core_material_id(mat));
+        auto mat_view = input_.materials->get(mat);
+        auto core_mat_view
+            = input_.core_materials->get(mat_view.core_material_id());
         CELER_VALIDATE(core_mat_view.temperature() > 0,
                        << "calculating Rayleigh MFPs from material parameters "
                           "requires positive temperatures");
 
-        RayleighMfpCalculator calc_mfp(input_.materials->get(mat),
-                                       input_.imported_materials->rayleigh(mat),
-                                       core_mat_view);
+        RayleighMfpCalculator calc_mfp(
+            mat_view, input_.imported_materials->rayleigh(mat), core_mat_view);
 
         // Use index of refraction energy grid as calculated MFP energy grid
         auto const& energy_grid = calc_mfp.grid().values();

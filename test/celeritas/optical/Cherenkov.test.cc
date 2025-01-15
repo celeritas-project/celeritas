@@ -145,6 +145,7 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
         MaterialParams::Input input;
         input.properties.push_back(std::move(water));
         input.volume_to_mat = {OpticalMaterialId{0}};
+        input.optical_to_core = {CoreMaterialId{0}};
         material = std::make_shared<MaterialParams>(std::move(input));
 
         // Build Cherenkov data

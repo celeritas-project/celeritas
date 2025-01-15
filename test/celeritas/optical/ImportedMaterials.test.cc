@@ -27,8 +27,8 @@ class ImportedMaterialsTest : public OpticalMockTestBase
   protected:
     void SetUp() override
     {
-        imported_materials = ImportedMaterials::from_import(
-            this->imported_data(), *this->material());
+        imported_materials
+            = ImportedMaterials::from_import(this->imported_data());
     }
 
     std::shared_ptr<ImportedMaterials const> imported_materials;
@@ -43,10 +43,6 @@ TEST_F(ImportedMaterialsTest, simple)
     for (auto opt_mat :
          range(OpticalMaterialId{imported_materials->num_materials()}))
     {
-        // Core material mapping
-        EXPECT_EQ(::celeritas::MaterialId{opt_mat.get()},
-                  imported_materials->core_material_id(opt_mat));
-
         // Rayleigh data
         {
             auto const& expected_rayleigh
