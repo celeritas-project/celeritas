@@ -205,13 +205,10 @@ TYPED_TEST(SenseCalculatorTest, two_volumes)
     {
         OnFace face;
         // Point is in the outer sphere
-        MySenseCalc calc_senses{this->construct_sense_calculator(
-            this->make_surf_visitor(), inner, Real3{2, 0, 0}, face)};
-        {
-            auto result = calc_senses(FaceId{0});
-            EXPECT_EQ(Sense::outside, result);
-            EXPECT_FALSE(face);
-        }
+        auto result = MySenseCalc{this->construct_sense_calculator(
+            this->make_surf_visitor(), inner, Real3{2, 0, 0}, face)}(FaceId{0});
+        EXPECT_EQ(Sense::outside, result);
+        EXPECT_FALSE(face);
     }
 }
 
