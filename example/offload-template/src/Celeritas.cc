@@ -32,7 +32,7 @@ SetupOptions& CelerSetupOptions()
         so.max_num_tracks = 1024 * 16;
         so.initializer_capacity = 1024 * 128 * 4;
         so.secondary_stack_factor = 3.0;
-        so.ignore_processes = {"CoulombScat"};  // Ignored processes list
+        so.ignore_processes = {"CoulombScat, Rayl"};  // Ignored processes list
 
         // Only call back for nonzero energy depositions: this is currently a
         // global option for all detectors, so if any SDs extract data from

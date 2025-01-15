@@ -6,7 +6,7 @@
 #-----------------------------------------------------------------------------#
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(VERSION 3.12...3.30)
-project(offload-template)
+project(offload-template LANGUAGES CXX)
 
 #-----------------------------------------------------------------------------#
 # Find packages
