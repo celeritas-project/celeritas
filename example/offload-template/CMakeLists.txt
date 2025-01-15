@@ -4,9 +4,10 @@
 #-----------------------------------------------------------------------------#
 # Minimal Geant4 application with Celeritas offloading capabilities
 #-----------------------------------------------------------------------------#
-cmake_minimum_required(VERSION 3.10)
-cmake_policy(VERSION 3.12...3.30)
+
+cmake_minimum_required(VERSION 3.18)
 project(offload-template LANGUAGES CXX)
+cmake_policy(VERSION 3.12...3.30)
 
 #-----------------------------------------------------------------------------#
 # Find packages
