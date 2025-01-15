@@ -41,13 +41,7 @@ class PhysicsStepUtilsTest : public MockTestBase
 
     using MevEnergy = units::MevEnergy;
 
-    PhysicsOptions build_physics_options() const override
-    {
-        PhysicsOptions options;
-        // Use e-/e+ parameters for "mock" particles to preserve test results
-        options.muhad = options.em;
-        return options;
-    }
+    PhysicsOptions build_physics_options() const override { return {}; }
 
     void SetUp() override
     {
@@ -80,7 +74,7 @@ class PhysicsStepUtilsTest : public MockTestBase
 
         PhysicsTrackView phys(this->physics()->host_ref(),
                               phys_state.ref(),
-                              par->particle_id(),
+                              *par,
                               mat->material_id(),
                               TrackSlotId{0});
         return phys;

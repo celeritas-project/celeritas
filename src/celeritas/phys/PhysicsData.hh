@@ -273,10 +273,6 @@ struct PhysicsParamsScalars
     ParticleScalars em;
     ParticleScalars muhad;
 
-    // Particle IDs
-    ParticleId electron;
-    ParticleId positron;
-
     //! Order for energy loss interpolation
     size_type spline_eloss_order{};
 

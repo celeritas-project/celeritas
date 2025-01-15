@@ -299,10 +299,6 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     CELER_EXPECT(!models_.empty());
     using ModelRange = std::tuple<real_type, real_type, ParticleModelId>;
 
-    // Save particle IDs
-    data->scalars.electron = particles.find(pdg::electron());
-    data->scalars.positron = particles.find(pdg::positron());
-
     // Offset from the index in the list of models to a model's ActionId
     data->scalars.model_to_action = this->model(ModelId{0})->action_id().get();
 

@@ -78,6 +78,32 @@ struct ParticleOptions
     real_type range_factor;
     MscStepLimitAlgorithm step_limit_algorithm;
     //!@}
+
+    //! Default options for electrons/positrons
+    static ParticleOptions default_em()
+    {
+        ParticleOptions opts;
+        opts.min_range = real_type{1} * units::millimeter;
+        opts.max_step_over_range = 0.2;
+        opts.lowest_energy = ParticleOptions::Energy{0.001};
+        opts.displaced = true;
+        opts.range_factor = 0.04;
+        opts.step_limit_algorithm = MscStepLimitAlgorithm::safety;
+        return opts;
+    };
+
+    //! Default options for muons/hadrons
+    static ParticleOptions default_muhad()
+    {
+        ParticleOptions opts;
+        opts.min_range = 0.1 * units::millimeter;
+        opts.max_step_over_range = 0.2;
+        opts.lowest_energy = ParticleOptions::Energy{0.001};
+        opts.displaced = false;
+        opts.range_factor = 0.2;
+        opts.step_limit_algorithm = MscStepLimitAlgorithm::minimal;
+        return opts;
+    };
 };
 
 //---------------------------------------------------------------------------//
@@ -114,61 +140,30 @@ struct PhysicsParamsOptions
 {
     //!@{
     //! \name Range calculation
-    real_type fixed_step_limiter;
+    real_type fixed_step_limiter{0};
     //!@}
 
     //!@{
     //! \name Energy loss
-    real_type min_eprime_over_e;
-    real_type linear_loss_limit;
+    real_type min_eprime_over_e{0.8};
+    real_type linear_loss_limit{0.01};
     //!@}
 
     //!@{
     //! \name Multiple scattering
-    real_type lambda_limit;
-    real_type safety_factor;
+    real_type lambda_limit{real_type{1} * units::millimeter};
+    real_type safety_factor{0.6};
     //!@}
 
     //!@{
     //! \name Particle-dependent parameters
-    ParticleOptions em;
-    ParticleOptions muhad;
+    ParticleOptions em{ParticleOptions::default_em()};
+    ParticleOptions muhad{ParticleOptions::default_muhad()};
     //!@}
 
-    real_type secondary_stack_factor;
-    bool disable_integral_xs;
-    size_type spline_eloss_order;
-
-    //! Default constructor
-    PhysicsParamsOptions()
-    {
-        // Range calculation
-        em.min_range = real_type{1} * units::millimeter;
-        muhad.min_range = 0.1 * units::millimeter;
-        em.max_step_over_range = 0.2;
-        muhad.max_step_over_range = 0.2;
-        fixed_step_limiter = 0;
-
-        // Energy loss
-        min_eprime_over_e = 0.8;
-        linear_loss_limit = 0.01;
-        em.lowest_energy = ParticleOptions::Energy{0.001};
-        muhad.lowest_energy = ParticleOptions::Energy{0.001};
-
-        // Multiple scattering
-        lambda_limit = real_type{1} * units::millimeter;
-        safety_factor = 0.6;
-        em.displaced = true;
-        muhad.displaced = false;
-        em.range_factor = 0.04;
-        muhad.range_factor = 0.2;
-        em.step_limit_algorithm = MscStepLimitAlgorithm::safety;
-        muhad.step_limit_algorithm = MscStepLimitAlgorithm::minimal;
-
-        secondary_stack_factor = 3;
-        disable_integral_xs = false;
-        spline_eloss_order = 1;
-    };
+    real_type secondary_stack_factor{3};
+    bool disable_integral_xs{false};
+    size_type spline_eloss_order{1};
 };
 
 //---------------------------------------------------------------------------//

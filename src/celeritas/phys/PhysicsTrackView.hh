@@ -21,6 +21,7 @@
 #include "celeritas/mat/TabulatedElementSelector.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
 #include "celeritas/phys/MacroXsCalculator.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "PhysicsData.hh"
 
@@ -49,7 +50,7 @@ class PhysicsTrackView
     // Construct from params, states, and per-state IDs
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const& params,
                                            PhysicsStateRef const& states,
-                                           ParticleId particle,
+                                           ParticleTrackView const& particle,
                                            MaterialId material,
                                            TrackSlotId tid);
 
@@ -153,9 +154,6 @@ class PhysicsTrackView
     // Access particle-dependent scalar properties
     CELER_FORCEINLINE_FUNCTION ParticleScalars const& particle_scalars() const;
 
-    // Whether the particle is an electron or positron
-    CELER_FORCEINLINE_FUNCTION bool is_electron() const;
-
     // Number of particle types
     inline CELER_FUNCTION size_type num_particles() const;
 
@@ -180,6 +178,7 @@ class PhysicsTrackView
     ParticleId const particle_;
     MaterialId const material_;
     TrackSlotId const track_slot_;
+    bool is_heavy_;
 
     //// IMPLEMENTATION HELPER FUNCTIONS ////
 
@@ -200,14 +199,15 @@ class PhysicsTrackView
 CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
-                                   ParticleId pid,
+                                   ParticleTrackView const& particle,
                                    MaterialId mid,
                                    TrackSlotId tid)
     : params_(params)
     , states_(states)
-    , particle_(pid)
+    , particle_(particle.particle_id())
     , material_(mid)
     , track_slot_(tid)
+    , is_heavy_(particle.is_heavy())
 {
     CELER_EXPECT(track_slot_);
 }
@@ -659,21 +659,11 @@ PhysicsTrackView::scalars() const
 CELER_FORCEINLINE_FUNCTION ParticleScalars const&
 PhysicsTrackView::particle_scalars() const
 {
-    if (this->is_electron())
+    if (is_heavy_)
     {
-        return params_.scalars.em;
+        return params_.scalars.muhad;
     }
-    return params_.scalars.muhad;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the particle is an electron or positron.
- */
-CELER_FORCEINLINE_FUNCTION bool PhysicsTrackView::is_electron() const
-{
-    return particle_ == params_.scalars.electron
-           || particle_ == params_.scalars.positron;
+    return params_.scalars.em;
 }
 
 //---------------------------------------------------------------------------//
