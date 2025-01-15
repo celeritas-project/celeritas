@@ -40,7 +40,7 @@ class LazySenseCalculator
 {
   public:
     // Construct from persistent, current, and temporary data
-    inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor const& visit,
+    inline CELER_FUNCTION LazySenseCalculator(LocalSurfaceVisitor&& visit,
                                               VolumeView const& vol,
                                               Real3 const& pos,
                                               OnFace& face);
@@ -54,10 +54,10 @@ class LazySenseCalculator
     LocalSurfaceVisitor visit_;
 
     //! Volume to calculate senses for
-    VolumeView vol_;
+    VolumeView const& vol_;
 
     //! Local position
-    Real3 pos_;
+    Real3 const& pos_;
 
     //! The first face encountered that we are "on"
     OnFace& face_;
@@ -70,11 +70,11 @@ class LazySenseCalculator
  * Construct from persistent, current, and temporary data.
  */
 CELER_FUNCTION
-LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor const& visit,
+LazySenseCalculator::LazySenseCalculator(LocalSurfaceVisitor&& visit,
                                          VolumeView const& vol,
                                          Real3 const& pos,
                                          OnFace& face)
-    : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}
+    : visit_{std::move(visit)}, vol_{vol}, pos_{pos}, face_{face}
 {
 }
 

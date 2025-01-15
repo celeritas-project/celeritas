@@ -526,13 +526,22 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 {
     CELER_ASSERT(num_isect > 0);
 
-    // Calculate local senses, taking current face into account
+    // Position and face state of the test point as we move across progressive
+    // surfaces.
+    // TODO: use rvalue references for local state since it's temporary; update
+    // its \c pos in place
+    Real3 pos{state.pos};
     detail::OnFace on_face(detail::find_face(vol, state.surface));
-    auto calc_senses = detail::LazySenseCalculator(
-        this->make_surface_visitor(), vol, state.pos, on_face);
+
+    // NOTE: if switching to the "eager" SenseCalculator, this must be moved
+    // inside the loop, since it recalculates senses only on construction.
+    detail::LazySenseCalculator calc_sense{
+        this->make_surface_visitor(), vol, pos, on_face};
+
+    // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(is_inside(calc_senses));
+    CELER_ASSERT(is_inside(calc_sense));
 
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].
@@ -543,25 +552,27 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         // Index into the distance/face arrays
         size_type const isect = state.temp_next.isect[isect_idx];
         real_type const distance = state.temp_next.distance[isect];
-        // Face being crossed in this ordered intersection
-        FaceId face = state.temp_next.face[isect];
 
-        Real3 pos{state.pos};
-        // evaluate senses from the new position
+        // Update face state *before* movement, then position
+        on_face = [&] {
+            FaceId face{state.temp_next.face[isect]};
+
+            // Calculate sense from old position
+            return detail::OnFace{face, flip_sense(calc_sense(face))};
+        }();
         axpy(distance, state.dir, &pos);
-        // "cross" the intersected face
-        detail::OnFace intersect_face{face, flip_sense(calc_senses(face))};
 
-        if (!is_inside(detail::LazySenseCalculator{
-                this->make_surface_visitor(), vol, pos, intersect_face}))
+        if (!is_inside(calc_sense))
         {
             // Flipping this sense puts us outside the current volume: in
             // other words, only after crossing all the internal surfaces along
             // this direction do we hit a surface that actually puts us
             // outside.
             CELER_ENSURE(distance > 0 && !std::isinf(distance));
-            return {{vol.get_surface(face), flip_sense(intersect_face.sense())},
-                    distance};
+            // Return the intersecting face and *pre*-crossing sense.
+            return {
+                {vol.get_surface(on_face.id()), flip_sense(on_face.sense())},
+                distance};
         }
     }
 
