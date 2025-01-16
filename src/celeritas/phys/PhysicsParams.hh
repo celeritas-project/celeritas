@@ -36,8 +36,8 @@ class ParticleParams;
 /*!
  * Particle-dependent physics configuration options.
  *
- * These parameters have different values for electrons/positrons and
- * muons/hadrons.
+ * These parameters have different values for light particles
+ * (electrons/positrons) and heavy particles (muons/hadrons).
  *
  * Input options are:
  * - \c min_range: below this value, there is no extra transformation from
