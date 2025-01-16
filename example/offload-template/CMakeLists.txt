@@ -18,8 +18,14 @@ find_package(Geant4)
 
 if(NOT Celeritas_FOUND)
   message(FATAL_ERROR
-  "No Celeritas installation found.\n"
-  "Export Celeritas_ROOT=/path/to/celeritas/install or use CMAKE_INSTALL_PREFIX")
+    "No Celeritas installation found.\n"
+    "Export Celeritas_ROOT=/path/to/celeritas/install or use CMAKE_INSTALL_PREFIX"
+  )
+endif()
+
+if(NOT CELERITAS_USE_Geant4)
+  message(SEND_ERROR "This example requires Geant4 support "
+    "to be enabled in Celeritas")
 endif()
 
 #-----------------------------------------------------------------------------#
