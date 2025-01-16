@@ -135,23 +135,29 @@ inline std::vector<logic_int> convert_to_infix(Span<logic_int> postfix)
                     auto op_1 = infix.back();
                     auto op_2 = infix.back();
                     std::vector<logic_int> new_expr;
+                    new_expr.reserve(3 + op_1.size() + op_2.size());
+
                     new_expr.push_back(logic::lopen);
                     new_expr.insert(new_expr.end(), op_1.begin(), op_1.end());
                     new_expr.push_back(lgc);
                     new_expr.insert(new_expr.end(), op_2.begin(), op_2.end());
                     new_expr.push_back(logic::lclose);
+
+                    infix.pop_back();
+                    infix.pop_back();
                     infix.push_back(new_expr);
-                    infix.pop_back();
-                    infix.pop_back();
                     break;
                 }
                 case logic::lnot: {
                     auto op = infix.back();
                     std::vector<logic_int> new_expr;
+                    new_expr.reserve(1 + op.size());
+
                     new_expr.push_back(lgc);
                     new_expr.insert(new_expr.end(), op.begin(), op.end());
-                    infix.push_back(new_expr);
+
                     infix.pop_back();
+                    infix.push_back(new_expr);
                     break;
                 }
                 default:
