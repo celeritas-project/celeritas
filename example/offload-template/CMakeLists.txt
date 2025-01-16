@@ -14,7 +14,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 #-----------------------------------------------------------------------------#
 # Find packages
 find_package(Celeritas 0.5)
-find_package(Geant4 REQUIRED)
+find_package(Geant4)
 
 if(NOT Celeritas_FOUND)
   message(FATAL_ERROR
