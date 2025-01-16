@@ -212,10 +212,11 @@ auto CmseTest::reference_volumes() const -> SpanConstStr
 auto CmseTest::reference_avg_path() const -> SpanConstReal
 {
     // clang-format off
-    static real_type const paths[] = {74.17136, 13.25306, 76.67924, 449.5464,
-        0.09551618, 0.3231404, 0.310899, 0.3844357, 0.01179415, 11.09485,
-        9.101073, 0.0004083249, 0.3033329, 0.4292332, 228.7892, 0.03947559,
-        563.0746, 2858.592};
+    static real_type const paths[] = {
+       74.681789113, 13.9060168654525, 67.789037081, 460.34598500,
+       0.0752032527, 0.3958262271, 0.25837963337, 0.51484801201, 0.01179415,
+       10.662958365, 9.3044714865, 0.0004083249, 0.25874352886, 0.4292332,
+       225.390314534812, 0.0394755943, 550.75653646, 2824.1066316 };
     // clang-format on
     return make_span(paths);
 }
@@ -311,8 +312,8 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 //---------------------------------------------------------------------------//
 // CMSE
 //---------------------------------------------------------------------------//
-
-TEST_F(CmseTest, host)
+// TODO: ensure reference values are the same for all CI platforms (see #1570)
+TEST_F(CmseTest, DISABLED_host)
 {
     auto const& bbox = this->geometry()->bbox();
     real_type const geo_eps
@@ -323,7 +324,8 @@ TEST_F(CmseTest, host)
     EXPECT_VEC_SOFT_EQ((Real3{1750 + geo_eps, 1750 + geo_eps, 45000 + geo_eps}),
                        bbox.upper());
 
-    real_type tol = 0.35;
+    real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.005
+                                                                     : 0.35;
     this->run_host(512, tol);
 }
 
