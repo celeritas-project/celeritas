@@ -7,11 +7,14 @@
 #pragma once
 
 #include <cmath>
+#include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "Types.hh"
 #include "../VolumeView.hh"
@@ -103,6 +106,65 @@ inline CELER_FUNCTION OnLocalSurface get_surface(VolumeView const& vol,
 {
     return {face ? vol.get_surface(face.id()) : LocalSurfaceId{},
             face.unchecked_sense()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a postfix logic expression to an infix expression.
+ */
+inline std::vector<logic_int> convert_to_infix(Span<logic_int> postfix)
+{
+    CELER_EXPECT(!postfix.empty());
+
+    std::vector<std::vector<logic_int>> infix;
+    infix.reserve(postfix.size());
+
+    // Process each token
+    for (auto lgc : postfix)
+    {
+        if (logic::is_operator_token(lgc))
+        {
+            switch (lgc)
+            {
+                case logic::ltrue:
+                    infix.push_back({lgc});
+                    break;
+                case logic::lor:
+                    [[fallthrough]];
+                case logic::land: {
+                    auto op_1 = infix.back();
+                    auto op_2 = infix.back();
+                    std::vector<logic_int> new_expr;
+                    new_expr.push_back(logic::lopen);
+                    new_expr.insert(new_expr.end(), op_1.begin(), op_1.end());
+                    new_expr.push_back(lgc);
+                    new_expr.insert(new_expr.end(), op_2.begin(), op_2.end());
+                    new_expr.push_back(logic::lclose);
+                    infix.push_back(new_expr);
+                    infix.pop_back();
+                    infix.pop_back();
+                    break;
+                }
+                case logic::lnot: {
+                    auto op = infix.back();
+                    std::vector<logic_int> new_expr;
+                    new_expr.push_back(lgc);
+                    new_expr.insert(new_expr.end(), op.begin(), op.end());
+                    infix.push_back(new_expr);
+                    infix.pop_back();
+                    break;
+                }
+                default:
+                    CELER_ASSERT_UNREACHABLE();
+            }
+        }
+        else
+        {
+            infix.push_back({lgc});
+        }
+    }
+    CELER_ENSURE(infix.size() == 1);
+    return infix.front();
 }
 
 //---------------------------------------------------------------------------//
