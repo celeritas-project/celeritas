@@ -152,5 +152,14 @@ MaterialParams::MaterialParams(Input const& inp)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a material view for the given identifier.
+ */
+MaterialView MaterialParams::get(OpticalMaterialId mat) const
+{
+    return MaterialView(this->host_ref(), mat);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas
