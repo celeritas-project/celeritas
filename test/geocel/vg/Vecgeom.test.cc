@@ -1457,31 +1457,23 @@ TEST_F(FourLevelsGeantTest, tracking)
 TEST_F(FourLevelsGeantTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-#if !CELERITAS_VECGEOM_SURFACE
     EXPECT_EQ("World_PV/env1/Shape1/Shape2",
               this->all_volume_instance_names(geo));
-#endif
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-#if !CELERITAS_VECGEOM_SURFACE
     EXPECT_EQ("World_PV/env1/Shape1", this->all_volume_instance_names(geo));
-#endif
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-#if !CELERITAS_VECGEOM_SURFACE
     EXPECT_EQ("World_PV/env1", this->all_volume_instance_names(geo));
-#endif
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-#if !CELERITAS_VECGEOM_SURFACE
     EXPECT_EQ("World_PV", this->all_volume_instance_names(geo));
-#endif
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
