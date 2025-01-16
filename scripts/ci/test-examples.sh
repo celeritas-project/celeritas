@@ -41,6 +41,11 @@ build_local
 
 # Run Geant4 app examples
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
+  # Run small accel examples
+  cd "${CELER_SOURCE_DIR}/example/accel"
+  build_local
+  ctest -V --no-tests=error
+
   if [ "$(echo $CELER_GEANT4_VERSION | awk -F. '{print $1*100 + $2}')" \
       -ge 1100 ]; then
     # Run offload-template only on Geant4 v11
@@ -48,11 +53,6 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
     build_local
     ./run-offload
   fi
-
-  # Run small accel examples
-  cd "${CELER_SOURCE_DIR}/example/accel"
-  build_local
-  ctest -V --no-tests=error
 else
   echo "Skipping 'accel' test due to insufficient requirements"
 fi
