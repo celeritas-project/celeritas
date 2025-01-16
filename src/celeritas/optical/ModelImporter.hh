@@ -80,13 +80,13 @@ class ModelImporter
     UserBuildInput input_;
     UserBuildMap user_build_map_;
 
-    inline SPConstImported const imported() const { return input_.imported; }
-    inline SPConstMaterial const material() const { return input_.material; }
-    inline SPConstImportedMaterial const import_material() const
+    SPConstImported const& imported() const { return input_.imported; }
+    SPConstMaterial const& material() const { return input_.material; }
+    SPConstImportedMaterial const& import_material() const
     {
         return input_.import_material;
     }
-    inline SPConstCoreMaterial const core_material() const
+    SPConstCoreMaterial const& core_material() const
     {
         return input_.core_material;
     }
