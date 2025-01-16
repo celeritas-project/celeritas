@@ -343,7 +343,16 @@ if(CELERITAS_USE_MPI)
 endif()
 
 if(CELERITAS_USE_OpenMP)
-  find_package(OpenMP REQUIRED)
+  if(NOT OpenMP_FOUND)
+    find_package(OpenMP REQUIRED)
+  endif()
+  if(OpenMP_VERSION VERSION_LESS "3.0")
+    celeritas_error_incompatible_option(
+      "Support for OpenMP 3 or higher required (found ${OpenMP_VERSION})"
+      CELERITAS_USE_OpenMP
+      OFF
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_Perfetto)
