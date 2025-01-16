@@ -23,7 +23,7 @@ test -n "${CMAKE_PRESET}" || (
 build_local() {
   git clean -fxd .
   EXAMPLE_INSTALL=${PWD}/install
-  printf "\e[1;32]mTesting in ${PWD}\e[m\n"
+  printf "\e[32mTesting in ${PWD}\e[m\n"
   mkdir build
   cd build
   cmake -G Ninja \
@@ -54,5 +54,5 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
     ./run-offload
   fi
 else
-  echo "Skipping 'accel' test due to insufficient requirements"
+  printf "\e[31mSkipping 'accel' tests due to insufficient requirements\e[m\n"
 fi
