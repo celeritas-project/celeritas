@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "celeritas/ext/GeantImporter.hh"
+
 #include "System.hh"
 
 namespace celeritas
@@ -33,13 +35,16 @@ struct FileImport
 /*!
  * Options for importing data from in-memory Geant4.
  *
- * \todo We will add options to select EM, extended EM, and/or optical physics,
- * which will activate Celeritas offloading of those particle types.
+ * \todo Update \c GeantImportDataSelection to control what Celeritas
+ * processes/particles are offloaded.
  */
 struct GeantImport
 {
     //! Do not use Celeritas physics for the given Geant4 process names
     std::vector<std::string> ignore_processes;
+
+    //! Only import a subset of available Geant4 data
+    GeantImportDataSelection data_selection;
 };
 
 //---------------------------------------------------------------------------//

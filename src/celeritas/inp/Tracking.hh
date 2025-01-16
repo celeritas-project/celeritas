@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
+#include <limits>
 
+#include "corecel/Types.hh"
 namespace celeritas
 {
 namespace inp
@@ -20,7 +21,7 @@ struct TrackingLimits
 {
     //! Don't limit the number of steps
     static inline constexpr size_type unlimited
-        = numeric_limits<size_type>::max();
+        = std::numeric_limits<size_type>::max();
 
     //! Steps per track before killing it
     size_type steps{unlimited};

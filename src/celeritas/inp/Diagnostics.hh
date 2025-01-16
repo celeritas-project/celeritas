@@ -131,6 +131,9 @@ struct Diagnostics
      */
     bool action{false};
 
+    //! Add a 'status checker' for debugging new actions
+    bool status_checker{false};
+
     //! Write detailed MC truth output
     std::optional<McTruth> mctruth;
 

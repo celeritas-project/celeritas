@@ -6,10 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/inp/System.hh"
-
 namespace celeritas
 {
+namespace inp
+{
+struct System;
+}
+
 namespace setup
 {
 //---------------------------------------------------------------------------//

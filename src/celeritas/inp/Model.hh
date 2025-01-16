@@ -6,6 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <variant>
+
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 namespace inp
@@ -16,8 +21,8 @@ namespace inp
  */
 struct Model
 {
-    //! Path to GDML (or ORANGE override) file, empty to import from Geant4
-    std::string geometry_file;
+    //! Path to GDML (or ORANGE override) file, or Geant4 world
+    std::variant<std::string, G4VPhysicalVolume const*> geometry;
 
     // TODO: Materials
     // TODO: Regions

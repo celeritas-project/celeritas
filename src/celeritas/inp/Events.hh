@@ -65,6 +65,7 @@ using EnergyDistribution = Monoenergetic;
  * Generate from a hardcoded distribution of primary particles.
  *
  * \todo Allow programmatic setting from particle ID as well
+ * \todo Units?
  * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
  */
 struct PrimaryGenerator
@@ -97,6 +98,9 @@ struct SampleFileEvents
 
     //! ROOT file input
     std::string event_file;
+
+    //! Random number generator seed
+    unsigned int seed{};
 };
 
 //---------------------------------------------------------------------------//

@@ -105,6 +105,9 @@ inp::Problem load_problem(RunnerInput const& ri)
         p.tuning.warm_up = ri.warm_up;
         p.tuning.seed = ri.seed;
 
+        // TODO: set number of streams
+        p.tuning.num_streams = 1;
+
         if (ri.use_device)
         {
             inp::DeviceDebug dd;
@@ -170,6 +173,7 @@ inp::Events load_events(RunnerInput const& ri)
             sfe.num_events = ri.file_sampling_options.num_events;
             sfe.num_merged = ri.file_sampling_options.num_merged;
             sfe.event_file = ri.event_file;
+            sfe.seed = ri.seed;
             return sfe;
         }
 

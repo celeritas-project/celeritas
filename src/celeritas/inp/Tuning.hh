@@ -34,6 +34,11 @@ namespace inp
  *
  * Defaults:
  * - \c secondary: twice the number of track slots.
+ *
+ * \todo Split this into "core" state capacity and "optical" state capacity?
+ * Core contains \c events and \c secondaries .
+ * \todo Instead of a special value \c events=0, make a variant or something
+ * more descriptive
  */
 struct StateCapacity
 {
@@ -70,7 +75,10 @@ struct DeviceDebug
  * Defaults:
  * - \c track_order: \c init_charge on GPU, \c none on CPU
  *
- * \todo 'seed' doesn't really belong here, not sure where to put it though
+ * \todo \c seed doesn't really belong here; not sure where to put it though
+ * \todo \c num_streams is used to set up per-stream state sizes:
+ * perhaps the number of sterams (and processes and events?) should be passed
+ * in to create the multi-thread states.
  */
 struct Tuning
 {
@@ -80,7 +88,7 @@ struct Tuning
     //! Per-process state sizes for *optical* tracking loop
     std::optional<StateCapacity> optical_capacity;
 
-    //! TO BE REMOVED: number of streams
+    //! Number of streams
     size_type num_streams{};
 
     //! Track sorting and initialization
@@ -93,7 +101,7 @@ struct Tuning
     bool warm_up{false};
 
     //! Random number generator seed
-    size_type seed{};
+    unsigned int seed{};
 };
 
 //---------------------------------------------------------------------------//
