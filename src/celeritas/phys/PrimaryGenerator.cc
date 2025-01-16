@@ -9,13 +9,73 @@
 #include <random>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/inp/Events.hh"
+#include "celeritas/random/distribution/DeltaDistribution.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include "ParticleParams.hh"
 #include "Primary.hh"
 
 namespace celeritas
 {
+namespace
+{
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a distribution for sampling the energy.
+ */
+PrimaryGenerator::EnergySampler
+make_energy_sampler(inp::EnergyDistribution const& i)
+{
+    CELER_VALIDATE(i.energy > zero_quantity(),
+                   << "invalid primary generator energy " << i.energy.value());
+
+    return DeltaDistribution<real_type>(i.energy.value());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a distribution for sampling the position.
+ */
+auto make_position_sampler(inp::ShapeDistribution const& i)
+{
+    CELER_ASSUME(!i.valueless_by_exception());
+    return std::visit(
+        return_as<PrimaryGenerator::PositionSampler>(Overload{
+            [](inp::PointShape const& ps) { return DeltaDistribution{ps.pos}; },
+            [](inp::UniformBoxShape const& ubs) {
+                return UniformBoxDistribution{ubs.lower, ubs.upper};
+            }}),
+        i);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a distribution for sampling the direction.
+ */
+auto make_direction_sampler(inp::AngleDistribution const& i)
+{
+    CELER_ASSUME(!i.valueless_by_exception());
+    return std::visit(return_as<PrimaryGenerator::DirectionSampler>(Overload{
+                          [](inp::IsotropicAngle const&) {
+                              return IsotropicDistribution<real_type>{};
+                          },
+                          [](inp::MonodirectionalAngle const& ma) {
+                              CELER_VALIDATE(is_soft_unit_vector(ma.dir),
+                                             << "primary generator angle is "
+                                                "not a unit vector");
+                              return DeltaDistribution{ma.dir};
+                          }}),
+                      i);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from user input.
@@ -30,39 +90,33 @@ PrimaryGenerator::from_options(SPConstParticles particles,
 {
     CELER_EXPECT(opts);
 
-    PrimaryGenerator::Input inp;
-    inp.seed = opts.seed;
-    inp.pdg = opts.pdg;
-    inp.num_events = opts.num_events;
-    inp.primaries_per_event = opts.primaries_per_event;
-    inp.sample_energy = make_energy_sampler(opts.energy);
-    inp.sample_pos = make_position_sampler(opts.position);
-    inp.sample_dir = make_direction_sampler(opts.direction);
-    return PrimaryGenerator(particles, inp);
+    return PrimaryGenerator(to_input(opts), *particles);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with options and shared particle data.
  */
-PrimaryGenerator::PrimaryGenerator(SPConstParticles particles, Input const& inp)
-    : num_events_(inp.num_events)
-    , primaries_per_event_(inp.primaries_per_event)
-    , seed_{inp.seed}
-    , sample_energy_(inp.sample_energy)
-    , sample_pos_(inp.sample_pos)
-    , sample_dir_(inp.sample_dir)
+PrimaryGenerator::PrimaryGenerator(Input const& i,
+                                   ParticleParams const& particles)
+    : num_events_{i.num_events}
+    , primaries_per_event_{i.primaries_per_event}
+    , seed_{i.seed}
+    , sample_energy_{make_energy_sampler(i.energy)}
+    , sample_pos_{make_position_sampler(i.shape)}
+    , sample_dir_{make_direction_sampler(i.angle)}
 {
-    CELER_EXPECT(particles);
-
     // TODO: seed based on event
     this->seed(UniqueEventId{0});
 
-    particle_id_.reserve(inp.pdg.size());
-    for (auto const& pdg : inp.pdg)
+    particle_id_.reserve(i.pdg.size());
+    for (auto const& pdg : i.pdg)
     {
-        particle_id_.push_back(particles->find(pdg));
+        particle_id_.push_back(particles.find(pdg));
     }
+    CELER_VALIDATE(
+        std::all_of(particle_id_.begin(), particle_id_.end(), LogicalTrue{}),
+        << R"(invalid or missing particle types specified for primary generator)");
 }
 
 //---------------------------------------------------------------------------//

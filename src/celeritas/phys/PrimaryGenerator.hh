@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <memory>
+#include <random>
 #include <vector>
 
 #include "celeritas/Types.hh"
@@ -21,6 +22,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class ParticleParams;
 struct Primary;
+namespace inp
+{
+struct PrimaryGenerator;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -40,31 +45,22 @@ class PrimaryGenerator : public EventReaderInterface
   public:
     //!@{
     //! \name Type aliases
+    using PrimaryGeneratorEngine = std::mt19937;
     using EnergySampler = std::function<real_type(PrimaryGeneratorEngine&)>;
     using PositionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
     using DirectionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using result_type = std::vector<Primary>;
+    using Input = inp::PrimaryGenerator;
     //!@}
 
-    struct Input
-    {
-        unsigned int seed{};
-        std::vector<PDGNumber> pdg;
-        size_type num_events{};
-        size_type primaries_per_event{};
-        EnergySampler sample_energy;
-        PositionSampler sample_pos;
-        DirectionSampler sample_dir;
-    };
-
   public:
-    // Construct from user input
+    // Construct from user input (deprecated)
     static PrimaryGenerator
     from_options(SPConstParticles, PrimaryGeneratorOptions const&);
 
-    // Construct with options and shared particle data
-    PrimaryGenerator(SPConstParticles, Input const&);
+    // Construct from shared particle data and new input
+    PrimaryGenerator(Input const&, ParticleParams const& particles);
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(PrimaryGenerator);

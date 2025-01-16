@@ -8,9 +8,6 @@
 
 #include "corecel/io/EnumStringMapper.hh"
 #include "celeritas/inp/Events.hh"
-#include "celeritas/random/distribution/DeltaDistribution.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 namespace celeritas
 {
@@ -125,83 +122,6 @@ char const* to_cstring(DistributionSelection value)
         "box",
     };
     return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a distribution for sampling the energy.
- */
-std::function<real_type(PrimaryGeneratorEngine&)>
-make_energy_sampler(DistributionOptions options)
-{
-    CELER_EXPECT(options);
-
-    char const sampler_name[] = "energy";
-    check_params_size(sampler_name, 1, options);
-    auto const& p = options.params;
-    switch (options.distribution)
-    {
-        case DistributionSelection::delta:
-            return DeltaDistribution<real_type>(p[0]);
-        default:
-            CELER_VALIDATE(false,
-                           << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a distribution for sampling the position.
- */
-std::function<Real3(PrimaryGeneratorEngine&)>
-make_position_sampler(DistributionOptions options)
-{
-    CELER_EXPECT(options);
-
-    char const sampler_name[] = "position";
-    check_params_size(sampler_name, 3, options);
-    auto const& p = options.params;
-    switch (options.distribution)
-    {
-        case DistributionSelection::delta:
-            return DeltaDistribution<Real3>(Real3{p[0], p[1], p[2]});
-        case DistributionSelection::box:
-            return UniformBoxDistribution<real_type>(Real3{p[0], p[1], p[2]},
-                                                     Real3{p[3], p[4], p[5]});
-        default:
-            CELER_VALIDATE(false,
-                           << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a distribution for sampling the direction.
- */
-std::function<Real3(PrimaryGeneratorEngine&)>
-make_direction_sampler(DistributionOptions options)
-{
-    CELER_EXPECT(options);
-
-    char const sampler_name[] = "direction";
-    check_params_size(sampler_name, 3, options);
-    auto const& p = options.params;
-    switch (options.distribution)
-    {
-        case DistributionSelection::delta:
-            return DeltaDistribution<Real3>(Real3{p[0], p[1], p[2]});
-        case DistributionSelection::isotropic:
-            return IsotropicDistribution<real_type>();
-        default:
-            CELER_VALIDATE(false,
-                           << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
-    }
 }
 
 //---------------------------------------------------------------------------//
