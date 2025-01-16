@@ -40,6 +40,10 @@ jobs:
             compiler: clang
             version: 18
             cxxstd: 20
+          - runner: noble-arm
+            compiler: clang
+            version: 18
+            cxxstd: 20
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -51,6 +55,7 @@ jobs:
       ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
         || matrix.runner == 'jammy' && 'ubuntu-22.04'
         || matrix.runner == 'noble' && 'ubuntu-24.04'
+        || matrix.runner == 'noble-arm' && 'ubuntu-24.04-arm'
       }}
     steps:
       - name: Install dependencies
