@@ -120,6 +120,7 @@ class SurfNavigator
         // in case hit_surf=-1, recalculate hit_surf
         // this is needed in some celeritas use-cases (rasterizing
         // out-of-world)
+#if 0
         if (hitsurf_index < 0)
         {
             vecgeom::NavigationState& in_state = out_state;
@@ -130,18 +131,21 @@ class SurfNavigator
                                      out_state,
                                      hitsurf_index);
         }
+#endif
 
-        vgbrep::CrossedSurface crossed_surf;
-        vgbrep::protonav::BVHSurfNavigator<Precision>::RelocateToNextVolume(
-	          globalpoint,
-	          globaldir,
-	          Precision(0),
-	          hitsurf_index,
-	          out_state,
-	          crossed_surf);
+        if (!out_state.IsOutside())
+        {
+            vgbrep::CrossedSurface crossed_surf;
+            vgbrep::protonav::BVHSurfNavigator<Precision>::RelocateToNextVolume(
+                globalpoint,
+                globaldir,
+                Precision(0),
+                hitsurf_index,
+                out_state,
+                crossed_surf);
+        }
     }
 };
-
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // End namespace celeritas
