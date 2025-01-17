@@ -156,6 +156,8 @@ struct GeantPhysicsOptions
     double linear_loss_limit{0.01};
     //! Tracking cutoff kinetic energy for e-/e+
     MevEnergy lowest_electron_energy{0.001};  // 1 keV
+    //! Tracking cutoff kinetic energy for muons/hadrons
+    MevEnergy lowest_muhad_energy{0.001};  // 1 keV
     //! Kill secondaries below the production cut
     bool apply_cuts{false};
     //! Set the default production cut for all particle types [len]
@@ -165,8 +167,10 @@ struct GeantPhysicsOptions
     //!@{
     //! \name Multiple scattering configuration
 
-    //! E-/e+ range factor for MSC models
+    //! e-/e+ range factor for MSC models
     double msc_range_factor{0.04};
+    //! Muon/hadron range factor for MSC models
+    double msc_muhad_range_factor{0.2};
     //! Safety factor for MSC models
     double msc_safety_factor{0.6};
     //! Lambda limit for MSC models [len]
@@ -175,8 +179,15 @@ struct GeantPhysicsOptions
     double msc_theta_limit{constants::pi};
     //! Factor for dynamic computation of angular limit between SS and MSC
     double angle_limit_factor{1};
-    //! Step limit algorithm for MSC models
+    //! Whether lateral displacement is enabled for e-/e+ MSC
+    bool msc_displaced{true};
+    //! Whether lateral displacement is enabled for muon/hadron MSC
+    bool msc_muhad_displaced{false};
+    //! Step limit algorithm for e-/e+ MSC models
     MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
+    //! Step limit algorithm for muon/hadron MSC models
+    MscStepLimitAlgorithm msc_muhad_step_algorithm{
+        MscStepLimitAlgorithm::minimal};
     //! Nuclear form factor model for Coulomm scattering
     NuclearFormFactorType form_factor{NuclearFormFactorType::exponential};
     //!@}
@@ -214,13 +225,18 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.max_energy == b.max_energy
            && a.linear_loss_limit == b.linear_loss_limit
            && a.lowest_electron_energy == b.lowest_electron_energy
+           && a.lowest_muhad_energy == b.lowest_muhad_energy
            && a.apply_cuts == b.apply_cuts
            && a.msc_range_factor == b.msc_range_factor
+           && a.msc_muhad_range_factor == b.msc_muhad_range_factor
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit
            && a.msc_theta_limit == b.msc_theta_limit
            && a.angle_limit_factor == b.angle_limit_factor
+           && a.msc_displaced == b.msc_displaced
+           && a.msc_muhad_displaced == b.msc_muhad_displaced
            && a.msc_step_algorithm == b.msc_step_algorithm
+           && a.msc_muhad_step_algorithm == b.msc_muhad_step_algorithm
            && a.form_factor == b.form_factor
            && a.verbose == b.verbose
            && a.optical == b.optical;

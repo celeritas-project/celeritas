@@ -141,7 +141,7 @@ TEST_F(PhysicsParamsTest, output)
         GTEST_SKIP() << "Test results are based on CGS units";
     }
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
         to_string(out));
 }
 
@@ -157,7 +157,8 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
   public:
     //!@{
     //! \name Type aliases
-    using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::host>;
+    template<template<Ownership, MemSpace> class S>
+    using StateStore = CollectionStateStore<S, MemSpace::host>;
     using ParamsHostRef = HostCRef<PhysicsParamsData>;
     //!@}
 
@@ -170,7 +171,9 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
         CELER_ASSERT(this->physics());
         params_ref = this->physics()->host_ref();
-        state = StateStore(params_ref, state_size);
+        state = StateStore<PhysicsStateData>(params_ref, state_size);
+        par_state = StateStore<ParticleStateData>(
+            this->particles()->host_ref(), state_size);
 
         // Clear secondary data (done in pre-step kernel)
         {
@@ -204,9 +207,13 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
         TrackSlotId tid((pid.get() + 1) % state.size());
 
+        ParticleTrackView par(
+            this->particles()->host_ref(), par_state.ref(), tid);
+        par = ParticleTrackView::Initializer_t{pid, MevEnergy{1}};
+
         // Construct (thread depends on particle here to shake things up) and
         // initialize
-        PhysicsTrackView phys(params_ref, state.ref(), pid, mid, tid);
+        PhysicsTrackView phys(params_ref, state.ref(), par, mid, tid);
         phys = PhysicsTrackInitializer{};
 
         return phys;
@@ -247,7 +254,8 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
     RandomEngine& rng() { return rng_; }
 
     ParamsHostRef params_ref;
-    StateStore state;
+    StateStore<PhysicsStateData> state;
+    StateStore<ParticleStateData> par_state;
     std::map<std::string_view, ProcessId> process_names;
     RandomEngine rng_;
 };
@@ -278,7 +286,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
     // Range-to-step for different ranges
     // (additionally tested in calc_eloss_range)
-    real_type rho = params_ref.scalars.min_range;
+    real_type rho = params_ref.scalars.light.min_range;
     std::vector<real_type> step;
     real_type const eps = std::numeric_limits<real_type>::epsilon();
 
@@ -470,8 +478,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.min_range);
-    EXPECT_SOFT_EQ(0.2, params_ref.scalars.max_step_over_range);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.light.min_range);
+    EXPECT_SOFT_EQ(0.2, params_ref.scalars.light.max_step_over_range);
     std::vector<real_type> eloss;
     std::vector<real_type> range;
     std::vector<real_type> step;
@@ -683,7 +691,8 @@ class PHYS_DEVICE_TEST : public PhysicsParamsTest
   public:
     //!@{
     //! \name Type aliases
-    using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::device>;
+    template<template<Ownership, MemSpace> class S>
+    using StateStore = CollectionStateStore<S, MemSpace::device>;
     //!@}
 
     void SetUp() override
@@ -693,7 +702,8 @@ class PHYS_DEVICE_TEST : public PhysicsParamsTest
         CELER_ASSERT(this->physics());
     }
 
-    StateStore states;
+    StateStore<PhysicsStateData> states;
+    StateStore<ParticleStateData> par_states;
     StateCollection<PhysTestInit, Ownership::value, MemSpace::device> inits;
 };
 
@@ -721,13 +731,18 @@ TEST_F(PHYS_DEVICE_TEST, all)
         this->inits = temp_inits;
     }
 
-    states = StateStore(this->physics()->host_ref(), this->inits.size());
-    DeviceVector<real_type> step(this->states.size());
+    states = StateStore<PhysicsStateData>(this->physics()->host_ref(),
+                                          inits.size());
+    par_states = StateStore<ParticleStateData>(this->particles()->host_ref(),
+                                               inits.size());
+    DeviceVector<real_type> step(states.size());
 
     PTestInput inp;
     inp.params = this->physics()->device_ref();
-    inp.states = this->states.ref();
-    inp.inits = this->inits;
+    inp.states = states.ref();
+    inp.par_params = this->particles()->device_ref();
+    inp.par_states = par_states.ref();
+    inp.inits = inits;
     inp.result = step.device_ref();
 
     phys_cuda_test(inp);
@@ -823,14 +838,20 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 {
     CollectionStateStore<PhysicsStateData, MemSpace::host> state{
         this->physics()->host_ref(), 1};
+    CollectionStateStore<ParticleStateData, MemSpace::host> par_state{
+        this->particles()->host_ref(), 1};
     HostCRef<PhysicsParamsData> params_ref{this->physics()->host_ref()};
 
     auto const pid = this->particles()->find("positron");
     ASSERT_TRUE(pid);
+    ParticleTrackView par(
+        this->particles()->host_ref(), par_state.ref(), TrackSlotId{0});
+    par = ParticleTrackView::Initializer_t{pid, MevEnergy{1}};
+
     ParticleProcessId const ppid{0};
     MaterialId const matid{0};
 
-    PhysicsTrackView phys(params_ref, state.ref(), pid, matid, TrackSlotId{0});
+    PhysicsTrackView phys(params_ref, state.ref(), par, matid, TrackSlotId{0});
     phys = PhysicsTrackInitializer{};
 
     // e+ annihilation should have nonzero "inline" cross section for all
