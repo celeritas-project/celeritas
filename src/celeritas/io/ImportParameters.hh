@@ -40,6 +40,8 @@ struct ImportEmParameters
     double linear_loss_limit{0.01};
     //! Lowest e-/e+ kinetic energy [MeV]
     double lowest_electron_energy{0.001};
+    //! Lowest muon/hadron kinetic energy [MeV]
+    double lowest_muhad_energy{0.001};
     //! Whether auger emission should be enabled (valid only for relaxation)
     bool auger{false};
     //! MSC step limit algorithm for e-/e+

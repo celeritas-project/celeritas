@@ -80,9 +80,6 @@ class UrbanMscHelper
     // Scaled cross section data for this particle+material
     inline CELER_FUNCTION XsGridData const& xs() const;
 
-    // Whether the particle is a muon or hadron
-    inline CELER_FUNCTION bool is_muhad() const;
-
   private:
     //// DATA ////
 
@@ -205,16 +202,6 @@ CELER_FUNCTION UrbanMscParMatData const& UrbanMscHelper::pmdata() const
     CELER_ASSERT(idx < shared_.par_mat_data.size());
 
     return shared_.par_mat_data[ItemId<UrbanMscParMatData>(idx)];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the particle is a muon or hadron.
- */
-CELER_FUNCTION bool UrbanMscHelper::is_muhad() const
-{
-    return !(particle_.particle_id() == shared_.ids.electron
-             || particle_.particle_id() == shared_.ids.positron);
 }
 
 //---------------------------------------------------------------------------//

@@ -142,6 +142,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(max_energy);
     GPO_LOAD_OPTION(linear_loss_limit);
     GPO_LOAD_OPTION(lowest_electron_energy);
+    GPO_LOAD_OPTION(lowest_muhad_energy);
     GPO_LOAD_OPTION(apply_cuts);
     GPO_LOAD_OPTION(default_cutoff);
 
@@ -194,6 +195,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, max_energy),
         CELER_JSON_PAIR(inp, linear_loss_limit),
         CELER_JSON_PAIR(inp, lowest_electron_energy),
+        CELER_JSON_PAIR(inp, lowest_muhad_energy),
         CELER_JSON_PAIR(inp, apply_cuts),
         CELER_JSON_PAIR(inp, default_cutoff),
 

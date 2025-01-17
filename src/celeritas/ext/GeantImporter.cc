@@ -1014,6 +1014,7 @@ ImportEmParameters import_em_parameters()
     import.integral_approach = g4.Integral();
     import.linear_loss_limit = g4.LinearLossLimit();
     import.lowest_electron_energy = g4.LowestElectronEnergy() * mev_scale;
+    import.lowest_muhad_energy = g4.LowestMuHadEnergy() * mev_scale;
     import.auger = g4.Auger();
     import.msc_step_algorithm = to_msc_step_algorithm(g4.MscStepLimitType());
     import.msc_muhad_step_algorithm

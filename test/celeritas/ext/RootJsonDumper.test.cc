@@ -343,6 +343,7 @@ TEST_F(RootJsonDumperTest, all)
   "integral_approach" : true,
   "linear_loss_limit" : 0.01,
   "lowest_electron_energy" : 0.001,
+  "lowest_muhad_energy" : 0.001,
   "auger" : false,
   "msc_step_algorithm" : 1,
   "msc_muhad_step_algorithm" : 0,

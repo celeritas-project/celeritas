@@ -143,6 +143,8 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
     em_parameters.SetLowestElectronEnergy(
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
+    em_parameters.SetLowestMuHadEnergy(
+        value_as<Options::MevEnergy>(options.lowest_muhad_energy) * CLHEP::MeV);
     em_parameters.SetApplyCuts(options.apply_cuts);
     em_parameters.SetVerbose(options.verbose);
 }
