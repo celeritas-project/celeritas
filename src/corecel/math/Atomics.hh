@@ -28,7 +28,8 @@
 //! Capture the subsequent expression as an OpenMP atomic
 #    define CELER_CAPTURE_IF_OPENMP_TRACK _Pragma("omp atomic capture")
 #else
-#    define CELER_CAPTURE_IF_OPENMP_TRACK if (true)
+//! Simply scope the next block
+#    define CELER_CAPTURE_IF_OPENMP_TRACK
 #endif
 
 namespace celeritas
