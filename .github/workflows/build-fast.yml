@@ -9,6 +9,121 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  linux:
+    name: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
+    strategy:
+      matrix:
+        include:
+          - runner: focal
+            compiler: gcc
+            version: 8
+          - runner: jammy
+            compiler: gcc
+            version: 12
+          - runner: noble
+            compiler: gcc
+            version: 14
+          - runner: noble
+            compiler: gcc
+            version: 14
+            cxxstd: 20
+          - runner: focal
+            compiler: clang
+            version: 10
+          - runner: jammy
+            compiler: clang
+            version: 15
+          - runner: noble
+            compiler: clang
+            version: 18
+          - runner: noble
+            compiler: clang
+            version: 18
+            cxxstd: 20
+    env:
+      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
+      CCACHE_DIR: "${{github.workspace}}/.ccache"
+      CCACHE_MAXSIZE: "100Mi"
+      CMAKE_PRESET: fast
+      CC: ${{matrix.compiler}}-${{matrix.version}}
+      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
+    runs-on: >-
+      ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
+        || matrix.runner == 'jammy' && 'ubuntu-22.04'
+        || matrix.runner == 'noble' && 'ubuntu-24.04'
+      }}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install \
+            ccache cmake ninja-build python3 \
+            nlohmann-json3-dev libgtest-dev libhepmc3-dev libpng-dev \
+            ${{matrix.compiler}}-${{matrix.version}} \
+            ${{matrix.compiler == 'gcc' && format('g++-{0}', matrix.version) || ''}}
+          echo "Installed toolchain:"
+          ld --version | head -1
+          $CC --version | head -1
+          $CXX --version | head -1
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
+          restore-keys: |
+            ccache-${{env.GHA_JOB_NAME}}
+      - name: Zero ccache stats
+        run: |
+          ccache -z
+      - name: Configure Celeritas
+        run: |
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --preset=${CMAKE_PRESET} \
+            ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
+            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
+              && format(';-pr.{0};', github.event.pull_request.number)
+              || format(';-{0};', github.ref_name)}}"
+      - name: Build
+        id: build
+        working-directory: build
+        run: |
+          ninja
+      - name: Run unit tests
+        id: unittest
+        run: |
+          ctest -LE app --preset=${CMAKE_PRESET}-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        run: |
+          ctest -L app --preset=${CMAKE_PRESET}-app
+      - name: Install
+        working-directory: build
+        run: |
+          ninja install
+      - name: Check installation
+        working-directory: install
+        run: |
+          ./bin/celer-sim --version
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
+        with:
+          name: test-results-fast-${{env.GHA_JOB_NAME}}
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
   windows:
     defaults:
       run:
