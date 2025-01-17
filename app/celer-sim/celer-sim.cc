@@ -129,11 +129,11 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         CELER_LOG(status) << "Transporting " << run_stream.num_events()
                           << " on " << num_streams << " threads";
         MultiExceptionHandler capture_exception;
-        auto const num_events = static_cast<int>(run_stream.num_events());
+        size_type const num_events = run_stream.num_events();
 #if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
 #    pragma omp parallel for
 #endif
-        for (int event = 0; event < num_events; ++event)
+        for (size_type event = 0; event < num_events; ++event)
         {
             activate_device_local();
 
