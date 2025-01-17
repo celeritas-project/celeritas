@@ -44,7 +44,7 @@ cmake_policy(VERSION 3.10...3.31)
 include(CMakeFindDependencyMacro)
 
 if(CELERITAS_USE_CUDA)
-  find_dependency(CUDAToolkit REQUIRED QUIET)
+  find_dependency(CUDAToolkit REQUIRED)
 
   if(NOT CMAKE_CUDA_COMPILER_LOADED)
     # enable_language only really works in top-level CMake directory, not even subprojects
@@ -99,10 +99,8 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_Python)
-  set(_version 3.6)
-  find_dependency(Python ${_version} REQUIRED COMPONENTS Interpreter)
+  find_dependency(Python 3.6 REQUIRED COMPONENTS Interpreter)
   unset(_components)
-  unset(_version)
 endif()
 
 if(CELERITAS_USE_ROOT)
@@ -128,7 +126,7 @@ if(CELERITAS_BUILD_TESTS)
   if(CMAKE_VERSION VERSION_LESS 3.20)
     # First look for standard CMake installation
     # (automatically done for CMake >= 3.20)
-    find_dependency(GTest @GTest_VERSION@ QUIET NO_MODULE)
+    find_dependency(GTest @GTest_VERSION@ NO_MODULE)
   endif()
   if(NOT GTest_FOUND)
     # If not found, try again
