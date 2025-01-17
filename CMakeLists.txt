@@ -631,7 +631,7 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
-# Thrust dependency is not a cache variable:
+# Thrust dependency is not a cache variable
 celeritas_export_var(CELERITAS_USE_Thrust)
 
 # Save whether we need GDML requirement
@@ -668,11 +668,19 @@ foreach(_key
 )
   set(_val "${${_key}}")
   if(_val)
-    list(APPEND CELERITAS_EXPORT_VARIABLES
-      "if(NOT DEFINED ${_key})"
-      "  set(${_key} \"${_val}\")"
-      "endif()"
-    )
+    set(_cache_val "$CACHE{${_key}}")
+    if(_cache_val)
+      list(APPEND CELERITAS_EXPORT_VARIABLES
+        "set(${_key} CACHE \"${_cache_val}\" PATH
+             \"Set by CeleritasConfig.cmake\")"
+      )
+    else()
+      list(APPEND CELERITAS_EXPORT_VARIABLES
+        "if(NOT DEFINED ${_key})"
+        "  set(${_key} \"${_val}\")"
+        "endif()"
+      )
+    endif()
   endif()
 endforeach()
 list(JOIN CELERITAS_EXPORT_VARIABLES "\n" CELERITAS_EXPORT_VARIABLES)
