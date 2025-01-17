@@ -32,7 +32,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
                                  ImportModelClass model_class)
     : particles_(particles)
     , model_class_(model_class)
-    , pid_to_xs_(particles_.size(), UrbanMscParameters::inapplicable())
+    , pid_to_xs_(particles_.size())
 {
     // Filter MSC data by model and particle type
     for (ImportMscModel const& imm : mdata)
@@ -47,10 +47,10 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
         if (!pid)
             continue;
 
-        if (pid_to_xs_[pid.get()] == UrbanMscParameters::inapplicable())
+        if (!pid_to_xs_[pid.get()])
         {
             // Save mapping of particle ID to index in cross section table
-            pid_to_xs_[pid.get()] = xs_tables_.size();
+            pid_to_xs_[pid.get()] = MscParticleId(xs_tables_.size());
             CELER_LOG(debug) << "found " << to_cstring(imm.model_class)
                              << " physics data for particle "
                              << particles_.id_to_label(pid);
@@ -109,7 +109,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
         for (size_type par_idx : range(par_ids_.size()))
         {
             // Get the cross section data for this particle and material
-            CELER_ASSERT(pid_to_xs_[par_ids_[par_idx].get()] == par_idx);
+            CELER_ASSERT(pid_to_xs_[par_ids_[par_idx].get()].get() == par_idx);
             CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
             ImportPhysicsVector const& pvec
                 = xs_tables_[par_idx]->physics_vectors[mat_idx];

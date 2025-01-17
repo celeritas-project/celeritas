@@ -61,7 +61,7 @@ struct WentzelVIMscData
     //! Number of particles this model applies to
     size_type num_particles;
     //! Map from particle ID to index in cross sections
-    ParticleItems<size_type> pid_to_xs;
+    ParticleItems<MscParticleId> pid_to_xs;
     //! Scaled xs data
     Items<XsGridData> xs;  //!< [mat][particle]
 

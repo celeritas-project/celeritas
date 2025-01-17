@@ -32,6 +32,15 @@
 
 namespace celeritas
 {
+//! Particle categories for Urban MSC particle and material-dependent data
+enum class UrbanParMatType
+{
+    electron = 0,
+    positron,
+    muhad,
+    size_
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct if Urban model is present, or else return nullptr.
@@ -59,6 +68,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
+    using UrbanParMatId = UrbanMscParMatData::UrbanParMatId;
+    using UPMT = UrbanParMatType;
 
     ScopedMem record_mem("UrbanMscParams.construct");
 
@@ -76,26 +87,28 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     // material-dependent parameter data: electrons and positrons always, and
     // muons/hadrons when present
     CELER_ASSERT(helper.particle_ids().size() >= 2);
-    size_type num_particles = min<size_type>(helper.particle_ids().size(), 3);
+    size_type num_particles = min<size_type>(
+        helper.particle_ids().size(), static_cast<size_type>(UPMT::size_));
 
     // Map from particle ID to index in particle and material-dependent data
-    std::vector<size_type> pid_to_pmdata(particles.size(),
-                                         UrbanMscParameters::inapplicable());
+    std::vector<UrbanParMatId> pid_to_pmdata(particles.size());
     for (auto par_id : helper.particle_ids())
     {
         CELER_ASSERT(par_id < pid_to_pmdata.size());
         if (par_id == host_data.ids.electron)
         {
-            pid_to_pmdata[par_id.unchecked_get()] = 0;
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::electron));
         }
         else if (par_id == host_data.ids.positron)
         {
-            pid_to_pmdata[par_id.unchecked_get()] = 1;
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::positron));
         }
         else
         {
-            // Muons and hadrons
-            pid_to_pmdata[par_id.unchecked_get()] = 2;
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::muhad));
         }
     }
     make_builder(&host_data.pid_to_pmdata)
@@ -129,7 +142,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
             // Compute the maximum distance that particles can travel
             // (different for electrons, hadrons)
-            if (p < 2)
+            if (p != static_cast<size_type>(UPMT::muhad))
             {
                 // Electrons and positrons
                 this_pm.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff)

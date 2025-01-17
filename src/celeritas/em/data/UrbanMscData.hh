@@ -38,12 +38,6 @@ struct UrbanMscParameters
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 
-    //! Special value indicating MSC does not apply to a particle type
-    static CELER_CONSTEXPR_FUNCTION size_type inapplicable()
-    {
-        return size_type(-1);
-    }
-
     //! Fraction of the range below which a step is assumed constant xs
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 0.05; }
 
@@ -117,6 +111,8 @@ struct UrbanMscMaterialData
  */
 struct UrbanMscParMatData
 {
+    using UrbanParMatId = OpaqueId<UrbanMscParMatData>;
+
     real_type scaled_zeff{};  //!< a * Z^b
     real_type d_over_r{};  //!< Maximum distance/range heuristic
 
@@ -151,9 +147,9 @@ struct UrbanMscData
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
     //! Map from particle ID to index in particle and material-dependent data
-    ParticleItems<size_type> pid_to_pmdata;
+    ParticleItems<UrbanMscParMatData::UrbanParMatId> pid_to_pmdata;
     //! Map from particle ID to index in cross sections
-    ParticleItems<size_type> pid_to_xs;
+    ParticleItems<MscParticleId> pid_to_xs;
     //! Particle and material-dependent data
     Items<UrbanMscParMatData> par_mat_data;  //!< [mat][particle]
     //! Scaled xs data

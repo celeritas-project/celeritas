@@ -81,8 +81,7 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
         return false;
 
     auto par = track.make_particle_view();
-    if (shared_.pid_to_xs[par.particle_id()]
-        == UrbanMscParameters::inapplicable())
+    if (!shared_.pid_to_xs[par.particle_id()])
         return false;
 
     return par.energy() > shared_.params.low_energy_limit

@@ -96,20 +96,20 @@ class WentzelHelper
 
     //// HELPER FUNCTIONS ////
 
+    // Calculate the screening coefficient R^2 for electrons
+    static CELER_CONSTEXPR_FUNCTION MomentumSq screen_r_sq_elec();
+
+    // Calculate the (cosine of) the maximum scattering angle off of electrons
+    static inline CELER_FUNCTION real_type calc_cos_thetamax_electron(
+        ParticleTrackView const&, CoulombIds const&, Energy, Mass);
+
     // Calculate the Moliere screening coefficient
     inline CELER_FUNCTION real_type calc_screening_coefficient(
         ParticleTrackView const&, CoulombIds const&) const;
 
-    // Calculate the screening coefficient R^2 for electrons
-    static CELER_CONSTEXPR_FUNCTION MomentumSq screen_r_sq_elec();
-
     // Calculate the multiplicative factor for the cross section
     inline CELER_FUNCTION real_type calc_kin_factor(ParticleTrackView const&,
                                                     Mass) const;
-
-    // Calculate the (cosine of) the maximum scattering angle off of electrons
-    inline CELER_FUNCTION real_type calc_cos_thetamax_electron(
-        ParticleTrackView const&, CoulombIds const&, Energy, Mass) const;
 
     // Calculate the (cosine of) the maximum scattering angle off of a nucleus
     inline CELER_FUNCTION real_type calc_cos_thetamax_nuclear(
@@ -282,9 +282,11 @@ CELER_CONSTEXPR_FUNCTION auto WentzelHelper::screen_r_sq_elec() -> MomentumSq
 CELER_FUNCTION real_type WentzelHelper::calc_kin_factor(
     ParticleTrackView const& particle, Mass electron_mass) const
 {
-    return 2 * constants::pi
-           * ipow<2>(value_as<Mass>(electron_mass) * constants::r_electron)
-           * target_z_.get() * ipow<2>(value_as<Charge>(particle.charge()))
+    constexpr Constant twopirsq = 2 * constants::pi
+                                  * ipow<2>(constants::r_electron);
+    return twopirsq * target_z_.get()
+           * ipow<2>(value_as<Mass>(electron_mass)
+                     * value_as<Charge>(particle.charge()))
            / (particle.beta_sq()
               * value_as<MomentumSq>(particle.momentum_sq()));
 }
@@ -300,8 +302,9 @@ CELER_FUNCTION real_type
 WentzelHelper::calc_cos_thetamax_electron(ParticleTrackView const& particle,
                                           CoulombIds const& ids,
                                           Energy cutoff,
-                                          Mass electron_mass) const
+                                          Mass electron_mass)
 {
+    real_type result = 0;
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
 
@@ -318,9 +321,8 @@ WentzelHelper::calc_cos_thetamax_electron(ParticleTrackView const& particle,
         {
             real_type inc_ratio = 1 + 2 * mass / inc_energy;
             real_type final_ratio = 1 + 2 * mass / final_energy;
-            return clamp<real_type>(std::sqrt(inc_ratio / final_ratio), 0, 1);
+            result = clamp<real_type>(std::sqrt(inc_ratio / final_ratio), 0, 1);
         }
-        return 0;
     }
     else
     {
@@ -330,11 +332,12 @@ WentzelHelper::calc_cos_thetamax_electron(ParticleTrackView const& particle,
         real_type max_energy
             = 2 * value_as<Mass>(electron_mass) * tau * (tau + 2)
               / (1 + 2 * mass_ratio * (tau + 1) + ipow<2>(mass_ratio));
-        return 1
-               - min(value_as<Energy>(cutoff), max_energy)
-                     * value_as<Mass>(electron_mass)
-                     / value_as<MomentumSq>(particle.momentum_sq());
+        result = -min(value_as<Energy>(cutoff), max_energy)
+                 * value_as<Mass>(electron_mass)
+                 / value_as<MomentumSq>(particle.momentum_sq());
     }
+    CELER_ENSURE(result >= 0 && result <= 1);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

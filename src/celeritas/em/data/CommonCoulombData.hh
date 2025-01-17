@@ -12,6 +12,9 @@
 
 namespace celeritas
 {
+//! Opaque index to MSC-applicable particles
+using MscParticleId = OpaqueId<struct MscParticle_>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Physics IDs for MSC.

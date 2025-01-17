@@ -35,7 +35,7 @@ class MscParamsHelper
     using EnergyBounds = Array<Energy, 2>;
     using VecImportMscModel = std::vector<ImportMscModel>;
     using IndexValues
-        = Collection<size_type, Ownership::value, MemSpace::host, ParticleId>;
+        = Collection<MscParticleId, Ownership::value, MemSpace::host, ParticleId>;
     using XsValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     //!@}
@@ -54,7 +54,7 @@ class MscParamsHelper
 
     ParticleParams const& particles_;
     ImportModelClass model_class_;
-    std::vector<size_type> pid_to_xs_;
+    std::vector<MscParticleId> pid_to_xs_;
     std::vector<ParticleId> par_ids_;
     std::vector<ImportPhysicsTable const*> xs_tables_;
 };
