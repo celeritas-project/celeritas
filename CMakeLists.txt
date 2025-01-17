@@ -634,6 +634,14 @@ endforeach()
 # Thrust dependency is not a cache variable:
 celeritas_export_var(CELERITAS_USE_Thrust)
 
+# Save whether we need GDML requirement
+if(Geant4_gdml_FOUND OR VecGeom_GDML_FOUND)
+  set(CELERITAS_USE_GDML ON)
+else()
+  set(CELERITAS_USE_GDML OFF)
+endif()
+celeritas_export_var(CELERITAS_USE_GDML)
+
 # Export defaulted variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
 set(_celer_other_cmake_variables)
