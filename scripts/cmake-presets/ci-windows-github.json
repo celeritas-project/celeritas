@@ -38,9 +38,7 @@
       "inherits": ["base"],
       "displayName": "fast build with testing and JSON",
       "cacheVariables": {
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_OPENMP": "track",
-        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"}
       }
     },
     {
