@@ -47,7 +47,7 @@ inp::Problem load_problem(RunInput const& ri)
     inp::Problem p;
 
     // Model definition
-    p.model.geometry_file = ri.geometry_file;
+    p.model.geometry = ri.geometry_file;
 
     // Tuning
     {

@@ -86,7 +86,10 @@ struct ProblemSetup
  */
 void ProblemSetup::operator()(inp::Problem& p) const
 {
-    p.model.geometry_file = so.geometry_file;
+    if (!so.geometry_file.empty())
+    {
+        p.model.geometry = so.geometry_file;
+    }
     p.diagnostics.output_file = so.output_file;
 
     {

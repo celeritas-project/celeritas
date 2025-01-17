@@ -43,7 +43,7 @@ inp::Problem load_problem(RunnerInput const& ri)
     inp::Problem p;
 
     // Geometry and event configurations
-    p.model.geometry_file = ri.geometry_file;
+    p.model.geometry = ri.geometry_file;
 
     // Magnetic field
     if (ri.field == RunnerInput::no_field())
