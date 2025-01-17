@@ -68,14 +68,6 @@ elseif(CELERITAS_USE_HIP)
   find_dependency(hip REQUIRED)
 endif()
 
-if(CELERITAS_USE_GDML)
-  # Because Geant4, Celeritas, and VecGeom all give "hints" (VecGeom and
-  # Celeritas use non-cache variables and don't specify version, Geant4
-  # specifies version and uses cache variables) we search for XercesC before
-  # continuing
-  find_dependency(XercesC REQUIRED @XercesC_VERSION@)
-endif()
-
 if(CELERITAS_USE_Geant4)
   # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
   # Save and restore include directories around the call -- even though as a
@@ -83,6 +75,9 @@ if(CELERITAS_USE_Geant4)
   get_directory_property(_include_dirs INCLUDE_DIRECTORIES)
   find_dependency(Geant4 @Geant4_VERSION@ REQUIRED)
   set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
+
+  # Re-establish policy if Geant4 11.1/.2's PTL overwrote it
+  cmake_policy(VERSION 3.10...3.31)
 endif()
 
 if(CELERITAS_USE_HepMC3)
@@ -104,10 +99,8 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_Python)
-  set(_version 3.6)
-  find_dependency(Python ${_version} REQUIRED COMPONENTS Interpreter)
+  find_dependency(Python 3.6 REQUIRED COMPONENTS Interpreter)
   unset(_components)
-  unset(_version)
 endif()
 
 if(CELERITAS_USE_ROOT)
