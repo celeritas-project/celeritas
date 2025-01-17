@@ -346,9 +346,11 @@ if(CELERITAS_USE_OpenMP)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # MSVC requires LLVM OpenMP support to provide 3.0 or higher
     # NOTE: requires CMake 3.30 or higher
+    message("setting cxx flag")
     set(OpenMP_RUNTIME_MSVC "llvm")
   endif()
   if(NOT OpenMP_FOUND)
+    unset(OpenMP_CXX_FLAG)
     find_package(OpenMP REQUIRED)
   endif()
   if(OpenMP_VERSION VERSION_LESS "3.0")
