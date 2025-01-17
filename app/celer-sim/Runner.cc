@@ -345,13 +345,30 @@ void Runner::build_core_params(RunnerInput const& inp,
         input.materials = params.material;
         input.action_registry = params.action_reg.get();
 
+        // Set physics options
         input.options.fixed_step_limiter = inp.step_limiter;
         input.options.secondary_stack_factor = inp.secondary_stack_factor;
-        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
-        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
-            imported.em_params.lowest_electron_energy);
         input.options.spline_eloss_order = inp.spline_eloss_order;
+        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+        input.options.light.lowest_energy = ParticleOptions::Energy(
+            imported.em_params.lowest_electron_energy);
+        input.options.heavy.lowest_energy
+            = ParticleOptions::Energy(imported.em_params.lowest_muhad_energy);
 
+        // Set multiple scattering options
+        input.options.light.range_factor = imported.em_params.msc_range_factor;
+        input.options.heavy.range_factor
+            = imported.em_params.msc_muhad_range_factor;
+        input.options.safety_factor = imported.em_params.msc_safety_factor;
+        input.options.lambda_limit = imported.em_params.msc_lambda_limit;
+        input.options.light.displaced = imported.em_params.msc_displaced;
+        input.options.heavy.displaced = imported.em_params.msc_muhad_displaced;
+        input.options.light.step_limit_algorithm
+            = imported.em_params.msc_step_algorithm;
+        input.options.heavy.step_limit_algorithm
+            = imported.em_params.msc_muhad_step_algorithm;
+
+        // Build processes
         input.processes = [&params, &inp, &imported] {
             std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;

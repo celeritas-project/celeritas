@@ -128,7 +128,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                 ParticleTrackView particle(
                     params->particles, state->particles, tid);
                 PhysicsTrackView phys(
-                    params->physics, state->physics, {}, {}, tid);
+                    params->physics, state->physics, particle, {}, tid);
 
                 // The parent was killed, so initialize the first secondary in
                 // the parent's track slot. Keep the parent's geometry state
