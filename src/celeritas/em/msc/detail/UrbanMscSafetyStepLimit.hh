@@ -120,7 +120,7 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
     CELER_EXPECT(max_step_ > shared_.params.limit_min_fix());
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
-    bool use_safety_plus = physics->scalars().step_limit_algorithm
+    bool use_safety_plus = physics->particle_scalars().step_limit_algorithm
                            == MscStepLimitAlgorithm::safety_plus;
     real_type const range = physics->dedx_range();
     auto const& msc_range = physics->msc_range();
@@ -130,7 +130,7 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
         MscRange new_range;
         // Initialize MSC range cache on the first step in a volume
         // TODO for hadrons/muons: this value is hard-coded for electrons
-        new_range.range_factor = physics->scalars().range_factor;
+        new_range.range_factor = physics->particle_scalars().range_factor;
         // XXX the 1 MFP limitation is applied to the *geo* step, not the true
         // step, so this isn't quite right (See UrbanMsc.hh)
         new_range.range_init = use_safety_plus

@@ -40,12 +40,23 @@ struct ImportEmParameters
     double linear_loss_limit{0.01};
     //! Lowest e-/e+ kinetic energy [MeV]
     double lowest_electron_energy{0.001};
+    //! Lowest muon/hadron kinetic energy [MeV]
+    double lowest_muhad_energy{0.001};
     //! Whether auger emission should be enabled (valid only for relaxation)
     bool auger{false};
-    //! MSC step limit algorithm
+    //! MSC step limit algorithm for e-/e+
     MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
+    //! MSC step limit algorithm for muon/hadron
+    MscStepLimitAlgorithm msc_muhad_step_algorithm{
+        MscStepLimitAlgorithm::minimal};
+    //! MSC lateral displacement for e-/e+
+    double msc_displaced{true};
+    //! MSC lateral displacement for muon/hadron
+    double msc_muhad_displaced{false};
     //! MSC range factor for e-/e+
     double msc_range_factor{0.04};
+    //! MSC range factor for muon/hadron
+    double msc_muhad_range_factor{0.2};
     //! MSC safety factor
     double msc_safety_factor{0.6};
     //! MSC lambda limit [length]
@@ -66,7 +77,9 @@ struct ImportEmParameters
     {
         return linear_loss_limit > 0 && lowest_electron_energy > 0
                && msc_step_algorithm != MscStepLimitAlgorithm::size_
+               && msc_muhad_step_algorithm != MscStepLimitAlgorithm::size_
                && msc_range_factor > 0 && msc_range_factor < 1
+               && msc_muhad_range_factor > 0 && msc_muhad_range_factor < 1
                && msc_safety_factor >= 0.1 && msc_lambda_limit > 0
                && msc_theta_limit >= 0 && msc_theta_limit <= constants::pi
                && screening_factor > 0 && angle_limit_factor > 0

@@ -182,6 +182,7 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_REAL_EQ(0.0, particle.decay_constant());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
+    EXPECT_FALSE(particle.is_heavy());
     EXPECT_REAL_EQ(1.0109989461, particle.total_energy().value());
     EXPECT_SOFT_EQ(0.74453076757415848, particle.beta_sq());
     EXPECT_SOFT_EQ(0.86286196322132447,
@@ -211,6 +212,7 @@ TEST_F(ParticleTestHost, positron)
     EXPECT_REAL_EQ(0.0, particle.decay_constant());
     EXPECT_TRUE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
+    EXPECT_FALSE(particle.is_heavy());
 }
 
 TEST_F(ParticleTestHost, gamma)
@@ -227,6 +229,7 @@ TEST_F(ParticleTestHost, gamma)
     EXPECT_REAL_EQ(1.0, particle.beta_sq());
     EXPECT_REAL_EQ(1.0, particle.speed().value());
     EXPECT_REAL_EQ(10, particle.momentum().value());
+    EXPECT_FALSE(particle.is_heavy());
 }
 
 TEST_F(ParticleTestHost, neutron)
@@ -240,6 +243,7 @@ TEST_F(ParticleTestHost, neutron)
                    particle.decay_constant());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_FALSE(particle.is_stable());
+    EXPECT_TRUE(particle.is_heavy());
 }
 
 //---------------------------------------------------------------------------//
