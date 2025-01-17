@@ -671,8 +671,7 @@ foreach(_key
     set(_cache_val "$CACHE{${_key}}")
     if(_cache_val)
       list(APPEND CELERITAS_EXPORT_VARIABLES
-        "set(${_key} CACHE \"${_cache_val}\" PATH
-             \"Set by CeleritasConfig.cmake\")"
+        "set(${_key} \"${_cache_val}\" CACHE PATH \"Set by CeleritasConfig.cmake\")"
       )
     else()
       list(APPEND CELERITAS_EXPORT_VARIABLES
