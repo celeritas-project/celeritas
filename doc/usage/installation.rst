@@ -10,6 +10,11 @@ Installation
 
 Celeritas is designed to be easy to install for a multitude of use cases.
 
+Package managers
+----------------
+
+.. todo:: Add links/description to spack installation
+
 .. _dependencies:
 
 Dependencies
@@ -142,8 +147,8 @@ Toolchain installation
 
 The recommended way to install dependencies is with ``Spack``,
 an HPC-oriented package manager that includes numerous scientific packages,
-including those used in HEP. Celeritas includes a Spack environment at
-:file:`scripts/spack.yaml` that describes the code's full suite
+including those used in HEP. Celeritas includes a Spack development environment
+at :file:`scripts/spack.yaml` that describes the code's full suite
 of dependencies (including testing and documentation). To install these
 dependencies:
 
@@ -167,7 +172,7 @@ The current Spack environment for full-featured development is:
 
 With this environment (with CUDA enabled), all Celeritas tests should be
 enabled and all should pass. Celeritas is build-compatible with older versions
-of some dependencies (e.g., Geant4@10.6 and VecGeom@1.2.2), but some tests may
+of some dependencies (e.g., Geant4@10.6 and VecGeom@1.2.7), but some tests may
 fail, indicating a change in behavior or a bug fix in that package.
 Specifically, older versions of VecGeom have shapes and configurations that are
 incompatible on GPU with new CMS detector descriptions.

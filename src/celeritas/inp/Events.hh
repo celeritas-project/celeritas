@@ -19,7 +19,7 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Sample a single point
+//! Generate at a single point
 struct PointShape
 {
     Real3 pos{0, 0, 0};

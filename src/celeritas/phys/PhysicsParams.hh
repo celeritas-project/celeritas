@@ -72,9 +72,6 @@ class ParticleParams;
  *   spline interpolation. If it is 1, then the existing linear interpolation
  *   is used. If it is 2+, the spline interpolation is used for energy loss
  *   using the specified order. Default value is 1
- *
- * \todo min_range/max_step_over_range should be extended to be per particle
- * (or particle "grouping", e.g. electron/muon+hadron/light ion/ion).
  */
 struct PhysicsParamsOptions
 {

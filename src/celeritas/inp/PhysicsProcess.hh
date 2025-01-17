@@ -29,6 +29,17 @@ struct BremsProcess
     //! Use integral method for sampling discrete interaction length
     bool integral_xs{true};
 };
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a physics process for electron/positron pair production.
+ */
+struct PairProdProcess
+{
+    //! Bethe-Heitler pair production
+    std::optional<BHPairProdModel> bethe_heitler;
+    //! Muonic pair production
+    std::optional<MuPairProdModel> mu;
+};
 
 //---------------------------------------------------------------------------//
 //!@{
@@ -36,18 +47,19 @@ struct BremsProcess
 //! \todo rename `em/model` to match, merge muon and electron proceses
 
 using BremsstrahlungProcess = BremsProcess;
+using GammaConversionProcess = PairProdProcess;
+using MuPairProductionProcess = PairProdProcess;
+
 #if 0
 using ComptonProcess = ComptonScatProcess;
 using CoulombScatteringProcess = CoulombScatProcess;
 using EIonizationProcess = IoniProcess;
 using EPlusAnnihilationProcess = AnniProcess;
-using GammaConversionProcess = ConversionProcess;
 using PhotoelectricProcess = PhotoelectricProcess;
 using RayleighProcess = RayleighScatProcess;
 
-using MuBremsstrahlungProcess = MuBremsProcess;
-using MuIonizationProcess = MuIoniProcess;
-using MuPairProductionProcess = MuConversionProcess;
+using MuBremsstrahlungProcess = BremsProcess;
+using MuIonizationProcess = IoniProcess;
 #endif
 
 //!@}

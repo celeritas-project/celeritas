@@ -55,12 +55,16 @@ struct GeantImport
  * SeltzerBergerReader, AtomicRelaxationReader to fill cross section data.
  * Since Geant4 data structures don't provide access to these, we must read
  * them ourselves.
+ *
+ * Defaults:
+ * - \c livermore_dir: uses the \c G4LEDATA environment variable
+ * - \c particle_dir: uses the \c G4PARTICLEXS environment variable
  */
 struct GeantDataImport
 {
-    //! Livermore photoelectric data directory (G4LEDATA)
+    //! Livermore photoelectric data directory (optional)
     std::string livermore_dir;
-    //! Particle cross section data directory (G4PARTICLEXS)
+    //! Particle cross section data directory (optional)
     std::string particle_dir;
 };
 

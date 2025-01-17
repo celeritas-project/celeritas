@@ -25,10 +25,10 @@ Celeritas
    \begin{abstract}
 
 Celeritas is a Monte Carlo particle transport code for simulating High Energy
-Physics detectors on general purpose GPUs. Motivated by the massive
-computational requirements of the High Luminosity upgrade to the Large Hadron
-Collider, the code's initial goal is to accelerate electromagnetic physics
-simulations of the CMS and ATLAS detectors.
+Physics (HEP) detectors on general purpose GPUs. Motivated originally by the
+massive computational requirements of the High Luminosity upgrade to the Large
+Hadron Collider, the code's goal is to accelerate the most computationally
+challenging simulation problems in HEP.
 
 .. raw:: latex
 
@@ -73,7 +73,7 @@ Background
 .. note:: This background section is largely a quote of the Celeritas R&D
    report :cite:`celer-rd-2024`.
 
-The first investigation of using GPU to accelerate Geant4 computing was a
+The first investigation of using GPUs to accelerate Geant4 computing was a
 tangential part of the GeantV project :cite:`geantv-2018`, which had
 the primary goal of using CPU SIMD hardware to accelerate detector
 simulation. Toward the end of that experiment, a follow-up GeantX group
@@ -134,8 +134,9 @@ be used to evaluate performance benchmarks and perform some simple analyses.
 GPU usage
 ---------
 
-Celeritas automatically copies data to device when constructing objects as long
-as the GPU is enabled. See :ref:`api_system` for details on initializing and
+Celeritas is designed to use GPUs for simulation. When built with
+CUDA or HIP support, the code automatically copies problem data to device
+during construction. See :ref:`api_system` for details on initializing and
 accessing the device.
 
 Geometry
@@ -144,7 +145,7 @@ Geometry
 Celeritas has two choices of geometry implementation. VecGeom_ is a
 CUDA-compatible library for navigation on Geant4 detector geometries.
 :ref:`api_orange` is a work in progress for surface-based geometry navigation
-that is "platform portable", i.e. able to run on GPUs from multiple vendors.
+that is "platform portable", i.e., able to run on GPUs from multiple vendors.
 
 Celeritas wraps both geometry packages with a uniform interface for changing
 and querying the geometry state.
@@ -156,8 +157,8 @@ Units
 
 The Celeritas default unit system is Gaussian CGS_, but it can be
 :ref:`configured <configuration>` to use SI or CLHEP unit systems as well. A
-compile-time metadata class allows simultaneous use of macroscopic-scale units
-and atomic-scale values such as MeV. For more details, see the
+compile-time metadata class allows safe interoperable use of macroscopic-scale
+units and atomic-scale values such as MeV. For more details, see the
 :ref:`units_constants` section of the API documentation.
 
 .. _CGS: https://en.wikipedia.org/wiki/Gaussian_units
@@ -173,8 +174,9 @@ classes are documented in :ref:`api_em_physics`.
 Optical Physics
 ---------------
 
-Optical physics are being added to Celeritas to support various high energy
-physics and nuclear physics experiments including LZ, Calvision, DUNE, and
+Optical physics is being added to Celeritas to support various
+astroparticle, high energy physics, and nuclear physics experiments including
+LZ, Calvision, DUNE, and
 ePIC. See the :ref:`api_optical_physics` section of the implementation details.
 
 Stepping loop
