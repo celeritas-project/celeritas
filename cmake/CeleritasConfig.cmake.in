@@ -38,6 +38,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Dependencies
 #-----------------------------------------------------------------------------#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.10...3.31)
 
 include(CMakeFindDependencyMacro)
 
@@ -76,6 +78,9 @@ if(CELERITAS_USE_Geant4)
   get_directory_property(_include_dirs INCLUDE_DIRECTORIES)
   find_dependency(Geant4 @Geant4_VERSION@ REQUIRED)
   set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
+
+  # Re-establish policy if Geant4 11.1/.2's PTL overwrote it
+  cmake_policy(VERSION 3.10...3.31)
 endif()
 
 if(CELERITAS_USE_HepMC3)
@@ -133,6 +138,8 @@ if(CELERITAS_BUILD_TESTS)
     find_dependency(GTest)
   endif()
 endif()
+
+cmake_policy(POP)
 
 #-----------------------------------------------------------------------------#
 # Targets
