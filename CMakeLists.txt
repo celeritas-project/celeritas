@@ -285,6 +285,9 @@ if(BUILD_TESTING)
   include(CTest)
 endif()
 
+# Interrogate CUDA/HIP installation for Thrust availability
+set(CELERITAS_USE_Thrust OFF)
+
 if(CELERITAS_USE_CUDA)
   if(NOT CMAKE_CUDA_ARCHITECTURES)
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
@@ -295,6 +298,14 @@ if(CELERITAS_USE_CUDA)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
+
+  # NOTE: older versions of CUDA/Thrust don't include a CMake configuration
+  # file, so don't make Thrust required
+  find_package(Thrust)
+  if(Thrust_FOUND)
+    set(CELERITAS_USE_Thrust ON)
+  endif()
+
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
@@ -305,15 +316,11 @@ elseif(CELERITAS_USE_HIP)
       OFF
     )
   endif()
+  find_package(rocthrust)
+  if(rocthrust_FOUND)
+    set(CELERITAS_USE_Thrust ON)
+  endif()
 endif()
-
-if(CELERITAS_USE_CUDA)
-  # NOTE: older versions of CUDA/Thrust don't include a CMake configuration
-  # file, so don't make it required
-  find_package(Thrust)
-endif()
-# Unconditionally set Thrust availability for downstream configuration
-set(CELERITAS_USE_Thrust "${Thrust_FOUND}")
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
@@ -597,7 +604,7 @@ if(NOT CELERITAS_USE_VecGeom OR VecGeom_VERSION VERSION_LESS 1.2.10)
     "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
   )
 endif()
-foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
+foreach(_dep Geant4 HepMC3 rocthrust ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
@@ -631,7 +638,7 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
-# Thrust dependency is not a cache variable:
+# Thrust dependency is not a cache variable
 celeritas_export_var(CELERITAS_USE_Thrust)
 
 # Export defaulted variables
@@ -666,12 +673,12 @@ foreach(_key
         "set(${_key} \"${_cache_val}\" CACHE PATH \"Set by CeleritasConfig.cmake\")"
       )
     else()
-    list(APPEND CELERITAS_EXPORT_VARIABLES
-      "if(NOT DEFINED ${_key})"
-      "  set(${_key} \"${_val}\")"
-      "endif()"
-    )
-  endif()
+      list(APPEND CELERITAS_EXPORT_VARIABLES
+        "if(NOT DEFINED ${_key})"
+        "  set(${_key} \"${_val}\")"
+        "endif()"
+      )
+    endif()
   endif()
 endforeach()
 list(JOIN CELERITAS_EXPORT_VARIABLES "\n" CELERITAS_EXPORT_VARIABLES)
