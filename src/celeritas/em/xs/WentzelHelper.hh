@@ -200,6 +200,12 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_factor(
  *  89, no. 6 (March 15, 1953): 1256–66.
  * https://doi.org/10.1103/PhysRev.89.1256.
  *
+ * For heavy particles, an empirical correction \f$ 1 + \exp(-(0.001 Z)^2) \f$
+ * is used to better match the data in Attwood et al, "The scattering of muons
+ * in low-Z materials", Nuclear Instruments and Methods in Physics Research
+ * Section B: Beam Interactions with Materials and Atoms, volume 251 (2006):
+ * 41-55. https://doi.org/10.1016/j.nimb.2006.05.006
+ *
  * \note The \c screenZ in Geant4 is equal to twice the screening coefficient.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(

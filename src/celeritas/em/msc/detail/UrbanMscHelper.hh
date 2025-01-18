@@ -177,11 +177,11 @@ UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
  */
 CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
 {
-    size_type num_particles = shared_.xs.size() / shared_.material_data.size();
     auto par_id = shared_.pid_to_xs[particle_.particle_id()];
-    CELER_ASSERT(par_id < num_particles);
+    CELER_ASSERT(par_id < shared_.num_particles);
 
-    size_type idx = physics_.material_id().get() * num_particles + par_id.get();
+    size_type idx = physics_.material_id().get() * shared_.num_particles
+                    + par_id.unchecked_get();
     CELER_ASSERT(idx < shared_.xs.size());
 
     return shared_.xs[ItemId<XsGridData>(idx)];
@@ -193,12 +193,11 @@ CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
  */
 CELER_FUNCTION UrbanMscParMatData const& UrbanMscHelper::pmdata() const
 {
-    size_type num_particles = shared_.par_mat_data.size()
-                              / shared_.material_data.size();
     auto par_id = shared_.pid_to_pmdata[particle_.particle_id()];
-    CELER_ASSERT(par_id < num_particles);
+    CELER_ASSERT(par_id < shared_.num_par_mat);
 
-    size_type idx = physics_.material_id().get() * num_particles + par_id.get();
+    size_type idx = physics_.material_id().get() * shared_.num_par_mat
+                    + par_id.unchecked_get();
     CELER_ASSERT(idx < shared_.par_mat_data.size());
 
     return shared_.par_mat_data[ItemId<UrbanMscParMatData>(idx)];

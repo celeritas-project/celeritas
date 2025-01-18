@@ -32,15 +32,6 @@
 
 namespace celeritas
 {
-//! Particle categories for Urban MSC particle and material-dependent data
-enum class UrbanParMatType
-{
-    electron = 0,
-    positron,
-    muhad,
-    size_
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct if Urban model is present, or else return nullptr.
@@ -83,12 +74,15 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
+    // Number of applicable particles
+    host_data.num_particles = helper.particle_ids().size();
+    CELER_ASSERT(host_data.num_particles >= 2);
+
     // Number of different particle categories in the particle and
     // material-dependent parameter data: electrons and positrons always, and
     // muons/hadrons when present
-    CELER_ASSERT(helper.particle_ids().size() >= 2);
-    size_type num_particles = min<size_type>(
-        helper.particle_ids().size(), static_cast<size_type>(UPMT::size_));
+    host_data.num_par_mat = min<size_type>(
+        host_data.num_particles, static_cast<size_type>(UPMT::size_));
 
     // Map from particle ID to index in particle and material-dependent data
     std::vector<UrbanParMatId> pid_to_pmdata(particles.size());
@@ -122,7 +116,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     CollectionBuilder mdata(&host_data.material_data);
     CollectionBuilder pmdata(&host_data.par_mat_data);
     mdata.reserve(materials.num_materials());
-    pmdata.reserve(num_particles * materials.num_materials());
+    pmdata.reserve(host_data.num_par_mat * materials.num_materials());
 
     for (auto mat_id : range(MaterialId{materials.num_materials()}))
     {
@@ -133,7 +127,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
         // Build particle-dependent data
         double const zeff = mat.zeff();
-        for (size_type p : range(num_particles))
+        for (size_type p : range(host_data.num_par_mat))
         {
             UrbanMscParMatData this_pm;
 

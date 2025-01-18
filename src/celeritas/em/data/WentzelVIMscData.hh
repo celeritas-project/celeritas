@@ -59,7 +59,7 @@ struct WentzelVIMscData
     //! User-assignable options
     WentzelVIMscParameters params;
     //! Number of particles this model applies to
-    size_type num_particles;
+    ParticleId::size_type num_particles;
     //! Map from particle ID to index in cross sections
     ParticleItems<MscParticleId> pid_to_xs;
     //! Scaled xs data
@@ -73,7 +73,7 @@ struct WentzelVIMscData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity() && num_particles > 0
+        return ids && electron_mass > zero_quantity() && num_particles >= 2
                && !pid_to_xs.empty() && !xs.empty() && !reals.empty();
     }
 

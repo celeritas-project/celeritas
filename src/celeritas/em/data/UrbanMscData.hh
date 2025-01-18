@@ -17,6 +17,15 @@
 
 namespace celeritas
 {
+//! Particle categories for Urban MSC particle and material-dependent data
+enum class UrbanParMatType
+{
+    electron = 0,
+    positron,
+    muhad,
+    size_
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Settable parameters and default values for Urban multiple scattering.
@@ -146,6 +155,10 @@ struct UrbanMscData
     UrbanMscParameters params;
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
+    //! Number of particles this model applies to
+    ParticleId::size_type num_particles;
+    //! Number of particle categories for particle and material-dependent data
+    ParticleId::size_type num_par_mat;
     //! Map from particle ID to index in particle and material-dependent data
     ParticleItems<UrbanMscParMatData::UrbanParMatId> pid_to_pmdata;
     //! Map from particle ID to index in cross sections
@@ -164,6 +177,7 @@ struct UrbanMscData
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && !material_data.empty()
+               && num_particles >= 2 && num_par_mat >= 2
                && !pid_to_pmdata.empty() && !pid_to_xs.empty()
                && !par_mat_data.empty() && !xs.empty() && !reals.empty();
     }
@@ -177,6 +191,8 @@ struct UrbanMscData
         electron_mass = other.electron_mass;
         params = other.params;
         material_data = other.material_data;
+        num_particles = other.num_particles;
+        num_par_mat = other.num_par_mat;
         pid_to_pmdata = other.pid_to_pmdata;
         pid_to_xs = other.pid_to_xs;
         par_mat_data = other.par_mat_data;

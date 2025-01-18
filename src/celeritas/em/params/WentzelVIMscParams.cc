@@ -55,6 +55,9 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
+    // Number of applicable particles
+    host_data.num_particles = helper.particle_ids().size();
+
     // Get the cross section energy grid limits (this checks that the limits
     // are the same for all particles/materials)
     auto energy_limit = helper.energy_grid_bounds();
