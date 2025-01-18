@@ -6,7 +6,7 @@
 # --> the fix for now is to unload these modules and install our own cudatoolkit using Spack.
 module unload gpu
 module load PrgEnv-gnu
-
+module unload cray-libsci
 
 # Expects the spack git repo to have been cloned at _SPACK_INSTALL (default to $SPACK_ROOT)
 # The environment named celeritas must exists
