@@ -249,17 +249,6 @@ doxygen_add_docs(doxygen_xml
 )
 
 #-----------------------------------------------------------------------------#
-# Set up references
-# NOTE: sphinx-bibtex requires the bib file to be in the source directory, so we
-# download there and add it to .gitignore
-if(CELERITAS_USE_SphinxBibtex)
-  file(DOWNLOAD
-    https://celeritas-project.github.io/celeritas/zotero.bib
-    "${CMAKE_CURRENT_SOURCE_DIR}/_static/zotero.bib"
-  )
-endif()
-
-#-----------------------------------------------------------------------------#
 # HTML
 set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
   "Additional arguments to pass to Sphinx to build HTML user docs")
