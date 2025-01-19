@@ -62,7 +62,7 @@ set(DOXYGEN_USE_MATHJAX YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
 set(DOXYGEN_ALIASES
-  "cite{1}=\"[\\1]\")"
+  "cite{1}=\"[\\1]\""
   "citep{2}=\"([\\1](\\2))\""
   "citet{2}=\"[\\1](\\2)\""
   "rst=\"^^\\if (0)^^\""
