@@ -6,9 +6,6 @@
 Environment variables
 =====================
 
-.. note:: Many of these environment variables will eventually be replaced by
-   :ref:`inp_tuning` and :ref:`inp_system` options in Celeritas v1.0 and beyond.
-
 Some pieces of core Celeritas code interrogate the environment for variables to
 change system- or output-level behavior. These variables are checked once per
 execution, and checking them inserts the key and user-defined value (or empty)

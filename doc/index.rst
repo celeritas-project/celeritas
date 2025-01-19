@@ -216,7 +216,6 @@ well as several helper applications and front ends.
    usage/installation.rst
    usage/integration.rst
    usage/execution.rst
-   usage/input.rst
 
 .. ***************************************************************************
 
