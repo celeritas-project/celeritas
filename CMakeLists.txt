@@ -346,11 +346,9 @@ if(CELERITAS_USE_OpenMP)
   if(NOT OpenMP_FOUND)
     find_package(OpenMP REQUIRED)
   endif()
-  if(OpenMP_VERSION VERSION_LESS "3.0")
-    celeritas_error_incompatible_option(
-      "Support for OpenMP 3 or higher required (found ${OpenMP_VERSION})"
-      CELERITAS_USE_OpenMP
-      OFF
+  if(OpenMP_VERSION AND (OpenMP_VERSION VERSION_LESS "3.0"))
+    message(WARNING
+      "OpenMP version ${OpenMP_VERSION} may fail to compile"
     )
   endif()
 endif()
