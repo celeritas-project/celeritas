@@ -255,7 +255,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
 /*!
  * Calculate the flat form factor.
  *
- * See [LR16] eqn 2.265.
+ * See \cite{leroy-2016} Eq. 2.265.
  */
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
 {
@@ -267,7 +267,7 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  * Momentum coefficient used in the flat model for the nuclear form factors.
  *
  * This is the ratio of \f$ r_1 / \hbar \f$ where \f$ r_1 \f$ is defined in
- * eqn 2.265 of [LR16].
+ * Eq. 2.265 of \cite{leroy-2016}.
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
