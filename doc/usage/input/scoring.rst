@@ -13,7 +13,7 @@ Scoring setup is for measuring and recording physical simulation results.
    :no-link:
 
 
-Geant4 Sensitive detectors
+Geant4 sensitive detectors
 --------------------------
 
 These options are used to integrate Celeritas with Geant4 sensitive detectors
@@ -28,8 +28,8 @@ by reconstructing Geant4 hits and calling back to user code.
    :no-link:
 
 
-Simple calorimeter
-------------------
+Independent scoring
+-------------------
 
 This is used to set up :cpp:class:`celeritas::SimpleCalo`.
 

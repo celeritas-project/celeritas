@@ -64,8 +64,7 @@ tool.
 
 On CPU, timelines are generated using Perfetto, which is only supported when CUDA
 and HIP are disabled. Perfetto supports application-level and system-level profiling.
-To use the application-level profiling, set the ``tracing_file`` input key in
-``celer-sim``.
+To use the application-level profiling, see :ref:`inp_diagnostics`.
 
 .. sourcecode::
    :linenos:
@@ -74,8 +73,7 @@ To use the application-level profiling, set the ``tracing_file`` input key in
    > celer-sim inp.json
 
 The system-level profiling, capturing both system and application events,
-requires starting external services. To use this mode, the ``tracing_file`` key must
-be absent or empty. Details on how to setup the system services can be found in
+requires starting external services. Details on how to setup the system services can be found in
 the `Perfetto documentation`_. Root access on the system is required.
 
 If you integrate Celeritas in your application, you need to create a ``TracingSession``
