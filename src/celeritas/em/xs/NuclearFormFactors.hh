@@ -48,6 +48,9 @@ struct NuclearFormFactorTraits
    R_N = 1.27A^{0.27} \,\mathrm{fm}
  * \f] with a special case for the proton radius, \f$ R_p = 0.85 \f$ fm.
  *
+ * See \citet{leroy-2016, https://doi-org.ezproxy.cern.ch/10.1142/9167} Eq.
+ * 2.262.
+ *
  * \todo Instead of using this coarse parameterization, we should add nuclear
  * radius to the isotope properties for a more accurate treatment, and
  * construct these classes directly from the atomic radius.
@@ -90,7 +93,8 @@ class ExpNuclearFormFactor : public NuclearFormFactorTraits
  * Gaussian nuclear form factor.
  *
  * This nuclear form factor corresponds \c NuclearFormFactorType::gaussian and
- * assumes a Gaussian distribution of nuclear charge. Its
+ * assumes a Gaussian distribution of nuclear charge: see \citet{leroy-2016,
+ * https://doi-org.ezproxy.cern.ch/10.1142/9167} Eq. 2.264. Its
  * prefactor has the same value as the exponential.
  */
 class GaussianNuclearFormFactor : public ExpNuclearFormFactor
@@ -117,7 +121,9 @@ class GaussianNuclearFormFactor : public ExpNuclearFormFactor
  *
  * This nuclear form factor corresponds \c NuclearFormFactorType::flat and
  * assumes a uniform nuclear charge at the center with a smoothly decreasing
- * charge at the surface. This leads to a form factor: \f[
+ * charge at the surface. From \citet{leroy-2016,
+ * https://doi-org.ezproxy.cern.ch/10.1142/9167} Eq. 2.265,
+ * this leads to a form factor: \f[
  * F(q) = F'(x(R_0, q)) F'(x(R_1, q))
  * \f]
  * where \f$ x \equiv q R / \hbar \f$ uses the effective nuclear radius \f$
@@ -133,13 +139,8 @@ class GaussianNuclearFormFactor : public ExpNuclearFormFactor
  * for small radii and momenta so should only be used for large nuclei or large
  * momentum transfers.
  *
- * [LR16] C. Leroy and P.G. Rancoita. Principles of Radiation Interaction in
- *        Matter and Detection. World Scientific (Singapore), 4th edition,
- *        2016.
- *
- * [H56] R.H. Helm, Inelastic and Elastic Scattering of 187-Mev Electrons from
- *       Selected Even-Even Nuclei, Phys. Rev. 104 (1956) 1466–1475.
- *       https://doi.org/10.1103/PhysRev.104.1466.
+ * See also \citet{helm-scattering-1956,
+ * https://doi.org/10.1103/PhysRev.104.1466},
  *
  * [FMS93] J.M. Fernández-Varea, R. Mayol, F. Salvat, Cross sections for
  *       elastic scattering of fast electrons and positrons by atoms, Nuclear
