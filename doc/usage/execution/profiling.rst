@@ -62,9 +62,10 @@ tool.
 
 .. _Perfetto: https://ui.perfetto.dev/
 
-On CPU, timelines are generated using Perfetto. It is only supported when CUDA
+On CPU, timelines are generated using Perfetto, which is only supported when CUDA
 and HIP are disabled. Perfetto supports application-level and system-level profiling.
-To use the application-level profiling, set the ``tracing_file`` input key.
+To use the application-level profiling, set the ``tracing_file`` input key in
+``celer-sim``.
 
 .. sourcecode::
    :linenos:

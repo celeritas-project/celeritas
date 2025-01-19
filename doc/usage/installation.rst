@@ -154,8 +154,8 @@ dependencies:
 
 - Clone and load Spack following its `getting started instructions
   <https://spack.readthedocs.io/en/latest/getting_started.html>`_.
-- If using CUDA: run ``spack external find cuda`` to inform Spack of the existing
-  installation
+- If using CUDA: run ``spack external find cuda`` to inform Spack of the
+  existing installation.
 - Create the Celeritas development environment with ``spack env create
   celeritas scripts/spack.yaml``.
 - Tell Spack to default to building with CUDA support with
@@ -244,5 +244,4 @@ If you want to add your own set of custom options and flags, create a
 ``CMakeUserPresets.json`` file or, if you wish to contribute on a regular
 basis, create a preset at :file:`scripts/cmake-presets/{HOSTNAME}.json` and
 call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
-build, and test. See :file:`scripts/README.md` in the code repository for more
-details.
+build, and test.

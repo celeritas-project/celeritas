@@ -104,6 +104,6 @@ diagnostic messages and higher.
  info       Important informational messages
  warning    Warnings about unusual events
  error      Something went wrong, but execution can continue
- critical   Something went terribly wrong, program termination imminent
+ critical   Something went terribly wrong: program termination imminent
  ========== ==============================================================
 

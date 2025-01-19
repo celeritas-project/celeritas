@@ -12,13 +12,15 @@ Visualization application (celer-geo)
 -------------------------------------
 
 The ``celer-geo`` app is a server-like front end to the Celeritas geometry
-interfaces that can generate exact images of a user geometry model.
-See :ref:`example_celer_geo` for an example.
+interfaces that can generate exact images of a user geometry model. It should
+be invoked only as part of the celerpy_ python app.  See :ref:`example_celer_geo` for an example.
 
 Usage::
 
   celer-geo {input}.jsonl
             -
+
+.. _celerpy: https://github.com/celeritas-project/celerpy
 
 Input
 ^^^^^
