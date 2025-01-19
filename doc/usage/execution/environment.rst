@@ -4,7 +4,7 @@
 .. _environment:
 
 Environment variables
----------------------
+=====================
 
 Some pieces of core Celeritas code interrogate the environment for variables to
 change system- or output-level behavior. These variables are checked once per

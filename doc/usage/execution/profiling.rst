@@ -6,7 +6,7 @@
 .. _profiling:
 
 Profiling
----------
+=========
 
 Since the primary motivator of Celeritas is performance on GPU hardware,
 profiling is a necessity. Celeritas uses NVTX (CUDA),  ROCTX (HIP) or Perfetto (CPU)
@@ -14,7 +14,7 @@ to annotate the different sections of the code, allowing for fine-grained
 profiling and improved visualization.
 
 Timelines
-^^^^^^^^^
+---------
 
 A detailed timeline of the Celeritas construction, steps, and kernel launches
 can be gathered using `NVIDIA Nsight systems`_.
@@ -96,7 +96,7 @@ moved to extend its lifetime.
 .. _Perfetto documentation: https://perfetto.dev/docs/quickstart/linux-tracing
 
 Kernel profiling
-^^^^^^^^^^^^^^^^
+----------------
 
 Detailed kernel diagnostics including occupancy and memory bandwidth can be
 gathered with the `NVIDIA Compute systems`_ profiler.
