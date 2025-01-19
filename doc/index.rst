@@ -164,6 +164,7 @@ modify and extend the codebase.
    development/coding.rst
    development/style.rst
    development/testing.rst
+   development/administration.rst
 
 .. ***************************************************************************
 
@@ -200,5 +201,4 @@ library, in independent and Geant4-integrated contexts.
    backmatter/acknowledgments.rst
    backmatter/references.rst
    appendix/release-history.rst
-   appendix/administration.rst
    appendix/license.rst

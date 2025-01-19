@@ -352,36 +352,36 @@ or a "backport" branch (minor, patch).
 The following process must be followed (and may need iteration to converge) for
 each release.
 
-1.  Ensure all CI jobs pass for the target branch to be released (develop or
+#.  Ensure all CI jobs pass for the target branch to be released (develop or
     backports/vX.Y). This is automatic
     for releases from the ``develop`` branch, since every pull request must
     pass, but should be checked manually for backports.
-2.  Create a ``release-vX.Y.Z`` branch from *upstream/develop*.
-3.  If creating a new release from develop, tag the target branch with
+#.  Create a ``release-vX.Y.Z`` branch from *upstream/develop*.
+#.  If creating a new release from develop, tag the target branch with
     ``vX.Y.Z-rc.N`` where N starts with 1, and
     increment for every time you return to this step due to new pull requests.
     The tag can be pushed to your fork, or to the main repository if it should
     be shared with other team members.
-4.  Run performance regression tests on Perlmutter (for performance
+#.  Run performance regression tests on Perlmutter (for performance
     testing), Frontier (for HIP testing), and an additional machine
     with debug assertions enabled (e.g., Wildstyle).
-5.  [TODO: define high-level validation tests like `geant-val`_ and a test
+#.  [TODO: define high-level validation tests like `geant-val`_ and a test
     matrix correlating capability areas (code files/directories changed) to
     test names.] Rerun and perform a cursory check on all validation tests that
     might be affected by changes since the previous release. More complete
     validation (since a change in results might not be an error) can be done
     separately.
-6.  Postpone the release temporarily if major new bugs or performance
+#.  Postpone the release temporarily if major new bugs or performance
     regressions are detected. Create new pull requests for the serious errors
     using the standard :ref:`contributing <contributing>` process, and once the
     fixes are merged into develop, merge develop into the release branch.
     Return to step 2.
-7.  If only minor updates are needed to fix the build or tests on a particular
+#.  If only minor updates are needed to fix the build or tests on a particular
     machine, include those as part of the release branch.
-8.  If this is a "major" release (see :ref:`deprecations`),
+#.  If this is a "major" release (see :ref:`deprecations`),
     check for and remove code marked as ``DEPRECATED: to be removed
     in vX.Y``.
-9.  Update documentation with release notes from all pull requests newly
+#.  Update documentation with release notes from all pull requests newly
     included in the release. *Make sure this happens after all pull requests
     targeted for this milestone have been merged*.
     Follow the format for previous releases: add a
@@ -390,30 +390,30 @@ each release.
     `helper notebook`_ in the Celeritas documents repository to automate this.
     Ensure that both the HTML and PDF versions of the documentation build
     without errors.
-10. Submit a pull request with the newly added documentation and any
+#.  Submit a pull request with the newly added documentation and any
     release-related tweaks using the
     :file:`.github/pull_request_template.release.md` template, and wait until
     it's reviewed and merged. The unit tests and documentation should all build
     and pass the CI.
-11. If releasing a backported version branch, cherry-pick this documentation
+#.  If releasing a backported version branch, cherry-pick this documentation
     commit into the backport branch.
-12. Use the GitHub interface to create a new release with the documentation
+#.  Use the GitHub interface to create a new release with the documentation
     update that was just added.
 
 After committing the release tag:
 
-1. Save the ``tar.gz`` and attach to the release, because the hash changes if
+#. Save the ``tar.gz`` and attach to the release, because the hash changes if
    the git "describe" function returns a different result for the release tag's
    hash (e.g., if a collaborative branch on the main repository points to that
    commit).
-2. Pull locally (make sure to use the ``--tags`` option) and build PDF user
+#. Pull locally (make sure to use the ``--tags`` option) and build PDF user
    documentation for the release. Ensure breathe is activated (so the API is
    listed) and that the version is embedded correctly.  [TODO: We should add a
    documentation pipeline that builds and uploads to GitHub pages.]
-3. Update the Spack recipe for Celeritas with the new version and sha256 value
+#. Update the Spack recipe for Celeritas with the new version and sha256 value
    (either manually or using ``spack checksum``) and submit a pull request to
    the Spack project.
-4. Mark the GitHub release milestone as completed.
+#. Mark the GitHub release milestone as completed.
 
 The first commit that deviates from the most recent major or minor branch
 should be tagged (but not released!) with the next version number with a
