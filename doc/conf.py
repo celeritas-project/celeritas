@@ -100,6 +100,7 @@ if celer_config['options']['sphinxbib']:
     bibtex_bibfiles = [
         "_static/zotero.bib",
     ]
+    bibtex_reference_style = 'author_year'
 
 if celer_config['options']['sphinxmer']:
     extensions.append("sphinxcontrib.mermaid")
