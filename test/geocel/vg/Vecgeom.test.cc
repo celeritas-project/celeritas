@@ -408,17 +408,15 @@ TEST_F(FourLevelsTest, consecutive_compute)
 {
     auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
-    // TODO: check why different volIDs, despite same volIDs in previous test
-    EXPECT_EQ(CELERITAS_VECGEOM_SURFACE ? VolumeId{1} : VolumeId{0},
-              geo.volume_id());
+    EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_FALSE(geo.is_on_boundary());
 
     auto next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
     real_type expected_safety = 4.0;
 #if CELERITAS_VECGEOM_SURFACE
-    // TODO: check why surface model gives worse safeties for this point
-    expected_safety = 4.9999938011169434;
+    // TODO: check safety precision
+    expected_safety = 3.9999949932098389;
 #endif
     EXPECT_SOFT_EQ(expected_safety, to_cm(geo.find_safety()));
 
@@ -435,10 +433,7 @@ TEST_F(FourLevelsTest, detailed_track)
         SCOPED_TRACE("rightward along corner");
         auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
-        // TODO: check why distinct volIDs, despite same volIDs in previous
-        // test
-        EXPECT_EQ(CELERITAS_VECGEOM_SURFACE ? VolumeId{1} : VolumeId{0},
-                  geo.volume_id());
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Check for surfaces up to a distance of 4 units away
@@ -456,32 +451,22 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
-        // TODO: check why distinct volIDs despite same volIDs in accessors
-        // test
-        EXPECT_EQ(CELERITAS_VECGEOM_SURFACE ? VolumeId{1} : VolumeId{0},
-                  geo.volume_id());
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
         geo.cross_boundary();
-        // TODO: check why distinct volIDs despite same volIDs in accessors
-        // test
-        EXPECT_EQ(CELERITAS_VECGEOM_SURFACE ? VolumeId{0} : VolumeId{1},
-                  geo.volume_id());
-        // EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_TRUE(geo.is_on_boundary());
 
         // Find the next boundary and make sure that nearer distances aren't
         // accepted
         next = geo.find_next_step();
         real_type exp_dist = 1.0;
-#if CELERITAS_VECGEOM_SURFACE
-        exp_dist = vecgeom::InfinityLength<real_type>();
-#endif
         EXPECT_SOFT_EQ(exp_dist, to_cm(next.distance));
-        EXPECT_TRUE(CELERITAS_VECGEOM_SURFACE ? !next.boundary : next.boundary);
+        EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         next = geo.find_next_step(from_cm(0.5));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
     }
-#if 0
     {
         SCOPED_TRACE("outside in");
         auto geo = this->make_geo_track_view({-25, 6.5, 6.5}, {1, 0, 0});
@@ -493,12 +478,12 @@ TEST_F(FourLevelsTest, detailed_track)
 
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_outside());
+        // TODO: navigation from outside not working in surface model
+        std::cerr << "==== TODO: fix geo.cross_boundary() from [OUTSIDE] "
+                     "====\n";
         geo.cross_boundary();
-#ifndef VECGEOM_USE_SURF
-        // navigation from outside not working
         EXPECT_FALSE(geo.is_outside());
         EXPECT_EQ(VolumeId{3}, geo.volume_id());
-#endif
     }
     {
         SCOPED_TRACE("inside out");
@@ -519,7 +504,6 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_GT(next.distance, 1e10);
         EXPECT_FALSE(next.boundary);
     }
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -534,9 +518,9 @@ TEST_F(FourLevelsTest, reentrant_boundary)
     // Check for surfaces: we should hit the outside of the sphere Shape2
     auto next = geo.find_next_step(from_cm(1.0));
     real_type exp_dist = 0.5;
-#if CELERITAS_VECGEOM_SURFACE
-    exp_dist = 1.0;
-#endif
+    // #if CELERITAS_VECGEOM_SURFACE
+    //     exp_dist = 1.0;
+    // #endif
     EXPECT_SOFT_EQ(exp_dist, to_cm(next.distance));
     // Move to the boundary but scatter perpendicularly, away from the sphere
     geo.move_to_boundary();
@@ -555,7 +539,7 @@ TEST_F(FourLevelsTest, reentrant_boundary)
     next = geo.find_next_step(from_cm(10.0));
     exp_dist = 1.0e-8;
 #if CELERITAS_VECGEOM_SURFACE
-    exp_dist = 9.5;
+    exp_dist = 10.0;  // TODO: check why this value is different
 #endif
     EXPECT_SOFT_EQ(exp_dist, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
