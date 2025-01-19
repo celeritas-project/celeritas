@@ -21,6 +21,7 @@
 #include "celeritas/mat/TabulatedElementSelector.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
 #include "celeritas/phys/MacroXsCalculator.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "PhysicsData.hh"
 
@@ -49,7 +50,7 @@ class PhysicsTrackView
     // Construct from params, states, and per-state IDs
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const& params,
                                            PhysicsStateRef const& states,
-                                           ParticleId particle,
+                                           ParticleTrackView const& particle,
                                            MaterialId material,
                                            TrackSlotId tid);
 
@@ -150,6 +151,9 @@ class PhysicsTrackView
     // Access scalar properties
     CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const& scalars() const;
 
+    // Access particle-dependent scalar properties
+    CELER_FORCEINLINE_FUNCTION ParticleScalars const& particle_scalars() const;
+
     // Number of particle types
     inline CELER_FUNCTION size_type num_particles() const;
 
@@ -174,6 +178,7 @@ class PhysicsTrackView
     ParticleId const particle_;
     MaterialId const material_;
     TrackSlotId const track_slot_;
+    bool is_heavy_;
 
     //// IMPLEMENTATION HELPER FUNCTIONS ////
 
@@ -194,14 +199,15 @@ class PhysicsTrackView
 CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
-                                   ParticleId pid,
+                                   ParticleTrackView const& particle,
                                    MaterialId mid,
                                    TrackSlotId tid)
     : params_(params)
     , states_(states)
-    , particle_(pid)
+    , particle_(particle.particle_id())
     , material_(mid)
     , track_slot_(tid)
+    , is_heavy_(particle.is_heavy())
 {
     CELER_EXPECT(track_slot_);
 }
@@ -618,7 +624,8 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
     CELER_ASSERT(range >= 0);
-    real_type const rho = params_.scalars.min_range;
+    auto const& scalars = this->particle_scalars();
+    real_type const rho = scalars.min_range;
     if (range < rho * (1 + celeritas::sqrt_tol()))
     {
         // Small range returns the step. The fudge factor avoids floating point
@@ -627,7 +634,7 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
         return range;
     }
 
-    real_type const alpha = params_.scalars.max_step_over_range;
+    real_type const alpha = scalars.max_step_over_range;
     real_type step = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(step > 0 && step <= range);
     return step;
@@ -641,6 +648,23 @@ CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const&
 PhysicsTrackView::scalars() const
 {
     return params_.scalars;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access particle-dependent scalar properties.
+ *
+ * These properties are different for light particles (electrons/positrons) and
+ * heavy particles (muons/hadrons).
+ */
+CELER_FORCEINLINE_FUNCTION ParticleScalars const&
+PhysicsTrackView::particle_scalars() const
+{
+    if (is_heavy_)
+    {
+        return params_.scalars.heavy;
+    }
+    return params_.scalars.light;
 }
 
 //---------------------------------------------------------------------------//

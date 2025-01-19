@@ -41,6 +41,8 @@ struct PTestInput
 {
     DeviceCRef<PhysicsParamsData> params;
     DeviceRef<PhysicsStateData> states;
+    DeviceCRef<ParticleParamsData> par_params;
+    DeviceRef<ParticleStateData> par_states;
     StateCollection<PhysTestInit, Ownership::const_reference, MemSpace::device>
         inits;
 

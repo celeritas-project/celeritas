@@ -316,12 +316,13 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
         auto phys_params = this->physics()->host_ref();
         if (alg == Algorithm::minimal)
         {
-            phys_params.scalars.step_limit_algorithm = Algorithm::minimal;
-            phys_params.scalars.range_factor = 0.2;
+            phys_params.scalars.light.step_limit_algorithm = Algorithm::minimal;
+            phys_params.scalars.light.range_factor = 0.2;
         }
         else if (alg == Algorithm::safety_plus)
         {
-            phys_params.scalars.step_limit_algorithm = Algorithm::safety_plus;
+            phys_params.scalars.light.step_limit_algorithm
+                = Algorithm::safety_plus;
         }
 
         for (real_type energy : {0.01, 0.1, 1.0, 10.0, 100.0})
