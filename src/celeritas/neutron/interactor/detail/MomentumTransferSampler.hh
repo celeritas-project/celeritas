@@ -68,9 +68,9 @@ class MomentumTransferSampler
     // Atomic mass number (A) of the target
     AtomicMassNumber amass_;
     bool heavy_target_{false};
-    // Momentum magnitude of the incident neutron (GeV/c)
+    // Momentum magnitude of the incident neutron [MeV/c]
     Momentum neutron_p_;
-    // Maximum momentum transfer for the elastic scattering
+    // Maximum momentum transfer for the elastic scattering [GeV^2/c^2]
     real_type max_q_sq_;
     // Parameters for the CHIPS differential cross section
     ExchangeParameters par_q_sq_;
@@ -116,7 +116,7 @@ class MomentumTransferSampler
  * Construct from the incident momentum in the lab frame and the target(A).
  *
  * \note The incident neutron momentum, and neutron and nucleus masses are
- *  converted to the GeV value.
+ *  converted to the GeV value .
  */
 CELER_FUNCTION
 MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared,
@@ -266,7 +266,8 @@ CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(Momentum p) cons
 /*!
  * Calculate parameters of the neutron-nucleus elastic scattering.
  *
- * \param p the neutron momentum in the lab frame (value in clhep::GeV unit).
+ * \param neutron_p the neutron momentum in the lab frame (value in clhep::GeV
+ * unit).
  */
 CELER_FUNCTION
 auto MomentumTransferSampler::calc_par_q_sq(Momentum neutron_p) const
@@ -287,21 +288,23 @@ auto MomentumTransferSampler::calc_par_q_sq(Momentum neutron_p) const
         // Special case for the \f$ n + p \rightarrow n + p \f$ channel
         real_type dl1 = lp - par_[3];
 
-        constexpr real_type np_el[15] = {6.75,
-                                         0.14,
-                                         13,
-                                         0.14,
-                                         0.6,
-                                         0.00013,
-                                         75,
-                                         0.001,
-                                         7.2,
-                                         4.32,
-                                         0.012,
-                                         2.5,
-                                         12,
-                                         0.34,
-                                         18};
+        constexpr real_type np_el[15] = {
+            6.75,
+            0.14,
+            13,
+            0.14,
+            0.6,
+            0.00013,
+            75,
+            0.001,
+            7.2,
+            4.32,
+            0.012,
+            2.5,
+            12,
+            0.34,
+            18,
+        };
 
         result.expnt[0] = (np_el[0] + np_el[1] * ipow<2>(dl1) + np_el[2] / p)
                               / (1 + np_el[3] / p4)

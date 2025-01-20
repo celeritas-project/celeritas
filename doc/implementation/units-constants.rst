@@ -17,7 +17,7 @@ Celeritas defines :ref:`constants <api_constants>` from a few different sources.
 Mathematical constants are defined as truncated floating point values. Some
 physical constants such as the speed of light, Planck's constant, and the
 electron charge, have exact numerical values as specified by the SI unit system
-:cite:`SI`. Other physical constants such as the atomic mass unit and electron
+:cite:`si-2019`. Other physical constants such as the atomic mass unit and electron
 radius are derived from experimental measurements in CODATA 2018. Because the
 reported constants are derived from regression fits to experimental data
 points, some exactly defined physical relationships (such as the fine structure

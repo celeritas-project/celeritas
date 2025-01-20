@@ -25,8 +25,12 @@ namespace celeritas
  * angle off of electrons, and the ratio of the electron to total Wentzel cross
  * sections.
  *
- * References:
- * [PRM] Geant4 Physics Reference Manual (Release 11.1) section 8.5.
+ * The Moliere screening parameter is largely from
+ * \citet{fernandez-msc-1993, https://doi.org/10.1016/0168-583X(93)95827-R}
+ * which references Bethe's re-derivation of Moliere scattering
+ * \citep{bethe-msc-1953, https://doi.org/10.1103/PhysRev.89.1256}.
+ *
+ * See \cite{g4prm} section 8.5.
  */
 class WentzelHelper
 {
@@ -194,17 +198,12 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_factor(
 /*!
  * Calculate the Moliere screening coefficient as in [PRM] eqn 8.51.
  *
- * See Eq.32 in [Fern], referencing Bethe's re-derivation of Moliere
- * scattering:
- *  Bethe, H. A. “Moliere’s Theory of Multiple Scattering.” Physical Review
- *  89, no. 6 (March 15, 1953): 1256–66.
- * https://doi.org/10.1103/PhysRev.89.1256.
- *
- * For heavy particles, an empirical correction \f$ 1 + \exp(-(0.001 Z)^2) \f$
- * is used to better match the data in Attwood et al, "The scattering of muons
- * in low-Z materials", Nuclear Instruments and Methods in Physics Research
- * Section B: Beam Interactions with Materials and Atoms, volume 251 (2006):
- * 41-55. https://doi.org/10.1016/j.nimb.2006.05.006
+ * See Eq. 32 in \cite{fernandez-msc-1993}. For heavy particles, an empirical
+ * correction \f$ 1 + \exp(-(0.001 Z)^2) \f$ is used to better match the data
+ * in Attwood et al, "The scattering of muons in low-Z materials", Nuclear
+ * Instruments and Methods in Physics Research Section B: Beam Interactions
+ * with Materials and Atoms, volume 251 (2006): 41-55.
+ * https://doi.org/10.1016/j.nimb.2006.05.006
  *
  * \note The \c screenZ in Geant4 is equal to twice the screening coefficient.
  */
