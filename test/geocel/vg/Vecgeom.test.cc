@@ -478,9 +478,6 @@ TEST_F(FourLevelsTest, detailed_track)
 
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_outside());
-        // TODO: navigation from outside not working in surface model
-        std::cerr << "==== TODO: fix geo.cross_boundary() from [OUTSIDE] "
-                     "====\n";
         geo.cross_boundary();
         EXPECT_FALSE(geo.is_outside());
         EXPECT_EQ(VolumeId{3}, geo.volume_id());
@@ -531,15 +528,15 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
     // Move a bit internally, then scatter back toward the sphere
     next = geo.find_next_step(from_cm(10.0));
-    // TODO: EXPECT_SOFT_EQ(6, to_cm(next.distance));
-    geo.set_dir({-1, 0, 0});
+    EXPECT_SOFT_EQ(6, to_cm(next.distance));
     EXPECT_EQ("Shape1", this->volume_name(geo));
 
     // Move to the sphere boundary then scatter still into the sphere
-    next = geo.find_next_step(from_cm(10.0));
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step(from_cm(100.0));
     exp_dist = 1.0e-8;
 #if CELERITAS_VECGEOM_SURFACE
-    exp_dist = 10.0;  // TODO: check why this value is different
+    exp_dist = 1.0e-13;
 #endif
     EXPECT_SOFT_EQ(exp_dist, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
@@ -556,7 +553,8 @@ TEST_F(FourLevelsTest, reentrant_boundary)
     next = geo.find_next_step(from_cm(1.0));
     exp_dist = 0.00031622777925735285;
 #if CELERITAS_VECGEOM_SURFACE
-    exp_dist = 1.0;
+    // TODO: understant difference in distance
+    exp_dist = 9.9737647358664937e-07;
 #endif
     EXPECT_SOFT_EQ(exp_dist, to_cm(next.distance));
 
