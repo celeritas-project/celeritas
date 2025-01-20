@@ -109,22 +109,22 @@ using TestTypes = ::testing::
 
 TYPED_TEST_SUITE(SenseCalculatorTest, TestTypes, );
 
-#if CELERITAS_DEBUG
-TYPED_TEST(SenseCalculatorTest, one_volume)
+#define ONE_VOLUME TEST_IF_CELERITAS_DEBUG(one_volume)
+TYPED_TEST(SenseCalculatorTest, ONE_VOLUME)
 {
     typename TestFixture::OneVolInput geo_inp;
     this->build_geometry(geo_inp);
 
     // Test this degenerate case (no surfaces)
     OnFace face;
-    EXPECT_THROW(this->construct_sense_calculator(
-                     this->make_surf_visitor(),
-                     this->make_volume_view(LocalVolumeId{0}),
-                     Real3{123, 345, 567},
-                     face)(FaceId{0}),
-                 DebugError);
+    auto lsv{this->make_surf_visitor()};
+    auto vol{this->make_volume_view(LocalVolumeId{0})};
+    Real3 pos{0, 0, 0};
+    EXPECT_THROW(
+        this->construct_sense_calculator(lsv, vol, pos, face)(FaceId{0}),
+        DebugError);
 }
-#endif
+#undef ONE_VOLUME
 
 TYPED_TEST(SenseCalculatorTest, two_volumes)
 {
