@@ -26,8 +26,12 @@ namespace celeritas
  * angle off of electrons, and the ratio of the electron to total Wentzel cross
  * sections.
  *
- * References:
- * [PRM] Geant4 Physics Reference Manual (Release 11.1) section 8.5.
+ * The Moliere screening form factor is largely from
+ * \citet{fernandez-msc-1993, https://doi.org/10.1016/0168-583X(93)95827-R}
+ * which references Bethe's re-derivation of Moliere scattering
+ * \citep{bethe-msc-1953, https://doi.org/10.1103/PhysRev.89.1256}.
+ *
+ * See \cite{g4prm} section 8.5.
  */
 class WentzelHelper
 {
