@@ -480,10 +480,15 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     if (vgnext_.Top() != nullptr)
     {
 #if CELERITAS_VECGEOM_SURFACE
-        Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
-                                        detail::to_vector(this->dir_),
-                                        next_surface_,
-                                        vgnext_);
+        if (!vgstate_.IsOutside())
+        {
+            // In surf model, relocation does not work from [OUTSIDE]
+            // (no need to call this function) as vgnext_ is already set
+            Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
+                                            detail::to_vector(this->dir_),
+                                            next_surface_,
+                                            vgnext_);
+        }
 #else
         // Some navigators require an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
