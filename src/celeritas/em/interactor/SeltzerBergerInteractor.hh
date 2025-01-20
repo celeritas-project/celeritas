@@ -35,8 +35,8 @@ namespace celeritas
  * CutOffView), this class provides the energy loss of these particles due to
  * radiation of photons in the field of a nucleus. This model improves accuracy
  * using cross sections based on interpolation of published tables from Seltzer
- * and Berger given in Nucl. Instr. and Meth. in Phys. Research B, 12(1):95–134
- * (1985) and Atomic Data and Nuclear Data Tables, 35():345 (1986). The cross
+ * and Berger given in \cite{sb-brems-1985} and \cite{sb-brems-1986}.
+ * The cross
  * sections are obtained from SBEnergyDistribution and are appropriately scaled
  * in the case of positrons via SBPositronXsCorrector.
  *

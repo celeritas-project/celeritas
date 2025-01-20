@@ -73,7 +73,7 @@ MscTestBase::make_phys_view(ParticleTrackView const& par,
 
     // Initialize physics
     PhysicsTrackView phys_view(
-        host_ref, physics_state_.ref(), par.particle_id(), mid, TrackSlotId{0});
+        host_ref, physics_state_.ref(), par, mid, TrackSlotId{0});
     phys_view = PhysicsTrackInitializer{};
 
     // Calculate and store the energy loss (dedx) range limit

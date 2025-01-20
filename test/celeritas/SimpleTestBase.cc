@@ -185,7 +185,8 @@ auto SimpleTestBase::build_init() -> SPConstTrackInit
 auto SimpleTestBase::build_wentzel() -> SPConstWentzelOKVI
 {
     WentzelOKVIParams::Options options;
-    return std::make_shared<WentzelOKVIParams>(this->material(), options);
+    return std::make_shared<WentzelOKVIParams>(
+        this->material(), this->particle(), options);
 }
 
 //---------------------------------------------------------------------------//

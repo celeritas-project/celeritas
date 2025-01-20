@@ -52,8 +52,8 @@ class WentzelVIMscTest : public MscTestBase
         WentzelOKVIParams::Options options;
         options.is_combined = true;
         options.polar_angle_limit = 0.15;
-        wentzel_params_
-            = std::make_shared<WentzelOKVIParams>(this->material(), options);
+        wentzel_params_ = std::make_shared<WentzelOKVIParams>(
+            this->material(), this->particle(), options);
         ASSERT_TRUE(wentzel_params_);
 
         mat_id_ = this->material()->find_material("G4_STAINLESS-STEEL");
@@ -126,46 +126,50 @@ TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))
         }
     }
 
-    static double const expected_costheta_limit[] = {0.86727876568524,
-                                                     0.99866059244724,
-                                                     0.99998659360589,
-                                                     0.99999999865922,
-                                                     0.99999999999987};
-    static double const expected_xs[] = {91006.507959232,
-                                         90538.37519678,
-                                         59996.714258593,
-                                         1728.0331005902,
-                                         17.052850682495,
-                                         0.094248051366407,
-                                         0,
-                                         90817.184573409,
-                                         60099.856390416,
-                                         1743.5610088526,
-                                         17.277466329628,
-                                         0.1648117124442,
-                                         0,
-                                         0,
-                                         90797.857371705,
-                                         1745.1257938247,
-                                         17.293224769687,
-                                         0.16496771152581,
-                                         0,
-                                         0,
-                                         0,
-                                         90795.726895606,
-                                         0.16498502022457,
-                                         0,
-                                         0,
-                                         0,
-                                         0,
-                                         0,
-                                         90795.902789277,
-                                         0,
-                                         0,
-                                         0,
-                                         0,
-                                         0,
-                                         0};
+    static double const expected_costheta_limit[] = {
+        0.86727876568524,
+        0.99866059244724,
+        0.99998659360589,
+        0.99999999865922,
+        0.99999999999987,
+    };
+    static double const expected_xs[] = {
+        91006.493712975,
+        90538.361023805,
+        59996.704866643,
+        1728.032830082,
+        17.052848013023,
+        0.094248036612716,
+        0,
+        90817.17035679,
+        60099.84698232,
+        1743.5607359136,
+        17.277463624995,
+        0.1648116866444,
+        0,
+        0,
+        90797.843158111,
+        1745.1255206409,
+        17.293222062587,
+        0.16496768570159,
+        0,
+        0,
+        0,
+        90795.712682346,
+        0.16498499439764,
+        0,
+        0,
+        0,
+        0,
+        0,
+        90795.888575989,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    };
     EXPECT_VEC_SOFT_EQ(expected_costheta_limit, costheta_limit);
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }

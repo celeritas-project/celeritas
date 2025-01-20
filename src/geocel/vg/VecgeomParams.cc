@@ -279,8 +279,15 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     g4log_volid_map_.reserve(result.logical_volumes.size());
     for (auto vol_idx : range(result.logical_volumes.size()))
     {
-        auto&& [iter, inserted] = g4log_volid_map_.insert(
-            {result.logical_volumes[vol_idx], id_cast<VolumeId>(vol_idx)});
+        auto const* lv = result.logical_volumes[vol_idx];
+        if (lv == nullptr)
+        {
+            // VecGeom creates fake volumes for boolean volumes
+            continue;
+        }
+
+        auto&& [iter, inserted]
+            = g4log_volid_map_.insert({lv, id_cast<VolumeId>(vol_idx)});
         if (CELER_UNLIKELY(!inserted))
         {
             // This shouldn't happen...

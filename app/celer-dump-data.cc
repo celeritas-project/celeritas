@@ -578,24 +578,35 @@ void print_em_params(ImportEmParameters const& em_params)
     // NOTE: boolalpha doesn't work with setw, see
     // https://timsong-cpp.github.io/lwg-issues/2703
 #define PEP_STREAM_PARAM(NAME) \
-    "| " << setw(22) << #NAME << " | " << setw(7) << em_params.NAME << " |\n"
+    "| " << setw(24) << #NAME << " | " << setw(7) << em_params.NAME << " |\n"
+#define PEP_STREAM_ENUM(NAME)                     \
+    "| " << setw(24) << #NAME << " | " << setw(7) \
+         << to_cstring(em_params.NAME) << " |\n"
 #define PEP_STREAM_BOOL(NAME)                     \
-    "| " << setw(22) << #NAME << " | " << setw(7) \
+    "| " << setw(24) << #NAME << " | " << setw(7) \
          << (em_params.NAME ? "true" : "false") << " |\n"
     cout << R"gfm(
 # EM parameters
 
-| EM parameter           | Value   |
-| ---------------------- | ------- |
+| EM parameter             | Value   |
+| ------------------------ | ------- |
 )gfm";
     cout << PEP_STREAM_BOOL(energy_loss_fluct) << PEP_STREAM_BOOL(lpm)
          << PEP_STREAM_BOOL(integral_approach)
          << PEP_STREAM_PARAM(linear_loss_limit)
-         << PEP_STREAM_PARAM(lowest_electron_energy) << PEP_STREAM_BOOL(auger)
+         << PEP_STREAM_PARAM(lowest_electron_energy)
+         << PEP_STREAM_PARAM(lowest_muhad_energy) << PEP_STREAM_BOOL(auger)
+         << PEP_STREAM_ENUM(msc_step_algorithm)
+         << PEP_STREAM_ENUM(msc_muhad_step_algorithm)
+         << PEP_STREAM_PARAM(msc_displaced)
+         << PEP_STREAM_PARAM(msc_muhad_displaced)
          << PEP_STREAM_PARAM(msc_range_factor)
+         << PEP_STREAM_PARAM(msc_muhad_range_factor)
          << PEP_STREAM_PARAM(msc_safety_factor)
-         << PEP_STREAM_PARAM(msc_lambda_limit) << PEP_STREAM_BOOL(apply_cuts)
-         << PEP_STREAM_PARAM(screening_factor) << endl;
+         << PEP_STREAM_PARAM(msc_lambda_limit)
+         << PEP_STREAM_PARAM(msc_theta_limit) << PEP_STREAM_BOOL(apply_cuts)
+         << PEP_STREAM_PARAM(screening_factor)
+         << PEP_STREAM_PARAM(angle_limit_factor) << endl;
 #undef PEP_STREAM_PARAM
 #undef PEP_STREAM_BOOL
 }
