@@ -6,12 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "orange/univ/detail/Utils.hh"
 
-#include <ostream>
 #include <string_view>
 #include <vector>
 
 #include "corecel/cont/Span.hh"
-#include "corecel/data/DeviceVector.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/OrangeInputIOImpl.json.hh"
 

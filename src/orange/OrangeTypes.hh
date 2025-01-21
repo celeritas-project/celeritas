@@ -237,7 +237,7 @@ enum class Chirality : bool
  */
 namespace logic
 {
-//! Special logical Evaluator tokens.
+//! Special logical Evaluator tokens ordered by precedence.
 // The enum values are set to the highest 6 values of logic_int.
 enum OperatorToken : logic_int
 {

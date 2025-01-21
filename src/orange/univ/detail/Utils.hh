@@ -121,6 +121,10 @@ struct Operand
 //---------------------------------------------------------------------------//
 /*!
  * Convert a postfix logic expression to an infix expression.
+ *
+ * The \c InfixEvaluator will short-circuit evaluation of operands based
+ * on parenthesis depth. Minimizing that depth in the expression
+ * will allow to short-circuit more efficiently.
  */
 inline std::vector<logic_int> convert_to_infix(Span<logic_int> postfix)
 {
