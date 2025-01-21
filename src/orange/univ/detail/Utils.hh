@@ -7,14 +7,11 @@
 #pragma once
 
 #include <cmath>
-#include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "orange/OrangeTypes.hh"
 
 #include "Types.hh"
 #include "../VolumeView.hh"
