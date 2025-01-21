@@ -17,12 +17,14 @@ namespace celeritas
 /*!
  * Type-safe particle identifier.
  *
- * PDG-coded numbers should generally not be treated like numbers, so this
- * prevents unintentional arithmetic and conversion.
+ * The Particle Data Group specifies a coding to uniquely identify particle
+ * types in "Monte Carlo Particle Numbering Scheme" section of \citep{pdg,
+ * https://link.aps.org/doi/10.1103/PhysRevD.98.030001}.
+ * These coded identifiers should generally not be treated like numbers: this
+ * class prevents unintentional arithmetic and conversion.
  *
  * PDG numbers should only be used in host setup code (they should be converted
- * to ParticleId for use during runtime) so these functions have fewer
- * decorators.
+ * to ParticleId for use during runtime).
  */
 class PDGNumber
 {

@@ -87,7 +87,6 @@ class UrbanMscScatter
     MaterialView const& material_;
 
     real_type inc_energy_;
-    bool is_positron_;
     Real3 const& inc_direction_;
     real_type safety_;
 
@@ -124,7 +123,8 @@ class UrbanMscScatter
     inline CELER_FUNCTION real_type simple_scattering(Engine& rng) const;
 
     // Calculate the theta0 of the Highland formula
-    inline CELER_FUNCTION real_type compute_theta0() const;
+    inline CELER_FUNCTION real_type
+    compute_theta0(ParticleTrackView const& particle) const;
 
     // Update direction and position after the multiple scattering
     template<class Engine>
@@ -172,7 +172,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , helper_(helper)
     , material_(material)
     , inc_energy_(value_as<Energy>(particle.energy()))
-    , is_positron_(particle.particle_id() == shared.ids.positron)
     , inc_direction_(dir)
     , safety_(safety)
     , is_displaced_(input.is_displaced)
@@ -180,8 +179,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , true_path_(input.true_path)
     , limit_min_(physics.msc_range().limit_min)
 {
-    CELER_EXPECT(particle.particle_id() == shared.ids.electron
-                 || particle.particle_id() == shared.ids.positron);
     CELER_EXPECT(safety_ >= 0);
     CELER_EXPECT(geom_path_ > 0);
     CELER_EXPECT(true_path_ >= geom_path_);
@@ -262,7 +259,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
 
             // TODO: theta0_ calculation could be done externally, eliminating
             // many of the class member data
-            theta0_ = this->compute_theta0();
+            theta0_ = this->compute_theta0(particle);
 
             if (theta0_ < real_type(1e-8))
             {
@@ -511,27 +508,30 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
  * see the section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
 CELER_FUNCTION
-real_type UrbanMscScatter::compute_theta0() const
+real_type
+UrbanMscScatter::compute_theta0(ParticleTrackView const& particle) const
 {
     real_type const mass = value_as<Mass>(shared_.electron_mass);
     real_type true_path = max(limit_min_, true_path_);
     real_type y = true_path / material_.radiation_length();
 
     // Correction for the positron
-    if (is_positron_)
+    if (particle.particle_id() == shared_.ids.positron)
     {
         detail::UrbanPositronCorrector calc_correction{material_.zeff()};
         y *= calc_correction(std::sqrt(inc_energy_ * end_energy_) / mass);
     }
     CELER_ASSERT(y > 0);
 
-    // TODO for hadrons: multiply abs(charge)
     real_type invbetacp
         = std::sqrt((inc_energy_ + mass) * (end_energy_ + mass)
                     / (inc_energy_ * (inc_energy_ + 2 * mass) * end_energy_
                        * (end_energy_ + 2 * mass)));
     constexpr units::MevEnergy c_highland{13.6};
-    real_type theta0 = c_highland.value() * std::sqrt(y) * invbetacp;
+    real_type theta0
+        = c_highland.value()
+          * std::abs(value_as<units::ElementaryCharge>(particle.charge()))
+          * std::sqrt(y) * invbetacp;
 
     // Correction factor from e- scattering data
     theta0 *= PolyEvaluator<real_type, 1>(msc_.theta_coeff)(std::log(y));
