@@ -281,9 +281,9 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_error_incompatible_option  msg var new_value)
-  message(SEND_ERROR "Invalid setting ${var}=${${var}}: ${msg}
-    Possible fix: cmake -D${var}=${new_value} ${CMAKE_BINARY_DIR}"
-  )
+  message(SEND_ERROR "Invalid setting ${var}=${${var}}: ${msg}")
+  message(WARNING "Setting ${var}=${new_value} for next build")
+  set(${var} "${new_value}" CACHE STRING "Set automatically: ${msg}" FORCE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

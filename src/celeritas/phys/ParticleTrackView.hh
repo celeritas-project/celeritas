@@ -94,6 +94,9 @@ class ParticleTrackView
     // Whether the particle is stable
     CELER_FORCEINLINE_FUNCTION bool is_stable() const;
 
+    // Distinguish between light (e-/e+) and heavy (muon/hadron) particles
+    CELER_FORCEINLINE_FUNCTION bool is_heavy() const;
+
     //// DERIVED PROPERTIES (indirection plus calculation) ////
 
     // Kinetic energy plus rest energy [MeV]
@@ -259,6 +262,19 @@ CELER_FUNCTION bool ParticleTrackView::is_antiparticle() const
 CELER_FUNCTION bool ParticleTrackView::is_stable() const
 {
     return this->decay_constant() == constants::stable_decay_constant;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Distinguish between light (e-/e+) and heavy (muon/hadron) particles.
+ *
+ * Light and heavy charged particles have different parameters and treatment in
+ * continuous energy loss and Coulomb scattering. The choice of 1 MeV to
+ * distinguish between electrons and muons is arbitrary.
+ */
+CELER_FUNCTION bool ParticleTrackView::is_heavy() const
+{
+    return this->mass() > units::MevMass{1};
 }
 
 //---------------------------------------------------------------------------//

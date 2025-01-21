@@ -219,23 +219,49 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct on-device particle-dependent physics options.
+ */
+void PhysicsParams::build_particle_options(ParticleOptions const& opts,
+                                           ParticleScalars* data) const
+{
+    CELER_VALIDATE(opts.min_range > 0,
+                   << "invalid min_range=" << opts.min_range
+                   << " (should be positive)");
+    CELER_VALIDATE(opts.max_step_over_range > 0,
+                   << "invalid max_step_over_range="
+                   << opts.max_step_over_range << " (should be positive)");
+    CELER_VALIDATE(opts.lowest_energy.value() > 0,
+                   << "invalid lowest_energy=" << opts.lowest_energy.value()
+                   << " (should be positive)");
+    CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
+                   << "invalid range_factor=" << opts.range_factor
+                   << " (should be within 0 < limit < 1)");
+    data->min_range = opts.min_range;
+    data->max_step_over_range = opts.max_step_over_range;
+    data->lowest_energy = opts.lowest_energy;
+    data->displaced = opts.displaced;
+    data->range_factor = opts.range_factor;
+    data->step_limit_algorithm = opts.step_limit_algorithm;
+    if (data->step_limit_algorithm
+        == MscStepLimitAlgorithm::distance_to_boundary)
+    {
+        CELER_LOG(warning) << "Unsupported MSC step limit algorithm '"
+                           << to_cstring(data->step_limit_algorithm)
+                           << "': defaulting to '"
+                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+        data->step_limit_algorithm = MscStepLimitAlgorithm::safety;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct on-device physics options.
  */
 void PhysicsParams::build_options(Options const& opts, HostValue* data) const
 {
-    CELER_VALIDATE(opts.max_step_over_range > 0,
-                   << "invalid max_step_over_range="
-                   << opts.max_step_over_range << " (should be positive)");
     CELER_VALIDATE(opts.min_eprime_over_e > 0 && opts.min_eprime_over_e < 1,
                    << "invalid min_eprime_over_e=" << opts.min_eprime_over_e
                    << " (should be be within 0 < limit < 1)");
-    CELER_VALIDATE(opts.min_range > 0,
-                   << "invalid min_range=" << opts.min_range
-                   << " (should be positive)");
-    CELER_VALIDATE(opts.lowest_electron_energy.value() > 0,
-                   << "invalid lowest_electron_energy="
-                   << opts.lowest_electron_energy.value()
-                   << " (should be positive)");
     CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
                    << "invalid linear_loss_limit=" << opts.linear_loss_limit
                    << " (should be within 0 <= limit <= 1)");
@@ -248,32 +274,18 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.safety_factor >= 0.1,
                    << "invalid safety_factor=" << opts.safety_factor
                    << " (should be >= 0.1)");
-    CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
-                   << "invalid range_factor=" << opts.range_factor
-                   << " (should be within 0 < limit < 1)");
     CELER_VALIDATE(opts.spline_eloss_order > 0,
                    << "invalid spline_eloss_order=" << opts.spline_eloss_order
                    << " (should be > 0)");
-    data->scalars.min_range = opts.min_range;
-    data->scalars.max_step_over_range = opts.max_step_over_range;
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
-    data->scalars.lowest_electron_energy = opts.lowest_electron_energy;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
     data->scalars.lambda_limit = opts.lambda_limit;
-    data->scalars.range_factor = opts.range_factor;
     data->scalars.safety_factor = opts.safety_factor;
-    data->scalars.step_limit_algorithm = opts.step_limit_algorithm;
     data->scalars.spline_eloss_order = opts.spline_eloss_order;
-    if (data->scalars.step_limit_algorithm
-        == MscStepLimitAlgorithm::distance_to_boundary)
-    {
-        CELER_LOG(warning) << "Unsupported step limit algorithm '"
-                           << to_cstring(data->scalars.step_limit_algorithm)
-                           << "': defaulting to '"
-                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
-        data->scalars.step_limit_algorithm = MscStepLimitAlgorithm::safety;
-    }
+
+    this->build_particle_options(opts.light, &data->scalars.light);
+    this->build_particle_options(opts.heavy, &data->scalars.heavy);
 }
 
 //---------------------------------------------------------------------------//

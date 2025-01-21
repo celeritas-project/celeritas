@@ -64,7 +64,7 @@ how to structure the decorations.
 Submitting code changes
 -----------------------
 
-When you believe that you've made a substantive [subst]_ and self-contained
+When you believe that you've made a substantive [#subst]_ and self-contained
 improvement to the code, it's time to create a `pull request`_ (PR) to get
 feedback on your changes before they're merged into the code base. The pull
 request should be as close to a "single change" as possible (i.e., the short
@@ -101,13 +101,13 @@ they conflict.
 The review is complete and your branch will be squashed and merged when:
 
 - All the CI tests pass,
-- All conversations have been resolved [resol]_, and
+- All conversations have been resolved [#resol]_, and
 - The reviewer has approved the changes.
 
 And you will officially be a Celeritas :ref:`contributor <roles>`!
 Congratulations!
 
-.. [subst] All changes to the codebase must go through the pull request, but
+.. [#subst] All changes to the codebase must go through the pull request, but
    due to
    the overhead of reviewing, testing, merging, and documenting a PR, we'd like
    to avoid small changes that have almost no effect in terms of operation or
@@ -115,7 +115,7 @@ Congratulations!
    rest of the docs for any other typos or improvements you'd like to make, and
    submit a single PR with those changes.
 
-.. [resol] When you've fully implemented the reviewer's comment, you may mark
+.. [#resol] When you've fully implemented the reviewer's comment, you may mark
    it as resolved without commenting.  Do not resolve a conversation if you
    disagree with the feedback: instead, post your view in a follow-on comment and
    wait for the reviewer to respond. If you comment, whether to supplement your

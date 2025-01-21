@@ -34,7 +34,9 @@ __global__ void phys_test_kernel(PTestInput const inp)
         return;
 
     auto const& init = inp.inits[tid];
-    PhysicsTrackView phys(inp.params, inp.states, init.particle, init.mat, tid);
+    ParticleTrackView par(inp.par_params, inp.par_states, tid);
+    par = ParticleTrackView::Initializer_t{init.particle, init.energy};
+    PhysicsTrackView phys(inp.params, inp.states, par, init.mat, tid);
     PhysicsStepView step(inp.params, inp.states, tid);
 
     phys = PhysicsTrackInitializer{};

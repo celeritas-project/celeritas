@@ -269,6 +269,7 @@ currently under development in Celeritas.
 
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
 .. doxygenclass:: celeritas::WentzelDistribution
+.. doxygenclass:: celeritas::WentzelHelper
 .. doxygenclass:: celeritas::MottRatioCalculator
 
 .. doxygenclass:: celeritas::ExpNuclearFormFactor

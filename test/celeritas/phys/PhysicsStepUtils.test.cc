@@ -41,10 +41,7 @@ class PhysicsStepUtilsTest : public MockTestBase
 
     using MevEnergy = units::MevEnergy;
 
-    PhysicsOptions build_physics_options() const override
-    {
-        return PhysicsOptions{};
-    }
+    PhysicsOptions build_physics_options() const override { return {}; }
 
     void SetUp() override
     {
@@ -77,7 +74,7 @@ class PhysicsStepUtilsTest : public MockTestBase
 
         PhysicsTrackView phys(this->physics()->host_ref(),
                               phys_state.ref(),
-                              par->particle_id(),
+                              *par,
                               mat->material_id(),
                               TrackSlotId{0});
         return phys;
@@ -406,7 +403,7 @@ class StepLimiterTest : public PhysicsStepUtilsTest
     {
         PhysicsOptions opts;
 
-        opts.min_range = inf;  // Use analytic range instead of scaled
+        opts.light.min_range = inf;  // Use analytic range instead of scaled
         opts.fixed_step_limiter = 1e-3 * units::centimeter;
         return opts;
     }

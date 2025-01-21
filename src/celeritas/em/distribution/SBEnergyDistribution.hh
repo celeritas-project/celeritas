@@ -36,7 +36,8 @@ struct SBElectronXsCorrector
  * section data from G4EMLOW, which stores scaled cross sections as a function
  * of incident particle energy and exiting gamma energy (see SeltzerBergerModel
  * for details). The sampling procedure is roughly laid out in section
- * [PHYS341] of the GEANT3 physics reference manual, although like Geant4 we
+ * `[PHYS341]` of the GEANT3 reference manual \citep{geant3-1993,
+ * https://cds.cern.ch/record/1082634} , although like Geant4 we
  * use raw tabulated SB data rather than a parameter fit. Also like Geant4 we
  * include the extra density correction factor.
  *

@@ -12,14 +12,12 @@
 
 namespace celeritas
 {
+//! Opaque index to MSC-applicable particles
+using MscParticleId = OpaqueId<struct MscParticle_>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Physics IDs for MSC.
- *
- * \todo If we want to extend this *generally*, we should have an array (length
- * \c ParticleParams::size() ) that maps IDs to "model parameters". For
- * example, electrons and positrons probably map to the same ID. Light ions and
- * protons probably do as well.
  */
 struct CoulombIds
 {

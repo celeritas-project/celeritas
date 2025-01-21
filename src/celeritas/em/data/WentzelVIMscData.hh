@@ -47,15 +47,21 @@ struct WentzelVIMscData
 
     template<class T>
     using Items = Collection<T, W, M>;
+    template<class T>
+    using ParticleItems = Collection<T, W, M, ParticleId>;
 
     //// DATA ////
 
     //! Particle IDs
     CoulombIds ids;
-    //! Mass of of electron in MeV
+    //! Mass of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options
     WentzelVIMscParameters params;
+    //! Number of particles this model applies to
+    ParticleId::size_type num_particles;
+    //! Map from particle ID to index in cross sections
+    ParticleItems<MscParticleId> pid_to_xs;
     //! Scaled xs data
     Items<XsGridData> xs;  //!< [mat][particle]
 
@@ -67,8 +73,8 @@ struct WentzelVIMscData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity() && !xs.empty()
-               && !reals.empty();
+        return ids && electron_mass > zero_quantity() && num_particles >= 2
+               && !pid_to_xs.empty() && !xs.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -79,19 +85,11 @@ struct WentzelVIMscData
         ids = other.ids;
         electron_mass = other.electron_mass;
         params = other.params;
+        num_particles = other.num_particles;
+        pid_to_xs = other.pid_to_xs;
         xs = other.xs;
         reals = other.reals;
         return *this;
-    }
-
-    //! Get the data location for a material + particle
-    CELER_FUNCTION ItemId<XsGridData> at(MaterialId mat, ParticleId par) const
-    {
-        CELER_EXPECT(mat && par);
-        size_type result = mat.unchecked_get() * 2;
-        result += (par == this->ids.electron ? 0 : 1);
-        CELER_ENSURE(result < this->xs.size());
-        return ItemId<XsGridData>{result};
     }
 };
 
