@@ -28,10 +28,10 @@
 #include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
-#include "detail/BuildLogicUtils.hh"
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
+#include "detail/LogicUtils.hh"
 #include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
