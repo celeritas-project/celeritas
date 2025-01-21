@@ -507,24 +507,34 @@ void CelerEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 
     if (options_.muon.coulomb)
     {
-        //! \todo Update the Celeritas single Coulomb scattering model to
-        //! support muons
         physics_list->RegisterProcess(new G4CoulombScattering(), p);
         CELER_LOG(debug) << "Loaded muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
     }
 
-    if (options_.muon.msc)
+    if (options_.muon.msc != MscModelSelection::none)
     {
-        /*!
-         * \todo Possibly use Urban MSC until Wentzel VI is implemented and
-         * update the Celeritas Urban model to support muons
-         */
         auto process = std::make_unique<G4MuMultipleScattering>();
-        process->SetEmModel(new G4WentzelVIModel());
+        if (options_.muon.msc == MscModelSelection::wentzelvi)
+        {
+            process->SetEmModel(new G4WentzelVIModel());
+            CELER_LOG(debug) << "Loaded muon multiple scattering with "
+                                "G4WentzelVIModel";
+        }
+        else if (options_.muon.msc == MscModelSelection::urban)
+        {
+            process->SetEmModel(new G4UrbanMscModel());
+            CELER_LOG(debug) << "Loaded muon multiple scattering with "
+                                "G4UrbanMscModel";
+        }
+        else
+        {
+            CELER_VALIDATE(false,
+                           << "unsupported muon multiple scattering model "
+                              "selection '"
+                           << to_cstring(options_.muon.msc) << "'");
+        }
         physics_list->RegisterProcess(process.release(), p);
-        CELER_LOG(debug) << "Loaded muon multiple scattering with "
-                            "G4WentzelVIModel";
     }
 }
 

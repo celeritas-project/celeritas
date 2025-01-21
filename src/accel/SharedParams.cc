@@ -513,7 +513,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
         *imported, params.particle, params.material);
 
     // Construct shared data for Coulomb scattering
-    params.wentzel = WentzelOKVIParams::from_import(*imported, params.material);
+    params.wentzel = WentzelOKVIParams::from_import(
+        *imported, params.material, params.particle);
 
     // Load physics: create individual processes with make_shared
     params.physics = [&params, &options, &imported] {

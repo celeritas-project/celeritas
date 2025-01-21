@@ -54,10 +54,10 @@ class LazySenseCalculator
     LocalSurfaceVisitor visit_;
 
     //! Volume to calculate senses for
-    VolumeView vol_;
+    VolumeView const& vol_;
 
     //! Local position
-    Real3 pos_;
+    Real3 const& pos_;
 
     //! The first face encountered that we are "on"
     OnFace& face_;

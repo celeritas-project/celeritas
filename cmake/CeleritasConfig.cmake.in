@@ -108,7 +108,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_Thrust)
-  find_dependency(Thrust)
+  find_dependency(Thrust REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)

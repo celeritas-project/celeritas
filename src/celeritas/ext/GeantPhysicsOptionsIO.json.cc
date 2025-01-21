@@ -9,6 +9,7 @@
 #include <string>
 
 #include "corecel/io/JsonUtils.json.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/QuantityIO.json.hh"
 
@@ -93,7 +94,20 @@ void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
     GMPO_LOAD_OPTION(ionization);
     GMPO_LOAD_OPTION(bremsstrahlung);
     GMPO_LOAD_OPTION(coulomb);
-    GMPO_LOAD_OPTION(msc);
+    if (auto iter = j.find("msc"); iter != j.end())
+    {
+        if (iter->is_boolean())
+        {
+            CELER_LOG(warning) << "Deprecated msc option type 'boolean': "
+                                  "refactor as 'MscModelSelection' string";
+            options.msc = iter->get<bool>() ? MscModelSelection::urban
+                                            : MscModelSelection::none;
+        }
+        else
+        {
+            iter->get_to(options.msc);
+        }
+    }
 #undef GMPO_LOAD_OPTION
 }
 
