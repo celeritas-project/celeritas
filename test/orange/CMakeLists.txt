@@ -137,7 +137,8 @@ celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
-celeritas_add_test(univ/detail/Utils.test.cc)
+celeritas_add_test(univ/detail/Utils.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 
 #-----------------------------------------------------------------------------#
