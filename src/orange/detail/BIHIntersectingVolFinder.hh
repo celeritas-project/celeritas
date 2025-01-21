@@ -143,8 +143,19 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     {
         if (!view_.is_inner(current_node))
         {
-            intersection = this->visit_leaf(
+            auto candidate_intersection = this->visit_leaf(
                 view_.leaf_node(current_node), ray, intersection, visit_vol);
+            if (candidate_intersection)
+            {
+                if (candidate_intersection.distance < max_search_dist)
+                {
+                    return candidate_intersection;
+                }
+                else
+                {
+                    return Intersection{OnLocalSurface{}, max_search_dist};
+                }
+            }
         }
 
         previous_node = exchange(
@@ -154,7 +165,17 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
     } while (current_node);
 
-    return this->visit_inf_vols(intersection, ray, visit_vol);
+    // return this->visit_inf_vols(intersection, ray, visit_vol);
+    auto candidate_intersection = this->visit_inf_vols(intersection, ray, visit_vol);
+
+    if (candidate_intersection.distance < max_search_dist)
+    {
+        return candidate_intersection;
+    }
+    else
+    {
+        return Intersection{OnLocalSurface{}, max_search_dist};
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -199,8 +220,18 @@ BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
     {
         // Visiting this inner node for the first time; go down either left
         // or right edge
-        return this->visit_bbox(l_edge.bbox, ray, min_dist) ? l_edge.child
-                                                            : r_edge.child;
+        if (this->visit_bbox(l_edge.bbox, ray, min_dist))
+        {
+            return l_edge.child;
+        }
+        else if (this->visit_bbox(r_edge.bbox, ray, min_dist))
+        {
+            return r_edge.child;
+        }
+        else
+        {
+            return current_node.parent;
+        }
     }
 
     if (previous_id == current_node.edges[Side::left].child)
@@ -248,10 +279,9 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
         if (this->visit_bbox(bbox, ray, min_intersection.distance))
         {
             auto intersection = visit_vol(id, ray, min_intersection.distance);
-            if (intersection
-                && intersection.distance < min_intersection.distance)
+            if (intersection)
             {
-                min_intersection = intersection;
+                return intersection;
             }
         }
     }
@@ -271,9 +301,9 @@ BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
     for (auto id : view_.inf_vol_ids())
     {
         auto intersection = visit_vol(id, ray, min_intersection.distance);
-        if (intersection && intersection.distance < min_intersection.distance)
+        if (intersection)
         {
-            min_intersection = intersection;
+            return intersection;
         }
     }
     return min_intersection;
