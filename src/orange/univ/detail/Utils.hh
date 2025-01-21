@@ -110,14 +110,38 @@ inline CELER_FUNCTION OnLocalSurface get_surface(VolumeView const& vol,
 
 //---------------------------------------------------------------------------//
 /*!
+ * A helper class for keeping track of the operand type of a sub-expression.
+ */
+struct Operand
+{
+    logic::OperatorToken expr_type;
+    std::vector<logic_int> expr;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a postfix logic expression to an infix expression.
  */
 inline std::vector<logic_int> convert_to_infix(Span<logic_int> postfix)
 {
     CELER_EXPECT(!postfix.empty());
 
-    std::vector<std::vector<logic_int>> infix;
+    std::vector<Operand> infix;
     infix.reserve(postfix.size());
+
+    auto add_sub_expr = [](std::vector<logic_int>& acc,
+                           std::vector<logic_int>& expr,
+                           bool parentheses) {
+        if (parentheses)
+        {
+            acc.push_back(logic::lopen);
+        }
+        acc.insert(acc.end(), expr.begin(), expr.end());
+        if (parentheses)
+        {
+            acc.push_back(logic::lclose);
+        }
+    };
 
     // Process each token
     for (auto lgc : postfix)
@@ -127,37 +151,40 @@ inline std::vector<logic_int> convert_to_infix(Span<logic_int> postfix)
             switch (lgc)
             {
                 case logic::ltrue:
-                    infix.push_back({lgc});
+                    infix.push_back({logic::ltrue, {lgc}});
                     break;
                 case logic::lor:
                     [[fallthrough]];
                 case logic::land: {
-                    auto op_1 = infix.back();
-                    auto op_2 = infix.back();
+                    CELER_EXPECT(infix.size() > 1);
+                    auto& op_2 = *(infix.end() - 1);
+                    auto& op_1 = *(infix.end() - 2);
+                    auto opposite = lgc == logic::lor ? logic::land
+                                                      : logic::lor;
                     std::vector<logic_int> new_expr;
-                    new_expr.reserve(3 + op_1.size() + op_2.size());
-
-                    new_expr.push_back(logic::lopen);
-                    new_expr.insert(new_expr.end(), op_1.begin(), op_1.end());
+                    new_expr.reserve(5 + op_1.expr.size() + op_2.expr.size());
+                    add_sub_expr(
+                        new_expr, op_1.expr, op_1.expr_type == opposite);
                     new_expr.push_back(lgc);
-                    new_expr.insert(new_expr.end(), op_2.begin(), op_2.end());
-                    new_expr.push_back(logic::lclose);
+                    add_sub_expr(
+                        new_expr, op_2.expr, op_2.expr_type == opposite);
 
                     infix.pop_back();
                     infix.pop_back();
-                    infix.push_back(new_expr);
+                    infix.push_back({logic::OperatorToken{lgc}, new_expr});
                     break;
                 }
                 case logic::lnot: {
-                    auto op = infix.back();
+                    CELER_EXPECT(!infix.empty());
+                    auto&& [expr_type, expr] = infix.back();
                     std::vector<logic_int> new_expr;
-                    new_expr.reserve(1 + op.size());
+                    new_expr.reserve(1 + expr.size());
 
                     new_expr.push_back(lgc);
-                    new_expr.insert(new_expr.end(), op.begin(), op.end());
+                    add_sub_expr(new_expr, expr, expr_type < logic::lnot);
 
                     infix.pop_back();
-                    infix.push_back(new_expr);
+                    infix.push_back({logic::lnot, new_expr});
                     break;
                 }
                 default:
@@ -166,11 +193,11 @@ inline std::vector<logic_int> convert_to_infix(Span<logic_int> postfix)
         }
         else
         {
-            infix.push_back({lgc});
+            infix.push_back({logic::ltrue, {lgc}});
         }
     }
     CELER_ENSURE(infix.size() == 1);
-    return infix.front();
+    return infix.front().expr;
 }
 
 //---------------------------------------------------------------------------//
