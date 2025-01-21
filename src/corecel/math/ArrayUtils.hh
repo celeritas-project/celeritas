@@ -73,6 +73,10 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
 /*!
  * Increment a vector by another vector multiplied by a scalar.
  *
+ * \f[
+ * y \gets \alpha x + y
+ * \f]
+ *
  * Note that this uses \c celeritas::fma which supports types other than
  * floating point.
  */
@@ -164,9 +168,9 @@ CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
 /*!
  * Calculate a Cartesian vector from spherical coordinates.
  *
- * Theta is the angle between the Z axis and the outgoing vector, and phi is
- * the angle between the x axis and the projection of the vector onto the x-y
- * plane.
+ * Theta is the angle between the \em z axis and the outgoing vector, and \c
+ * phi is the angle between the \em x axis and the projection of the vector
+ * onto the \em x-y plane.
  */
 template<class T>
 inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
@@ -179,7 +183,7 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Rotate the direction about the given Z-based scatter direction.
+ * Rotate a direction about the given scattering direction.
  *
  * The equivalent to calling the Shift transport code's \code
     void cartesian_vector_transform(
@@ -200,19 +204,21 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
  *
  * There is some extra code in here to deal with loss of precision when the
  * incident direction is along the \em z axis. As \c rot approaches \em z, the
- * azimuthal angle \em phi must be calculated carefully from both the x and y
- * components of the vector, not independently. If \c rot actually equals \em z
+ * azimuthal angle \f$ \phi \f$ must be calculated carefully from both the
+ * \em x and \em y components of the vector, not independently.
+ * If \c rot actually equals \em z
  * then the azimuthal angle is completely indeterminate so we arbitrarily
- * choose \c phi = 0.
+ * choose \f$ \phi = 0 \f$.
  *
  * This function is often used for calculating exiting scattering angles. In
  * that case, \c dir is the exiting angle from the scattering calculation, and
  * \c rot is the original direction of the particle. The direction vectors are
  * defined as
  * \f[
-   \Omega =   \sin\theta\cos\phi\mathbf{i}
-            + \sin\theta\sin\phi\mathbf{j}
-            + \cos\theta\mathbf{k} \,.
+   \vec{\Omega}
+   =   \sin\theta\cos\phi\vec{i}
+     + \sin\theta\sin\phi\vec{j}
+     + \cos\theta\vec{k} \,.
  * \f]
  */
 template<class T>

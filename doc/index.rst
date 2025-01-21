@@ -235,13 +235,9 @@ Implementation
 The bulk of Celeritas' code is in several code libraries to be used by external
 users and application developers.  Currently, the most stable and user-ready
 component of Celeritas is its :ref:`api_g4_interface` for offloading. This
-section has two audiences:
-
-- high-level developers, particularly those who might want to write a new
-  physics code; and
-- external users of Celeritas as a library for integration into a Geant4
-  application.
-
+section includes detailed descriptions of the physics model implementations,
+and high-level summaries of the Celeritas Application Programming Interfaces
+(APIs).
 Cursory documentation for many of the classes and other data constructs are
 described in this user manual, but further details for developers can be found
 in the full Doxygen-generated `developer documentation`_.
@@ -250,12 +246,11 @@ in the full Doxygen-generated `developer documentation`_.
 
 The Celeritas codebase lives under the ``src/`` directory and is partitioned
 into several libraries of increasing complexity:
-``corecel`` for GPU/CPU abstractions,
-``geocel`` for geometry interfaces and wrappers to external libraries,
-``orange`` for the ORANGE platform-portable geometry implementation,
-``celeritas`` for the GPU implementation of physics and MC particle tracking,
-and
-``accel`` for the Geant4 integration library.
+:file:`corecel` for GPU/CPU abstractions,
+:file:`geocel` for geometry interfaces and wrappers to external libraries,
+:file:`orange` for the ORANGE platform-portable geometry implementation,
+:file:`celeritas` for the GPU implementation of physics and MC particle tracking, and
+:file:`accel` for the Geant4 integration library.
 
 Additional top-level files provide access to version and
 configuration attributes.
