@@ -11,11 +11,11 @@ These publications are extracted from the Celeritas team's Zotero database.
 - A. Howard. "Electromagnetic physics II: Optical Photons". CERN, Oct 2023. [indico.cern.ch](https://indico.cern.ch/event/1304769/contributions/5487618/)
 - E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor. "CODATA Recommended Values of the Fundamental Physical Constants: 2018". *Journal of Physical and Chemical Reference Data*, Sep 2021. [10.1063/5.0064853](https://doi.org/10.1063/5.0064853)
 - W. R. Saunders, J. Grant, E. H. Müller. "A new algorithm for electrostatic interactions in Monte Carlo simulations of charged particles". *Journal of Computational Physics*, Apr 2021. [10.1016/j.jcp.2020.110099](https://doi.org/10.1016/j.jcp.2020.110099)
-- *[si-2019]*: Bureau International des Poids et Mesures. "The International System of Units". Jan 2019.
+- *[si-2019]*: Bureau International des Poids et Mesures. "The International System of Units". Jan 2019. [www.bipm.org](https://www.bipm.org/en/publications/si-brochure)
 - *[pdg]*: M. Tanabashi, K. Hagiwara, K. Hikasa, K. Nakamura, Y. Sumino, *et al*. "Review of Particle Physics". *Physical Review D*, Aug 2018. [10.1103/PhysRevD.98.030001](https://doi.org/10.1103/PhysRevD.98.030001)
 - M. D. Looper. "Adjoint Monte Carlo Simulations and Improved Sector Shielding Calculations with Geant4". Jan 2018.
 - N. van Remortel. "The nature of natural units". *Nature Physics*, Nov 2016. [10.1038/nphys3950](https://doi.org/10.1038/nphys3950)
-- C. Leroy, P. Rancoita. "Principles of radiation interaction in matter and detection". World Scientific, New Jersey, Jan 2016. [www-worldscientific-com.ezproxy.cern.ch](https://www-worldscientific-com.ezproxy.cern.ch/worldscibooks/10.1142/9167)
+- *[leroy-2016]*: C. Leroy, P. Rancoita. "Principles of radiation interaction in matter and detection". World Scientific, New Jersey, Jan 2016. [doi-org.ezproxy.cern.ch](https://doi-org.ezproxy.cern.ch/10.1142/9167)
 - D. Wright, M. Kelsey. "The Geant4 Bertini Cascade". *Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment*, Dec 2015. [10.1016/j.nima.2015.09.058](https://doi.org/10.1016/j.nima.2015.09.058)
 - C. Köhn, U. Ebert. "Angular distribution of Bremsstrahlung photons and of positrons for calculations of terrestrial gamma-ray flashes and positron beams". *Atmospheric Research*, Jan 2014. [10.1016/j.atmosres.2013.03.012](https://doi.org/10.1016/j.atmosres.2013.03.012)
 - *[boschini-mott-1993]*: M. Boschini, C. Consolandi, M. Gervasi, S. Giani, D. Grandi, *et al*. "An expression for the Mott cross section of electrons and positrons on nuclei with Z up to 118". *Radiation Physics and Chemistry*, Sep 2013. [10.1016/j.radphyschem.2013.04.020](https://doi.org/10.1016/j.radphyschem.2013.04.020)
@@ -25,7 +25,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - F. Salvat, J. M. Fernández-Varea. "Overview of physical interaction models for photon and electron transport used in Monte Carlo codes". *Metrologia*, Apr 2009. [10.1088/0026-1394/46/2/S08](https://doi.org/10.1088/0026-1394/46/2/S08)
 - A. Bogdanov, H. Burkhardt, V. Ivanchenko, S. Kelner, R. Kokoulin, *et al*. "Geant4 simulation of production and interaction of muons". *IEEE Transactions on Nuclear Science*, Apr 2006. [10.1109/TNS.2006.872633](https://doi.org/10.1109/TNS.2006.872633)
 - L. Urbán. "A Model for Multiple Scattering in Geant4". Geneva. Switzerland, Jan 2006.
-- "Stopping of Ions Heavier than Helium". *Journal of the ICRU*, Jun 2005. [10.1093/jicru_ndi001](https://doi.org/10.1093/jicru_ndi001)
+- P. Sigmund, R. Bimbot, H. Geissel, H. Paul, A. Schinner, *et al*. "Stopping of ions heavier than helium". *Journal of the ICRU*, Jun 2005. [10.1093/jicru_ndi001](https://doi.org/10.1093/jicru_ndi001)
 - L. Urban. "Multiple scattering model in Geant4". Nov 2002. [cds.cern.ch](https://cds.cern.ch/record/592633)
 - *[butkevich-msc-2002]*: A. Butkevich, R. Kokoulin, G. Matushko, S. Mikheyev. "Comments on multiple scattering of high-energy muons in thick layers". *Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment*, Aug 2002. [10.1016/S0168-9002(02)00478-3](https://doi.org/10.1016/S0168-9002(02)00478-3)
 - V. Grichine. "On the energy-angle distribution of Cherenkov radiation in an absorbing medium". *Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment*, Apr 2002. [10.1016/S0168-9002(01)01927-1](https://doi.org/10.1016/S0168-9002(01)01927-1)
@@ -36,7 +36,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[lijian-mott-1995]*: T. Lijian, H. Qing, L. Zhengming. "Analytic fitting to the mott cross section of electrons". *Radiation Physics and Chemistry*, Feb 1995. [10.1016/0969-806X(94)00063-8](https://doi.org/10.1016/0969-806X(94)00063-8)
 - A. F. Bielajew. "Plural and multiple small-angle scattering from a screened Rutherford cross section". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, Apr 1994. [10.1016/0168-583X(94)95288-4](https://doi.org/10.1016/0168-583X(94)95288-4)
 - J. Fernández-Varea, R. Mayol, F. Salvat. "Cross sections for elastic scattering of fast electrons and positrons by atoms". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, Jul 1993. [10.1016/0168-583X(93)95079-K](https://doi.org/10.1016/0168-583X(93)95079-K)
-- J. M. Femindez-Varea, J. B. Mayol,  Salvat. "On the theory and simulation of multiple elastic scattering of electrons". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, Jan 1993.
+- *[fernandez-msc-1993]*: J. M. Fernández-Varea, J. B. Mayol,  Salvat. "On the theory and simulation of multiple elastic scattering of electrons". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, Jan 1993. [https://doi.org/10.1016/0168-583X(93)95827-R](https://doi.org/https://doi.org/10.1016/0168-583X(93)95827-R)
 - E. W. Larsen. "A theoretical derivation of the Condensed History Algorithm". *Annals of Nuclear Energy*, Oct 1992. [10.1016/0306-4549(92)90013-2](https://doi.org/10.1016/0306-4549(92)90013-2)
 - *[sb-brems-1986]*: S. M. Seltzer, M. J. Berger. "Bremsstrahlung energy spectra from electrons with kinetic energy 1 keV–10 GeV incident on screened nuclei and orbital electrons of neutral atoms with Z = 1–100". *Atomic Data and Nuclear Data Tables*, Nov 1986. [10.1016/0092-640X(86)90014-8](https://doi.org/10.1016/0092-640X(86)90014-8)
 - L. Kim, R. H. Pratt, S. M. Seltzer, M. J. Berger. "Ratio of positron to electron bremsstrahlung energy loss: An approximate scaling law". *Physical Review A*, May 1986. [10.1103/PhysRevA.33.3002](https://doi.org/10.1103/PhysRevA.33.3002)
@@ -49,12 +49,12 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[bertini-1963]*: H. W. Bertini. "Low-Energy Intranuclear Cascade Calculation". *Physical Review*, Aug 1963. [10.1103/PhysRev.131.1801](https://doi.org/10.1103/PhysRev.131.1801)
 - J. Butcher, H. Messel. "Electron number distribution in electron-photon showers in air and aluminium absorbers". *Nuclear Physics*, Oct 1960. [10.1016/0029-5582(60)90162-0](https://doi.org/10.1016/0029-5582(60)90162-0)
 - *[hess-1958]*: W. N. Hess. "Summary of High-Energy Nucleon-Nucleon Cross-Section Data". *Reviews of Modern Physics*, Apr 1958. [10.1103/RevModPhys.30.368](https://doi.org/10.1103/RevModPhys.30.368)
-- R. H. Helm. "Inelastic and Elastic Scattering of 187-Mev Electrons from Selected Even-Even Nuclei". *Physical Review*, Dec 1956. [10.1103/PhysRev.104.1466](https://doi.org/10.1103/PhysRev.104.1466)
+- *[helm-scattering-1956]*: R. H. Helm. "Inelastic and Elastic Scattering of 187-Mev Electrons from Selected Even-Even Nuclei". *Physical Review*, Dec 1956. [10.1103/PhysRev.104.1466](https://doi.org/10.1103/PhysRev.104.1466)
 - A. B. Migdal. "Bremsstrahlung and Pair Production in Condensed Media at High Energies". *Physical Review*, Sep 1956. [10.1103/PhysRev.103.1811](https://doi.org/10.1103/PhysRev.103.1811)
-- H. A. Bethe. "Molière's Theory of Multiple Scattering". *Physical Review*, Mar 1953. [10.1103/PhysRev.89.1256](https://doi.org/10.1103/PhysRev.89.1256)
+- *[bethe-msc-1953]*: H. A. Bethe. "Molière's Theory of Multiple Scattering". *Physical Review*, Mar 1953. [10.1103/PhysRev.89.1256](https://doi.org/10.1103/PhysRev.89.1256)
 - B. Rossi. "High-Energy Particles". Prentice-Hall, Inc., Jan 1952. [archive.org](https://archive.org/details/highenergyparticOOOOross)
 - *[hanson-msc-1951]*: A. O. Hanson, L. H. Lanzl, E. M. Lyman, M. B. Scott. "Measurement of Multiple Scattering of 15.7-Mev Electrons". *Physical Review*, Nov 1951. [10.1103/PhysRev.84.634](https://doi.org/10.1103/PhysRev.84.634)
-- "On the stopping of fast particles and on the creation of positive electrons". *Proceedings of the Royal Society of London. Series A, Containing Papers of a Mathematical and Physical Character*, Aug 1934. [10.1098/rspa.1934.0140](https://doi.org/10.1098/rspa.1934.0140)
+- H. Bethe, W. Heitler. "On the stopping of fast particles and on the creation of positive electrons". *Proceedings of the Royal Society of London. Series A, Containing Papers of a Mathematical and Physical Character*, Aug 1934. [10.1098/rspa.1934.0140](https://doi.org/10.1098/rspa.1934.0140)
 
 ## HEP experiments
 
@@ -68,8 +68,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - CMS Collaboration. "The Phase-2 upgrade of the CMS Data Acquisition and High Level Trigger Technical Design Report". Jun 2021.
 - O. Surányi, A. Al-Bataineh, J. Bowen, S. Cooper, M. Csanád, *et al*. "Performance of the CMS Zero Degree Calorimeters in pPb collisions at the LHC". *Journal of Instrumentation*, May 2021. [10.1088/1748-0221/16/05/P05008](https://doi.org/10.1088/1748-0221/16/05/P05008)
 - *[lz-2021]*: D. Akerib, C. Akerlof, A. Alqahtani, S. Alsum, T. Anderson, *et al*. "Simulations of events for the LUX-ZEPLIN (LZ) dark matter experiment". *Astroparticle Physics*, Feb 2021. [10.1016/j.astropartphys.2020.102480](https://doi.org/10.1016/j.astropartphys.2020.102480)
-- *[cms-computing-2021]*: CMS Offline Software and Computing. "Evolution of the CMS Computing Model towards Phase-2". Geneva. Switzerland, Jan 2021. [cds.cern.ch](https://cds.cern.ch/record/2751565/files/NOTE2021_001.pdf)
 - S. Blyth, C. Biscarat, S. Campana, B. Hegner, S. Roiser, *et al*. "Integration of JUNO simulation framework with Opticks: GPU accelerated optical propagation via NVIDIA® OptiX™". *EPJ Web of Conferences*, Jan 2021. [10.1051/epjconf/202125103009](https://doi.org/10.1051/epjconf/202125103009)
+- *[cms-computing-2021]*: CMS Offline Software and Computing. "Evolution of the CMS Computing Model towards Phase-2". Geneva. Switzerland, Jan 2021. [cds.cern.ch](https://cds.cern.ch/record/2751565/files/NOTE2021_001.pdf)
 - A. Ryd, L. Skinnari. "Tracking Triggers for the HL-LHC". *Annual Review of Nuclear and Particle Science*, Oct 2020. [10.1146/annurev-nucl-020420-093547](https://doi.org/10.1146/annurev-nucl-020420-093547)
 - A. M. Sirunyan, A. Tumasyan, W. Adam, E. Asilar, T. Bergauer, *et al*. "Particle-flow reconstruction and global event description with the CMS detector". *Journal of Instrumentation*, Oct 2017. [10.1088/1748-0221/12/10/p10003](https://doi.org/10.1088/1748-0221/12/10/p10003)
 - S. Ritz, H. Aihara, M. Breidenbach, B. Cousins, A. de Gouvêa, *et al*. "Building for Discovery: Strategic Plan for U.S. Particle Physics in the global Context". May 2014. [www.usparticlephysics.org](https://www.usparticlephysics.org)
@@ -94,18 +94,18 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[exasmr-2023]*: E. Merzari, S. Hamilton, T. Evans, M. Min, P. Fischer, *et al*. "Exascale Multiphysics Nuclear Reactor Simulations for Advanced Designs". in *Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis*, Denver, CO, USA, Jan 2023. [10.1145/3581784.3627038](https://doi.org/10.1145/3581784.3627038)
 - V. D. Elvira, S. Gottlieb, O. Gutsche, B. Nachman, S. Bailey, *et al*. "The Future of High Energy Physics Software and Computing". Nov 2022. [arxiv.org](http://arxiv.org/abs/2210.05822)
 - J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector Simulation Challenges for Future Accelerator Experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
-- "GDML User's Guide". Jun 2022.
+- "GDML user's guide". Jun 2022.
 - T. M. Evans, A. Siegel, E. W. Draeger, J. Deslippe, M. M. Francois, *et al*. "A survey of software implementations used by application codes in the Exascale Computing Project". *The International Journal of High Performance Computing Applications*, Jan 2022. [10.1177/10943420211028940](https://doi.org/10.1177/10943420211028940)
+- X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
 - M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
 - M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
-- X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
 - Andrei Gheata. "AdePT Status". Sep 2021. [indico.cern.ch](https://indico.cern.ch/event/1052654/contributions/4525306/attachments/2310908/3932523/AdePT%2026th%20Geant4%20Collaboration%20Meeting.pdf)
 - *[atlas-athena]*: ATLAS Collaboration. "Athena". May 2021. [zenodo.org](https://zenodo.org/record/2641996)
 - Marc Verderi, Alberto Ribon. "Geant4 Introduction". Apr 2021. [indico.cern.ch](https://indico.cern.ch/event/1028379/)
 - A. Buckley, P. Ilten, D. Konstantinov, L. Lönnblad, J. Monk, *et al*. "The HepMC3 Event Record Library for Monte Carlo Event Generators". *Computer Physics Communications*, Mar 2021. [10.1016/j.cpc.2020.107310](https://doi.org/10.1016/j.cpc.2020.107310)
-- *[khan-top500-2021]*: A. Khan, H. Sim, S. S. Vazhkudai, A. R. Butt, Y. Kim, *et al*. "An Analysis of System Balance and Architectural Trends Based on Top500 Supercomputers". in *The International Conference on High Performance Computing in Asia-Pacific Region*, Virtual Event Republic of Korea, Jan 2021. [10.1145/3432261.3432263](https://doi.org/10.1145/3432261.3432263)
 - O. Creaner, S. Blyth, S. Eriksen, L. Gerhardt, M. E. Monzani, *et al*. "GPU simulation with Opticks: The future of optical simulations for LZ". *EPJ Web of Conferences*, Jan 2021. [10.1051/epjconf/202125103037](https://doi.org/10.1051/epjconf/202125103037)
 - J. Hahnfeld, L. Moneta, C. Biscarat, S. Campana, B. Hegner, *et al*. "A Portable Implementation of RANLUX++". *EPJ Web of Conferences*, Jan 2021. [10.1051/epjconf/202125103008](https://doi.org/10.1051/epjconf/202125103008)
+- *[khan-top500-2021]*: A. Khan, H. Sim, S. S. Vazhkudai, A. R. Butt, Y. Kim, *et al*. "An Analysis of System Balance and Architectural Trends Based on Top500 Supercomputers". in *The International Conference on High Performance Computing in Asia-Pacific Region*, Virtual Event Republic of Korea, Jan 2021. [10.1145/3432261.3432263](https://doi.org/10.1145/3432261.3432263)
 - *[atlas-computing-2020]*: The ATLAS Collaboration. "ATLAS HL-LHC Computing Conceptual Design Report". Nov 2020. [twiki.cern.ch](https://twiki.cern.ch/twiki/bin/view/AtlasPublic/ComputingandSoftwarePublicResults)
 - G. Amadio, A. Ananya, J. Apostolakis, M. Bandieramonte, S. Banerjee, *et al*. "GeantV: Results from the prototype of concurrent vector particle transport simulation in HEP". Sep 2020. [arxiv.org](http://arxiv.org/abs/2005.00949)
 - Andrei Gheata. "AdePT: Accelerated demonstrator of electromagnetic Particle Transport". Sep 2020. [indico.cern.ch](https://indico.cern.ch/event/942142/contributions/4016086/attachments/2102749/3535536/AdePT.pdf)
@@ -146,6 +146,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[geant4_2003]*: S. Agostinelli, J. Allison, K. Amako, J. Apostolakis, H. Araujo, *et al*. "Geant4—a simulation toolkit". *Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment*, Jul 2003. [10.1016/S0168-9002(03)01368-8](https://doi.org/10.1016/S0168-9002(03)01368-8)
 - M. Dressel. "Geometrical importance sampling in Geant4: from design to veriﬁcation". Jan 2003.
 - M. G. Pia, G. Collaboration. "The Geant4 Toolkit: simulation capabilities and application results". *Nuclear Physics B-Proceedings Supplements*, Jan 2003.
+- L. Lönnblad. "CLHEP—a project for designing a C++ class library for high energy physics". *Computer Physics Communications*, Nov 1994. [10.1016/0010-4655(94)90217-8](https://doi.org/10.1016/0010-4655(94)90217-8)
+- *[kenovi]*: Hollenbach, DF, Petrie, LM, Landers, NF. "KENO-VI: A Monte Carlo Criticality Program with generalized quadratic geometry". Nashville, TN, Sep 1993.
 - *[geant3-1993]*: R. Brun, F. Bruyant, F. Carminati, S. Giani, M. Maire, *et al*. "GEANT: Detector Description and Simulation Tool; Oct 1994". Jan 1993. [cds.cern.ch](https://cds.cern.ch/record/1082634)
 
 ## Computer science and mathematics
@@ -165,9 +167,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[haramato-jump-2008]*: H. Haramoto, M. Matsumoto, T. Nishimura, F. Panneton, P. L'Ecuyer, *et al*. "Efficient Jump Ahead for 𝔽<sub>2</sub> -Linear Random Number Generators". *INFORMS Journal on Computing*, Aug 2008. [10.1287/ijoc.1070.0251](https://doi.org/10.1287/ijoc.1070.0251)
 - *[collins-rng-2008]*: J. C. Collins. "Testing, Selection, and Implementation of Random Number Generators:". Fort Belvoir, VA, Jul 2008. [www.dtic.mil](http://www.dtic.mil/docs/citations/ADA486379)
 - *[wachter-bih-2006]*: C. Wächter, A. Keller. "Instant Ray Tracing: The Bounding Interval Hierarchy". Jan 2006. [10.2312/EGWR/EGSR06/139-149](https://doi.org/10.2312/EGWR/EGSR06/139-149)
-- *[marsaglia-2003]*: G. Marsaglia. "Xorshift RNGs". *Journal of Statistical software*, Jan 2003.
-- G. Marsaglia, W. W. Tsang. "A simple method for generating gamma variables". *ACM Transactions on Mathematical Software*, Sep 2000. [10.1145/358407.358414](https://doi.org/10.1145/358407.358414)
-- *[allen-1984]*: J. Allen, K. Kennedy. "Automatic Loop Interchange". in *SIGPLAN Notlce8*, Jun 1984.
+- *[marsaglia-xorshift-2003]*: G. Marsaglia. "Xorshift RNGs". *Journal of Statistical software*, Jan 2003.
+- *[marsaglia-gamma-2000]*: G. Marsaglia, W. W. Tsang. "A simple method for generating gamma variables". *ACM Transactions on Mathematical Software*, Sep 2000. [10.1145/358407.358414](https://doi.org/10.1145/358407.358414)
+- *[allen-loop-1984]*: J. Allen, K. Kennedy. "Automatic Loop Interchange". in *SIGPLAN Notlce8*, Jun 1984.
 
 ## Computational geometry
 

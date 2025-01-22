@@ -94,6 +94,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Technical reports
 
+- *[orange-tm]*: S. R. Johnson, R. Lefebvre, K. Bekar. "ORANGE: Oak Ridge Advanced Nested Geometry Engine". Jan 2025.
 - S. Johnson, S. Castro Tognini, T. Evans, A. Lund, M. Demarteau, *et al*. "Celeritas midterm SciDAC report". Nov 2024. [www.osti.gov](https://www.osti.gov/servlets/purl/2481196/)
 - *[celer-rd-2024]*: S. R. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D Report: Accelerating Geant4". Jan 2024. [www.osti.gov](https://www.osti.gov/servlets/purl/2281972/)
 
