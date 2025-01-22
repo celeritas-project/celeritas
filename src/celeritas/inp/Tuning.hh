@@ -60,13 +60,16 @@ struct StateCapacity
 //---------------------------------------------------------------------------//
 /*!
  * When using GPU, change execution options that make it easier to debug.
+ *
+ * Defaults:
+ * - \c sync_stream: \c false unless \c timers.diagnostics.action is \c true.
  */
 struct DeviceDebug
 {
     //! Launch all kernels on the default stream
     bool default_stream{false};
     //! Synchronize the stream after every kernel launch
-    bool sync_stream{false};
+    std::optional<bool> sync_stream;
 };
 
 //---------------------------------------------------------------------------//
@@ -74,6 +77,8 @@ struct DeviceDebug
  * Set up system/tuning parameters that don't affect physics.
  *
  * Defaults:
+ * - \c device_debug: absent unless device is enabled
+ * - \c optical_capacity: absent unless optical physics is enabled
  * - \c track_order: \c init_charge on GPU, \c none on CPU
  *
  * \todo \c seed doesn't really belong here; not sure where to put it though
