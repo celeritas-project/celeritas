@@ -47,9 +47,16 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
     }
     if (SharedParams::CeleritasDisabled())
     {
-        CELER_LOG_LOCAL(debug)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
+        if (G4Threading::IsMasterThread())
+        {
+            CELER_LOG(info)
+                << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
+                   "environment variable is present and non-empty";
+        }
+        else
+        {
+            CELER_LOG(debug) << "Disabling Celeritas offloading";
+        }
         *this = {};
         CELER_ENSURE(!*this);
     }
