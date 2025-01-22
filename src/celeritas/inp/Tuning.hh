@@ -29,8 +29,9 @@ namespace inp
  * used in MPI parallel (e.g., one process per GPU), each process \em rank has
  * \c tracks total threads.
  *
- * \note The \c primaries is a minimum tuning parameter, not a maximum. It was
- * previously named \c auto_flush .
+ * \note The \c primaries was previously named \c auto_flush .
+ * \note Previously, \c SetupOptions and \c celer-g4 treated these quantities
+ * as "per stream" whereas \c celer-sim used "per process".
  *
  * Defaults:
  * - \c secondary: twice the number of track slots.
@@ -52,7 +53,7 @@ struct StateCapacity
     //! Maximum number of simultaneous events (zero for Geant4 integration)
     size_type events{0};
 
-    //! Minimum number of primaries before generating and advancing a step
+    //! Maximum number of primaries that can be buffered before stepping
     size_type primaries{};
 };
 

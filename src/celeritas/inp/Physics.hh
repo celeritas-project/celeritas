@@ -29,18 +29,7 @@ struct EmPhysics
     //! Bremsstrahlung process
     std::optional<BremsProcess> brems{std::in_place};
     //! Electron+positron pair production process
-    std::optional<PairProdProcess> pair_prod{std::in_place};
-
-#if 0
-    // TODO
-    std::optional<ComptonScatProcess> compton_scat{std::in_place};
-    std::optional<CoulombScatProcess> coulomb_scat{std::in_place};
-    std::optional<RayleighScatProcess> rayleigh_scat{std::in_place};
-
-    std::optional<IoniProcess> ioni{std::in_place};
-    std::optional<AnniProcess> anni{std::in_place};
-    std::optional<PhotoelectricProcess> photoelectric{std::in_place};
-#endif
+    std::optional<PairProductionProcess> pair_production{std::in_place};
 
     //!@{
     //! \name Energy loss and slowing down

@@ -16,7 +16,7 @@ namespace inp
  *
  * \todo Move \c sb_data from celeritas::ImportData here.
  */
-struct SBBremsModel
+struct SeltzerBergerModel
 {
 };
 
@@ -44,7 +44,7 @@ struct MuBremsModel
 /*!
  * Bethe-Heitler relativistic pair production from gammas.
  */
-struct BHPairProdModel
+struct BetheHeitlerModel
 {
 };
 
@@ -54,7 +54,7 @@ struct BHPairProdModel
  *
  * \todo Move MuPPET table celeritas::ImportMuPairProductionTable here.
  */
-struct MuPairProdModel
+struct MuPairProductionModel
 {
 };
 
@@ -65,25 +65,8 @@ struct MuPairProdModel
 //! \name Model aliases
 //! \todo rename `em/model` to match
 
-#if 0
-using BetheBlochModel       = BBIoniModel;
-using BraggModel            = BraggIoniModel;
-using CombinedBremModel     = SBRelBremModel;
-using CoulombScatteringModel= WentzelScatModel;
-using EPlusGGModel          = EPlusGGModel;
-using ICRU73QOModel         = ICRU73QOModel;
-using KleinNishinaModel     = KleinNishinaModel;
-using LivermorePEModel      = LivermorePEModel;
-using MollerBhabhaModel     = MollerBhabhaModel;
-using MuBetheBlochModel     = MuBetheBlochModel;
-using RayleighModel         = RayleighModel;
-#endif
-
-using BetheHeitlerModel = BHPairProdModel;
 using MuBremsstrahlungModel = MuBremsModel;
-using MuPairProductionModel = MuPairProdModel;
 using RelativisticBremModel = RelBremsModel;
-using SeltzerBergerModel = SBBremsModel;
 
 //!@}
 

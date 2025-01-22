@@ -20,7 +20,7 @@ namespace inp
  */
 struct BremsProcess
 {
-    std::optional<SBBremsModel> sb{std::in_place};
+    std::optional<SeltzerBergerModel> sb{std::in_place};
     std::optional<RelBremsModel> rel{std::in_place};
     std::optional<MuBremsModel> mu;
 
@@ -36,7 +36,7 @@ struct BremsProcess
 struct PairProdProcess
 {
     //! Bethe-Heitler pair production
-    std::optional<BHPairProdModel> bethe_heitler;
+    std::optional<BetheHeitlerModel> bethe_heitler;
     //! Muonic pair production
     std::optional<MuPairProdModel> mu;
 };
@@ -49,18 +49,6 @@ struct PairProdProcess
 using BremsstrahlungProcess = BremsProcess;
 using GammaConversionProcess = PairProdProcess;
 using MuPairProductionProcess = PairProdProcess;
-
-#if 0
-using ComptonProcess = ComptonScatProcess;
-using CoulombScatteringProcess = CoulombScatProcess;
-using EIonizationProcess = IoniProcess;
-using EPlusAnnihilationProcess = AnniProcess;
-using PhotoelectricProcess = PhotoelectricProcess;
-using RayleighProcess = RayleighScatProcess;
-
-using MuBremsstrahlungProcess = BremsProcess;
-using MuIonizationProcess = IoniProcess;
-#endif
 
 //!@}
 

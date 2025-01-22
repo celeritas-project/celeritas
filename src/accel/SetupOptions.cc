@@ -92,10 +92,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
     }
     p.diagnostics.output_file = so.output_file;
 
+    p.tuning.num_streams = so.get_num_streams();
+
     {
         inp::StateCapacity c;
-        c.tracks = so.max_num_tracks;
-        c.initializers = so.initializer_capacity;
+        c.tracks = so.max_num_tracks * p.tuning.num_streams;
+        c.initializers = so.initializer_capacity * p.tuning.num_streams;
         c.secondaries
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         c.primaries = so.auto_flush;
@@ -110,8 +112,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
 
         p.tracking.limits = std::move(tl);
     }
-
-    p.tuning.num_streams = so.get_num_streams();
 
     if (so.track_order != TrackOrder::size_)
     {

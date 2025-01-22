@@ -115,7 +115,7 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     CELER_EXPECT(particle_.energy() > cutoffs.energy(shared.gamma));
 
     // Calculate rejection envelope: *assume* the highest cross section
-    // is at its lowerst value
+    // is at its lowest value
     real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.gamma));
     envelope_ = gamma_cutoff * calc_dcs_(Energy{gamma_cutoff});
 }
