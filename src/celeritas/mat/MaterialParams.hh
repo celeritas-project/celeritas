@@ -41,6 +41,7 @@ struct ImportData;
  * user-defined physics regions.
  *
  * \todo Replace id_to_label etc. with direct access to LabelIdMultiMap
+ * \todo Split into isotope/element/geo material
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {

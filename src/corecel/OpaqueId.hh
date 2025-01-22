@@ -28,11 +28,11 @@ namespace celeritas
  * we give them semantic meaning, and we gain compile-time type safety.
  *
  * If this class is used for indexing into an array, then \c ValueT argument
- * should be the value type of the array:
+ * should usually be the value type of the array:
  * <code>Foo operator[](OpaqueId<Foo>)</code>
  *
  * An \c OpaqueId object evaluates to \c true if it has a value, or \c false if
- * it does not (i.e. it has an "invalid" value).
+ * it does not (i.e., it has an "invalid" value).
  *
  * See also \c id_cast below for checked construction of OpaqueIds from generic
  * integer values (avoid compile-time warnings or errors from signed/truncated

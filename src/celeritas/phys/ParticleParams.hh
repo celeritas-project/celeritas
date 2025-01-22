@@ -37,13 +37,9 @@ struct ImportData;
  * The ParticleParams is constructed on the host with a vector that
  * combines metadata (used for debugging output and interfacing with physics
  * setup) and data (used for on-device transport). Each entry in the
- * construction is assigned a unique \c ParticleId used for runtime access.
- *
- * The PDG Monte Carlo number is a unique "standard model" identifier for a
- * particle. See "Monte Carlo Particle Numbering Scheme" in the "Review of
- * Particle Physics":
- * https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf
- * It should be used to identify particle types during construction time.
+ * construction is assigned a unique \c ParticleId used for runtime access. See
+ * \c celeritas::PDGNumber for details on the PDG code used during
+ * construction.
  */
 class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
 {

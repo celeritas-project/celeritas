@@ -23,21 +23,23 @@ namespace celeritas
  * \em e : \f[
    \vec v + \epsilon \vec e
   \f]
- * The magnitude squared is
+ * The magnitude of this "nearly unit" is
  * \f[
   m^2 = (v + \epsilon e) \cdot (v + \epsilon e)
-   = v \cdot v + 2 \epsilon v \cdot e +  \epsilon^2 e \cdot e
-   = 1 + 2 \epsilon v \cdot e + \epsilon^2
+   = 1 + 2 (v \cdot e) \epsilon + \epsilon^2
  \f]
  *
- * Since \f[ |v \cdot e|  <= |v||e| = 1 \f] by the triangle inequality,
+ * Since by the triangle inequality \f[ |v \cdot e|  <= |v||e| = 1 \f] ,
  * then the magnitude squared of a perturbed unit vector is bounded
  * \f[
   m^2 = 1 \pm 2 \epsilon + \epsilon^2
   \f]
  *
- * Instead of calculating the square of the tolerance we loosely bound with
- * another epsilon.
+ * Instead of calculating the square of the tolerance we use
+ * \f$ \epsilon^2 < \epsilon \f$ to make the "soft unit vector" condition
+ * \f[
+   | \vec v \vd \vec v - 1 | < 3 \epsilon .
+   \f]
  */
 template<class T = ::celeritas::real_type>
 class ArraySoftUnit

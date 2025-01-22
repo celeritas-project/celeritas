@@ -24,13 +24,6 @@ presets (default, full, minimal) but also a set of hidden presets (`.ndebug`,
 `.cuda-volta`, `.spack-base`) useful for inheriting in user presets. Make sure
 to put the overrides *before* the base definition in the `inherits` list.
 
-CMake's JSON parser is quite primitive at the moment, and the error messages
-it provides are frankly terrible. Use Python's `json` module (or other tools)
-to check the syntax of the JSON file, and you can use JSON validators such
-as [this one](https://www.jsonschemavalidator.net) to check the schema. Even
-with a valid syntax and schema, you might still get an error such as "Invalid
-preset" if the value for `configurePreset` is missing or incorrect.
-
 # CI scripts
 
 These scripts are executed as part of the Continuous Integration testing. It
