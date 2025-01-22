@@ -38,11 +38,13 @@ endif()
 #-----------------------------------------------------------------------------#
 # Dependencies
 #-----------------------------------------------------------------------------#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.10...3.31)
 
 include(CMakeFindDependencyMacro)
 
 if(CELERITAS_USE_CUDA)
-  find_dependency(CUDAToolkit REQUIRED QUIET)
+  find_dependency(CUDAToolkit REQUIRED)
 
   if(NOT CMAKE_CUDA_COMPILER_LOADED)
     # enable_language only really works in top-level CMake directory, not even subprojects
@@ -67,15 +69,15 @@ elseif(CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_Geant4)
-  # FIXME: needed for Geant4 11.1+ to avoid causing errors in VecGeom's
-  # FindXercesC
-  find_dependency(XercesC)
   # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
   # Save and restore include directories around the call -- even though as a
   # standalone project Celeritas will never have directory-level includes
   get_directory_property(_include_dirs INCLUDE_DIRECTORIES)
   find_dependency(Geant4 @Geant4_VERSION@ REQUIRED)
   set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
+
+  # Re-establish policy if Geant4 11.1/.2's PTL overwrote it
+  cmake_policy(VERSION 3.10...3.31)
 endif()
 
 if(CELERITAS_USE_HepMC3)
@@ -97,10 +99,8 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_Python)
-  set(_version 3.6)
-  find_dependency(Python ${_version} REQUIRED COMPONENTS Interpreter)
+  find_dependency(Python 3.6 REQUIRED COMPONENTS Interpreter)
   unset(_components)
-  unset(_version)
 endif()
 
 if(CELERITAS_USE_ROOT)
@@ -108,7 +108,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_Thrust)
-  find_dependency(Thrust)
+  find_dependency(Thrust REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -126,13 +126,15 @@ if(CELERITAS_BUILD_TESTS)
   if(CMAKE_VERSION VERSION_LESS 3.20)
     # First look for standard CMake installation
     # (automatically done for CMake >= 3.20)
-    find_dependency(GTest @GTest_VERSION@ QUIET NO_MODULE)
+    find_dependency(GTest @GTest_VERSION@ NO_MODULE)
   endif()
   if(NOT GTest_FOUND)
     # If not found, try again
     find_dependency(GTest)
   endif()
 endif()
+
+cmake_policy(POP)
 
 #-----------------------------------------------------------------------------#
 # Targets

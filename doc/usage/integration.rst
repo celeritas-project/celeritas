@@ -68,5 +68,21 @@ primary target appended with ``_final``. They are only present if Celeritas was
 built with CUDA support so it is recommended to use the CMake generator
 expression above to support CUDA or CPU-only builds transparently.
 
-The :ref:`example_minimal` example demonstrates how to use Celeritas as a
-library with a short standalone CMake project.
+The :ref:`example_minimal` and :ref:`example_cmake` examples demonstrate how to
+use Celeritas as a library with a short standalone CMake project and with
+Geant4.
+
+App integration
+^^^^^^^^^^^^^^^
+
+Integrating with Geant4 user applications and experiment frameworks requires
+setting up:
+
+- Initialization options that depend on the problem being run and the system
+  architecture (see :cpp:class:`celeritas::SetupOptions`)
+- "Global" data structures for shared problem data such as geometry (see
+  :cpp:class:`celeritas::SharedParams`)
+- Per-worker (i.e., ``G4ThreadLocal`` using Geant4 manager/worker semantics)
+  data structures that hold the track states (see :cpp:class:`celeritas::LocalTransporter`).
+
+See :ref:`example_geant` for examples of integrating Geant4, and :ref:`api_g4_interface` for detailed documentation of the Geant4 integration interface.

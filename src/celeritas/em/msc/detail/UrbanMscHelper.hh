@@ -74,6 +74,12 @@ class UrbanMscHelper
     // The kinetic energy at the end of a given step length corrected by dedx
     inline CELER_FUNCTION Energy calc_end_energy(real_type step) const;
 
+    // Data for this particle+material
+    inline CELER_FUNCTION UrbanMscParMatData const& pmdata() const;
+
+    // Scaled cross section data for this particle+material
+    inline CELER_FUNCTION XsGridData const& xs() const;
+
   private:
     //// DATA ////
 
@@ -84,20 +90,6 @@ class UrbanMscHelper
 
     // Precalculated mean free path (TODO: move to physics step view)
     real_type lambda_;  // [len]
-
-    // Data for this particle+material
-    CELER_FUNCTION UrbanMscParMatData const& pmdata() const
-    {
-        return shared_.par_mat_data[shared_.at<UrbanMscParMatData>(
-            physics_.material_id(), particle_.particle_id())];
-    }
-
-    // Scaled cross section data for this particle+material
-    CELER_FUNCTION XsGridData const& xs() const
-    {
-        return shared_.xs[shared_.at<XsGridData>(physics_.material_id(),
-                                                 particle_.particle_id())];
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -115,8 +107,6 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
     , physics_(physics)
     , lambda_(this->calc_msc_mfp(particle_.energy()))
 {
-    CELER_EXPECT(particle.particle_id() == shared_.ids.electron
-                 || particle.particle_id() == shared_.ids.positron);
 }
 
 //---------------------------------------------------------------------------//
@@ -179,6 +169,38 @@ UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
         // Longer step is calculated exactly with inverse range
         return this->calc_inverse_range(range - step);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Scaled cross section data for this particle+material.
+ */
+CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
+{
+    auto par_id = shared_.pid_to_xs[particle_.particle_id()];
+    CELER_ASSERT(par_id < shared_.num_particles);
+
+    size_type idx = physics_.material_id().get() * shared_.num_particles
+                    + par_id.unchecked_get();
+    CELER_ASSERT(idx < shared_.xs.size());
+
+    return shared_.xs[ItemId<XsGridData>(idx)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data for this particle+material.
+ */
+CELER_FUNCTION UrbanMscParMatData const& UrbanMscHelper::pmdata() const
+{
+    auto par_id = shared_.pid_to_pmdata[particle_.particle_id()];
+    CELER_ASSERT(par_id < shared_.num_par_mat);
+
+    size_type idx = physics_.material_id().get() * shared_.num_par_mat
+                    + par_id.unchecked_get();
+    CELER_ASSERT(idx < shared_.par_mat_data.size());
+
+    return shared_.par_mat_data[ItemId<UrbanMscParMatData>(idx)];
 }
 
 //---------------------------------------------------------------------------//

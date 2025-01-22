@@ -98,12 +98,13 @@ if celer_config['options']['sphinxbib']:
     import pybtex
     extensions.append("sphinxcontrib.bibtex")
     bibtex_bibfiles = [
-        "_static/references.bib",
-        "_static/celeritas.bib"
+        "_static/zotero.bib",
     ]
+    bibtex_reference_style = 'author_year'
 
 if celer_config['options']['sphinxmer']:
     extensions.append("sphinxcontrib.mermaid")
+    mermaid_cmd = celer_config['executables']['mmdc'] or None
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []

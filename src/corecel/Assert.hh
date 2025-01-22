@@ -55,8 +55,8 @@
  * make sure the resulting assembly is simplified in optimize mode from using
  * the assumption. For example, sometimes informing the compiler of an
  * assumption can reduce code bloat by skipping standard library exception
- * handling code (e.g. in \c std::visit by assuming \c
- * !var_obj.valueless_by_exception() ).
+ * handling code (e.g. in \c std::visit by assuming
+ * \code !var_obj.valueless_by_exception() \endcode ).
  */
 /*!
  * \def CELER_VALIDATE
@@ -73,13 +73,12 @@
  * Examples with correct casing and punctuation:
  * - "failed to open '{filename}' (should contain relaxation data)"
  * - "unexpected end of file '{filename}' (data is inconsistent with
- *   boundaries)"
+ * boundaries)"
  * - "MPI was not initialized (needed to construct a communicator). Maybe set
- *   the environment variable CELER_DISABLE_PARALLEL=1 to disable
- *   externally?"
+ * the environment variable CELER_DISABLE_PARALLEL=1 to disable externally?"
  * - "invalid min_range={opts.min_range} (must be positive)"
  *
- * This looks in pracice like:
+ * This looks in practice like:
  * \code
    CELER_VALIDATE(file_stream,
                   << "failed to open '" << filename
@@ -104,7 +103,7 @@
  *
  * Throw an assertion if the code point is reached. When debug assertions are
  * turned off, this changes to a compiler hint that improves optimization (and
- * may force the coded to exit uncermoniously if the point is encountered,
+ * may force the code to exit uncermoniously if the point is encountered,
  * rather than continuing on with undefined behavior).
  */
 /*!

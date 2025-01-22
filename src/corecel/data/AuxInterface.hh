@@ -23,34 +23,10 @@ namespace celeritas
 //! Index for auxiliary data
 using AuxId = OpaqueId<struct Aux_>;
 
+class AuxStateInterface;
+
 //---------------------------------------------------------------------------//
 // INTERFACES
-//---------------------------------------------------------------------------//
-/*!
- * Auxiliary state data owned by a single stream.
- *
- * This interface class is strictly to allow polymorphism and dynamic casting.
- */
-class AuxStateInterface
-{
-  public:
-    //@{
-    //! \name Type aliases
-    using SPState = std::shared_ptr<AuxStateInterface>;
-    //@}
-
-  public:
-    // Anchored virtual destructor for polymorphism
-    virtual ~AuxStateInterface();
-
-  protected:
-    //!@{
-    //! Allow construction and assignment only through daughter classes
-    AuxStateInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(AuxStateInterface);
-    //!@}
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Base class for extensible shared data that has associated state.
@@ -59,7 +35,8 @@ class AuxStateInterface
  * passed among multiple classes, and then \c dynamic_cast to the expected
  * type. It needs to supply a factory function for creating the a state
  * instance for multithreaded data on a particular stream and a given memory
- * space.
+ * space. Classes can inherit both from \c AuxParamsInterface and other \c
+ * ActionInterface classes.
  */
 class AuxParamsInterface
 {
@@ -87,6 +64,32 @@ class AuxParamsInterface
     //! Allow construction and assignment only through daughter classes
     AuxParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(AuxParamsInterface);
+    //!@}
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Auxiliary state data owned by a single stream.
+ *
+ * This interface class is strictly to allow polymorphism and dynamic casting.
+ */
+class AuxStateInterface
+{
+  public:
+    //@{
+    //! \name Type aliases
+    using SPState = std::shared_ptr<AuxStateInterface>;
+    //@}
+
+  public:
+    // Anchored virtual destructor for polymorphism
+    virtual ~AuxStateInterface();
+
+  protected:
+    //!@{
+    //! Allow construction and assignment only through daughter classes
+    AuxStateInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(AuxStateInterface);
     //!@}
 };
 

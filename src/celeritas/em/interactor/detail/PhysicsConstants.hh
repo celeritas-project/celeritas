@@ -39,10 +39,9 @@ CELER_CONSTEXPR_FUNCTION Constant migdal_constant()
  * \f$ E_\textrm{LPM} = \frac{\alpha m^2 X_0}{2 h c} \f$, where
  * \f$ X_0 \f$ is the radiation length of the material. Note that some papers
  * define \f$ E_\textrm{LPM} \f$ as a factor of two smaller and others as a
- * factor of 8 larger (see S. Klein, Suppression of bremsstrahlung and pair
- * production due to environmental factors, Rev. Mod. Phys. 71 (1999)
- * 1501-1538). The Geant4 Physics Reference Manual (Eq. 10.17) has an
- * extra factor of two in the denominator.
+ * factor of 8 larger: see \cite{klein-lpm-1999}.
+ * The Geant4 Physics Reference Manual (Eq. 10.17) \cite{g4prm} has
+ * an extra factor of two in the denominator.
  */
 CELER_CONSTEXPR_FUNCTION MevPerLen lpm_constant()
 {
