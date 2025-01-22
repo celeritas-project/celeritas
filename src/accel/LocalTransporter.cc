@@ -171,6 +171,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
+    ++accum_num_events_;
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -244,7 +245,7 @@ void LocalTransporter::Flush()
     }
     if (celeritas::device())
     {
-        CELER_LOG_LOCAL(info)
+        CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
             << buffer_energy_ << " MeV cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
@@ -267,6 +268,9 @@ void LocalTransporter::Flush()
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
+    accum_num_steps_ += track_counts.active;
+    accum_num_primaries_ += buffer_.size();
+
     buffer_.clear();
     buffer_energy_ = 0;
 
@@ -281,6 +285,7 @@ void LocalTransporter::Flush()
                                       *step_);
 
         track_counts = (*step_)();
+        accum_num_steps_ += track_counts.active;
         ++step_iters;
 
         CELER_VALIDATE_OR_KILL_ACTIVE(
@@ -301,6 +306,11 @@ void LocalTransporter::Finalize()
     CELER_VALIDATE(buffer_.empty(),
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
+
+    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum_num_steps_
+                          << " from " << accum_num_primaries_
+                          << " offloaded tracks over " << accum_num_events_
+                          << " events";
 
     if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
     {
