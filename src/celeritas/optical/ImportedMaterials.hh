@@ -24,8 +24,7 @@ namespace optical
  * Imported material data for optical models.
  *
  * Stores material properties relevant for Rayleigh scattering and
- * wavelength shifting. A lookup table for optical to core material IDs is
- * also constructed, so models can quickly access core material properties.
+ * wavelength shifting.
  */
 class ImportedMaterials
 {
