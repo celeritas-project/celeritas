@@ -4,6 +4,141 @@
 Series 0.5
 ==========
 
+.. _release_v0.5.1:
+
+Version 0.5.1
+-------------
+
+*Released 2025/01/22*
+
+Version 0.5.1 is a minor update to Celeritas featuring:
+
+- Utilities for debugging lost and stuck tracks
+- Improved integration support for VecGeom CUDA in frameworks
+
+A few minor features are noteworthy:
+
+- Improved accuracy (decreased verbosity) in navigation history reconstruction
+- Add a per-track "maximum steps" cutoff
+- Use consistent random number sequences based on non-consecutive Geant4 event ID
+
+Important changes:
+
+- Sensitive detector integration with Geant4 now defaults to "on".
+  If your problem has no SDs you must must manually disable this feature.
+- Geant4 environment variables set at configure time will *override* the
+  preset data sets in Geant4's cmake installation. These are used for tests only.
+
+Notable bug fixes include:
+
+- Linking Athena with VecGeom+CUDA
+- Test fixes for certain new versions of Clang
+- Support for Geant4 11.3
+
+
+New features
+------------
+
+* Add optical "locate vacancies" and pre-step actions *(@amandalund, #1441)*
+* Extend debug utilities for stuck/errored tracks *(@sethrj, #1451)*
+* Add CELER_NONFATAL_FLUSH to cleanly kill stuck tracks *(@sethrj, #1455)*
+* Add optical absorption model with imported data *(@hhollenb, #1440)*
+* Add multilevel "volume instance"  *(@sethrj, #1461)*
+* Reconstruct Geant4 navigation history from stack *(@sethrj, #1466)*
+* Add "cut" for individual track steps *(@sethrj, #1467)*
+* Improve error checking and diagnostic output for managing GPU *(@sethrj, #1464)*
+* Add distance-to-bbox function *(@elliottbiondo, #1446)*
+* Add multi-level state to detector step result *(@sethrj, #1471)*
+* Override and save Geant4 dataset variables at configure time *(@pcanal, #1475)*
+* Implement spline interpolation for cross-section calculation *(@lebuller, #1444)*
+* Reconstruct "touchable" using navigation hierarchy *(@sethrj, #1495)*
+* Default SD integration to "true" *(@sethrj, #1501)*
+* Add support for Geant4 navigator through offload interface *(@sethrj, #1558)*
+
+Reviewers: @amandalund *(6)*, @sethrj *(4)*, @pcanal *(4)*, @mrguilima *(2)*, @whokion *(1)*, @stognini *(1)*
+
+Bug fixes
+---------
+
+* Define a "unique event ID" different from event counter *(@sethrj, #1447)*
+* Fix optical import when unused materials are defined *(@sethrj, #1449)*
+* Remove trackid counter from primary *(@sethrj, #1448)*
+* Improve single-event mode in ``accel`` *(@sethrj, #1452)*
+* Fix GDML export messages and geometry-only use case *(@sethrj, #1454)*
+* Fix tracking cut message *(@sethrj, #1458)*
+* Anchor vtables to fix broken dynamic cast in tests *(@sethrj, #1474)*
+* Check VecGeom BVH device pointers at setup and run time *(@sethrj, #1481)*
+* Fix unnecessary linking when using VecGeom+CUDA *(@pcanal, #1487)*
+* Use canonical loop form with OpenMP *(@amandalund, #1492)*
+* Fix linking Athena with VecGeom+CUDA *(@pcanal, #1489)*
+* Fix celer-sim MC truth ROOT output file generation during tests *(@stognini, #1515)*
+* Fix hepmc3/macro initialization in celer-g4 *(@sethrj, #1535)*
+
+Reviewers: @pcanal *(6)*, @sethrj *(4)*, @amandalund *(3)*, @esseivaju *(2)*
+
+Documentation improvements
+--------------------------
+
+* Improve XSCalculator documentation and tests *(@sethrj, #1450)*
+* Fix/standardize multi-level.gdml file and improve debug logging *(@sethrj, #1493)*
+* Add debugging information for app tests *(@sethrj, #1504)*
+* Refactor muon bremsstrahlung angular distribution *(@amandalund, #1509)*
+* Add a CI job for c++20 *(@esseivaju, #1511)*
+* Hotfix: Disable ROCm due to now-unsupported CI OS image *(@sethrj, #1521)*
+* Update post-PR workflow to ``actions/download-artifact@v4`` *(@esseivaju, #1523)*
+* Trim export data for unit tests *(@sethrj, #1527)*
+* Add CITATION file with CHEP 2024 article *(@sethrj, #1529)*
+* Update Readme and Contributing doc *(@pcanal, #1532)*
+* Add missing shell setup in README *(@pcanal, #1545)*
+* Fix accel examples and related CI issues *(@sethrj, #1557)*
+* Prepare to update copyrights *(@sethrj, #1559)*
+* Update docker and Spack CI *(@sethrj, #1555)*
+* Update CMake policy *(@sethrj, #1563)*
+* Update expected safeties in Vecgeom tests and CMake version range *(@mrguilima, #1552)*
+* Hotfix: fetch tags manually to fix CI *(@sethrj, #1580)*
+* Update Perlmutter env *(@esseivaju, #1587)*
+* Add ARM runner to CI *(@sethrj, #1585)*
+* Propagate code citations into user manual *(@sethrj, #1575)*
+
+Reviewers: @amandalund *(6)*, @sethrj *(6)*, @pcanal *(5)*, @esseivaju *(3)*, @mrguilima *(1)*
+
+Minor internal changes
+----------------------
+
+* Give priority to existing environment variables for G4 data location *(@pcanal, #1457)*
+* Define ``id_cast`` helper function *(@sethrj, #1459)*
+* Simplify geometry "volume" interface *(@sethrj, #1460)*
+* Refactor step storage to use aux state *(@sethrj, #1465)*
+* Refactor pinned allocator to reduce need for templates *(@sethrj, #1468)*
+* Tweak Perfetto integration *(@sethrj, #1470)*
+* Escape semicolons in exported CMake variables *(@drbenmorgan, #1472)*
+* Require ``CELERITAS_DEBUG`` be on to enable ``CELERITAS_DEVICE_DEBUG`` *(@amandalund, #1476)*
+* Use kernel launchers instead of macros *(@sethrj, #1477)*
+* Fix missing brace and refactor #1475 *(@sethrj, #1480)*
+* Fix build with latest Geant4 develop *(@pcanal, #1484)*
+* Refactor "touchable updater" that uses a navigator *(@sethrj, #1483)*
+* Improve logger when using either CUDA or MPI *(@sethrj, #1482)*
+* Fix dBVH memcpy size *(@esseivaju, #1490)*
+* Work around RDC-related link errors when +cuda+vecgeom~shared *(@esseivaju, #1498)*
+* Move ``alongstep`` directory to top level *(@sethrj, #1499)*
+* Fix redundant move warning *(@esseivaju, #1500)*
+* Split CeleritasUtils cmake and use VecGeom RDC if available *(@sethrj, #1514)*
+* Stop CMake from cleaning root test data *(@hhollenb, #1516)*
+* Fix spurious vecgeom warning *(@sethrj, #1584)*
+
+Reviewers: @sethrj *(7)*, @amandalund *(6)*, @pcanal *(5)*, @esseivaju *(2)*, @drbenmorgan *(1)*
+
+Deprecation and removal
+-----------------------
+
+* Delete obsolete demonstration apps *(@sethrj, #1463)*
+* Remove curand performance test *(@sethrj, #1543)*
+* Require less ancient CUDA architecture and OpenMP implementation *(@sethrj, #1578)*
+
+Reviewers: @amandalund *(3)*, @pcanal *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.5.0...v0.5.1
+
 .. _release_v0.5.0:
 
 Version 0.5.0

@@ -104,6 +104,7 @@ if celer_config['options']['sphinxbib']:
 
 if celer_config['options']['sphinxmer']:
     extensions.append("sphinxcontrib.mermaid")
+    mermaid_cmd = celer_config['executables']['mmdc'] or None
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []
