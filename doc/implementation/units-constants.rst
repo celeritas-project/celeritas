@@ -18,20 +18,22 @@ Mathematical constants are defined as truncated floating point values. Some
 physical constants such as the speed of light, Planck's constant, and the
 electron charge, have exact numerical values as specified by the SI unit system
 :cite:`si-2019`. Other physical constants such as the atomic mass unit and electron
-radius are derived from experimental measurements in CODATA 2018. Because the
+radius are derived from experimental measurements in CODATA 2018
+:cite:`codata-2018`. Because the
 reported constants are derived from regression fits to experimental data
 points, some exactly defined physical relationships (such as the fine structure
-:math:`\alpha = \frac{e^2}{2 \epsilon_0 h c}` are only approximate.
+constant
+:math:`\alpha = \frac{e^2}{2 \epsilon_0 h c}`) are only approximate.
 
-Unlike Geant4 and the CLHEP unit systems, Celeritas avoids using "natural"
+Unlike Geant4 and the CLHEP unit systems :cite:`clhep`, Celeritas avoids using "natural"
 units in its definitions. Although a natural unit system makes some
 expressions easier to evaluate, it can lead to errors in the definition of
-derivative constants and is fundamentally in conflict with consistent unit
-systems such as SI. To enable special unit systems in harmony with the
+derivative constants and inconsistencies with other macro-scale unit
+systems such as SI. To harmonize special unit systems with the
 native Celeritas unit system, the :ref:`Quantity <api_quantity>` class
 stores quantities in another unit system with a compile-time constant that
 allows their conversion back to native units. This allows, for example,
-particles to represent their energy as MeV and charge as fractions of e but
+particles to represent their energy as MeV and charge as fractions of *e* but
 work seamlessly with a field definition in native (macro-scale quantity) units.
 
 
@@ -45,9 +47,12 @@ scale/natural units working with a macro-scale but consistent unit system)
 using the Quantity class and helper functions.
 
 .. doxygenclass:: celeritas::Quantity
+.. doxygentypedef:: celeritas::RealQuantity
+
 .. doxygenfunction:: celeritas::native_value_to
 .. doxygenfunction:: celeritas::native_value_from(Quantity<UnitT, ValueT> quant) noexcept
 .. doxygenfunction:: celeritas::value_as
+
 .. doxygenfunction:: celeritas::zero_quantity
 .. doxygenfunction:: celeritas::max_quantity
 .. doxygenfunction:: celeritas::neg_max_quantity
@@ -71,6 +76,8 @@ Units
 
 Constants
 ---------
+
+.. doxygenclass:: celeritas::Constant
 
 .. doxygennamespace:: celeritas::constants
    :no-link:
