@@ -133,7 +133,7 @@ struct SetupOptions
     //! GDML filename (optional: defaults to exporting existing Geant4)
     std::string geometry_file;
     //! Filename for JSON diagnostic output
-    std::string output_file;
+    std::string output_file{"celeritas.out.json"};
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
     //! Filename to dump a ROOT/HepMC3 copy of offloaded tracks as events
