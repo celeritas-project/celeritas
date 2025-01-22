@@ -59,6 +59,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
+    using UrbanParMatId = UrbanMscParMatData::UrbanParMatId;
+    using UPMT = UrbanParMatType;
 
     ScopedMem record_mem("UrbanMscParams.construct");
 
@@ -66,21 +68,55 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
     detail::MscParamsHelper helper(
         particles, mdata_vec, ImportModelClass::urban_msc);
-    helper.build_ids(&host_data.ids);
+    helper.build_ids(&host_data.ids, &host_data.pid_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
 
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
-    // Coefficients for scaled Z
-    static Array<double, 2> const a_coeff{{0.87, 0.70}};
-    static Array<double, 2> const b_coeff{{2.0 / 3, 1.0 / 2}};
+    // Number of applicable particles
+    host_data.num_particles = helper.particle_ids().size();
+    CELER_ASSERT(host_data.num_particles >= 2);
+
+    // Number of different particle categories in the particle and
+    // material-dependent parameter data: electrons and positrons always, and
+    // muons/hadrons when present
+    host_data.num_par_mat = min<size_type>(
+        host_data.num_particles, static_cast<size_type>(UPMT::size_));
+
+    // Map from particle ID to index in particle and material-dependent data
+    std::vector<UrbanParMatId> pid_to_pmdata(particles.size());
+    for (auto par_id : helper.particle_ids())
+    {
+        CELER_ASSERT(par_id < pid_to_pmdata.size());
+        if (par_id == host_data.ids.electron)
+        {
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::electron));
+        }
+        else if (par_id == host_data.ids.positron)
+        {
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::positron));
+        }
+        else
+        {
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::muhad));
+        }
+    }
+    make_builder(&host_data.pid_to_pmdata)
+        .insert_back(pid_to_pmdata.begin(), pid_to_pmdata.end());
+
+    // Coefficients for scaled Z: {electron, positron, muon/hadron}
+    static Array<double, 3> const a_coeff{{0.87, 0.70, 0.87}};
+    static Array<double, 3> const b_coeff{{2.0 / 3, 1.0 / 2, 2.0 / 3}};
 
     // Builders
-    auto mdata = make_builder(&host_data.material_data);
-    auto pmdata = make_builder(&host_data.par_mat_data);
+    CollectionBuilder mdata(&host_data.material_data);
+    CollectionBuilder pmdata(&host_data.par_mat_data);
     mdata.reserve(materials.num_materials());
-    pmdata.reserve(2 * materials.num_materials());
+    pmdata.reserve(host_data.num_par_mat * materials.num_materials());
 
     for (auto mat_id : range(MaterialId{materials.num_materials()}))
     {
@@ -90,10 +126,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         mdata.push_back(UrbanMscParams::calc_material_data(mat));
 
         // Build particle-dependent data
-        Array<ParticleId, 2> const par_ids{{particles.find(pdg::electron()),
-                                            particles.find(pdg::positron())}};
         double const zeff = mat.zeff();
-        for (size_type p : range(par_ids.size()))
+        for (size_type p : range(host_data.num_par_mat))
         {
             UrbanMscParMatData this_pm;
 
@@ -102,8 +136,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
             // Compute the maximum distance that particles can travel
             // (different for electrons, hadrons)
-            if (par_ids[p] == host_data.ids.electron
-                || par_ids[p] == host_data.ids.positron)
+            if (p != static_cast<size_type>(UPMT::muhad))
             {
                 // Electrons and positrons
                 this_pm.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff)
@@ -117,9 +150,6 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 CELER_ASSERT(0 < this_pm.d_over_r);
             }
             pmdata.push_back(this_pm);
-            CELER_ASSERT(
-                host_data.at<UrbanMscParMatData>(mat_id, par_ids[p]).get() + 1
-                == host_data.par_mat_data.size());
         }
     }
 

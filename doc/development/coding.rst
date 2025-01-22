@@ -28,7 +28,33 @@ semi-automatically into this user manual via the Breathe tool integrated
 into the Celeritas build system (see :ref:`dependencies`). High-level classes
 should describe the functionality of the class in a way understandable to both
 power users and developers, and such classes should be included in the
-:ref:`api` section.
+:ref:`api` section. Inline ReStructured Text can be added to the user manual
+using the custom aliases ``\rst`` and ``\endrst``.
+
+Citations to the Celeritas Zotero database can be referenced inline code using
+the special ``\citep{whatever-2025, https://doi.org/.../}`` Doxygen
+alias set up inside the Celeritas doc :file:`CMakeLists.txt`. (Another form,
+``\citet``, will insert the reference "textually" as opposed to
+"parenthetically"; and use the single-argument ``\cite`` if you do not have a
+DOI.) The procedure to set up a citation correctly is:
+
+#.  First, set up `Better BibTeX for Zotero`_, and in the Zenodo settings under
+    "Better BibTeX," import the preferences at
+    :file:`scripts/dev/better-bibtex-prefs.json`.
+#.  Ensure you have access to the `Celeritas group`_ library; contact
+    @tmdelellis if you are not a member of the group.
+#.  Add the reference to the appropriate subdirectory of the Zotero Celeritas
+    References subgroup.  If you have a DOI, use the handy magic wand icon to
+    "Add items by identifier".
+#.  Optionally, in the "Extra" field of the resulting item, add a special line:
+    ``Citation key: author-keyword-year`` to set up a stable BibTeX citation
+    key. The default citation key is ``author-shorttitle-year``.
+#.  Export the "Celeritas" group using the "Better BibTeX" format, without
+    notes, files, or journal abbreviations. Save the file to
+    :file:`doc/_static/zotero.bib`.
+
+.. _Better BibTeX for Zotero: https://github.com/retorquere/zotero-better-bibtex
+.. _Celeritas group: https://www.zotero.org/groups/2380941/celeritas/library
 
 Test thoroughly
 ---------------

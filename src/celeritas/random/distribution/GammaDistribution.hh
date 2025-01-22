@@ -28,7 +28,8 @@ namespace celeritas
    f(x; \alpha, \beta) = \frac{x^{\alpha - 1} e^{-x / \beta}}{\beta^\alpha
  \Gamma(\alpha)} \quad \mathrm{for}\  x > 0, \quad \alpha, \beta > 0
    \f]
- * The algorithm described in Marsaglia and Tsang [MT00] is used here to
+ * The algorithm described in \citet{marsaglia-gamma-2000,
+ * https://dl.acm.org/doi/10.1145/358407.358414} is used here to
  * generate gamma-distributed random variables. The steps are:
  *  1. Set \f$ d = \alpha - 1/3 \f$ and \f$ c = 1 / \sqrt{9d} \f$
  *  2. Generate random variates \f$ Z \sim N(0,1) \f$ and \f$ U \sim U(0,1) \f$

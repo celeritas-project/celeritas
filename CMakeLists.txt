@@ -343,7 +343,14 @@ if(CELERITAS_USE_MPI)
 endif()
 
 if(CELERITAS_USE_OpenMP)
-  find_package(OpenMP REQUIRED)
+  if(NOT OpenMP_FOUND)
+    find_package(OpenMP REQUIRED)
+  endif()
+  if(OpenMP_VERSION AND (OpenMP_VERSION VERSION_LESS "3.0"))
+    message(WARNING
+      "OpenMP version ${OpenMP_VERSION} may fail to compile"
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_Perfetto)
@@ -465,6 +472,9 @@ if(CELERITAS_BUILD_DOCS)
     celeritas_check_python_module(CELERITAS_USE_SphinxMermaid "sphinxcontrib.mermaid")
     if(CELERITAS_USE_Breathe)
       find_program(LATEXMK_EXECUTABLE latexmk)
+    endif()
+    if(CELERITAS_USE_SphinxMermaid)
+      find_program(MMDC_EXECUTABLE mmdc)
     endif()
   endif()
   include(ExternalProject)
@@ -660,11 +670,18 @@ foreach(_key
 )
   set(_val "${${_key}}")
   if(_val)
+    set(_cache_val "$CACHE{${_key}}")
+    if(_cache_val)
+      list(APPEND CELERITAS_EXPORT_VARIABLES
+        "set(${_key} \"${_cache_val}\" CACHE PATH \"Set by CeleritasConfig.cmake\")"
+      )
+    else()
     list(APPEND CELERITAS_EXPORT_VARIABLES
       "if(NOT DEFINED ${_key})"
       "  set(${_key} \"${_val}\")"
       "endif()"
     )
+  endif()
   endif()
 endforeach()
 list(JOIN CELERITAS_EXPORT_VARIABLES "\n" CELERITAS_EXPORT_VARIABLES)

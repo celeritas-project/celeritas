@@ -53,7 +53,7 @@ readout rates. Deducing new physics from detector readouts requires a
 proportional increase in computational resources. The High Luminosity Large
 Hadron Collider (HL-LHC) detectors will require more computational resources
 than are available with traditional CPU-based computing grids. For example, the
-CMS collaboration forecasts :cite:`2021-CMS-Offline` that when the upgrade is
+CMS collaboration forecasts :cite:`cms-computing-2021` that when the upgrade is
 brought online, computational resource requirements will exceed availability by
 more than a factor of two, about 40% of which is Monte Carlo (MC) detector
 simulation, without substantial research and development improvements.
@@ -62,7 +62,7 @@ Celeritas [#celeritas_vers]_ is a new MC particle transport code designed for
 high performance simulation of complex HEP detectors on GPU-accelerated
 hardware.  Its immediate goal is to simulate electromagnetic (EM) physics for
 HL-LHC detectors with no loss in fidelity, acting as a plugin to accelerate
-existing Geant4 :cite:`Geant4` workflows by "offloading" selected particles to
+existing Geant4 :cite:`geant4-2016` workflows by "offloading" selected particles to
 Celeritas to transport on GPU.
 
 .. [#celeritas_vers] This documentation is generated from Celeritas |release|.
@@ -164,6 +164,7 @@ modify and extend the codebase.
    development/coding.rst
    development/style.rst
    development/testing.rst
+   development/administration.rst
 
 .. ***************************************************************************
 
@@ -200,5 +201,4 @@ library, in independent and Geant4-integrated contexts.
    backmatter/acknowledgments.rst
    backmatter/references.rst
    appendix/release-history.rst
-   appendix/administration.rst
    appendix/license.rst

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/algorithm/detail/TrackInitAlgorithms.cc
+//! \file celeritas/optical/action/detail/TrackInitAlgorithms.cc
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 

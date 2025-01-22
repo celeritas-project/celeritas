@@ -156,15 +156,16 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * \note The inverse range correction assumes range is always the integral of
  * the stopping power/energy loss.
  *
- * \todo The geant3 manual makes the point that linear interpolation of energy
+ * \todo The GEANT3 manual \cite{geant3-1993} makes the point that linear
+ * interpolation of energy
  * loss rate results in a piecewise constant energy deposition curve, which is
  * why they use spline interpolation. Investigate higher-order reconstruction
  * of energy loss curve, e.g. through spline-based interpolation or log-log
  * interpolation.
  *
  * \note See section 7.2.4 Run Time Energy Loss Computation of the Geant4
- * physics manual. See also the longer discussions in section 8 of PHYS010 of
- * the Geant3 manual (1993).
+ * physics manual \cite{g4prm}. See also the longer discussions in section 8
+ * of PHYS010 of the Geant3 manual.
  *
  * Zero energy loss can occur in the following cases:
  * - The energy loss value at the given energy is zero (e.g. high energy

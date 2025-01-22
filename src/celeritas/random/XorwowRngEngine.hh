@@ -35,20 +35,17 @@ namespace celeritas
  * sequence (https://www.jstatsoft.org/index.php/jss/article/view/v008i14/916).
  *
  * For a description of the jump ahead method using the polynomial
- * representation of the recurrence, see: Haramoto, H., Matsumoto, M.,
- * Nishimura, T., Panneton, F., L’Ecuyer, P.  2008. "Efficient jump ahead for
- * F2-linear random number generators". INFORMS Journal on Computing.
- * https://pubsonline.informs.org/doi/10.1287/ijoc.1070.0251.
+ * representation of the recurrence, see
+ * \citet{haramato-jump-2008,
+ * https://pubsonline.informs.org/doi/10.1287/ijoc.1070.0251}.
  *
- * The jump polynomials were precomputed using
- * https://github.com/celeritas-project/utils/blob/main/prng/xorwow-jump.py.
+ * The jump polynomials were precomputed using [a python script](
+ * https://github.com/celeritas-project/utils/blob/main/prng/xorwow-jump.py).
  * For a more detailed description of how to calculate the jump polynomials
  * using Knuth's square-and-multiply algorithm in \f$ O(k^2 log d) \f$ time
  * (where \em k is the number of bits in the state and \em d is the number of
- * steps to skip ahead),
- * see: Collins, J. 2008. "Testing, Selection, and Implementation of Random
- * Number Generators". ARL-TR-4498.
- * https://apps.dtic.mil/sti/pdfs/ADA486637.pdf.
+ * steps to skip ahead), see \citet{collins-rng-2008,
+ * http://www.dtic.mil/docs/citations/ADA486379}.
  */
 class XorwowRngEngine
 {

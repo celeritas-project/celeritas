@@ -155,13 +155,11 @@ TEST_F(UrbanMscTest, coeff_data)
     }
 
     // Check data for electron in stainless steel
-    auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
-    ASSERT_TRUE(mid);
-    auto pid = this->particle()->find(pdg::electron());
-    ASSERT_TRUE(pid);
-    UrbanMscParMatData const& par
-        = params.par_mat_data[params.at<UrbanMscParMatData>(mid, pid)];
-    EXPECT_SOFT_EQ(par.d_over_r, 0.64474963087322135);
+    auto par = this->make_par_view(pdg::electron(), MevEnergy{10});
+    auto phys = this->make_phys_view(
+        par, "G4_STAINLESS-STEEL", this->physics()->host_ref());
+    UrbanMscHelper helper(params, par, phys);
+    EXPECT_SOFT_EQ(helper.pmdata().d_over_r, 0.64474963087322135);
 }
 
 TEST_F(UrbanMscTest, helper)
@@ -350,7 +348,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                     // Safety/safety plus step limit algorithm
                     UrbanMscSafetyStepLimit calc_limit(msc_params,
                                                        helper,
-                                                       par.energy(),
+                                                       par,
                                                        &phys,
                                                        phys.material_id(),
                                                        on_boundary,
@@ -550,7 +548,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
             }
             UrbanMscSafetyStepLimit calc_limit(msc_params,
                                                helper,
-                                               par.energy(),
+                                               par,
                                                &phys,
                                                mat.material_id(),
                                                geo.is_on_boundary(),
