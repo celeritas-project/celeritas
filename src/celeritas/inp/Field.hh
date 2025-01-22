@@ -48,7 +48,7 @@ struct UniformField
 /*!
  * Build a separable R-Z magnetic field from a file.
  *
- * TODO: move field input here, make variant input/filename?
+ * \todo Move field input here
  */
 using RZMapField = ::celeritas::RZMapFieldInput;
 
