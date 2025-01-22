@@ -198,9 +198,19 @@ BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
     if (previous_id == current_node.parent)
     {
         // Visiting this inner node for the first time; go down either left
-        // or right edge
-        return this->visit_bbox(l_edge.bbox, ray, min_dist) ? l_edge.child
-                                                            : r_edge.child;
+        // edge, right edge, or return to the parent
+        if (this->visit_bbox(l_edge.bbox, ray, min_dist))
+        {
+            return l_edge.child;
+        }
+        else if (this->visit_bbox(r_edge.bbox, ray, min_dist))
+        {
+            return r_edge.child;
+        }
+        else
+        {
+            return current_node.parent;
+        }
     }
 
     if (previous_id == current_node.edges[Side::left].child)
