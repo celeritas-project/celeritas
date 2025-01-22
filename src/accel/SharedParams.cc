@@ -22,6 +22,7 @@
 #include <G4Threading.hh>
 
 #include "corecel/Config.hh"
+#include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -213,7 +214,10 @@ SharedParams::SharedParams(SetupOptions const& options)
                       "Celeritas offloading is disabled via "
                       "\"CELER_DISABLE\"");
 
-    CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
+    CELER_LOG_LOCAL(info) << "Activating Celeritas version "
+                          << celeritas_version << " on "
+                          << (Device::num_devices() > 0 ? "GPU" : "CPU");
+
     ScopedProfiling profile_this{"construct-params"};
     ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
@@ -248,8 +252,8 @@ SharedParams::SharedParams(SetupOptions const& options)
     }
     else
     {
-        CELER_LOG(debug) << "Skipping 'startup' JSON output since writing to "
-                            "stdout";
+        CELER_LOG(debug)
+            << R"(Skipping 'startup' JSON output since writing to stdout)";
     }
 
     if (!options.offload_output_file.empty())
@@ -684,7 +688,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
  * Write available Celeritas output.
  *
  * This can be done multiple times, overwriting the same file so that we can
- * get output before construction and after
+ * get output before construction *and* after.
  */
 void SharedParams::try_output() const
 {
@@ -698,7 +702,8 @@ void SharedParams::try_output() const
     std::string filename = output_filename_;
     if (!params_ && filename.empty())
     {
-        // Setup was not called but JSON is available: make a default filename
+        // Setup was not called but we're outputting anyway (called by
+        // celer-g4?)
         filename = "celeritas.out.json";
         CELER_LOG(debug) << "Set default Celeritas output filename";
     }
