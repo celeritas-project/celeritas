@@ -7,7 +7,7 @@ ORANGE
 ======
 
 The Oak Ridge Advanced Nested Geometry Engine (ORANGE)
-:cite:`orange-2024` is a surface-based geometry that has been adapted to GPU
+:cite:`orange-tm` is a surface-based geometry that has been adapted to GPU
 execution to support platform portability in Celeritas. It can be built via its
 interface to SCALE or constructed automatically from Geant4 geometry
 representation.

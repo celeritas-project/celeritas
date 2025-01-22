@@ -272,6 +272,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
         first, last, value, comp);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Find the insertion point for a value in a sorted list using a linear search.
@@ -283,6 +284,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
 {
     return ::celeritas::lower_bound_linear(first, last, value, Less<>{});
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!

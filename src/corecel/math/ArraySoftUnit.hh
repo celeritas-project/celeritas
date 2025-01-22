@@ -38,7 +38,7 @@ namespace celeritas
  * Instead of calculating the square of the tolerance we use
  * \f$ \epsilon^2 < \epsilon \f$ to make the "soft unit vector" condition
  * \f[
-   | \vec v \vd \vec \v - 1 | < 3 \epsilon .
+   | \vec v \vd \vec v - 1 | < 3 \epsilon .
    \f]
  */
 template<class T = ::celeritas::real_type>

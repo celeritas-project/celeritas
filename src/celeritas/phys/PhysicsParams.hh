@@ -185,7 +185,7 @@ struct PhysicsParamsOptions
  * - "discrete-select": sample a process for a discrete interaction, or reject
  *   due to integral cross sectionl
  * - "integral-rejected": do not apply a discrete interaction
- * - "failure": model failed to allocate secondaries
+ * - "failure": interactor failed to allocate secondaries
  */
 class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 {

@@ -160,7 +160,7 @@ make_subtraction(std::string&& label,
  * Make a combination of possibly negated objects.
  *
  * The Region Definition Vector (RDV) is an intersection of objects and/or
- * their negations. It is the KENO/SCALE \citep{kenovi} way for defining media,
+ * their negations. It is the KENO/SCALE \cite{kenovi} way for defining media,
  * boundaries, etc. It must not be empty.
  */
 std::shared_ptr<AllObjects const>

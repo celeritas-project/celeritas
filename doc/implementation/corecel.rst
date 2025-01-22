@@ -23,6 +23,7 @@ The files :file:`celeritas_{config,version,cmake_strings,sys_config}.h` and
 :file:`corecel/device_runtime_api.h` are deprecated aliases for
 backward-compatibility.
 .. deprecated:: v0.5
+
    These will be removed in v0.6.
 
 .. doxygendefine:: CELERITAS_VERSION
@@ -148,7 +149,7 @@ These functions replace or extend those in the C++ standard library
 .. doxygenfunction:: celeritas::sincospi(double a, double* s, double* c)
 .. doxygenfunction:: celeritas::popcount
 
-.. doxygenstruct:: celeritas::numeric_limits<double>
+.. doxygenstruct:: celeritas::numeric_limits
    :members:
 
 Atomics
