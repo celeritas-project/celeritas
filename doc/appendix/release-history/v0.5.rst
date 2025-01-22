@@ -9,7 +9,7 @@ Series 0.5
 Version 0.5.1
 -------------
 
-*Released 2025/01/21*
+*Released 2025/01/22*
 
 Version 0.5.1 is a minor update to Celeritas featuring:
 
