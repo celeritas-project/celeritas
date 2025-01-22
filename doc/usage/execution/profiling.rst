@@ -64,6 +64,7 @@ tool.
 
 On CPU, timelines are generated using Perfetto, which is only supported when CUDA
 and HIP are disabled. Perfetto supports application-level and system-level profiling.
+To use the application-level profiling, see :ref:`inp_diagnostics`.
 
 .. sourcecode::
    :linenos:
