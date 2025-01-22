@@ -25,5 +25,3 @@ These use a special interface to extract step information.
 .. doxygenclass:: celeritas::SimpleCalo
 
 .. doxygenclass:: celeritas::RootStepWriter
-
-.. doxygenstruct:: celeritas::SimpleRootFilterInput
