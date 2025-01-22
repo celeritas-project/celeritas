@@ -34,7 +34,7 @@ Processes
 Models
 ------
 
-.. doxygenstruct:: celeritas::inp::SBBremsModel
+.. doxygenstruct:: celeritas::inp::SeltzerBergerModel
    :members:
    :no-link:
 

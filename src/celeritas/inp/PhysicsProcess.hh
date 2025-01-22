@@ -33,12 +33,12 @@ struct BremsProcess
 /*!
  * Construct a physics process for electron/positron pair production.
  */
-struct PairProdProcess
+struct PairProductionProcess
 {
     //! Bethe-Heitler pair production
     std::optional<BetheHeitlerModel> bethe_heitler;
     //! Muonic pair production
-    std::optional<MuPairProdModel> mu;
+    std::optional<MuPairProductionModel> mu;
 };
 
 //---------------------------------------------------------------------------//
@@ -47,8 +47,8 @@ struct PairProdProcess
 //! \todo rename `em/model` to match, merge muon and electron proceses
 
 using BremsstrahlungProcess = BremsProcess;
-using GammaConversionProcess = PairProdProcess;
-using MuPairProductionProcess = PairProdProcess;
+using GammaConversionProcess = PairProductionProcess;
+using MuPairProductionProcess = PairProductionProcess;
 
 //!@}
 
