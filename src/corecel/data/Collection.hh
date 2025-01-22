@@ -197,17 +197,15 @@ struct AllItems
  * Data are constructed incrementally on the host, then copied (along with
  * their associated ItemRange) to device. A Collection can act as a
  * \c std::vector<T>, \c DeviceVector<T>, \c Span<T>, or \c Span<const T>. The
- * Spans can
- * point to host or device memory, but the \c MemSpace template argument
- protects
- * against accidental accesses from the wrong memory space.
+ * Spans can point to host or device memory, but the \c MemSpace template
+ * argument protects against accidental accesses from the wrong memory space.
  *
  * Each Collection object is usually accessed with an ItemRange, which
- * references a
- * contiguous set of elements in the Collection. For example, setup code on the
- * host would extend the Collection with a series of vectors, the addition of
- * which returns a ItemRange that returns the equivalent data on host or
- * device. This methodology allows complex nested data structures to be built
+ * references a contiguous set of elements in the Collection.
+ * For example, setup code on the host would extend the Collection with a
+ * series of vectors, the addition of which returns a ItemRange that returns
+ * the equivalent data on host or device.
+ * This methodology allows complex nested data structures to be built
  * up quickly at setup time without knowing the size requirements beforehand.
  *
  * Host-device functions and classes should use \c Collection with a reference
@@ -226,9 +224,9 @@ struct AllItems
  * changed page will require a slow memory transfer.
  * Allocating pinned memory is slow and reduces the memory available to the
  * system: so only allocate the smallest amount needed with the longest
- possible
- * lifetime. Frequently accessing data from device code will result in low
- * performance. Use case for mapped memory are:
+ * possible lifetime.
+ * Frequently accessing data from device code will result in low performance.
+ * Use case for mapped memory are:
  * - as a source or destination memory space for asynchronous operations,
  * - on integrated GPU architecture, or
  * - a [single coalesced read or write from device code](
