@@ -221,8 +221,9 @@ auto get_core_sizes(CoreParams const& cp)
     result.initializers = result.streams * init.capacity();
     result.tracks = result.streams * cp.tracks_per_stream();
     // Number of secondaries is currently based on track size
-    result.secondaries = cp.physics()->host_ref().scalars.secondary_stack_factor
-                         * result.tracks;
+    result.secondaries = static_cast<size_type>(
+        cp.physics()->host_ref().scalars.secondary_stack_factor
+        * result.tracks);
     // Event IDs are the same across all threads so this is *not* multiplied by
     // streams
     result.events = init.max_events();
