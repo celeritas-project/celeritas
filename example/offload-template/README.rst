@@ -35,12 +35,12 @@ Boilerplate offloading code
    - **Shared parameters** used in the run: materials, physics processes
      cross-section tables, and so on
    - **Transporter**: execute/manage the particle transport
-   - **Simple Offload**: simplified user interface. Each `SimpleOffload` call is
-     briefly described below.
+   - **Simple Offload**: simplified user interface. Each ``SimpleOffload`` call
+     is briefly described below.
 
 :code:`G4VUserActionInitialization`
   :code:`Build` and `BuildForMaster` construct Celeritas Simple Offload
-    interface with user-defined options (from `Celeritas.cc`) and assign the
+    interface with user-defined options (from ``Celeritas.cc``) and assign the
     Celeritas tracking manager to the appropriate particles.
 
 :code:`G4UserRunAction`
