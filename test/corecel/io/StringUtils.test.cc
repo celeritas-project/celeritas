@@ -54,5 +54,12 @@ TEST(StringUtils, trim)
 }
 
 //---------------------------------------------------------------------------//
+TEST(StringUtils, tolower)
+{
+    EXPECT_EQ("", tolower(""));
+    EXPECT_EQ(" hello!  ", tolower(" HeLLo!  "));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
