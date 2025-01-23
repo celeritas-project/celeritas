@@ -29,7 +29,26 @@ jobs:
       matrix:
         geometry: ["vecgeom"]
         special: [null]
-        geant: ["11.0", "11.1", "11.2", "11.3"]
+        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
+        include:
+          - geometry: "orange"
+            special: "minimal"
+            geant: null
+          - geometry: "orange"
+            special: "float"
+            geant: "11.0"
+          - geometry: "orange"
+            special: "asanlite"
+            geant: null
+          - geometry: "vecgeom"
+            special: "clhep"
+            geant: "11.0"
+          - geometry: "geant4"
+            special: null
+            geant: "11.0"
+          - geometry: "vecgeom"
+            special: "clang-tidy"
+            geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "100Mi"
@@ -177,6 +196,50 @@ jobs:
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
+      - name: Run unit tests
+        id: unittest
+        if: ${{matrix.special != 'clang-tidy'}}
+        continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
+        run: |
+          if [ "${{matrix.geant}}" == "11.0" ]; then
+            # Note this is ignored for geant4, float, clhep
+            export CELER_TEST_STRICT=1
+          fi
+          ctest -LE app --preset=spack-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled()
+            && matrix.special != 'clang-tidy'
+            && steps.build.outcome == 'success'}}
+        continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
+        run: |
+          ctest -L app --preset=spack-app
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+            && (!matrix.geant || fromJSON(matrix.geant) >= 11)
+          }}
+        with:
+          name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
+      - name: Check using build directory as install
+        # TODO: ASAN requires flags downstream
+        if: >-
+          ${{
+            (matrix.special != 'asanlite')
+            && (matrix.special != 'clang-tidy')
+          }}
+        env:
+          CELER_DISABLE_ACCEL_EXAMPLES: 1 # Only run minimal example
+        run: |
+          . ${SPACK_VIEW}/rc
+          CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         id: install
         if: ${{!cancelled() && steps.build.outcome == 'success' && matrix.special != 'clang-tidy'}}
