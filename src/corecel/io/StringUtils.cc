@@ -95,7 +95,7 @@ bool cstring_equal(char const* lhs, char const* rhs)
             return std::tolower(c);
         });
     return result;
-};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
