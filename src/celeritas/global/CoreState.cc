@@ -31,7 +31,10 @@ CoreState<M>::CoreState(CoreParams const& params, StreamId stream_id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from CoreParams.
+ * Construct with manual slot count.
+ *
+ * This is currently used for unit tests, and temporarily used by the \c
+ * Stepper constructor.
  */
 template<MemSpace M>
 CoreState<M>::CoreState(CoreParams const& params,

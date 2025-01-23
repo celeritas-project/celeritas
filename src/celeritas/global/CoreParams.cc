@@ -213,13 +213,18 @@ auto get_core_sizes(CoreParams const& cp)
     auto const& init = *cp.init();
 
     detail::CoreSizes result;
-    result.streams = cp.max_streams();
     result.processes = comm_world().size();
+    result.streams = cp.max_streams();
 
+    // NOTE: quantities are *per-process* quantities: integrated over streams,
+    // but not processes
     result.initializers = result.streams * init.capacity();
     result.tracks = result.streams * cp.tracks_per_stream();
+    // Number of secondaries is currently based on track size
     result.secondaries = cp.physics()->host_ref().scalars.secondary_stack_factor
                          * result.tracks;
+    // Event IDs are the same across all threads so this is *not* multiplied by
+    // streams
     result.events = init.max_events();
 
     return result;

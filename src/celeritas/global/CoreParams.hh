@@ -38,8 +38,8 @@ class WentzelOKVIParams;
 /*!
  * Global parameters required to run a problem.
  *
- * \todo Always \c tracks_per_stream to build actual states. Currently unit
- * tests build states independently.
+ * \todo Applications specify \c tracks_per_stream to build the states, but
+ * unit tests currently omit this option.
  */
 class CoreParams final : public ParamsDataInterface<CoreParamsData>
 {

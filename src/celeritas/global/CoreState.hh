@@ -86,7 +86,7 @@ class CoreState final : public CoreStateInterface
     // Construct from CoreParams
     CoreState(CoreParams const& params, StreamId stream_id);
 
-    // Construct witih manual slot count
+    // Construct with manual slot count
     CoreState(CoreParams const& params,
               StreamId stream_id,
               size_type num_track_slots);
