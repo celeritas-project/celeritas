@@ -37,6 +37,9 @@ class WentzelOKVIParams;
 //---------------------------------------------------------------------------//
 /*!
  * Global parameters required to run a problem.
+ *
+ * \todo Always \c tracks_per_stream to build actual states. Currently unit
+ * tests build states independently.
  */
 class CoreParams final : public ParamsDataInterface<CoreParamsData>
 {
@@ -84,6 +87,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
+
+        //! Number of track slots per stream
+        StreamId::size_type tracks_per_stream{0};
 
         //! True if all params are assigned and valid
         explicit operator bool() const
@@ -134,6 +140,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //! Maximum number of streams
     size_type max_streams() const { return input_.max_streams; }
+
+    //! Number of track slots per stream
+    size_type tracks_per_stream() const { return input_.tracks_per_stream; }
 
   private:
     Input input_;

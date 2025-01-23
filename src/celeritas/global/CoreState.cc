@@ -24,6 +24,16 @@ CoreStateInterface::~CoreStateInterface() = default;
  * Construct from CoreParams.
  */
 template<MemSpace M>
+CoreState<M>::CoreState(CoreParams const& params, StreamId stream_id)
+    : CoreState{params, stream_id, params.tracks_per_stream()}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from CoreParams.
+ */
+template<MemSpace M>
 CoreState<M>::CoreState(CoreParams const& params,
                         StreamId stream_id,
                         size_type num_track_slots)

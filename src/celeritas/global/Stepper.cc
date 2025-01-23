@@ -69,6 +69,10 @@ Stepper<M>::Stepper(Input input)
         return std::make_shared<ActionSequenceT>(*params_->action_reg(), opts);
     }()}
 {
+    // NOTE: if this fails, you're probably running from a unit test?
+    CELER_VALIDATE(params_->tracks_per_stream() > 0,
+                   << "core params `tracks_per_stream` was not set");
+
     // Save primary action: TODO this is a hack and should be refactored so
     // that we pass generators into the stepper and eliminate the call
     // signature with primaries
@@ -76,9 +80,15 @@ Stepper<M>::Stepper(Input input)
     CELER_VALIDATE(primaries_action_,
                    << "primary generator was not added to the stepping loop");
 
+    size_type const track_slots = (input.num_track_slots == 0
+                                       ? params_->tracks_per_stream()
+                                       : input.num_track_slots);
+    CELER_VALIDATE(track_slots > 0,
+                   << "track slots were specified neither in core params nor "
+                      "stepper input");
     // Create state, including aux data
     state_ = std::make_shared<CoreState<M>>(
-        *params_, input.stream_id, input.num_track_slots);
+        *params_, input.stream_id, track_slots);
 
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
