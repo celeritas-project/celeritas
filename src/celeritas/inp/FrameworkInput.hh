@@ -26,7 +26,7 @@ struct Problem;
  * - System attributes (GPU activation etc.) are set
  * - Geant4 data is loaded
  * - External Geant4 data files (such as EM LOW) are loaded
- * - Optional tuning/diagnostic overrides are loaded
+ * - Optional control/diagnostic overrides are loaded
  * - Optional framework-defined adjustments are applied
  */
 struct FrameworkInput
@@ -38,7 +38,7 @@ struct FrameworkInput
     GeantImport geant;
     //! Load external data files
     GeantDataImport geant_data;
-    //! Optionally add diagnostics and tuning parameters from an external file
+    //! Optionally add diagnostics and control parameters from an external file
     std::optional<UpdateImport> update;
 
     //! User application/framework-defined adjustments

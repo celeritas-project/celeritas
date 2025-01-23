@@ -79,8 +79,8 @@ struct UpdateImport
 {
     //! Replace existing diagnostics
     bool diagnostics{true};
-    //! Replace existing tuning parameters
-    bool tuning{true};
+    //! Replace existing control parameters
+    bool control{true};
 
     //! Path to the file
     std::string input;

@@ -50,33 +50,32 @@ inp::Problem load_problem(RunInput const& ri)
     p.model.geometry = ri.geometry_file;
 
     // Tuning
-    {
+    p.control.capacity = [&ri] {
         inp::StateCapacity capacity;
         capacity.tracks = ri.num_track_slots;
         capacity.initializers = ri.initializer_capacity;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
                                                       * ri.num_track_slots);
         capacity.primaries = ri.auto_flush;
-        p.tuning.capacity = std::move(capacity);
-    }
+        return capacity;
+    }();
 
     if (celeritas::Device::num_devices())
     {
         inp::DeviceDebug dd;
         dd.default_stream = ri.default_stream;
         dd.sync_stream = ri.action_times;
-        p.tuning.device_debug = std::move(dd);
+        p.control.device_debug = std::move(dd);
     }
 
     if (ri.track_order != TrackOrder::size_)
     {
-        p.tuning.track_order = ri.track_order;
+        p.control.track_order = ri.track_order;
     }
 
     {
-        inp::TrackingLimits limits;
+        inp::TrackingLimits& limits = p.tracking.limits;
         limits.steps = ri.max_steps;
-        p.tracking.limits = std::move(limits);
     }
 
     // Field setup

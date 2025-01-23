@@ -33,8 +33,8 @@ namespace inp
  * from an external application before running a kernel to construct \c
  * initializers and execute the stpeping loop.
  *
- * Capacities are defined as the number per application process: this means
- * that in a multithreaded context it implies "strong scaling" (i.e., the
+ * Capacities are defined as the number per application process (task): this
+ * means that in a multithreaded context it implies "strong scaling" (i.e., the
  * allocations are divided among threads), and in a multiprocess context it
  * implies "weak scaling" (the problem size grows with the number of
  * processes).
@@ -88,19 +88,14 @@ struct DeviceDebug
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up system/tuning parameters that don't affect physics.
+ * Set up control/tuning parameters that do not affect physics.
  *
  * Defaults:
  * - \c device_debug: absent unless device is enabled
  * - \c optical_capacity: absent unless optical physics is enabled
  * - \c track_order: \c init_charge on GPU, \c none on CPU
- *
- * \todo \c seed doesn't really belong here; not sure where to put it though
- * \todo \c num_streams is used to set up per-stream state sizes:
- * perhaps the number of sterams (and processes and events?) should be passed
- * in to create the multi-thread states.
  */
-struct Tuning
+struct Control
 {
     //! Per-process state sizes
     StateCapacity capacity;

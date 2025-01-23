@@ -29,10 +29,12 @@ inp::System load_system(RunnerInput const& ri)
 
     if (ri.use_device)
     {
-        inp::Device d;
-        d.stack_size = ri.cuda_stack_size;
-        d.heap_size = ri.cuda_heap_size;
-        s.device = std::move(d);
+        s.device = [&ri] {
+            inp::Device d;
+            d.stack_size = ri.cuda_stack_size;
+            d.heap_size = ri.cuda_heap_size;
+            return d;
+        }();
     }
     return s;
 }
@@ -63,10 +65,12 @@ inp::Problem load_problem(RunnerInput const& ri)
         auto& d = p.diagnostics;
         if (!ri.mctruth_file.empty())
         {
-            inp::McTruth mct;
-            mct.output_file = ri.mctruth_file;
-            mct.filter = ri.mctruth_filter;
-            d.mctruth = std::move(mct);
+            d.mctruth = [&ri] {
+                inp::McTruth mct;
+                mct.output_file = ri.mctruth_file;
+                mct.filter = ri.mctruth_filter;
+                return mct;
+            }();
         }
         d.perfetto_file = ri.tracing_file;
         d.timers.action = ri.action_times;
@@ -74,21 +78,21 @@ inp::Problem load_problem(RunnerInput const& ri)
         d.action = ri.action_diagnostic;
         if (!ri.slot_diagnostic_prefix.empty())
         {
-            inp::SlotDiagnostic slot_diag;
-            slot_diag.basename = ri.slot_diagnostic_prefix;
-            d.slot = std::move(slot_diag);
+            d.slot = inp::SlotDiagnostic{ri.slot_diagnostic_prefix};
         }
         if (ri.step_diagnostic)
         {
-            inp::StepDiagnostic step_diag;
-            step_diag.bins = ri.step_diagnostic_bins;
-            d.step = std::move(step_diag);
+            d.step = [&ri] {
+                inp::StepDiagnostic step_diag;
+                step_diag.bins = ri.step_diagnostic_bins;
+                return step_diag;
+            }();
         }
         d.counters.step = ri.write_track_counts;
         d.counters.event = ri.transporter_result;
     }
 
-    // Tuning
+    // Control
     {
         inp::StateCapacity capacity;
         capacity.tracks = ri.num_track_slots;
@@ -100,22 +104,24 @@ inp::Problem load_problem(RunnerInput const& ri)
         using LimitsT = std::numeric_limits<decltype(capacity.events)>;
         capacity.events = ri.merge_events ? LimitsT::max() : 0;
 
-        p.tuning.capacity = capacity;
+        p.control.capacity = capacity;
 
-        p.tuning.warm_up = ri.warm_up;
-        p.tuning.seed = ri.seed;
+        p.control.warm_up = ri.warm_up;
+        p.control.seed = ri.seed;
 
         // TODO: set number of streams
-        p.tuning.num_streams = 1;
+        p.control.num_streams = 1;
 
         if (ri.use_device)
         {
-            inp::DeviceDebug dd;
-            dd.default_stream = ri.default_stream;
-            dd.sync_stream = ri.action_times;
-            p.tuning.device_debug = std::move(dd);
+            p.control.device_debug = [&ri] {
+                inp::DeviceDebug dd;
+                dd.default_stream = ri.default_stream;
+                dd.sync_stream = ri.action_times;
+                return dd;
+            }();
         }
-        p.tuning.track_order = ri.track_order;
+        p.control.track_order = ri.track_order;
     }
 
     // Physics
@@ -140,19 +146,19 @@ inp::Problem load_problem(RunnerInput const& ri)
     // Optical options
     if (ri.optical)
     {
-        inp::StateCapacity optical_capacity;
-        optical_capacity.tracks = ri.optical.num_track_slots;
-        optical_capacity.initializers = ri.optical.initializer_capacity;
-        optical_capacity.primaries = ri.optical.auto_flush;
-        p.tuning.optical_capacity = std::move(optical_capacity);
+        p.control.optical_capacity = [&ri] {
+            inp::StateCapacity sc;
+            sc.tracks = ri.optical.num_track_slots;
+            sc.initializers = ri.optical.initializer_capacity;
+            sc.primaries = ri.optical.auto_flush;
+            return sc;
+        }();
     }
 
     // Simple calorimeter scoring
     if (!ri.simple_calo.empty())
     {
-        inp::SimpleCalo calo;
-        calo.volumes = ri.simple_calo;
-        p.scoring.simple_calo = std::move(calo);
+        p.scoring.simple_calo = inp::SimpleCalo{ri.simple_calo};
     }
 
     return p;

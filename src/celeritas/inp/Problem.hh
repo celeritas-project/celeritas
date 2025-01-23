@@ -6,13 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "Control.hh"
 #include "Diagnostics.hh"
 #include "Field.hh"
 #include "Model.hh"
 #include "Physics.hh"
 #include "Scoring.hh"
 #include "Tracking.hh"
-#include "Tuning.hh"
 
 namespace celeritas
 {
@@ -57,8 +57,8 @@ struct Problem
     //! Tuning options that affect the physics
     Tracking tracking;
 
-    //! Low-level performance tuning options
-    Tuning tuning;
+    //! Low-level performance tuning and simulation control options
+    Control control;
     //! Monte Carlo tracking, performance, and debugging diagnostics
     Diagnostics diagnostics;
 };

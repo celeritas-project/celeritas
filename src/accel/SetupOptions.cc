@@ -92,30 +92,29 @@ void ProblemSetup::operator()(inp::Problem& p) const
     }
     p.diagnostics.output_file = so.output_file;
 
-    p.tuning.num_streams = so.get_num_streams();
+    p.control.num_streams = so.get_num_streams();
 
-    {
+    p.control.capacity = [this, num_streams = p.control.num_streams] {
         inp::StateCapacity c;
-        c.tracks = so.max_num_tracks * p.tuning.num_streams;
-        c.initializers = so.initializer_capacity * p.tuning.num_streams;
+        c.tracks = so.max_num_tracks * num_streams;
+        c.initializers = so.initializer_capacity * num_streams;
         c.secondaries
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         c.primaries = so.auto_flush;
+        return c;
+    }();
 
-        p.tuning.capacity = std::move(c);
-    }
-    {
+    p.tracking.limits = [this] {
         inp::TrackingLimits tl;
         tl.steps = so.max_steps;
         tl.step_iters = so.max_step_iters;
         tl.field_substeps = so.max_field_substeps;
-
-        p.tracking.limits = std::move(tl);
-    }
+        return tl;
+    }();
 
     if (so.track_order != TrackOrder::size_)
     {
-        p.tuning.track_order = so.track_order;
+        p.control.track_order = so.track_order;
     }
 
     if (celeritas::Device::num_devices())
@@ -124,7 +123,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
         dd.default_stream = so.default_stream;
         dd.sync_stream = so.action_times;
 
-        p.tuning.device_debug = std::move(dd);
+        p.control.device_debug = std::move(dd);
     }
 
     if (so.sd.enabled)
@@ -160,21 +159,19 @@ void ProblemSetup::operator()(inp::Problem& p) const
         CELER_NOT_IMPLEMENTED("processing generic along-step factory");
     }
 
-    {
+    p.diagnostics.export_files = [this] {
         inp::ExportFiles ef;
         ef.physics = so.physics_output_file;
         ef.offload = so.offload_output_file;
         ef.geometry = so.geometry_output_file;
-        p.diagnostics.export_files = std::move(ef);
-    }
+        return ef;
+    }();
 
     p.diagnostics.timers.action = so.action_times;
 
     if (!so.slot_diagnostic_prefix.empty())
     {
-        inp::SlotDiagnostic sd;
-        sd.basename = so.slot_diagnostic_prefix;
-        p.diagnostics.slot = std::move(sd);
+        p.diagnostics.slot = inp::SlotDiagnostic{so.slot_diagnostic_prefix};
     }
 }
 
