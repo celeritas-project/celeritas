@@ -14,7 +14,7 @@ shared data (definitions, persistent data, model data) should be separately
 allocated and managed.
 
 Params
-  Provide a CPU-based interface to manage and provide access to constant shared
+  Provide a host-side interface to manage and provide access to constant shared
   GPU data, usually model parameters or the like. The Params class itself can
   only be accessed via host code. A params class can contain metadata (string
   names, etc.) suitable for host-side debug output and for helping related
@@ -67,6 +67,7 @@ Storage
    :no-link:
 
 .. doxygenclass:: celeritas::OpaqueId
+.. doxygenfunction:: celeritas::id_cast
 
 .. doxygentypedef:: celeritas::ItemId
 .. doxygentypedef:: celeritas::ItemRange
@@ -96,6 +97,12 @@ Users and other parts of the code can add their own shared and stream-local
 
 .. doxygenclass:: celeritas::AuxParamsInterface
 
+.. doxygenclass:: celeritas::AuxStateInterface
+
 .. doxygenclass:: celeritas::AuxParamsRegistry
+
+.. doxygenclass:: celeritas::AuxStateData
+
+.. doxygenfunction:: celeritas::make_aux_state
 
 .. doxygenclass:: celeritas::AuxStateVec

@@ -4,7 +4,7 @@
 .. _environment:
 
 Environment variables
----------------------
+=====================
 
 Some pieces of core Celeritas code interrogate the environment for variables to
 change system- or output-level behavior. These variables are checked once per
@@ -101,6 +101,6 @@ diagnostic messages and higher.
  info       Important informational messages
  warning    Warnings about unusual events
  error      Something went wrong, but execution can continue
- critical   Something went terribly wrong, program termination imminent
+ critical   Something went terribly wrong: program termination imminent
  ========== ==============================================================
 

@@ -61,7 +61,7 @@ class AuxStateData final : public AuxStateInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a auxiliary state given a runtime memory space.
+ * Create an auxiliary state given a runtime memory space.
  *
  * Example:
  * \code

@@ -6,21 +6,39 @@
 ORANGE
 ======
 
-The ORANGE (Oak Ridge Advanced Nested Geometry Engine) package is currently
-under development as the version in SCALE is ported to GPU.
+The Oak Ridge Advanced Nested Geometry Engine (ORANGE)
+:cite:`orange-tm` is a surface-based geometry that has been adapted to GPU
+execution to support platform portability in Celeritas. It can be built via its
+interface to SCALE or constructed automatically from Geant4 geometry
+representation.
 
-Geometry creation
------------------
+Construction API
+----------------
 
-ORANGE geometry can be constructed from multiple geometry representations,
-including Geant4 HEP geometry.
+ORANGE input can be manually constructed via an API for testing and direct
+integration with other applications.
 
-CSG unit
-^^^^^^^^
+Intersect region
+^^^^^^^^^^^^^^^^
 
-The CSG *unit* is a general scene comprising arbitrary volumes made of arbitrary
-quadric faces. The name "unit" is derived from the KENO criticality safety
-code, where a unit is a reusable composable building block for arrays.
+The lowest level primitive for construction is the "intersect region," which is
+a CSG intersection of half-spaces. The :cpp:class:`IntersectRegion` interface
+helps construct these objects.
+
+.. doxygenclass:: celeritas::orangeinp::IntersectRegionInterface
+.. doxygenclass:: celeritas::orangeinp::Box
+.. doxygenclass:: celeritas::orangeinp::Cone
+.. doxygenclass:: celeritas::orangeinp::Cylinder
+.. doxygenclass:: celeritas::orangeinp::Ellipsoid
+.. doxygenclass:: celeritas::orangeinp::GenPrism
+.. doxygenclass:: celeritas::orangeinp::InfWedge
+.. doxygenclass:: celeritas::orangeinp::Involute
+.. doxygenclass:: celeritas::orangeinp::Parallelepiped
+.. doxygenclass:: celeritas::orangeinp::Prism
+.. doxygenclass:: celeritas::orangeinp::Sphere
+
+Objects
+^^^^^^^
 
 Each unit is constructed from the user defining ``ObjectInterface``
 implementations and relationships, and specifying which of them are volumes.
@@ -31,16 +49,16 @@ Shape
    multiple quadric surfaces. The Shape is implemented using a single
    IntersectRegion,
    which is an implementation that builds the underlying surfaces and bounding
-   boxes. Shapes should be as simple as possible, aligned along and centered on
-   the Z axis.
+   boxes. Shapes should be as simple as possible, aligned along and
+   usually centered on the *z* axis.
 Solid
    A shape that's hollowed out and/or has a slice removed. It is equivalent to
    a CSG operation on two shapes of the same type and an azimuthal wedge.
 PolySolid
-   A union of transformed solids along the Z axis, which can also be hollowed
+   A union of transformed solids along the *z* axis, which can also be hollowed
    and sliced azimuthally.
 Transformed
-   Applies a transform to another CSG object.
+   Applies a transformation (rotation, translation) to another CSG object.
 AnyObjects, AllObjects, and NegatedObject
    Apply the CSG operations of union, intersection, and negation. The first two
    are implemented as templates of a JoinObjects class.
@@ -63,6 +81,7 @@ be reused in multiple locations.
 .. doxygenfunction:: celeritas::orangeinp::make_subtraction
 
 .. doxygenfunction:: celeritas::orangeinp::make_rdv
+
 
 .. mermaid::
 
@@ -116,8 +135,16 @@ be reused in multiple locations.
 
 .. stop weird vim formatting here... |--|
 
-CSG unit construction
-^^^^^^^^^^^^^^^^^^^^^
+CSG unit
+^^^^^^^^
+
+The CSG *unit* is a general scene comprising arbitrary volumes made of arbitrary
+quadric and planar faces. The name "unit" is derived from the KENO criticality
+safety code :cite:`kenovi`, where a unit is a reusable composable building
+block for arrays.
+
+.. doxygenclass:: celeritas::orangeinp::UnitProto
+
 
 The Object classes above are all factory functions for creating a CSG tree and
 transformed surfaces corresponding to leaf nodes. Some important aspects of
@@ -126,7 +153,7 @@ this construction process are:
 - Transforming constructed surfaces based on the stack of transformations
 - Simplifying and normalizing surfaces (e.g., ensuring planes are pointing in a
   "positive" direction and converting arbitrary planes to axis-aligned planes)
-- Deduplicating "close" surfaces to eliminate boundary crossing errors
+- De-duplicating "close" surfaces to eliminate boundary crossing errors
 - Naming constructed surfaces based on the constructing surface type
 - Constructing bounding boxes using the original and simplified surfaces, as
   well as additional specifications from the convex regions
@@ -135,7 +162,7 @@ this construction process are:
 - Simplifying the CSG tree based on boundary conditions and other factors
 
 Geant4 geometry translation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 
 The Geant4 geometry is a hierarchy of "logical volumes" comprised of solids.
 Child ("daughter") volumes are "placed" into a parent ("mother") volume after
@@ -168,5 +195,4 @@ Runtime interfaces
 .. doxygenclass:: celeritas::OrangeParams
 
 .. doxygenclass:: celeritas::OrangeTrackView
-
 

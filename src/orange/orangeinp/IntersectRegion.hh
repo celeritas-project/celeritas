@@ -62,6 +62,8 @@ class IntersectRegionInterface
 //---------------------------------------------------------------------------//
 /*!
  * A rectangular parallelepiped/cuboid centered on the origin.
+ *
+ * The box is constructed with half-widths.
  */
 class Box final : public IntersectRegionInterface
 {
@@ -86,16 +88,16 @@ class Box final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A closed cone along the Z axis centered on the origin.
+ * A closed truncated cone along the *z* axis centered on the origin.
  *
  * A quadric cone technically defines two opposing cones that touch at a single
  * vanishing point, but this cone is required to be truncated so that the
  * vanishing point is on our outside the cone.
  *
- * The midpoint along the Z axis of the cone is the origin. A cone is \em not
- * allowed to have equal radii: for that, use a cylinder. However, it \em may
- * have a single radius of zero, which puts the vanishing point on one end of
- * the cone.
+ * The midpoint along the \em z axis of the cone is the origin. A cone is \em
+ * not allowed to have equal radii: for that, use a cylinder. However, it \em
+ * may have a single radius of zero, which puts the vanishing point on one end
+ * of the cone.
  *
  * This intersect region, along with the Cylinder, is a base component of the
  * G4Polycone (PCON).
@@ -134,7 +136,9 @@ class Cone final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A Z-aligned cylinder centered on the origin.
+ * A *z*-aligned cylinder centered on the origin.
+ *
+ * The cylinder is defined with a radius and half-height.
  */
 class Cylinder final : public IntersectRegionInterface
 {
@@ -169,6 +173,8 @@ class Cylinder final : public IntersectRegionInterface
 //---------------------------------------------------------------------------//
 /*!
  * An axis-alligned ellipsoid centered at the origin.
+ *
+ * The ellipsoid is constructed with the three radial lengths.
  */
 class Ellipsoid final : public IntersectRegionInterface
 {
@@ -193,21 +199,21 @@ class Ellipsoid final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A generalized polygon with parallel flat faces along the z axis.
+ * A generalized polygon with parallel flat faces along the *z* axis.
  *
  * A GenPrism, like VecGeom's GenTrap, ROOT's Arb8, and Geant4's
  * G4GenericTrap, represents a generalized volume with polyhedral faces on two
- * parallel planes perpendicular to the Z axis. Unlike those other codes, the
- * number of faces can be arbitrary in number.
+ * parallel planes perpendicular to the \em z axis. Unlike those other codes,
+ * the number of faces can be arbitrary in number.
  *
  * The faces have an orientation and ordering so that \em twisted faces can be
  * constructed by joining corresponding points using straight-line "vertical"
- * edges, directly matching the G4GenericTrap definition, but using a generic
- * quadric expression for each twisted face.
+ * edges, directly matching the G4GenericTrap definition, but directly
+ * generating a hyperbolic paraboloid for each twisted face.
  *
  * Trapezoids constructed from the helper functions will have sides that are
  * same ordering as a prism: the rightward face is first (normal is along the
- * +x axis), then the others follow counterclockwise.
+ * \em +x axis), then the others follow counterclockwise.
  */
 class GenPrism final : public IntersectRegionInterface
 {
@@ -226,7 +232,7 @@ class GenPrism final : public IntersectRegionInterface
         real_type hx_lo{};
         //! Bottom horizontal edge half-length
         real_type hx_hi{};
-        //! Shear angle, between horizontal line centers and Y axis
+        //! Shear angle between horizontal line centers and Y axis
         Turn alpha;
     };
 
@@ -285,12 +291,12 @@ class GenPrism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * An open wedge shape from the Z axis.
+ * An open wedge shape from the *z* axis.
  *
- * The wedge is defined by an interior angle that *must* be less than or equal
- * to 180 degrees (half a turn) and *must* be more than zero. It can be
+ * The wedge is defined by an interior angle that \em must be less than or
+ * equal to 180 degrees (half a turn) and \em must be more than zero. It can be
  * subtracted, or its negation can be subtracted. The start angle is mapped
- * onto [0, 1) on construction.
+ * onto \f$[0, 1)\f$ on construction.
  */
 class InfWedge final : public IntersectRegionInterface
 {
@@ -369,21 +375,21 @@ class Involute final : public IntersectRegionInterface
  * A general parallelepiped centered on the origin.
  *
  * A parallelepiped is a shape having 3 pairs of parallel faces out of
- * which one is parallel with the XY plane (Z faces). All faces are
- * parallelograms in the general case. The Z faces have 2 edges parallel
- * with the X-axis. Note that all angle parameters are expressed in terms
- * of fractions of a 360deg turn.
+ * which one is parallel with the \em x-y plane (\em z faces). All faces are
+ * parallelograms in the general case. The \em z faces have 2 edges parallel
+ * with the \em x axis. Note that all angle parameters are expressed in terms
+ * of fractions of a 360-degree turn.
  *
  * The shape has the center in the origin and it is defined by:
  *
- *   - `halfedges:` a 3-vector (dY, dY, dZ) with half-lengths of the
+ *   - \c halfedges: a 3-vector (dY, dY, dZ) with half-lengths of the
  *     projections of the edges on X, Y, Z. The lower Z face is positioned at
  *     `-dZ`, and the upper one at `+dZ`.
- *   - `alpha:` angle between the segment defined by the centers of the
+ *   - \c alpha angle between the segment defined by the centers of the
  *     X-parallel edges and Y axis. Validity range is `(-1/4, 1/4)`;
- *   - `theta:` polar angle of the shape's main axis, e.g. the segment defined
+ *   - \c theta polar angle of the shape's main axis, e.g. the segment defined
  *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
- *   - `phi:` azimuthal angle of the shape's main axis (as explained above).
+ *   - \c phi azimuthal angle of the shape's main axis (as explained above).
  *     Validity range is `[0, 1)`.
  */
 class Parallelepiped final : public IntersectRegionInterface

@@ -40,11 +40,17 @@ struct numeric_limits<float>
 template<>
 struct numeric_limits<double>
 {
+    //! Relative difference between 1 and adjacent floating point number
     SCCEF_ double epsilon() { return DBL_EPSILON; }
+    //! Most negative finite value
     SCCEF_ double lowest() { return -DBL_MAX; }
+    //! Smallest positive value
     SCCEF_ double min() { return DBL_MIN; }
+    //! Largest finite value
     SCCEF_ double max() { return DBL_MAX; }
+    //! Special value for not-a-number (always compares false)
     SCCEF_ double quiet_NaN() { return __builtin_nan(""); }
+    //! Special positive infinite value
     SCCEF_ double infinity() { return __builtin_huge_val(); }
 };
 

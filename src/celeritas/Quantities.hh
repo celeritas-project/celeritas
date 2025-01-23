@@ -21,13 +21,15 @@ namespace units
 //! \name Quantities for atomic scale/natural units
 using ElementaryCharge = RealQuantity<EElectron>;
 using MevEnergy = RealQuantity<Mev>;
-using LogMevEnergy = RealQuantity<LogMev>;
 using MevMass = RealQuantity<MevPerCsq>;
 using MevMomentum = RealQuantity<MevPerC>;
 using MevMomentumSq = RealQuantity<UnitProduct<MevPerC, MevPerC>>;
 using LightSpeed = RealQuantity<CLight>;
 using AmuMass = RealQuantity<Amu>;
 //!@}
+
+//! Special faux quantity for overloading cross section calculation
+using LogMevEnergy = RealQuantity<LogMev>;
 
 //---------------------------------------------------------------------------//
 //!@{

@@ -25,10 +25,10 @@ Celeritas
    \begin{abstract}
 
 Celeritas is a Monte Carlo particle transport code for simulating High Energy
-Physics detectors on general purpose GPUs. Motivated by the massive
-computational requirements of the High Luminosity upgrade to the Large Hadron
-Collider, the code's initial goal is to accelerate electromagnetic physics
-simulations of the CMS and ATLAS detectors.
+Physics (HEP) detectors on general purpose GPUs. Motivated originally by the
+massive computational requirements of the High Luminosity upgrade to the Large
+Hadron Collider, the code's goal is to accelerate the most computationally
+challenging simulation problems in HEP.
 
 .. raw:: latex
 
@@ -67,13 +67,155 @@ Celeritas to transport on GPU.
 
 .. [#celeritas_vers] This documentation is generated from Celeritas |release|.
 
+Background
+==========
+
+.. note:: This background section is largely a quote of the Celeritas R&D
+   report :cite:`celer-rd-2024`.
+
+The first investigation of using GPUs to accelerate Geant4 computing was a
+tangential part of the GeantV project :cite:`geantv-2018`, which had
+the primary goal of using CPU SIMD hardware to accelerate detector
+simulation. Toward the end of that experiment, a follow-up GeantX group
+:cite:`geantx-2019` brought Fermilab and ORNL computational
+physicists together with computing experts from NERSC and Argonne to brainstorm
+pathways to exascale for detector simulation. This essentially informal
+collaboration was funded by ECP, inspired by the success of the ExaSMR
+code :cite:`exasmr-2023` that successfully developed new algorithms for MC
+neutronics in nuclear reactors. The broad scope of "implementing Geant4 on
+GPU" lead to many useful discussions but ultimately proved intractable as a
+starting point.
+
+Celeritas was founded from those discussions as an entirely new project with
+the goal of *incrementally* developing GPU-targeted transport
+algorithms specifically for computationally intensive LHC simulations. The
+target of LHC production use is motivated by the high luminosity
+HL-LHC upgrade, which will drive simulation requirements well beyond the
+projected computing capacity that relies on traditional multicore CPU hardware
+:cite:`atlas-computing-2020,cms-computing-2021`.
+
+At the same time as LHC demands more compute capacity, the HPC landscape
+has changed so that GPUs are responsible for larger amounts of processing
+power due to their energy efficiency :cite:`khan-top500-2021`. Similarly,
+as machine learning tools become more widespread across all scientific
+disciplines, GPU uptake will continue to grow. In this scenario, the
+primary goal of Celeritas is to enable HEP simulation to take advantage of
+this increasing supply of GPU hardware.
+
+At the same time, Celeritas strives for a higher simulation throughput per unit
+power using GPUs compared to a CPU-only machine. Because detector
+simulation is only a fraction of the experiment toolchain, and the initial
+capabilities of Celeritas will accelerate only a fraction of that, it is
+unreasonable to assume that the hypothetical power efficiency of Celeritas will
+drive any architectural purchasing decisions for new hardware for WLCG.
+However, as more components of experiment toolchains use GPUs for
+acceleration for numerical simulations, reconstruction, and machine learning
+models, the economic considerations will likely change to favor an increasing
+fraction of machines with heterogeneous architectures.
+
+
+Overview
+========
+
+This user manual is written for three audiences with different goals: Geant4
+toolkit users for integrating Celeritas as a plugin, advanced users for
+extending Celeritas with new physics, and developers for maintaining and
+advancing the codebase.
+
+Installation and usage
+----------------------
+
+The :ref:`infrastructure` section describes how to obtain and set up a working
+copy of Celeritas. Once installed, :ref:`Celeritas can be used
+<infrastructure>` as a software library for integrating directly into
+experiment frameworks and user applications, or its front end applications can
+be used to evaluate performance benchmarks and perform some simple analyses.
+
+GPU usage
+---------
+
+Celeritas is designed to use GPUs for simulation. When built with
+CUDA or HIP support, the code automatically copies problem data to device
+during construction. See :ref:`api_system` for details on initializing and
+accessing the device.
+
+Geometry
+--------
+
+Celeritas has two choices of geometry implementation. VecGeom_ is a
+CUDA-compatible library for navigation on Geant4 detector geometries.
+:ref:`api_orange` is a work in progress for surface-based geometry navigation
+that is "platform portable", i.e., able to run on GPUs from multiple vendors.
+
+Celeritas wraps both geometry packages with a uniform interface for changing
+and querying the geometry state.
+
+.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
+
+Units
+-----
+
+The Celeritas default unit system is Gaussian CGS_, but it can be
+:ref:`configured <configuration>` to use SI or CLHEP unit systems as well. A
+compile-time metadata class allows safe interoperable use of macroscopic-scale
+units and atomic-scale values such as MeV. For more details, see the
+:ref:`units_constants` section of the API documentation.
+
+.. _CGS: https://en.wikipedia.org/wiki/Gaussian_units
+
+EM Physics
+----------
+
+Celeritas implements physics processes and models for transporting electron,
+positron, and gamma particles. Initial support is being added for muon EM
+physics.  Implementation details of these models and their corresponding Geant4
+classes are documented in :ref:`api_em_physics`.
+
+Optical Physics
+---------------
+
+Optical physics is being added to Celeritas to support various
+astroparticle, high energy physics, and nuclear physics experiments including
+LZ, Calvision, DUNE, and
+ePIC. See the :ref:`api_optical_physics` section of the implementation details.
+
+Stepping loop
+-------------
+
+In Celeritas, the core algorithm is a loop interchange between particle
+tracks and steps. Traditionally,
+in a CPU-based simulation, the outer loop iterates over particle tracks, while
+the inner loop handles steps. Each step includes actions such as evaluating cross sections,
+calculating distances to geometry boundaries, and managing interactions that
+produce secondaries.
+
+Celeritas vectorizes this process by reversing the loop structure on the GPU.
+The outer loop is over *step iterations*, and the inner loop processes *track
+slots*, which are elements in a fixed-size vector of active tracks. The
+stepping loop in Celeritas is thus a sorted loop over *actions*, with each
+action typically corresponding to a kernel launch on the GPU (or an inner loop
+over tracks when running on the CPU).
+
+See :ref:`api_stepping` for implementation details on the ordering of actions
+and the status of a track slot during iteration.
+
+
+.. _usage:
+
+*****
+Usage
+*****
+
+Celeritas includes a core set of libraries for internal and external use, as
+well as several helper applications and front ends.
+
 .. toctree::
    :maxdepth: 2
-   :caption: Getting started
+   :caption: Using Celeritas
 
-   introduction/overview.rst
-   introduction/installation.rst
-   introduction/usage.rst
+   usage/installation.rst
+   usage/integration.rst
+   usage/execution.rst
 
 .. ***************************************************************************
 
@@ -85,21 +227,17 @@ Implementation
 
 .. only:: nobreathe
 
-   .. note:: The breathe_ extension was not used when building this version of
-      the documentation. The API documentation will not be rendered below.
+   .. warning:: The breathe_ extension was not used when building this version
+      of the documentation. The API documentation will not be rendered below.
 
    .. _breathe: https://github.com/michaeljones/breathe#readme
 
 The bulk of Celeritas' code is in several code libraries to be used by external
 users and application developers.  Currently, the most stable and user-ready
 component of Celeritas is its :ref:`api_g4_interface` for offloading. This
-section has two audiences:
-
-- high-level developers, particularly those who might want to write a new
-  physics code; and
-- external users of Celeritas as a library for integration into a Geant4
-  application.
-
+section includes detailed descriptions of the physics model implementations,
+and high-level summaries of the Celeritas Application Programming Interfaces
+(APIs).
 Cursory documentation for many of the classes and other data constructs are
 described in this user manual, but further details for developers can be found
 in the full Doxygen-generated `developer documentation`_.
@@ -108,12 +246,11 @@ in the full Doxygen-generated `developer documentation`_.
 
 The Celeritas codebase lives under the ``src/`` directory and is partitioned
 into several libraries of increasing complexity:
-``corecel`` for GPU/CPU abstractions,
-``geocel`` for geometry interfaces and wrappers to external libraries,
-``orange`` for the ORANGE platform-portable geometry implementation,
-``celeritas`` for the GPU implementation of physics and MC particle tracking,
-and
-``accel`` for the Geant4 integration library.
+:file:`corecel` for GPU/CPU abstractions,
+:file:`geocel` for geometry interfaces and wrappers to external libraries,
+:file:`orange` for the ORANGE platform-portable geometry implementation,
+:file:`celeritas` for the GPU implementation of physics and MC particle tracking, and
+:file:`accel` for the Geant4 integration library.
 
 Additional top-level files provide access to version and
 configuration attributes.
