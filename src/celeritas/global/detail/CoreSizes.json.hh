@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <nlohmann/json.hpp>
+
+#include "corecel/Types.hh"
 #include "corecel/io/JsonUtils.json.hh"
 
 namespace celeritas
