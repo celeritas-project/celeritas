@@ -1,14 +1,15 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
-.. _inp_tuning:
+.. _inp_control:
 
-Tuning
-======
+Control
+=======
 
-Tuning options control trade-offs between performance and memory usage.
+These options manage trade-offs between performance and memory usage, and other
+parameters that affect the simulation results without changing the physics.
 
-.. doxygenstruct:: celeritas::inp::Tuning
+.. doxygenstruct:: celeritas::inp::Control
    :members:
    :no-link:
 

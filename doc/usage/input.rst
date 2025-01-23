@@ -50,7 +50,7 @@ Problems are loaded into the framework or application front end via :ref:`api_pr
    input/field.rst
    input/scoring.rst
    input/tracking.rst
-   input/tuning.rst
+   input/control.rst
    input/diagnostics.rst
    input/system.rst
 

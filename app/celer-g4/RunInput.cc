@@ -49,7 +49,7 @@ inp::Problem load_problem(RunInput const& ri)
     // Model definition
     p.model.geometry = ri.geometry_file;
 
-    // Tuning
+    // Control
     p.control.capacity = [&ri] {
         inp::StateCapacity capacity;
         capacity.tracks = ri.num_track_slots;

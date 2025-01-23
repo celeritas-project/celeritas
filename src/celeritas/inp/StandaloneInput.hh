@@ -40,7 +40,7 @@ using GeantSetup = GeantPhysicsOptions;
  * - Geant4 is initialized (if not using full ROOT data)
  * - Geant4 data is loaded (also if not using full ROOT)
  * - External Geant4 data files (such as EM LOW) are loaded
- * - Optional tuning/diagnostic overrides are loaded
+ * - Optional control/diagnostic overrides are loaded
  * - Events are loaded
  *
  * The input \c Problem can be an embedded struct or a path to a file to
