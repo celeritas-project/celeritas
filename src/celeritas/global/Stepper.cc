@@ -69,10 +69,6 @@ Stepper<M>::Stepper(Input input)
         return std::make_shared<ActionSequenceT>(*params_->action_reg(), opts);
     }()}
 {
-    // NOTE: if this fails, you're probably running from a unit test?
-    CELER_VALIDATE(params_->tracks_per_stream() > 0,
-                   << "core params `tracks_per_stream` was not set");
-
     // Save primary action: TODO this is a hack and should be refactored so
     // that we pass generators into the stepper and eliminate the call
     // signature with primaries
