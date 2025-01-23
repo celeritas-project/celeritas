@@ -34,7 +34,7 @@ struct EmPhysics
     //!@{
     //! \name Energy loss and slowing down
 
-    //! Use quadratic spline interpolation for energy loss
+    //! Use cubic spline interpolation for energy loss
     bool eloss_spline{false};
 #if 0
      //! Energy loss fluctuations

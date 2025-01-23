@@ -133,10 +133,10 @@ inp::Problem load_problem(RunnerInput const& ri)
         em.brems->combined_model = ri.brem_combined;
 
         // Spline energy loss order
-        CELER_VALIDATE(ri.spline_eloss_order > 0 && ri.spline_eloss_order <= 2,
+        CELER_VALIDATE(ri.spline_eloss_order == 1 || ri.spline_eloss_order == 3,
                        << "unsupported energy loss spline order "
                        << ri.spline_eloss_order);
-        em.eloss_spline = (ri.spline_eloss_order == 2);
+        em.eloss_spline = (ri.spline_eloss_order == 3);
     }
 
     // Tracking
