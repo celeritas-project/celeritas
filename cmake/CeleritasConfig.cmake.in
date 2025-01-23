@@ -65,7 +65,7 @@ if(CELERITAS_USE_CUDA)
     endif()
   endif()
 elseif(CELERITAS_USE_HIP)
-  find_dependency(hip REQUIRED)
+  find_dependency(hip REQUIRED QUIET)
 endif()
 
 if(CELERITAS_USE_Geant4)
