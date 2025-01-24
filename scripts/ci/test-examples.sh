@@ -23,7 +23,7 @@ test -n "${CMAKE_PRESET}" || (
 build_local() {
   git clean -fxd .
   EXAMPLE_INSTALL=${PWD}/install
-  printf "\e[1;32]mTesting in ${PWD}\e[m\n"
+  printf "\e[32mTesting in ${PWD}\e[m\n"
   mkdir build
   cd build
   cmake -G Ninja \
@@ -39,11 +39,20 @@ cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-# Run Geant4 app example(s)
+# Run Geant4 app examples
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
+  # Run small accel examples
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error
+
+  if [ "$(echo $CELER_GEANT4_VERSION | awk -F. '{print $1*100 + $2}')" \
+      -ge 1100 ]; then
+    # Run offload-template only on Geant4 v11
+    cd "${CELER_SOURCE_DIR}/example/offload-template"
+    build_local
+    ./run-offload
+  fi
 else
-  echo "Skipping 'accel' test due to insufficient requirements"
+  printf "\e[31mSkipping 'accel' tests due to insufficient requirements\e[m\n"
 fi

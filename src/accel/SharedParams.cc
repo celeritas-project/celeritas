@@ -601,6 +601,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
         params.max_streams = this->num_streams();
     }
 
+    // Set state size
+    params.tracks_per_stream = options.max_num_tracks;
+
     // Allocate device streams, or use the default stream if there is only one.
     if (celeritas::device() && !options.default_stream
         && params.max_streams > 1)
