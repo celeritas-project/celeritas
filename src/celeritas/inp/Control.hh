@@ -48,7 +48,7 @@ namespace inp
  * as "per stream" whereas \c celer-sim used "per process".
  *
  * Defaults:
- * - \c secondary: twice the number of track slots.
+ * - \c secondaries: twice the number of track slots.
  *
  * \todo Split this into "core" state capacity and "optical" state capacity?
  * Core contains \c events and \c secondaries .

@@ -111,6 +111,7 @@ list(APPEND SOURCES
   setup/Events.cc
   setup/Import.cc
   setup/Problem.cc
+  setup/StandaloneInput.cc
   setup/System.cc
   track/SimParams.cc
   track/SortTracksAction.cc
