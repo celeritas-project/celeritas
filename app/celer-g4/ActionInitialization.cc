@@ -7,7 +7,6 @@
 #include "ActionInitialization.hh"
 
 #include "corecel/io/Logger.hh"
-#include "celeritas/inp/Events.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
@@ -103,7 +102,7 @@ void ActionInitialization::Build() const
         ExceptionConverter call_g4exception{"celer0006"};
         CELER_TRY_HANDLE(
             generator_action = std::make_unique<PGPrimaryGeneratorAction>(
-                to_input(GlobalSetup::Instance()->input().primary_options)),
+                GlobalSetup::Instance()->input().primary_options),
             call_g4exception);
     }
     this->SetUserAction(generator_action.release());
