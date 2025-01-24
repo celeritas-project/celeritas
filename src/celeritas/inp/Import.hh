@@ -70,10 +70,11 @@ struct GeantDataImport
 
 //---------------------------------------------------------------------------//
 /*!
- * Update tuning and diagnostic options from an external input file.
+ * Update control and diagnostic options from an external input file.
  *
  * This is used in concert with \c FileImport : the output from another code
- * can be used as input, but overlaid with diagnostic and tuning information.
+ * can be used as input, but overlaid with diagnostic and control/tuning
+ * information.
  */
 struct UpdateImport
 {
