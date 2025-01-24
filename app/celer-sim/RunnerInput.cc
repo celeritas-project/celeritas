@@ -7,6 +7,9 @@
 #include "RunnerInput.hh"
 
 #include <limits>
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
 
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Import.hh"
@@ -109,8 +112,28 @@ inp::Problem load_problem(RunnerInput const& ri)
         p.control.warm_up = ri.warm_up;
         p.control.seed = ri.seed;
 
-        // TODO: set number of streams
-        p.control.num_streams = 1;
+/*!
+ * Get the number of streams from the number of OpenMP threads.
+ *
+ * The OMP_NUM_THREADS environment variable can be used to control the number
+ * of threads/streams. The value of OMP_NUM_THREADS should be a list of
+ * positive integers, each of which sets the number of threads for the parallel
+ * region at the corresponding nested level. The number of streams is set to
+ * the first value in the list. If OMP_NUM_THREADS is not set, the value will
+ * be implementation defined.
+ */
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
+        if (!ri.merge_events)
+        {
+#    pragma omp parallel
+            {
+                if (omp_get_thread_num() == 0)
+                {
+                    p.control.num_streams = omp_get_num_threads();
+                }
+            }
+        }
+#endif
 
         if (ri.use_device)
         {
