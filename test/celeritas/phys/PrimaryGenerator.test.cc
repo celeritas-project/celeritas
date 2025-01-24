@@ -7,6 +7,7 @@
 #include "celeritas/phys/PrimaryGenerator.hh"
 
 #include "corecel/math/ArrayUtils.hh"
+#include "celeritas/inp/Events.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
@@ -58,10 +59,10 @@ TEST_F(PrimaryGeneratorTest, basic)
     inp.pdg = {pdg::gamma(), pdg::electron()};
     inp.num_events = 2;
     inp.primaries_per_event = 3;
-    inp.sample_energy = DeltaDistribution<real_type>(10);
-    inp.sample_pos = DeltaDistribution<Real3>(Real3{1, 2, 3});
-    inp.sample_dir = IsotropicDistribution<real_type>();
-    PrimaryGenerator generate_primaries(particles_, inp);
+    inp.energy = inp::Monoenergetic{units::MevEnergy{10}};
+    inp.shape = inp::PointShape{Real3{1, 2, 3}};
+    inp.angle = inp::IsotropicAngle{};
+    PrimaryGenerator generate_primaries(inp, *particles_);
     EXPECT_EQ(2, generate_primaries.num_events());
 
     std::vector<int> particle_id;
