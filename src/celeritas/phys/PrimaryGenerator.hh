@@ -31,6 +31,9 @@ struct Primary;
  * distributions. If more than one PDG number is specified, an equal number of
  * each particle type will be produced. Each \c operator() call will return a
  * single event until \c num_events events have been generated.
+ *
+ * \todo Refactor generators so that event ID is an input and vector of
+ * primaries (which won't have an event ID) is output.
  */
 class PrimaryGenerator : public EventReaderInterface
 {
@@ -73,9 +76,13 @@ class PrimaryGenerator : public EventReaderInterface
     //! Get total number of events
     size_type num_events() const override { return num_events_; }
 
+    // Reseed RNG for interaction with celer-g4
+    void seed(UniqueEventId);
+
   private:
     size_type num_events_{};
     size_type primaries_per_event_{};
+    unsigned int seed_{};
     EnergySampler sample_energy_;
     PositionSampler sample_pos_;
     DirectionSampler sample_dir_;

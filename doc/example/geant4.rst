@@ -1,10 +1,14 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. Offload template
+
+.. include:: ../../example/offload-template/README.rst
+
 .. _example_geant:
 
-Geant4 integration example
-==========================
+Geant4 integration examples
+===========================
 
 These small examples demonstrate how to offload tracks to Celeritas in a serial
 or multithreaded environment using:
@@ -14,9 +18,12 @@ or multithreaded environment using:
 #. A concrete G4VTrackingManager
 
 The :ref:`api_g4_interface` is the only relevant part of Celeritas here.
-The key components are global SetupOptions and SharedParams, coupled to thread-local
-SimpleOffload and LocalTransporter. The SimpleOffload provides all of the core
-methods needed to integrate into a Geant4 application's UserActions or other user classes.
+The key components are global :cpp:struct:`celeritas::SetupOptions` and
+:cpp:class:`celeritas::SharedParams`, coupled to thread-local
+:cpp:class:`celeritas::SimpleOffload` and
+:cpp:class:`celeritas::LocalTransporter`. The SimpleOffload provides all of
+the core methods needed to integrate into a Geant4 application's UserActions or
+other user classes.
 
 .. _example_cmake:
 
@@ -30,6 +37,7 @@ CMake infrastructure
 
 Main Executables
 ----------------
+
 The executables are less robust (and minimally documented) versions of
 the :ref:`celer-g4` app. The use of global variables rather than shared
 pointers is easier to implement but may be more problematic with experiment

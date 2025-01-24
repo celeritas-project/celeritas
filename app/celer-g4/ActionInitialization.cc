@@ -7,6 +7,7 @@
 #include "ActionInitialization.hh"
 
 #include "corecel/io/Logger.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"

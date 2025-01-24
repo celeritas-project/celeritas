@@ -448,6 +448,12 @@ void Runner::build_core_params(RunnerInput const& inp,
                       "streams ("
                    << params.max_streams << " requested)");
 
+    // Store number of tracks per stream
+    CELER_VALIDATE(inp.num_track_slots > 0,
+                   << "nonpositive num_track_slots=" << inp.num_track_slots);
+    params.tracks_per_stream
+        = ceil_div(inp.num_track_slots, params.max_streams);
+
     // Construct track initialization params
     params.init = [&inp, &params, num_events] {
         CELER_VALIDATE(inp.initializer_capacity > 0,
@@ -469,14 +475,10 @@ void Runner::build_core_params(RunnerInput const& inp,
  */
 void Runner::build_transporter_input(RunnerInput const& inp)
 {
-    CELER_VALIDATE(inp.num_track_slots > 0,
-                   << "nonpositive num_track_slots=" << inp.num_track_slots);
     CELER_VALIDATE(inp.max_steps > 0,
                    << "nonpositive max_steps=" << inp.max_steps);
 
     transporter_input_ = std::make_shared<TransporterInput>();
-    transporter_input_->num_track_slots
-        = ceil_div(inp.num_track_slots, core_params_->max_streams());
     transporter_input_->max_steps = inp.max_steps;
     transporter_input_->store_track_counts = inp.write_track_counts;
     transporter_input_->store_step_times = inp.write_step_times;

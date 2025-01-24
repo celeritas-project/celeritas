@@ -19,7 +19,7 @@ namespace optical
 /*!
  * Create a model builder for the optical absorption model.
  */
-ModelBuilder AbsorptionModel::make_builder(SPConstImported imported)
+auto AbsorptionModel::make_builder(SPConstImported imported) -> ModelBuilder
 {
     CELER_EXPECT(imported);
     return [i = std::move(imported)](ActionId id) {

@@ -48,13 +48,16 @@ PrimaryGenerator::from_options(SPConstParticles particles,
 PrimaryGenerator::PrimaryGenerator(SPConstParticles particles, Input const& inp)
     : num_events_(inp.num_events)
     , primaries_per_event_(inp.primaries_per_event)
+    , seed_{inp.seed}
     , sample_energy_(inp.sample_energy)
     , sample_pos_(inp.sample_pos)
     , sample_dir_(inp.sample_dir)
 {
     CELER_EXPECT(particles);
 
-    rng_.seed(inp.seed);
+    // TODO: seed based on event
+    this->seed(UniqueEventId{0});
+
     particle_id_.reserve(inp.pdg.size());
     for (auto const& pdg : inp.pdg)
     {
@@ -86,6 +89,16 @@ auto PrimaryGenerator::operator()() -> result_type
     }
     ++event_count_;
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reseed RNG for interaction with celer-g4.
+ */
+void PrimaryGenerator::seed(UniqueEventId uid)
+{
+    CELER_EXPECT(uid);
+    rng_.seed(seed_ + uid.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
