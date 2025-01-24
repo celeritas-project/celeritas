@@ -26,6 +26,7 @@
 namespace celeritas
 {
 struct ImportData;
+struct ImportParticle;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -52,6 +53,9 @@ class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
         units::MevMass mass;  //!< Rest mass [MeV / c^2]
         units::ElementaryCharge charge;  //!< Charge in units of [e]
         real_type decay_constant{};  //!< Decay constant [1/time]
+
+        // Conversion function
+        static ParticleInput from_import(ImportParticle const&);
     };
 
     //! Input data to construct this class
