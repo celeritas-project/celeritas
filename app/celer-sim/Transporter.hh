@@ -37,7 +37,6 @@ struct TransporterInput
 {
     // Stepper input
     std::shared_ptr<CoreParams const> params;
-    size_type num_track_slots{};  //!< AKA max_num_tracks
     bool action_times{false};  //!< Whether to synchronize device between
                                //!< actions for timing
 
@@ -49,10 +48,7 @@ struct TransporterInput
     StreamId stream_id{0};
 
     //! True if all params are assigned
-    explicit operator bool() const
-    {
-        return params && num_track_slots > 0 && max_steps > 0;
-    }
+    explicit operator bool() const { return params && max_steps > 0; }
 };
 
 //---------------------------------------------------------------------------//
