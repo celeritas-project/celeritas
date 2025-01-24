@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
 #include <G4Event.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleGun.hh>
@@ -14,8 +13,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "geocel/Types.hh"
-#include "celeritas/phys/PrimaryGeneratorOptions.hh"
+#include "celeritas/phys/PrimaryGenerator.hh"
 
 namespace celeritas
 {
@@ -36,28 +34,23 @@ class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
   public:
     //!@{
     //! \name Type aliases
-    using EnergySampler = std::function<real_type(PrimaryGeneratorEngine&)>;
-    using PositionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
-    using DirectionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
+    using Input = PrimaryGeneratorOptions;
     //!@}
 
   public:
     // Construct primary action
-    explicit PGPrimaryGeneratorAction(PrimaryGeneratorOptions const& opts);
+    explicit PGPrimaryGeneratorAction(Input const& opts);
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
 
   private:
+    using GeneratorImpl = celeritas::PrimaryGenerator;
+
+    GeneratorImpl::SPConstParticles particle_params_;
+    GeneratorImpl generate_primaries_;
     G4ParticleGun gun_;
-    PrimaryGeneratorEngine rng_;
-    size_type num_events_{};
-    size_type primaries_per_event_{};
     std::vector<G4ParticleDefinition*> particle_def_;
-    EnergySampler sample_energy_;
-    PositionSampler sample_pos_;
-    DirectionSampler sample_dir_;
-    size_type seed_{0};
 };
 
 //---------------------------------------------------------------------------//
