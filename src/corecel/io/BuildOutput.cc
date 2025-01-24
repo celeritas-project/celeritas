@@ -30,7 +30,7 @@ void BuildOutput::output(JsonPimpl* j) const
         {"version", std::string(celeritas_version)},
     });
 
-    {
+    obj["config"] = [] {
         auto cfg = nlohmann::json::object();
 
         cfg["use"] = [] {
@@ -64,41 +64,40 @@ void BuildOutput::output(JsonPimpl* j) const
 #undef CO_ADD_CFG
         cfg["debug"] = bool(CELERITAS_DEBUG);
 
-        obj["config"] = std::move(cfg);
-    }
+        cfg["versions"] = [] {
+            auto deps = nlohmann::json::object();
 
-    {
-        auto deps = nlohmann::json::object();
+            if constexpr (CELERITAS_USE_GEANT4)
+            {
+                deps["CLHEP"] = celeritas_clhep_version;
+                deps["Geant4"] = celeritas_geant4_version;
+            }
+            if constexpr (CELERITAS_USE_CUDA)
+            {
+                deps["CUDA"] = celeritas_cuda_version;
+                deps["Thrust"] = celeritas_thrust_version;
+            }
+            if constexpr (CELERITAS_USE_HEPMC3)
+            {
+                deps["HepMC3"] = celeritas_hepmc3_version;
+            }
+            if constexpr (CELERITAS_USE_HIP)
+            {
+                deps["HIP"] = celeritas_hip_version;
+            }
+            if constexpr (CELERITAS_USE_ROOT)
+            {
+                deps["ROOT"] = celeritas_root_version;
+            }
+            if constexpr (CELERITAS_USE_VECGEOM)
+            {
+                deps["VecGeom"] = celeritas_vecgeom_version;
+            }
+            return deps;
+        }();
 
-        if constexpr (CELERITAS_USE_GEANT4)
-        {
-            deps["CLHEP"] = celeritas_clhep_version;
-            deps["Geant4"] = celeritas_geant4_version;
-        }
-        if constexpr (CELERITAS_USE_CUDA)
-        {
-            deps["CUDA"] = celeritas_cuda_version;
-            deps["Thrust"] = celeritas_thrust_version;
-        }
-        if constexpr (CELERITAS_USE_HEPMC3)
-        {
-            deps["HepMC3"] = celeritas_hepmc3_version;
-        }
-        if constexpr (CELERITAS_USE_HIP)
-        {
-            deps["HIP"] = celeritas_hip_version;
-        }
-        if constexpr (CELERITAS_USE_ROOT)
-        {
-            deps["ROOT"] = celeritas_root_version;
-        }
-        if constexpr (CELERITAS_USE_VECGEOM)
-        {
-            deps["VecGeom"] = celeritas_vecgeom_version;
-        }
-
-        obj["dep_versions"] = std::move(deps);
-    }
+        return cfg;
+    }();
 
     // DEPRECATED: remove in v0.6
     {
