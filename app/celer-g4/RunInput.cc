@@ -7,13 +7,31 @@
 #include "RunInput.hh"
 
 #include <fstream>
+#include <map>
+#include <optional>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #include "corecel/Config.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Diagnostics.hh"
+#include "celeritas/inp/Events.hh"
+#include "celeritas/inp/Field.hh"
+#include "celeritas/inp/Import.hh"
+#include "celeritas/inp/Model.hh"
+#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/Problem.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/inp/System.hh"
+#include "celeritas/inp/Tracking.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "accel/SharedParams.hh"
 

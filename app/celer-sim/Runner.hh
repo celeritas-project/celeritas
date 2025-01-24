@@ -7,12 +7,14 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/Primary.hh"
 

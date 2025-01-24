@@ -6,13 +6,17 @@
 //---------------------------------------------------------------------------//
 #include "Events.hh"
 
+#include <variant>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "celeritas/io/EventIOInterface.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootEventReader.hh"
+#include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
 #include "celeritas/phys/RootEventSampler.hh"
 

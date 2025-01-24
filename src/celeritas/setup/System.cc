@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "System.hh"
 
+#include <map>
+#include <optional>
+
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/inp/System.hh"

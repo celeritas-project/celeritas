@@ -7,6 +7,23 @@
 #include "RunnerInput.hh"
 
 #include <limits>
+#include <map>
+#include <optional>
+#include <variant>
+
+#include "corecel/Config.hh"
+
+#include "corecel/Types.hh"
+#include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Diagnostics.hh"
+#include "celeritas/inp/Events.hh"
+#include "celeritas/inp/Field.hh"
+#include "celeritas/inp/Model.hh"
+#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/PhysicsProcess.hh"
+#include "celeritas/inp/Scoring.hh"
+#include "celeritas/inp/System.hh"
+#include "celeritas/inp/Tracking.hh"
 #ifdef _OPENMP
 #    include <omp.h>
 #endif

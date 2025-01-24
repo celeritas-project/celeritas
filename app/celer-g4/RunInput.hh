@@ -12,6 +12,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"

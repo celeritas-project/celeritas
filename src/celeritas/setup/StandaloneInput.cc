@@ -6,11 +6,22 @@
 //---------------------------------------------------------------------------//
 #include "StandaloneInput.hh"
 
+#include <optional>
+#include <string>
+#include <variant>
+
+#include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Import.hh"
+#include "celeritas/inp/Model.hh"
+#include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/setup/Problem.hh"
 
 #include "Events.hh"

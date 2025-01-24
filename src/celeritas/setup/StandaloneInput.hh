@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "celeritas/phys/Primary.hh"
 

@@ -6,70 +6,33 @@
 //---------------------------------------------------------------------------//
 #include "Runner.hh"
 
-#include <functional>
 #include <memory>
-#include <random>
-#include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImporterInterface.hh"
+#include "celeritas/user/RootStepWriterInput.hh"
 
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
 
 #include "corecel/cont/Span.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/math/Algorithms.hh"
-#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedMem.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/Units.hh"
-#include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
-#include "celeritas/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/field/UniformFieldData.hh"
-#include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/io/EventReader.hh"
-#include "celeritas/io/RootCoreParamsOutput.hh"
-#include "celeritas/io/RootEventReader.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CherenkovParams.hh"
-#include "celeritas/optical/MaterialParams.hh"
-#include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/ScintillationParams.hh"
-#include "celeritas/phys/CutoffParams.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/phys/Primary.hh"
-#include "celeritas/phys/PrimaryGenerator.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/phys/Process.hh"
-#include "celeritas/phys/ProcessBuilder.hh"
-#include "celeritas/phys/RootEventSampler.hh"
-#include "celeritas/random/RngParams.hh"
-#include "celeritas/track/SimParams.hh"
-#include "celeritas/track/TrackInitParams.hh"
-#include "celeritas/user/ActionDiagnostic.hh"
-#include "celeritas/user/RootStepWriter.hh"
-#include "celeritas/user/SimpleCalo.hh"
-#include "celeritas/user/SlotDiagnostic.hh"
-#include "celeritas/user/StepCollector.hh"
-#include "celeritas/user/StepData.hh"
-#include "celeritas/user/StepDiagnostic.hh"
 
 #include "RunnerInput.hh"
 #include "Transporter.hh"

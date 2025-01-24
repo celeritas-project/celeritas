@@ -6,12 +6,22 @@
 //---------------------------------------------------------------------------//
 #include "Problem.hh"
 
-#include "corecel/Assert.hh"
+#include <optional>
+#include <set>
+#include <utility>
+#include <variant>
+#include <vector>
+
+#include "corecel/Config.hh"
+
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/cont/detail/VariantUtilsImpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/Constant.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -21,16 +31,26 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
-#include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Diagnostics.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/inp/Model.hh"
+#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/PhysicsModel.hh"
+#include "celeritas/inp/PhysicsProcess.hh"
 #include "celeritas/inp/Problem.hh"
+#include "celeritas/inp/Scoring.hh"
+#include "celeritas/inp/Tracking.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
@@ -52,6 +72,7 @@
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/StepDiagnostic.hh"
+
 namespace celeritas
 {
 namespace setup
