@@ -87,6 +87,9 @@ ParticleParams::ParticleParams(Input const& input)
     detail::ParticleInserter insert_particle(&host_data);
     for (auto const& particle : input)
     {
+        CELER_VALIDATE(particle.pdg_code,
+                       << "input particle '" << particle.name
+                       << "' was not assigned a PDG code");
         CELER_EXPECT(!particle.name.empty());
 
         ParticleId id = insert_particle(particle);
@@ -94,9 +97,16 @@ ParticleParams::ParticleParams(Input const& input)
         // Add host metadata
         md_.push_back({particle.name, particle.pdg_code});
         bool inserted = name_to_id_.insert({particle.name, id}).second;
-        CELER_ASSERT(inserted);
+        CELER_VALIDATE(inserted,
+                       << "multiple particles share the name '"
+                       << particle.name << "'");
         inserted = pdg_to_id_.insert({particle.pdg_code, id}).second;
-        CELER_ASSERT(inserted);
+        if (!inserted)
+        {
+            CELER_LOG(warning)
+                       << "multiple particles share the PDG code "
+                       << particle.pdg_code.get());
+        }
     }
 
     // Move to mirrored data, copying to device
