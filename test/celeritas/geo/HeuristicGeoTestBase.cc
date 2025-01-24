@@ -174,7 +174,7 @@ auto HeuristicGeoTestBase::get_avg_path_impl(
         }
         else
         {
-            ADD_FAILURE() << "reference volme '" << ref_vol_labels[i]
+            ADD_FAILURE() << "reference volume '" << ref_vol_labels[i]
                           << "' is not in the geometry";
         }
     }
