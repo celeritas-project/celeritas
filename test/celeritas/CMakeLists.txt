@@ -208,7 +208,8 @@ set(_geo_args GPU ${_needs_double} ${_fixme_cgs}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
 endif()
-celeritas_add_test(geo/Geometry.test.cc ${_geo_args})
+celeritas_add_test(geo/Geometry.test.cc ${_geo_args}
+  FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)
