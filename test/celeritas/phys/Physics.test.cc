@@ -404,7 +404,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         ParticleProcessId const meow_ppid{1};
         EXPECT_EQ(ProcessId{3}, phys.process(hiss_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
-        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
+        EXPECT_EQ(hiss_ppid, phys.at_rest_process());
     }
 
     // Electron

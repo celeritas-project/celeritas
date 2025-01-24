@@ -525,15 +525,18 @@ void PhysicsParams::build_xs(Options const& opts,
                 energy_max_xs.resize(mats.size());
             }
 
-            /* \todo Currently annihilation is the only process that applies at
-             * rest. Once a \c DecayProcess has been added that should be
-             * checked as well. If additional at-rest processes are added,
-             * we may need to import that information from Geant4 (e.g. through
-             * \c G4ProcessManager::GetAtRestProcessVector ?) and be able to
-             * access it here.
-             */
-            if (processes[pp_idx] == data->hardwired.positron_annihilation)
+            if (proc.applies_at_rest())
             {
+                /* \todo For now assume only one process per particle applies
+                 * at rest. If a particle has multiple at-rest processes, we
+                 * will need to check which process has the shortest time to
+                 * interaction and choose that process in \c
+                 * select_discrete_interaction.
+                 */
+                CELER_VALIDATE(!process_groups.at_rest,
+                               << "particle ID " << particle_id.get()
+                               << " has multiple at-rest processes");
+
                 // Discrete interaction can occur at rest
                 process_groups.at_rest = ParticleProcessId(pp_idx);
             }

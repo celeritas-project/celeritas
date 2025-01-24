@@ -158,6 +158,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     {
         inp.label = "scattering";
         inp.use_integral_xs = false;
+        inp.applies_at_rest = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
         inp.xs = {Barn{1.0}, Barn{1.0}, Barn{1.0}};
@@ -167,6 +168,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     {
         inp.label = "absorption";
         inp.use_integral_xs = false;
+        inp.applies_at_rest = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100)};
         inp.xs = {Barn{2.0}, Barn{2.0}};
         inp.energy_loss = {};
@@ -176,6 +178,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         // Three different models for the single process
         inp.label = "purrs";
         inp.use_integral_xs = true;
+        inp.applies_at_rest = false;
         inp.applic = {make_applicability("celeriton", 1e-3, 1),
                       make_applicability("celeriton", 1, 10),
                       make_applicability("celeriton", 10, 100)};
@@ -188,6 +191,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         // Two models for anti-celeriton
         inp.label = "hisses";
         inp.use_integral_xs = true;
+        inp.applies_at_rest = true;
         inp.applic = {make_applicability("anti-celeriton", 1e-3, 1),
                       make_applicability("anti-celeriton", 1, 100)};
         inp.xs = {Barn{4.0}, Barn{4.0}};
@@ -197,6 +201,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     {
         inp.label = "meows";
         inp.use_integral_xs = true;
+        inp.applies_at_rest = false;
         inp.applic = {make_applicability("celeriton", 1e-3, 10),
                       make_applicability("anti-celeriton", 1e-3, 10)};
         inp.xs = {Barn{5.0}, Barn{5.0}};
@@ -207,6 +212,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         // Energy-dependent cross section
         inp.label = "barks";
         inp.use_integral_xs = true;
+        inp.applies_at_rest = false;
         inp.applic = {make_applicability("electron", 1e-5, 10)};
         inp.xs = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
         inp.energy_loss = MevCmSqLossDens{0.5 * 1e-20};
