@@ -36,7 +36,7 @@ void BuildOutput::output(JsonPimpl* j) const
         cfg["use"] = [] {
             std::vector<std::string> options;
 #define CO_ADD_OPT(NAME)                              \
-    if (CELERITAS_USE_##NAME)                         \
+    if constexpr (CELERITAS_USE_##NAME)               \
     {                                                 \
         options.push_back(celeritas::tolower(#NAME)); \
     }
