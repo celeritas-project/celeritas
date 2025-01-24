@@ -23,10 +23,6 @@ endif()
 if(CELERITAS_USE_OpenMP)
   list(APPEND LIBRARIES OpenMP::OpenMP_CXX)
 endif()
-if(CELERITAS_USE_ROOT)
-  list(APPEND SOURCES RootOutput.cc)
-  list(APPEND LIBRARIES ROOT::Core ROOT::Tree)
-endif()
 
 # Add the executable
 celeritas_add_executable(celer-sim ${SOURCES})

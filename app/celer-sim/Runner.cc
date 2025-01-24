@@ -44,6 +44,7 @@
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
@@ -70,7 +71,6 @@
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/StepDiagnostic.hh"
 
-#include "RootOutput.hh"
 #include "RunnerInput.hh"
 #include "Transporter.hh"
 
@@ -166,7 +166,6 @@ Runner::Runner(RunnerInput const& inp)
 
     if (root_manager_)
     {
-        write_to_root(inp, root_manager_.get());
         write_to_root(*core_params_, root_manager_.get());
     }
 
