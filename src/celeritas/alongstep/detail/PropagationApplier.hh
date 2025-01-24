@@ -102,7 +102,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
         CELER_ASSERT(track.make_particle_view().is_stopped());
         CELER_ASSERT(sim.post_step_action()
                      == track.make_physics_view().scalars().discrete_action());
-        CELER_ASSERT(track.make_physics_view().has_at_rest());
+        CELER_ASSERT(track.make_physics_view().at_rest_process());
         return;
     }
 

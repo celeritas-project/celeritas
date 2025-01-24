@@ -376,7 +376,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         ParticleProcessId const abs_ppid{1};
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{1}, phys.process(abs_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 
     // Celeriton
@@ -391,7 +391,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{2}, phys.process(purr_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 
     // Anti-celeriton
@@ -404,7 +404,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         ParticleProcessId const meow_ppid{1};
         EXPECT_EQ(ProcessId{3}, phys.process(hiss_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 
     // Electron
@@ -412,7 +412,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         // No at-rest interaction
         PhysicsTrackView const phys
             = this->make_track_view("electron", MaterialId{1});
-        EXPECT_FALSE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 }
 

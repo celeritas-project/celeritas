@@ -225,22 +225,23 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
         static unsigned int const expected_nonzero_action_counts[] = {
-            9u, 577u, 509u, 518u, 521u, 9u, 20u, 20u, 902u, 996u, 10u, 2u, 3u};
+            10u, 577u, 509u, 518u, 521u, 10u, 20u, 20u, 902u, 996u, 9u, 2u, 2u};
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
-        static size_type const expected_steps[] = {
+        static unsigned int const expected_steps[] = {
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 2u, 0u, 0u,
-            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 3u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+        };
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0,0,0],[0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0,0,0,0]]})json",
+            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0,0,0],[0,902,0,0,9,0,0,0,10,20,577,0,0,0,0,0,0,0,518,0,0,0,0]]})json",
             this->action_output());
         EXPECT_JSON_EQ(
-            R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
+            R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
             this->step_output());
     }
     else

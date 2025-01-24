@@ -525,6 +525,19 @@ void PhysicsParams::build_xs(Options const& opts,
                 energy_max_xs.resize(mats.size());
             }
 
+            /* \todo Currently annihilation is the only process that applies at
+             * rest. Once a \c DecayProcess has been added that should be
+             * checked as well. If additional at-rest processes are added,
+             * we may need to import that information from Geant4 (e.g. through
+             * \c G4ProcessManager::GetAtRestProcessVector ?) and be able to
+             * access it here.
+             */
+            if (processes[pp_idx] == data->hardwired.positron_annihilation)
+            {
+                // Discrete interaction can occur at rest
+                process_groups.at_rest = ParticleProcessId(pp_idx);
+            }
+
             // Loop over materials
             for (auto mat_idx : range(MaterialId::size_type{mats.size()}))
             {
@@ -546,33 +559,25 @@ void PhysicsParams::build_xs(Options const& opts,
                     = build_grid(builders[VGT::energy_loss]);
                 range_grid_ids[mat_idx] = build_grid(builders[VGT::range]);
 
-                if (processes[pp_idx] == data->hardwired.positron_annihilation)
+                if (use_integral_xs)
                 {
-                    // Discrete interaction can occur at rest
-                    process_groups.has_at_rest = true;
+                    // Find and store the energy of the largest cross section
+                    // for this material if the integral approach is used
 
-                    if (use_integral_xs)
+                    if (processes[pp_idx]
+                        == data->hardwired.positron_annihilation)
                     {
                         // Annihilation cross section is maximum at zero and
                         // decreases with increasing energy
                         energy_max_xs[mat_idx] = 0;
                     }
-                }
-                else if (auto grid_id = xs_grid_ids[mat_idx])
-                {
-                    auto const& grid_data = data->value_grids[grid_id];
-                    auto data_ref = make_const_ref(*data);
-                    UniformGrid const loge_grid(grid_data.log_energy);
-                    XsCalculator const calc_xs(grid_data, data_ref.reals);
-
-                    // Check if the particle can have a discrete interaction at
-                    // rest
-                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
-
-                    // Find and store the energy of the largest cross section
-                    // for this material if the integral approach is used
-                    if (use_integral_xs)
+                    else if (auto grid_id = xs_grid_ids[mat_idx])
                     {
+                        auto const& grid_data = data->value_grids[grid_id];
+                        auto data_ref = make_const_ref(*data);
+                        UniformGrid const loge_grid(grid_data.log_energy);
+                        XsCalculator const calc_xs(grid_data, data_ref.reals);
+
                         // Find the energy of the largest cross section
                         real_type xs_max = 0;
                         real_type e_max = 0;
