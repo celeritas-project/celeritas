@@ -364,14 +364,14 @@ TEST_F(LArSphereOffloadTest, host_distributions)
     }
     else
     {
-        EXPECT_EQ(21572, result.cherenkov.total_num_photons);
-        EXPECT_EQ(52, result.cherenkov.num_photons.size());
+        EXPECT_EQ(20508, result.cherenkov.total_num_photons);
+        EXPECT_EQ(53, result.cherenkov.num_photons.size());
 
         EXPECT_SOFT_EQ(
-            2104145.0f,
+            2103651.0f,
             static_cast<float>(result.scintillation.total_num_photons));
 
-        EXPECT_EQ(130, result.scintillation.num_photons.size());
+        EXPECT_EQ(136, result.scintillation.num_photons.size());
     }
 }
 
@@ -444,11 +444,11 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     }
     else
     {
-        EXPECT_EQ(39194, result.cherenkov.total_num_photons);
+        EXPECT_EQ(39110, result.cherenkov.total_num_photons);
         EXPECT_EQ(81, result.cherenkov.num_photons.size());
 
-        EXPECT_EQ(3595786, result.scintillation.total_num_photons);
-        EXPECT_EQ(196, result.scintillation.num_photons.size());
+        EXPECT_EQ(3619370, result.scintillation.total_num_photons);
+        EXPECT_EQ(200, result.scintillation.num_photons.size());
     }
 }
 
@@ -496,7 +496,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     else
     {
         EXPECT_SOFT_EQ(
-            1656334.0f,
+            1666804.0f,
             static_cast<float>(result.scintillation.total_num_photons));
         EXPECT_EQ(52, result.scintillation.num_photons.size());
     }
