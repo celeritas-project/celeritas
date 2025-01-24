@@ -706,7 +706,7 @@ TEST_F(InputBuilderTest, bgspheres)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":1,"max_faces":3,"max_intersections":6,"max_logic_depth":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":4,"inner_nodes":1,"leaf_nodes":2,"local_volume_ids":4},"connectivity_records":3,"daughters":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":4}})json",
+        R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":1,"max_faces":3,"max_intersections":6,"max_logic_depth":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":4,"inner_nodes":1,"leaf_nodes":2,"local_volume_ids":3},"connectivity_records":3,"daughters":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":4}})json",
         to_string(out));
 }
 
@@ -813,7 +813,7 @@ TEST_F(InputBuilderTest, hierarchy)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":3,"max_faces":8,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":24,"inner_nodes":9,"leaf_nodes":16,"local_volume_ids":24},"connectivity_records":13,"daughters":6,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"universe_indices":7,"universe_types":7,"volume_records":24}})json",
+        R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":3,"max_faces":8,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":24,"inner_nodes":9,"leaf_nodes":16,"local_volume_ids":19},"connectivity_records":13,"daughters":6,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"universe_indices":7,"universe_types":7,"volume_records":24}})json",
         to_string(out));
 }
 
