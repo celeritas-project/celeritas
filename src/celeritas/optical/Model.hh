@@ -28,6 +28,15 @@ class MfpBuilder;
 class Model : public OpticalStepActionInterface, public ConcreteAction
 {
   public:
+    //!@{
+    //! \name Type aliases
+
+    //! Function to build optical models with a given action id
+    using ModelBuilder = std::function<std::shared_ptr<Model>(ActionId)>;
+
+    //!@}
+
+  public:
     using ConcreteAction::ConcreteAction;
 
     //! Action order for optical models is always post-step

@@ -14,6 +14,7 @@
 
 #include "celeritas/io/ImportOpticalModel.hh"
 
+#include "Model.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -56,6 +57,7 @@ class ModelImporter
 
     //!@{
     //! \name User builder type aliases
+    using ModelBuilder = Model::ModelBuilder;
     using UserBuildFunction
         = std::function<std::optional<ModelBuilder>(UserBuildInput const&)>;
     using UserBuildMap = std::unordered_map<IMC, UserBuildFunction>;
@@ -107,6 +109,7 @@ struct WarnAndIgnoreModel
     //!@{
     //! \name Type aliases
     using UserBuildInput = ModelImporter::UserBuildInput;
+    using ModelBuilder = ModelImporter::ModelBuilder;
     //!@}
 
     // Warn about a missing optical model and ignore it
