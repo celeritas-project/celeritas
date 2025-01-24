@@ -174,22 +174,20 @@ TEST_F(TestEm3DiagnosticTest, host)
             "scat-klein-nishina gamma",
         };
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-
         static size_type const expected_nonzero_action_counts[] = {
-            123u, 396u, 466u, 19u,   59u,   999u, 274u, 288u, 1751u, 21u,
-            12u,  15u,  20u,  1193u, 1597u, 562u, 82u,  21u,  294u,
+            125u, 395u, 460u, 15u,   59u,   1034u, 274u, 288u, 1776u, 21u,
+            11u,  15u,  20u,  1167u, 1594u, 573u,  27u,  22u,  316u,
         };
-
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
-
-        static size_type const expected_steps[]
-            = {0u, 319u, 207u, 80u, 46u, 26u, 22u, 13u, 6u, 9u, 13u,
-               1u, 3u,   4u,   1u,  0u,  0u,  0u,  0u,  1u, 0u, 2u,
-               0u, 745u, 34u,  14u, 6u,  9u,  7u,  6u,  8u, 3u, 4u,
-               9u, 12u,  6u,   10u, 14u, 5u,  5u,  4u,  4u, 3u, 21u,
-               0u, 3u,   2u,   1u,  0u,  6u,  5u,  8u,  6u, 6u, 6u,
-               9u, 6u,   12u,  9u,  4u,  4u,  2u,  4u,  5u, 4u, 23u};
+        static size_type const expected_steps[] = {
+            0u, 301u, 229u, 88u, 48u, 34u, 17u, 17u, 7u, 7u, 6u,
+            4u, 5u,   4u,   1u,  2u,  2u,  1u,  3u,  0u, 0u, 0u,
+            0u, 772u, 38u,  12u, 8u,  11u, 6u,  4u,  9u, 3u, 3u,
+            8u, 13u,  6u,   9u,  13u, 4u,  5u,  5u,  5u, 3u, 21u,
+            0u, 8u,   1u,   0u,  2u,  5u,  6u,  7u,  8u, 5u, 6u,
+            8u, 9u,   15u,  2u,  5u,  3u,  4u,  3u,  4u, 4u, 22u,
+        };
         EXPECT_VEC_EQ(expected_steps, result.steps);
     }
     else
