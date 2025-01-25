@@ -39,6 +39,7 @@ auto to_input(SDSetupOptions const& sd)
 
     result.ignore_zero_deposition = sd.ignore_zero_deposition;
     result.energy_deposition = sd.energy_deposition;
+    result.step_length = sd.step_length;
     result.locate_touchable = sd.locate_touchable;
     result.track = sd.track;
     result.pre = to_input(sd.pre);

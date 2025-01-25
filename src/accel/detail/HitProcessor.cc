@@ -207,6 +207,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
 
         HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
+        HP_SET(step_->SetStepLength, out.step_length, clhep_length);
 
         if (update_touchable_)
         {

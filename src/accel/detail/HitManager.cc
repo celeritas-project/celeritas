@@ -66,6 +66,7 @@ HitManager::HitManager(SPConstGeo geo,
     // Convert setup options to step data
     selection_.particle = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
+    selection_.step_length = setup.step_length;
     update_selection(&selection_.points[StepPoint::pre], setup.pre);
     update_selection(&selection_.points[StepPoint::post], setup.post);
     if (locate_touchable_)

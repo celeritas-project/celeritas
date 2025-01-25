@@ -90,6 +90,8 @@ struct SDSetupOptions
     bool ignore_zero_deposition{true};
     //! Save energy deposition
     bool energy_deposition{true};
+    //! Save physical step length
+    bool step_length{true};
     //! Set TouchableHandle for PreStepPoint
     bool locate_touchable{true};
     //! Create a track with the dynamic particle type and post-step data
