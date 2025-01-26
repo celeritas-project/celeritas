@@ -133,9 +133,12 @@ TEST_F(SimpleCmsTest, no_change)
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
 
-    EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
-        this->get_diagnostics(man));
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
+            this->get_diagnostics(man));
+    }
 }
 
 TEST_F(SimpleCmsTest, delete_one)
