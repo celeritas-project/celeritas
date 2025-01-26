@@ -62,7 +62,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
     {
         CELER_LOG(debug)
             << "Skipping automatic SD callback for logical volume \""
-            << lv->GetName() << "\" due to user option";
+            << PrintableLV{lv} << "\" due to user option";
         return {};
     }
 
@@ -79,7 +79,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
     // Add Geant4 volume and corresponding volume ID to list
     auto [iter, inserted] = found_->insert({id, lv});
 
-    if (CELER_UNLIKELY(!inserted))  // && iter->second != lv))
+    if (CELER_UNLIKELY(!inserted))
     {
         if (iter->second != lv)
         {

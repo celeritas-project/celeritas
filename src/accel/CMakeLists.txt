@@ -25,6 +25,7 @@ list(APPEND SOURCES
   SimpleOffload.cc
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
+  detail/HitManagerOutput.cc
   detail/HitProcessor.cc
   detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc
