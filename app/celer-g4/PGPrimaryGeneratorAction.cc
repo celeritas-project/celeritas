@@ -15,6 +15,7 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/inp/Events.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -57,7 +58,7 @@ auto make_particles(std::vector<PDGNumber> const& all_pdg)
  */
 PGPrimaryGeneratorAction::PGPrimaryGeneratorAction(Input const& i)
     : particle_params_{make_particles(i.pdg)}
-    , generate_primaries_{PrimaryGenerator::from_options(particle_params_, i)}
+    , generate_primaries_{i, *particle_params_}
 {
     // Generate one particle at each call to \c GeneratePrimaryVertex()
     gun_.SetNumberOfParticles(1);
