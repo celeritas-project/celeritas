@@ -188,7 +188,7 @@ problem(inp::Problem const& p, ImportData const& imported)
             // Default: twice the number of track slots
             input.options.secondary_stack_factor = 2.0;
         }
-        input.options.spline_eloss_order = p.physics.em->eloss_spline ? 2 : 1;
+        input.options.spline_eloss_order = p.physics.em->eloss_spline_order;
         input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
         input.options.light.lowest_energy = ParticleOptions::Energy(
             imported.em_params.lowest_electron_energy);
@@ -297,7 +297,7 @@ problem(inp::Problem const& p, ImportData const& imported)
     // Construct simulation params
     params.sim = std::make_shared<SimParams>([&] {
         auto input = SimParams::Input::from_import(
-            imported, params.particle, p.control.capacity.events);
+            imported, params.particle, p.tracking.limits.field_substeps);
         return input;
     }());
 
@@ -311,8 +311,11 @@ problem(inp::Problem const& p, ImportData const& imported)
     // Construct track initialization params
     params.init = [&] {
         CELER_VALIDATE(p.control.capacity.initializers > 0,
-                       << "nonpositive initializer_capacity="
+                       << "nonpositive capacity.initializers="
                        << p.control.capacity.initializers);
+        CELER_VALIDATE(p.control.capacity.events > 0,
+                       << "nonpositive capacity.events="
+                       << p.control.capacity.events);
         TrackInitParams::Input input;
         input.capacity = ceil_div(p.control.capacity.initializers, num_streams);
         input.max_events = p.control.capacity.events;

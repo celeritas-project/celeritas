@@ -67,6 +67,8 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     ImportData imported = std::visit(
         Overload{
             [](inp::FileImport const& fi) {
+                CELER_VALIDATE(!fi.input.empty(),
+                               << "no file import specified");
                 // Import physics data from ROOT file
                 return RootImporter(fi.input)();
             },
@@ -90,10 +92,6 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 
     // Load events
     result.events = events(si.events, result.core_params->particle());
-    if (problem->control.capacity.events != 0)
-    {
-        // TODO: merge events? or let celer-sim do that?
-    }
 
     return result;
 }

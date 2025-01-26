@@ -28,11 +28,11 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/phys/Process.hh"
+#include "celeritas/setup/StandaloneInput.hh"
 
 #include "RunnerInput.hh"
 #include "Transporter.hh"
@@ -45,45 +45,39 @@ namespace app
 /*!
  * Construct on all threads from a JSON input and shared output manager.
  */
-Runner::Runner(RunnerInput const& inp)
+Runner::Runner(RunnerInput const& old_inp)
 {
-    CELER_VALIDATE(inp.event_file.empty() != !inp.primary_options,
-                   << "either a event filename or options to generate "
-                      "primaries must be provided (but not both)");
-    CELER_VALIDATE(!inp.mctruth_filter || !inp.mctruth_file.empty(),
-                   << "'mctruth_filter' cannot be specified without providing "
-                      "'mctruth_file'");
+    // Convert to new format and set up problem
+    inp::StandaloneInput si = to_input(old_inp);
+    auto loaded = setup::standalone_input(si);
+    core_params_ = std::move(loaded.core_params);
+    CELER_ASSERT(core_params_);
+    events_ = std::move(loaded.events);
 
-    using SPImporter = std::shared_ptr<ImporterInterface>;
+    if (old_inp.merge_events)
+    {
+        // Merge all events into a single one
+        VecPrimary merged;
 
-    // Possible Geant4 world volume so we can reuse geometry
-    G4VPhysicalVolume const* g4world{nullptr};
+        // Reserve space in the merged vector
+        merged.reserve(std::accumulate(
+            events_.begin(),
+            events_.end(),
+            std::size_t{0},
+            [](std::size_t sum, auto const& v) { return sum + v.size(); }));
 
-    // Import data and load geometry
-    // If Geant4 is initialized, its data is scoped by the GeantImporter
-    auto import = [&inp, &g4world]() -> SPImporter {
-        if (ends_with(inp.physics_file, ".root"))
+        for (auto const& v : events_)
         {
-            // Load from ROOT file
-            return std::make_shared<RootImporter>(inp.physics_file);
+            merged.insert(merged.end(), v.begin(), v.end());
         }
+        events_ = {std::move(merged)};
+    }
 
-        std::string const& filename
-            = !inp.physics_file.empty() ? inp.physics_file : inp.geometry_file;
+    use_device_ = old_inp.use_device;
 
-        // Load Geant4 and retain to use geometry
-        GeantSetup setup(filename, inp.physics_options);
-        g4world = setup.world();
-        return std::make_shared<GeantImporter>(std::move(setup));
-    }();
-
-    // Import physics
-    auto const imported = (*import)();
-
-    ScopedRootErrorHandler scoped_root_error;
-    use_device_ = inp.use_device;
-
+    this->build_transporter_input(old_inp);
     transporters_.resize(this->num_streams());
+
     CELER_ENSURE(core_params_);
 }
 

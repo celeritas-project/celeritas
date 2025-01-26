@@ -49,6 +49,7 @@ physics_options = {
     'lpm': True,
 }
 
+physics_filename = None
 if geant_exp_exe:
     physics_filename = run_name + ".root"
     inp_file = f'{run_name}.geant.json'
@@ -65,13 +66,10 @@ if geant_exp_exe:
     if result_ge.returncode:
         print(f"fatal: {geant_exp_exe} failed with error {result_ge.returncode}")
         exit(result_ge.returncode)
-else:
-    # Load directly from Geant4 rather than ROOT file
-    physics_filename = geometry_filename
 
 if core_geo == "orange-json":
-    print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
-    geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
+    print("Replacing .gdml extension since VecGeom and Geant4 conversion are disabled", file=stderr)
+    env['ORANGE_FORCE_INPUT'] = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
 simple_calo = []
 if not rootout_filename and "cms" in geometry_filename:
@@ -90,7 +88,6 @@ if not use_device:
 inp = {
     'use_device': use_device,
     'geometry_file': geometry_filename,
-    'physics_file': physics_filename,
     'event_file': event_filename,
     'mctruth_file': rootout_filename,
     'seed': 12345,
