@@ -87,14 +87,6 @@ if not use_device:
     # shorten to an unreasonably small number to reduce test time.
     max_steps = 256
 
-# TODO: Update once tracking loop is implemented
-optical_options = {
-    'num_track_slots': num_tracks,
-    'buffer_capacity': 3 * max_steps * num_tracks,
-    'initializer_capacity': num_tracks,
-    'auto_flush': 2**31, # Large enough to never launch optical loop
-}
-
 inp = {
     'use_device': use_device,
     'geometry_file': geometry_filename,
@@ -118,9 +110,19 @@ inp = {
     'brem_combined': True,
     'physics_options': physics_options,
     'field': None,
-    'optical': optical_options,
     'slot_diagnostic_prefix': f"slot-diag-{run_name}-",
 }
+
+if "lar" in geometry_filename:
+    inp['optical'] = {
+        'num_track_slots': num_tracks,
+        'buffer_capacity': 3 * max_steps * num_tracks,
+        'initializer_capacity': num_tracks,
+        'auto_flush': 2**31, # Large enough to never launch optical loop
+    }
+
+if physics_filename:
+    inp['physics_file'] = physics_filename
 
 inp_file = f'{run_name}.inp.json'
 with open(inp_file, 'w') as f:
