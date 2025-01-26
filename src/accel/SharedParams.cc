@@ -64,6 +64,7 @@
 #include "SetupOptions.hh"
 
 #include "detail/HitManager.hh"
+#include "detail/HitManagerOutput.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -649,6 +650,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
                                                    params_->max_streams());
         step_collector_
             = StepCollector::make_and_insert(*params_, {hit_manager_});
+        output_reg_->insert(
+            std::make_shared<detail::HitManagerOutput>(hit_manager_));
     }
 
     // Add diagnostics
