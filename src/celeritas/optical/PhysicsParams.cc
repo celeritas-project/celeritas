@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "PhysicsParams.hh"
 
-#include <iostream>
-
 #include "corecel/sys/ActionRegistry.hh"
 
 #include "MaterialParams.hh"
@@ -75,7 +73,7 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
     for (auto const& builder : model_builders)
     {
         auto action_id = action_reg.next_id();
-        SPConstModel model = (*builder)(action_id);
+        SPConstModel model = builder(action_id);
 
         CELER_ASSERT(model);
         CELER_ASSERT(model->action_id() == action_id);

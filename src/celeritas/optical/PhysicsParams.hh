@@ -10,7 +10,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
-#include "ModelBuilder.hh"
+#include "Model.hh"
 #include "PhysicsData.hh"
 #include "action/ActionInterface.hh"
 
@@ -29,11 +29,10 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     //!@{
     //! \name Type aliases
     using SPConstModel = std::shared_ptr<Model const>;
-    using SPConstModelBuilder = std::shared_ptr<ModelBuilder const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
 
     using VecModels = std::vector<SPConstModel>;
-    using VecModelBuilders = std::vector<SPConstModelBuilder>;
+    using VecModelBuilders = std::vector<Model::ModelBuilder>;
 
     using ActionIdRange = Range<ActionId>;
     //!@}

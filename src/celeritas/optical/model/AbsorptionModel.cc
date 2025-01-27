@@ -7,10 +7,8 @@
 #include "AbsorptionModel.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "../MfpBuilder.hh"
-#include "../ModelBuilder.hh"
 
 namespace celeritas
 {

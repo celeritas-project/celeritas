@@ -14,7 +14,6 @@
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 #include "celeritas/optical/Model.hh"
-#include "celeritas/optical/ModelBuilder.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/PhysicsParams.hh"
@@ -126,9 +125,9 @@ class MockModel : public Model
     void step(CoreParams const&, CoreStateDevice&) const final {}
 };
 
-struct MockModelBuilder : public ModelBuilder
+struct MockModelBuilder
 {
-    SPModel operator()(ActionId id) const override
+    std::shared_ptr<Model> operator()(ActionId id) const
     {
         return std::make_shared<MockModel>(id);
     }
@@ -153,8 +152,7 @@ class OpticalPhysicsTest : public OpticalMockTestBase
 
         for ([[maybe_unused]] auto i : range(num_models))
         {
-            input.model_builders.push_back(
-                std::make_shared<MockModelBuilder const>());
+            input.model_builders.push_back(MockModelBuilder{});
         }
 
         input.materials = this->optical_material();
