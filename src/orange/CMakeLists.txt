@@ -49,6 +49,7 @@ list(APPEND SOURCES
   orangeinp/detail/InternalSurfaceFlagger.cc
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
+  orangeinp/detail/LogicUtils.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
