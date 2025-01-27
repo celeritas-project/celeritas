@@ -13,6 +13,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/io/EventIOInterface.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootEventReader.hh"
@@ -51,7 +52,10 @@ events(inp::Events const& e,
        std::shared_ptr<ParticleParams const> const& particles)
 {
     CELER_EXPECT(particles);
-    ScopedMem record_mem("Runner.build_events");
+
+    CELER_LOG(status) << "Loading events";
+    ScopedMem record_mem("setup::events");
+    ScopedProfiling profile_this{"setup::events"};
 
     return std::visit(
         Overload{

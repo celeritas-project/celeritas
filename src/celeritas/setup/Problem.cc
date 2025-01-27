@@ -128,10 +128,10 @@ std::shared_ptr<GeoParams> build_geometry(inp::Model const& m)
 std::shared_ptr<CoreParams>
 problem(inp::Problem const& p, ImportData const& imported)
 {
-    CELER_LOG(status) << "Loading input and initializing problem data";
+    CELER_LOG(status) << "Initializing problem";
 
-    ScopedMem record_mem("Runner.build_core_params");
-    ScopedProfiling profile_this{"construct-params"};
+    ScopedMem record_mem("setup::problem");
+    ScopedProfiling profile_this{"setup::problem"};
 
     CoreParams::Input params;
 
@@ -420,9 +420,9 @@ problem(inp::Problem const& p, ImportData const& imported)
         using optical::MaterialParams;
         using optical::ScintillationParams;
 
-        CELER_VALIDATE(!imported.optical_materials.empty(),
-                       << "an optical tracking loop was requested but no "
-                          "optical materials are present");
+        CELER_VALIDATE(
+            !imported.optical_materials.empty(),
+            << R"(an optical tracking loop was requested but no optical materials are present)");
 
         OpticalCollector::Input oc_inp;
         oc_inp.material = MaterialParams::from_import(
