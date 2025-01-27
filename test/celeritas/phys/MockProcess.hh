@@ -73,8 +73,8 @@ class MockProcess : public Process
     {
         SPConstMaterials materials;
         std::string label;
-        bool use_integral_xs;
-        bool applies_at_rest;
+        bool use_integral_xs{true};
+        bool applies_at_rest{false};
         VecApplicability applic;  //!< Applicablity per model
         ModelCallback interact;  //!< MockModel::interact callback
         VecMicroXs xs;  //!< Constant per atom [bn]

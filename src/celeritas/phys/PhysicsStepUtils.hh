@@ -35,11 +35,12 @@ namespace
  * Sample the process for the discrete interaction.
  */
 template<class Engine>
-CELER_FUNCTION ParticleProcessId find_ppid(MaterialView const& material,
-                                           ParticleTrackView const& particle,
-                                           PhysicsTrackView const& physics,
-                                           PhysicsStepView& pstep,
-                                           Engine& rng)
+inline CELER_FUNCTION ParticleProcessId
+find_ppid(MaterialView const& material,
+          ParticleTrackView const& particle,
+          PhysicsTrackView const& physics,
+          PhysicsStepView& pstep,
+          Engine& rng)
 {
     if (physics.at_rest_process() && particle.is_stopped())
     {
