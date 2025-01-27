@@ -11,7 +11,6 @@
 
 #include "corecel/cont/Span.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/detail/OrangeInputIOImpl.json.hh"
 
 #include "celeritas_test.hh"
 
@@ -25,8 +24,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using celeritas::detail::logic_to_string;
-using celeritas::detail::string_to_logic;
+using celeritas::orangeinp::detail::logic_to_string;
+using celeritas::orangeinp::detail::string_to_logic;
 
 std::vector<logic_int> postfix_to_infix(std::string_view postfix)
 {

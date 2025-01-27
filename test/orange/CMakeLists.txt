@@ -84,8 +84,7 @@ celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/PolygonUtils.test.cc)
 celeritas_add_test(orangeinp/detail/ProtoMap.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
-celeritas_add_test(orangeinp/detail/LogicUtils.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+celeritas_add_test(orangeinp/detail/LogicUtils.test.cc)
 celeritas_add_test(orangeinp/detail/SurfaceGridHash.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 

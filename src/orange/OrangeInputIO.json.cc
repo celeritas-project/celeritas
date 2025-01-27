@@ -28,6 +28,7 @@
 
 #include "OrangeInput.hh"
 #include "OrangeTypes.hh"
+#include "orangeinp/detail/LogicUtils.hh"
 #include "surf/SurfaceTypeTraits.hh"
 
 #include "detail/OrangeInputIOImpl.json.hh"
@@ -164,7 +165,8 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     else
     {
         // Convert logic string to vector
-        value.logic = detail::string_to_logic(j.at("logic").get<std::string>());
+        value.logic = orangeinp::detail::string_to_logic(
+            j.at("logic").get<std::string>());
         value.bbox = get_bbox(j);
     }
 }
@@ -189,7 +191,7 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
     // Convert logic string to vector
     if (!value.logic.empty())
     {
-        j["logic"] = detail::logic_to_string(value.logic);
+        j["logic"] = orangeinp::detail::logic_to_string(value.logic);
     }
 
     // Write optional values
