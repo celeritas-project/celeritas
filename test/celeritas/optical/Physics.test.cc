@@ -10,8 +10,6 @@
 #include <random>
 
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 #include "celeritas/optical/Model.hh"
 #include "celeritas/optical/ParticleData.hh"
@@ -340,7 +338,8 @@ TEST_F(OpticalPhysicsTest, calc_step_limits)
             0.002299288122865045,
             0.0010868566672318657,
             0.0006310511934242025,
-        }};
+        },
+    };
 
     physics.interaction_mfp(100);
 
@@ -399,18 +398,8 @@ TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
     // Separate mutation and access loops to check independence
     // Note that there shouldn't be material dependence here
 
-    static real_type const expected_interaction_mfps[] = {
-        1,
-        11,
-        21,
-        31,
-        41,
-        51,
-        61,
-        71,
-        81,
-        91,
-    };
+    static real_type const expected_interaction_mfps[]
+        = {1, 11, 21, 31, 41, 51, 61, 71, 81, 91};
 
     // Assign interaction MFP
     for (auto track : range(TrackSlotId{num_tracks}))
@@ -454,79 +443,19 @@ TEST_F(OpticalPhysicsTest, step_view_xs_scratch)
     this->initialize_states(num_tracks);
 
     static real_type const expected_per_model_xs[][4] = {
-        {
-            1,
-            2,
-            3,
-            4,
-        },
-        {
-            5,
-            6,
-            7,
-            8,
-        },
-        {
-            9,
-            10,
-            11,
-            12,
-        },
-        {
-            13,
-            14,
-            15,
-            16,
-        },
-        {
-            17,
-            18,
-            19,
-            20,
-        },
-        {
-            21,
-            22,
-            23,
-            24,
-        },
-        {
-            25,
-            26,
-            27,
-            28,
-        },
-        {
-            29,
-            30,
-            31,
-            32,
-        },
-        {
-            33,
-            34,
-            35,
-            36,
-        },
-        {
-            37,
-            38,
-            39,
-            40,
-        },
+        {1, 2, 3, 4},
+        {5, 6, 7, 8},
+        {9, 10, 11, 12},
+        {13, 14, 15, 16},
+        {17, 18, 19, 20},
+        {21, 22, 23, 24},
+        {25, 26, 27, 28},
+        {29, 30, 31, 32},
+        {33, 34, 35, 36},
+        {37, 38, 39, 40},
     };
-    static real_type const expected_macro_xs[] = {
-        1,
-        101,
-        201,
-        301,
-        401,
-        501,
-        601,
-        701,
-        801,
-        901,
-    };
+    static real_type const expected_macro_xs[]
+        = {1, 101, 201, 301, 401, 501, 601, 701, 801, 901};
 
     // Set all of the data
     for (auto track_id : range(TrackSlotId{num_tracks}))
