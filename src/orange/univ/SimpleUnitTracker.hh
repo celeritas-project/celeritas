@@ -13,6 +13,7 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 #include "orange/detail/BIHEnclosingVolFinder.hh"
+#include "orange/detail/BIHIntersectingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
@@ -123,8 +124,9 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Intersection complex_intersect(LocalState const&,
                                                          VolumeView const&,
                                                          size_type) const;
+    template<class F>
     inline CELER_FUNCTION Intersection background_intersect(LocalState const&,
-                                                            size_type) const;
+                                                            F&&) const;
 
     // Create a Surfaces object from the params
     inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
@@ -369,6 +371,9 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  * Calculate distance-to-intercept for the next surface.
  *
  * The algorithm is:
+ * - If the volume is the "background" then search externally for the next
+ *   volume with \c background_intersect (equivalent of DistanceToIn for
+ *   Geant4)
  * - Use the current volume to find potential intersecting surfaces and maximum
  *   number of intersections.
  * - Loop over all surfaces and calculate the distance to intercept based on
@@ -382,9 +387,6 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  * - If the volume has no special cases, find the closest surface by calling \c
  *   simple_intersect.
  * - If the volume has internal surfaces call \c complex_intersect.
- * - If the volume is the "background" then search externally for the next
- *   volume with \c background_intersect (equivalent of DistanceToIn for
- *   Geant4)
  */
 template<class F>
 CELER_FUNCTION auto
@@ -396,6 +398,12 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     // Resize temporaries based on volume properties
     VolumeView vol = this->make_local_volume(state.volume);
     CELER_ASSERT(state.temp_next.size >= vol.max_intersections());
+
+    if (vol.implicit_vol())
+    {
+        // Search all the volumes "externally"
+        return this->background_intersect(state, is_valid);
+    }
 
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume. Fill the `isect` array if the tracking
@@ -426,28 +434,20 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     {
         // No internal surfaces nor implicit volume: the closest distance is
         // the next boundary
-        return this->simple_intersect(state, vol, num_isect);
+        auto x = this->simple_intersect(state, vol, num_isect);
+        return x;
     }
-    else
+    else if (vol.internal_surfaces())
     {
-        // Sort valid intersection distances in ascending order
+        // Internal surfaces: sort valid intersection distances in ascending
+        // order  and find the closest surface that puts us outside.
         celeritas::sort(state.temp_next.isect,
                         state.temp_next.isect + num_isect,
                         [&state](size_type a, size_type b) {
                             return state.temp_next.distance[a]
                                    < state.temp_next.distance[b];
                         });
-
-        if (vol.internal_surfaces())
-        {
-            // Internal surfaces: find closest surface that puts us outside
-            return this->complex_intersect(state, vol, num_isect);
-        }
-        else if (vol.implicit_vol())
-        {
-            // Search all the volumes "externally"
-            return this->background_intersect(state, num_isect);
-        }
+        return this->complex_intersect(state, vol, num_isect);
     }
 
     CELER_ASSERT_UNREACHABLE();  // Unexpected set of flags
@@ -502,6 +502,7 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
     Intersection result;
     result.surface = {surface, cur_sense};
     result.distance = state.temp_next.distance[distance_idx];
+
     return result;
 }
 
@@ -589,78 +590,83 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 /*!
  * Calculate distance from the background volume to enter any other volume.
  *
- * This is a slimmed-down version of the masked unit tracker's intersection
- * method. We loop over all surface intersections in ascending order, and test
- * all volumes that are connected to each surface. At the intersection point
- * being tested, we see whether each potential connected volume is "inside".
- * The first such volume gives our next surface.
- *
- * It's not cheap, as there are many embedded loops:
- * - Intersection points
- * - Volumes connected to the surface being intersected
- * - Surfaces connected to the target volume (sense evaluation) plus number of
- *   elements in the logic array ("is_inside" evaluation)
- *
- * \pre The `state.temp_next.isect` array must be sorted by the caller by
- * ascending distance.
- * \pre The "faces" for the background volume are *all* the surfaces in the
- * volume (alternatively we could introduce a mapping between Face and
- * LocalSurfaceId).
+ * This function is accelerated with the BIH.
  */
+template<class F>
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(LocalState const& state,
-                                        size_type num_isect) const
-    -> Intersection
+                                        F&& is_valid) const -> Intersection
 {
-    // Calculate bump distance
-    real_type const bump_dist
-        = detail::BumpCalculator{params_.scalars.tol}(state.pos);
+    auto is_intersecting
+        = [this, &state, &is_valid](
+              LocalVolumeId vol_id,
+              detail::BIHIntersectingVolFinder::Ray ray [[maybe_unused]],
+              real_type max_search_dist [[maybe_unused]]) -> Intersection {
+        VolumeView vol = this->make_local_volume(vol_id);
 
-    // Loop over distances and surface indices to cross by iterating over
-    // temp_next.isect[:num_isect].
-    for (size_type isect_idx = 0; isect_idx != num_isect; ++isect_idx)
-    {
-        // Index into the distance/face arrays
-        size_type const isect = state.temp_next.isect[isect_idx];
-        // Inside the "background" volume, Face and Surface are the same
-        LocalSurfaceId const surface{
-            state.temp_next.face[isect].unchecked_get()};
+        detail::CalcIntersections calc_intersections{
+            celeritas::forward<F>(is_valid),
+            state.pos,
+            state.dir,
+            state.surface ? vol.find_face(state.surface.id()) : FaceId{},
+            false,
+            state.temp_next};
 
-        // Calculate position just past the surface in order to evaluate
-        // senses, since we can't know the change in sense of the
-        // target surface without marching through all interior surfaces.
-        // Assume that bumping past the surface means not on any surface.
-        Real3 pos{state.pos};
-        axpy(state.temp_next.distance[isect] + bump_dist, state.dir, &pos);
-
-        // Loop over volumes connected to this surface.
-        //! \todo Accelerate by intersecting neighbors with BVH grid
-        for (LocalVolumeId vol_id : this->get_neighbors(surface))
+        LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+        for (LocalSurfaceId surface : vol.faces())
         {
-            CELER_ASSERT(vol_id != state.volume);
-            VolumeView vol = this->make_local_volume(vol_id);
-            detail::OnFace face;
-            auto calc_senses = detail::LazySenseCalculator{
-                this->make_surface_visitor(), vol, pos, face};
-
-            if (detail::LogicEvaluator{vol.logic()}(calc_senses))
-            {
-                // We are in this new volume by crossing the tested surface.
-                // Get the sense corresponding to this "crossed" surface.
-                auto face = vol.find_face(surface);
-                CELER_ASSERT(face);
-
-                Intersection result;
-                result.distance = state.temp_next.distance[isect];
-                result.surface = detail::OnLocalSurface{
-                    surface, flip_sense(calc_senses(face))};
-                return result;
-            }
+            visit_surface(calc_intersections, surface);
         }
-    }
 
-    // No intersection in this unit
-    return {};
+        size_type num_isect = calc_intersections.isect_idx();
+        CELER_ASSERT(num_isect > 0);
+
+        // Sort valid intersection distances in ascending order
+        celeritas::sort(state.temp_next.isect,
+                        state.temp_next.isect + num_isect,
+                        [&state](size_type a, size_type b) {
+                            return state.temp_next.distance[a]
+                                   < state.temp_next.distance[b];
+                        });
+
+        Real3 pos{ray.pos};
+        detail::OnFace on_face(detail::find_face(vol, state.surface));
+        detail::LazySenseCalculator calc_sense{
+            this->make_surface_visitor(), vol, pos, on_face};
+
+        detail::LogicEvaluator is_inside(vol.logic());
+        CELER_ASSERT(!is_inside(calc_sense));
+
+        real_type previous_distance{0};
+
+        for (size_type isect_idx = 0; isect_idx != num_isect; ++isect_idx)
+        {
+            size_type const isect = state.temp_next.isect[isect_idx];
+            real_type const distance = state.temp_next.distance[isect];
+
+            on_face = [&] {
+                FaceId face{state.temp_next.face[isect]};
+                return detail::OnFace{face, flip_sense(calc_sense(face))};
+            }();
+
+            axpy(distance - previous_distance, state.dir, &pos);
+
+            if (is_inside(calc_sense))
+            {
+                return {{vol.get_surface(on_face.id()),
+                         flip_sense(on_face.sense())},
+                        distance};
+            }
+            previous_distance = distance;
+        }
+
+        return {};
+    };
+
+    detail::BIHIntersectingVolFinder find_intersection{unit_record_.bih_tree,
+                                                       params_.bih_tree_data};
+
+    return find_intersection({state.pos, state.dir}, is_intersecting);
 }
 
 //---------------------------------------------------------------------------//
