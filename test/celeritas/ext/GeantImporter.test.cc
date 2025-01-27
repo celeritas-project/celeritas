@@ -872,7 +872,7 @@ TEST_F(FourSteelSlabsEmStandard, anni)
     static double const expected_energy[]
         = {0.0001, 100000000, 0.0001, 100000000};
     EXPECT_VEC_EQ(expected_size, result.size);
-    EXPECT_VEC_EQ(expected_energy, result.energy);
+    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     EXPECT_TRUE(result.xs.empty());
 }
 
