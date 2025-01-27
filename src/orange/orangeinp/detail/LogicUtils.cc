@@ -6,18 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "LogicUtils.hh"
 
-#include <algorithm>
-#include <iostream>
-#include <type_traits>
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/VariantUtils.hh"
-#include "corecel/io/Join.hh"
-#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTree.hh"
-#include "orange/orangeinp/CsgTypes.hh"
 
 namespace celeritas
 {
@@ -25,20 +17,6 @@ namespace orangeinp
 {
 namespace detail
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-/*!
- * A helper class for keeping track of the operand type of a sub-expression.
- */
-struct Operand
-{
-    logic::OperatorToken expr_type;
-    std::vector<logic_int> expr;
-};
-
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Build a logic definition from a C string.
@@ -108,20 +86,74 @@ std::vector<logic_int> string_to_logic(std::string const& s)
 /*!
  * Convert a postfix logic expression to an infix expression.
  *
- * The \c InfixEvaluator will short-circuit evaluation of operands based
- * on parenthesis depth. Minimizing that depth in the expression
- * will allow to short-circuit more efficiently.
+ * This is a helper class for \c convert_to_infix. It provides helper
+ * functions for building the infix expression using a stack.
  */
-std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
+class ExprStack
 {
-    CELER_EXPECT(!postfix.empty());
+  public:
+    //! A helper class for keeping track of the operand type of a
+    //! sub-expression.
+    struct Operand
+    {
+        logic::OperatorToken expr_type;
+        std::vector<logic_int> expr;
+    };
 
-    std::vector<Operand> infix;
-    infix.reserve(postfix.size());
+    //! Push a binary operator.
+    void push_binary(logic_int op)
+    {
+        CELER_EXPECT(infix.size() > 1);
+        auto& op_2 = infix.back();
+        auto& op_1 = *(infix.end() - 2);
+        std::vector<logic_int> new_expr;
+        constexpr int max_extra_tokens = 5;
+        new_expr.reserve(max_extra_tokens + op_1.expr.size()
+                         + op_2.expr.size());
+        auto opposite = op == logic::lor ? logic::land : logic::lor;
+        this->add_sub_expr(new_expr, op_1.expr, opposite == op_1.expr_type);
+        new_expr.push_back(op);
+        this->add_sub_expr(new_expr, op_2.expr, opposite == op_2.expr_type);
+        infix.pop_back();
+        infix.pop_back();
+        infix.push_back({logic::OperatorToken{op}, new_expr});
+    }
 
-    auto add_sub_expr = [](std::vector<logic_int>& acc,
-                           std::vector<logic_int>& expr,
-                           bool parentheses) {
+    //! Push an operand.
+    void push_unary(logic_int op)
+    {
+        CELER_EXPECT(!infix.empty());
+        auto&& [expr_type, expr] = infix.back();
+        std::vector<logic_int> new_expr;
+        constexpr int max_extra_tokens = 3;
+        new_expr.reserve(max_extra_tokens + expr.size());
+
+        new_expr.push_back(op);
+        this->add_sub_expr(new_expr, expr, expr_type < logic::lnot);
+        infix.pop_back();
+        infix.push_back({logic::OperatorToken{op}, new_expr});
+    }
+
+    //! Push a primitive (surface).
+    void push_primitive(logic_int elem)
+    {
+        // hijack ltrue as the token to represent a primitive
+        infix.push_back({logic::ltrue, {elem}});
+    }
+
+    //! Get the infix expression.
+    std::vector<logic_int> const& get_infix() const
+    {
+        CELER_EXPECT(infix.size() == 1);
+        return infix.front().expr;
+    }
+
+  private:
+    //! Accumulate operands into a new expression.
+    void add_sub_expr(std::vector<logic_int>& acc,
+                      std::vector<logic_int> const& expr,
+                      bool parentheses)
+    {
         if (parentheses)
         {
             acc.push_back(logic::lopen);
@@ -131,7 +163,25 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
         {
             acc.push_back(logic::lclose);
         }
-    };
+    }
+
+    //! The infix expression; used as a stack during conversion.
+    std::vector<Operand> infix;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a postfix logic expression to an infix expression.
+ *
+ * The \c InfixEvaluator will short-circuit evaluation of operands based
+ * on parenthesis depth. Minimizing that depth in the expression
+ * will allow to short-circuit more efficiently.
+ */
+std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
+{
+    CELER_EXPECT(!postfix.empty());
+
+    ExprStack infix_expr;
 
     // Process each token
     for (auto lgc : postfix)
@@ -141,43 +191,16 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
             switch (lgc)
             {
                 case logic::ltrue:
-                    infix.push_back({logic::ltrue, {lgc}});
+                    infix_expr.push_primitive(lgc);
                     break;
                 case logic::lor:
                     [[fallthrough]];
                 case logic::land: {
-                    CELER_EXPECT(infix.size() > 1);
-                    auto& op_2 = infix.back();
-                    auto& op_1 = *(infix.end() - 2);
-                    auto opposite = lgc == logic::lor ? logic::land
-                                                      : logic::lor;
-                    std::vector<logic_int> new_expr;
-                    constexpr int max_extra_tokens = 5;
-                    new_expr.reserve(max_extra_tokens + op_1.expr.size()
-                                     + op_2.expr.size());
-                    add_sub_expr(
-                        new_expr, op_1.expr, op_1.expr_type == opposite);
-                    new_expr.push_back(lgc);
-                    add_sub_expr(
-                        new_expr, op_2.expr, op_2.expr_type == opposite);
-
-                    infix.pop_back();
-                    infix.pop_back();
-                    infix.push_back({logic::OperatorToken{lgc}, new_expr});
+                    infix_expr.push_binary(lgc);
                     break;
                 }
                 case logic::lnot: {
-                    CELER_EXPECT(!infix.empty());
-                    auto&& [expr_type, expr] = infix.back();
-                    std::vector<logic_int> new_expr;
-                    constexpr int max_extra_tokens = 3;
-                    new_expr.reserve(max_extra_tokens + expr.size());
-
-                    new_expr.push_back(lgc);
-                    add_sub_expr(new_expr, expr, expr_type < logic::lnot);
-
-                    infix.pop_back();
-                    infix.push_back({logic::lnot, new_expr});
+                    infix_expr.push_unary(lgc);
                     break;
                 }
                 default:
@@ -186,11 +209,10 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
         }
         else
         {
-            infix.push_back({logic::ltrue, {lgc}});
+            infix_expr.push_primitive(lgc);
         }
     }
-    CELER_ENSURE(infix.size() == 1);
-    return infix.front().expr;
+    return infix_expr.get_infix();
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail
