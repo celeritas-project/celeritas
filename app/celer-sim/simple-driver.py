@@ -164,7 +164,7 @@ with open(out_file, 'w') as f:
     json.dump(j, f, indent=1)
 print("Results written to", out_file, file=stderr)
 
-run_output =j['result']['runner']
+run_output = j['result']['runner']
 time = run_output['time'].copy()
 steps = time.pop('steps')
 if use_device:
@@ -173,5 +173,22 @@ if use_device:
 else:
     # Step times disabled on CPU from input
     assert steps is None
+
+internal = j["internal"]
+if "lar" in geometry_filename and not use_device:
+    assert internal["core-sizes"] == {
+       "events": 3,
+       "initializers": 4500,
+       "processes": 1,
+       "secondaries": 96,
+       "streams": 1,
+       "tracks": 32
+      }
+    assert internal["optical-sizes"] == {
+       "generators": 24576,
+       "initializers": 32,
+       "streams": 1,
+       "tracks": 32
+      }
 
 print(json.dumps(time, indent=1))
