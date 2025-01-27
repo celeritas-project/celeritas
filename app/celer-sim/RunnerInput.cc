@@ -125,7 +125,7 @@ inp::Problem load_problem(RunnerInput const& ri)
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
                                                       * ri.num_track_slots);
 
-        // TODO: replace "max" with # events during construction?
+        // TODO: replace "max" with # events during construction
         using LimitsT = std::numeric_limits<decltype(capacity.events)>;
         capacity.events = ri.merge_events ? LimitsT::max() : 0;
 
@@ -266,6 +266,8 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     si.geant_data = inp::GeantDataImport{};
     si.events = load_events(ri);
 
+    // Load actual number of events, needed to contruct core state before
+    // loading events
     std::get<inp::Problem>(si.problem).control.capacity.events = std::visit(
         Overload{
             [](inp::PrimaryGenerator const& pg) { return pg.num_events; },

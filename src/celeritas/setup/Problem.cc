@@ -309,19 +309,31 @@ problem(inp::Problem const& p, ImportData const& imported)
     params.max_streams = num_streams;
 
     // Construct track initialization params
-    params.init = [&] {
-        CELER_VALIDATE(p.control.capacity.initializers > 0,
+    params.init = [&c = p.control, num_streams] {
+        CELER_VALIDATE(c.capacity.initializers > 0,
                        << "nonpositive capacity.initializers="
-                       << p.control.capacity.initializers);
-        CELER_VALIDATE(p.control.capacity.events > 0,
-                       << "nonpositive capacity.events="
-                       << p.control.capacity.events);
+                       << c.capacity.initializers);
+        CELER_VALIDATE(!c.capacity.events || c.capacity.events > 0,
+                       << "nonpositive capacity.events=" << *c.capacity.events);
+        // NOTE: if the following assertion fails, a placeholder "event
+        // count" should have been changed elsewhere
+        CELER_EXPECT(
+            c.capacity.events
+            != std::numeric_limits<decltype(c.capacity.events)>::max());
         TrackInitParams::Input input;
-        input.capacity = ceil_div(p.control.capacity.initializers, num_streams);
-        input.max_events = p.control.capacity.events;
-        if (p.control.track_order)
+        input.capacity = ceil_div(c.capacity.initializers, num_streams);
+        if (c.capacity.events)
         {
-            input.track_order = *p.control.track_order;
+            input.max_events = *c.capacity.events;
+        }
+        else
+        {
+            // Geant4 integration (TODO: make this a special case)
+            input.max_events = 1;
+        }
+        if (c.track_order)
+        {
+            input.track_order = *c.track_order;
         }
         else
         {

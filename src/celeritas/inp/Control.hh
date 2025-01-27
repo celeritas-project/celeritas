@@ -79,7 +79,7 @@ struct CoreStateCapacity : StateCapacity
     std::optional<size_type> secondaries;
 
     //! Maximum number of simultaneous events (zero for Geant4 integration)
-    size_type events{0};
+    std::optional<size_type> events;
 };
 
 //---------------------------------------------------------------------------//
