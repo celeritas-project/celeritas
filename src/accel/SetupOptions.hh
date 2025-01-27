@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/SetupOptions.hh
@@ -21,6 +20,11 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
+namespace inp
+{
+struct FrameworkInput;
+}
+
 struct AlongStepFactoryInput;
 //---------------------------------------------------------------------------//
 /*!
@@ -66,6 +70,9 @@ struct AlongStepFactoryInput;
  * \note These setup options affect only the \c HitManager construction that is
  * responsible for reconstructing CPU hits and sending directly to the Geant4
  * detectors. It does not change the underlying physics.
+ *
+ * \note This class will be replaced in v1.0
+ *       by \c celeritas::inp::SensitiveDetector .
  */
 struct SDSetupOptions
 {
@@ -83,6 +90,8 @@ struct SDSetupOptions
     bool ignore_zero_deposition{true};
     //! Save energy deposition
     bool energy_deposition{true};
+    //! Save physical step length
+    bool step_length{true};
     //! Set TouchableHandle for PreStepPoint
     bool locate_touchable{true};
     //! Create a track with the dynamic particle type and post-step data
@@ -107,6 +116,9 @@ struct SDSetupOptions
  *
  * The interface for the "along-step factory" (input parameters and output) is
  * described in \c AlongStepFactoryInterface .
+ *
+ * \note This class will be replaced in v1.0
+ *       by \c celeritas::inp::FrameworkInput .
  */
 struct SetupOptions
 {
@@ -130,10 +142,11 @@ struct SetupOptions
 
     //!@{
     //! \name I/O
+
     //! GDML filename (optional: defaults to exporting existing Geant4)
     std::string geometry_file;
     //! Filename for JSON diagnostic output
-    std::string output_file;
+    std::string output_file{"celeritas.out.json"};
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
     //! Filename to dump a ROOT/HepMC3 copy of offloaded tracks as events
@@ -144,6 +157,7 @@ struct SetupOptions
 
     //!@{
     //! \name Celeritas stepper options
+
     //! Number of track "slots" to be transported simultaneously
     size_type max_num_tracks{};
     //! Maximum number of events in use (DEPRECATED: remove in v0.6)
@@ -162,8 +176,7 @@ struct SetupOptions
 
     //!@{
     //! \name Track reordering options
-    TrackOrder track_order{Device::num_devices() ? TrackOrder::init_charge
-                                                 : TrackOrder::none};
+    TrackOrder track_order{TrackOrder::size_};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)
@@ -171,11 +184,13 @@ struct SetupOptions
 
     //!@{
     //! \name Stepping actions
+
     AlongStepFactory make_along_step;
     //!@}
 
     //!@{
     //! \name Field options
+
     size_type max_field_substeps{100};
     //!@}
 
@@ -184,12 +199,14 @@ struct SetupOptions
 
     //!@{
     //! \name Physics options
+
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
     //!@}
 
     //!@{
     //! \name CUDA options
+
     //! Per-thread stack size (may be needed for VecGeom) [B]
     size_type cuda_stack_size{};
     //! Dynamic heap size (may be needed for VecGeom) [B]
@@ -202,6 +219,7 @@ struct SetupOptions
 
     //!@{
     //! \name Diagnostic setup
+
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
     //!@}
@@ -214,6 +232,9 @@ struct SetupOptions
 // Find volumes by name for SDSetupOptions
 std::unordered_set<G4LogicalVolume const*>
     FindVolumes(std::unordered_set<std::string>);
+
+// Construct a framework input
+inp::FrameworkInput to_inp(SetupOptions const& so);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

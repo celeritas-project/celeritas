@@ -1,5 +1,4 @@
-.. Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
 .. _api_stepping:
@@ -8,7 +7,7 @@ Stepping mechanics
 ==================
 
 The core algorithm in Celeritas is to perform a *loop interchange*
-:cite:`allen_automatic_1984` between particle tracks and steps. The classical
+:cite:`allen-loop-1984` between particle tracks and steps. The classical
 (serial) way of simulating an event is to have an outer loop over tracks and an
 inner loop over steps, and inside each step are the various actions applied to
 a track such as evaluating cross sections, calculating the distance to the

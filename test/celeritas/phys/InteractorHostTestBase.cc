@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/InteractorHostTestBase.cc
@@ -28,7 +27,7 @@ InteractorHostBase::InteractorHostBase()
 {
     using namespace constants;
     using namespace units;
-    using InvSecond = Quantity<UnitInverse<Second>>;
+    using InvSecond = RealQuantity<UnitInverse<Second>>;
     constexpr auto zero = zero_quantity();
 
     constexpr MevMass emass{0.5109989461};

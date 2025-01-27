@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/AuxStateData.hh
@@ -62,7 +61,7 @@ class AuxStateData final : public AuxStateInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a auxiliary state given a runtime memory space.
+ * Create an auxiliary state given a runtime memory space.
  *
  * Example:
  * \code

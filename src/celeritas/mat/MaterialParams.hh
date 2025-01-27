@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/mat/MaterialParams.hh
@@ -42,6 +41,7 @@ struct ImportData;
  * user-defined physics regions.
  *
  * \todo Replace id_to_label etc. with direct access to LabelIdMultiMap
+ * \todo Split into isotope/element/geo material
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
@@ -113,6 +113,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     //!@{
     //! \name Material metadata
+
     //! Number of materials
     MaterialId::size_type num_materials() const { return mat_labels_.size(); }
 
@@ -128,6 +129,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     //!@{
     //! \name Element metadata
+
     //! Number of distinct elements definitions
     ElementId::size_type num_elements() const { return el_labels_.size(); }
 
@@ -143,6 +145,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     //!@{
     //! \name Isotope metadata
+
     //! Number of distinct isotope definitions
     IsotopeId::size_type num_isotopes() const { return isot_labels_.size(); }
 

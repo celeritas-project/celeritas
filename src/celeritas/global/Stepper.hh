@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/Stepper.hh
@@ -37,6 +36,7 @@ class ActionSequence;
  *
  * - \c params : Problem definition
  * - \c num_track_slots : Maximum number of threads to run in parallel on GPU
+ *   (optional, could be set by params)
  *   \c stream_id : Unique (thread/task) ID for this process
  * - \c action_times : Whether to synchronize device between actions for timing
  */
@@ -48,10 +48,7 @@ struct StepperInput
     bool action_times{false};
 
     //! True if defined
-    explicit operator bool() const
-    {
-        return params && stream_id && num_track_slots > 0;
-    }
+    explicit operator bool() const { return params && stream_id; }
 };
 
 //---------------------------------------------------------------------------//

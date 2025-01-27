@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeGeoTraits.hh
@@ -38,10 +37,10 @@ struct GeoTraits<OrangeParams>
     using TrackView = OrangeTrackView;
 
     //! Descriptive name for the geometry
-    static constexpr inline char const* name = "ORANGE";
+    static constexpr char const* name = "ORANGE";
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr inline char const* ext = ".org.json";
+    static constexpr char const* ext = ".org.json";
 };
 
 //---------------------------------------------------------------------------//

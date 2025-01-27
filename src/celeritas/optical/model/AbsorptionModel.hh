@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/model/AbsorptionModel.hh
@@ -9,12 +8,12 @@
 
 #include "../ImportedModelAdapter.hh"
 #include "../Model.hh"
+#include "../Types.hh"
 
 namespace celeritas
 {
 namespace optical
 {
-struct ModelBuilder;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical absorption model interaction.
@@ -29,7 +28,7 @@ class AbsorptionModel final : public Model
 
   public:
     // Create a model builder for absorption
-    static std::shared_ptr<ModelBuilder> make_builder(SPConstImported);
+    static ModelBuilder make_builder(SPConstImported);
 
     // Construct with imported data
     AbsorptionModel(ActionId id, SPConstImported imported);

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/detail/CelerEmStandardPhysics.cc
@@ -125,7 +124,12 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
         from_form_factor_type(options.form_factor));
     em_parameters.SetMscStepLimitType(
         from_msc_step_algorithm(options.msc_step_algorithm));
+    em_parameters.SetMscMuHadStepLimitType(
+        from_msc_step_algorithm(options.msc_muhad_step_algorithm));
+    em_parameters.SetLateralDisplacement(options.msc_displaced);
+    em_parameters.SetMuHadLateralDisplacement(options.msc_muhad_displaced);
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
+    em_parameters.SetMscMuHadRangeFactor(options.msc_muhad_range_factor);
 #if G4VERSION_NUMBER >= 1060
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
@@ -139,6 +143,8 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
     em_parameters.SetLowestElectronEnergy(
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
+    em_parameters.SetLowestMuHadEnergy(
+        value_as<Options::MevEnergy>(options.lowest_muhad_energy) * CLHEP::MeV);
     em_parameters.SetApplyCuts(options.apply_cuts);
     em_parameters.SetVerbose(options.verbose);
 }
@@ -501,24 +507,34 @@ void CelerEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 
     if (options_.muon.coulomb)
     {
-        //! \todo Update the Celeritas single Coulomb scattering model to
-        //! support muons
         physics_list->RegisterProcess(new G4CoulombScattering(), p);
         CELER_LOG(debug) << "Loaded muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
     }
 
-    if (options_.muon.msc)
+    if (options_.muon.msc != MscModelSelection::none)
     {
-        /*!
-         * \todo Possibly use Urban MSC until Wentzel VI is implemented and
-         * update the Celeritas Urban model to support muons
-         */
         auto process = std::make_unique<G4MuMultipleScattering>();
-        process->SetEmModel(new G4WentzelVIModel());
+        if (options_.muon.msc == MscModelSelection::wentzelvi)
+        {
+            process->SetEmModel(new G4WentzelVIModel());
+            CELER_LOG(debug) << "Loaded muon multiple scattering with "
+                                "G4WentzelVIModel";
+        }
+        else if (options_.muon.msc == MscModelSelection::urban)
+        {
+            process->SetEmModel(new G4UrbanMscModel());
+            CELER_LOG(debug) << "Loaded muon multiple scattering with "
+                                "G4UrbanMscModel";
+        }
+        else
+        {
+            CELER_VALIDATE(false,
+                           << "unsupported muon multiple scattering model "
+                              "selection '"
+                           << to_cstring(options_.muon.msc) << "'");
+        }
         physics_list->RegisterProcess(process.release(), p);
-        CELER_LOG(debug) << "Loaded muon multiple scattering with "
-                            "G4WentzelVIModel";
     }
 }
 

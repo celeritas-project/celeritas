@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celer-sim/celer-sim.cc
@@ -93,7 +92,10 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     Runner run_stream(*run_input, output);
     SimulationResult result;
     result.setup_time = get_setup_time();
-    result.events.resize(run_stream.num_events());
+    if (run_input->transporter_result)
+    {
+        result.events.resize(run_stream.num_events());
+    }
 
     // Allocate device streams, or use the default stream if there is only one.
     size_type num_streams = run_stream.num_streams();
@@ -116,27 +118,39 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     if (run_input->merge_events)
     {
         // Run all events simultaneously on a single stream
-        result.events.front() = run_stream();
+        auto event_result = run_stream();
+        if (run_input->transporter_result)
+        {
+            result.events.front() = std::move(event_result);
+        }
     }
     else
     {
         CELER_LOG(status) << "Transporting " << run_stream.num_events()
                           << " on " << num_streams << " threads";
         MultiExceptionHandler capture_exception;
+        size_type const num_events = run_stream.num_events();
 #if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
 #    pragma omp parallel for
 #endif
-        for (size_type event = 0; event < run_stream.num_events(); ++event)
+        for (size_type event = 0; event < num_events; ++event)
         {
             activate_device_local();
 
             // Run a single event on a single thread
-            CELER_TRY_HANDLE(result.events[event] = run_stream(
-                                 StreamId(get_openmp_thread()), EventId(event)),
+            TransporterResult event_result;
+            CELER_TRY_HANDLE(event_result = run_stream(
+                                 id_cast<StreamId>(get_openmp_thread()),
+                                 id_cast<EventId>(event)),
                              capture_exception);
+            if (run_input->transporter_result)
+            {
+                result.events[event] = std::move(event_result);
+            }
         }
         log_and_rethrow(std::move(capture_exception));
     }
+
     result.action_times = run_stream.get_action_times();
     result.total_time = get_transport_time();
     record_mem = {};

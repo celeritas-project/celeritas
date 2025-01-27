@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ScintillationGenerator.hh
@@ -99,7 +98,7 @@ ScintillationGenerator::ScintillationGenerator(
     : dist_(dist)
     , shared_(shared)
     , sample_cost_(-1, 1)
-    , sample_phi_(0, 2 * constants::pi)
+    , sample_phi_(0, real_type(2 * constants::pi))
     , is_neutral_{dist_.charge == zero_quantity()}
 {
     if (shared_.scintillation_by_particle())

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/detail/MeanELoss.hh
@@ -70,7 +69,7 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
     auto particle = track.make_particle_view();
     auto phys = track.make_physics_view();
 
-    if (apply_cut && particle.energy() < phys.scalars().lowest_electron_energy)
+    if (apply_cut && particle.energy() < phys.particle_scalars().lowest_energy)
     {
         // Deposit all energy when we start below the tracking cut
         return particle.energy();
@@ -80,7 +79,7 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
     Energy eloss = calc_mean_energy_loss(particle, phys, step);
 
     if (apply_cut
-        && (particle.energy() - eloss <= phys.scalars().lowest_electron_energy))
+        && (particle.energy() - eloss <= phys.particle_scalars().lowest_energy))
     {
         // Deposit all energy when we end below the tracking cut
         return particle.energy();

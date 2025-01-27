@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/SeltzerBerger.test.cc
@@ -23,12 +22,12 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::SBPositronXsCorrector;
-
 namespace celeritas
 {
 namespace test
 {
+using detail::SBPositronXsCorrector;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -272,7 +271,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         {
             struct ScaleXs
             {
-                using Xs = Quantity<units::Millibarn>;
+                using Xs = RealQuantity<units::Millibarn>;
 
                 real_type operator()(Energy) const { return 0.5; }
 

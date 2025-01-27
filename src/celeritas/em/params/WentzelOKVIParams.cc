@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/params/WentzelOKVIParams.cc
@@ -16,6 +15,7 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {
@@ -25,7 +25,8 @@ namespace celeritas
  */
 std::shared_ptr<WentzelOKVIParams>
 WentzelOKVIParams::from_import(ImportData const& data,
-                               SPConstMaterials materials)
+                               SPConstMaterials materials,
+                               SPConstParticles particles)
 {
     CELER_EXPECT(materials);
 
@@ -43,7 +44,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
         if (!coulomb)
         {
             // Set the maximum scattering angle for Wentzel VI MSC
-            return constants::pi;
+            return real_type(constants::pi);
         }
         if (!wentzel)
         {
@@ -58,7 +59,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
     opts.angle_limit_factor = data.em_params.angle_limit_factor;
     opts.form_factor = data.em_params.form_factor;
 
-    return std::make_shared<WentzelOKVIParams>(materials, opts);
+    return std::make_shared<WentzelOKVIParams>(materials, particles, opts);
 }
 
 //---------------------------------------------------------------------------//
@@ -66,6 +67,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
  * Construct from cross section data and material properties.
  */
 WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
+                                     SPConstParticles particles,
                                      Options options)
 {
     CELER_EXPECT(materials);
@@ -84,6 +86,10 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
                         .value());
     host_data.params.screening_factor = options.screening_factor;
     host_data.params.form_factor_type = options.form_factor;
+
+    // Save electron mass
+    host_data.electron_mass
+        = particles->get(particles->find(pdg::electron())).mass();
 
     // Load Mott coefficients
     build_data(host_data, *materials);
@@ -121,7 +127,8 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
     prefactors.reserve(materials.num_isotopes());
     for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
     {
-        using InvMomSq = Quantity<UnitInverse<units::MevMomentumSq::unit_type>>;
+        using InvMomSq
+            = RealQuantity<UnitInverse<units::MevMomentumSq::unit_type>>;
 
         auto&& iso_view = materials.get(iso_id);
         prefactors.push_back(value_as<InvMomSq>(

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/detail/ElossApplier.hh
@@ -67,7 +66,7 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
     // Energy loss helper *must* apply the tracking cutoff
     CELER_ASSERT(
         particle.energy()
-            >= track.make_physics_view().scalars().lowest_electron_energy
+            >= track.make_physics_view().particle_scalars().lowest_energy
         || !apply_cut || particle.is_stopped());
 
     if (particle.is_stopped())

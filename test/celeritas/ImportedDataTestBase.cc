@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ImportedDataTestBase.cc
@@ -76,8 +75,8 @@ auto ImportedDataTestBase::build_sim() -> SPConstSim
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_wentzel() -> SPConstWentzelOKVI
 {
-    return WentzelOKVIParams::from_import(this->imported_data(),
-                                          this->material());
+    return WentzelOKVIParams::from_import(
+        this->imported_data(), this->material(), this->particle());
 }
 
 //---------------------------------------------------------------------------//

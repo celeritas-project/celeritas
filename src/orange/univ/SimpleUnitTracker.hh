@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/univ/SimpleUnitTracker.hh
@@ -9,13 +8,16 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeData.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/SenseUtils.hh"
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
+#include "detail/LazySenseCalculator.hh"
 #include "detail/LogicEvaluator.hh"
-#include "detail/SenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
@@ -128,7 +130,8 @@ class SimpleUnitTracker
     inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
 
     // Create a Volumes object from the params
-    inline CELER_FUNCTION VolumeView make_local_volume(LocalVolumeId vid) const;
+    inline CELER_FUNCTION VolumeView
+    make_local_volume(LocalVolumeId vol_id) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -165,18 +168,14 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
 
-    detail::SenseCalculator calc_senses(
-        this->make_surface_visitor(), state.pos, state.temp_sense);
-
     // Use the BIH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
-    bool on_surface{false};
-    auto is_inside
-        = [this, &calc_senses, &on_surface](LocalVolumeId id) -> bool {
+    detail::OnFace on_surface;
+    auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
         VolumeView vol = this->make_local_volume(id);
-        auto logic_state = calc_senses(vol);
-        on_surface = static_cast<bool>(logic_state.face);
-        return detail::LogicEvaluator(vol.logic())(logic_state.senses);
+        auto calc_senses = detail::LazySenseCalculator(
+            this->make_surface_visitor(), vol, state.pos, on_surface);
+        return detail::LogicEvaluator(vol.logic())(calc_senses);
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 
@@ -199,15 +198,14 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
  * Find the local volume on the opposite side of a surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initialization
+SimpleUnitTracker::cross_boundary(LocalState const& state) const
+    -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
-    detail::SenseCalculator calc_senses(
-        this->make_surface_visitor(), state.pos, state.temp_sense);
 
     detail::OnLocalSurface on_surface;
-    auto is_inside = [this, &state, &calc_senses, &on_surface](
-                         LocalVolumeId const& id) -> bool {
+    auto is_inside
+        = [this, &state, &on_surface](LocalVolumeId const& id) -> bool {
         if (id == state.volume)
         {
             // Cannot cross surface into the same volume
@@ -215,13 +213,14 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
         }
 
         VolumeView vol = this->make_local_volume(id);
-        auto logic_state
-            = calc_senses(vol, detail::find_face(vol, state.surface));
+        detail::OnFace face{detail::find_face(vol, state.surface)};
+        auto calc_senses = detail::LazySenseCalculator(
+            this->make_surface_visitor(), vol, state.pos, face);
 
-        if (detail::LogicEvaluator(vol.logic())(logic_state.senses))
+        if (detail::LogicEvaluator(vol.logic())(calc_senses))
         {
             // Inside: find and save the local surface ID, and end the search
-            on_surface = get_surface(vol, logic_state.face);
+            on_surface = get_surface(vol, face);
             return true;
         }
         return false;
@@ -256,8 +255,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
 /*!
  * Calculate distance-to-intercept for the next surface.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState const& state) const
+    -> Intersection
 {
     Intersection result = this->intersect_impl(state, detail::IsFinite{});
     return result;
@@ -268,8 +267,8 @@ SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
  * Calculate distance-to-intercept for the next surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state,
-                             real_type max_dist) const -> Intersection
+SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
+    -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
     Intersection result
@@ -293,11 +292,11 @@ SimpleUnitTracker::intersect(LocalState const& state,
  * necessarily slow down the simulation.
  */
 CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
-                                                   LocalVolumeId volid) const
+                                                   LocalVolumeId vol_id) const
 {
-    CELER_EXPECT(volid);
+    CELER_EXPECT(vol_id);
 
-    VolumeView vol = this->make_local_volume(volid);
+    VolumeView vol = this->make_local_volume(vol_id);
     if (!vol.simple_safety())
     {
         // Has a tricky surface: we can't use the simple algorithm to calculate
@@ -389,8 +388,8 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  */
 template<class F>
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(LocalState const& state,
-                                  F&& is_valid) const -> Intersection
+SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
+    -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
@@ -527,14 +526,25 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 {
     CELER_ASSERT(num_isect > 0);
 
-    // Calculate local senses, taking current face into account
-    auto logic_state = detail::SenseCalculator(
-        this->make_surface_visitor(), state.pos, state.temp_sense)(
-        vol, detail::find_face(vol, state.surface));
+    // Position and face state of the test point as we move across progressive
+    // surfaces.
+    // TODO: use rvalue references for local state since it's temporary; update
+    // its \c pos in place
+    Real3 pos{state.pos};
+    detail::OnFace on_face(detail::find_face(vol, state.surface));
 
+    // NOTE: if switching to the "eager" SenseCalculator, this must be moved
+    // inside the loop, since it recalculates senses only on construction.
+    detail::LazySenseCalculator calc_sense{
+        this->make_surface_visitor(), vol, pos, on_face};
+
+    // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(is_inside(logic_state.senses));
+    CELER_ASSERT(is_inside(calc_sense));
+
+    // previous isect distance for move delta
+    real_type previous_distance{0};
 
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].
@@ -544,23 +554,30 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     {
         // Index into the distance/face arrays
         size_type const isect = state.temp_next.isect[isect_idx];
-        // Face being crossed in this ordered intersection
-        FaceId face = state.temp_next.face[isect];
-        // Flip the sense of the face being crossed
-        Sense new_sense = flip_sense(logic_state.senses[face.get()]);
-        logic_state.senses[face.unchecked_get()] = new_sense;
-        if (!is_inside(logic_state.senses))
+        real_type const distance = state.temp_next.distance[isect];
+
+        // Update face state *before* movement, then position
+        on_face = [&] {
+            FaceId face{state.temp_next.face[isect]};
+
+            // Calculate sense from old position
+            return detail::OnFace{face, flip_sense(calc_sense(face))};
+        }();
+        axpy(distance - previous_distance, state.dir, &pos);
+
+        if (!is_inside(calc_sense))
         {
             // Flipping this sense puts us outside the current volume: in
             // other words, only after crossing all the internal surfaces along
             // this direction do we hit a surface that actually puts us
             // outside.
-            Intersection result;
-            result.surface = {vol.get_surface(face), flip_sense(new_sense)};
-            result.distance = state.temp_next.distance[isect];
-            CELER_ENSURE(result.distance > 0 && !std::isinf(result.distance));
-            return result;
+            CELER_ENSURE(distance > 0 && !std::isinf(distance));
+            // Return the intersecting face and *pre*-crossing sense.
+            return {
+                {vol.get_surface(on_face.id()), flip_sense(on_face.sense())},
+                distance};
         }
+        previous_distance = distance;
     }
 
     // No intersection: perhaps leaving an exterior volume? Perhaps geometry
@@ -590,8 +607,10 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
  * volume (alternatively we could introduce a mapping between Face and
  * LocalSurfaceId).
  */
-CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
-    LocalState const& state, size_type num_isect) const -> Intersection
+CELER_FUNCTION auto
+SimpleUnitTracker::background_intersect(LocalState const& state,
+                                        size_type num_isect) const
+    -> Intersection
 {
     // Calculate bump distance
     real_type const bump_dist
@@ -616,14 +635,15 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
 
         // Loop over volumes connected to this surface.
         //! \todo Accelerate by intersecting neighbors with BVH grid
-        for (LocalVolumeId vid : this->get_neighbors(surface))
+        for (LocalVolumeId vol_id : this->get_neighbors(surface))
         {
-            CELER_ASSERT(vid != state.volume);
-            VolumeView vol = this->make_local_volume(vid);
-            auto logic_state = detail::SenseCalculator{
-                this->make_surface_visitor(), pos, state.temp_sense}(vol);
+            CELER_ASSERT(vol_id != state.volume);
+            VolumeView vol = this->make_local_volume(vol_id);
+            detail::OnFace face;
+            auto calc_senses = detail::LazySenseCalculator{
+                this->make_surface_visitor(), vol, pos, face};
 
-            if (detail::LogicEvaluator{vol.logic()}(logic_state.senses))
+            if (detail::LogicEvaluator{vol.logic()}(calc_senses))
             {
                 // We are in this new volume by crossing the tested surface.
                 // Get the sense corresponding to this "crossed" surface.
@@ -633,8 +653,7 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
                 Intersection result;
                 result.distance = state.temp_next.distance[isect];
                 result.surface = detail::OnLocalSurface{
-                    surface,
-                    flip_sense(logic_state.senses[face.unchecked_get()])};
+                    surface, flip_sense(calc_senses(face))};
                 return result;
             }
         }
@@ -659,9 +678,9 @@ SimpleUnitTracker::make_surface_visitor() const
  * Create a Volume view object from the params for this unit.
  */
 CELER_FORCEINLINE_FUNCTION VolumeView
-SimpleUnitTracker::make_local_volume(LocalVolumeId vid) const
+SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const
 {
-    return VolumeView{params_, unit_record_, vid};
+    return VolumeView{params_, unit_record_, vol_id};
 }
 
 //---------------------------------------------------------------------------//

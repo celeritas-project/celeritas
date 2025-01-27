@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ModelImporter.test.cc
@@ -10,7 +9,6 @@
 #include <algorithm>
 
 #include "celeritas/Types.hh"
-#include "celeritas/optical/ModelBuilder.hh"
 #include "celeritas/optical/model/AbsorptionModel.hh"
 #include "celeritas/optical/model/RayleighModel.hh"
 

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantImporter.test.cc
@@ -23,8 +22,6 @@
 #include "celeritas_test.hh"
 #include "../GeantTestBase.hh"
 
-using namespace celeritas::units;
-
 namespace celeritas
 {
 namespace test
@@ -33,6 +30,9 @@ namespace test
 // Helper functions
 namespace
 {
+
+using namespace celeritas::units;
+
 template<class Iter>
 std::vector<std::string> to_vec_string(Iter iter, Iter end)
 {
@@ -44,14 +44,14 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
     return result;
 }
 
-double to_inv_cm(double v)
+real_type to_inv_cm(real_type v)
 {
     return native_value_to<InvCmXs>(v).value();
 }
 
-double to_sec(double v)
+real_type to_sec(real_type v)
 {
-    return native_value_to<Quantity<Second>>(v).value();
+    return native_value_to<RealQuantity<Second>>(v).value();
 }
 
 auto const geant4_version = Version::from_string(celeritas_geant4_version);
@@ -256,7 +256,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":false,"pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -1028,7 +1028,8 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_DOUBLE_EQ(0.04, em_params.msc_range_factor);
     EXPECT_DOUBLE_EQ(0.6, em_params.msc_safety_factor);
     EXPECT_REAL_EQ(0.1, to_cm(em_params.msc_lambda_limit));
-    EXPECT_REAL_EQ(constants::pi, em_params.msc_theta_limit);
+    EXPECT_DOUBLE_EQ(static_cast<double>(constants::pi),
+                     em_params.msc_theta_limit);
     EXPECT_EQ(false, em_params.apply_cuts);
     EXPECT_EQ(1, em_params.screening_factor);
     EXPECT_EQ(1, em_params.angle_limit_factor);
@@ -1766,7 +1767,7 @@ TEST_F(LarSphere, optical)
     auto const& wls_mat = optical.wls;
     EXPECT_TRUE(wls_mat);
     EXPECT_REAL_EQ(3, wls_mat.mean_num_photons);
-    EXPECT_REAL_EQ(6 * nanosecond, wls_mat.time_constant);
+    EXPECT_REAL_EQ(6e-9, to_sec(wls_mat.time_constant));
     EXPECT_EQ(wls_mat.component.vector_type, wls_mfp.vector_type);
 
     std::vector<double> abslen_grid, comp_grid;

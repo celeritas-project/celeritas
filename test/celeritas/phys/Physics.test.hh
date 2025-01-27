@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/Physics.test.hh
@@ -42,6 +41,8 @@ struct PTestInput
 {
     DeviceCRef<PhysicsParamsData> params;
     DeviceRef<PhysicsStateData> states;
+    DeviceCRef<ParticleParamsData> par_params;
+    DeviceRef<ParticleStateData> par_states;
     StateCollection<PhysTestInit, Ownership::const_reference, MemSpace::device>
         inits;
 

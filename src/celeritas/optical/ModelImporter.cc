@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ModelImporter.cc
@@ -15,7 +14,6 @@
 #include "ImportedMaterials.hh"
 #include "ImportedModelAdapter.hh"
 #include "MaterialParams.hh"
-#include "ModelBuilder.hh"
 #include "model/AbsorptionModel.hh"
 #include "model/RayleighModel.hh"
 
@@ -39,8 +37,7 @@ ModelImporter::ModelImporter(ImportData const& data,
     CELER_EXPECT(std::string(data.units) == units::NativeTraits::label());
 
     input_.imported = ImportedModels::from_import(data);
-    input_.import_material
-        = ImportedMaterials::from_import(data, *input_.core_material);
+    input_.import_material = ImportedMaterials::from_import(data);
 
     CELER_ENSURE(input_.imported);
     CELER_ENSURE(input_.import_material);
@@ -65,42 +62,36 @@ ModelImporter::ModelImporter(ImportData const& data,
  * This may return a null model builder (with a warning) if the user
  * specifically requests that the model be omitted.
  */
-auto ModelImporter::operator()(IMC imc) const -> SPModelBuilder
+auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
 {
     // First, look for user-supplied models
+    if (auto user_iter = user_build_map_.find(imc);
+        user_iter != user_build_map_.end())
     {
-        auto user_iter = user_build_map_.find(imc);
-        if (user_iter != user_build_map_.end())
-        {
-            return user_iter->second(input_);
-        }
+        return user_iter->second(input_);
     }
 
-    using BuilderMemFn = SPModelBuilder (ModelImporter::*)() const;
+    using BuilderMemFn = ModelBuilder (ModelImporter::*)() const;
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
         {IMC::absorption, &ModelImporter::build_absorption},
         {IMC::rayleigh, &ModelImporter::build_rayleigh},
     };
 
     // Next, try built-in models
-    {
-        auto iter = builtin_build.find(imc);
-        CELER_VALIDATE(iter != builtin_build.end(),
-                       << "cannot build unsupported optical model '"
-                       << to_cstring(imc) << "'");
+    auto iter = builtin_build.find(imc);
+    CELER_VALIDATE(iter != builtin_build.end(),
+                   << "cannot build unsupported optical model '"
+                   << to_cstring(imc) << "'");
 
-        BuilderMemFn build_impl{iter->second};
-        auto result = (this->*build_impl)();
-        CELER_ENSURE(result);
-        return result;
-    }
+    BuilderMemFn build_impl{iter->second};
+    return (this->*build_impl)();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create absorption model builder.
  */
-auto ModelImporter::build_absorption() const -> SPModelBuilder
+auto ModelImporter::build_absorption() const -> ModelBuilder
 {
     return AbsorptionModel::make_builder(this->imported());
 }
@@ -109,7 +100,7 @@ auto ModelImporter::build_absorption() const -> SPModelBuilder
 /*!
  * Create Rayleigh model builder.
  */
-auto ModelImporter::build_rayleigh() const -> SPModelBuilder
+auto ModelImporter::build_rayleigh() const -> ModelBuilder
 {
     return RayleighModel::make_builder(
         this->imported(),
@@ -121,11 +112,12 @@ auto ModelImporter::build_rayleigh() const -> SPModelBuilder
 /*!
  * Warn the model is missing and return a null result.
  */
-auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const -> SPModelBuilder
+auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const
+    -> std::optional<ModelBuilder>
 {
     CELER_LOG(warning) << "Omitting '" << to_cstring(model)
                        << "' from the optical physics model list";
-    return nullptr;
+    return std::nullopt;
 }
 
 //---------------------------------------------------------------------------//

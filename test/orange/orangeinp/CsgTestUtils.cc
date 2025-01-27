@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/CsgTestUtils.cc
@@ -171,7 +170,7 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
     {
         std::ostringstream os;
         os << node.unchecked_get() << ": t=";
-        if (auto t = reg.transform_id)
+        if (auto t = reg.trans_id)
         {
             os << t.unchecked_get();
             if (t < u.transforms.size())
@@ -236,7 +235,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
                 os << "<MISSING>";
             }
             os << ", t=";
-            if (auto t = d->transform_id)
+            if (auto t = d->trans_id)
             {
                 os << t.unchecked_get();
             }

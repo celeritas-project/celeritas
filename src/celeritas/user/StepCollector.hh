@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/StepCollector.hh
@@ -41,6 +40,10 @@ class StepParams;
  * detectors" (mapping volume IDs to detector IDs and ignoring unmapped
  * volumes) and supporting unfiltered output for "MC truth" . Right now only
  * one or the other can be used, not both.
+ *
+ * \todo Like the optical collector, this class is not used after it's created:
+ * it just serves to create helper classes. Perhaps move to the \c setup
+ * namespace?
  */
 class StepCollector
 {

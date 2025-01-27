@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/MaterialParams.hh
@@ -53,6 +52,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         std::vector<ImportOpticalProperty> properties;
         //! Map logical volume ID to optical material ID
         std::vector<OpticalMaterialId> volume_to_mat;
+        //! Map optical material ID to core material ID
+        std::vector<CoreMaterialId> optical_to_core;
     };
 
   public:
@@ -69,7 +70,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     inline OpticalMaterialId::size_type num_materials() const;
 
     // Construct a material view for the given identifier
-    inline MaterialView get(OpticalMaterialId mat) const;
+    MaterialView get(OpticalMaterialId mat) const;
 
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -90,15 +91,6 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 OpticalMaterialId::size_type MaterialParams::num_materials() const
 {
     return this->host_ref().refractive_index.size();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a material view for the given identifier.
- */
-MaterialView MaterialParams::get(OpticalMaterialId mat) const
-{
-    return MaterialView(this->host_ref(), mat);
 }
 
 //---------------------------------------------------------------------------//

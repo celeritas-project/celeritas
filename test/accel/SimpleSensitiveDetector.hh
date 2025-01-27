@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/SimpleSensitiveDetector.hh
@@ -19,6 +18,7 @@ namespace test
 struct SimpleHitsResult
 {
     std::vector<double> energy_deposition;  // [MeV]
+    std::vector<double> step_length;  // [cm]
     std::vector<std::string> particle;
     std::vector<double> pre_energy;  // [MeV]
     std::vector<double> pre_pos;  // [cm]

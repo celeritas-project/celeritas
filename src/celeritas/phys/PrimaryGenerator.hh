@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/PrimaryGenerator.hh
@@ -9,6 +8,7 @@
 
 #include <functional>
 #include <memory>
+#include <random>
 #include <vector>
 
 #include "celeritas/Types.hh"
@@ -22,6 +22,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class ParticleParams;
 struct Primary;
+namespace inp
+{
+struct PrimaryGenerator;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,37 +36,31 @@ struct Primary;
  * distributions. If more than one PDG number is specified, an equal number of
  * each particle type will be produced. Each \c operator() call will return a
  * single event until \c num_events events have been generated.
+ *
+ * \todo Refactor generators so that event ID is an input and vector of
+ * primaries (which won't have an event ID) is output.
  */
 class PrimaryGenerator : public EventReaderInterface
 {
   public:
     //!@{
     //! \name Type aliases
+    using PrimaryGeneratorEngine = std::mt19937;
     using EnergySampler = std::function<real_type(PrimaryGeneratorEngine&)>;
     using PositionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
     using DirectionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using result_type = std::vector<Primary>;
+    using Input = inp::PrimaryGenerator;
     //!@}
 
-    struct Input
-    {
-        unsigned int seed{};
-        std::vector<PDGNumber> pdg;
-        size_type num_events{};
-        size_type primaries_per_event{};
-        EnergySampler sample_energy;
-        PositionSampler sample_pos;
-        DirectionSampler sample_dir;
-    };
-
   public:
-    // Construct from user input
+    // Construct from user input (deprecated)
     static PrimaryGenerator
     from_options(SPConstParticles, PrimaryGeneratorOptions const&);
 
-    // Construct with options and shared particle data
-    PrimaryGenerator(SPConstParticles, Input const&);
+    // Construct from shared particle data and new input
+    PrimaryGenerator(Input const&, ParticleParams const& particles);
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(PrimaryGenerator);
@@ -74,9 +72,13 @@ class PrimaryGenerator : public EventReaderInterface
     //! Get total number of events
     size_type num_events() const override { return num_events_; }
 
+    // Reseed RNG for interaction with celer-g4
+    void seed(UniqueEventId);
+
   private:
     size_type num_events_{};
     size_type primaries_per_event_{};
+    unsigned int seed_{};
     EnergySampler sample_energy_;
     PositionSampler sample_pos_;
     DirectionSampler sample_dir_;

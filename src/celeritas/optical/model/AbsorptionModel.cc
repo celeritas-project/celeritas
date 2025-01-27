@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/model/AbsorptionModel.cc
@@ -19,40 +18,14 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Builder for the optical absorption model.
- */
-class AbsorptionModelBuilder final : public ModelBuilder
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPModel = ModelBuilder::SPModel;
-    using SPConstImported = AbsorptionModel::SPConstImported;
-    //!@}
-
-  public:
-    AbsorptionModelBuilder(SPConstImported imported) : imported_(imported)
-    {
-        CELER_EXPECT(imported_);
-    }
-
-    SPModel operator()(ActionId id) const final
-    {
-        return std::make_shared<AbsorptionModel>(id, imported_);
-    }
-
-  private:
-    SPConstImported imported_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Create a model builder for the optical absorption model.
  */
-std::shared_ptr<ModelBuilder>
-AbsorptionModel::make_builder(SPConstImported imported)
+auto AbsorptionModel::make_builder(SPConstImported imported) -> ModelBuilder
 {
-    return std::make_shared<AbsorptionModelBuilder>(imported);
+    CELER_EXPECT(imported);
+    return [i = std::move(imported)](ActionId id) {
+        return std::make_shared<AbsorptionModel>(id, i);
+    };
 }
 
 //---------------------------------------------------------------------------//

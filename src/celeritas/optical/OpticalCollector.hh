@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/OpticalCollector.hh
@@ -55,7 +54,8 @@ class ScintGeneratorAction;
  * optical params since it's the only thing that launches the optical stepping
  * loop.
  *
- * \todo Rename to OpticalOffload
+ * \todo This doesn't do anything but set up the optical tracking loop: move to
+ * \c setup namespace
  */
 class OpticalCollector
 {
@@ -128,8 +128,6 @@ class OpticalCollector
     SPCherenkovGenAction cherenkov_gen_action_;
     SPScintGenAction scint_gen_action_;
     SPLaunchAction launch_action_;
-
-    // TODO: tracking loop launch action
 };
 
 //---------------------------------------------------------------------------//

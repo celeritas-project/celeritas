@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -25,6 +24,7 @@ list(APPEND SOURCES
   SimpleOffload.cc
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
+  detail/HitManagerOutput.cc
   detail/HitProcessor.cc
   detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc

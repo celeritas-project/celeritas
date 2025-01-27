@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/msc/UrbanMsc.hh
@@ -82,8 +81,7 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
         return false;
 
     auto par = track.make_particle_view();
-    if (par.particle_id() != shared_.ids.electron
-        && par.particle_id() != shared_.ids.positron)
+    if (!shared_.pid_to_xs[par.particle_id()])
         return false;
 
     return par.energy() > shared_.params.low_energy_limit
@@ -131,10 +129,11 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
         }
 
         auto rng = track.make_rng_engine();
-        displaced = true;
 
-        if (phys.scalars().step_limit_algorithm
-            == MscStepLimitAlgorithm::minimal)
+        auto const& scalars = phys.particle_scalars();
+        displaced = scalars.displaced;
+
+        if (scalars.step_limit_algorithm == MscStepLimitAlgorithm::minimal)
         {
             // Calculate step limit using "minimal" algorithm
             detail::UrbanMscMinimalStepLimit calc_limit(shared_,
@@ -148,7 +147,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
         // Calculate step limit using "safety" or "safety plus" algorithm
         detail::UrbanMscSafetyStepLimit calc_limit(shared_,
                                                    msc_helper,
-                                                   par.energy(),
+                                                   par,
                                                    &phys,
                                                    phys.material_id(),
                                                    geo.is_on_boundary(),

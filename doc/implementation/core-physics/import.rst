@@ -1,11 +1,13 @@
-.. Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
 .. _api_importdata:
 
 Imported data
 =============
+
+.. note:: These classes will be merged into the problem input definition
+   :ref:`input`.
 
 Celeritas reads physics data from Geant4 (or from a ROOT file exported from
 data previously loaded into Geant4). Different versions of Geant4 (and Geant4

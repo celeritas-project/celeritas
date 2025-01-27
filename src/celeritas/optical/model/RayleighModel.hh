@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/model/RayleighModel.hh
@@ -9,6 +8,7 @@
 
 #include "../ImportedModelAdapter.hh"
 #include "../Model.hh"
+#include "../Types.hh"
 
 namespace celeritas
 {
@@ -17,7 +17,6 @@ struct ImportOpticalRayleigh;
 
 namespace optical
 {
-struct ModelBuilder;
 class ImportedMaterials;
 class MaterialParams;
 //---------------------------------------------------------------------------//
@@ -52,7 +51,7 @@ class RayleighModel : public Model
 
   public:
     // Create a model builder from imported data and material parameters
-    static std::shared_ptr<ModelBuilder> make_builder(SPConstImported, Input);
+    static ModelBuilder make_builder(SPConstImported, Input);
 
     // Construct with imported data and imported material parameters
     RayleighModel(ActionId id, SPConstImported imported, Input input);

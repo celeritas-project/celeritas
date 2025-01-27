@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/model/RayleighModel.cc
@@ -16,7 +15,6 @@
 #include "../ImportedMaterials.hh"
 #include "../MaterialParams.hh"
 #include "../MfpBuilder.hh"
-#include "../ModelBuilder.hh"
 
 namespace celeritas
 {
@@ -24,45 +22,17 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Builder for optical Rayleigh scattering model.
- */
-class RayleighModelBuilder final : public ModelBuilder
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPModel = ModelBuilder::SPModel;
-    using SPConstImported = RayleighModel::SPConstImported;
-    using Input = RayleighModel::Input;
-    //!@}
-
-  public:
-    RayleighModelBuilder(SPConstImported imported, Input input)
-        : imported_(std::move(imported)), input_(std::move(input))
-    {
-        CELER_EXPECT(imported_);
-    }
-
-    SPModel operator()(ActionId id) const final
-    {
-        return std::make_shared<RayleighModel>(id, imported_, input_);
-    }
-
-  private:
-    SPConstImported imported_;
-    Input input_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Create a model builder for Rayleigh scattering from imported data and
  * material parameters.
  */
-std::shared_ptr<ModelBuilder>
-RayleighModel::make_builder(SPConstImported imported, Input input)
+auto RayleighModel::make_builder(SPConstImported imported,
+                                 Input input) -> ModelBuilder
 {
-    return std::make_shared<RayleighModelBuilder>(std::move(imported),
-                                                  std::move(input));
+    CELER_EXPECT(imported);
+    return [imported = std::move(imported),
+            input = std::move(input)](ActionId id) {
+        return std::make_shared<RayleighModel>(id, imported, input);
+    };
 }
 
 //---------------------------------------------------------------------------//
@@ -114,15 +84,15 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
     }
     else
     {
-        auto core_mat_view = input_.core_materials->get(
-            input_.imported_materials->core_material_id(mat));
+        auto mat_view = input_.materials->get(mat);
+        auto core_mat_view
+            = input_.core_materials->get(mat_view.core_material_id());
         CELER_VALIDATE(core_mat_view.temperature() > 0,
                        << "calculating Rayleigh MFPs from material parameters "
                           "requires positive temperatures");
 
-        RayleighMfpCalculator calc_mfp(input_.materials->get(mat),
-                                       input_.imported_materials->rayleigh(mat),
-                                       core_mat_view);
+        RayleighMfpCalculator calc_mfp(
+            mat_view, input_.imported_materials->rayleigh(mat), core_mat_view);
 
         // Use index of refraction energy grid as calculated MFP energy grid
         auto const& energy_grid = calc_mfp.grid().values();

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/VecgeomParams.cc
@@ -253,10 +252,11 @@ void VecgeomParams::build_volumes_vgdml(std::string const& filename)
     ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
 
 #ifdef VECGEOM_GDML
-    vgdml::Frontend::Load(filename,
-                          /* validate_xml_schema = */ false,
-                          /* mm_unit = */ lengthunits::millimeter,
-                          /* verbose = */ vecgeom_verbosity());
+    vgdml::Frontend::Load(
+        filename,
+        /* validate_xml_schema = */ false,
+        /* mm_unit = */ static_cast<double>(lengthunits::millimeter),
+        /* verbose = */ vecgeom_verbosity());
 #else
     CELER_DISCARD(filename);
     CELER_NOT_CONFIGURED("VGDML");
@@ -279,8 +279,15 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     g4log_volid_map_.reserve(result.logical_volumes.size());
     for (auto vol_idx : range(result.logical_volumes.size()))
     {
-        auto&& [iter, inserted] = g4log_volid_map_.insert(
-            {result.logical_volumes[vol_idx], id_cast<VolumeId>(vol_idx)});
+        auto const* lv = result.logical_volumes[vol_idx];
+        if (lv == nullptr)
+        {
+            // VecGeom creates fake volumes for boolean volumes
+            continue;
+        }
+
+        auto&& [iter, inserted]
+            = g4log_volid_map_.insert({lv, id_cast<VolumeId>(vol_idx)});
         if (CELER_UNLIKELY(!inserted))
         {
             // This shouldn't happen...

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ModelImporter.hh
@@ -9,10 +8,14 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
 #include "celeritas/io/ImportOpticalModel.hh"
+
+#include "Model.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -23,7 +26,6 @@ struct ImportWavelengthShift;
 
 namespace optical
 {
-struct ModelBuilder;
 class MaterialParams;
 class ImportedModels;
 class ImportedMaterials;
@@ -42,7 +44,6 @@ class ModelImporter
     using SPConstImportedMaterial = std::shared_ptr<ImportedMaterials const>;
     using SPConstCoreMaterial
         = std::shared_ptr<::celeritas::MaterialParams const>;
-    using SPModelBuilder = std::shared_ptr<ModelBuilder>;
     //!@}
 
     //! Input argument for user-provided process construction
@@ -56,8 +57,9 @@ class ModelImporter
 
     //!@{
     //! \name User builder type aliases
+    using ModelBuilder = Model::ModelBuilder;
     using UserBuildFunction
-        = std::function<SPModelBuilder(UserBuildInput const&)>;
+        = std::function<std::optional<ModelBuilder>(UserBuildInput const&)>;
     using UserBuildMap = std::unordered_map<IMC, UserBuildFunction>;
     //!@}
 
@@ -74,25 +76,25 @@ class ModelImporter
                   SPConstCoreMaterial core_material);
 
     // Create a model builder from the data
-    SPModelBuilder operator()(IMC imc) const;
+    std::optional<ModelBuilder> operator()(IMC imc) const;
 
   private:
     UserBuildInput input_;
     UserBuildMap user_build_map_;
 
-    inline SPConstImported const imported() const { return input_.imported; }
-    inline SPConstMaterial const material() const { return input_.material; }
-    inline SPConstImportedMaterial const import_material() const
+    SPConstImported const& imported() const { return input_.imported; }
+    SPConstMaterial const& material() const { return input_.material; }
+    SPConstImportedMaterial const& import_material() const
     {
         return input_.import_material;
     }
-    inline SPConstCoreMaterial const core_material() const
+    SPConstCoreMaterial const& core_material() const
     {
         return input_.core_material;
     }
 
-    SPModelBuilder build_absorption() const;
-    SPModelBuilder build_rayleigh() const;
+    ModelBuilder build_absorption() const;
+    ModelBuilder build_rayleigh() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -107,11 +109,11 @@ struct WarnAndIgnoreModel
     //!@{
     //! \name Type aliases
     using UserBuildInput = ModelImporter::UserBuildInput;
-    using SPModelBuilder = typename ModelImporter::SPModelBuilder;
+    using ModelBuilder = ModelImporter::ModelBuilder;
     //!@}
 
     // Warn about a missing optical model and ignore it
-    SPModelBuilder operator()(UserBuildInput const&) const;
+    std::optional<ModelBuilder> operator()(UserBuildInput const&) const;
 
     //! Missing optical model to warn about
     ImportModelClass model;

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/LocalTransporter.hh
@@ -104,6 +103,10 @@ class LocalTransporter
     size_type auto_flush_{};
     size_type max_step_iters_{};
     double buffer_energy_{0};
+
+    std::size_t accum_num_events_{0};
+    std::size_t accum_num_primaries_{0};
+    std::size_t accum_num_steps_{0};
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;

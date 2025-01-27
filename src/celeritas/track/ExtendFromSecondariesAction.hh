@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/ExtendFromSecondariesAction.hh
@@ -77,6 +76,7 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
 
     //!@{
     //! \name Action interface
+
     //! ID of the action
     ActionId action_id() const final { return id_; }
     //! Short name for the action
@@ -89,6 +89,7 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
 
     //!@{
     //! \name ExplicitAction interface
+
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
@@ -97,6 +98,7 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
 
     //!@{
     //! \name BeginRunAction interface
+
     // No action necessary for host data
     void begin_run(CoreParams const&, CoreStateHost&) final {}
     // Warm up asynchronous allocation at beginning of run

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/ProtoMap.cc
@@ -64,15 +63,15 @@ std::vector<ProtoInterface const*> build_ordering(ProtoInterface const& global)
 ProtoMap::ProtoMap(ProtoInterface const& global)
     : protos_{build_ordering(global)}
 {
-    uids_.reserve(protos_.size());
-    for (auto uid : range(UniverseId{this->size()}))
+    univ_ids_.reserve(protos_.size());
+    for (auto univ_id : range(UniverseId{this->size()}))
     {
-        ProtoInterface const* p = this->at(uid);
+        ProtoInterface const* p = this->at(univ_id);
         CELER_ASSERT(p);
-        auto&& [iter, inserted] = uids_.insert({p, uid});
+        auto&& [iter, inserted] = univ_ids_.insert({p, univ_id});
         CELER_ASSERT(inserted);
     }
-    CELER_ENSURE(uids_.size() == protos_.size());
+    CELER_ENSURE(univ_ids_.size() == protos_.size());
 }
 
 //---------------------------------------------------------------------------//

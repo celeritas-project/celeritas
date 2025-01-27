@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/Constant.hh"
 #include "corecel/math/UnitUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/UnitTypes.hh"
@@ -20,10 +21,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 //! Special partly-natural unit [MeV / len]
-using MevPerLen = Quantity<UnitDivide<units::Mev, units::Native>>;
+using MevPerLen = RealQuantity<UnitDivide<units::Mev, units::Native>>;
 
 //! Migdal's constant used for Bremsstrahlung [len^3]
-CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
+CELER_CONSTEXPR_FUNCTION Constant migdal_constant()
 {
     using namespace constants;
 
@@ -38,16 +39,15 @@ CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
  * \f$ E_\textrm{LPM} = \frac{\alpha m^2 X_0}{2 h c} \f$, where
  * \f$ X_0 \f$ is the radiation length of the material. Note that some papers
  * define \f$ E_\textrm{LPM} \f$ as a factor of two smaller and others as a
- * factor of 8 larger (see S. Klein, Suppression of bremsstrahlung and pair
- * production due to environmental factors, Rev. Mod. Phys. 71 (1999)
- * 1501-1538). The Geant4 Physics Reference Manual (Eq. 10.17) has an
- * extra factor of two in the denominator.
+ * factor of 8 larger: see \cite{klein-lpm-1999}.
+ * The Geant4 Physics Reference Manual (Eq. 10.17) \cite{g4prm} has
+ * an extra factor of two in the denominator.
  */
 CELER_CONSTEXPR_FUNCTION MevPerLen lpm_constant()
 {
     using namespace constants;
 
-    constexpr real_type electron_mass_csq = electron_mass * ipow<2>(c_light);
+    constexpr auto electron_mass_csq = electron_mass * ipow<2>(c_light);
 
     return native_value_to<MevPerLen>(alpha_fine_structure
                                       * ipow<2>(electron_mass_csq)

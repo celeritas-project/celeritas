@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/CollectionStateStore.hh
@@ -78,8 +77,6 @@ class CollectionStateStore
     inline CollectionStateStore& operator=(S<W2, M2> const& other);
 
     //! Default move, delete copy (since ref "points to" val)
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_MOVE_DELETE_COPY(CollectionStateStore);
 
     //! Whether any data is being stored

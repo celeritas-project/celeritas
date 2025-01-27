@@ -1,5 +1,4 @@
-.. Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
 .. _references:
@@ -15,6 +14,5 @@ References
 
    .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
 
-.. bibliography:: ../_static/references.bib
-   :all:
+.. bibliography:: ../_static/zotero.bib
 

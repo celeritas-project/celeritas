@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantImporter.hh
@@ -18,6 +17,7 @@
 
 // Geant4 forward declaration
 class G4VPhysicalVolume;  // IWYU pragma: keep
+class G4ParticleDefinition;  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -97,11 +97,14 @@ class GeantImporter final : public ImporterInterface
     GeantSetup setup_;
     // World physical volume
     G4VPhysicalVolume const* world_{nullptr};
-
-    //// HELPER FUNCTIONS ////
-
-    std::vector<ImportVolume> import_volumes(bool unique_volumes) const;
 };
+
+//---------------------------------------------------------------------------//
+
+std::vector<ImportVolume>
+import_volumes(G4VPhysicalVolume const& world, bool unique_volumes);
+
+ImportParticle import_particle(G4ParticleDefinition const& p);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

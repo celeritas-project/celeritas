@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/Environment.hh
@@ -73,6 +72,14 @@ class Environment
 
     // Insert (not overriding!) from another environment
     void merge(Environment const& other);
+
+    //!@{
+    //! Access all entries, unordered, by const iterator
+    const_iterator begin() const { return vars_.cbegin(); }
+    const_iterator cbegin() const { return vars_.cbegin(); }
+    const_iterator end() const { return vars_.cend(); }
+    const_iterator cend() const { return vars_.cend(); }
+    //!@}
 
   private:
     std::unordered_map<key_type, mapped_type> vars_;

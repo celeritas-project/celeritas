@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ImportedMaterials.test.cc
@@ -27,8 +26,8 @@ class ImportedMaterialsTest : public OpticalMockTestBase
   protected:
     void SetUp() override
     {
-        imported_materials = ImportedMaterials::from_import(
-            this->imported_data(), *this->material());
+        imported_materials
+            = ImportedMaterials::from_import(this->imported_data());
     }
 
     std::shared_ptr<ImportedMaterials const> imported_materials;
@@ -43,10 +42,6 @@ TEST_F(ImportedMaterialsTest, simple)
     for (auto opt_mat :
          range(OpticalMaterialId{imported_materials->num_materials()}))
     {
-        // Core material mapping
-        EXPECT_EQ(::celeritas::MaterialId{opt_mat.get()},
-                  imported_materials->core_material_id(opt_mat));
-
         // Rayleigh data
         {
             auto const& expected_rayleigh

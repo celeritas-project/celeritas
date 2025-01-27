@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/action/detail/PreStepExecutor.hh
@@ -32,6 +31,11 @@ struct PreStepExecutor
 CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
 {
     auto sim = track.sim();
+    if (sim.status() == TrackStatus::killed)
+    {
+        // Deactivate tracks killed in previous loop
+        sim.status(TrackStatus::inactive);
+    }
     if (sim.status() == TrackStatus::inactive)
     {
         // Clear step limit and actions for an empty track slot

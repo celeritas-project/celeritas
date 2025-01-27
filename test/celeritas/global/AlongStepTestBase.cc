@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstepTestBase.cc
@@ -24,12 +23,15 @@
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-using TimeSecond = celeritas::Quantity<celeritas::units::Second>;
-
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+using TimeSecond = RealQuantity<celeritas::units::Second>;
+}
+
 //---------------------------------------------------------------------------//
 auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 {

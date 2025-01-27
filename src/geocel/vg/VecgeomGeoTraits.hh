@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/VecgeomGeoTraits.hh
@@ -41,10 +40,10 @@ struct GeoTraits<VecgeomParams>
     using TrackView = VecgeomTrackView;
 
     //! Descriptive name for the geometry
-    static constexpr inline char const* name = "VecGeom";
+    static constexpr char const* name = "VecGeom";
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr inline char const* ext = ".gdml";
+    static constexpr char const* ext = ".gdml";
 };
 #else
 //! VecGeom is unavailable

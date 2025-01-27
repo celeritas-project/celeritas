@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -8,6 +7,7 @@ set(SOURCES
   celer-sim.cc
   Runner.cc
   RunnerOutput.cc
+  RunnerInput.cc
   RunnerInputIO.json.cc
   Transporter.cc
 )

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/MscTestBase.cc
@@ -74,7 +73,7 @@ MscTestBase::make_phys_view(ParticleTrackView const& par,
 
     // Initialize physics
     PhysicsTrackView phys_view(
-        host_ref, physics_state_.ref(), par.particle_id(), mid, TrackSlotId{0});
+        host_ref, physics_state_.ref(), par, mid, TrackSlotId{0});
     phys_view = PhysicsTrackInitializer{};
 
     // Calculate and store the energy loss (dedx) range limit

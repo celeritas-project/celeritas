@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/IntersectSurfaceState.hh
@@ -33,6 +32,7 @@ struct IntersectSurfaceState
 {
     //!@{
     //! \name Input state
+
     //! Local-to-global transform
     VariantTransform const* transform{nullptr};
     //! Name of the object being built
@@ -43,6 +43,7 @@ struct IntersectSurfaceState
 
     //!@{
     //! \name Output state
+
     //! Local (to intersecting surface state) interior/exterior
     BoundingZone local_bzone = BoundingZone::from_infinite();
     //! Global (to unit) interior/exterior

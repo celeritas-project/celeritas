@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/params/detail/MscParamsHelper.hh
@@ -35,6 +34,8 @@ class MscParamsHelper
     using Energy = units::MevEnergy;
     using EnergyBounds = Array<Energy, 2>;
     using VecImportMscModel = std::vector<ImportMscModel>;
+    using IndexValues
+        = Collection<MscParticleId, Ownership::value, MemSpace::host, ParticleId>;
     using XsValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     //!@}
@@ -43,17 +44,19 @@ class MscParamsHelper
                     VecImportMscModel const&,
                     ImportModelClass);
 
-    void build_ids(CoulombIds* ids) const;
+    void build_ids(CoulombIds*, IndexValues*) const;
     void build_xs(XsValues*, Values*) const;
     EnergyBounds energy_grid_bounds() const;
+    std::vector<ParticleId> const& particle_ids() const { return par_ids_; }
 
   private:
     //// DATA ////
 
     ParticleParams const& particles_;
     ImportModelClass model_class_;
-    Array<ParticleId, 2> par_ids_;
-    Array<ImportPhysicsTable const*, 2> xs_tables_;
+    std::vector<MscParticleId> pid_to_xs_;
+    std::vector<ParticleId> par_ids_;
+    std::vector<ImportPhysicsTable const*> xs_tables_;
 };
 
 //---------------------------------------------------------------------------//

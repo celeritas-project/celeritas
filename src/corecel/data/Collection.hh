@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/Collection.hh
@@ -26,7 +25,7 @@ namespace celeritas
  * The \c Collection manages data allocation and transfer between CPU and GPU.
  * Its primary design goal is facilitating construction of deeply hierarchical
  * data on host at setup time and seamlessly copying to device.
- * The templated \c T must be trivially copyable---either a fundamental data
+ * The templated \c T must be trivially copyable: either a fundamental data
  * type or a struct of such types.
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
@@ -197,16 +196,16 @@ struct AllItems
  *
  * Data are constructed incrementally on the host, then copied (along with
  * their associated ItemRange) to device. A Collection can act as a
- * std::vector<T>, DeviceVector<T>, Span<T>, or Span<const T>. The Spans can
- * point to host or device memory, but the MemSpace template argument protects
- * against accidental accesses from the wrong memory space.
+ * \c std::vector<T>, \c DeviceVector<T>, \c Span<T>, or \c Span<const T>. The
+ * Spans can point to host or device memory, but the \c MemSpace template
+ * argument protects against accidental accesses from the wrong memory space.
  *
  * Each Collection object is usually accessed with an ItemRange, which
- * references a
- * contiguous set of elements in the Collection. For example, setup code on the
- * host would extend the Collection with a series of vectors, the addition of
- * which returns a ItemRange that returns the equivalent data on host or
- * device. This methodology allows complex nested data structures to be built
+ * references a contiguous set of elements in the Collection.
+ * For example, setup code on the host would extend the Collection with a
+ * series of vectors, the addition of which returns a ItemRange that returns
+ * the equivalent data on host or device.
+ * This methodology allows complex nested data structures to be built
  * up quickly at setup time without knowing the size requirements beforehand.
  *
  * Host-device functions and classes should use \c Collection with a reference
@@ -218,24 +217,26 @@ struct AllItems
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
  *
- * A \c MemSpace::Mapped collection will be accessible on the host and the
- * device. Unified addressing must be supported by the current device or an
- * exception will be thrown when using the collection. Mapped pinned memory
- * (i.e. zero-copy memory) is allocated, pages will always reside on host
- * memory and each access from device code will require a slow memory transfer.
- * Allocating pinned memory is slow and reduce the memory available to the
- * system: only allocate the smallest amount needed with the longest possible
- * lifetime. Frequently accessing data from device code will result in low
- * performance. Usecase for this MemSapce are: as a src / dst memory space for
- * asynchronous operations, on integrated GPU architecture, or a single
- * coalesced read or write from device code.
- * https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy
+ * A \c MemSpace::Mapped collection will be accessible on both host and
+ * device. Unified addressing must be supported by the current device, or an
+ * exception will be thrown when initializing the collection. Memory pages will
+ * reside on in "pinned" memory on host, and each access from device code to a
+ * changed page will require a slow memory transfer.
+ * Allocating pinned memory is slow and reduces the memory available to the
+ * system: so only allocate the smallest amount needed with the longest
+ * possible lifetime.
+ * Frequently accessing data from device code will result in low performance.
+ * Use case for mapped memory are:
+ * - as a source or destination memory space for asynchronous operations,
+ * - on integrated GPU architecture, or
+ * - a [single coalesced read or write from device code](
+ https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy).
  *
  * Accessing a \c const_reference collection in \c device memory will return a
  * wrapper container that accesses the low-level data through the \c __ldg
  * primitive, which can accelerate random access by telling the compiler
  * <em>the memory will not be changed during the lifetime of the kernel</em>.
- * Therefore it is important to \em only use Collections for shared,
+ * Therefore it is important to \em only use const Collections for shared,
  * constant "params" data.
  */
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
@@ -267,8 +268,8 @@ class Collection
     using AllItemsT = AllItems<T, M>;
     //!@}
 
-    static constexpr inline Ownership ownership = W;
-    static constexpr inline MemSpace memspace = M;
+    static constexpr Ownership ownership = W;
+    static constexpr MemSpace memspace = M;
 
   public:
     //// CONSTRUCTION ////
@@ -277,8 +278,6 @@ class Collection
     //! Default constructors
     Collection() = default;
     Collection(Collection const&) = default;
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection(Collection&&) = default;
     //!@}
 
@@ -295,8 +294,6 @@ class Collection
     //!@{
     //! Default assignment
     Collection& operator=(Collection const& other) = default;
-    // TODO Remove in clang-tidy-18
-    // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     Collection& operator=(Collection&& other) = default;
     //!@}
 

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/KernelContextException.hh
@@ -65,6 +64,7 @@ class KernelContextException : public RichContextException
 
     //!@{
     //! \name Track accessors
+
     //! Kernel thread ID
     ThreadId thread() const { return thread_; }
     //! Track slot ID

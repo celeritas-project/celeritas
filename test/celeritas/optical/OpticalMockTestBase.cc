@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/OpticalMockTestBase.cc
@@ -23,14 +22,14 @@ namespace test
 //---------------------------------------------------------------------------//
 struct Kelvin
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::kelvin; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return units::kelvin; }
 
     static char const* label() { return "K"; }
 };
 
 struct MeterCubedPerMeV
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return ipow<3>(units::meter) / units::Mev::value();
     }
@@ -57,12 +56,12 @@ native_physics_vector_from(std::vector<double> xs, std::vector<double> ys)
     for (double& x : v.x)
     {
         x = value_as<units::MevEnergy>(native_value_to<units::MevEnergy>(
-            native_value_from(Quantity<GridUnit>(x))));
+            native_value_from(RealQuantity<GridUnit>(x))));
     }
 
     for (double& y : v.y)
     {
-        y = native_value_from(Quantity<ValueUnit>(y));
+        y = native_value_from(RealQuantity<ValueUnit>(y));
     }
 
     return v;
@@ -109,6 +108,12 @@ auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
             OpticalMaterialId(opt_mat % input.properties.size()));
     }
 
+    // mock MaterialId == OpticalMaterialId
+    for (auto mat : range(MaterialId(input.properties.size())))
+    {
+        input.optical_to_core.push_back(mat);
+    }
+
     return std::make_shared<MaterialParams const>(std::move(input));
 }
 
@@ -123,7 +128,7 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
     ::celeritas::MaterialParams::Input input;
 
     static constexpr auto material_temperatures
-        = native_array_from<Quantity<Kelvin>>(
+        = native_array_from<RealQuantity<Kelvin>>(
             283.15, 300.0, 283.15, 200., 300.0);
 
     // Unused element - only to pass checks
@@ -169,6 +174,7 @@ ImportData const& OpticalMockTestBase::imported_data() const
 void OpticalMockTestBase::build_import_data(ImportData& data) const
 {
     data.units = units::NativeTraits::label();
+    using Compressibility = RealQuantity<MeterCubedPerMeV>;
 
     // Build mock imported optical materials
     {
@@ -180,7 +186,7 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
                 {1.3235601610672, 1.3256740639273, 1.3280120256415});
         data.optical_materials[0].rayleigh.scale_factor = 1;
         data.optical_materials[0].rayleigh.compressibility
-            = native_value_from(Quantity<MeterCubedPerMeV>{7.658e-23});
+            = native_value_from(Compressibility{7.658e-23});
 
         data.optical_materials[1].properties.refractive_index
             = native_physics_vector_from<units::ElectronVolt, units::Native>(
@@ -188,28 +194,28 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
                 {1.3235601610672, 1.3256740639273, 1.3280120256415});
         data.optical_materials[1].rayleigh.scale_factor = 1.7;
         data.optical_materials[1].rayleigh.compressibility
-            = native_value_from(Quantity<MeterCubedPerMeV>{4.213e-24});
+            = native_value_from(Compressibility{4.213e-24});
 
         data.optical_materials[2].properties.refractive_index
             = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1.098177, 6.812319}, {1.3235601610672, 1.4679465862259});
         data.optical_materials[2].rayleigh.scale_factor = 1;
         data.optical_materials[2].rayleigh.compressibility
-            = native_value_from(Quantity<MeterCubedPerMeV>{7.658e-23});
+            = native_value_from(Compressibility{7.658e-23});
 
         data.optical_materials[3].properties.refractive_index
             = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1, 2, 5}, {1.3, 1.4, 1.5});
         data.optical_materials[3].rayleigh.scale_factor = 2;
         data.optical_materials[3].rayleigh.compressibility
-            = native_value_from(Quantity<MeterCubedPerMeV>{1e-20});
+            = native_value_from(Compressibility{1e-20});
 
         data.optical_materials[4].properties.refractive_index
             = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1.098177, 6.812319}, {1.3235601610672, 1.4679465862259});
         data.optical_materials[4].rayleigh.scale_factor = 1.7;
         data.optical_materials[4].rayleigh.compressibility
-            = native_value_from(Quantity<MeterCubedPerMeV>{4.213e-24});
+            = native_value_from(Compressibility{4.213e-24});
     }
 
     // Build mock imported optical models

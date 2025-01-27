@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHIntersectingVolFinder.hh
@@ -242,7 +241,7 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
                                      Intersection min_intersection,
                                      F&& visit_vol) const -> Intersection
 {
-    for (auto id : view_.leaf_volids(leaf_node))
+    for (auto id : view_.leaf_vol_ids(leaf_node))
     {
         auto const& bbox = view_.bbox(id);
 
@@ -269,7 +268,7 @@ BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
                                          BIHIntersectingVolFinder::Ray ray,
                                          F&& visit_vol) const -> Intersection
 {
-    for (auto id : view_.inf_volids())
+    for (auto id : view_.inf_vol_ids())
     {
         auto intersection = visit_vol(id, ray, min_intersection.distance);
         if (intersection && intersection.distance < min_intersection.distance)
