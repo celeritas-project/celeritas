@@ -143,7 +143,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     StepperInput inp;
     inp.params = params.Params();
     inp.stream_id = stream_id;
-    inp.num_track_slots = options.max_num_tracks;
     inp.action_times = options.action_times;
 
     if (celeritas::device())

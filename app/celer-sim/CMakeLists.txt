@@ -7,6 +7,7 @@ set(SOURCES
   celer-sim.cc
   Runner.cc
   RunnerOutput.cc
+  RunnerInput.cc
   RunnerInputIO.json.cc
   Transporter.cc
 )

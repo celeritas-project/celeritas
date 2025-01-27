@@ -24,6 +24,19 @@ CoreStateInterface::~CoreStateInterface() = default;
  * Construct from CoreParams.
  */
 template<MemSpace M>
+CoreState<M>::CoreState(CoreParams const& params, StreamId stream_id)
+    : CoreState{params, stream_id, params.tracks_per_stream()}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with manual slot count.
+ *
+ * This is currently used for unit tests, and temporarily used by the \c
+ * Stepper constructor.
+ */
+template<MemSpace M>
 CoreState<M>::CoreState(CoreParams const& params,
                         StreamId stream_id,
                         size_type num_track_slots)

@@ -37,6 +37,8 @@ jobs:
         # Turn warnings into errors only for PRs
         # Disable expensive graphs for PRs also
         run: |
+          # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
+          git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
@@ -83,6 +85,8 @@ jobs:
             pip install -r scripts/doc-requirements.txt
       - name: Configure celeritas
         run: |
+          # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
+          git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \

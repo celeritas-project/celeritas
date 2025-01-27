@@ -64,6 +64,7 @@
 #include "SetupOptions.hh"
 
 #include "detail/HitManager.hh"
+#include "detail/HitManagerOutput.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -580,6 +581,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.capacity = options.initializer_capacity;
         input.max_events = 1;  // TODO: use special "max events" case
         input.track_order = options.track_order;
+        if (input.track_order == TrackOrder::size_)
+        {
+            input.track_order = celeritas::device() ? TrackOrder::init_charge
+                                                    : TrackOrder::none;
+            CELER_LOG(info) << "Set track ordering to default: "
+                            << to_cstring(input.track_order);
+        }
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
@@ -600,6 +608,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
         // multithreading.
         params.max_streams = this->num_streams();
     }
+
+    // Set state size
+    params.tracks_per_stream = options.max_num_tracks;
 
     // Allocate device streams, or use the default stream if there is only one.
     if (celeritas::device() && !options.default_stream
@@ -639,6 +650,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
                                                    params_->max_streams());
         step_collector_
             = StepCollector::make_and_insert(*params_, {hit_manager_});
+        output_reg_->insert(
+            std::make_shared<detail::HitManagerOutput>(hit_manager_));
     }
 
     // Add diagnostics

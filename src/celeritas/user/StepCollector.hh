@@ -40,6 +40,10 @@ class StepParams;
  * detectors" (mapping volume IDs to detector IDs and ignoring unmapped
  * volumes) and supporting unfiltered output for "MC truth" . Right now only
  * one or the other can be used, not both.
+ *
+ * \todo Like the optical collector, this class is not used after it's created:
+ * it just serves to create helper classes. Perhaps move to the \c setup
+ * namespace?
  */
 class StepCollector
 {

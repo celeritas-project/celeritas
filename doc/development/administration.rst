@@ -76,7 +76,12 @@ Contributor
 Role change process
 -------------------
 
-Adding or removing a member of the "core team" must be done by consensus of the
+Roles should be periodically reevaluated to reflect current participation in
+the project. It is recommended to re-evaluate core roles at the start of each
+calendar year based on the last year's participation and upcoming work plans.
+
+Adding or removing a member of the "core team" can be done at any time by
+consensus of the
 leadership team (or if the core team member wants to remove themself). Adding
 maintainers can be done at the whim of the code lead. The `team list`_ on
 GitHub is the official record of roles.

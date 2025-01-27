@@ -175,7 +175,7 @@ struct GeantPhysicsOptions
     double msc_safety_factor{0.6};
     //! Lambda limit for MSC models [len]
     double msc_lambda_limit{0.1 * units::centimeter};
-    //! Polar angle limii between single and multiple Coulomb scattering
+    //! Polar angle limit between single and multiple Coulomb scattering
     double msc_theta_limit{constants::pi};
     //! Factor for dynamic computation of angular limit between SS and MSC
     double angle_limit_factor{1};
