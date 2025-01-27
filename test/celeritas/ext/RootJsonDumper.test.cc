@@ -237,7 +237,7 @@ TEST_F(RootJsonDumperTest, all)
     }]
   }],
   "tables" : [],
-  "applies_at_rest" : false
+  "applies_at_rest" : true
 }, {
   "_typename" : "celeritas::ImportProcess",
   "particle_pdg" : 13,
