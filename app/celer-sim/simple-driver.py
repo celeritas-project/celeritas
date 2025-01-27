@@ -169,26 +169,35 @@ time = run_output['time'].copy()
 steps = time.pop('steps')
 if use_device:
     assert steps
-    assert len(steps[0]) == run_output['num_step_iterations'][0]
+    assert len(steps[0]) == run_output['num_step_iterations'][0], steps[0]
 else:
     # Step times disabled on CPU from input
-    assert steps is None
+    assert steps is None, steps
 
 internal = j["internal"]
 if "lar" in geometry_filename and not use_device:
+    core_sizes = internal["core-sizes"].copy()
+    num_streams = internal["core-sizes"].pop("streams")
+    if "openmp" not in j["system"]["build"]["config"]["use"]:
+        assert num_streams == 1
+    for k in ["initializers", "secondaries", "tracks"]:
+        core_sizes[k] = core_sizes[k] // num_streams
     assert internal["core-sizes"] == {
        "events": 3,
        "initializers": 4500,
        "processes": 1,
        "secondaries": 96,
-       "streams": 1,
        "tracks": 32
-      }
-    assert internal["optical-sizes"] == {
+      }, core_sizes
+
+    opt_sizes = internal["optical-sizes"].copy()
+    assert num_streams == opt_sizes.pop("streams")
+    for k in ["initializers", "generators", "tracks"]:
+        opt_sizes[k] = opt_sizes[k] // num_streams
+    assert opt_sizes == {
        "generators": 24576,
        "initializers": 32,
-       "streams": 1,
        "tracks": 32
-      }
+      }, opt_sizes
 
 print(json.dumps(time, indent=1))
