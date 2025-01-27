@@ -96,7 +96,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
     p.control.num_streams = so.get_num_streams();
 
     p.control.capacity = [this, num_streams = p.control.num_streams] {
-        inp::StateCapacity c;
+        inp::CoreStateCapacity c;
         c.tracks = so.max_num_tracks * num_streams;
         c.initializers = so.initializer_capacity * num_streams;
         c.secondaries

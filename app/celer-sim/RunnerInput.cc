@@ -118,9 +118,10 @@ inp::Problem load_problem(RunnerInput const& ri)
 
     // Control
     {
-        inp::StateCapacity capacity;
-        capacity.tracks = ri.num_track_slots;
+        inp::CoreStateCapacity capacity;
+        capacity.primaries = 0;  // Immediately generate initializers
         capacity.initializers = ri.initializer_capacity;
+        capacity.tracks = ri.num_track_slots;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
                                                       * ri.num_track_slots);
 
@@ -189,10 +190,11 @@ inp::Problem load_problem(RunnerInput const& ri)
     if (ri.optical)
     {
         p.control.optical_capacity = [&ri] {
-            inp::StateCapacity sc;
-            sc.tracks = ri.optical.num_track_slots;
-            sc.initializers = ri.optical.initializer_capacity;
+            inp::OpticalStateCapacity sc;
             sc.primaries = ri.optical.auto_flush;
+            sc.initializers = ri.optical.initializer_capacity;
+            sc.tracks = ri.optical.num_track_slots;
+            sc.generators = ri.optical.buffer_capacity;
             return sc;
         }();
     }

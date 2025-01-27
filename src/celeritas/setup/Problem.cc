@@ -435,7 +435,7 @@ problem(inp::Problem const& p, ImportData const& imported)
         auto const& optical_capacity = *p.control.optical_capacity;
         oc_inp.num_track_slots = ceil_div(optical_capacity.tracks, num_streams);
         oc_inp.buffer_capacity
-            = ceil_div(optical_capacity.initializers, num_streams);
+            = ceil_div(optical_capacity.generators, num_streams);
         oc_inp.initializer_capacity
             = ceil_div(optical_capacity.initializers, num_streams);
         oc_inp.auto_flush = ceil_div(optical_capacity.primaries, num_streams);
