@@ -74,8 +74,16 @@ void ProblemSetup::operator()(inp::Problem& p) const
     }
     p.diagnostics.output_file = so.output_file;
 
-    p.control.num_streams = so.get_num_streams();
+    p.control.num_streams = [&so = this->so] {
+        if (so.get_num_streams)
+        {
+            return so.get_num_streams();
+        }
+        return celeritas::get_geant_num_threads();
+    }();
 
+    // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
+    // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
         inp::CoreStateCapacity c;
         c.tracks = so.max_num_tracks * num_streams;
