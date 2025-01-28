@@ -59,7 +59,7 @@ void HitManagerOutput::output(JsonPimpl* j) const
             G4VSensitiveDetector const* sd{nullptr};
             if (lv)
             {
-                gv_names.push_back(lv->GetName());
+                gv_names.push_back(std::string(lv->GetName()));
                 sd = lv->GetSensitiveDetector();
             }
             else
@@ -69,7 +69,7 @@ void HitManagerOutput::output(JsonPimpl* j) const
 
             if (sd)
             {
-                sd_names.push_back(sd->GetName());
+                sd_names.push_back(std::string(sd->GetName()));
                 sd_types.push_back(demangle_sd(*sd));
             }
             else
