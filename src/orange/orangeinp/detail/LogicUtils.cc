@@ -142,10 +142,10 @@ class ExprStack
     }
 
     //! Get the infix expression.
-    std::vector<logic_int> const& get_infix() const
+    std::vector<logic_int> get_infix() &&
     {
         CELER_EXPECT(infix.size() == 1);
-        return infix.front().expr;
+        return std::move(infix.front().expr);
     }
 
   private:
@@ -212,7 +212,7 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
             infix_expr.push_primitive(lgc);
         }
     }
-    return infix_expr.get_infix();
+    return std::move(infix_expr).get_infix();
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail
