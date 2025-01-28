@@ -93,7 +93,6 @@ XsCalculator::XsCalculator(XsGridData const& grid, Values const& values)
     : data_(grid), reals_(values), loge_grid_(data_.log_energy)
 {
     CELER_EXPECT(data_);
-    CELER_ASSERT(grid.value.size() == data_.log_energy.size);
 }
 
 //---------------------------------------------------------------------------//
@@ -157,12 +156,10 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
  */
 CELER_FUNCTION real_type XsCalculator::operator[](size_type index) const
 {
-    real_type energy = std::exp(loge_grid_[index]);
     real_type result = this->get(index);
-
     if (index >= data_.prime_index)
     {
-        result /= energy;
+        result /= std::exp(loge_grid_[index]);
     }
     return result;
 }

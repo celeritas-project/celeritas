@@ -50,4 +50,16 @@ auto TridiagonalSolver::operator()() const -> VecReal
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Resize the coefficient vectors.
+ */
+void resize(TridiagonalSolver::Coefficients& coeffs, size_type size)
+{
+    coeffs.a.resize(size);
+    coeffs.b.resize(size);
+    coeffs.c.resize(size);
+    coeffs.d.resize(size);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

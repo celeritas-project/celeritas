@@ -51,4 +51,8 @@ class TridiagonalSolver
 };
 
 //---------------------------------------------------------------------------//
+// Resize the coefficient vectors
+void resize(TridiagonalSolver::Coefficients&, size_type);
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
