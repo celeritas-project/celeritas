@@ -72,8 +72,24 @@ MaterialParams::from_import(ImportData const& data,
 
     CELER_VALIDATE(has_opt_mat,
                    << "no volumes have associated optical materials");
-
     CELER_ENSURE(inp.volume_to_mat.size() == geo_mat.num_volumes());
+
+    // Construct optical to core material mapping
+    inp.optical_to_core
+        = std::vector<CoreMaterialId>(inp.properties.size(), CoreMaterialId{});
+    for (auto core_id : range(CoreMaterialId{mat.num_materials()}))
+    {
+        if (auto opt_mat_id = mat.get(core_id).optical_material_id())
+        {
+            CELER_EXPECT(opt_mat_id < inp.optical_to_core.size());
+            CELER_EXPECT(!inp.optical_to_core[opt_mat_id.get()]);
+            inp.optical_to_core[opt_mat_id.get()] = core_id;
+        }
+    }
+
+    CELER_ENSURE(std::all_of(
+        inp.optical_to_core.begin(), inp.optical_to_core.end(), LogicalTrue{}));
+
     return std::make_shared<MaterialParams>(std::move(inp));
 }
 
@@ -85,6 +101,7 @@ MaterialParams::MaterialParams(Input const& inp)
 {
     CELER_EXPECT(!inp.properties.empty());
     CELER_EXPECT(!inp.volume_to_mat.empty());
+    CELER_EXPECT(inp.optical_to_core.size() == inp.properties.size());
 
     HostVal<MaterialParamsData> data;
     CollectionBuilder refractive_index{&data.refractive_index};
@@ -127,8 +144,20 @@ MaterialParams::MaterialParams(Input const& inp)
     CollectionBuilder{&data.optical_id}.insert_back(inp.volume_to_mat.begin(),
                                                     inp.volume_to_mat.end());
 
+    CollectionBuilder{&data.core_material_id}.insert_back(
+        inp.optical_to_core.begin(), inp.optical_to_core.end());
+
     data_ = CollectionMirror<MaterialParamsData>{std::move(data)};
     CELER_ENSURE(data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a material view for the given identifier.
+ */
+MaterialView MaterialParams::get(OpticalMaterialId mat) const
+{
+    return MaterialView(this->host_ref(), mat);
 }
 
 //---------------------------------------------------------------------------//

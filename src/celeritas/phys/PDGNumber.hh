@@ -17,7 +17,8 @@ namespace celeritas
 /*!
  * Type-safe particle identifier.
  *
- * The Particle Data Group specifies a coding to uniquely identify particle
+ * The Particle Data Group specifies a coding to uniquely identify
+ * standard-model particle
  * types in "Monte Carlo Particle Numbering Scheme" section of \citep{pdg,
  * https://link.aps.org/doi/10.1103/PhysRevD.98.030001}.
  * These coded identifiers should generally not be treated like numbers: this

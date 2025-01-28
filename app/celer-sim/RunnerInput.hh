@@ -14,7 +14,6 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
@@ -29,15 +28,16 @@
 
 namespace celeritas
 {
+namespace inp
+{
+struct StandaloneInput;
+}
+
 namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
- *
- * TODO for v1.0: unify these names, combine with celer-g4, separate into
- * schemas for individual classes, ... ? and decide whether max_steps should be
- * per track or total step iterations.
  */
 struct RunnerInput
 {
@@ -49,7 +49,7 @@ struct RunnerInput
         explicit operator bool() const
         {
             return num_events > 0 && num_merged > 0;
-        };
+        }
     };
 
     struct OpticalOptions
@@ -65,7 +65,7 @@ struct RunnerInput
         {
             return num_track_slots > 0 && buffer_capacity > 0
                    && initializer_capacity > 0 && auto_flush > 0;
-        };
+        }
     };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{0};
@@ -145,6 +145,10 @@ struct RunnerInput
                && log_progress > 0 && (field == no_field() || field_options);
     }
 };
+
+//---------------------------------------------------------------------------//
+// Convert to standalone input format
+inp::StandaloneInput to_input(RunnerInput const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

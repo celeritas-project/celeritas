@@ -111,7 +111,7 @@ CELER_FUNCTION MuPairProductionInteractor::MuPairProductionInteractor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Simulate electron-posiitron pair production by muons.
+ * Simulate electron-positron pair production by muons.
  */
 template<class Engine>
 CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
@@ -139,7 +139,7 @@ CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
     electron.direction
         = rotate(from_spherical(sample_costheta(rng), phi), inc_direction_);
 
-    // Create the secondary electron
+    // Create the secondary positron
     Secondary& positron = secondaries[1];
     positron.particle_id = shared_.ids.positron;
     positron.energy = energy.positron;

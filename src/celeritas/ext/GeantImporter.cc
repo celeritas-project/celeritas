@@ -329,36 +329,18 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
 
     std::vector<ImportParticle> particles;
 
-    double const time_scale = native_value_from_clhep(ImportUnits::time);
-
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
-        G4ParticleDefinition const& g4_particle_def
-            = *(particle_iterator.value());
+        G4ParticleDefinition const& p = *(particle_iterator.value());
 
-        PDGNumber pdg{g4_particle_def.GetPDGEncoding()};
+        PDGNumber pdg{p.GetPDGEncoding()};
         if (!include_particle(pdg))
         {
             continue;
         }
 
-        ImportParticle particle;
-        particle.name = g4_particle_def.GetParticleName();
-        particle.pdg = pdg.unchecked_get();
-        particle.mass = g4_particle_def.GetPDGMass();
-        particle.charge = g4_particle_def.GetPDGCharge();
-        particle.spin = g4_particle_def.GetPDGSpin();
-        particle.lifetime = g4_particle_def.GetPDGLifeTime();
-        particle.is_stable = g4_particle_def.GetPDGStable();
-
-        if (!particle.is_stable)
-        {
-            // Convert lifetime of unstable particles to seconds
-            particle.lifetime *= time_scale;
-        }
-
-        particles.push_back(particle);
+        particles.push_back(import_particle(p));
     }
     CELER_LOG(debug) << "Loaded " << particles.size() << " particles";
     CELER_ENSURE(!particles.empty());
@@ -1208,7 +1190,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             }
         }
         imported.regions = import_regions();
-        imported.volumes = this->import_volumes(selected.unique_volumes);
+        imported.volumes = import_volumes(*world_, selected.unique_volumes);
         if (selected.particles != DataSelection::none)
         {
             imported.trans_params = import_trans_parameters(selected.particles);
@@ -1256,7 +1238,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
  * Return a populated \c ImportVolume vector.
  */
 std::vector<ImportVolume>
-GeantImporter::import_volumes(bool unique_volumes) const
+import_volumes(G4VPhysicalVolume const& world, bool unique_volumes)
 {
     // Note: if the LV has been purged (i.e. by trying to run multiple
     // geometries in the same execution), the instance ID's won't correspond to
@@ -1305,11 +1287,37 @@ GeantImporter::import_volumes(bool unique_volumes) const
                 volume.name = make_gdml_name(lv);
             }
         },
-        *world_);
+        world);
 
     CELER_LOG(debug) << "Loaded " << count << " volumes with "
                      << (unique_volumes ? "uniquified" : "original")
                      << " names";
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an import patricle.
+ */
+ImportParticle import_particle(G4ParticleDefinition const& p)
+{
+    ImportParticle result;
+    result.name = p.GetParticleName();
+    result.pdg = p.GetPDGEncoding();
+    result.mass = p.GetPDGMass();
+    result.charge = p.GetPDGCharge();
+    result.spin = p.GetPDGSpin();
+    result.lifetime = p.GetPDGLifeTime();
+    result.is_stable = p.GetPDGStable();
+
+    if (!result.is_stable)
+    {
+        double const time_scale = native_value_from_clhep(ImportUnits::time);
+
+        // Convert lifetime of unstable particles to seconds
+        result.lifetime *= time_scale;
+    }
+
     return result;
 }
 

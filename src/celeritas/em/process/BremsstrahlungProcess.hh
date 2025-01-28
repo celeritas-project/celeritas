@@ -41,8 +41,8 @@ class BremsstrahlungProcess : public Process
     {
         BremsModelSelection selection{BremsModelSelection::all};  //!> Model
                                                                   //! selection
-        bool combined_model{true};  //!> Use a unified relativistic/SB
-                                    //! interactor
+        bool combined_model{false};  //!> Use a unified relativistic/SB
+                                     //! interactor
         bool enable_lpm{true};  //!> Account for LPM effect at very high
                                 //! energies
         bool use_integral_xs{true};  //!> Use integral method for sampling

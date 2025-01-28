@@ -6,5 +6,9 @@
   "furo": @CELERITAS_USE_FURO@,
   "sphinxbib": @CELERITAS_USE_SPHINXBIBTEX@,
   "sphinxmer": @CELERITAS_USE_SPHINXMERMAID@
+ },
+ "executables": {
+   "latexmk": "@LATEXMK_EXECUTABLE@",
+   "mmdc": "@MMDC_EXECUTABLE@"
  }
 }

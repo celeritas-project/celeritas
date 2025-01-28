@@ -25,18 +25,14 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+namespace inp
+{
+struct StandaloneInput;
+}
+
 namespace app
 {
-//---------------------------------------------------------------------------//
-//! Physics list selection
-enum class PhysicsListSelection
-{
-    ftfp_bert,
-    celer_ftfp_bert,  //!< FTFP BERT with Celeritas EM standard physics
-    celer_em,  //!< Celeritas EM standard physics only
-    size_,
-};
-
 //---------------------------------------------------------------------------//
 //! Sensitive detector capability
 enum class SensitiveDetectorType
@@ -44,6 +40,16 @@ enum class SensitiveDetectorType
     none,  //!< No SDs
     simple_calo,  //!< Integrated energy deposition over all events
     event_hit,  //!< Record basic hit data
+    size_,
+};
+
+//---------------------------------------------------------------------------//
+//! Physics list selection (TODO: remove)
+enum class PhysicsListSelection
+{
+    ftfp_bert,
+    celer_ftfp_bert,  //!< FTFP BERT with Celeritas EM standard physics
+    celer_em,  //!< Celeritas EM standard physics only
     size_,
 };
 
@@ -120,6 +126,8 @@ struct RunInput
 
 char const* to_cstring(PhysicsListSelection value);
 char const* to_cstring(SensitiveDetectorType value);
+
+inp::StandaloneInput to_input(RunInput const& run_input);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

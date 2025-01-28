@@ -60,6 +60,7 @@ void SimpleCmsTest::SetUp()
 {
     // Create default step selection (see HitManager)
     selection_.energy_deposition = true;
+    selection_.step_length = true;
     selection_.points[StepPoint::pre].energy = true;
     selection_.points[StepPoint::pre].pos = true;
     selection_.points[StepPoint::post].time = true;
@@ -158,6 +159,14 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             MevEnergy{0.3},
         };
     }
+    if (selection_.step_length)
+    {
+        dso.step_length = {
+            from_cm(0.1),
+            from_cm(2.0),
+            from_cm(3.0),
+        };
+    }
     if (selection_.points[StepPoint::post].time)
     {
         using celeritas::units::second;
@@ -215,10 +224,17 @@ TEST_F(SimpleCmsTest, no_touchable)
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
+
+    // Second hit
     dso_hits.energy_deposition = {
         MevEnergy{0.4},
         MevEnergy{0.5},
         MevEnergy{0.6},
+    };
+    dso_hits.step_length = {
+        from_cm(1.0),
+        from_cm(2.1),
+        from_cm(3.1),
     };
     process_hits(dso_hits);
 
@@ -227,6 +243,8 @@ TEST_F(SimpleCmsTest, no_touchable)
         static real_type const expected_energy_deposition[] = {0.1, 0.4};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
+        static real_type const expected_step_length[] = {0.1, 1.0};
+        EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);
         static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
         static real_type const expected_pre_pos[] = {100, 0, 0, 100, 0, 0};

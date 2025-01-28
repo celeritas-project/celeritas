@@ -47,7 +47,7 @@ auto UniformAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
-    auto field_params = get_field_ ? get_field_() : UniformFieldParams{};
+    auto field_params = this->get_field();
     auto magnitude
         = native_value_to<units::FieldTesla>(norm(field_params.field));
 
@@ -80,6 +80,15 @@ auto UniformAlongStepFactory::operator()(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the field params (used for converting to celeritas::inp).
+ */
+UniformFieldParams UniformAlongStepFactory::get_field() const
+{
+    return get_field_ ? get_field_() : UniformFieldParams{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Emit an along-step action with a non-uniform magnetic field.
  *
  * The action will embed the field propagator with a RZMapField.
@@ -90,6 +99,10 @@ RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(RZMapFieldFunction f)
     CELER_EXPECT(get_fieldmap_);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Emit an along-step action.
+ */
 auto RZMapFieldAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
@@ -103,6 +116,15 @@ auto RZMapFieldAlongStepFactory::operator()(
         celeritas::UrbanMscParams::from_import(
             *input.particle, *input.material, *input.imported),
         input.imported->em_params.energy_loss_fluct);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the field params (used for converting to celeritas::inp).
+ */
+RZMapFieldInput RZMapFieldAlongStepFactory::get_field() const
+{
+    return this->get_fieldmap_();
 }
 
 //---------------------------------------------------------------------------//

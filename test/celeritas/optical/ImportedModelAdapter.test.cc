@@ -8,10 +8,6 @@
 
 #include <array>
 
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/io/ImportData.hh"
-
 #include "OpticalMockTestBase.hh"
 #include "ValidationUtils.hh"
 #include "celeritas_test.hh"

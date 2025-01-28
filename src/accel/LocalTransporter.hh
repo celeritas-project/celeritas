@@ -104,6 +104,10 @@ class LocalTransporter
     size_type max_step_iters_{};
     double buffer_energy_{0};
 
+    std::size_t accum_num_events_{0};
+    std::size_t accum_num_primaries_{0};
+    std::size_t accum_num_steps_{0};
+
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
 };

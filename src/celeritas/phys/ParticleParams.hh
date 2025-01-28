@@ -26,6 +26,7 @@
 namespace celeritas
 {
 struct ImportData;
+struct ImportParticle;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -37,13 +38,9 @@ struct ImportData;
  * The ParticleParams is constructed on the host with a vector that
  * combines metadata (used for debugging output and interfacing with physics
  * setup) and data (used for on-device transport). Each entry in the
- * construction is assigned a unique \c ParticleId used for runtime access.
- *
- * The PDG Monte Carlo number is a unique "standard model" identifier for a
- * particle. See "Monte Carlo Particle Numbering Scheme" in the "Review of
- * Particle Physics":
- * https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf
- * It should be used to identify particle types during construction time.
+ * construction is assigned a unique \c ParticleId used for runtime access. See
+ * \c celeritas::PDGNumber for details on the PDG code used during
+ * construction.
  */
 class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
 {
@@ -55,7 +52,10 @@ class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
         PDGNumber pdg_code;  //!< See "Review of Particle Physics"
         units::MevMass mass;  //!< Rest mass [MeV / c^2]
         units::ElementaryCharge charge;  //!< Charge in units of [e]
-        real_type decay_constant;  //!< Decay constant [1/time]
+        real_type decay_constant{};  //!< Decay constant [1/time]
+
+        // Conversion function
+        static ParticleInput from_import(ImportParticle const&);
     };
 
     //! Input data to construct this class
@@ -147,6 +147,9 @@ ParticleId ParticleParams::find(std::string const& name) const
 //---------------------------------------------------------------------------//
 /*!
  * Find the ID from a PDG code.
+ *
+ * \todo Multiple particles can share a "generic" PDG code so this should be a
+ * multimap.
  */
 ParticleId ParticleParams::find(PDGNumber pdg_code) const
 {

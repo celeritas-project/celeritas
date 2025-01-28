@@ -473,6 +473,9 @@ if(CELERITAS_BUILD_DOCS)
     if(CELERITAS_USE_Breathe)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
+    if(CELERITAS_USE_SphinxMermaid)
+      find_program(MMDC_EXECUTABLE mmdc)
+    endif()
   endif()
   include(ExternalProject)
 endif()
@@ -638,8 +641,16 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
-# Thrust dependency is not a cache variable:
+# Thrust dependency is not a cache variable
 celeritas_export_var(CELERITAS_USE_Thrust)
+
+# Save whether we need GDML requirement
+if(Geant4_gdml_FOUND OR VecGeom_GDML_FOUND)
+  set(CELERITAS_USE_GDML ON)
+else()
+  set(CELERITAS_USE_GDML OFF)
+endif()
+celeritas_export_var(CELERITAS_USE_GDML)
 
 # Export defaulted variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")

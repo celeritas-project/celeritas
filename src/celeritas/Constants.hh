@@ -8,6 +8,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 
@@ -59,7 +61,7 @@ namespace constants
 #define CELER_ICRT inline constexpr Constant
 
 //!@{
-//! \name Physical constants with *exact* value as defined by SI
+//! \name Physical constants with exact value as defined by SI
 CELER_ICRT c_light = Constant{299792458.} * units::meter / units::second;
 CELER_ICRT h_planck = Constant{6.62607015e-34} * units::joule * units::second;
 #if CELERITAS_UNITS != CELERITAS_UNITS_CLHEP

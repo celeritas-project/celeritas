@@ -26,8 +26,6 @@ all_authors = [
  'Stefano C Tognini',
  # Core advisors
  'Thomas M Evans',
- 'Marcel Demarteau',
- 'Paul Romano',
 ]
 author = " and ".join(all_authors)
 copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(
@@ -104,6 +102,7 @@ if celer_config['options']['sphinxbib']:
 
 if celer_config['options']['sphinxmer']:
     extensions.append("sphinxcontrib.mermaid")
+    mermaid_cmd = celer_config['executables']['mmdc'] or None
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []

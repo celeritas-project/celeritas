@@ -22,6 +22,7 @@
 #include <G4Threading.hh>
 
 #include "corecel/Config.hh"
+#include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -63,6 +64,7 @@
 #include "SetupOptions.hh"
 
 #include "detail/HitManager.hh"
+#include "detail/HitManagerOutput.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -213,7 +215,10 @@ SharedParams::SharedParams(SetupOptions const& options)
                       "Celeritas offloading is disabled via "
                       "\"CELER_DISABLE\"");
 
-    CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
+    CELER_LOG_LOCAL(info) << "Activating Celeritas version "
+                          << celeritas_version << " on "
+                          << (Device::num_devices() > 0 ? "GPU" : "CPU");
+
     ScopedProfiling profile_this{"construct-params"};
     ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
@@ -248,8 +253,8 @@ SharedParams::SharedParams(SetupOptions const& options)
     }
     else
     {
-        CELER_LOG(debug) << "Skipping 'startup' JSON output since writing to "
-                            "stdout";
+        CELER_LOG(debug)
+            << R"(Skipping 'startup' JSON output since writing to stdout)";
     }
 
     if (!options.offload_output_file.empty())
@@ -576,6 +581,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.capacity = options.initializer_capacity;
         input.max_events = 1;  // TODO: use special "max events" case
         input.track_order = options.track_order;
+        if (input.track_order == TrackOrder::size_)
+        {
+            input.track_order = celeritas::device() ? TrackOrder::init_charge
+                                                    : TrackOrder::none;
+            CELER_LOG(info) << "Set track ordering to default: "
+                            << to_cstring(input.track_order);
+        }
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
@@ -596,6 +608,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
         // multithreading.
         params.max_streams = this->num_streams();
     }
+
+    // Set state size
+    params.tracks_per_stream = options.max_num_tracks;
 
     // Allocate device streams, or use the default stream if there is only one.
     if (celeritas::device() && !options.default_stream
@@ -635,6 +650,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
                                                    params_->max_streams());
         step_collector_
             = StepCollector::make_and_insert(*params_, {hit_manager_});
+        output_reg_->insert(
+            std::make_shared<detail::HitManagerOutput>(hit_manager_));
     }
 
     // Add diagnostics
@@ -684,7 +701,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
  * Write available Celeritas output.
  *
  * This can be done multiple times, overwriting the same file so that we can
- * get output before construction and after
+ * get output before construction *and* after.
  */
 void SharedParams::try_output() const
 {
@@ -698,7 +715,8 @@ void SharedParams::try_output() const
     std::string filename = output_filename_;
     if (!params_ && filename.empty())
     {
-        // Setup was not called but JSON is available: make a default filename
+        // Setup was not called but we're outputting anyway (called by
+        // celer-g4?)
         filename = "celeritas.out.json";
         CELER_LOG(debug) << "Set default Celeritas output filename";
     }

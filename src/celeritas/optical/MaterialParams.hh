@@ -14,6 +14,7 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "MaterialData.hh"
+#include "MaterialView.hh"
 
 namespace celeritas
 {
@@ -51,6 +52,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         std::vector<ImportOpticalProperty> properties;
         //! Map logical volume ID to optical material ID
         std::vector<OpticalMaterialId> volume_to_mat;
+        //! Map optical material ID to core material ID
+        std::vector<CoreMaterialId> optical_to_core;
     };
 
   public:
@@ -65,6 +68,9 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     // Number of optical materials
     inline OpticalMaterialId::size_type num_materials() const;
+
+    // Construct a material view for the given identifier
+    MaterialView get(OpticalMaterialId mat) const;
 
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

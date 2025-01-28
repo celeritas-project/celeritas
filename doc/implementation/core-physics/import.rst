@@ -6,6 +6,9 @@
 Imported data
 =============
 
+.. note:: These classes will be merged into the problem input definition
+   :ref:`input`.
+
 Celeritas reads physics data from Geant4 (or from a ROOT file exported from
 data previously loaded into Geant4). Different versions of Geant4 (and Geant4
 data) can be used seamlessly with any version of Celeritas, allowing
