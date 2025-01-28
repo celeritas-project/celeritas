@@ -97,7 +97,7 @@ inp = {
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
     'spline_eloss_order': spline_eloss_order,
-    'initializer_capacity': 100 * max([num_tracks, num_primaries]),
+    'initializer_capacity': 100 * num_tracks,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
     'step_diagnostic': True,
@@ -184,7 +184,7 @@ if "lar" in geometry_filename and not use_device:
         core_sizes[k] = core_sizes[k] // num_streams
     assert internal["core-sizes"] == {
        "events": 3,
-       "initializers": 4500,
+       "initializers": 3200,
        "processes": 1,
        "secondaries": 96,
        "tracks": 32
