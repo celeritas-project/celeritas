@@ -121,6 +121,12 @@ struct IntegralXsProcess
  * \c range are the process-integrated dE/dx and range for the particle.  \c
  * integral_xs will only be assigned if the integral approach is used and the
  * particle has continuous-discrete processes.
+ *
+ * \todo If it's possible for a particle to have multiple at-rest processes, \c
+ * at_rest should be the process with the smallest lifetime. This is used in \c
+ * select_discrete_interaction to choose the at-rest process with the smallest
+ * time to interaction if the particle is stopped and has a process that
+ * applies at rest.
  */
 struct ProcessGroup
 {
@@ -130,7 +136,7 @@ struct ProcessGroup
     ItemRange<ValueTable> macro_xs;  //!< [ppid]
     ValueTableId energy_loss;  //!< Process-integrated energy loss
     ValueTableId range;  //!< Process-integrated range
-    bool has_at_rest{};  //!< Whether the particle type has an at-rest process
+    ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const

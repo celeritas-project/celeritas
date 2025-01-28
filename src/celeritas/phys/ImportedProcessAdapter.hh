@@ -125,6 +125,9 @@ class ImportedProcessAdapter
     // Whether the given model is present in the process
     inline bool has_model(PDGNumber, ImportModelClass) const;
 
+    // Whether the process applies when the particle is stopped
+    inline bool applies_at_rest() const;
+
   private:
     using ImportTableId = OpaqueId<ImportPhysicsTable>;
     using ImportProcessId = ImportedProcesses::ImportProcessId;
@@ -195,6 +198,24 @@ bool ImportedProcessAdapter::has_model(PDGNumber pdg, ImportModelClass imc) cons
         models.begin(), models.end(), [&imc](ImportModel const& m) {
             return m.model_class == imc;
         });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the process applies when the particle is stopped.
+ */
+bool ImportedProcessAdapter::applies_at_rest() const
+{
+    auto it = ids_.begin();
+    bool result = imported_->get(it->second.process).applies_at_rest;
+    while (++it != ids_.end())
+    {
+        CELER_VALIDATE(
+            result == imported_->get(it->second.process).applies_at_rest,
+            << "process '" << to_cstring(process_class_)
+            << "' applies at rest for some particles but not others");
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
