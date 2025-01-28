@@ -32,7 +32,8 @@ BIHBuilder::BIHBuilder(Storage* storage)
 /*!
  * Create BIH Nodes.
  */
-BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
+BIHTree BIHBuilder::operator()(VecBBox&& bboxes,
+                               BIHBuilder::SetLocalVolId&& background_vol_ids)
 {
     CELER_EXPECT(!bboxes.empty());
 
@@ -51,10 +52,9 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
     {
         LocalVolumeId id(i);
 
-        if (!temp_.bboxes[i])
+        if (background_vol_ids.find(id) != background_vol_ids.end())
         {
-            // Null bbox (background volume) is unreachable by volume
-            // initialization
+            // Background volume, do not include bbox in tree
         }
         else if (is_infinite(temp_.bboxes[i]))
         {

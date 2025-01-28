@@ -547,7 +547,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(is_inside(calc_sense));
+    CELER_ASSERT(!(is_inside(calc_sense) ^ static_cast<bool>(target_sense)));
 
     // previous isect distance for move delta
     real_type previous_distance{0};
@@ -626,7 +626,11 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
         }
 
         size_type num_isect = calc_intersections.isect_idx();
-        CELER_ASSERT(num_isect > 0);
+        if (num_isect == 0)
+        {
+            // No intersection in this unit
+            return {};
+        }
 
         // Sort valid intersection distances in ascending order
         celeritas::sort(state.temp_next.isect,

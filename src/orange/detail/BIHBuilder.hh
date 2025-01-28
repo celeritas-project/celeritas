@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <set>
 #include <variant>
 #include <vector>
 
@@ -43,6 +44,7 @@ class BIHBuilder
     //! \name Type aliases
     using VecBBox = std::vector<FastBBox>;
     using Storage = BIHTreeData<Ownership::value, MemSpace::host>;
+    using SetLocalVolId = std::set<LocalVolumeId>;
     //!@}
 
   public:
@@ -50,7 +52,7 @@ class BIHBuilder
     explicit BIHBuilder(Storage* storage);
 
     // Create BIH Nodes
-    BIHTree operator()(VecBBox&& bboxes);
+    BIHTree operator()(VecBBox&& bboxes, SetLocalVolId&& background_vol_ids);
 
   private:
     /// TYPES ///

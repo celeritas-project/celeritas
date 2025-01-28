@@ -284,25 +284,26 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     std::vector<FastBBox> bboxes;
+    BIHBuilder::SetLocalVolId background_vol_ids;
     for (auto i : range(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
-        // Store the bbox or a placeholder
+        // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
             bboxes.push_back(calc_bumped_(inp.volumes[i].bbox));
         }
-        else if (!(inp.volumes[i].flags & VolumeRecord::Flags::implicit_vol))
-        {
-            // Not a background volume, store an infinite bbox placeholder
-            bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
-        }
         else
         {
-            // Background volume, store an empty bbox placeholder
-            bboxes.push_back(BoundingBox<fast_real_type>());
+            bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
+        }
+
+        // Create a set of background volume ids for BIH construction
+        if (inp.volumes[i].flags & VolumeRecord::Flags::implicit_vol)
+        {
+            background_vol_ids.insert(LocalVolumeId{i});
         }
 
         // Add oriented bounding zone record
@@ -334,7 +335,10 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
-    unit.bih_tree = build_bih_tree_(std::move(bboxes));
+    CELER_VALIDATE(std::all_of(bboxes.begin(), bboxes.end(), LogicalTrue{}),
+                   << "not all bounding boxes have been assigned");
+    unit.bih_tree
+        = build_bih_tree_(std::move(bboxes), std::move(background_vol_ids));
 
     // Save connectivity
     {
