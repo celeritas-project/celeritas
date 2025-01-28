@@ -47,15 +47,15 @@ inline std::string logic_to_string(std::vector<logic_int> const& logic)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a logic definition from a C string.
- */
-std::vector<logic_int> string_to_logic(std::string const& s);
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert a postfix logic expression to an infix expression.
  */
 std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix);
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a logic definition from a C string.
+ */
+std::vector<logic_int> string_to_logic(std::string const& s);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -107,6 +107,52 @@ class ExprStack
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert a postfix logic expression to an infix expression.
+ *
+ * The \c InfixEvaluator will short-circuit evaluation of operands based
+ * on parenthesis depth. Minimizing that depth in the expression
+ * will allow to short-circuit more efficiently.
+ */
+std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
+{
+    CELER_EXPECT(!postfix.empty());
+
+    ExprStack infix_expr;
+
+    // Process each token
+    for (auto lgc : postfix)
+    {
+        if (logic::is_operator_token(lgc))
+        {
+            switch (lgc)
+            {
+                case logic::ltrue:
+                    infix_expr.push_primitive(lgc);
+                    break;
+                case logic::lor:
+                    [[fallthrough]];
+                case logic::land: {
+                    infix_expr.push_binary(lgc);
+                    break;
+                }
+                case logic::lnot: {
+                    infix_expr.push_unary(lgc);
+                    break;
+                }
+                default:
+                    CELER_ASSERT_UNREACHABLE();
+            }
+        }
+        else
+        {
+            infix_expr.push_primitive(lgc);
+        }
+    }
+    return std::move(infix_expr).get_infix();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build a logic definition from a C string.
  *
  * A valid string satisfies the regex "[0-9~!| ]+", but the result may
@@ -168,52 +214,6 @@ std::vector<logic_int> string_to_logic(std::string const& s)
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a postfix logic expression to an infix expression.
- *
- * The \c InfixEvaluator will short-circuit evaluation of operands based
- * on parenthesis depth. Minimizing that depth in the expression
- * will allow to short-circuit more efficiently.
- */
-std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
-{
-    CELER_EXPECT(!postfix.empty());
-
-    ExprStack infix_expr;
-
-    // Process each token
-    for (auto lgc : postfix)
-    {
-        if (logic::is_operator_token(lgc))
-        {
-            switch (lgc)
-            {
-                case logic::ltrue:
-                    infix_expr.push_primitive(lgc);
-                    break;
-                case logic::lor:
-                    [[fallthrough]];
-                case logic::land: {
-                    infix_expr.push_binary(lgc);
-                    break;
-                }
-                case logic::lnot: {
-                    infix_expr.push_unary(lgc);
-                    break;
-                }
-                default:
-                    CELER_ASSERT_UNREACHABLE();
-            }
-        }
-        else
-        {
-            infix_expr.push_primitive(lgc);
-        }
-    }
-    return std::move(infix_expr).get_infix();
 }
 
 //---------------------------------------------------------------------------//
