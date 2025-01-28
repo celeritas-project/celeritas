@@ -123,7 +123,8 @@ class SimpleUnitTracker
                                                         size_type) const;
     inline CELER_FUNCTION Intersection complex_intersect(LocalState const&,
                                                          VolumeView const&,
-                                                         size_type) const;
+                                                         size_type,
+                                                         Sense) const;
     template<class F>
     inline CELER_FUNCTION Intersection background_intersect(LocalState const&,
                                                             F&&) const;
@@ -447,7 +448,9 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
                             return state.temp_next.distance[a]
                                    < state.temp_next.distance[b];
                         });
-        return this->complex_intersect(state, vol, num_isect);
+        // Call with a target sense of "inside," because we are seeking a
+        // surface for which crossing resulting in leaving the volume
+        return this->complex_intersect(state, vol, num_isect, Sense::outside);
     }
 
     CELER_ASSERT_UNREACHABLE();  // Unexpected set of flags
@@ -523,7 +526,8 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
 CELER_FUNCTION auto
 SimpleUnitTracker::complex_intersect(LocalState const& state,
                                      VolumeView const& vol,
-                                     size_type num_isect) const -> Intersection
+                                     size_type num_isect,
+                                     Sense target_sense) const -> Intersection
 {
     CELER_ASSERT(num_isect > 0);
 
@@ -566,7 +570,9 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         }();
         axpy(distance - previous_distance, state.dir, &pos);
 
-        if (!is_inside(calc_sense))
+        // Intersection is found if is_inside is true and the target sense
+        // is inside (false), or vice-versa
+        if (is_inside(calc_sense) ^ static_cast<bool>(target_sense))
         {
             // Flipping this sense puts us outside the current volume: in
             // other words, only after crossing all the internal surfaces along
@@ -629,38 +635,9 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
                                    < state.temp_next.distance[b];
                         });
 
-        Real3 pos{ray.pos};
-        detail::OnFace on_face(detail::find_face(vol, state.surface));
-        detail::LazySenseCalculator calc_sense{
-            this->make_surface_visitor(), vol, pos, on_face};
-
-        detail::LogicEvaluator is_inside(vol.logic());
-        CELER_ASSERT(!is_inside(calc_sense));
-
-        real_type previous_distance{0};
-
-        for (size_type isect_idx = 0; isect_idx != num_isect; ++isect_idx)
-        {
-            size_type const isect = state.temp_next.isect[isect_idx];
-            real_type const distance = state.temp_next.distance[isect];
-
-            on_face = [&] {
-                FaceId face{state.temp_next.face[isect]};
-                return detail::OnFace{face, flip_sense(calc_sense(face))};
-            }();
-
-            axpy(distance - previous_distance, state.dir, &pos);
-
-            if (is_inside(calc_sense))
-            {
-                return {{vol.get_surface(on_face.id()),
-                         flip_sense(on_face.sense())},
-                        distance};
-            }
-            previous_distance = distance;
-        }
-
-        return {};
+        // Call with a target sense of "inside," because we are seeking a
+        // surface for which crossing resulting in entering the volume
+        return this->complex_intersect(state, vol, num_isect, Sense::inside);
     };
 
     detail::BIHIntersectingVolFinder find_intersection{unit_record_.bih_tree,
