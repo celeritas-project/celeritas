@@ -55,7 +55,7 @@ class BIHIntersectingVolFinderTest : public Test
 
         BIHBuilder build(&storage_);
         BIHBuilder::SetLocalVolId background_vol_ids_;
-        bih_tree_ = build(std::move(bboxes_), std::move(background_vol_ids_));
+        bih_tree_ = build(std::move(bboxes_), background_vol_ids_);
         ref_storage_ = storage_;
     }
 

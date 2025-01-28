@@ -337,8 +337,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     // Create BIH tree
     CELER_VALIDATE(std::all_of(bboxes.begin(), bboxes.end(), LogicalTrue{}),
                    << "not all bounding boxes have been assigned");
-    unit.bih_tree
-        = build_bih_tree_(std::move(bboxes), std::move(background_vol_ids));
+    unit.bih_tree = build_bih_tree_(std::move(bboxes), background_vol_ids);
 
     // Save connectivity
     {

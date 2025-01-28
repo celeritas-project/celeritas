@@ -32,8 +32,9 @@ BIHBuilder::BIHBuilder(Storage* storage)
 /*!
  * Create BIH Nodes.
  */
-BIHTree BIHBuilder::operator()(VecBBox&& bboxes,
-                               BIHBuilder::SetLocalVolId&& background_vol_ids)
+BIHTree
+BIHBuilder::operator()(VecBBox&& bboxes,
+                       BIHBuilder::SetLocalVolId const& background_vol_ids)
 {
     CELER_EXPECT(!bboxes.empty());
 
