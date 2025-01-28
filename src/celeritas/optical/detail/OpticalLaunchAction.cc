@@ -213,10 +213,17 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         }
     }
 
-    CELER_LOG_LOCAL(debug) << "Generated " << counters.num_generated
-                           << " optical photons which completed " << num_steps
-                           << " total steps over " << num_step_iters
-                           << " iterations";
+    if (num_step_iters > 0)
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Generated " << counters.num_generated
+            << " optical photons which completed " << num_steps
+            << " total steps over " << num_step_iters << " iterations";
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug) << "No optical steps taken";
+    }
 
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here
