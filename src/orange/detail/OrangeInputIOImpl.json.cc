@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/io/StringEnumMapper.hh"
 
 namespace celeritas
@@ -54,23 +53,6 @@ struct SurfaceEmplacer
             st);
     }
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a logic token to a string.
- */
-void logic_to_stream(std::ostream& os, logic_int val)
-{
-    if (logic::is_operator_token(val))
-    {
-        os << to_char(static_cast<logic::OperatorToken>(val));
-    }
-    else
-    {
-        // Just a face ID
-        os << val;
-    }
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -178,81 +160,6 @@ nlohmann::json export_zipped_surfaces(std::vector<VariantSurface> const& all_s)
         {"data", std::move(surface_data)},
         {"sizes", std::move(surface_sizes)},
     });
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build a logic definition from a C string.
- *
- * A valid string satisfies the regex "[0-9~!| ]+", but the result may
- * not be a valid logic expression. (The volume inserter will ensure that the
- * logic expression at least is consistent for a CSG region definition.)
- *
- * Example:
- * \code
-
-     parse_logic("4 ~ 5 & 6 &");
-
-   \endcode
- */
-std::vector<logic_int> string_to_logic(std::string const& s)
-{
-    std::vector<logic_int> result;
-
-    logic_int surf_id{};
-    bool reading_surf{false};
-    for (char v : s)
-    {
-        if (v >= '0' && v <= '9')
-        {
-            // Parse a surface number. 'Push' this digit onto the surface ID by
-            // multiplying the existing ID by 10.
-            if (!reading_surf)
-            {
-                surf_id = 0;
-                reading_surf = true;
-            }
-            surf_id = 10 * surf_id + (v - '0');
-            continue;
-        }
-        else if (reading_surf)
-        {
-            // Next char is end of word or end of string
-            result.push_back(surf_id);
-            reading_surf = false;
-        }
-
-        // Parse a logic token
-        // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
-        switch (v)
-        {
-                // clang-format off
-            case '*': result.push_back(logic::ltrue); continue;
-            case '|': result.push_back(logic::lor);   continue;
-            case '&': result.push_back(logic::land);  continue;
-            case '~': result.push_back(logic::lnot);  continue;
-                // clang-format on
-        }
-        CELER_VALIDATE(v == ' ',
-                       << "unexpected token '" << v
-                       << "' while parsing logic string");
-    }
-    if (reading_surf)
-    {
-        result.push_back(surf_id);
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a logic vector to a string.
- */
-std::string logic_to_string(std::vector<logic_int> const& logic)
-{
-    return to_string(celeritas::join_stream(
-        logic.begin(), logic.end(), ' ', logic_to_stream));
 }
 
 //---------------------------------------------------------------------------//

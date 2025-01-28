@@ -152,10 +152,11 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     physics_inp.action_registry = this->action_reg().get();
 
     // Add a few processes
-    MockProcess::Input inp;
-    inp.materials = this->material();
-    inp.interact = this->make_model_callback();
+    auto interact = this->make_model_callback();
     {
+        MockProcess::Input inp;
+        inp.materials = this->material();
+        inp.interact = interact;
         inp.label = "scattering";
         inp.use_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100),
@@ -165,6 +166,9 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
+        MockProcess::Input inp;
+        inp.materials = this->material();
+        inp.interact = interact;
         inp.label = "absorption";
         inp.use_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100)};
@@ -174,8 +178,10 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     }
     {
         // Three different models for the single process
+        MockProcess::Input inp;
+        inp.materials = this->material();
+        inp.interact = interact;
         inp.label = "purrs";
-        inp.use_integral_xs = true;
         inp.applic = {make_applicability("celeriton", 1e-3, 1),
                       make_applicability("celeriton", 1, 10),
                       make_applicability("celeriton", 10, 100)};
@@ -186,8 +192,11 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     }
     {
         // Two models for anti-celeriton
+        MockProcess::Input inp;
+        inp.materials = this->material();
+        inp.interact = interact;
         inp.label = "hisses";
-        inp.use_integral_xs = true;
+        inp.applies_at_rest = true;
         inp.applic = {make_applicability("anti-celeriton", 1e-3, 1),
                       make_applicability("anti-celeriton", 1, 100)};
         inp.xs = {Barn{4.0}, Barn{4.0}};
@@ -195,8 +204,10 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
+        MockProcess::Input inp;
+        inp.materials = this->material();
+        inp.interact = interact;
         inp.label = "meows";
-        inp.use_integral_xs = true;
         inp.applic = {make_applicability("celeriton", 1e-3, 10),
                       make_applicability("anti-celeriton", 1e-3, 10)};
         inp.xs = {Barn{5.0}, Barn{5.0}};
@@ -205,8 +216,10 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     }
     {
         // Energy-dependent cross section
+        MockProcess::Input inp;
+        inp.materials = this->material();
+        inp.interact = interact;
         inp.label = "barks";
-        inp.use_integral_xs = true;
         inp.applic = {make_applicability("electron", 1e-5, 10)};
         inp.xs = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
         inp.energy_loss = MevCmSqLossDens{0.5 * 1e-20};

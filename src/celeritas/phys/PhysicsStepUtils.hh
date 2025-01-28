@@ -28,6 +28,57 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Sample the process for the discrete interaction.
+ */
+template<class Engine>
+inline CELER_FUNCTION ParticleProcessId
+find_ppid(MaterialView const& material,
+          ParticleTrackView const& particle,
+          PhysicsTrackView const& physics,
+          PhysicsStepView& pstep,
+          Engine& rng)
+{
+    if (physics.at_rest_process() && particle.is_stopped())
+    {
+        // If the particle is stopped and has an at-rest process, select it
+        return physics.at_rest_process();
+    }
+
+    // Sample the process from the pre-calculated per-process cross section
+    ParticleProcessId ppid = celeritas::make_selector(
+        [&pstep](ParticleProcessId ppid) { return pstep.per_process_xs(ppid); },
+        ParticleProcessId{physics.num_particle_processes()},
+        pstep.macro_xs())(rng);
+    CELER_ASSERT(ppid);
+
+    // Determine if the discrete interaction occurs for particles with energy
+    // loss processes
+    if (physics.integral_xs_process(ppid))
+    {
+        // Recalculate the cross section at the post-step energy \f$ E_1 \f$
+        real_type xs = physics.calc_xs(ppid, material, particle.energy());
+
+        // The discrete interaction occurs with probability \f$ \sigma(E_1) /
+        // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
+        // to be larger than the estimate of the maximum cross section over the
+        // step \f$ \sigma_{\max} \f$.
+        if (generate_canonical(rng) * pstep.per_process_xs(ppid) > xs)
+        {
+            // No interaction occurs; reset the physics state and continue
+            // tracking
+            return {};
+        }
+    }
+    return ppid;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Calculate physics step limits based on cross sections and range limiters.
@@ -269,29 +320,11 @@ select_discrete_interaction(MaterialView const& material,
     CELER_EXPECT(physics.interaction_mfp() <= 0);
     CELER_EXPECT(pstep.macro_xs() > 0);
 
-    // Sample ParticleProcessId from physics.per_process_xs()
-    ParticleProcessId ppid = celeritas::make_selector(
-        [&pstep](ParticleProcessId ppid) { return pstep.per_process_xs(ppid); },
-        ParticleProcessId{physics.num_particle_processes()},
-        pstep.macro_xs())(rng);
-
-    // Determine if the discrete interaction occurs for particles with energy
-    // loss processes
-    if (physics.integral_xs_process(ppid))
+    // Sample the process from the pre-calculated cross sections
+    auto ppid = find_ppid(material, particle, physics, pstep, rng);
+    if (!ppid)
     {
-        // Recalculate the cross section at the post-step energy \f$ E_1 \f$
-        real_type xs = physics.calc_xs(ppid, material, particle.energy());
-
-        // The discrete interaction occurs with probability \f$ \sigma(E_1) /
-        // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
-        // to be larger than the estimate of the maximum cross section over the
-        // step \f$ \sigma_{\max} \f$.
-        if (generate_canonical(rng) * pstep.per_process_xs(ppid) > xs)
-        {
-            // No interaction occurs; reset the physics state and continue
-            // tracking
-            return physics.scalars().integral_rejection_action();
-        }
+        return physics.scalars().integral_rejection_action();
     }
 
     // Find the model that applies at the particle energy

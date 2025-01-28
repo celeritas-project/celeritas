@@ -236,7 +236,8 @@ TEST_F(RootJsonDumperTest, all)
       "micro_xs" : []
     }]
   }],
-  "tables" : []
+  "tables" : [],
+  "applies_at_rest" : true
 }, {
   "_typename" : "celeritas::ImportProcess",
   "particle_pdg" : 13,
@@ -272,7 +273,8 @@ TEST_F(RootJsonDumperTest, all)
       "x" : [1000, 100000000],
       "y" : [0, 7.63113707977686e-4]
     }]
-  }]
+  }],
+  "applies_at_rest" : false
 }],
 "msc_models" : [{
   "_typename" : "celeritas::ImportMscModel",
