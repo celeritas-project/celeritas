@@ -2,18 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/LogicUtils.hh
+//! \file orange/orangeinp/detail/CsgLogicUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 #include <type_traits>
 #include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTree.hh"
@@ -25,45 +23,6 @@ namespace orangeinp
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-/*!
- * Convert a logic token to a string.
- */
-inline void logic_to_stream(std::ostream& os, logic_int val)
-{
-    if (logic::is_operator_token(val))
-    {
-        os << to_char(static_cast<logic::OperatorToken>(val));
-    }
-    else
-    {
-        // Just a face ID
-        os << val;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a logic vector to a string.
- */
-inline std::string logic_to_string(std::vector<logic_int> const& logic)
-{
-    return to_string(celeritas::join_stream(
-        logic.begin(), logic.end(), ' ', logic_to_stream));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build a logic definition from a C string.
- */
-std::vector<logic_int> string_to_logic(std::string const& s);
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a postfix logic expression to an infix expression.
- */
-std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix);
-
 //---------------------------------------------------------------------------//
 /*!
  * Result of building a logic representation of a node.

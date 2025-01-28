@@ -66,6 +66,9 @@ celeritas_add_test(detail/BIHUtils.test.cc)
 # Oriented Bounding Zone
 celeritas_add_test(detail/OrientedBoundingZone.test.cc)
 
+# Logic utilities
+celeritas_add_test(detail/LogicUtils.test.cc)
+
 #-----------------------------------------------------------------------------#
 # Input construction
 celeritas_add_test(orangeinp/CsgObject.test.cc)
@@ -84,7 +87,6 @@ celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/PolygonUtils.test.cc)
 celeritas_add_test(orangeinp/detail/ProtoMap.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
-celeritas_add_test(orangeinp/detail/LogicUtils.test.cc)
 celeritas_add_test(orangeinp/detail/SurfaceGridHash.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 

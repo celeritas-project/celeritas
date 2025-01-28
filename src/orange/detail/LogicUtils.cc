@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/LogicUtils.cc
+//! \file orange/detail/LogicUtils.cc
 //---------------------------------------------------------------------------//
 #include "LogicUtils.hh"
 
@@ -13,75 +13,10 @@
 
 namespace celeritas
 {
-namespace orangeinp
-{
 namespace detail
 {
-//---------------------------------------------------------------------------//
-/*!
- * Build a logic definition from a C string.
- *
- * A valid string satisfies the regex "[0-9~!| ]+", but the result may
- * not be a valid logic expression. (The volume inserter will ensure that the
- * logic expression at least is consistent for a CSG region definition.)
- *
- * Example:
- * \code
-
-     parse_logic("4 ~ 5 & 6 &");
-
-   \endcode
- */
-std::vector<logic_int> string_to_logic(std::string const& s)
+namespace
 {
-    std::vector<logic_int> result;
-
-    logic_int surf_id{};
-    bool reading_surf{false};
-    for (char v : s)
-    {
-        if (v >= '0' && v <= '9')
-        {
-            // Parse a surface number. 'Push' this digit onto the surface ID by
-            // multiplying the existing ID by 10.
-            if (!reading_surf)
-            {
-                surf_id = 0;
-                reading_surf = true;
-            }
-            surf_id = 10 * surf_id + (v - '0');
-            continue;
-        }
-        else if (reading_surf)
-        {
-            // Next char is end of word or end of string
-            result.push_back(surf_id);
-            reading_surf = false;
-        }
-
-        // Parse a logic token
-        // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
-        switch (v)
-        {
-                // clang-format off
-            case '*': result.push_back(logic::ltrue); continue;
-            case '|': result.push_back(logic::lor);   continue;
-            case '&': result.push_back(logic::land);  continue;
-            case '~': result.push_back(logic::lnot);  continue;
-                // clang-format on
-        }
-        CELER_VALIDATE(v == ' ',
-                       << "unexpected token '" << v
-                       << "' while parsing logic string");
-    }
-    if (reading_surf)
-    {
-        result.push_back(surf_id);
-    }
-
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Convert a postfix logic expression to an infix expression.
@@ -168,6 +103,72 @@ class ExprStack
     //! The infix expression; used as a stack during conversion.
     std::vector<Operand> infix_;
 };
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a logic definition from a C string.
+ *
+ * A valid string satisfies the regex "[0-9~!| ]+", but the result may
+ * not be a valid logic expression. (The volume inserter will ensure that the
+ * logic expression at least is consistent for a CSG region definition.)
+ *
+ * Example:
+ * \code
+
+     parse_logic("4 ~ 5 & 6 &");
+
+   \endcode
+ */
+std::vector<logic_int> string_to_logic(std::string const& s)
+{
+    std::vector<logic_int> result;
+
+    logic_int surf_id{};
+    bool reading_surf{false};
+    for (char v : s)
+    {
+        if (v >= '0' && v <= '9')
+        {
+            // Parse a surface number. 'Push' this digit onto the surface ID by
+            // multiplying the existing ID by 10.
+            if (!reading_surf)
+            {
+                surf_id = 0;
+                reading_surf = true;
+            }
+            surf_id = 10 * surf_id + (v - '0');
+            continue;
+        }
+        else if (reading_surf)
+        {
+            // Next char is end of word or end of string
+            result.push_back(surf_id);
+            reading_surf = false;
+        }
+
+        // Parse a logic token
+        // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
+        switch (v)
+        {
+                // clang-format off
+            case '*': result.push_back(logic::ltrue); continue;
+            case '|': result.push_back(logic::lor);   continue;
+            case '&': result.push_back(logic::land);  continue;
+            case '~': result.push_back(logic::lnot);  continue;
+                // clang-format on
+        }
+        CELER_VALIDATE(v == ' ',
+                       << "unexpected token '" << v
+                       << "' while parsing logic string");
+    }
+    if (reading_surf)
+    {
+        result.push_back(surf_id);
+    }
+
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -214,7 +215,7 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
     }
     return std::move(infix_expr).get_infix();
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // namespace orangeinp
 }  // namespace celeritas

@@ -2,9 +2,10 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/LogicUtils.test.cc
+//! \file orange/detail/LogicUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/orangeinp/detail/LogicUtils.hh"
+
+#include "orange/detail/LogicUtils.hh"
 
 #include <string_view>
 #include <vector>
@@ -24,8 +25,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using celeritas::orangeinp::detail::logic_to_string;
-using celeritas::orangeinp::detail::string_to_logic;
+using celeritas::detail::convert_to_infix;
+using celeritas::detail::logic_to_string;
+using celeritas::detail::string_to_logic;
 
 std::vector<logic_int> postfix_to_infix(std::string_view postfix)
 {
