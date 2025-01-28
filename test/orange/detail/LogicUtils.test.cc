@@ -17,17 +17,11 @@
 
 namespace celeritas
 {
-namespace orangeinp
-{
 namespace detail
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-using celeritas::detail::convert_to_infix;
-using celeritas::detail::logic_to_string;
-using celeritas::detail::string_to_logic;
 
 std::vector<logic_int> postfix_to_infix(std::string_view postfix)
 {
@@ -94,5 +88,4 @@ TEST(NotationConverter, basic)
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail
-}  // namespace orangeinp
 }  // namespace celeritas
