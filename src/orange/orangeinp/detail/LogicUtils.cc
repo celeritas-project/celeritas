@@ -103,9 +103,9 @@ class ExprStack
     //! Push a binary operator.
     void push_binary(logic_int op)
     {
-        CELER_EXPECT(infix.size() > 1);
-        auto& op_2 = infix.back();
-        auto& op_1 = *(infix.end() - 2);
+        CELER_EXPECT(infix_.size() > 1);
+        auto& op_2 = infix_.back();
+        auto& op_1 = *(infix_.end() - 2);
         std::vector<logic_int> new_expr;
         constexpr int max_extra_tokens = 5;
         new_expr.reserve(max_extra_tokens + op_1.expr.size()
@@ -114,38 +114,38 @@ class ExprStack
         this->add_sub_expr(new_expr, op_1.expr, opposite == op_1.expr_type);
         new_expr.push_back(op);
         this->add_sub_expr(new_expr, op_2.expr, opposite == op_2.expr_type);
-        infix.pop_back();
-        infix.pop_back();
-        infix.push_back({logic::OperatorToken{op}, new_expr});
+        infix_.pop_back();
+        infix_.pop_back();
+        infix_.push_back({logic::OperatorToken{op}, new_expr});
     }
 
     //! Push an operand.
     void push_unary(logic_int op)
     {
-        CELER_EXPECT(!infix.empty());
-        auto&& [expr_type, expr] = infix.back();
+        CELER_EXPECT(!infix_.empty());
+        auto&& [expr_type, expr] = infix_.back();
         std::vector<logic_int> new_expr;
         constexpr int max_extra_tokens = 3;
         new_expr.reserve(max_extra_tokens + expr.size());
 
         new_expr.push_back(op);
         this->add_sub_expr(new_expr, expr, expr_type < logic::lnot);
-        infix.pop_back();
-        infix.push_back({logic::OperatorToken{op}, new_expr});
+        infix_.pop_back();
+        infix_.push_back({logic::OperatorToken{op}, new_expr});
     }
 
     //! Push a primitive (surface).
     void push_primitive(logic_int elem)
     {
         // hijack ltrue as the token to represent a primitive
-        infix.push_back({logic::ltrue, {elem}});
+        infix_.push_back({logic::ltrue, {elem}});
     }
 
     //! Get the infix expression.
     std::vector<logic_int> get_infix() &&
     {
-        CELER_EXPECT(infix.size() == 1);
-        return std::move(infix.front().expr);
+        CELER_EXPECT(infix_.size() == 1);
+        return std::move(infix_.front().expr);
     }
 
   private:
@@ -166,7 +166,7 @@ class ExprStack
     }
 
     //! The infix expression; used as a stack during conversion.
-    std::vector<Operand> infix;
+    std::vector<Operand> infix_;
 };
 
 //---------------------------------------------------------------------------//
