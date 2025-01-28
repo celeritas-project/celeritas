@@ -435,13 +435,12 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     {
         // No internal surfaces nor implicit volume: the closest distance is
         // the next boundary
-        auto x = this->simple_intersect(state, vol, num_isect);
-        return x;
+        return this->simple_intersect(state, vol, num_isect);
     }
     else if (vol.internal_surfaces())
     {
         // Internal surfaces: sort valid intersection distances in ascending
-        // order  and find the closest surface that puts us outside.
+        // order and find the closest surface that puts us outside.
         celeritas::sort(state.temp_next.isect,
                         state.temp_next.isect + num_isect,
                         [&state](size_type a, size_type b) {
@@ -449,7 +448,7 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
                                    < state.temp_next.distance[b];
                         });
         // Call with a target sense of "inside," because we are seeking a
-        // surface for which crossing resulting in leaving the volume
+        // surface for which crossing will result leaving the volume
         return this->complex_intersect(state, vol, num_isect, Sense::outside);
     }
 
@@ -505,7 +504,6 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
     Intersection result;
     result.surface = {surface, cur_sense};
     result.distance = state.temp_next.distance[distance_idx];
-
     return result;
 }
 
@@ -513,12 +511,15 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
 /*!
  * Calculate boundary distance if internal surfaces are present.
  *
- * In "complex" volumes, crossing a surface can still leave the particle in an
- * "inside" state.
+ * In "complex" volumes, crossing a surface can still leave the particle in its
+ * original state.
  *
  * We have to iteratively track through all surfaces, in order of minimum
- * distance, to determine whether crossing them in sequence will cause us to
- * exit the volume.
+ * distance, to determine whether crossing them in sequence will cause us
+ * change our sense with respect to the volume.
+ *
+ * The target_sense argument denotes whether a valid intersection is one that
+ * puts us inside or outside the volume.
  *
  * \pre The `state.temp_next.isect` array must be sorted by the caller by
  * ascending distance.
@@ -571,7 +572,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         axpy(distance - previous_distance, state.dir, &pos);
 
         // Intersection is found if is_inside is true and the target sense
-        // is inside (false), or vice-versa
+        // is inside (n.b., static_cast<inside> is false), or vice-versa
         if (is_inside(calc_sense) ^ static_cast<bool>(target_sense))
         {
             // Flipping this sense puts us outside the current volume: in
@@ -636,7 +637,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
                         });
 
         // Call with a target sense of "inside," because we are seeking a
-        // surface for which crossing resulting in entering the volume
+        // surface for which crossing will result in entering the volume
         return this->complex_intersect(state, vol, num_isect, Sense::inside);
     };
 

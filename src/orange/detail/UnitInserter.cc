@@ -301,7 +301,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         }
         else
         {
-            // Background volume, store and empty bbox placeholder
+            // Background volume, store an empty bbox placeholder
             bboxes.push_back(BoundingBox<fast_real_type>());
         }
 
@@ -334,8 +334,6 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
-    // CELER_VALIDATE(std::all_of(bboxes.begin(), bboxes.end(), LogicalTrue{}),
-    //               << "not all bounding boxes have been assigned");
     unit.bih_tree = build_bih_tree_(std::move(bboxes));
 
     // Save connectivity
