@@ -180,10 +180,8 @@ if "lar" in geometry_filename and not use_device:
     num_streams = internal["core-sizes"].pop("streams")
     if "openmp" not in j["system"]["build"]["config"]["use"]:
         assert num_streams == 1
-    for k in ["initializers", "secondaries", "tracks"]:
-        core_sizes[k] = core_sizes[k] // num_streams
     assert internal["core-sizes"] == {
-       "events": 3,
+       "events": 4,
        "initializers": 3200,
        "processes": 1,
        "secondaries": 96,
@@ -192,8 +190,6 @@ if "lar" in geometry_filename and not use_device:
 
     opt_sizes = internal["optical-sizes"].copy()
     assert num_streams == opt_sizes.pop("streams")
-    for k in ["initializers", "generators", "tracks"]:
-        opt_sizes[k] = opt_sizes[k] // num_streams
     assert opt_sizes == {
        "generators": 24576,
        "initializers": 32,

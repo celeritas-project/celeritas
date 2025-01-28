@@ -132,13 +132,13 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 celer_sim_test(cms
-  simple-cms.gdml gamma-3evt-15prim.hepmc3 simple-cms-mctruth.root
+  simple-cms.gdml gamma-4evt-15prim.hepmc3 simple-cms-mctruth.root
 )
 
 # TODO: Currently simple-driver.py uses the same Runner input parameters on
 #       both celer-sim-cms and celer-sim-lar tests. Some may need to be updated.
 celer_sim_test(lar
-  lar-sphere.gdml gamma-3evt-15prim.hepmc3 lar-mctruth.root
+  lar-sphere.gdml gamma-4evt-15prim.hepmc3 lar-mctruth.root
 )
 
 #-----------------------------------------------------------------------------#
