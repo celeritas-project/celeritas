@@ -76,11 +76,12 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     set(_needs_deps DISABLED true)
   endif()
 
-  add_test(NAME "app/celer-sim-${test_ext}:gpu"
+  set(_name "app/celer-sim:${test_ext}:gpu")
+  add_test(NAME "${_name}"
     COMMAND "${CELER_PYTHON}"
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
   )
-  set_tests_properties("app/celer-sim-${test_ext}:gpu" PROPERTIES
+  set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env};${CELER_G4ENV}"
     RESOURCE_LOCK gpu
     REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
@@ -100,7 +101,8 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     set(CELER_GEO "${CELER_CORE_GEO}-JSON")
   endif()
 
-  add_test(NAME "app/celer-sim-${test_ext}:cpu"
+  set(_name "app/celer-sim:${test_ext}:cpu")
+  add_test(NAME "${_name}"
     COMMAND "${CELER_PYTHON}"
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
   )
@@ -118,7 +120,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     set(CELER_OMP_ENV "OMP_NUM_THREADS=1")
     set(CELER_PROCESSORS)
   endif()
-  set_tests_properties("app/celer-sim-${test_ext}:cpu" PROPERTIES
+  set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env};${CELER_G4ENV};${CELER_OMP_ENV}"
     REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     LABELS "app;nomemcheck"
@@ -130,13 +132,13 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 celer_sim_test(cms
-  simple-cms.gdml gamma-3evt-15prim.hepmc3 simple-cms-mctruth.root
+  simple-cms.gdml gamma-4evt-15prim.hepmc3 simple-cms-mctruth.root
 )
 
 # TODO: Currently simple-driver.py uses the same Runner input parameters on
 #       both celer-sim-cms and celer-sim-lar tests. Some may need to be updated.
 celer_sim_test(lar
-  lar-sphere.gdml gamma-3evt-15prim.hepmc3 lar-mctruth.root
+  lar-sphere.gdml gamma-4evt-15prim.hepmc3 lar-mctruth.root
 )
 
 #-----------------------------------------------------------------------------#

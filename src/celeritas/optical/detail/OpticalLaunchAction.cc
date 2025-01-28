@@ -10,6 +10,8 @@
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -21,11 +23,36 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
+#include "OpticalSizes.json.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+auto get_core_sizes(OpticalLaunchAction const& ola)
+{
+    // Optical core params
+    auto const& cp = ola.optical_params();
+
+    OpticalSizes result;
+    result.streams = cp.max_streams();
+
+    // NOTE: quantities are *per-process* quantities: integrated over streams,
+    // but not processes
+    result.generators = result.streams
+                        * ola.offload_params().host_ref().setup.capacity;
+    result.initializers = result.streams * cp.init()->capacity();
+    result.tracks = 0;
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -83,6 +110,13 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         CELER_ENSURE(inp);
         return inp;
     }());
+
+    // Add optical sizes
+    core.output_reg()->insert(
+        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            get_core_sizes(*this)));
 
     // TODO: add generators to the *optical* stepping loop instead of part of
     // the main loop; for now just make sure enough track initializers are

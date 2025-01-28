@@ -9,8 +9,6 @@
 
 #include "corecel/io/EnumStringMapper.hh"
 
-#include "UnitTypes.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

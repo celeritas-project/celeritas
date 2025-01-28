@@ -86,13 +86,6 @@ if not use_device:
     # shorten to an unreasonably small number to reduce test time.
     max_steps = 256
 
-# TODO: Update once tracking loop is implemented
-optical_options = {
-    'buffer_capacity': 3 * max_steps * num_tracks,
-    'primary_capacity': num_tracks,
-    'auto_flush': 2**31, # Large enough to never launch optical loop
-}
-
 inp = {
     'use_device': use_device,
     'geometry_file': geometry_filename,
@@ -102,7 +95,7 @@ inp = {
     'seed': 12345,
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
-    'initializer_capacity': 100 * max([num_tracks, num_primaries]),
+    'initializer_capacity': 100 * num_tracks,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
     'step_diagnostic': True,
@@ -115,9 +108,18 @@ inp = {
     'brem_combined': True,
     'physics_options': physics_options,
     'field': None,
-    'optical': optical_options,
     'slot_diagnostic_prefix': f"slot-diag-{run_name}-",
 }
+
+if "lar" in geometry_filename:
+    inp['optical'] = {
+        'buffer_capacity': 3 * max_steps * num_tracks,
+        'primary_capacity': num_tracks,
+        'auto_flush': 2**31, # Large enough to never launch optical loop
+    }
+
+if physics_filename:
+    inp['physics_file'] = physics_filename
 
 inp_file = f'{run_name}.inp.json'
 with open(inp_file, 'w') as f:
@@ -159,14 +161,36 @@ with open(out_file, 'w') as f:
     json.dump(j, f, indent=1)
 print("Results written to", out_file, file=stderr)
 
-run_output =j['result']['runner']
+run_output = j['result']['runner']
 time = run_output['time'].copy()
 steps = time.pop('steps')
 if use_device:
     assert steps
-    assert len(steps[0]) == run_output['num_step_iterations'][0]
+    assert len(steps[0]) == run_output['num_step_iterations'][0], steps[0]
 else:
     # Step times disabled on CPU from input
-    assert steps is None
+    assert steps is None, steps
+
+internal = j["internal"]
+if "lar" in geometry_filename and not use_device:
+    core_sizes = internal["core-sizes"].copy()
+    num_streams = internal["core-sizes"].pop("streams")
+    if "openmp" not in j["system"]["build"]["config"]["use"]:
+        assert num_streams == 1
+    assert internal["core-sizes"] == {
+       "events": 4,
+       "initializers": 3200,
+       "processes": 1,
+       "secondaries": 96,
+       "tracks": 32
+      }, core_sizes
+
+    opt_sizes = internal["optical-sizes"].copy()
+    assert num_streams == opt_sizes.pop("streams")
+    assert opt_sizes == {
+       "generators": 24576 * num_streams,
+       "initializers": 32 * num_streams,
+       "tracks": 0,
+      }, opt_sizes
 
 print(json.dumps(time, indent=1))
