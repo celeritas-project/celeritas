@@ -19,6 +19,7 @@
 #include "celeritas/phys/Primary.hh"
 
 class G4Track;
+class G4EventManager;
 
 namespace celeritas
 {
@@ -98,7 +99,9 @@ class LocalTransporter
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
 
+    // Current event ID or manager for obtaining it
     UniqueEventId event_id_;
+    G4EventManager* event_manager_{nullptr};
 
     size_type auto_flush_{};
     size_type max_step_iters_{};
