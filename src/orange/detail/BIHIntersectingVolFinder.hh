@@ -167,7 +167,7 @@ CELER_FUNCTION auto
 BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      F&& visit_vol) const -> Intersection
 {
-    return (*this)(ray, visit_vol, std::numeric_limits<real_type>::infinity());
+    return (*this)(ray, visit_vol, numeric_limits<real_type>::infinity());
 }
 
 //---------------------------------------------------------------------------//
