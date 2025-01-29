@@ -167,8 +167,9 @@ auto build_physics(inp::Problem const& p,
     input.options.fixed_step_limiter = p.tracking.force_step_limit;
     if (p.control.capacity.secondaries)
     {
-        input.options.secondary_stack_factor = *p.control.capacity.secondaries
-                                               / p.control.capacity.tracks;
+        input.options.secondary_stack_factor
+            = static_cast<real_type>(*p.control.capacity.secondaries)
+              / static_cast<real_type>(p.control.capacity.tracks);
     }
     else
     {
