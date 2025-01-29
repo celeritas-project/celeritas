@@ -291,8 +291,8 @@ SharedParams::SharedParams(std::string output_filename)
 {
     CELER_EXPECT(!output_filename_.empty());
 
-    CELER_LOG_LOCAL(debug) << "Constructing output registry for no-offload "
-                              "run";
+    CELER_LOG_LOCAL(debug)
+        << R"(Constructing output registry for no-offload run)";
     output_reg_ = std::make_shared<OutputRegistry>();
 
     CELER_ENSURE(output_reg_);
@@ -579,6 +579,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.init = [&options] {
         TrackInitParams::Input input;
         input.capacity = options.initializer_capacity;
+        input.max_events = 1;  // TODO: use special "max events" case
         input.track_order = options.track_order;
         if (input.track_order == TrackOrder::size_)
         {
