@@ -12,6 +12,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 
 #include "detail/InterpolatorTraits.hh"
 
@@ -84,6 +86,53 @@ class Interpolator
     using YTraits_t = detail::InterpolatorTraits<YI, real_type>;
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Interpolate using a cubic spline.
+ *
+ * Given a set of \f$ n \f$ data points \f$ (x_i, y_i) \f$ such that \f$ x_0 <
+ * x_1 < \dots < x_n \f$, a cubic spline \f$ f(x) \f$ interpolating on the
+ * points is a piecewise polynomial function consisting of \f$ n - 1 \f$ cubic
+ * polynomials \f$ f_i \f$ defined on \f$ [x_i, x_{i + 1}] \f$. The \f$ f_i \f$
+ * are joined at \f$ x_i \f$ such that both the first and second derivatives,
+ * \f$ f'_i \f$ and \f$ f''_i \f$, are continuous.
+ *
+ * The \f$ i^{\text{th}} \f$ piecewise polynomial \f$ f_i \f$ is given by:
+ * \f[
+   f_i(x) = a_0 + a_1(x - x_i) + a_2(x - x_i)^2 + a_3(x - x_i)^3,
+ * \f]
+ * where \f$ a_i \f$ are the polynomial coefficients:
+ * \f{align}{
+   a_0 &= y_i \\
+   a_1 &= y'_i \\
+   a_2 &= \frac{1}{\Delta x_i} \left[3 \frac{\Delta y_i}{\Delta x_i} - 2y'_i -
+          y'_{i + 1}\right] \\
+   a_3 &= \frac{1}{\Delta x^2_i} \left[-2 \frac{\Delta y_i}{\Delta x_i} + y'_i
+          + y'_{i + 1} \right]
+ * \f}
+ */
+template<typename T = ::celeritas::real_type>
+class SplineInterpolator
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using real_type = T;
+    using Point = Array<T, 3>;
+    //!@}
+
+  public:
+    // Construct with left and right values for x and y
+    inline CELER_FUNCTION SplineInterpolator(Point left, Point right);
+
+    // Interpolate
+    inline CELER_FUNCTION real_type operator()(real_type x) const;
+
+  private:
+    T x_lower_;  //!< Lower grid point \f$ x_i \f$
+    Array<T, 4> a_;  //!< Spline coefficients
+};
+
 //! Linear interpolation
 template<class T>
 using LinearInterpolator = Interpolator<Interp::linear, Interp::linear, T>;
@@ -121,6 +170,32 @@ CELER_FUNCTION Interpolator<XI, YI, T>::Interpolator(Point left, Point right)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with left and right values for x and y.
+ */
+template<class T>
+CELER_FUNCTION
+SplineInterpolator<T>::SplineInterpolator(Point left, Point right)
+{
+    enum
+    {
+        X = 0,
+        Y = 1,
+        Y_PRIME = 2  //!< First derivative
+    };
+
+    CELER_EXPECT(left[X] < right[X]);
+
+    x_lower_ = left[X];
+    T inv_dx = 1 / (right[X] - left[X]);
+    T slope = (right[Y] - left[Y]) * inv_dx;
+    a_[0] = left[Y];
+    a_[1] = left[Y_PRIME];
+    a_[2] = inv_dx * (3 * slope - 2 * left[Y_PRIME] - right[Y_PRIME]);
+    a_[3] = ipow<2>(inv_dx) * (-2 * slope + left[Y_PRIME] + right[Y_PRIME]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Interpolate linearly on the transformed type.
  */
 template<Interp XI, Interp YI, class T>
@@ -133,6 +208,17 @@ Interpolator<XI, YI, T>::operator()(real_type x) const -> real_type
 
     CELER_ENSURE(!std::isnan(result));
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Interpolate using a cubic spline.
+ */
+template<class T>
+CELER_FUNCTION auto SplineInterpolator<T>::operator()(real_type x) const
+    -> real_type
+{
+    return PolyEvaluator{a_}(x - x_lower_);
 }
 
 //---------------------------------------------------------------------------//

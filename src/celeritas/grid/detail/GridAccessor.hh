@@ -38,10 +38,10 @@ class GridAccessor
     virtual size_type size() const = 0;
 
     // Get x[index + 1] - x[index]
-    real_type delta_x(size_type index) const;
+    inline real_type delta_x(size_type index) const;
 
     // Get y[index + 1] - y[index]
-    real_type delta_y(size_type index) const;
+    inline real_type delta_y(size_type index) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ class SpanGridAccessor : public GridAccessor
 
   public:
     // Construct with spans
-    SpanGridAccessor(SpanConstReal x_values, SpanConstReal y_values);
+    inline SpanGridAccessor(SpanConstReal x_values, SpanConstReal y_values);
 
     // Get the x grid value at the given index
     inline real_type x(size_type index) const final;
@@ -89,7 +89,7 @@ class XsGridAccessor : public GridAccessor
 
   public:
     // Construct with cross section grid
-    XsGridAccessor(XsGridData const& grid, Values const& values);
+    inline XsGridAccessor(XsGridData const& grid, Values const& values);
 
     //! Get the x grid value at the given index
     inline real_type x(size_type index) const final;

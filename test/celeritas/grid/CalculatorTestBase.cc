@@ -13,6 +13,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "celeritas/grid/SplineDerivativeCalculator.hh"
 
 namespace celeritas
 {
@@ -50,7 +51,10 @@ auto CalculatorTestBase::mutable_values() -> SpanReal
 /*!
  * Construct from an arbitrary function.
  */
-void CalculatorTestBase::build(Real2 bounds, size_type count, XsFunc calc_xs)
+void CalculatorTestBase::build(Real2 bounds,
+                               size_type count,
+                               XsFunc calc_xs,
+                               bool spline)
 {
     CELER_EXPECT(bounds[1] > bounds[0]);
     CELER_EXPECT(count >= 2);
@@ -71,8 +75,14 @@ void CalculatorTestBase::build(Real2 bounds, size_type count, XsFunc calc_xs)
     temp_xs.back() = calc_xs(bounds[1]);
 
     value_storage_ = {};
-    data_.value = make_builder(&value_storage_)
-                      .insert_back(temp_xs.begin(), temp_xs.end());
+    CollectionBuilder build(&value_storage_);
+    data_.value = build.insert_back(temp_xs.begin(), temp_xs.end());
+    if (spline)
+    {
+        Data value_ref{value_storage_};
+        auto deriv = SplineDerivativeCalculator(data_, value_ref)();
+        data_.derivative = build.insert_back(deriv.begin(), deriv.end());
+    }
     value_ref_ = value_storage_;
 
     CELER_ENSURE(data_);

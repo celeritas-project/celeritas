@@ -8,8 +8,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/math/PolyEvaluator.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericCalculator.hh"

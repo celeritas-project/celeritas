@@ -44,6 +44,7 @@ auto SplineDerivativeCalculator::operator()() const -> VecReal
     TridiagonalSolver::Coefficients coeffs;
     resize(coeffs, num_points);
 
+    CELER_ASSERT(grid_->x(1) > grid_->x(0));
     real_type h_lower = grid_->delta_x(0);
     real_type h_upper = grid_->delta_x(1);
     real_type r_lower = (grid_->delta_y(0)) / h_lower;
@@ -73,6 +74,7 @@ auto SplineDerivativeCalculator::operator()() const -> VecReal
     // Fill RHS and bands of tridiagonal matrix
     for (size_type i = 1; i < num_points - 1; ++i)
     {
+        CELER_ASSERT(grid_->x(i) > grid_->x(i - 1));
         h_lower = grid_->delta_x(i - 1);
         h_upper = grid_->delta_x(i);
         r_lower = (grid_->delta_y(i - 1)) / h_lower;

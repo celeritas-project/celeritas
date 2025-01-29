@@ -46,7 +46,8 @@ class CalculatorTestBase : public Test
     //!@}
 
     // Construct from an arbitrary function
-    void build(Real2 bounds, size_type count, XsFunc calc_xs);
+    void
+    build(Real2 bounds, size_type count, XsFunc calc_xs, bool spline = false);
 
     // Scale cross sections at or above this index by a factor of E
     void convert_to_prime(size_type i);
