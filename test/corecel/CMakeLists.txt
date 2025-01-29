@@ -76,6 +76,7 @@ celeritas_add_test(math/Constant.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
 celeritas_add_test(math/Integrator.test.cc)
 celeritas_add_device_test(math/NumericLimits)
+celeritas_add_test(math/PolyEvaluator.test.cc)
 celeritas_add_test(math/Quantity.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(math/SoftEqual.test.cc)

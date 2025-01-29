@@ -9,10 +9,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Quantity.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
 
 namespace celeritas
