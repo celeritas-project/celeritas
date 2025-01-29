@@ -13,6 +13,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 celeritas_add_test_library(testcel_accel
+  IntegrationTestBase.cc
   SDTestBase.cc
   SimpleSensitiveDetector.cc
 )
@@ -49,5 +50,12 @@ if(CELERITAS_REAL_TYPE STREQUAL "double")
   celeritas_add_test(detail/NaviTouchableUpdater.test.cc
     LINK_LIBRARIES testcel_geocel)
 endif()
+
+# High-level integration tests
+celeritas_add_test(UserActionIntegration.test.cc
+  LINK_LIBRARIES ${Geant4_LIBRARIES})
+celeritas_add_test(TrackingManagerIntegration.test.cc
+  LINK_LIBRARIES ${Geant4_LIBRARIES})
+
 
 #-----------------------------------------------------------------------------#
