@@ -95,7 +95,6 @@ class BIHIntersectingVolFinder
     // Calculate the current min intersection, which may/may not be in inf_vols
     template<class F>
     inline CELER_FUNCTION Intersection visit_inf_vols(Intersection intersection,
-                                                      Ray ray,
                                                       F&& visit_vol) const;
 };
 
@@ -117,15 +116,13 @@ BIHIntersectingVolFinder::BIHIntersectingVolFinder(
 /*!
  * Calculate the minimum intersection, with supplied maximum search distance.
  *
- * The visit_vol argument should be of the form:
+ * If no intersection is found within max_search_dist, an empty Intersection
+ * object is returned. The visit_vol argument should be of the form:
  *
- * detail::Intersection(*)(LocalVolumeId id, Ray ray, real_type
- * max_search_dist)
+ * detail::Intersection(*)(LocalVolumeId id)
  *
- * In other words, for a given LocalVolumeId and Ray, it should provide an
- * Intersection object denoting the next surface and the corresponding
- * distance. If no intersection is found within max_search_dist, an empty
- * Intersection object is returned.
+ * Other information required by the functor should be handled through
+ * lambda capture.
  */
 template<class F>
 CELER_FUNCTION auto
@@ -154,7 +151,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
     } while (current_node);
 
-    return this->visit_inf_vols(intersection, ray, visit_vol);
+    return this->visit_inf_vols(intersection, visit_vol);
 }
 
 //---------------------------------------------------------------------------//
@@ -257,7 +254,7 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
 
         if (this->visit_bbox(bbox, ray, min_intersection.distance))
         {
-            auto intersection = visit_vol(id, ray, min_intersection.distance);
+            auto intersection = visit_vol(id);
             if (intersection
                 && intersection.distance < min_intersection.distance)
             {
@@ -275,12 +272,11 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
 template<class F>
 CELER_FUNCTION auto
 BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
-                                         BIHIntersectingVolFinder::Ray ray,
                                          F&& visit_vol) const -> Intersection
 {
     for (auto id : view_.inf_vol_ids())
     {
-        auto intersection = visit_vol(id, ray, min_intersection.distance);
+        auto intersection = visit_vol(id);
         if (intersection && intersection.distance < min_intersection.distance)
         {
             min_intersection = intersection;

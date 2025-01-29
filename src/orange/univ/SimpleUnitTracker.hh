@@ -605,10 +605,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
                                         F&& is_valid) const -> Intersection
 {
     auto is_intersecting
-        = [this, &state, &is_valid](
-              LocalVolumeId vol_id,
-              detail::BIHIntersectingVolFinder::Ray ray [[maybe_unused]],
-              real_type max_search_dist [[maybe_unused]]) -> Intersection {
+        = [this, &state, &is_valid](LocalVolumeId vol_id) -> Intersection {
         VolumeView vol = this->make_local_volume(vol_id);
 
         detail::CalcIntersections calc_intersections{
