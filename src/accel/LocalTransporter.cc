@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
@@ -242,6 +243,27 @@ void LocalTransporter::Flush()
     {
         return;
     }
+
+    if (event_manager_ || !event_id_)
+    {
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Save the event manager pointer, thereby marking that
+            // *subsequent* events need to have their IDs checked as well
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
+
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
+        {
+            // The event ID has changed: reseed it
+            this->InitializeEvent(event->GetEventID());
+        }
+    }
+    CELER_ASSERT(event_id_);
+
     if (celeritas::device())
     {
         CELER_LOG_LOCAL(debug)
