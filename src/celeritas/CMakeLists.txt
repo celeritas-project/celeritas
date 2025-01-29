@@ -227,6 +227,7 @@ if(CELERITAS_USE_ROOT)
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
+    io/RootCoreParamsOutput.cc
     io/RootEventReader.cc
     io/RootEventWriter.cc
     phys/RootEventSampler.cc

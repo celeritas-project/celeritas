@@ -10,9 +10,9 @@
 #include <vector>
 #include <TTree.h>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/sys/ActionRegistry.hh"
-
-#include "RootFileManager.hh"
+#include "celeritas/ext/RootFileManager.hh"
 
 namespace celeritas
 {

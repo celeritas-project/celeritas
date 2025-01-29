@@ -113,6 +113,231 @@ std::shared_ptr<GeoParams> build_geometry(inp::Model const& m)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct physics processes.
+ */
+auto build_physics_processes(inp::EmPhysics const& em,
+                             CoreParams::Input const& params,
+                             ImportData const& imported)
+{
+    // TODO: process builder should be deleted; instead it should get
+    // p.physics.em or whatever
+    std::vector<std::shared_ptr<Process const>> result;
+    ProcessBuilder::Options opts;
+    if (em.brems)
+    {
+        opts.brem_combined = em.brems->combined_model;
+        opts.brems_selection = [&brems = *em.brems] {
+            if (brems.rel && brems.sb)
+                return BremsModelSelection::all;
+            else if (brems.rel)
+                return BremsModelSelection::relativistic;
+            else if (brems.sb)
+                return BremsModelSelection::seltzer_berger;
+            else
+                return BremsModelSelection::none;
+        }();
+    }
+
+    // TODO: add callback for user processes
+    ProcessBuilder build_process(
+        imported, params.particle, params.material, opts);
+    for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
+    {
+        result.push_back(build_process(pc));
+        CELER_ASSERT(result.back());
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct physics.
+ */
+auto build_physics(inp::Problem const& p,
+                   CoreParams::Input const& params,
+                   ImportData const& imported)
+{
+    PhysicsParams::Input input;
+    input.particles = params.particle;
+    input.materials = params.material;
+    input.action_registry = params.action_reg.get();
+
+    // Set physics options
+    input.options.fixed_step_limiter = p.tracking.force_step_limit;
+    if (p.control.capacity.secondaries)
+    {
+        input.options.secondary_stack_factor = *p.control.capacity.secondaries
+                                               / p.control.capacity.tracks;
+    }
+    else
+    {
+        // Default: twice the number of track slots
+        input.options.secondary_stack_factor = 2.0;
+    }
+    input.options.spline_eloss_order = p.physics.em->eloss_spline_order;
+    input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+    input.options.light.lowest_energy
+        = ParticleOptions::Energy(imported.em_params.lowest_electron_energy);
+    input.options.heavy.lowest_energy
+        = ParticleOptions::Energy(imported.em_params.lowest_muhad_energy);
+
+    // Set multiple scattering options
+    input.options.light.range_factor = imported.em_params.msc_range_factor;
+    input.options.heavy.range_factor
+        = imported.em_params.msc_muhad_range_factor;
+    input.options.safety_factor = imported.em_params.msc_safety_factor;
+    input.options.lambda_limit = imported.em_params.msc_lambda_limit;
+    input.options.light.displaced = imported.em_params.msc_displaced;
+    input.options.heavy.displaced = imported.em_params.msc_muhad_displaced;
+    input.options.light.step_limit_algorithm
+        = imported.em_params.msc_step_algorithm;
+    input.options.heavy.step_limit_algorithm
+        = imported.em_params.msc_muhad_step_algorithm;
+
+    // Build processes
+    CELER_ASSERT(p.physics.em);
+    input.processes = build_physics_processes(*p.physics.em, params, imported);
+
+    return std::make_shared<PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct track initialization params.
+ */
+auto build_track_init(inp::Control const& c, size_type num_streams)
+{
+    CELER_VALIDATE(c.capacity.initializers > 0,
+                   << "nonpositive capacity.initializers="
+                   << c.capacity.initializers);
+    CELER_VALIDATE(!c.capacity.events || c.capacity.events > 0,
+                   << "nonpositive capacity.events=" << *c.capacity.events);
+    // NOTE: if the following assertion fails, a placeholder "event
+    // count" should have been changed elsewhere
+    CELER_EXPECT(c.capacity.events
+                 != std::numeric_limits<decltype(c.capacity.events)>::max());
+    TrackInitParams::Input input;
+    input.capacity = ceil_div(c.capacity.initializers, num_streams);
+    if (c.capacity.events)
+    {
+        input.max_events = *c.capacity.events;
+    }
+    else
+    {
+        // Geant4 integration (TODO: make this a special case)
+        input.max_events = 1;
+    }
+    if (c.track_order)
+    {
+        input.track_order = *c.track_order;
+    }
+    else
+    {
+        if (celeritas::device())
+        {
+            input.track_order = TrackOrder::init_charge;
+        }
+        else
+        {
+            input.track_order = TrackOrder::none;
+        }
+        CELER_LOG(debug) << "Set default track order "
+                         << to_cstring(input.track_order);
+    }
+
+    return std::make_shared<TrackInitParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct magnetic field from variant input.
+ */
+auto build_along_step(inp::Field const& var_field,
+                      CoreParams::Input const& params,
+                      ImportData const& imported)
+{
+    bool const eloss = imported.em_params.energy_loss_fluct;
+    auto msc = UrbanMscParams::from_import(
+        *params.particle, *params.material, imported);
+
+    CELER_ASSUME(!var_field.valueless_by_exception());
+    auto next_id = params.action_reg->next_id();
+    return std::visit(
+        return_as<std::shared_ptr<CoreStepActionInterface>>(Overload{
+            [&](inp::NoField const&) {
+                return AlongStepGeneralLinearAction::from_params(
+                    next_id, *params.material, *params.particle, msc, eloss);
+            },
+            [&](inp::UniformField const& field) {
+                UniformFieldParams field_params;
+
+                if (field.units != UnitSystem::si)
+                {
+                    CELER_NOT_IMPLEMENTED("field units in other unit systems");
+                }
+                field_params.field = field.strength;
+                field_params.options = field.driver_options;
+
+                // Interpret input in units of Tesla
+                for (real_type& v : field_params.field)
+                {
+                    v = native_value_from(units::FieldTesla{v});
+                }
+
+                return AlongStepUniformMscAction::from_params(
+                    params.action_reg->next_id(),
+                    *params.material,
+                    *params.particle,
+                    field_params,
+                    msc,
+                    eloss);
+            },
+            [](inp::RZMapField const&)
+                -> std::shared_ptr<CoreStepActionInterface> {
+                CELER_NOT_IMPLEMENTED("building RZ map field through input");
+            },
+        }),
+        var_field);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Costruct magnetic field from variant input.
+ */
+auto build_optical_offload(inp::OpticalStateCapacity const& cap,
+                           CoreParams& params,
+                           ImportData const& imported)
+{
+    using optical::CherenkovParams;
+    using optical::MaterialParams;
+    using optical::ScintillationParams;
+
+    CELER_VALIDATE(
+        !imported.optical_materials.empty(),
+        << R"(an optical tracking loop was requested but no optical materials are present)");
+
+    OpticalCollector::Input oc_inp;
+    oc_inp.material = MaterialParams::from_import(
+        imported, *params.geomaterial(), *params.material());
+    oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
+    oc_inp.scintillation
+        = ScintillationParams::from_import(imported, params.particle());
+
+    // Map from optical capacity
+    auto num_streams = params.max_streams();
+    oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
+    oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
+    oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
+    oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+    CELER_ASSERT(oc_inp);
+
+    // TODO: optical collector really just *builds* the optical setup: it's
+    // ok that it immediately goes out of scope
+    OpticalCollector(params, std::move(oc_inp));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -170,126 +395,10 @@ problem(inp::Problem const& p, ImportData const& imported)
         imported, params.material, params.particle);
 
     // Load physics: create individual processes with make_shared
-    params.physics = [&params, p, &imported] {
-        PhysicsParams::Input input;
-        input.particles = params.particle;
-        input.materials = params.material;
-        input.action_registry = params.action_reg.get();
-
-        // Set physics options
-        input.options.fixed_step_limiter = p.tracking.force_step_limit;
-        if (p.control.capacity.secondaries)
-        {
-            input.options.secondary_stack_factor
-                = *p.control.capacity.secondaries;
-        }
-        else
-        {
-            // Default: twice the number of track slots
-            input.options.secondary_stack_factor = 2.0;
-        }
-        input.options.spline_eloss_order = p.physics.em->eloss_spline_order;
-        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
-        input.options.light.lowest_energy = ParticleOptions::Energy(
-            imported.em_params.lowest_electron_energy);
-        input.options.heavy.lowest_energy
-            = ParticleOptions::Energy(imported.em_params.lowest_muhad_energy);
-
-        // Set multiple scattering options
-        input.options.light.range_factor = imported.em_params.msc_range_factor;
-        input.options.heavy.range_factor
-            = imported.em_params.msc_muhad_range_factor;
-        input.options.safety_factor = imported.em_params.msc_safety_factor;
-        input.options.lambda_limit = imported.em_params.msc_lambda_limit;
-        input.options.light.displaced = imported.em_params.msc_displaced;
-        input.options.heavy.displaced = imported.em_params.msc_muhad_displaced;
-        input.options.light.step_limit_algorithm
-            = imported.em_params.msc_step_algorithm;
-        input.options.heavy.step_limit_algorithm
-            = imported.em_params.msc_muhad_step_algorithm;
-
-        // Build processes
-        CELER_ASSERT(p.physics.em);
-        input.processes = [&params, &em = *p.physics.em, &imported] {
-            // TODO: process builder should be deleted; instead it should get
-            // p.physics.em or whatever
-            std::vector<std::shared_ptr<Process const>> result;
-            ProcessBuilder::Options opts;
-            if (em.brems)
-            {
-                opts.brem_combined = em.brems->combined_model;
-                opts.brems_selection = [&brems = *em.brems] {
-                    if (brems.rel && brems.sb)
-                        return BremsModelSelection::all;
-                    else if (brems.rel)
-                        return BremsModelSelection::relativistic;
-                    else if (brems.sb)
-                        return BremsModelSelection::seltzer_berger;
-                    else
-                        return BremsModelSelection::none;
-                }();
-            }
-
-            // TODO: add callback for user processes
-            ProcessBuilder build_process(
-                imported, params.particle, params.material, opts);
-            for (auto pc :
-                 ProcessBuilder::get_all_process_classes(imported.processes))
-            {
-                result.push_back(build_process(pc));
-                CELER_ASSERT(result.back());
-            }
-            return result;
-        }();
-
-        return std::make_shared<PhysicsParams>(std::move(input));
-    }();
-
-    bool const eloss = imported.em_params.energy_loss_fluct;
-    auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported);
+    params.physics = build_physics(p, params, imported);
 
     CELER_ASSUME(!p.field.valueless_by_exception());
-    params.action_reg->insert(std::visit(
-        return_as<std::shared_ptr<CoreStepActionInterface>>(Overload{
-            [&](inp::NoField const&) {
-                return AlongStepGeneralLinearAction::from_params(
-                    params.action_reg->next_id(),
-                    *params.material,
-                    *params.particle,
-                    msc,
-                    eloss);
-            },
-            [&](inp::UniformField const& field) {
-                UniformFieldParams field_params;
-
-                if (field.units != UnitSystem::si)
-                {
-                    CELER_NOT_IMPLEMENTED("field units in other unit systems");
-                }
-                field_params.field = field.strength;
-                field_params.options = field.driver_options;
-
-                // Interpret input in units of Tesla
-                for (real_type& v : field_params.field)
-                {
-                    v = native_value_from(units::FieldTesla{v});
-                }
-
-                return AlongStepUniformMscAction::from_params(
-                    params.action_reg->next_id(),
-                    *params.material,
-                    *params.particle,
-                    field_params,
-                    msc,
-                    eloss);
-            },
-            [](inp::RZMapField const&)
-                -> std::shared_ptr<CoreStepActionInterface> {
-                CELER_NOT_IMPLEMENTED("building RZ map field through input");
-            },
-        }),
-        p.field));
+    params.action_reg->insert(build_along_step(p.field, params, imported));
 
     // Construct RNG params
     params.rng = std::make_shared<RngParams>(p.control.seed);
@@ -309,48 +418,7 @@ problem(inp::Problem const& p, ImportData const& imported)
     params.max_streams = num_streams;
 
     // Construct track initialization params
-    params.init = [&c = p.control, num_streams] {
-        CELER_VALIDATE(c.capacity.initializers > 0,
-                       << "nonpositive capacity.initializers="
-                       << c.capacity.initializers);
-        CELER_VALIDATE(!c.capacity.events || c.capacity.events > 0,
-                       << "nonpositive capacity.events=" << *c.capacity.events);
-        // NOTE: if the following assertion fails, a placeholder "event
-        // count" should have been changed elsewhere
-        CELER_EXPECT(
-            c.capacity.events
-            != std::numeric_limits<decltype(c.capacity.events)>::max());
-        TrackInitParams::Input input;
-        input.capacity = ceil_div(c.capacity.initializers, num_streams);
-        if (c.capacity.events)
-        {
-            input.max_events = *c.capacity.events;
-        }
-        else
-        {
-            // Geant4 integration (TODO: make this a special case)
-            input.max_events = 1;
-        }
-        if (c.track_order)
-        {
-            input.track_order = *c.track_order;
-        }
-        else
-        {
-            if (celeritas::device())
-            {
-                input.track_order = TrackOrder::init_charge;
-            }
-            else
-            {
-                input.track_order = TrackOrder::none;
-            }
-            CELER_LOG(debug)
-                << "Set default track order " << to_cstring(input.track_order);
-        }
-
-        return std::make_shared<TrackInitParams>(std::move(input));
-    }();
+    params.init = build_track_init(p.control, num_streams);
 
     // Number of tracks per stream
     auto tracks = p.control.capacity.tracks;
@@ -426,37 +494,8 @@ problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
-        CELER_EXPECT(core_params);
-
-        using optical::CherenkovParams;
-        using optical::MaterialParams;
-        using optical::ScintillationParams;
-
-        CELER_VALIDATE(
-            !imported.optical_materials.empty(),
-            << R"(an optical tracking loop was requested but no optical materials are present)");
-
-        OpticalCollector::Input oc_inp;
-        oc_inp.material = MaterialParams::from_import(
-            imported, *core_params->geomaterial(), *core_params->material());
-        oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
-        oc_inp.scintillation = ScintillationParams::from_import(
-            imported, core_params->particle());
-
-        // Map from optical capacity
-        auto const& optical_capacity = *p.control.optical_capacity;
-        oc_inp.num_track_slots = ceil_div(optical_capacity.tracks, num_streams);
-        oc_inp.buffer_capacity
-            = ceil_div(optical_capacity.generators, num_streams);
-        oc_inp.initializer_capacity
-            = ceil_div(optical_capacity.initializers, num_streams);
-        oc_inp.auto_flush = ceil_div(optical_capacity.primaries, num_streams);
-
-        CELER_ASSERT(oc_inp);
-
-        // TODO: optical collector really just *builds* the optical setup: it's
-        // ok that it immediately goes out of scope
-        OpticalCollector(*core_params, std::move(oc_inp));
+        build_optical_offload(
+            *p.control.optical_capacity, *core_params, imported);
     }
 
     if (root_manager)
