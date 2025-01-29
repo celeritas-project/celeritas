@@ -9,15 +9,11 @@
 #include <memory>
 #include <string>
 #include <type_traits>
-#include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ThreeVector.hh>
 
 #include "corecel/sys/Stopwatch.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/field/FieldDriverOptions.hh"
 #include "accel/SetupOptions.hh"
 
 #include "RunInput.hh"

@@ -144,14 +144,19 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
 #undef RI_LOAD_OPTION
 #undef RI_LOAD_REQUIRED
-    CELER_VALIDATE(
-        v.physics_list != PhysicsListSelection::ftfp_bert
-            || !j.contains("physics_options"),
-        << R"('physics_options' can only be specified for 'celer_ftfp_bert' or 'celer_em')");
-    CELER_VALIDATE(
-        (v.field != RunInput::no_field() || v.field_type == "rzmap")
-            || !j.contains("field_options"),
-        << R"('field_options' cannot be specified without providing 'field')");
+
+    // TODO: move these validation checks to GlobalSetup
+    CELER_VALIDATE(v.event_file.empty() == static_cast<bool>(v.primary_options),
+                   << "either a HepMC3 filename or options to generate "
+                      "primaries must be provided (but not both)");
+    CELER_VALIDATE(v.physics_list != PhysicsListSelection::ftfp_bert
+                       || !j.contains("physics_options"),
+                   << "'physics_options' can only be specified for "
+                      "'celer_ftfp_bert' or 'celer_em'");
+    CELER_VALIDATE((v.field != RunInput::no_field() || v.field_type == "rzmap")
+                       || !j.contains("field_options"),
+                   << "'field_options' cannot be specified without providing "
+                      "'field'");
 }
 
 //---------------------------------------------------------------------------//

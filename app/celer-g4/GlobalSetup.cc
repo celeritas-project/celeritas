@@ -7,22 +7,24 @@
 #include "GlobalSetup.hh"
 
 #include <fstream>
-#include <iostream>
 #include <utility>
 #include <G4GenericMessenger.hh>
 #include <G4UImanager.hh>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/RootFileManager.hh"
-#include "celeritas/phys/PrimaryGeneratorOptions.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "accel/ExceptionConverter.hh"
+#include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
+#include "HepMC3PrimaryGeneratorAction.hh"
+#include "RootIO.hh"
 #include "RunInputIO.json.hh"
 
 namespace celeritas
@@ -129,11 +131,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         }
         CELER_ASSERT(instream);
         nlohmann::json::parse(*instream).get_to(input_);
-
-        CELER_VALIDATE(input_.event_file.empty()
-                           == static_cast<bool>(input_.primary_options),
-                       << "either a HepMC3 filename or options to generate "
-                          "primaries must be provided (but not both)");
 
         if (input_.cuda_stack_size != RunInput::unspecified)
         {
