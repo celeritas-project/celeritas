@@ -276,8 +276,8 @@ int main(int argc, char* argv[])
     }
 
     // Create params, which need to be shared with detectors as well as
-    // initialization, and can be written for output
-    auto params = std::make_shared<celeritas::SharedParams>();
+    // initialization, and can be written for output (default to stdout)
+    auto params = std::make_shared<celeritas::SharedParams>("-");
 
     try
     {
