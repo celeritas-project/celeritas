@@ -80,41 +80,43 @@ namespace setup
 namespace
 {
 //---------------------------------------------------------------------------//
-std::shared_ptr<GeoParams> build_geometry(inp::Model const& m)
+struct GeoBuilder
 {
-    auto build_from_filename
-        = [](std::string const& filename) -> std::shared_ptr<GeoParams> {
+    using result_type = std::shared_ptr<GeoParams>;
+
+    //! Build from filename
+    result_type operator()(std::string const& filename)
+    {
         CELER_VALIDATE(!filename.empty(),
                        << "empty filename in problem.model.geometry");
         return std::make_shared<GeoParams>(filename);
-    };
-    auto build_from_geant
-        = [&build_from_filename](G4VPhysicalVolume const* world) {
-              if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-              {
-                  static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
-                  auto const& filename = celeritas::getenv(fi_hack_envname);
-                  if (!filename.empty())
-                  {
-                      CELER_LOG(warning)
-                          << "Using a temporary, unsupported, and dangerous "
-                             "hack to override the ORANGE geometry file: "
-                          << fi_hack_envname << "='" << filename << "'";
-                      return build_from_filename(filename);
-                  }
-              }
-              else
-              {
-                  // Avoid warnings from clang with vecgeom
-                  CELER_DISCARD(&build_from_filename);
-              }
-              CELER_VALIDATE(
-                  world, << "null world pointer in problem.model.geometry");
-              return std::make_shared<GeoParams>(world);
-          };
+    }
 
-    return std::visit(Overload{build_from_filename, build_from_geant},
-                      m.geometry);
+    //! Build from Geant4
+    result_type operator()(G4VPhysicalVolume const* world)
+    {
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
+            auto const& filename = celeritas::getenv(fi_hack_envname);
+            if (!filename.empty())
+            {
+                CELER_LOG(warning)
+                    << "Using a temporary, unsupported, and dangerous "
+                       "hack to override the ORANGE geometry file: "
+                    << fi_hack_envname << "='" << filename << "'";
+                return (*this)(filename);
+            }
+        }
+        CELER_VALIDATE(world,
+                       << "null world pointer in problem.model.geometry");
+        return std::make_shared<GeoParams>(world);
+    }
+};
+
+auto build_geometry(inp::Model const& m)
+{
+    return std::visit(GeoBuilder{}, m.geometry);
 }
 
 //---------------------------------------------------------------------------//
