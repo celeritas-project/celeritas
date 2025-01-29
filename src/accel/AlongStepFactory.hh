@@ -99,6 +99,9 @@ class AlongStepFactoryInterface
  *
  * The constructor is a lazily evaluated function that must return the field
  * definition and driver configuration. If unspecified, the field is zero.
+ *
+ * \todo Add a helper function to build from a Geant4 field manager or the new
+ * \c G4FieldSetup
  */
 class UniformAlongStepFactory final : public AlongStepFactoryInterface
 {
