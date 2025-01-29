@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/BoundingBoxUtils.hh
-//! \brief Host-only utilities for bounding boxes
+//! \brief Utilities for bounding boxes
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -228,9 +228,9 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * intersection, the result will be inf.
  */
 template<class T, class U>
-inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
-                             Array<U, 3> const& pos,
-                             Array<U, 3> const& dir)
+inline CELER_FUNCTION U calc_dist_to_inside(BoundingBox<T> const& bbox,
+                                            Array<U, 3> const& pos,
+                                            Array<U, 3> const& dir)
 {
     CELER_EXPECT(!is_inside(bbox, pos));
 
