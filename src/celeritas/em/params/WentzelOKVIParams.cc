@@ -15,6 +15,7 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {
@@ -24,7 +25,8 @@ namespace celeritas
  */
 std::shared_ptr<WentzelOKVIParams>
 WentzelOKVIParams::from_import(ImportData const& data,
-                               SPConstMaterials materials)
+                               SPConstMaterials materials,
+                               SPConstParticles particles)
 {
     CELER_EXPECT(materials);
 
@@ -57,7 +59,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
     opts.angle_limit_factor = data.em_params.angle_limit_factor;
     opts.form_factor = data.em_params.form_factor;
 
-    return std::make_shared<WentzelOKVIParams>(materials, opts);
+    return std::make_shared<WentzelOKVIParams>(materials, particles, opts);
 }
 
 //---------------------------------------------------------------------------//
@@ -65,6 +67,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
  * Construct from cross section data and material properties.
  */
 WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
+                                     SPConstParticles particles,
                                      Options options)
 {
     CELER_EXPECT(materials);
@@ -83,6 +86,10 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
                         .value());
     host_data.params.screening_factor = options.screening_factor;
     host_data.params.form_factor_type = options.form_factor;
+
+    // Save electron mass
+    host_data.electron_mass
+        = particles->get(particles->find(pdg::electron())).mass();
 
     // Load Mott coefficients
     build_data(host_data, *materials);

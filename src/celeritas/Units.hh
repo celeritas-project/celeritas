@@ -33,7 +33,8 @@ namespace celeritas
  * - g for standard unit of mass
  * - G for standard unit of field strength
  *
- * Unless otherwise specified, this unit system is used for input and
+ * Unless otherwise specified, the user-selected unit system is used for input
+ * and
  * output numerical values. They are meant for macro-scale quantities coupling
  * the different code components of Celeritas.
  *
@@ -49,12 +50,6 @@ namespace celeritas
  * Additionally:
  * - radians are used for measures of angle (unitless)
  * - steradians are used for measures of solid angle (unitless)
- *
- * \todo If we're serious about supporting single-precision arithmetic, we
- * should define a helper class that stores the constant as full precision but
- * when multiplied by a single/double is truncated to that precision.
- * Otherwise, if \c real_type is single-precision, then we lose accuracy in
- * places like the GeantImporter where everything is double precision.
  */
 namespace units
 {

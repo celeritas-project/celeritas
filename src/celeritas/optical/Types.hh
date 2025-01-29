@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,10 @@ using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord_>;
  */
 namespace optical
 {
-}
+//---------------------------------------------------------------------------//
+//! Alias for MaterialId in core Celeritas namespace
+using CoreMaterialId = ::celeritas::MaterialId;
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

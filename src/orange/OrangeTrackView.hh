@@ -33,15 +33,26 @@ namespace celeritas
 /*!
  * Navigate through an ORANGE geometry on a single thread.
  *
- * Ordering requirements:
- * - initialize (through assignment) must come first
- * - access (pos, dir, volume/surface/is_outside/is_on_boundary) good at any
- * time
- * - \c find_next_step
- * - \c find_safety or \c move_internal or \c move_to_boundary
- * - if on boundary, \c cross_boundary
- * - at any time, \c set_dir , but then must do \c find_next_step before any
- *   \c move or \c cross action above
+ * Since the navigation relies on computationally expensive calls and must
+ * ensure a consistent state between physical and logical boundaries, there is
+ * an ordering followed by Celeritas' internal calls to each track's state.
+ * Access (\c pos, \c dir, \c volume/surface/is_outside/is_on_boundary) is
+ * valid at any time.
+ *
+ * The required ordering is:
+ *
+ * - Initialization, via the assignment operator
+ * - Locating the boundary crossing along the current direction, \c
+ *   find_next_step
+ * - Locating the closest point on the boundary in any direction, \c
+ *   find_safety
+ * - Movement within a volume, not crossing a boundary: \c move_internal or \c
+ *   move_to_boundary
+ * - If on a boundary, logically moving to the adjacent volume ("relocation")
+ *   with \c cross_boundary
+ *
+ * At any time, \c set_dir may be called, but then \c find_next_step must again
+ * be called before any subsequent \c move or \c cross action above .
  *
  * The main point is that \c find_next_step depends on the current
  * straight-line direction, \c move_to_boundary and \c move_internal (with
@@ -49,8 +60,8 @@ namespace celeritas
  * \c cross_boundary depends on being on the boundary with a knowledge of the
  * post-boundary state.
  *
- * \c move_internal with a position \em should depend on the safety distance
- * but that's not yet implemented.
+ * \todo \c move_internal with a position \em should depend on the safety
+ * distance, but that check is not yet implemented.
  */
 class OrangeTrackView
 {

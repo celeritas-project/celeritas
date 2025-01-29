@@ -116,7 +116,7 @@ inline CELER_FUNCTION Real3 boost_vector(FourVector const& p)
  *
  * \f[ p^{\prime \beta} = \Lambda^{\alpha}_{\beta} (\vec{v}) p^{\beta} \f].
  *
- * \todo: define a boost function that takes a second FourVector for reduced
+ * \todo Define a boost function that takes a second FourVector for reduced
  * register usage
  */
 inline CELER_FUNCTION void boost(Real3 const& v, FourVector* p)

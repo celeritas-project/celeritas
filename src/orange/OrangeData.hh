@@ -103,7 +103,7 @@ struct VolumeRecord
  * the number of real values needed for that surface, we implicitly get a Span
  * of real values with a single indirection.
  *
- * \todo: change "types" and "data offsets" to be `ItemMap` taking local
+ * \todo Change "types" and "data offsets" to be `ItemMap` taking local
  * surface
  */
 struct SurfacesRecord

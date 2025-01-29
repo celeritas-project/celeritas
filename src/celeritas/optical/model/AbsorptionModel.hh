@@ -8,6 +8,7 @@
 
 #include "../ImportedModelAdapter.hh"
 #include "../Model.hh"
+#include "../Types.hh"
 
 namespace celeritas
 {
@@ -26,6 +27,9 @@ class AbsorptionModel final : public Model
     //!@}
 
   public:
+    // Create a model builder for absorption
+    static ModelBuilder make_builder(SPConstImported);
+
     // Construct with imported data
     AbsorptionModel(ActionId id, SPConstImported imported);
 

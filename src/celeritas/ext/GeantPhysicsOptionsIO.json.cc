@@ -9,6 +9,7 @@
 #include <string>
 
 #include "corecel/io/JsonUtils.json.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/QuantityIO.json.hh"
 
@@ -93,7 +94,20 @@ void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
     GMPO_LOAD_OPTION(ionization);
     GMPO_LOAD_OPTION(bremsstrahlung);
     GMPO_LOAD_OPTION(coulomb);
-    GMPO_LOAD_OPTION(msc);
+    if (auto iter = j.find("msc"); iter != j.end())
+    {
+        if (iter->is_boolean())
+        {
+            CELER_LOG(warning) << "Deprecated msc option type 'boolean': "
+                                  "refactor as 'MscModelSelection' string";
+            options.msc = iter->get<bool>() ? MscModelSelection::urban
+                                            : MscModelSelection::none;
+        }
+        else
+        {
+            iter->get_to(options.msc);
+        }
+    }
 #undef GMPO_LOAD_OPTION
 }
 
@@ -142,15 +156,20 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(max_energy);
     GPO_LOAD_OPTION(linear_loss_limit);
     GPO_LOAD_OPTION(lowest_electron_energy);
+    GPO_LOAD_OPTION(lowest_muhad_energy);
     GPO_LOAD_OPTION(apply_cuts);
     GPO_LOAD_OPTION(default_cutoff);
 
+    GPO_LOAD_OPTION(msc_displaced);
+    GPO_LOAD_OPTION(msc_muhad_displaced);
     GPO_LOAD_OPTION(msc_range_factor);
+    GPO_LOAD_OPTION(msc_muhad_range_factor);
     GPO_LOAD_OPTION(msc_safety_factor);
     GPO_LOAD_OPTION(msc_lambda_limit);
     GPO_LOAD_OPTION(msc_theta_limit);
     GPO_LOAD_OPTION(angle_limit_factor);
     GPO_LOAD_OPTION(msc_step_algorithm);
+    GPO_LOAD_OPTION(msc_muhad_step_algorithm);
     GPO_LOAD_OPTION(form_factor);
 
     GPO_LOAD_OPTION(verbose);
@@ -190,15 +209,20 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, max_energy),
         CELER_JSON_PAIR(inp, linear_loss_limit),
         CELER_JSON_PAIR(inp, lowest_electron_energy),
+        CELER_JSON_PAIR(inp, lowest_muhad_energy),
         CELER_JSON_PAIR(inp, apply_cuts),
         CELER_JSON_PAIR(inp, default_cutoff),
 
+        CELER_JSON_PAIR(inp, msc_displaced),
+        CELER_JSON_PAIR(inp, msc_muhad_displaced),
         CELER_JSON_PAIR(inp, msc_range_factor),
+        CELER_JSON_PAIR(inp, msc_muhad_range_factor),
         CELER_JSON_PAIR(inp, msc_safety_factor),
         CELER_JSON_PAIR(inp, msc_lambda_limit),
         CELER_JSON_PAIR(inp, msc_theta_limit),
         CELER_JSON_PAIR(inp, angle_limit_factor),
         CELER_JSON_PAIR(inp, msc_step_algorithm),
+        CELER_JSON_PAIR(inp, msc_muhad_step_algorithm),
         CELER_JSON_PAIR(inp, form_factor),
 
         CELER_JSON_PAIR(inp, verbose),

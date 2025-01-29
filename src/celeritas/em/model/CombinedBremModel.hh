@@ -28,6 +28,8 @@ class ParticleParams;
 /*!
  * Set up and launch a combined model of SeltzerBergerModel at the low energy
  * and RelativisticBremModel at the high energy for e+/e- Bremsstrahlung.
+ *
+ * \deprecated Delete in v1.0: only implemented for one element
  */
 class CombinedBremModel final : public Model, public StaticConcreteAction
 {

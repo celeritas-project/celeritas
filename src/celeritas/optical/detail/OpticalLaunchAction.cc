@@ -9,6 +9,8 @@
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -20,11 +22,36 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
+#include "OpticalSizes.json.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+auto get_core_sizes(OpticalLaunchAction const& ola)
+{
+    // Optical core params
+    auto const& cp = ola.optical_params();
+
+    OpticalSizes result;
+    result.streams = cp.max_streams();
+
+    // NOTE: quantities are *per-process* quantities: integrated over streams,
+    // but not processes
+    result.generators = result.streams
+                        * ola.offload_params().host_ref().setup.capacity;
+    result.initializers = result.streams * cp.init()->capacity();
+    result.tracks = result.streams * ola.state_size();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -75,6 +102,13 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         CELER_ENSURE(inp);
         return inp;
     }());
+
+    // Add optical sizes
+    core.output_reg()->insert(
+        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            get_core_sizes(*this)));
 
     // TODO: add generators to the *optical* stepping loop instead of part of
     // the main loop; for now just make sure enough track initializers are
@@ -179,10 +213,17 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         }
     }
 
-    CELER_LOG_LOCAL(debug) << "Generated " << counters.num_generated
-                           << " optical photons which completed " << num_steps
-                           << " total steps over " << num_step_iters
-                           << " iterations";
+    if (num_step_iters > 0)
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Generated " << counters.num_generated
+            << " optical photons which completed " << num_steps
+            << " total steps over " << num_step_iters << " iterations";
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug) << "No optical steps taken";
+    }
 
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here

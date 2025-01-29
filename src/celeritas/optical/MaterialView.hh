@@ -45,6 +45,9 @@ class MaterialView
     // ID of this optical material
     CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
 
+    // ID of the associated core material
+    CELER_FORCEINLINE_FUNCTION CoreMaterialId core_material_id() const;
+
     //// PARAMETER DATA ////
 
     // Access energy-dependent refractive index
@@ -102,6 +105,15 @@ CELER_FORCEINLINE_FUNCTION MaterialView::operator bool() const
 CELER_FUNCTION auto MaterialView::material_id() const -> MaterialId
 {
     return mat_id_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the id of the core material associated with this optical material.
+ */
+CELER_FUNCTION CoreMaterialId MaterialView::core_material_id() const
+{
+    return params_.core_material_id[mat_id_];
 }
 
 //---------------------------------------------------------------------------//

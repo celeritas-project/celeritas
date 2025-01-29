@@ -38,8 +38,7 @@
       "inherits": ["base"],
       "displayName": "fast build with testing and JSON",
       "cacheVariables": {
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_JSON": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"}
       }
     },
     {

@@ -72,7 +72,6 @@ Transporter<M>::Transporter(TransporterInput inp)
     CELER_LOG_LOCAL(status) << "Creating states";
     StepperInput step_input;
     step_input.params = inp.params;
-    step_input.num_track_slots = inp.num_track_slots;
     step_input.stream_id = inp.stream_id;
     step_input.action_times = inp.action_times;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));

@@ -81,8 +81,10 @@ list(APPEND SOURCES
   optical/CoreState.cc
   optical/CoreTrackData.cc
   optical/ImportedModelAdapter.cc
+  optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
+  optical/ModelImporter.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/WavelengthShiftParams.cc
@@ -106,6 +108,8 @@ list(APPEND SOURCES
   random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
+  setup/Import.cc
+  setup/System.cc
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc

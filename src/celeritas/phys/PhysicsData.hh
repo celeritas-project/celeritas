@@ -121,6 +121,12 @@ struct IntegralXsProcess
  * \c range are the process-integrated dE/dx and range for the particle.  \c
  * integral_xs will only be assigned if the integral approach is used and the
  * particle has continuous-discrete processes.
+ *
+ * \todo If it's possible for a particle to have multiple at-rest processes, \c
+ * at_rest should be the process with the smallest lifetime. This is used in \c
+ * select_discrete_interaction to choose the at-rest process with the smallest
+ * time to interaction if the particle is stopped and has a process that
+ * applies at rest.
  */
 struct ProcessGroup
 {
@@ -130,7 +136,7 @@ struct ProcessGroup
     ItemRange<ValueTable> macro_xs;  //!< [ppid]
     ValueTableId energy_loss;  //!< Process-integrated energy loss
     ValueTableId range;  //!< Process-integrated range
-    bool has_at_rest{};  //!< Whether the particle type has an at-rest process
+    ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -209,6 +215,37 @@ struct HardwiredModels
 
 //---------------------------------------------------------------------------//
 /*!
+ * User-configurable particle-dependent physics constants.
+ *
+ * These scalar quantities can have different values for electrons/positrons
+ * and muons/hadrons. They are described in \c PhysicsParams .
+ */
+struct ParticleScalars
+{
+    using Energy = units::MevEnergy;
+
+    // Energy loss/range options
+    real_type min_range{};  //!< rho [len]
+    real_type max_step_over_range{};  //!< alpha [unitless]
+    Energy lowest_energy{};  //!< Lowest kinetic energy
+
+    // Multiple scattering options
+    bool displaced{};  //!< Whether lateral displacement is enabled
+    real_type range_factor{};
+    MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::size_};
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return min_range > 0 && max_step_over_range > 0
+               && lowest_energy > zero_quantity() && range_factor > 0
+               && range_factor < 1
+               && step_limit_algorithm != MscStepLimitAlgorithm::size_;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Scalar (no template needed) quantities used by physics.
  *
  * The user-configurable constants and multiple scattering options are
@@ -230,25 +267,23 @@ struct PhysicsParamsScalars
     ModelId::size_type num_models{};
 
     // User-configurable constants
-    real_type min_range{};  //!< rho [len]
-    real_type max_step_over_range{};  //!< alpha [unitless]
     real_type min_eprime_over_e{};  //!< xi [unitless]
-    Energy lowest_electron_energy{};  //!< Lowest e-/e+ kinetic energy
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{};  //!< Global charged step size limit [len]
+
+    // User-configurable multiple scattering options
+    real_type lambda_limit{};  //!< lambda limit
+    real_type safety_factor{};  //!< safety factor
+
+    // Particle-dependent user-configurable constants
+    ParticleScalars light;
+    ParticleScalars heavy;
 
     //! Order for energy loss interpolation
     size_type spline_eloss_order{};
 
-    // User-configurable multiple scattering options
-    real_type lambda_limit{};  //!< lambda limit
-    real_type range_factor{};  //!< range factor for e-/e+ (0.2 for muon/h)
-    real_type safety_factor{};  //!< safety factor
-    MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::size_};
-
     real_type secondary_stack_factor = 3;  //!< Secondary storage per state
                                            //!< size
-
     // When fixed step limiter is used, this is the corresponding action ID
     ActionId fixed_step_action{};
 
@@ -256,15 +291,12 @@ struct PhysicsParamsScalars
     explicit CELER_FUNCTION operator bool() const
     {
         return max_particle_processes > 0 && model_to_action >= 4
-               && num_models > 0 && min_range > 0 && max_step_over_range > 0
-               && min_eprime_over_e > 0
-               && lowest_electron_energy > zero_quantity()
+               && num_models > 0 && min_eprime_over_e > 0
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
                && spline_eloss_order > 0 && lambda_limit > 0
-               && range_factor > 0 && range_factor < 1 && safety_factor >= 0.1
-               && step_limit_algorithm != MscStepLimitAlgorithm::size_;
+               && safety_factor >= 0.1 && light && heavy;
     }
 
     //! Stop early due to MSC limitation

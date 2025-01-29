@@ -39,7 +39,7 @@
   "bremsstrahlung": false,
   "coulomb": false,
   "ionization": false,
-  "msc": false,
+  "msc": "none",
   "pair_production": false
  },
  "photoelectric": true,

@@ -118,6 +118,9 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
 
+    // Get the field params (used for converting to celeritas::inp)
+    UniformFieldParams get_field() const;
+
   private:
     FieldFunction get_field_;
 };
@@ -141,6 +144,9 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
+
+    // Get the field params (used for converting to celeritas::inp)
+    RZMapFieldInput get_field() const;
 
   private:
     RZMapFieldFunction get_fieldmap_;

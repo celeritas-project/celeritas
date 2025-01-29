@@ -243,8 +243,8 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
     EPlusAnnihilationProcess::Options options;
     options.use_integral_xs = use_integral_xs_;
 
-    return std::make_shared<EPlusAnnihilationProcess>(this->particle(),
-                                                      options);
+    return std::make_shared<EPlusAnnihilationProcess>(
+        this->particle(), this->imported(), options);
 }
 
 //---------------------------------------------------------------------------//

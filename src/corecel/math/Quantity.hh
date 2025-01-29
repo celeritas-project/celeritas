@@ -27,9 +27,9 @@ namespace celeritas
  * by large constants. It can also make debugging easier (numeric values are
  * obvious).
  *
- * Example usage by physics class, where charge is in units of q_e+, and
- * mass and momentum are expressed in atomic natural units (where m_e = 1 and c
- * = 1).
+ * Example usage by physics class, where charge is in units of \f$ q_{e^+} \f$,
+ * and mass and momentum are expressed in atomic natural units (where
+ * \f$ m_e = 1 \f$ and \f$ c = 1 \f$).
  * \code
    using MevEnergy   = Quantity<Mev, real_type>;
    using MevMass     = RealQuantity<UnitDivide<Mev, CLightSq>>;
@@ -41,9 +41,9 @@ namespace celeritas
  * A relativistic equation that operates on these quantities can do so without
  * unnecessary floating point operations involving the speed of light:
  * \code
-   real_type eval = value_as<MevEnergy>(energy); // Natural units
-   MevMomentum momentum{std::sqrt(eval * eval
-                                  + 2 * value_as<MevMass>(mass) * eval)};
+   real_type e_mev = value_as<MevEnergy>(energy); // Natural units
+   MevMomentum momentum{std::sqrt(e_mev * e_mev
+                                  + 2 * value_as<MevMass>(mass) * e_mev)};
    \endcode
  * The resulting quantity can be converted to the native Celeritas unit system
  * with `native_value_from`, which multiplies in the constant value of
@@ -53,7 +53,7 @@ namespace celeritas
  * \endcode
  *
  * When using a Quantity from another part of the code, e.g. an imported unit
- * system, use the \c quantity free function rather than \c .value() in order
+ * system, use the \c value_as free function rather than \c .value() in order
  * to guarantee consistency of units between source and destination.
  *
  * An example unit class would be:
@@ -65,7 +65,7 @@ namespace celeritas
     };
    \endcode
  *
- * The label is used solely for outputting to JSON.
+ * The label is used solely for diagnostic purposes.
  *
  * \note The Quantity is designed to be a simple "strong type" class, not a
  * complex mathematical class. To operate on quantities, you must use
@@ -216,7 +216,9 @@ CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs) noexcept
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get a zero quantity (analogous to nullptr).
+ * Get a typeless zero quantity.
+ *
+ * The zero quantity can be compared against any Quantity.
  */
 CELER_CONSTEXPR_FUNCTION auto zero_quantity() noexcept
 {
@@ -225,7 +227,7 @@ CELER_CONSTEXPR_FUNCTION auto zero_quantity() noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a quantitity greater than any other numeric quantity.
+ * Get a typeless quantitity greater than any other numeric quantity.
  */
 CELER_CONSTEXPR_FUNCTION auto max_quantity() noexcept
 {
@@ -279,7 +281,8 @@ native_value_from(Quantity<UnitT, ValueT> quant) noexcept
  * This function can be used for defining a constant for use in another unit
  * system (typically a "natural" unit system for use in physics kernels).
  *
- * An extra cast may be needed when mixing float, double, and Constant.
+ * An extra cast may be needed when mixing \c float, \c double, and \c
+ * celeritas::Constant.
  */
 template<class Q, class T>
 CELER_CONSTEXPR_FUNCTION Q native_value_to(T value) noexcept

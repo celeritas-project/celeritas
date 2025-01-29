@@ -66,7 +66,7 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
     // Energy loss helper *must* apply the tracking cutoff
     CELER_ASSERT(
         particle.energy()
-            >= track.make_physics_view().scalars().lowest_electron_energy
+            >= track.make_physics_view().particle_scalars().lowest_energy
         || !apply_cut || particle.is_stopped());
 
     if (particle.is_stopped())
@@ -74,7 +74,7 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
         // Particle lost all energy over the step
         CELER_ASSERT(post_step_action != track.boundary_action());
         auto const phys = track.make_physics_view();
-        if (!phys.has_at_rest())
+        if (!phys.at_rest_process())
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);

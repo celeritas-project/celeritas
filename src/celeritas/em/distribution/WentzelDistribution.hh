@@ -37,8 +37,9 @@ namespace celeritas
  * distribution of the nucleus. The class is used by \c
  * CoulombScatteringInteractor .
  *
- * The polar angle distribution is given in [Fern] eqn 88 and is normalized on
- the interval
+ * The polar angle distribution is given in
+ * \citet{fernandez-msc-1993, https://doi.org/10.1016/0168-583X(93)95827-R}
+ * Eq. 88 and is normalized on the interval
  * \f$ cos\theta \in [\cos\theta_\mathrm{min}, \cos\theta_\mathrm{max}] \f$.
  * The sampling function for the angular deflection
  * \f[
@@ -53,13 +54,6 @@ namespace celeritas
  * \f$ \mu_2 = \frac{1}{2}(1 - \cos\theta_\mathrm{max}) \f$,
  * \f$ A \f$ is the screening coefficient, and
  * \f$ \xi \sim U(0,1) \f$.
- *
- * References:
- * [Fern] J.M. Fernandez-Varea, R. Mayol and F. Salvat. On the theory
- *        and simulation of multiple elastic scattering of electrons. Nucl.
- *        Instrum. and Method. in Phys. Research B, 73:447-473, Apr 1993.
- *        doi:10.1016/0168-583X(93)95827-R
- * [PRM]  Geant4 Physics Reference Manual (Release 11.1) sections 8.2 and 8.5
  */
 class WentzelDistribution
 {
@@ -215,12 +209,9 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 /*!
  * Calculate the form factor based on the form factor model.
  *
- * The models are described in [LR16] section 2.4.2.1 and parameterize the
- * charge distribution inside a nucleus. The same models are used as in
- * Geant4, and are:
- *      Exponential: [LR16] eqn 2.262
- *      Gaussian: [LR16] eqn 2.264
- *      Flat (uniform-uniform folded): [LR16] 2.265
+ * The models, described in \citet{leroy-2016,
+ * https://doi-org.ezproxy.cern.ch/10.1142/9167} section 2.4.2.1, parameterize
+ * the charge distribution inside a nucleus.
  */
 CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
@@ -264,7 +255,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
 /*!
  * Calculate the flat form factor.
  *
- * See [LR16] eqn 2.265.
+ * See \cite{leroy-2016} Eq. 2.265.
  */
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
 {
@@ -276,7 +267,7 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  * Momentum coefficient used in the flat model for the nuclear form factors.
  *
  * This is the ratio of \f$ r_1 / \hbar \f$ where \f$ r_1 \f$ is defined in
- * eqn 2.265 of [LR16].
+ * Eq. 2.265 of \cite{leroy-2016}.
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {

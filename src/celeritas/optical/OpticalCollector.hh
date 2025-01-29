@@ -54,7 +54,8 @@ class ScintGeneratorAction;
  * optical params since it's the only thing that launches the optical stepping
  * loop.
  *
- * \todo Rename to OpticalOffload
+ * \todo This doesn't do anything but set up the optical tracking loop: move to
+ * \c setup namespace
  */
 class OpticalCollector
 {
@@ -127,8 +128,6 @@ class OpticalCollector
     SPCherenkovGenAction cherenkov_gen_action_;
     SPScintGenAction scint_gen_action_;
     SPLaunchAction launch_action_;
-
-    // TODO: tracking loop launch action
 };
 
 //---------------------------------------------------------------------------//
