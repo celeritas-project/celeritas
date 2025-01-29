@@ -103,6 +103,11 @@ std::shared_ptr<GeoParams> build_geometry(inp::Model const& m)
                       return build_from_filename(filename);
                   }
               }
+              else
+              {
+                  // Avoid warnings from clang with vecgeom
+                  CELER_DISCARD(&build_from_filename);
+              }
               CELER_VALIDATE(
                   world, << "null world pointer in problem.model.geometry");
               return std::make_shared<GeoParams>(world);
