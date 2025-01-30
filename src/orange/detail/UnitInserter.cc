@@ -303,7 +303,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         // Create a set of background volume ids for BIH construction
         if (inp.volumes[i].flags & VolumeRecord::Flags::implicit_vol)
         {
-            background_vol_ids.insert(LocalVolumeId(i));
+            background_vol_ids.insert(id_cast<LocalVolumeId>(i));
         }
 
         // Add oriented bounding zone record
