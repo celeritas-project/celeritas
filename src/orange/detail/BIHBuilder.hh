@@ -36,6 +36,11 @@ namespace detail
  * node with all volumes in the stored inf_vols. This final case is useful in
  * the event that an ORANGE geometry is created via a method where volume
  * bounding boxes are not availible.
+ *
+ * Bounding boxes supplied to this builder should "bumped," i.e. expanded
+ * outward by at least floating-point epsilson from the volumes they bound.
+ * This eliminates the possiblity of accidently missing a volume during
+ * tracking.
  */
 class BIHBuilder
 {
