@@ -12,6 +12,8 @@
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
 #include "ParticleTrackView.hh"
+#include "PhysicsStepView.hh"
+#include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
 
@@ -51,7 +53,7 @@ class CoreTrackView
     // Return a material view
     inline CELER_FUNCTION MaterialView material() const;
 
-    // Return a material view (using an existing geo view
+    // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material(GeoTrackView const&) const;
 
     // Return a simulation management view
@@ -59,6 +61,12 @@ class CoreTrackView
 
     // Return a particle view
     inline CELER_FUNCTION ParticleTrackView particle() const;
+
+    // Return a physics view
+    inline CELER_FUNCTION PhysicsTrackView physics() const;
+
+    // Return a view to temporary physics data
+    inline CELER_FUNCTION PhysicsStepView physics_step() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -126,7 +134,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
     this->particle()
         = ParticleTrackView::Initializer{init.energy, init.polarization};
 
-    //! \todo Add physics view and clear physics state
+    // Initialize the physics state
+    this->physics() = PhysicsTrackView::Initializer{};
 
     return *this;
 }
@@ -169,6 +178,28 @@ CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 {
     return ParticleTrackView{states_.particle, this->track_slot_id()};
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
+{
+    OpticalMaterialId mat_id = this->material().material_id();
+    CELER_ASSERT(mat_id);
+    return PhysicsTrackView{
+        params_.physics, states_.physics, mat_id, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a view to temporary physics data.
+ */
+CELER_FUNCTION auto CoreTrackView::physics_step() const -> PhysicsStepView
+{
+    return PhysicsStepView{
+        params_.physics, states_.physics, this->track_slot_id()};
+};
 
 //---------------------------------------------------------------------------//
 /*!

@@ -48,6 +48,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -632,6 +633,18 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     oc_inp.initializer_capacity
         = ceil_div(inp.optical.initializer_capacity, num_streams);
     oc_inp.auto_flush = ceil_div(inp.optical.auto_flush, num_streams);
+
+    // Import models
+    optical::ModelImporter importer{
+        imported, oc_inp.material, core_params_->material()};
+
+    for (auto const& model : imported.optical_models)
+    {
+        if (auto builder = importer(model.model_class))
+        {
+            oc_inp.model_builders.push_back(*builder);
+        }
+    }
 
     CELER_ASSERT(oc_inp);
     optical_collector_

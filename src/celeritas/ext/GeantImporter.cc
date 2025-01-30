@@ -906,6 +906,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
+    CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";
     return {
         std::move(processes), std::move(msc_models), std::move(optical_models)};
 }

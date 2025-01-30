@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "AbsorptionModel.hh"
 
-#include "corecel/Assert.hh"
+#include "AbsorptionExecutor.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
 
 namespace celeritas
 {
@@ -17,9 +19,15 @@ namespace optical
 /*!
  * Interact with device data.
  */
-void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const
+void AbsorptionModel::step(CoreParams const& core_params,
+                           CoreStateDevice& core_state) const
 {
-    CELER_NOT_IMPLEMENTED("optical core physics");
+    launch_action(
+        core_state,
+        make_action_thread_executor(core_params.ptr<MemSpace::native>(),
+                                    core_state.ptr(),
+                                    this->action_id(),
+                                    AbsorptionExecutor{}));
 }
 
 //---------------------------------------------------------------------------//

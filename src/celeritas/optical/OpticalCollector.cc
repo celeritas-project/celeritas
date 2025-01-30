@@ -105,6 +105,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // Create launch action with optical params+state and access to gen data
     detail::OpticalLaunchAction::Input la_inp;
+    la_inp.model_builders = std::move(inp.model_builders);
     la_inp.material = inp.material;
     la_inp.offload = offload_params_;
     la_inp.num_track_slots = inp.num_track_slots;

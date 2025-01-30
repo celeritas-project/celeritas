@@ -11,6 +11,7 @@
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/Types.hh"
 
+#include "Model.hh"
 #include "OffloadData.hh"
 
 namespace celeritas
@@ -70,6 +71,9 @@ class OpticalCollector
 
     struct Input
     {
+        //! Optical physics models
+        std::vector<optical::Model::ModelBuilder> model_builders;
+
         //! Optical physics material for materials
         SPConstMaterial material;
         SPConstCherenkov cherenkov;

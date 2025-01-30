@@ -55,7 +55,7 @@ class PhysicsStepView
     PhysicsStateRef const& state_;
     TrackSlotId track_id_;
 
-    ItemId<real_type> per_model_xs_id(ModelId) const;
+    inline ItemId<real_type> per_model_xs_id(ModelId) const;
 
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState const& state() const;

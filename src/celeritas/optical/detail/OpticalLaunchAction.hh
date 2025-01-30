@@ -13,6 +13,8 @@
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/global/ActionInterface.hh"
 
+#include "../Model.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -56,6 +58,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     struct Input
     {
         SPConstMaterial material;
+        std::vector<optical::Model::ModelBuilder> model_builders;
         SPOffloadParams offload;
         size_type num_track_slots{};
         size_type initializer_capacity{};
