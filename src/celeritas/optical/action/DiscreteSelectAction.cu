@@ -10,7 +10,7 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 
-#include "ActionLauncher.hh"
+#include "ActionLauncher.device.hh"
 #include "DiscreteSelectExecutor.hh"
 #include "TrackSlotExecutor.hh"
 

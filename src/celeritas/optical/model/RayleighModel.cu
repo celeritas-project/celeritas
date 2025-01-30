@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "RayleighModel.hh"
 
+#include "celeritas/optical/action/ActionLauncher.device.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
+
 #include "RayleighExecutor.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
