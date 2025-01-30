@@ -73,7 +73,7 @@ expected_mfp_energy_grid(OpticalMaterialId mat, ModelId model)
     if (grids.empty())
     {
         grids = build_expected_grids([](size_type i, size_type n) {
-            return 15 * std::log(real_type(i) / n + 1);
+            return real_type{15} * std::log(real_type(i) / n + 1);
         });
     }
 
@@ -92,7 +92,7 @@ expected_mfp_value_grid(OpticalMaterialId mat, ModelId model)
     if (grids.empty())
     {
         grids = build_expected_grids(
-            [](size_type i, size_type) { return i * i; });
+            [](size_type i, size_type) { return real_type(i * i); });
     }
 
     CELER_EXPECT(model < grids.size());
