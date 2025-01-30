@@ -623,7 +623,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
         VolumeView vol = this->make_local_volume(vol_id);
 
         detail::CalcIntersections calc_intersections{
-            celeritas::forward<F>(is_valid),
+            is_valid,
             state.pos,
             state.dir,
             state.surface ? vol.find_face(state.surface.id()) : FaceId{},
