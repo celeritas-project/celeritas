@@ -547,7 +547,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(!(is_inside(calc_sense) ^ static_cast<bool>(target_sense)));
+    CELER_ASSERT(is_inside(calc_sense) != (target_sense == Sense::inside));
 
     // previous isect distance for move delta
     real_type previous_distance{0};
@@ -572,8 +572,8 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         axpy(distance - previous_distance, state.dir, &pos);
 
         // Intersection is found if is_inside is true and the target sense
-        // is inside (n.b., static_cast<inside> is false), or vice-versa
-        if (is_inside(calc_sense) ^ static_cast<bool>(target_sense))
+        // is inside, or vice-versa
+        if (is_inside(calc_sense) == (target_sense == Sense::inside))
         {
             // Flipping this sense puts us outside the current volume: in
             // other words, only after crossing all the internal surfaces along
