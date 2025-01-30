@@ -7,8 +7,8 @@
 #pragma once
 
 #include <G4Version.hh>
-#if G4VERSION_NUMBER < 1110
-#    error "Tracking manager offload requires Geant4 11.1 or higher"
+#if G4VERSION_NUMBER < 1100
+#    error "Tracking manager offload requires Geant4 11.0 or higher"
 #endif
 
 #include <G4VTrackingManager.hh>
