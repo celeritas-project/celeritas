@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/SplineDerivativeCalculator.hh
+//! \file celeritas/grid/SplineDerivCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -23,11 +23,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the first derivatives of an interpolating cubic spline.
+ * Calculate the second derivatives of an interpolating cubic spline.
  *
  * This uses not-a-knot boundary conditions. TODO: description
  */
-class SplineDerivativeCalculator
+class SplineDerivCalculator
 {
   public:
     //!@{
@@ -40,12 +40,12 @@ class SplineDerivativeCalculator
 
   public:
     // Contruct with x and y grids
-    SplineDerivativeCalculator(SpanConstReal x_values, SpanConstReal y_values);
+    SplineDerivCalculator(SpanConstReal x_values, SpanConstReal y_values);
 
     // Contruct with cross section grid
-    SplineDerivativeCalculator(XsGridData const& grid, Values const& values);
+    SplineDerivCalculator(XsGridData const& grid, Values const& values);
 
-    // Calculate the first derivatives
+    // Calculate the second derivatives
     VecReal operator()() const;
 
   private:

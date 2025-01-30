@@ -13,7 +13,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "celeritas/grid/SplineDerivativeCalculator.hh"
+#include "celeritas/grid/SplineDerivCalculator.hh"
 
 namespace celeritas
 {
@@ -80,7 +80,7 @@ void CalculatorTestBase::build(Real2 bounds,
     if (spline)
     {
         Data value_ref{value_storage_};
-        auto deriv = SplineDerivativeCalculator(data_, value_ref)();
+        auto deriv = SplineDerivCalculator(data_, value_ref)();
         data_.derivative = build.insert_back(deriv.begin(), deriv.end());
     }
     value_ref_ = value_storage_;

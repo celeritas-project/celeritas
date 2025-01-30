@@ -11,54 +11,41 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Contruct with coefficients.
+ *
+ * The first three coefficients are the bands of the tridiagonal matrix and the
+ * last is the right-hand side.
  */
-TridiagonalSolver::TridiagonalSolver(Coefficients coeffs) : coeffs_{coeffs}
+TridiagonalSolver::TridiagonalSolver(Coeffs&& coeffs) : coeffs_{coeffs}
 {
-    CELER_EXPECT(coeffs_.a.size() >= 2);
-    CELER_EXPECT(coeffs_.a.size() == coeffs_.b.size()
-                 && coeffs_.b.size() == coeffs_.c.size()
-                 && coeffs_.c.size() == coeffs_.d.size());
+    CELER_EXPECT(coeffs_.size() >= 2);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Solve the tridiagonal system.
  */
-auto TridiagonalSolver::operator()() const -> VecReal
+void TridiagonalSolver::operator()(SpanReal dst) const
 {
-    size_type num_rows = coeffs_.a.size();
-    VecReal result(num_rows);
-    VecReal c_prime(num_rows);
+    CELER_EXPECT(dst.size() == coeffs_.size());
 
-    c_prime[0] = coeffs_.c[0] / coeffs_.b[0];
-    result[0] = coeffs_.d[0] / coeffs_.b[0];
+    std::vector<real_type> c_prime(coeffs_.size());
+    c_prime[0] = coeffs_[0][2] / coeffs_[0][1];
+    dst[0] = coeffs_[0][3] / coeffs_[0][1];
 
     // Forward sweep
-    for (size_type i = 1; i < num_rows; ++i)
+    for (size_type i = 1; i < coeffs_.size(); ++i)
     {
-        real_type factor = 1 / (coeffs_.b[i] - coeffs_.a[i] * c_prime[i - 1]);
-        c_prime[i] = coeffs_.c[i] * factor;
-        result[i] = (coeffs_.d[i] - coeffs_.a[i] * result[i - 1]) * factor;
+        auto const& a = coeffs_[i];
+        real_type factor = 1 / (a[1] - a[0] * c_prime[i - 1]);
+        c_prime[i] = a[2] * factor;
+        dst[i] = (a[3] - a[0] * dst[i - 1]) * factor;
     }
 
     // Back substitution
-    for (int i = num_rows - 2; i >= 0; --i)
+    for (int i = coeffs_.size() - 2; i >= 0; --i)
     {
-        result[i] -= c_prime[i] * result[i + 1];
+        dst[i] -= c_prime[i] * dst[i + 1];
     }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Resize the coefficient vectors.
- */
-void resize(TridiagonalSolver::Coefficients& coeffs, size_type size)
-{
-    coeffs.a.resize(size);
-    coeffs.b.resize(size);
-    coeffs.c.resize(size);
-    coeffs.d.resize(size);
 }
 
 //---------------------------------------------------------------------------//

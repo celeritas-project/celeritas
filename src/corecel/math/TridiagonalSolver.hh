@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 
 namespace celeritas
 {
@@ -28,31 +29,20 @@ class TridiagonalSolver
   public:
     //!@{
     //! \name Type aliases
-    using VecReal = std::vector<real_type>;
+    using Coeffs = std::vector<Array<real_type, 4>>;
+    using SpanReal = Span<real_type>;
     //!@}
-
-    struct Coefficients
-    {
-        VecReal a;  //!< Subdiagonal
-        VecReal b;  //!< Diagonal
-        VecReal c;  //!< Superdiagonal
-        VecReal d;  //!< RHS
-    };
 
   public:
     // Contruct with coefficients
-    explicit TridiagonalSolver(Coefficients coeffs);
+    explicit TridiagonalSolver(Coeffs&&);
 
     // Solve the tridiagonal system
-    VecReal operator()() const;
+    void operator()(SpanReal) const;
 
   private:
-    Coefficients coeffs_;
+    Coeffs coeffs_;
 };
-
-//---------------------------------------------------------------------------//
-// Resize the coefficient vectors
-void resize(TridiagonalSolver::Coefficients&, size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

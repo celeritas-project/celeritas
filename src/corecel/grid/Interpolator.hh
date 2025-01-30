@@ -101,14 +101,14 @@ class Interpolator
  * \f[
    f_i(x) = a_0 + a_1(x - x_i) + a_2(x - x_i)^2 + a_3(x - x_i)^3,
  * \f]
- * where \f$ a_i \f$ are the polynomial coefficients:
+ * where \f$ a_i \f$ are the polynomial coefficients, expressed in terms of the
+ * second derivatives as:
  * \f{align}{
    a_0 &= y_i \\
-   a_1 &= y'_i \\
-   a_2 &= \frac{1}{\Delta x_i} \left[3 \frac{\Delta y_i}{\Delta x_i} - 2y'_i -
-          y'_{i + 1}\right] \\
-   a_3 &= \frac{1}{\Delta x^2_i} \left[-2 \frac{\Delta y_i}{\Delta x_i} + y'_i
-          + y'_{i + 1} \right]
+   a_1 &= \frac{\Delta y_i}{\Delta x_i} - \frac{\Delta x_i}{6} \left[ y''_{i +
+          1} + 2 y''_{i} \right] \\
+   a_2 &= \frac{y''_i}{2} \\
+   a_3 &= \frac{1}{6 \Delta x_i} \left[ y''_{i + 1} - y''_i \right]
  * \f}
  */
 template<typename T = ::celeritas::real_type>
@@ -180,18 +180,17 @@ SplineInterpolator<T>::SplineInterpolator(Point left, Point right)
     {
         X = 0,
         Y = 1,
-        Y_PRIME = 2  //!< First derivative
+        Y_DD = 2  //!< Second derivative
     };
 
     CELER_EXPECT(left[X] < right[X]);
 
     x_lower_ = left[X];
-    T inv_dx = 1 / (right[X] - left[X]);
-    T slope = (right[Y] - left[Y]) * inv_dx;
+    T dx = right[X] - left[X];
     a_[0] = left[Y];
-    a_[1] = left[Y_PRIME];
-    a_[2] = inv_dx * (3 * slope - 2 * left[Y_PRIME] - right[Y_PRIME]);
-    a_[3] = ipow<2>(inv_dx) * (-2 * slope + left[Y_PRIME] + right[Y_PRIME]);
+    a_[1] = (right[Y] - left[Y]) / dx - dx / 6 * (right[Y_DD] + 2 * left[Y_DD]);
+    a_[2] = T(0.5) * left[Y_DD];
+    a_[3] = 1 / (6 * dx) * (right[Y_DD] - left[Y_DD]);
 }
 
 //---------------------------------------------------------------------------//

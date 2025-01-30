@@ -7,6 +7,7 @@
 #include "corecel/math/TridiagonalSolver.hh"
 
 #include <utility>
+#include <vector>
 
 #include "celeritas_test.hh"
 
@@ -24,15 +25,13 @@ TEST(TridiagonalSolverTest, basic)
     // [  0  -1   2  -1  ][ x_2 ]   [ 0 ]
     // [  0   0  -1   2  ][ x_3 ]   [ 0 ]
 
-    TridiagonalSolver::Coefficients coeffs;
-    coeffs.a = {0, -1, -1, -1};
-    coeffs.b = {2, 2, 2, 2};
-    coeffs.c = {-1, -1, -1, 0};
-    coeffs.d = {1, 0, 0, 0};
+    TridiagonalSolver::Coeffs coeffs{
+        {0, 2, -1, 1}, {-1, 2, -1, 0}, {-1, 2, -1, 0}, {-1, 2, 0, 0}};
 
-    TridiagonalSolver solve(std::move(coeffs));
+    std::vector<real_type> result(4);
+    TridiagonalSolver(std::move(coeffs))(make_span(result));
     EXPECT_VEC_SOFT_EQ(
-        std::vector<real_type>({4 / 5.0, 3 / 5.0, 2 / 5.0, 1 / 5.0}), solve());
+        std::vector<real_type>({4 / 5.0, 3 / 5.0, 2 / 5.0, 1 / 5.0}), result);
 }
 
 TEST(TridiagonalSolverTest, small)
@@ -42,14 +41,11 @@ TEST(TridiagonalSolverTest, small)
     // [  2  -1][ x_0 ] = [ 1 ]
     // [ -1   2][ x_1 ]   [ 0 ]
 
-    TridiagonalSolver::Coefficients coeffs;
-    coeffs.a = {0, -1};
-    coeffs.b = {2, 2};
-    coeffs.c = {-1, 0};
-    coeffs.d = {1, 0};
+    TridiagonalSolver::Coeffs coeffs{{0, 2, -1, 1}, {-1, 2, 0, 0}};
 
-    TridiagonalSolver solve(std::move(coeffs));
-    EXPECT_VEC_SOFT_EQ(std::vector<real_type>({2 / 3.0, 1 / 3.0}), solve());
+    std::vector<real_type> result(2);
+    TridiagonalSolver(std::move(coeffs))(make_span(result));
+    EXPECT_VEC_SOFT_EQ(std::vector<real_type>({2 / 3.0, 1 / 3.0}), result);
 }
 
 //---------------------------------------------------------------------------//

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "corecel/grid/Interpolator.hh"
-#include "celeritas/grid/SplineDerivativeCalculator.hh"
+#include "celeritas/grid/SplineDerivCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 
 #include "CalculatorTestBase.hh"
@@ -38,26 +38,17 @@ TEST_F(CubicSplineTest, derivative_simple)
     VecReal x{0, 1, 2, 3, 4};
     VecReal y{0, 2, 1, 2, 0};
 
-    auto result = SplineDerivativeCalculator(make_span(x), make_span(y))();
-    EXPECT_VEC_SOFT_EQ(VecReal({6, -3 / 4.0, 0, 3 / 4.0, -6}), result);
-}
-
-TEST_F(CubicSplineTest, derivative_small)
-{
-    VecReal x{1, 2, 4};
-    VecReal y{2, 4, 2};
-
-    auto result = SplineDerivativeCalculator(make_span(x), make_span(y))();
-    EXPECT_VEC_SOFT_EQ(VecReal({3, 1, -3}), result);
+    auto result = SplineDerivCalculator(make_span(x), make_span(y))();
+    EXPECT_VEC_SOFT_EQ(VecReal({-10.5, -3, 4.5, -3, -10.5}), result);
 }
 
 TEST_F(CubicSplineTest, derivative_constant)
 {
-    VecReal x{0, 1, 3, 7};
-    VecReal y{3, 3, 3, 3};
+    VecReal x{0, 1, 3, 7, 15};
+    VecReal y{3, 3, 3, 3, 3};
 
-    auto result = SplineDerivativeCalculator(make_span(x), make_span(y))();
-    EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0}), result);
+    auto result = SplineDerivCalculator(make_span(x), make_span(y))();
+    EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
 }
 
 TEST_F(CubicSplineTest, derivative_sin)
@@ -72,20 +63,20 @@ TEST_F(CubicSplineTest, derivative_sin)
         y[i] = std::sin(i);
     }
 
-    auto result = SplineDerivativeCalculator(make_span(x), make_span(y))();
-
+    // Values from scipy.interpolate.CubicSpline with bc_type='not-a-knot'
     static double const expected_result[] = {
-        1.1445931049699,
-        0.49649878902935,
-        -0.40269598061028,
-        -0.9867677968323,
-        -0.64853259846134,
-        0.28076534250866,
-        0.95763221975372,
-        0.73643839862225,
-        -0.09706457977579,
-        -1.0827844199502,
+        -0.5225440890910731,
+        -0.7736445427901106,
+        -1.024744996489151,
+        -0.1433986359548829,
+        0.8198690326967976,
+        1.038726849243206,
+        0.3150069052469171,
+        -0.757394547509858,
+        -0.9096114092862184,
+        -1.061828271062575,
     };
+    auto result = SplineDerivCalculator(make_span(x), make_span(y))();
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
 
@@ -94,26 +85,26 @@ TEST_F(CubicSplineTest, derivative_nonuniform)
     VecReal x{0, 7, 16, 20, 24, 25, 29, 31, 38, 44, 53, 55, 60, 67, 74, 81};
     VecReal y{7, 3, 4, 2, 1, 1, 5, 3, 3, 2, 7, 1, 8, 7, 8, 2};
 
-    auto result = SplineDerivativeCalculator(make_span(x), make_span(y))();
-
+    // Values from scipy.interpolate.CubicSpline with bc_type='not-a-knot'
     static double const expected_result[] = {
-        -1.5134392539008,
-        0.089094798573181,
-        -0.33218833778178,
-        -0.43179434207034,
-        -0.19063429393686,
-        0.39703432035974,
-        -0.20780602784999,
-        -1.0750990766299,
-        -0.096787212855884,
-        0.78100885629034,
-        -2.8431967955012,
-        -1.8531505420245,
-        1.7800457829244,
-        -0.49838042777432,
-        0.21347592817287,
-        -2.4983804277743,
+        0.3495708556979281,
+        0.108296016437501,
+        -0.2019144911830484,
+        0.1521114890387704,
+        -0.03153146497203319,
+        1.20686869356525,
+        -1.509288867670116,
+        0.6419958188901989,
+        -0.3624781435261925,
+        0.6550768332416019,
+        -1.460455866973062,
+        2.450502120449817,
+        -0.9972235904702638,
+        0.3462446731277701,
+        -0.1428571428571429,
+        -0.6319589588420556,
     };
+    auto result = SplineDerivCalculator(make_span(x), make_span(y))();
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
 
@@ -124,11 +115,10 @@ TEST_F(CubicSplineTest, derivative_xs_grid)
     });
     this->convert_to_prime(3);
 
-    static double const expected_result[]
-        = {-5697 / 5.0, -9516 / 11.0, 396, -3939 / 11.0, 3951};
+    static double const expected_result[] = {
+        105520 / 33.0, 31880 / 11.0, -3160 / 33.0, -790 / 11.0, 5530 / 33.0};
     {
-        auto result
-            = SplineDerivativeCalculator(this->data(), this->values())();
+        auto result = SplineDerivCalculator(this->data(), this->values())();
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
     {
@@ -142,7 +132,7 @@ TEST_F(CubicSplineTest, derivative_xs_grid)
             EXPECT_SOFT_EQ(x[i], std::exp(loge_grid[i]));
             EXPECT_SOFT_EQ(y[i], calc_xs[i]);
         }
-        auto result = SplineDerivativeCalculator(make_span(x), make_span(y))();
+        auto result = SplineDerivCalculator(make_span(x), make_span(y))();
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
 }
@@ -151,7 +141,7 @@ TEST_F(CubicSplineTest, interpolate)
 {
     VecReal x{0, 1, 2, 3, 4};
     VecReal y{0, 2, 1, 2, 0};
-    auto y_prime = SplineDerivativeCalculator(make_span(x), make_span(y))();
+    auto y_prime = SplineDerivCalculator(make_span(x), make_span(y))();
 
     {
         SplineInterpolator interpolate({x[0], y[0], y_prime[0]},
