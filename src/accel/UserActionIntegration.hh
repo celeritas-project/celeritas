@@ -54,6 +54,9 @@ class UserActionIntegration
     // Edit options before starting the run
     SetupOptions& Options();
 
+    // Initialize during ActionInitialization on non-worker thread
+    void BuildForMaster();
+
     // Initialize during ActionInitialization
     void Build();
 

@@ -18,11 +18,15 @@ namespace celeritas
 Logger MakeMTLogger(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
-//! Manually create a multithread-friendly logger (remove in v1.0)
+//! Manually create a multithread-friendly logger (remove in v0.7)
 [[deprecated]] inline Logger make_mt_logger(G4RunManager const& rm)
 {
     return MakeMTLogger(rm);
 }
+
+//---------------------------------------------------------------------------//
+// Get the thread ID printed to logger messages.
+std::string get_thread_label();
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

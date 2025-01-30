@@ -53,7 +53,7 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
  */
 void SimpleOffload::BeginOfRunAction(G4Run const*)
 {
-    ExceptionConverter call_g4exception{"celer0001"};
+    ExceptionConverter call_g4exception{"celer.init"};
 
     if (G4Threading::IsMasterThread())
     {
@@ -87,7 +87,7 @@ void SimpleOffload::BeginOfEventAction(G4Event const* event)
         return;
 
     // Set event ID in local transporter and reseed RNG for reproducibility
-    ExceptionConverter call_g4exception{"celer0002"};
+    ExceptionConverter call_g4exception{"celer.event.begin"};
     CELER_TRY_HANDLE(local_->InitializeEvent(event->GetEventID()),
                      call_g4exception);
 }
@@ -110,7 +110,7 @@ void SimpleOffload::PreUserTrackingAction(G4Track* track)
         if (mode == SharedParams::Mode::enabled)
         {
             // Celeritas is transporting this track
-            ExceptionConverter call_g4exception{"celer0003", params_};
+            ExceptionConverter call_g4exception{"celer.track.push", params_};
             CELER_TRY_HANDLE(local_->Push(*track), call_g4exception);
         }
         // Either "pushed" or we're in kill_offload mode
@@ -128,7 +128,7 @@ void SimpleOffload::EndOfEventAction(G4Event const*)
     if (!local_)
         return;
 
-    ExceptionConverter call_g4exception{"celer0004", params_};
+    ExceptionConverter call_g4exception{"celer.event.flush", params_};
     CELER_TRY_HANDLE(local_->Flush(), call_g4exception);
 }
 
@@ -141,7 +141,7 @@ void SimpleOffload::EndOfRunAction(G4Run const*)
     CELER_EXPECT(params_);
 
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-    ExceptionConverter call_g4exception{"celer0005"};
+    ExceptionConverter call_g4exception{"celer.finalize"};
 
     if (local_)
     {
