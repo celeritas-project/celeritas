@@ -119,7 +119,7 @@ BIHIntersectingVolFinder::BIHIntersectingVolFinder(
  * If no intersection is found within max_search_dist, an empty Intersection
  * object is returned. The visit_vol argument should be of the form:
  *
- * detail::Intersection(*)(LocalVolumeId id)
+ * detail::Intersection(*)(LocalVolumeId id, real_type max_search_dist)
  *
  * Other information required by the functor should be handled through
  * lambda capture.
@@ -254,7 +254,7 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
 
         if (this->visit_bbox(bbox, ray, min_intersection.distance))
         {
-            auto intersection = visit_vol(id);
+            auto intersection = visit_vol(id, min_intersection.distance);
             if (intersection
                 && intersection.distance < min_intersection.distance)
             {
@@ -276,7 +276,7 @@ BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
 {
     for (auto id : view_.inf_vol_ids())
     {
-        auto intersection = visit_vol(id);
+        auto intersection = visit_vol(id, min_intersection.distance);
         if (intersection && intersection.distance < min_intersection.distance)
         {
             min_intersection = intersection;
