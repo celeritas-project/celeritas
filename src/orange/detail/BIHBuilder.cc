@@ -34,7 +34,7 @@ BIHBuilder::BIHBuilder(Storage* storage)
  */
 BIHTree
 BIHBuilder::operator()(VecBBox&& bboxes,
-                       BIHBuilder::SetLocalVolId const& background_vol_ids)
+                       BIHBuilder::SetLocalVolId const& implicit_vol_ids)
 {
     CELER_EXPECT(!bboxes.empty());
 
@@ -53,7 +53,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     {
         LocalVolumeId id(i);
 
-        if (background_vol_ids.find(id) != background_vol_ids.end())
+        if (implicit_vol_ids.find(id) != implicit_vol_ids.end())
         {
             // Background volume, do not include bbox in tree
         }
