@@ -165,6 +165,8 @@ auto build_physics(inp::Problem const& p,
                    CoreParams::Input const& params,
                    ImportData const& imported)
 {
+    CELER_ASSUME(p.physics.em);
+
     PhysicsParams::Input input;
     input.particles = params.particle;
     input.materials = params.material;
@@ -204,7 +206,6 @@ auto build_physics(inp::Problem const& p,
         = imported.em_params.msc_muhad_step_algorithm;
 
     // Build processes
-    CELER_ASSERT(p.physics.em);
     input.processes = build_physics_processes(*p.physics.em, params, imported);
 
     return std::make_shared<PhysicsParams>(std::move(input));

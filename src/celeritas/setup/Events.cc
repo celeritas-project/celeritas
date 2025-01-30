@@ -28,7 +28,7 @@ namespace setup
 namespace
 {
 //---------------------------------------------------------------------------//
-auto read_events(EventReaderInterface&& generate)
+auto read_events(EventReaderInterface& generate)
 {
     std::vector<std::vector<Primary>> result;
     auto event = generate();
