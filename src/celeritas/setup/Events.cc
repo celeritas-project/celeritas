@@ -28,7 +28,8 @@ namespace setup
 namespace
 {
 //---------------------------------------------------------------------------//
-auto read_events(EventReaderInterface& generate)
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+auto read_events(EventReaderInterface&& generate)
 {
     std::vector<std::vector<Primary>> result;
     auto event = generate();
