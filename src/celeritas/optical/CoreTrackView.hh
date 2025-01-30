@@ -199,7 +199,7 @@ CELER_FUNCTION auto CoreTrackView::physics_step() const -> PhysicsStepView
 {
     return PhysicsStepView{
         params_.physics, states_.physics, this->track_slot_id()};
-};
+}
 
 //---------------------------------------------------------------------------//
 /*!

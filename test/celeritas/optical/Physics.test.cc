@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <random>
 
 #include "corecel/data/CollectionStateStore.hh"
