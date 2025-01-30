@@ -30,7 +30,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 
-#include "detail/CelerEmPhysicsList.hh"
+#include "EmPhysicsList.hh"
 
 namespace celeritas
 {
@@ -102,7 +102,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     ScopedGeantExceptionHandler scoped_exceptions;
 
     {
-        CELER_LOG(status) << "Initializing Geant4 geometry";
+        CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
         // Load GDML and save a copy of the pointer
         world_ = load_geant_geometry(gdml_filename);
@@ -113,8 +113,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
-        auto physics_list
-            = std::make_unique<detail::CelerEmPhysicsList>(options);
+        auto physics_list = std::make_unique<EmPhysicsList>(options);
         run_manager_->SetUserInitialization(physics_list.release());
     }
 

@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/CelerFTFPBert.cc
+//! \file celeritas/ext/FtfpBertPhysicsList.cc
 //---------------------------------------------------------------------------//
-#include "CelerFTFPBert.hh"
+#include "FtfpBertPhysicsList.hh"
 
 #include <memory>
 #include <G4DecayPhysics.hh>
@@ -19,19 +19,17 @@
 
 #include "celeritas/Quantities.hh"
 
-#include "CelerEmStandardPhysics.hh"
-#include "CelerOpticalPhysics.hh"
-#include "MuHadEmStandardPhysics.hh"
+#include "detail/EmStandardPhysics.hh"
+#include "detail/MuHadEmStandardPhysics.hh"
+#include "detail/OpticalPhysics.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Construct the FTFP BERT physics list with modified EM standard physics.
+ * Construct the FTFP_BERT physics list with modified EM standard physics.
  */
-CelerFTFPBert::CelerFTFPBert(Options const& options)
+FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
@@ -41,19 +39,19 @@ CelerFTFPBert::CelerFTFPBert(Options const& options)
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
     // Celeritas-supported EM physics
-    auto celer_em = std::make_unique<CelerEmStandardPhysics>(options);
+    auto celer_em = std::make_unique<detail::EmStandardPhysics>(options);
     RegisterPhysics(celer_em.release());
 
     // Celeritas-supported Optical Physics
     if (options.optical)
     {
         auto optical_physics
-            = std::make_unique<CelerOpticalPhysics>(options.optical);
+            = std::make_unique<detail::OpticalPhysics>(options.optical);
         RegisterPhysics(optical_physics.release());
     }
 
     // Muon and hadrom EM standard physics not supported in Celeritas
-    auto muhad_em = std::make_unique<MuHadEmStandardPhysics>(verbosity);
+    auto muhad_em = std::make_unique<detail::MuHadEmStandardPhysics>(verbosity);
     RegisterPhysics(muhad_em.release());
 
     // Synchroton radiation & GN physics
@@ -86,5 +84,4 @@ CelerFTFPBert::CelerFTFPBert(Options const& options)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
