@@ -267,14 +267,14 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
                 continue;
             }
 
-            T dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
-                     / dir[ax];
+            T temp = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax]);
 
-            if (dist <= 0)
+            if (temp * signum(dir[ax]) <= 0)
             {
                 // Short circut if the plane is behind us
                 continue;
             }
+            T dist = temp / dir[ax];
 
             if (in_bounds(ax, dist))
             {
