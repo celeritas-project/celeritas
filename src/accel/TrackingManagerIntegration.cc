@@ -33,11 +33,17 @@ TrackingManagerIntegration& TrackingManagerIntegration::instance()
 SetupOptions& TrackingManagerIntegration::Options()
 {
     CELER_VALIDATE(
-        !detail::shared_params(),
+        !detail::IntegrationSingletons::shared_params(),
         << R"(options cannot be modified after Celeritas is constructed)");
 
-    return detail::setup_options();
+    return detail::IntegrationSingletons::setup_options();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize during ActionInitialization on non-worker thread.
+ */
+void TrackingManagerIntegration::BuildForMaster() {}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -54,6 +60,11 @@ SetupOptions& TrackingManagerIntegration::Options()
  */
 void TrackingManagerIntegration::Build()
 {
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        this->build_shared();
+    }
+
     auto* run_man = G4RunManager::GetRunManager();
     CELER_VALIDATE(
         run_man, << R"(Geant4 run manager was not initialized before build)");
