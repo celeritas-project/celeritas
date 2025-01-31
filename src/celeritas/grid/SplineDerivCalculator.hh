@@ -49,7 +49,19 @@ class SplineDerivCalculator
     VecReal operator()() const;
 
   private:
+    //// TYPES ////
+
+    using Real4 = Array<real_type, 4>;
+
+    //// DATA ////
+
     UPGridAccessor grid_;
+
+    //// HELPER FUNCTIONS ////
+
+    void calc_initial_row(Real4&) const;
+    void calc_final_row(Real4&) const;
+    void calc_boundaries(VecReal&) const;
 };
 
 //---------------------------------------------------------------------------//
