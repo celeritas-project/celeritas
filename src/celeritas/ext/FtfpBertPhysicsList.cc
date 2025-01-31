@@ -22,6 +22,7 @@
 #include "detail/EmStandardPhysics.hh"
 #include "detail/MuHadEmStandardPhysics.hh"
 #include "detail/OpticalPhysics.hh"
+#include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
 {
@@ -39,48 +40,37 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
     // Celeritas-supported EM physics
-    auto celer_em = std::make_unique<detail::EmStandardPhysics>(options);
-    RegisterPhysics(celer_em.release());
+    detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
     // Celeritas-supported Optical Physics
     if (options.optical)
     {
-        auto optical_physics
-            = std::make_unique<detail::OpticalPhysics>(options.optical);
-        RegisterPhysics(optical_physics.release());
+        detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
     }
 
     // Muon and hadrom EM standard physics not supported in Celeritas
-    auto muhad_em = std::make_unique<detail::MuHadEmStandardPhysics>(verbosity);
-    RegisterPhysics(muhad_em.release());
+    detail::emplace_physics<detail::MuHadEmStandardPhysics>(*this, verbosity);
 
     // Synchroton radiation & GN physics
-    auto em_extra = std::make_unique<G4EmExtraPhysics>(verbosity);
-    RegisterPhysics(em_extra.release());
+    detail::emplace_physics<G4EmExtraPhysics>(*this, verbosity);
 
     // Decays
-    auto decay = std::make_unique<G4DecayPhysics>(verbosity);
-    RegisterPhysics(decay.release());
+    detail::emplace_physics<G4DecayPhysics>(*this, verbosity);
 
     // Hadron elastic scattering
-    auto hadron_elastic = std::make_unique<G4HadronElasticPhysics>(verbosity);
-    RegisterPhysics(hadron_elastic.release());
+    detail::emplace_physics<G4HadronElasticPhysics>(*this, verbosity);
 
     // Hadron physics
-    auto hadron = std::make_unique<G4HadronPhysicsFTFP_BERT>(verbosity);
-    RegisterPhysics(hadron.release());
+    detail::emplace_physics<G4HadronPhysicsFTFP_BERT>(*this, verbosity);
 
     // Stopping physics
-    auto stopping = std::make_unique<G4StoppingPhysics>(verbosity);
-    RegisterPhysics(stopping.release());
+    detail::emplace_physics<G4StoppingPhysics>(*this, verbosity);
 
     // Ion physics
-    auto ion = std::make_unique<G4IonPhysics>(verbosity);
-    RegisterPhysics(ion.release());
+    detail::emplace_physics<G4IonPhysics>(*this, verbosity);
 
     // Neutron tracking cut
-    auto neutron_cut = std::make_unique<G4NeutronTrackingCut>(verbosity);
-    RegisterPhysics(neutron_cut.release());
+    detail::emplace_physics<G4NeutronTrackingCut>(*this, verbosity);
 }
 
 //---------------------------------------------------------------------------//

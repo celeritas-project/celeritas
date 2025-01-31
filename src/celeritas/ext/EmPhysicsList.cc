@@ -12,6 +12,7 @@
 
 #include "detail/EmStandardPhysics.hh"
 #include "detail/OpticalPhysics.hh"
+#include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
 {
@@ -28,15 +29,12 @@ EmPhysicsList::EmPhysicsList(Options const& options)
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
     // Celeritas-supported EM Physics
-    auto em_standard = std::make_unique<detail::EmStandardPhysics>(options);
-    RegisterPhysics(em_standard.release());
+    detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        auto optical_physics
-            = std::make_unique<detail::OpticalPhysics>(options.optical);
-        RegisterPhysics(optical_physics.release());
+        detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
     }
 }
 
