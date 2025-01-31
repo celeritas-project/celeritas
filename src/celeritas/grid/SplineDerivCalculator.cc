@@ -16,9 +16,12 @@ namespace celeritas
  * Contruct with x and y grids.
  */
 SplineDerivCalculator::SplineDerivCalculator(SpanConstReal x_values,
-                                             SpanConstReal y_values)
+                                             SpanConstReal y_values,
+                                             BoundaryCondition bc)
     : grid_(std::make_unique<detail::SpanGridAccessor>(x_values, y_values))
+    , bc_(bc)
 {
+    CELER_EXPECT(bc_ != BoundaryCondition::size_);
 }
 
 //---------------------------------------------------------------------------//
@@ -26,9 +29,11 @@ SplineDerivCalculator::SplineDerivCalculator(SpanConstReal x_values,
  * Contruct with grid data.
  */
 SplineDerivCalculator::SplineDerivCalculator(XsGridData const& grid,
-                                             Values const& values)
-    : grid_(std::make_unique<detail::XsGridAccessor>(grid, values))
+                                             Values const& values,
+                                             BoundaryCondition bc)
+    : grid_(std::make_unique<detail::XsGridAccessor>(grid, values)), bc_(bc)
 {
+    CELER_EXPECT(bc_ != BoundaryCondition::size_);
 }
 
 //---------------------------------------------------------------------------//
@@ -38,6 +43,11 @@ SplineDerivCalculator::SplineDerivCalculator(XsGridData const& grid,
 auto SplineDerivCalculator::operator()() const -> VecReal
 {
     CELER_ASSERT(grid_->size() >= 5);
+
+    if (bc_ == BoundaryCondition::geant)
+    {
+        // return this->calc_geant_derivatives();
+    }
 
     size_type num_knots = grid_->size();
     TridiagonalSolver::Coeffs coeffs(num_knots - 2);
@@ -84,10 +94,17 @@ void SplineDerivCalculator::calc_initial_row(Real4& coeffs) const
     real_type h_lower = grid_->delta_x(0, 1);
     real_type h_upper = grid_->delta_x(1, 2);
 
-    // Initial not-a-knot boundary condition
     coeffs[0] = 0;
-    coeffs[1] = (h_lower + h_upper) * (2 * h_upper + h_lower) / h_upper;
-    coeffs[2] = (ipow<2>(h_upper) - ipow<2>(h_lower)) / h_upper;
+    if (bc_ == BoundaryCondition::natural)
+    {
+        coeffs[1] = 2 * (h_lower + h_upper);
+        coeffs[2] = h_upper;
+    }
+    else
+    {
+        coeffs[1] = (h_lower + h_upper) * (2 * h_upper + h_lower) / h_upper;
+        coeffs[2] = (ipow<2>(h_upper) - ipow<2>(h_lower)) / h_upper;
+    }
     coeffs[3]
         = 6 * (grid_->delta_y(1, 2) / h_upper - grid_->delta_y(0, 1) / h_lower);
 }
@@ -104,9 +121,16 @@ void SplineDerivCalculator::calc_final_row(Real4& coeffs) const
     real_type h_lower = grid_->delta_x(n - 1, n);
     real_type h_upper = grid_->delta_x(n, n + 1);
 
-    // Final not-a-knot boundary condition
-    coeffs[0] = (ipow<2>(h_lower) - ipow<2>(h_upper)) / h_lower;
-    coeffs[1] = (h_lower + h_upper) * (2 * h_lower + h_upper) / h_lower;
+    if (bc_ == BoundaryCondition::natural)
+    {
+        coeffs[0] = h_lower;
+        coeffs[1] = 2 * (h_lower + h_upper);
+    }
+    else
+    {
+        coeffs[0] = (ipow<2>(h_lower) - ipow<2>(h_upper)) / h_lower;
+        coeffs[1] = (h_lower + h_upper) * (2 * h_lower + h_upper) / h_lower;
+    }
     coeffs[2] = 0;
     coeffs[3] = 6
                 * (grid_->delta_y(n, n + 1) / h_upper
@@ -121,19 +145,26 @@ void SplineDerivCalculator::calc_boundaries(VecReal& deriv) const
 {
     CELER_EXPECT(deriv.size() == grid_->size());
 
-    // Not-a-knot boundary conditions
-    real_type h_lower = grid_->delta_x(0, 1);
-    real_type h_upper = grid_->delta_x(1, 2);
+    if (bc_ == BoundaryCondition::natural)
+    {
+        deriv.front() = 0;
+        deriv.back() = 0;
+    }
+    else
+    {
+        real_type h_lower = grid_->delta_x(0, 1);
+        real_type h_upper = grid_->delta_x(1, 2);
 
-    deriv.front() = ((h_lower + h_upper) * deriv[1] - h_lower * deriv[2])
-                    / h_upper;
+        deriv.front() = ((h_lower + h_upper) * deriv[1] - h_lower * deriv[2])
+                        / h_upper;
 
-    size_type n = grid_->size() - 2;
-    h_lower = grid_->delta_x(n - 1, n);
-    h_upper = grid_->delta_x(n, n + 1);
+        size_type n = grid_->size() - 2;
+        h_lower = grid_->delta_x(n - 1, n);
+        h_upper = grid_->delta_x(n, n + 1);
 
-    deriv.back() = ((h_lower + h_upper) * deriv[n] - h_upper * deriv[n - 1])
-                   / h_lower;
+        deriv.back() = ((h_lower + h_upper) * deriv[n] - h_upper * deriv[n - 1])
+                       / h_lower;
+    }
 }
 
 //---------------------------------------------------------------------------//

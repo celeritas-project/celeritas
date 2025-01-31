@@ -56,6 +56,8 @@ void CalculatorTestBase::build(Real2 bounds,
                                XsFunc calc_xs,
                                bool spline)
 {
+    using BC = SplineDerivCalculator::BoundaryCondition;
+
     CELER_EXPECT(bounds[1] > bounds[0]);
     CELER_EXPECT(count >= 2);
     CELER_EXPECT(calc_xs);
@@ -80,7 +82,7 @@ void CalculatorTestBase::build(Real2 bounds,
     if (spline)
     {
         Data value_ref{value_storage_};
-        auto deriv = SplineDerivCalculator(data_, value_ref)();
+        auto deriv = SplineDerivCalculator(data_, value_ref, BC::not_a_knot)();
         data_.derivative = build.insert_back(deriv.begin(), deriv.end());
     }
     value_ref_ = value_storage_;

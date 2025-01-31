@@ -91,11 +91,11 @@ class Interpolator
  * Interpolate using a cubic spline.
  *
  * Given a set of \f$ n \f$ data points \f$ (x_i, y_i) \f$ such that \f$ x_0 <
- * x_1 < \dots < x_n \f$, a cubic spline \f$ f(x) \f$ interpolating on the
- * points is a piecewise polynomial function consisting of \f$ n - 1 \f$ cubic
- * polynomials \f$ f_i \f$ defined on \f$ [x_i, x_{i + 1}] \f$. The \f$ f_i \f$
- * are joined at \f$ x_i \f$ such that both the first and second derivatives,
- * \f$ f'_i \f$ and \f$ f''_i \f$, are continuous.
+ * x_1 < \dots < x_{n - 1} \f$, a cubic spline \f$ f(x) \f$ interpolating on
+ * the points is a piecewise polynomial function consisting of \f$ n - 1 \f$
+ * cubic polynomials \f$ f_i \f$ defined on \f$ [x_i, x_{i + 1}] \f$. The \f$
+ * f_i \f$ are joined at \f$ x_i \f$ such that both the first and second
+ * derivatives, \f$ f'_i \f$ and \f$ f''_i \f$, are continuous.
  *
  * The \f$ i^{\text{th}} \f$ piecewise polynomial \f$ f_i \f$ is given by:
  * \f[

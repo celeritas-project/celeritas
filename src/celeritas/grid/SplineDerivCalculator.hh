@@ -38,12 +38,21 @@ class SplineDerivCalculator
     using VecReal = std::vector<real_type>;
     //!@}
 
-  public:
-    // Contruct with x and y grids
-    SplineDerivCalculator(SpanConstReal x_values, SpanConstReal y_values);
+    //! Cubic spline interpolation boundary conditions
+    enum class BoundaryCondition
+    {
+        natural = 0,
+        not_a_knot,
+        geant,  //!< Not not-a-knot
+        size_
+    };
 
-    // Contruct with cross section grid
-    SplineDerivCalculator(XsGridData const& grid, Values const& values);
+  public:
+    // Contruct with x and y grids and boundary type
+    SplineDerivCalculator(SpanConstReal, SpanConstReal, BoundaryCondition);
+
+    // Contruct with grid data and boundary type
+    SplineDerivCalculator(XsGridData const&, Values const&, BoundaryCondition);
 
     // Calculate the second derivatives
     VecReal operator()() const;
@@ -56,6 +65,7 @@ class SplineDerivCalculator
     //// DATA ////
 
     UPGridAccessor grid_;
+    BoundaryCondition bc_;
 
     //// HELPER FUNCTIONS ////
 
