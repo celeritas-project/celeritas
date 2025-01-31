@@ -674,6 +674,7 @@ foreach(_key
   VecCore_DIR VecGeom_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
+  VDT_INCLUDE_DIR VDT_LIBRARY
   XercesC_LIBRARY XercesC_INCLUDE_DIR
 )
   set(_val "${${_key}}")
