@@ -12,7 +12,7 @@
 
 #include "geocel/GeantUtils.hh"
 
-#include "detail/StaticIntegrationData.hh"
+#include "detail/IntegrationSingleton.hh"
 
 namespace celeritas
 {
@@ -32,71 +32,43 @@ TrackingManagerIntegration& TrackingManagerIntegration::instance()
  */
 SetupOptions& TrackingManagerIntegration::Options()
 {
-    CELER_VALIDATE(
-        !detail::IntegrationSingletons::shared_params(),
-        << R"(options cannot be modified after Celeritas is constructed)");
-
-    return detail::IntegrationSingletons::setup_options();
+    return detail::IntegrationSingleton::instance().setup_options();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize during ActionInitialization on non-worker thread.
+ * Initialize during ActionInitialization on non-worker thread in MT mode.
  */
 void TrackingManagerIntegration::BuildForMaster() {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Initialize during ActionInitialization.
- *
- * \todo The query for CeleritasDisabled initializes the environment before
- * we've had a chance to load the user setup options. Make sure we can update
- * the environment *first* when refactoring the setup.
- *
- * \note In Geant4 threading, \em only MT mode on non-master thread has
- *   \c G4Threading::IsWorkerThread()==true. For MT mode, the master thread
- *   does not track any particles. For single-thread mode, the master thread
- *   \em does do work.
  */
 void TrackingManagerIntegration::Build()
 {
-    if (!G4Threading::IsMultithreadedApplication())
-    {
-        this->build_shared();
-    }
-
-    auto* run_man = G4RunManager::GetRunManager();
-    CELER_VALIDATE(
-        run_man, << R"(Geant4 run manager was not initialized before build)");
-
+    auto& singleton = detail::IntegrationSingleton::instance();
     if (G4Threading::IsMasterThread())
     {
-        CELER_VALIDATE(
-            !shared_params(),
-            << R"(build cannot be called from master thread more than once)");
-
-        // Initialize multithread logger if run manager exists
-        celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
-        thread_managers.reserve(run_man->GetNumberOfThreads());
+        CELER_VALIDATE(!G4Threading::IsMultithreadedApplication(),
+                       << "cannot call Integration::Build from worker thread "
+                          "in an MT application");
+        singleton.initialize_shared_params();
     }
 
-    if (SharedParams::CeleritasDisabled())
-    {
-        CELER_LOG_LOCAL(debug)
-            << R"(Not building tracking manager: Celeritas is disabled)";
-        return;
-    }
+    singleton.initialize_local_transporter();
 
-    if (!G4Threading::IsMultithreadedApplication()
-        || !G4Threading::IsMasterThread())
+    if (singleton.shared_params()
+        && (!G4Threading::IsMultithreadedApplication()
+            || G4Threading::IsWorkerThread()))
     {
-        // Set tracking manager on workers
+        // Set tracking manager on workers when Celeritas is enabled
         CELER_LOG_LOCAL(debug) << "Setting tracking manager";
 
         // Create *thread-local* tracking manager with pointers to *global*
         // shared params and *thread-local* transporter
         auto manager = std::make_unique<TrackingManager>(
-            detail::shared_params(), detail::local_transporter());
+            singleton.shared_params(), singleton.local_transporter());
 
         for (G4ParticleDefinition* particle :
              detail::shared_params().offload_particles())
@@ -131,6 +103,12 @@ void TrackingManagerIntegration::EndOfRunAction(G4Run const* run)
 {
     // TODO: finalize Celeritas
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Only allow the singleton to construct.
+ */
+TrackingManagerIntegration::TrackingManagerIntegration() = default;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -24,6 +24,14 @@ namespace detail
 class IntegrationSingleton
 {
   public:
+    enum class Mode
+    {
+        disabled,
+        kill_offload,
+        enabled,
+        size_
+    };
+
     // Static GLOBAL shared singleton
     static IntegrationSingleton& instance();
 
@@ -32,8 +40,14 @@ class IntegrationSingleton
 
     //// ACCESSORS ////
 
-    //! Static global setup options before constructing params
-    SetupOptions& setup_options() { return options_; }
+    // Static global setup options before constructing params
+    SetupOptions& setup_options();
+
+    //! Static global setup options before or after constructing params
+    SetupOptions const& setup_options() const { return options_; }
+
+    //! Whether Celeritas is enabled
+    Mode mode() const { return mode_; }
 
     //!@{
     //! Static global Celeritas problem data
@@ -47,10 +61,10 @@ class IntegrationSingleton
     void initialize_logger();
 
     // Construct shared params on master (or single) thread
-    void initialize_shared_params();
+    bool initialize_shared_params();
 
     // Construct thread-local transporter
-    void initialize_local_transporter();
+    bool initialize_local_transporter();
 
     // Destroy local transporter
     void finalize_local_transporter();
@@ -63,6 +77,7 @@ class IntegrationSingleton
     IntegrationSingleton() = default;
 
     //// DATA ////
+    Mode mode_{Mode::size_};
     SetupOptions options_;
     SharedParams params_;
 };
