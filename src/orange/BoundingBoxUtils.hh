@@ -248,7 +248,8 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
             if (other_ax == ax)
                 continue;
 
-            auto intersect = pos[other_ax] + dist * dir[other_ax];
+            auto intersect
+                = celeritas::fma<T>(dist, dir[other_ax], pos[other_ax]);
             if (out_of_bounds(intersect, other_ax))
                 return false;
         }
@@ -267,14 +268,13 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
                 continue;
             }
 
-            T temp = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax]);
-
-            if (temp * signum(dir[ax]) <= 0)
+            T dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
+                     / dir[ax];
+            if (dist <= 0)
             {
                 // Short circut if the plane is behind us
                 continue;
             }
-            T dist = temp / dir[ax];
 
             if (in_bounds(ax, dist))
             {
