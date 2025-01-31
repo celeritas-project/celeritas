@@ -29,19 +29,22 @@ class GridAccessor
     virtual ~GridAccessor() = default;
 
     //! Get the x grid value at the given index
-    virtual real_type x(size_type i) const = 0;
+    virtual real_type x(size_type index) const = 0;
 
     //! Get the y grid value at the given index
-    virtual real_type y(size_type i) const = 0;
+    virtual real_type y(size_type index) const = 0;
 
     //! Get the grid size
     virtual size_type size() const = 0;
 
-    // Calculate \f$ x_j - x_i \f$
-    inline real_type delta_x(size_type i, size_type j) const;
+    // Calculate \f$ x_{i + 1} - x_i \f$
+    inline real_type delta_x(size_type index_lower) const;
 
-    // Calculate \f$ y_j - y_i \f$
-    inline real_type delta_y(size_type i, size_type j) const;
+    // Calculate \f$ y_{i + 1} - y_i \f$
+    inline real_type delta_y(size_type index_lower) const;
+
+    // Calculate slope[i + 1] - slope[i]
+    inline real_type delta_slope(size_type index_lower) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -61,10 +64,10 @@ class SpanGridAccessor : public GridAccessor
     inline SpanGridAccessor(SpanConstReal x_values, SpanConstReal y_values);
 
     // Get the x grid value at the given index
-    inline real_type x(size_type i) const final;
+    inline real_type x(size_type index) const final;
 
     // Get the y grid value at the given index
-    inline real_type y(size_type i) const final;
+    inline real_type y(size_type index) const final;
 
     //! Get the grid size
     size_type size() const final { return x_values_.size(); }
@@ -92,10 +95,10 @@ class XsGridAccessor : public GridAccessor
     inline XsGridAccessor(XsGridData const& grid, Values const& values);
 
     //! Get the x grid value at the given index
-    inline real_type x(size_type i) const final;
+    inline real_type x(size_type index) const final;
 
     //! Get the y grid value at the given index
-    inline real_type y(size_type i) const final;
+    inline real_type y(size_type index) const final;
 
     //! Get the grid size
     size_type size() const final { return loge_grid_.size(); }
@@ -110,20 +113,30 @@ class XsGridAccessor : public GridAccessor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Calculate \f$ x_j - x_i \f$.
+ * Calculate \f$ x_{i + 1} - x_i \f$.
  */
-real_type GridAccessor::delta_x(size_type i, size_type j) const
+real_type GridAccessor::delta_x(size_type index_lower) const
 {
-    return this->x(j) - this->x(i);
+    return this->x(index_lower + 1) - this->x(index_lower);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate \f$ y_j - y_i \f$
+ * Calculate \f$ y_{i + 1} - y_i \f$
  */
-real_type GridAccessor::delta_y(size_type i, size_type j) const
+real_type GridAccessor::delta_y(size_type index_lower) const
 {
-    return this->y(j) - this->y(i);
+    return this->y(index_lower + 1) - this->y(index_lower);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate slope[i + 1] - slope[i].
+ */
+real_type GridAccessor::delta_slope(size_type index_lower) const
+{
+    return this->delta_y(index_lower + 1) / this->delta_x(index_lower + 1)
+           - this->delta_y(index_lower) / this->delta_x(index_lower);
 }
 
 //---------------------------------------------------------------------------//
@@ -141,20 +154,20 @@ SpanGridAccessor::SpanGridAccessor(SpanConstReal x_values,
 /*!
  * Get the x grid value at the given index.
  */
-real_type SpanGridAccessor::x(size_type i) const
+real_type SpanGridAccessor::x(size_type index) const
 {
-    CELER_EXPECT(i < this->size());
-    return x_values_[i];
+    CELER_EXPECT(index < this->size());
+    return x_values_[index];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the y grid value at the given index.
  */
-real_type SpanGridAccessor::y(size_type i) const
+real_type SpanGridAccessor::y(size_type index) const
 {
-    CELER_EXPECT(i < this->size());
-    return y_values_[i];
+    CELER_EXPECT(index < this->size());
+    return y_values_[index];
 }
 
 //---------------------------------------------------------------------------//
@@ -171,23 +184,23 @@ XsGridAccessor::XsGridAccessor(XsGridData const& grid, Values const& values)
 /*!
  * Get the x grid value at the given index.
  */
-real_type XsGridAccessor::x(size_type i) const
+real_type XsGridAccessor::x(size_type index) const
 {
-    CELER_EXPECT(i < this->size());
-    return std::exp(loge_grid_[i]);
+    CELER_EXPECT(index < this->size());
+    return std::exp(loge_grid_[index]);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the y grid value at the given index.
  */
-real_type XsGridAccessor::y(size_type i) const
+real_type XsGridAccessor::y(size_type index) const
 {
-    CELER_EXPECT(i < this->size());
-    real_type result = reals_[data_.value[i]];
-    if (i >= data_.prime_index)
+    CELER_EXPECT(index < this->size());
+    real_type result = reals_[data_.value[index]];
+    if (index >= data_.prime_index)
     {
-        result /= this->x(i);
+        result /= this->x(index);
     }
     return result;
 }

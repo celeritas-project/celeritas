@@ -42,7 +42,7 @@ void TridiagonalSolver::operator()(SpanReal dst) const
     }
 
     // Back substitution
-    for (int i = coeffs_.size() - 2; i >= 0; --i)
+    for (size_type i = coeffs_.size() - 2; i != size_type(-1); --i)
     {
         dst[i] -= c_prime[i] * dst[i + 1];
     }

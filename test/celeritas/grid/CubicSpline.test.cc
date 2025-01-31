@@ -49,6 +49,11 @@ TEST_F(CubicSplineTest, derivative_simple)
             = SplineDerivCalculator(make_span(x), make_span(y), BC::natural)();
         EXPECT_VEC_SOFT_EQ(VecReal({0, -6, 6, -6, 0}), result);
     }
+    {
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
+        EXPECT_VEC_SOFT_EQ(VecReal({-4.3125, 0, 4.3125, -3, -10.3125}), result);
+    }
 }
 
 TEST_F(CubicSplineTest, derivative_constant)
@@ -63,6 +68,11 @@ TEST_F(CubicSplineTest, derivative_constant)
     {
         auto result
             = SplineDerivCalculator(make_span(x), make_span(y), BC::natural)();
+        EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
+    }
+    {
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
         EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
     }
 }
@@ -104,14 +114,14 @@ TEST_F(CubicSplineTest, derivative_nonuniform)
     {
         // Values from scipy.interpolate.CubicSpline with bc_type='not-a-knot'
         static double const expected_result[] = {
-            4.9426958709655300e-01,
-            3.3921993080859636e-02,
-            -5.5795348493931729e-01,
-            8.8370650100696158e-01,
-            1.1481274809114712e+00,
-            -1.5161008131425509e+00,
-            5.0322016262851021e-01,
-            1.5128806505140406e+00,
+            0.494269587096553,
+            0.03392199308085964,
+            -0.5579534849393173,
+            0.8837065010069616,
+            1.148127480911471,
+            -1.516100813142551,
+            0.5032201626285102,
+            1.512880650514041,
         };
         auto result = SplineDerivCalculator(
             make_span(x), make_span(y), BC::not_a_knot)();
@@ -120,17 +130,32 @@ TEST_F(CubicSplineTest, derivative_nonuniform)
     {
         // Values from scipy.interpolate.CubicSpline with bc_type='natural'
         static double const expected_result[] = {
-            2.7755575615628914e-17,
-            1.5412058764458358e-01,
-            -6.0089436453523881e-01,
-            8.9237538061207400e-01,
-            1.1563928420869445e+00,
-            -1.6334299433177244e+00,
-            7.9447664777257454e-01,
-            -1.1102230246251565e-16,
+            2.775557561562891e-17,
+            0.1541205876445836,
+            -0.6008943645352388,
+            0.892375380612074,
+            1.156392842086944,
+            -1.633429943317724,
+            0.7944766477725745,
+            -1.110223024625157e-16,
         };
         auto result
             = SplineDerivCalculator(make_span(x), make_span(y), BC::natural)();
+        EXPECT_VEC_SOFT_EQ(expected_result, result);
+    }
+    {
+        static double const expected_result[] = {
+            0.51151426652383,
+            0.042466618989189,
+            -0.56059464212677,
+            0.89566157993236,
+            1.1081228295771,
+            -1.5052036923714,
+            0.50807243516836,
+            1.5147104989382,
+        };
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
 }
@@ -156,18 +181,18 @@ TEST_F(CubicSplineTest, derivative_log)
     {
         // Values from scipy.interpolate.CubicSpline with bc_type='not-a-knot'
         static double const expected_result[] = {
-            1.3572120032350275e+08,
-            1.2296066842786135e+08,
-            -4.6446505285416190e+06,
-            2.1869043745504515e+05,
-            -1.0150685763332291e+04,
-            4.7134219534104602e+02,
-            -2.1886550971249481e+01,
-            1.0161669665900670e+00,
-            -4.6912246500744756e-02,
-            1.5902456440930928e-03,
-            1.1926842330698196e-03,
-            -2.7829298771629126e-03,
+            135721200.3235027,
+            122960668.4278613,
+            -4644650.528541619,
+            218690.4374550451,
+            -10150.68576333229,
+            471.342195341046,
+            -21.88655097124948,
+            1.016166966590067,
+            -0.04691224650074476,
+            0.001590245644093093,
+            0.00119268423306982,
+            -0.002782929877162913,
         };
         auto result = SplineDerivCalculator(
             make_span(x), make_span(y), BC::not_a_knot)();
@@ -177,20 +202,39 @@ TEST_F(CubicSplineTest, derivative_log)
         // Values from scipy.interpolate.CubicSpline with bc_type='natural'
         static double const expected_result[] = {
             0,  // Note: scipy returns a non-zero value for the first f''
-            1.2926283143071672e+08,
-            -4.9372891024729721e+06,
-            2.3227899981848482e+05,
-            -1.0781665569764382e+04,
-            5.0064153314767589e+02,
-            -2.3247113502625947e+01,
-            1.0794707549553146e+00,
-            -5.0124327766643099e-02,
-            2.3264455925446851e-03,
-            -1.0574752693384931e-04,
-            0,
+            129262831.4307167,
+            -4937289.102472972,
+            232278.9998184848,
+            -10781.66556976438,
+            500.6415331476759,
+            -23.24711350262595,
+            1.079470754955315,
+            -0.0501243277666431,
+            0.002326445592544685,
+            -0.0001057475269338493,
+            6.776263578034403e-21,
         };
         auto result
             = SplineDerivCalculator(make_span(x), make_span(y), BC::natural)();
+        EXPECT_VEC_SOFT_EQ(expected_result, result);
+    }
+    {
+        static double const expected_result[] = {
+            122327823.66564,
+            110798659.11594,
+            -4492986.3810467,
+            211979.81140063,
+            -9839.4174867823,
+            456.88890796125,
+            -21.215420139232,
+            0.98500714700094,
+            -0.045473725878422,
+            0.0015414822331671,
+            0.0011561116748754,
+            -0.0026975939080425,
+        };
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
 }
@@ -259,6 +303,24 @@ TEST_F(CubicSplineTest, interpolate)
         EXPECT_SOFT_EQ(1.375, interpolate(0.5));
         EXPECT_SOFT_EQ(1.971, interpolate(0.9));
         EXPECT_EQ(2, interpolate(1));
+    }
+    y_prime = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
+    {
+        SplineInterpolator interpolate({x[0], y[0], y_prime[0]},
+                                       {x[1], y[1], y_prime[1]});
+        EXPECT_EQ(0, interpolate(0));
+        EXPECT_SOFT_EQ(0.32290625, interpolate(0.1));
+        EXPECT_SOFT_EQ(1.26953125, interpolate(0.5));
+        EXPECT_SOFT_EQ(1.87115625, interpolate(0.9));
+        EXPECT_EQ(2, interpolate(1));
+    }
+    {
+        SplineInterpolator interpolate({x[1], y[1], y_prime[1]},
+                                       {x[2], y[2], y_prime[2]});
+        EXPECT_EQ(2, interpolate(1));
+        EXPECT_SOFT_EQ(1.23046875, interpolate(1.5));
+        EXPECT_SOFT_EQ(0.99956465553125, interpolate(1.999));
+        EXPECT_EQ(1, interpolate(2));
     }
 }
 

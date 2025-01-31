@@ -72,6 +72,7 @@ class SplineDerivCalculator
     void calc_initial_row(Real4&) const;
     void calc_final_row(Real4&) const;
     void calc_boundaries(VecReal&) const;
+    VecReal calc_geant_derivatives() const;
 };
 
 //---------------------------------------------------------------------------//
