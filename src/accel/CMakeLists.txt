@@ -30,7 +30,7 @@ list(APPEND SOURCES
   detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc
   detail/SensDetInserter.cc
-  detail/StaticIntegrationData.cc
+  detail/IntegrationSingleton.cc
   detail/TouchableUpdaterInterface.cc
 )
 

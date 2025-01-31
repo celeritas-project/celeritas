@@ -129,7 +129,7 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
     if (*transport_)
     {
         // Offload this track to Celeritas for transport
-        ExceptionConverter call_g4exception{"celer0001", params_};
+        ExceptionConverter call_g4exception{"celer.track.push", params_};
         CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
     }
 
@@ -155,7 +155,7 @@ void TrackingManager::FlushEvent()
 
     if (*transport_)
     {
-        ExceptionConverter call_g4exception{"celer0002", params_};
+        ExceptionConverter call_g4exception{"celer.event.flush", params_};
         CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
     }
 }
