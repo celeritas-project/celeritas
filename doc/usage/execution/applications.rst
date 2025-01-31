@@ -38,7 +38,8 @@ Input
 ^^^^^
 
 .. todo::
-   The input parameters will be documented for version 1. Until then, refer to the
+   The input parameters will be documented for version 1 in the :ref:`input`
+   section and :ref:`api_problem_setup_standalone`. Until then, refer to the
    source code at :file:`app/celer-sim/RunnerInput.hh` .
 
 In addition to these input parameters, :ref:`environment` can be specified to
@@ -86,7 +87,8 @@ with ``field_options`` corresponding to the ``FieldOptions`` class in :ref:`api_
 
    The macro file usage is in the process of being replaced by JSON
    input for improved automation. The input parameters will be documented for
-   version 1.  Until then, refer to the source code
+   version 1 in the :ref:`input` section and
+   :ref:`api_problem_setup_standalone`.  Until then, refer to the source code
    at :file:`app/celer-g4/RunInput.hh` .
 
 The input is a Geant4 macro file for executing the program. Celeritas defines

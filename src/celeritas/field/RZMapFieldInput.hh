@@ -30,6 +30,8 @@ namespace celeritas
  * unit strength is 1000*tesla.
  *
  * The field values are all indexed with R having stride 1: [Z][R]
+ *
+ * \todo Use C indexing instead of Fortran? Or rename to ZR field?
  */
 struct RZMapFieldInput
 {
@@ -42,6 +44,7 @@ struct RZMapFieldInput
     std::vector<double> field_z;  //!< Flattened Z field component [bfield]
     std::vector<double> field_r;  //!< Flattened R field component [bfield]
 
+    // TODO: remove from field input; should be a separate input
     FieldDriverOptions driver_options;
 
     //! Whether all data are assigned and valid

@@ -2,14 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/CelerEmStandardPhysics.hh
+//! \file celeritas/ext/detail/OpticalPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4ParticleDefinition.hh>
 #include <G4VPhysicsConstructor.hh>
 
-#include "../GeantPhysicsOptions.hh"
+#include "../GeantOpticalPhysicsOptions.hh"
 
 namespace celeritas
 {
@@ -17,19 +16,19 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct Celeritas-supported EM standard physics.
+ * Construct Celeritas-supported Optical physics.
  */
-class CelerEmStandardPhysics : public G4VPhysicsConstructor
+class OpticalPhysics : public G4VPhysicsConstructor
 {
   public:
     //!@{
     //! \name Type aliases
-    using Options = GeantPhysicsOptions;
+    using Options = GeantOpticalPhysicsOptions;
     //!@}
 
   public:
     // Set up during construction
-    explicit CelerEmStandardPhysics(Options const& options);
+    explicit OpticalPhysics(Options const& options);
 
     // Set up minimal EM particle list
     void ConstructParticle() override;
@@ -38,13 +37,6 @@ class CelerEmStandardPhysics : public G4VPhysicsConstructor
 
   private:
     Options options_;
-
-    // Add EM processes for photons
-    void add_gamma_processes();
-    // Add EM processes for electrons and positrons
-    void add_e_processes(G4ParticleDefinition* p);
-    // Add EM processes for muons
-    void add_mu_processes(G4ParticleDefinition* p);
 };
 
 //---------------------------------------------------------------------------//

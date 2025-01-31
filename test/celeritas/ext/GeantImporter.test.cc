@@ -695,6 +695,7 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
                                                    ImportProcessClass::e_ioni);
     EXPECT_EQ(ImportProcessType::electromagnetic, proc.process_type);
     EXPECT_EQ(celeritas::pdg::electron().get(), proc.secondary_pdg);
+    EXPECT_FALSE(proc.applies_at_rest);
 
     // Test model
     ASSERT_EQ(1, proc.models.size());
@@ -770,6 +771,7 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
     ImportProcess const& proc = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
     EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
+    EXPECT_FALSE(proc.applies_at_rest);
     ASSERT_EQ(2, proc.models.size());
     if (geant4_version < Version{11})
     {
@@ -819,11 +821,13 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
     }
 }
 
+//---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, conv)
 {
     ImportProcess const& proc = this->find_process(
         celeritas::pdg::gamma(), ImportProcessClass::conversion);
     EXPECT_EQ(celeritas::pdg::electron().get(), proc.secondary_pdg);
+    EXPECT_FALSE(proc.applies_at_rest);
     ASSERT_EQ(1, proc.models.size());
 
     {
@@ -851,6 +855,28 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, anni)
+{
+    ImportProcess const& proc = this->find_process(
+        celeritas::pdg::positron(), ImportProcessClass::annihilation);
+    EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
+    EXPECT_TRUE(proc.applies_at_rest);
+    ASSERT_EQ(1, proc.models.size());
+
+    auto const& model = proc.models[0];
+    EXPECT_EQ(ImportModelClass::e_plus_to_gg, model.model_class);
+
+    EXPECT_EQ(2, model.materials.size());
+    auto result = summarize(model.materials);
+    static unsigned int const expected_size[] = {2u, 2u};
+    static double const expected_energy[]
+        = {0.0001, 100000000, 0.0001, 100000000};
+    EXPECT_VEC_EQ(expected_size, result.size);
+    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    EXPECT_TRUE(result.xs.empty());
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, muioni)
 {
     real_type const tol = this->comparison_tolerance();
@@ -859,6 +885,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         celeritas::pdg::mu_minus(), ImportProcessClass::mu_ioni);
     EXPECT_EQ(ImportProcessType::electromagnetic, mu_minus.process_type);
     EXPECT_EQ(celeritas::pdg::electron().get(), mu_minus.secondary_pdg);
+    EXPECT_FALSE(mu_minus.applies_at_rest);
 
     // Test model
     ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2,
@@ -968,6 +995,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         celeritas::pdg::mu_plus(), ImportProcessClass::mu_ioni);
     EXPECT_EQ(ImportProcessType::electromagnetic, mu_plus.process_type);
     EXPECT_EQ(celeritas::pdg::electron().get(), mu_plus.secondary_pdg);
+    EXPECT_FALSE(mu_plus.applies_at_rest);
 
     auto const& models = mu_plus.models;
     ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2, models.size());
@@ -1467,6 +1495,7 @@ TEST_F(OneSteelSphere, physics)
     // Check the bremsstrahlung cross sections
     ImportProcess const& brems = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
+    EXPECT_FALSE(brems.applies_at_rest);
     ASSERT_EQ(1, brems.tables.size());
     ASSERT_EQ(2, brems.models.size());
     {

@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/CelerOpticalPhysics.cc
+//! \file celeritas/ext/detail/OpticalPhysics.cc
 //---------------------------------------------------------------------------//
-#include "CelerOpticalPhysics.hh"
+#include "OpticalPhysics.hh"
 
 #include <memory>
 #include <G4Cerenkov.hh>
@@ -120,9 +120,8 @@ G4String optical_process_type_to_geant_name(OpticalProcessType value)
  * Use `G4OpticalParameters` when available, otherwise use hardcoded
  * checks.
  */
-bool process_is_active(
-    OpticalProcessType process,
-    [[maybe_unused]] CelerOpticalPhysics::Options const& options)
+bool process_is_active(OpticalProcessType process,
+                       [[maybe_unused]] OpticalPhysics::Options const& options)
 {
 #if G4VERSION_NUMBER >= 1070
     auto* params = G4OpticalParameters::Instance();
@@ -160,8 +159,7 @@ bool process_is_active(
 /*!
  * Construct with physics options.
  */
-CelerOpticalPhysics::CelerOpticalPhysics(Options const& options)
-    : options_(options)
+OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
 {
 #if G4VERSION_NUMBER >= 1070
     // Use of G4OpticalParameters only from Geant4 10.7
@@ -217,7 +215,7 @@ CelerOpticalPhysics::CelerOpticalPhysics(Options const& options)
 /*!
  * Build list of available particles.
  */
-void CelerOpticalPhysics::ConstructParticle()
+void OpticalPhysics::ConstructParticle()
 {
     // Eventually nothing to do here as Celeritas OpPhys won't generate
     // G4OpticalPhotons
@@ -228,7 +226,7 @@ void CelerOpticalPhysics::ConstructParticle()
 /*!
  * Build list of available processes and models.
  */
-void CelerOpticalPhysics::ConstructProcess()
+void OpticalPhysics::ConstructProcess()
 {
     auto* process_manager
         = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();

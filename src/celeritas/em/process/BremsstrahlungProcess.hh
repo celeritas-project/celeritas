@@ -41,8 +41,8 @@ class BremsstrahlungProcess : public Process
     {
         BremsModelSelection selection{BremsModelSelection::all};  //!> Model
                                                                   //! selection
-        bool combined_model{true};  //!> Use a unified relativistic/SB
-                                    //! interactor
+        bool combined_model{false};  //!> Use a unified relativistic/SB
+                                     //! interactor
         bool enable_lpm{true};  //!> Account for LPM effect at very high
                                 //! energies
         bool use_integral_xs{true};  //!> Use integral method for sampling
@@ -65,6 +65,9 @@ class BremsstrahlungProcess : public Process
 
     //! Whether to use the integral method to sample interaction length
     bool use_integral_xs() const final { return options_.use_integral_xs; }
+
+    //! Whether the process applies when the particle is stopped
+    bool applies_at_rest() const final { return imported_.applies_at_rest(); }
 
     // Name of the process
     std::string_view label() const final;

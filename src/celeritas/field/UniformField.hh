@@ -16,7 +16,7 @@ namespace celeritas
  * A uniform field.
  *
  * The values of the field should be in native units. For magnetic fields, this
- * unit is gauss.
+ * unit is gauss for the CGS system.
  */
 class UniformField
 {

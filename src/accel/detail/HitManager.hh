@@ -95,6 +95,9 @@ class HitManager final : public StepInterface
     //! Access mapped particles if recreating G4Tracks later
     VecParticle const& geant_particles() const { return particles_; }
 
+    //! Whether detailed volume information is reconstructed
+    bool locate_touchable() const { return locate_touchable_; }
+
   private:
     using VecLV = std::vector<G4LogicalVolume const*>;
 

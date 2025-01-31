@@ -2,26 +2,25 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/CelerEmPhysicsList.cc
+//! \file celeritas/ext/EmPhysicsList.cc
 //---------------------------------------------------------------------------//
-#include "CelerEmPhysicsList.hh"
+#include "EmPhysicsList.hh"
 
 #include <memory>
 
 #include "celeritas/Quantities.hh"
 
-#include "CelerEmStandardPhysics.hh"
-#include "CelerOpticalPhysics.hh"
+#include "detail/EmStandardPhysics.hh"
+#include "detail/OpticalPhysics.hh"
+#include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with physics options.
  */
-CelerEmPhysicsList::CelerEmPhysicsList(Options const& options)
+EmPhysicsList::EmPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
@@ -30,18 +29,14 @@ CelerEmPhysicsList::CelerEmPhysicsList(Options const& options)
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
     // Celeritas-supported EM Physics
-    auto em_standard = std::make_unique<CelerEmStandardPhysics>(options);
-    RegisterPhysics(em_standard.release());
+    detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        auto optical_physics
-            = std::make_unique<CelerOpticalPhysics>(options.optical);
-        RegisterPhysics(optical_physics.release());
+        detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
     }
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

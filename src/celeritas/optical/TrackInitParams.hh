@@ -32,6 +32,9 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     //! Access data on device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
+    //! Maximum number of initializers
+    size_type capacity() const { return host_ref().capacity; }
+
   private:
     // Host/device storage and reference
     CollectionMirror<TrackInitParamsData> data_;

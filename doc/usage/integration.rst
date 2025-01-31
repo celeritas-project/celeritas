@@ -79,7 +79,8 @@ Integrating with Geant4 user applications and experiment frameworks requires
 setting up:
 
 - Initialization options that depend on the problem being run and the system
-  architecture (see :cpp:class:`celeritas::SetupOptions`)
+  architecture (see :cpp:class:`celeritas::SetupOptions` until version 1.0, or
+  :ref:`input` after)
 - "Global" data structures for shared problem data such as geometry (see
   :cpp:class:`celeritas::SharedParams`)
 - Per-worker (i.e., ``G4ThreadLocal`` using Geant4 manager/worker semantics)

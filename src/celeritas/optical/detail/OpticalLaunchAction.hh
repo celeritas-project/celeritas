@@ -109,6 +109,24 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     // TODO: local end run to flush initializers??
 
+    //!@{
+    //! \name Accessors
+
+    //! Optical tracks per stream
+    size_type state_size() const { return state_size_; }
+    //! Optical core params
+    optical::CoreParams const& optical_params() const
+    {
+        return *optical_params_;
+    }
+    //! Offload params
+    detail::OffloadParams const& offload_params() const
+    {
+        return *offload_params_;
+    }
+
+    //!@}
+
   private:
     using ActionGroupsT = ActionGroups<optical::CoreParams, optical::CoreState>;
     using SPOpticalParams = std::shared_ptr<optical::CoreParams>;

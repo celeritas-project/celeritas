@@ -15,7 +15,11 @@ import sys
 
 ###############################################################################
 
-def _make_top(comment_prefix, preamble=None, postamble=None):
+CODE_LICENSE = "(Apache-2.0 OR MIT)"
+DOC_LICENSE = "CC-BY-4.0"
+
+def _make_top(comment_prefix,
+              preamble=None, postamble=None, license=CODE_LICENSE):
     lines = []
     def _append_lines(s):
         if s:
@@ -26,7 +30,7 @@ def _make_top(comment_prefix, preamble=None, postamble=None):
     _append_lines(preamble)
     lines.extend(comment_prefix + " " + line for line in [
         "Copyright Celeritas contributors: see top-level COPYRIGHT file for details",
-        "SPDX-License-Identifier: (Apache-2.0 OR MIT)",
+        "SPDX-License-Identifier: " + license,
     ])
     _append_lines(postamble)
     lines.append("")
@@ -404,10 +408,11 @@ comp galactic
 shapes world_box ~mycyl
 '''
 
-RST_TOP = _make_top("..")
+RST_TOP = _make_top("..", license=DOC_LICENSE)
 
 RST_FILE = '''
 .. _{name}:
+
 ****************
 {name}
 ****************

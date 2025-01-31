@@ -376,7 +376,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         ParticleProcessId const abs_ppid{1};
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{1}, phys.process(abs_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 
     // Celeriton
@@ -391,7 +391,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{2}, phys.process(purr_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 
     // Anti-celeriton
@@ -404,7 +404,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         ParticleProcessId const meow_ppid{1};
         EXPECT_EQ(ProcessId{3}, phys.process(hiss_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(hiss_ppid, phys.at_rest_process());
     }
 
     // Electron
@@ -412,7 +412,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         // No at-rest interaction
         PhysicsTrackView const phys
             = this->make_track_view("electron", MaterialId{1});
-        EXPECT_FALSE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 }
 
@@ -769,9 +769,16 @@ TEST_F(PHYS_DEVICE_TEST, all)
 class EPlusAnnihilationTest : public PhysicsParamsTest
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    //!@}
+
+  public:
     SPConstMaterial build_material() override;
     SPConstParticle build_particle() override;
     SPConstPhysics build_physics() override;
+    SPConstImported build_imported();
 };
 
 //---------------------------------------------------------------------------//
@@ -809,6 +816,20 @@ auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 }
 
 //---------------------------------------------------------------------------//
+auto EPlusAnnihilationTest::build_imported() -> SPConstImported
+{
+    ImportProcess ip;
+    ip.particle_pdg = pdg::positron().get();
+    ip.secondary_pdg = pdg::gamma().get();
+    ip.process_type = ImportProcessType::electromagnetic;
+    ip.process_class = ImportProcessClass::annihilation;
+    ip.applies_at_rest = true;
+
+    return std::make_shared<ImportedProcesses const>(
+        std::vector<ImportProcess>{std::move(ip)});
+}
+
+//---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input physics_inp;
@@ -821,7 +842,7 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     epgg_options.use_integral_xs = true;
 
     physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        physics_inp.particles, epgg_options));
+        physics_inp.particles, this->build_imported(), epgg_options));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 

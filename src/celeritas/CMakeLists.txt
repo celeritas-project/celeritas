@@ -81,8 +81,10 @@ list(APPEND SOURCES
   optical/CoreState.cc
   optical/CoreTrackData.cc
   optical/ImportedModelAdapter.cc
+  optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
+  optical/ModelImporter.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/WavelengthShiftParams.cc
@@ -106,6 +108,8 @@ list(APPEND SOURCES
   random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
+  setup/Import.cc
+  setup/System.cc
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
@@ -135,13 +139,12 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
+    ext/EmPhysicsList.cc
+    ext/FtfpBertPhysicsList.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
-    ext/detail/CelerEmPhysicsList.cc
-    ext/detail/CelerEmStandardPhysics.cc
-    ext/detail/CelerFTFPBert.cc
-    ext/detail/CelerOpticalPhysics.cc
+    ext/detail/EmStandardPhysics.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -149,6 +152,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeoOpticalIdMap.cc
     ext/detail/MuHadEmStandardPhysics.cc
+    ext/detail/OpticalPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs
     global geometry materials processes run physicslists tasking

@@ -89,8 +89,8 @@ operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
  * Construction options for Geant physics.
  *
  * These options attempt to default to our closest match to \c
- * G4StandardEmPhysics. They are passed to the \c detail::CelerEmPhysicsList
- * and \c detail::CelerFTFPBert physics lists to provide an easy way to set up
+ * G4StandardEmPhysics. They are passed to the \c EmPhysicsList
+ * and \c FtfpBert physics lists to provide an easy way to set up
  * physics options.
  */
 struct GeantPhysicsOptions
@@ -175,7 +175,7 @@ struct GeantPhysicsOptions
     double msc_safety_factor{0.6};
     //! Lambda limit for MSC models [len]
     double msc_lambda_limit{0.1 * units::centimeter};
-    //! Polar angle limii between single and multiple Coulomb scattering
+    //! Polar angle limit between single and multiple Coulomb scattering
     double msc_theta_limit{constants::pi};
     //! Factor for dynamic computation of angular limit between SS and MSC
     double angle_limit_factor{1};

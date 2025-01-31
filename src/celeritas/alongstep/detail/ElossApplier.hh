@@ -74,7 +74,7 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
         // Particle lost all energy over the step
         CELER_ASSERT(post_step_action != track.boundary_action());
         auto const phys = track.make_physics_view();
-        if (!phys.has_at_rest())
+        if (!phys.at_rest_process())
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);

@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 
@@ -26,6 +27,28 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Conversion function.
+ */
+auto ParticleParams::ParticleInput::from_import(ImportParticle const& ip)
+    -> ParticleInput
+{
+    ParticleInput result;
+
+    // Convert metadata
+    result.name = ip.name;
+    result.pdg_code = PDGNumber{ip.pdg};
+
+    // Convert data
+    result.mass = units::MevMass(ip.mass);
+    result.charge = units::ElementaryCharge(ip.charge);
+    result.decay_constant
+        = (ip.is_stable ? constants::stable_decay_constant : 1 / ip.lifetime);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with imported data.
  */
 std::shared_ptr<ParticleParams>
@@ -33,24 +56,10 @@ ParticleParams::from_import(ImportData const& data)
 {
     CELER_EXPECT(!data.particles.empty());
 
-    Input defs(data.particles.size());
-
-    for (auto i : range(data.particles.size()))
+    Input defs;
+    for (auto const& ip : data.particles)
     {
-        auto const& particle = data.particles.at(i);
-        CELER_ASSERT(!particle.name.empty());
-
-        // Convert metadata
-        defs[i].name = particle.name;
-        defs[i].pdg_code = PDGNumber{particle.pdg};
-        CELER_ASSERT(defs[i].pdg_code);
-
-        // Convert data
-        defs[i].mass = units::MevMass(particle.mass);
-        defs[i].charge = units::ElementaryCharge(particle.charge);
-        defs[i].decay_constant = (particle.is_stable
-                                      ? constants::stable_decay_constant
-                                      : 1 / particle.lifetime);
+        defs.push_back(ParticleInput::from_import(ip));
     }
 
     // Sort by increasing mass, then by PDG code (positive before negative of
@@ -87,6 +96,9 @@ ParticleParams::ParticleParams(Input const& input)
     detail::ParticleInserter insert_particle(&host_data);
     for (auto const& particle : input)
     {
+        CELER_VALIDATE(particle.pdg_code,
+                       << "input particle '" << particle.name
+                       << "' was not assigned a PDG code");
         CELER_EXPECT(!particle.name.empty());
 
         ParticleId id = insert_particle(particle);
@@ -94,9 +106,15 @@ ParticleParams::ParticleParams(Input const& input)
         // Add host metadata
         md_.push_back({particle.name, particle.pdg_code});
         bool inserted = name_to_id_.insert({particle.name, id}).second;
-        CELER_ASSERT(inserted);
+        CELER_VALIDATE(inserted,
+                       << "multiple particles share the name '"
+                       << particle.name << "'");
         inserted = pdg_to_id_.insert({particle.pdg_code, id}).second;
-        CELER_ASSERT(inserted);
+        if (!inserted)
+        {
+            CELER_LOG(warning) << "multiple particles share the PDG code "
+                               << particle.pdg_code.get();
+        }
     }
 
     // Move to mirrored data, copying to device
