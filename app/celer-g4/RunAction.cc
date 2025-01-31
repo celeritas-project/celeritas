@@ -62,42 +62,13 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 
     ExceptionConverter call_g4exception{"celer0001"};
 
-    if (!SharedParams::CeleritasDisabled())
-    {
-        if (init_shared_)
-        {
-            // This worker (or master thread) is responsible for initializing
-            // celeritas: initialize shared data and setup GPU on all threads
-            CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
-            CELER_ASSERT(*params_);
-        }
-        else
-        {
-            CELER_TRY_HANDLE(SharedParams::InitializeWorker(*options_),
-                             call_g4exception);
-        }
-
-        if (transport_)
-        {
-            // Allocate data in shared thread-local transporter
-            CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
-                             call_g4exception);
-            CELER_ASSERT(*transport_);
-        }
-    }
-    else
-    {
-        CELER_ASSERT(params_);
-        if (init_shared_)
-        {
-            // Construct params for output only
-            auto const& global_setup = *GlobalSetup::Instance();
-            params_->Initialize(global_setup.setup_options().output_file);
-        }
-    }
-
     if (init_shared_)
     {
+        // This worker (or master thread) is responsible for initializing
+        // celeritas: initialize shared data and setup GPU on all threads
+        CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
+        CELER_ASSERT(*params_);
+
         // Construct diagnostics
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
@@ -105,6 +76,19 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         diagnostics_->timer()->RecordSetupTime(
             GlobalSetup::Instance()->GetSetupTime());
         get_transport_time_ = {};
+    }
+    else
+    {
+        CELER_TRY_HANDLE(params_->InitializeWorker(*options_),
+                         call_g4exception);
+    }
+
+    if (transport_ && params_->mode() == SharedParams::Mode::enabled)
+    {
+        // Allocate data in shared thread-local transporter
+        CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
+                         call_g4exception);
+        CELER_ASSERT(*transport_);
     }
 
     // Create a G4VExceptionHandler that dispatches to the shared
@@ -115,7 +99,8 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         [meh = diagnostics_->multi_exception_handler()](std::exception_ptr ptr) {
             std::lock_guard scoped_lock{exception_handle_mutex};
             return (*meh)(ptr);
-        });
+        },
+        params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -139,7 +124,7 @@ void RunAction::EndOfRunAction(G4Run const*)
     // Reset exception handler before finalizing diagnostics
     G4StateManager::GetStateManager()->SetExceptionHandler(orig_eh_);
 
-    if (transport_ && !SharedParams::CeleritasDisabled())
+    if (transport_ && *transport_)
     {
         diagnostics_->timer()->RecordActionTime(transport_->GetActionTime());
     }
@@ -148,7 +133,7 @@ void RunAction::EndOfRunAction(G4Run const*)
         diagnostics_->timer()->RecordTotalTime(get_transport_time_());
     }
 
-    if (!SharedParams::CeleritasDisabled())
+    if (params_->mode() == SharedParams::Mode::enabled)
     {
         CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
 

@@ -54,7 +54,7 @@ void TrackingManager::BuildPhysicsTable(G4ParticleDefinition const& part)
     CELER_LOG_LOCAL(debug) << "Building physics table for "
                            << part.GetParticleName();
 
-    CELER_VALIDATE(!SharedParams::CeleritasDisabled(),
+    CELER_VALIDATE(params_->mode() != SharedParams::Mode::disabled,
                    << "Celeritas tracking manager cannot be active when "
                       "Celeritas is disabled");
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
@@ -122,8 +122,9 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 void TrackingManager::HandOverOneTrack(G4Track* track)
 {
     CELER_EXPECT(track);
-    CELER_EXPECT(SharedParams::KillOffloadTracks()
-                 != static_cast<bool>(*transport_));
+    CELER_EXPECT(params_->mode()
+                 == (*transport_ ? SharedParams::Mode::enabled
+                                 : SharedParams::Mode::kill_offload));
 
     if (*transport_)
     {

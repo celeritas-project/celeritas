@@ -71,8 +71,8 @@ class SimpleOffload
     // Finalize
     void EndOfRunAction(G4Run const* run);
 
-    //! Whether offloading is enabled
-    explicit operator bool() const { return setup_ != nullptr; }
+    // Whether offloading is enabled
+    explicit operator bool() const;
 
   private:
     SetupOptions const* setup_{nullptr};
