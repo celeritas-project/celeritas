@@ -123,8 +123,6 @@ Geant4 geometry utilities
 .. doxygenfunction:: celeritas::load_geant_geometry
 .. doxygenfunction:: celeritas::find_geant_volumes
 
-.. doxygenclass:: celeritas::g4vg::Converter
-
 Geant4 physics interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
