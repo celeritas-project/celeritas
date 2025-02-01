@@ -57,7 +57,7 @@ class SharedParams
     //!@{
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<CoreParams const>;
-    using VecG4ParticleDef = std::vector<G4ParticleDefinition const*>;
+    using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
     //!@}
 
     //! Setup for Celeritas usage

@@ -122,7 +122,7 @@ build_processes(ImportData const& imported,
 }
 
 //---------------------------------------------------------------------------//
-std::vector<G4ParticleDefinition const*>
+std::vector<G4ParticleDefinition*>
 build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
                    std::shared_ptr<PhysicsParams const> const& phys)
 {
@@ -132,7 +132,7 @@ build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
     G4ParticleTable* g4particles = G4ParticleTable::GetParticleTable();
     CELER_ASSERT(g4particles);
 
-    std::vector<G4ParticleDefinition const*> result;
+    std::vector<G4ParticleDefinition*> result;
 
     for (auto par_id : range(ParticleId{particles->size()}))
     {
