@@ -8,6 +8,7 @@
 
 #include <exception>
 #include <functional>
+#include <memory>
 #include <G4ExceptionSeverity.hh>
 #include <G4StateManager.hh>
 #include <G4Types.hh>
