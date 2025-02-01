@@ -221,6 +221,8 @@ int main()
         setup_options.ignore_processes.push_back("Rayl");
     }
 
+    setup_options.output_file = "fastsim-offload.out.json";
+
     run_manager->Initialize();
     run_manager->BeamOn(2);
 
