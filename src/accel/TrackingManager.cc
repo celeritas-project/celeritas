@@ -30,8 +30,8 @@ TrackingManager::TrackingManager(SharedParams const* params,
                                  LocalTransporter* local)
     : params_(params), transport_(local)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(local);
+    CELER_EXPECT(params_);
+    CELER_EXPECT(transport_);
 }
 
 //---------------------------------------------------------------------------//
@@ -51,6 +51,9 @@ TrackingManager::TrackingManager(SharedParams const* params,
  */
 void TrackingManager::BuildPhysicsTable(G4ParticleDefinition const& part)
 {
+    CELER_VALIDATE(!SharedParams::CeleritasDisabled(),
+                   << "Celeritas tracking manager cannot be active when "
+                      "Celeritas is disabled");
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
     G4ProcessManager* pManager = part.GetProcessManager();
     CELER_ASSERT(pManager);
@@ -113,11 +116,15 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 void TrackingManager::HandOverOneTrack(G4Track* track)
 {
     CELER_EXPECT(track);
-    CELER_EXPECT(*transport_);
+    CELER_EXPECT(SharedParams::KillOffloadTracks()
+                 != static_cast<bool>(*transport_));
 
-    // Offload this track to Celeritas for transport
-    ExceptionConverter call_g4exception{"celer0001", params_};
-    CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
+    if (*transport_)
+    {
+        // Offload this track to Celeritas for transport
+        ExceptionConverter call_g4exception{"celer0001", params_};
+        CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
+    }
 
     // G4VTrackingManager takes ownership, so kill Geant4 track
     track->SetTrackStatus(fStopAndKill);
@@ -139,8 +146,11 @@ void TrackingManager::FlushEvent()
     // TODO: update event ID by querying event manager
     // G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
 
-    ExceptionConverter call_g4exception{"celer0002", params_};
-    CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+    if (*transport_)
+    {
+        ExceptionConverter call_g4exception{"celer0002", params_};
+        CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+    }
 }
 
 //---------------------------------------------------------------------------//
