@@ -151,6 +151,7 @@ class EMPhysicsConstructor final : public G4EmStandardPhysics
 };
 
 //---------------------------------------------------------------------------//
+// Generate 100 MeV neutrons
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
@@ -159,12 +160,11 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
         auto* g4particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(2112);
         gun_.SetParticleDefinition(g4particle_def);
-        gun_.SetParticleEnergy(100 * GeV);
+        gun_.SetParticleEnergy(100 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
         gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0});  // +x
     }
 
-    // Generate 100 GeV neutrons
     void GeneratePrimaries(G4Event* event) final
     {
         CELER_LOG_LOCAL(status) << "Generating primaries";
@@ -276,7 +276,7 @@ int main()
     }
 
     run_manager->Initialize();
-    run_manager->BeamOn(1);
+    run_manager->BeamOn(2);
 
     return 0;
 }
