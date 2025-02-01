@@ -142,11 +142,14 @@ class EMPhysicsConstructor final : public G4EmStandardPhysics
         G4EmStandardPhysics::ConstructProcess();
 
         // Add Celeritas tracking manager to electron, positron, gamma.
-        auto* celer_tracking = new celeritas::TrackingManager(
-            &shared_params, &local_transporter);
-        G4Electron::Definition()->SetTrackingManager(celer_tracking);
-        G4Positron::Definition()->SetTrackingManager(celer_tracking);
-        G4Gamma::Definition()->SetTrackingManager(celer_tracking);
+        if (!shared_params.CeleritasDisabled())
+        {
+            auto* celer_tracking = new celeritas::TrackingManager(
+                &shared_params, &local_transporter);
+            G4Electron::Definition()->SetTrackingManager(celer_tracking);
+            G4Positron::Definition()->SetTrackingManager(celer_tracking);
+            G4Gamma::Definition()->SetTrackingManager(celer_tracking);
+        }
     }
 };
 
