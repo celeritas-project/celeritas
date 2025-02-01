@@ -93,6 +93,9 @@ if(Geant4_VERSION VERSION_LESS 11.0)
   set(_rm_avail_task FALSE)
 endif()
 
+# XXX tasking deadlocks in even in a geant4-only simulation?
+set(_rm_avail_task FALSE)
+
 # Add all permutations of an example
 function(add_example target)
   cmake_parse_arguments(PARSE "DISABLE" "" "" ${ARGN})
