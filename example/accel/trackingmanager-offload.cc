@@ -11,7 +11,6 @@
 #include <FTFP_BERT.hh>
 #include <G4Box.hh>
 #include <G4Electron.hh>
-#include <G4EmStandardPhysics.hh>
 #include <G4Gamma.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
@@ -131,30 +130,6 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
-class EMPhysicsConstructor final : public G4EmStandardPhysics
-{
-  public:
-    using G4EmStandardPhysics::G4EmStandardPhysics;
-
-    void ConstructProcess() override
-    {
-        CELER_LOG_LOCAL(status) << "Setting up tracking manager offload";
-        G4EmStandardPhysics::ConstructProcess();
-
-        // Add Celeritas tracking manager to electron, positron, gamma.
-        if (shared_params.StatusMode()
-            != celeritas::SharedParams::Mode::disabled)
-        {
-            auto* celer_tracking = new celeritas::TrackingManager(
-                &shared_params, &local_transporter);
-            G4Electron::Definition()->SetTrackingManager(celer_tracking);
-            G4Positron::Definition()->SetTrackingManager(celer_tracking);
-            G4Gamma::Definition()->SetTrackingManager(celer_tracking);
-        }
-    }
-};
-
-//---------------------------------------------------------------------------//
 // Generate 100 MeV neutrons
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
@@ -186,6 +161,26 @@ class RunAction final : public G4UserRunAction
     void BeginOfRunAction(G4Run const* run) final
     {
         simple_offload.BeginOfRunAction(run);
+
+        // Add Celeritas tracking manager to electron, positron, gamma.
+        CELER_ASSERT(shared_params);
+        if (shared_params.StatusMode()
+            != celeritas::SharedParams::Mode::disabled)
+        {
+            CELER_LOG_LOCAL(debug) << "Activating tracking manager";
+            auto tm = std::make_unique<celeritas::TrackingManager>(
+                &shared_params, &local_transporter);
+
+            for (G4ParticleDefinition* particle :
+                 shared_params.OffloadParticles())
+            {
+                particle->SetTrackingManager(tm.get());
+            }
+
+            // Intentionally leak tm since Geant4 doesn't support shared
+            // pointer semantics
+            tm.release();
+        }
     }
     void EndOfRunAction(G4Run const* run) final
     {
@@ -260,7 +255,6 @@ int main()
     // Use FTFP_BERT, but replace EM constructor with our own that
     // overrides ConstructProcess to use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
-    physics_list->ReplacePhysics(new EMPhysicsConstructor);
     run_manager->SetUserInitialization(physics_list);
 
     run_manager->SetUserInitialization(new ActionInitialization());

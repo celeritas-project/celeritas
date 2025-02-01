@@ -47,17 +47,6 @@ void ActionInitialization::Build() const
     CelerSimpleOffload().Build(
         &CelerSetupOptions(), &CelerSharedParams(), &CelerLocalTransporter());
 
-    // Add Celeritas tracking manager to electrons, positrons, and gammas.
-    // celeritas::TrackingManager automatically assigns available
-    // physics processes to the selected particles and offloads them to
-    // Celeritas by updating their G4TrackStatus to fStopAndKill in Geant4 and
-    // creating a new track in Celeritas.
-    auto* celer_tracking = new celeritas::TrackingManager(
-        &CelerSharedParams(), &CelerLocalTransporter());
-    G4Electron::Definition()->SetTrackingManager(celer_tracking);
-    G4Positron::Definition()->SetTrackingManager(celer_tracking);
-    G4Gamma::Definition()->SetTrackingManager(celer_tracking);
-
     // Initialize Geant4 user actions
     this->SetUserAction(new RunAction());
     this->SetUserAction(new EventAction());

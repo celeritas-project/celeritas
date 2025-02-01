@@ -22,6 +22,25 @@ RunAction::RunAction() : G4UserRunAction() {}
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
     CelerSimpleOffload().BeginOfRunAction(run);
+
+    auto& shared_params = CelerSharedParams();
+    // Add Celeritas tracking manager to electron, positron, gamma.
+    CELER_ASSERT(shared_params);
+    if (shared_params.StatusMode() != celeritas::SharedParams::Mode::disabled)
+    {
+        CELER_LOG_LOCAL(debug) << "Activating tracking manager";
+        auto tm = std::make_unique<celeritas::TrackingManager>(
+            &shared_params, &CelerLocalTransporter());
+
+        for (G4ParticleDefinition* particle : shared_params.OffloadParticles())
+        {
+            particle->SetTrackingManager(tm.get());
+        }
+
+        // Intentionally leak tm since Geant4 doesn't support shared
+        // pointer semantics
+        tm.release();
+    }
 }
 
 //---------------------------------------------------------------------------//
