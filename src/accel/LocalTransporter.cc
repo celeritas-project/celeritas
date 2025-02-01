@@ -307,7 +307,7 @@ void LocalTransporter::Finalize()
                    << " in buffer) were not flushed");
 
     CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum_num_steps_
-                          << " from " << accum_num_primaries_
+                          << " steps from " << accum_num_primaries_
                           << " offloaded tracks over " << accum_num_events_
                           << " events";
 
