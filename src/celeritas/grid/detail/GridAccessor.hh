@@ -20,7 +20,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Wrapper class for accessing grid data in different formats.
+ * Helper class for accessing grid data in different formats.
  */
 class GridAccessor
 {
@@ -37,14 +37,14 @@ class GridAccessor
     //! Get the grid size
     virtual size_type size() const = 0;
 
-    // Calculate \f$ x_{i + 1} - x_i \f$
-    inline real_type delta_x(size_type index_lower) const;
+    // Calculate \f$ \Delta x_i = x_{i + 1} - x_i \f$
+    inline real_type delta_x(size_type index) const;
 
-    // Calculate \f$ y_{i + 1} - y_i \f$
-    inline real_type delta_y(size_type index_lower) const;
+    // Calculate \f$ \Delta y_i = y_{i + 1} - y_i \f$
+    inline real_type delta_y(size_type index) const;
 
-    // Calculate slope[i + 1] - slope[i]
-    inline real_type delta_slope(size_type index_lower) const;
+    // Calculate \f$ r_i - r_{i - 1} \f$
+    inline real_type delta_slope(size_type index) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -115,28 +115,32 @@ class XsGridAccessor : public GridAccessor
 /*!
  * Calculate \f$ x_{i + 1} - x_i \f$.
  */
-real_type GridAccessor::delta_x(size_type index_lower) const
+real_type GridAccessor::delta_x(size_type index) const
 {
-    return this->x(index_lower + 1) - this->x(index_lower);
+    return this->x(index + 1) - this->x(index);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate \f$ y_{i + 1} - y_i \f$
  */
-real_type GridAccessor::delta_y(size_type index_lower) const
+real_type GridAccessor::delta_y(size_type index) const
 {
-    return this->y(index_lower + 1) - this->y(index_lower);
+    return this->y(index + 1) - this->y(index);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate slope[i + 1] - slope[i].
+ * Calculate \f$ r_i - r_{i - 1} \f$.
+ *
+ * This calculates \f$ \Delta r_i = \frac{\Delta y_i}{\Delta x_i} -
+ * \frac{\Delta y_{i - 1}}{\Delta x_{i - 1}} \f$
  */
-real_type GridAccessor::delta_slope(size_type index_lower) const
+real_type GridAccessor::delta_slope(size_type index) const
 {
-    return this->delta_y(index_lower + 1) / this->delta_x(index_lower + 1)
-           - this->delta_y(index_lower) / this->delta_x(index_lower);
+    CELER_EXPECT(index > 0);
+    return this->delta_y(index) / this->delta_x(index)
+           - this->delta_y(index - 1) / this->delta_x(index - 1);
 }
 
 //---------------------------------------------------------------------------//

@@ -18,7 +18,7 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(TridiagonalSolverTest, basic)
 {
-    // Solve the following linear system Ax = d:
+    // Solve the following linear system Ax = b:
     //
     // [  2  -1   0   0  ][ x_0 ]   [ 1 ]
     // [ -1   2  -1   0  ][ x_1 ] = [ 0 ]
@@ -36,7 +36,7 @@ TEST(TridiagonalSolverTest, basic)
 
 TEST(TridiagonalSolverTest, small)
 {
-    // Solve the following linear system Ax = d:
+    // Solve the following linear system Ax = b:
     //
     // [  2  -1][ x_0 ] = [ 1 ]
     // [ -1   2][ x_1 ]   [ 0 ]

@@ -24,8 +24,8 @@ namespace celeritas
  * Interpolation is linear-linear after transforming to log-E space and before
  * scaling the value by E (if the grid point is above prime_index).
  *
- * \c derivative stores the first derivative of the interpolating cubic spline.
- * If it is non-empty, spline interpolation will be used.
+ * \c derivative stores the second derivative of the interpolating cubic
+ * spline.  If it is non-empty, spline interpolation will be used.
  */
 struct XsGridData
 {
