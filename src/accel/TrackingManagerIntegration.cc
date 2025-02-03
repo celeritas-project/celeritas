@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "TrackingManagerIntegration.hh"
 
+#include <memory>
 #include <G4ParticleDefinition.hh>
 #include <G4Run.hh>
 #include <G4Threading.hh>
@@ -93,13 +94,15 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
         // G4VUserPhysicsList::TerminateWorker from
         // G4WorkerRunManager::~G4WorkerRunManager (note that it is leaked in
         // Geant4 11.0 and 11.1)
-        auto* manager = new TrackingManager(&singleton.shared_params(),
-                                            &singleton.local_transporter());
+        auto manager = std::make_unique<TrackingManager>(
+            &singleton.shared_params(), &singleton.local_transporter());
+        auto* manager_ptr = manager.get();
 
         for (G4ParticleDefinition* particle :
              singleton.shared_params().OffloadParticles())
         {
-            particle->SetTrackingManager(manager);
+            particle->SetTrackingManager(manager ? manager.release()
+                                                 : manager_ptr);
         }
     }
 }

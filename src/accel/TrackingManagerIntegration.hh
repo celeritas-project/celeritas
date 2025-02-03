@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
 #include <vector>
 
 class G4Run;
