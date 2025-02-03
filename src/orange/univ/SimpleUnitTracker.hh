@@ -15,7 +15,6 @@
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
-#include "detail/CachedLazySenseCalculator.hh"
 #include "detail/InfixEvaluator.hh"
 #include "detail/LazySenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"
@@ -167,6 +166,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
+
     // Use the BIH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
     detail::OnFace on_surface;
