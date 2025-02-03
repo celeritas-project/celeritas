@@ -17,6 +17,17 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
 High-level interface
 --------------------
 
+The :cpp:class:`TrackingManagerIntegration` provides easy-to-use methods for
+using Celeritas as a tracking manager to offload electrons, photons, and gammas
+to Celeritas. See :ref:`example_template` for the boilerplate code
+
+.. doxygenclass:: celeritas::TrackingManagerIntegration
+
+The :cpp:class:`SetupOptionsMessenger`, instantiated by the Integration helper
+classes, provides a Geant4 "UI" macro interface to an app's Celeritas options.
+
+.. doxygenclass:: celeritas::SetupOptionsMessenger
+
 The :cpp:class:`celeritas::SimpleOffload` class is an extremely easy-to-use
 interface for
 offloading tracks to Celeritas in a multithreaded or serial application. The
@@ -26,15 +37,13 @@ and :cpp:class:`celeritas::LocalTransporter` to be owned by
 the calling application; the options described below must also be set up and
 provided.
 
+.. deprecated:: v0.6
+
+   Use the :cpp:class:`celeritas::TrackingManagerIntegration` class.
+
 .. doxygenclass:: celeritas::SimpleOffload
    :members:
    :no-link:
-
-The :cpp:class:`SetupOptionsMessenger` can be instantiated with a reference to
-a global :cpp:class:`SetupOptions` instance in order to provide a Geant4 "UI"
-macro interface to an app's Celeritas options.
-
-.. doxygenclass:: celeritas::SetupOptionsMessenger
 
 Celeritas setup
 ---------------
