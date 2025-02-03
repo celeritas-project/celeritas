@@ -7,7 +7,7 @@
 
 cmake_minimum_required(VERSION 3.18)
 project(offload-template VERSION 0.0.1 LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.22)
+cmake_policy(VERSION 3.12...3.30)
 
 # Only necessary for the CI
 # Users can export Celeritas_ROOT or set CMAKE_INSTALL_PREFIX
@@ -35,9 +35,7 @@ endif()
 add_executable(run-offload
   main.cc
   src/ActionInitialization.cc
-  src/Celeritas.cc
   src/DetectorConstruction.cc
-  src/EventAction.cc
   src/PrimaryGeneratorAction.cc
   src/RunAction.cc
   src/SensitiveDetector.cc

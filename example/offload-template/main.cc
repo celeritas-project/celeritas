@@ -9,9 +9,9 @@
 #include <FTFP_BERT.hh>
 #include <G4RunManagerFactory.hh>
 #include <accel/TrackingManagerConstructor.hh>
+#include <accel/TrackingManagerIntegration.hh>
 
 #include "ActionInitialization.hh"
-#include "Celeritas.hh"
 #include "DetectorConstruction.hh"
 
 //---------------------------------------------------------------------------//
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     // Initialize physics with celeritas offload
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
     physics_list->RegisterPhysics(new celeritas::TrackingManagerConstructor(
-        &CelerSharedParams(), [](int) { return &CelerLocalTransporter(); }));
+        &celeritas::TrackingManagerIntegration::Instance()));
     run_manager->SetUserInitialization(physics_list);
 
     // Initialize geometry and actions

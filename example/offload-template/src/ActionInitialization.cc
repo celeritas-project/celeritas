@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include "Celeritas.hh"
-#include "EventAction.hh"
+#include <accel/SetupOptions.hh>
+#include <accel/TrackingManagerIntegration.hh>
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
@@ -15,7 +16,20 @@
 /*!
  * Construct empty.
  */
-ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
+ActionInitialization::ActionInitialization() : G4VUserActionInitialization()
+{
+    // Initialize Celeritas
+    celeritas::SetupOptions& so
+        = celeritas::TrackingManagerIntegration::Instance().Options();
+
+    so.max_num_tracks = 1024 * 16;
+    so.initializer_capacity = 1024 * 128 * 4;
+    so.secondary_stack_factor = 2.0;
+    so.ignore_processes = {"CoulombScat", "Rayl"};  // Ignored processes
+
+    // Save diagnostic information
+    so.output_file = "celeritas-offload-diagnostic.json";
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -24,9 +38,8 @@ ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
  */
 void ActionInitialization::BuildForMaster() const
 {
-    // Construct Celeritas offloading interface on master thread
-    CelerSimpleOffload().BuildForMaster(&CelerSetupOptions(),
-                                        &CelerSharedParams());
+    // Set up Celeritas integration
+    celeritas::TrackingManagerIntegration::Instance().BuildForMaster();
 
     // RunAction is responsible for initializing Celeritas
     this->SetUserAction(new RunAction());
@@ -38,12 +51,10 @@ void ActionInitialization::BuildForMaster() const
  */
 void ActionInitialization::Build() const
 {
-    // Construct Celeritas offloading interface on worker thread
-    CelerSimpleOffload().Build(
-        &CelerSetupOptions(), &CelerSharedParams(), &CelerLocalTransporter());
+    // Set up Celeritas integration
+    celeritas::TrackingManagerIntegration::Instance().Build();
 
     // Initialize Geant4 user actions
     this->SetUserAction(new RunAction());
-    this->SetUserAction(new EventAction());
     this->SetUserAction(new PrimaryGeneratorAction());
 }
