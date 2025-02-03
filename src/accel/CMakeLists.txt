@@ -22,7 +22,6 @@ list(APPEND SOURCES
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
-  UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
   detail/HitManagerOutput.cc
