@@ -78,7 +78,7 @@ auto SplineDerivCalculator::operator()() const -> VecReal
     VecReal result(num_knots);
     TridiagonalSolver(std::move(coeffs))({result.data() + 1, num_knots - 2});
 
-    // Recover y''_0 and y''_{n - 1}
+    // Recover \f$ S''_0 \f$ and \f$ S''_{n - 1} \f$
     this->calc_boundaries(result);
 
     return result;
@@ -168,9 +168,9 @@ void SplineDerivCalculator::calc_boundaries(VecReal& deriv) const
  *
  * This is a hack to produce the same interpolation results as Geant4. The
  * calculation here is identical to Geant4's \c
- * G4PhysicsVector::ComputeSecDerivative1, which is based off the algorithm
- * for calculating the second derivatives of a cubic spline in
- * \cite{press-nr-1992}, modified for not-a-knot boundary conditions.
+ * G4PhysicsVector::ComputeSecDerivative1, which is based off the algorithm for
+ * calculating the second derivatives of a cubic spline in Numerical Recipes,
+ * modified for not-a-knot boundary conditions.
  *
  * Note that here the coefficients are divided by \f$ h_i + h_{i + 1} \f$.
  *
@@ -191,12 +191,12 @@ auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
     real_type h_lower = grid_->delta_x(0);
     real_type h_upper = grid_->delta_x(1);
 
-    // First \c c_prime value (negated) for the tridiagonal algorithm: -c' =
-    // -a_2 / a_1.
+    // First \c c_prime value (negated) for the tridiagonal algorithm: \f$ -c'
+    // = -a_2 / a_1 \f$.
     result[1] = (h_lower - h_upper) / (2 * h_upper + h_lower);
 
-    // XXX Almost a_3 / a_1 (which would be 6 r_0 h_1 / ((h_0 + 2 h_1)(h_0 +
-    // h_1)))
+    // XXX Almost \f$ a_3 / a_1 \f$ (which would be \f$ 6 r_0 h_1 / ((h_0 + 2
+    // h_1)(h_0 + h_1)) \f$ )
     rhs[1] = 6 * grid_->delta_slope(1) * h_upper / ipow<2>(h_lower + h_upper);
 
     // Tridiagonal algorithm decomposition and forward substitution
@@ -206,17 +206,17 @@ auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
         h_lower = grid_->delta_x(i - 1);
         h_upper = grid_->delta_x(i);
 
-        // a_0 = h_{i - 1} / (h_{i - 1} + h_i)
+        // \f$ a_0 = h_{i - 1} / (h_{i - 1} + h_i) \f$
         real_type sig = h_lower / (h_lower + h_upper);
 
-        // p = 1 / (a_1 - a_0 c'_{i - 1})
+        // \f$ p = 1 / (a_1 - a_0 c'_{i - 1}) \f$
         real_type p = 1 / (2 + sig * result[i - 1]);
 
-        // -c'_i = -a_2 p = h_{i} / ((h_{i - 1} + h_i) p)
+        // \f$ -c'_i = -a_2 p = h_{i} / ((h_{i - 1} + h_i) p) \f$
         result[i] = (sig - 1) * p;
 
-        // XXX Almost u_i = (a_3 - a_0 u_{i - 1}) p (note that the RHS a_3 is
-        // not multiplied by p)
+        // XXX Almost \f$ u_i = (a_3 - a_0 u_{i - 1}) p \f$ (note that the RHS
+        // a_3 is not multiplied by p)
         rhs[i] = 6 * grid_->delta_slope(i) / (h_lower + h_upper)
                  - sig * rhs[i - 1] * p;
     }
@@ -243,7 +243,7 @@ auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
         result[i] *= result[i + 1] - rhs[i] * (h_lower + h_upper) / h_upper;
     }
 
-    // Recover y''_0 and y''_{n - 1}
+    // Recover \f$ S''_0 \f$ and \f$ S''_{n - 1} \f$
     this->calc_boundaries(result);
 
     return result;

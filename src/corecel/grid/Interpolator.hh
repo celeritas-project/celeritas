@@ -91,24 +91,24 @@ class Interpolator
  * Interpolate using a cubic spline.
  *
  * Given a set of \f$ n \f$ data points \f$ (x_i, y_i) \f$ such that \f$ x_0 <
- * x_1 < \dots < x_{n - 1} \f$, a cubic spline \f$ f(x) \f$ interpolating on
+ * x_1 < \dots < x_{n - 1} \f$, a cubic spline \f$ S(x) \f$ interpolating on
  * the points is a piecewise polynomial function consisting of \f$ n - 1 \f$
- * cubic polynomials \f$ f_i \f$ defined on \f$ [x_i, x_{i + 1}] \f$. The \f$
- * f_i \f$ are joined at \f$ x_i \f$ such that both the first and second
- * derivatives, \f$ f'_i \f$ and \f$ f''_i \f$, are continuous.
+ * cubic polynomials \f$ S_i \f$ defined on \f$ [x_i, x_{i + 1}] \f$. The \f$
+ * S_i \f$ are joined at \f$ x_i \f$ such that both the first and second
+ * derivatives, \f$ S'_i \f$ and \f$ S''_i \f$, are continuous.
  *
- * The \f$ i^{\text{th}} \f$ piecewise polynomial \f$ f_i \f$ is given by:
+ * The \f$ i^{\text{th}} \f$ piecewise polynomial \f$ S_i \f$ is given by:
  * \f[
-   f_i(x) = a_0 + a_1(x - x_i) + a_2(x - x_i)^2 + a_3(x - x_i)^3,
+   S_i(x) = a_0 + a_1(x - x_i) + a_2(x - x_i)^2 + a_3(x - x_i)^3,
  * \f]
  * where \f$ a_i \f$ are the polynomial coefficients, expressed in terms of the
  * second derivatives as:
  * \f{align}{
    a_0 &= y_i \\
-   a_1 &= \frac{\Delta y_i}{\Delta x_i} - \frac{\Delta x_i}{6} \left[ y''_{i +
-          1} + 2 y''_{i} \right] \\
-   a_2 &= \frac{y''_i}{2} \\
-   a_3 &= \frac{1}{6 \Delta x_i} \left[ y''_{i + 1} - y''_i \right]
+   a_1 &= \frac{\Delta y_i}{\Delta x_i} - \frac{\Delta x_i}{6} \left[ S''_{i +
+          1} + 2 S''_{i} \right] \\
+   a_2 &= \frac{S''_i}{2} \\
+   a_3 &= \frac{1}{6 \Delta x_i} \left[ S''_{i + 1} - S''_i \right]
  * \f}
  */
 template<typename T = ::celeritas::real_type>
@@ -186,11 +186,11 @@ SplineInterpolator<T>::SplineInterpolator(Point left, Point right)
     CELER_EXPECT(left[X] < right[X]);
 
     x_lower_ = left[X];
-    T dx = right[X] - left[X];
+    T h = right[X] - left[X];
     a_[0] = left[Y];
-    a_[1] = (right[Y] - left[Y]) / dx - dx / 6 * (right[Y_DD] + 2 * left[Y_DD]);
+    a_[1] = (right[Y] - left[Y]) / h - h / 6 * (right[Y_DD] + 2 * left[Y_DD]);
     a_[2] = T(0.5) * left[Y_DD];
-    a_[3] = 1 / (6 * dx) * (right[Y_DD] - left[Y_DD]);
+    a_[3] = 1 / (6 * h) * (right[Y_DD] - left[Y_DD]);
 }
 
 //---------------------------------------------------------------------------//

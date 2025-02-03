@@ -180,8 +180,9 @@ TEST_F(CubicSplineTest, derivative_log)
     };
     {
         // Values from scipy.interpolate.CubicSpline with bc_type='natural'
+        // Note: scipy returns a non-zero value for the first y'' (O(1e-6))
         static double const expected_result[] = {
-            0,  // Note: scipy returns a non-zero value for the first f''
+            0,
             129262831.4307167,
             -4937289.102472972,
             232278.9998184848,
