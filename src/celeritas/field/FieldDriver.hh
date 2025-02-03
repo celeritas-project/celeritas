@@ -171,7 +171,7 @@ FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
  * For a given trial step, advance by a sub-step within a required tolerance
  * and update the current state (position and momentum).  For an efficient
  * adaptive integration, the proposed chord of which the sagitta (the
- * closest distance from the curved trajectory to the chord) is smaller than
+ * largest distance from the curved trajectory to the chord) is smaller than
  * a reference distance (dist_chord) will be accepted if its stepping error is
  * within a reference accuracy. Otherwise, the more accurate step integration
  * (advance_accurate) will be performed.
