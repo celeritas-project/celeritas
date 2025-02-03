@@ -1,6 +1,7 @@
 spack:
   specs:
   - cmake
+  - g4vg
   - "geant4@11.0 cxxstd=20"
   - git
   - "googletest@1.10:"
