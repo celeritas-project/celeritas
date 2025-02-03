@@ -103,7 +103,7 @@ jobs:
             spack -e . add geant4@${{matrix.geant}}
             if [ "${{matrix.geometry}}" == "vecgeom" ]; then
               spack -e . add g4vg
-            endif
+            fi
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
