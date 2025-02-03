@@ -59,9 +59,8 @@ endif()
 if(CELERITAS_EXTERNAL_G4VG)
   FetchContent_Declare(
     G4VG
-    URL https://github.com/celeritas-project/g4vg/archive/4faabed2049cbdcbe55eaa47ed48cd58531bcb92.zip
+    URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.1/g4vg-1.0.1.tar.gz
   )
-  set(Celeritas_FOUND TRUE)
   list(APPEND _celer_external_packages G4VG)
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} CELERITAS_${_var})
