@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "TridiagonalSolver.hh"
 
+#include <utility>
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -15,7 +17,8 @@ namespace celeritas
  * The first three coefficients are the bands of the tridiagonal matrix and the
  * last is the right-hand side.
  */
-TridiagonalSolver::TridiagonalSolver(Coeffs&& coeffs) : coeffs_{coeffs}
+TridiagonalSolver::TridiagonalSolver(Coeffs&& coeffs)
+    : coeffs_{std::move(coeffs)}
 {
     CELER_EXPECT(coeffs_.size() >= 2);
 }
