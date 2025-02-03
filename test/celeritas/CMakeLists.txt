@@ -193,7 +193,8 @@ celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
  ${_fixme_cgs}
-  LINK_LIBRARIES ${_core_geo_libs})
+  LINK_LIBRARIES ${_core_geo_libs}
+  FILTER "TwoBoxes*" "Layers*" "SimpleCms*" "Cmse*")
 celeritas_add_test(field/LinearPropagator.test.cc
   LINK_LIBRARIES ${_all_geo_libs})
 celeritas_add_test(field/MagFieldEquation.test.cc)
