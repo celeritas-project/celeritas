@@ -205,7 +205,7 @@ TEST_F(TwoBoxesTest, electron_interior)
     EXPECT_EQ(1, geo.intersect_count());
     EXPECT_EQ(0, geo.safety_count());
 
-    // Test the remaining quarter-turn divided into 20 steps
+    // Test the remaining quarter-turn divided into 25 steps
     {
         geo.reset_count();
         stepper.reset_count();

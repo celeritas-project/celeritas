@@ -127,7 +127,7 @@ ZHelixStepper<E>::operator()(real_type step,
     // State after the full step
     result.end_state = this->move(step, radius, helicity, beg_state, rhs);
 
-    // Solution are exact, but assign a tolerance for numerical treatments
+    // Solutions are exact, but assign a tolerance for numerical treatments
     result.err_state.pos.fill(ZHelixStepper::tolerance());
     result.err_state.mom.fill(ZHelixStepper::tolerance());
 
