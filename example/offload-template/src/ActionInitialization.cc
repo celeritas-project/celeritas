@@ -10,9 +10,6 @@
 
 #include "Celeritas.hh"
 #include "EventAction.hh"
-#include "G4Electron.hh"
-#include "G4Gamma.hh"
-#include "G4Positron.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
