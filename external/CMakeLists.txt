@@ -59,7 +59,7 @@ endif()
 if(CELERITAS_EXTERNAL_G4VG)
   FetchContent_Declare(
     G4VG
-    URL https://github.com/celeritas-project/g4vg/archive/refs/tags/v1.0.0.tar.gz
+    URL https://github.com/celeritas-project/g4vg/archive/4faabed2049cbdcbe55eaa47ed48cd58531bcb92.zip
   )
   set(Celeritas_FOUND TRUE)
   list(APPEND _celer_external_packages G4VG)
