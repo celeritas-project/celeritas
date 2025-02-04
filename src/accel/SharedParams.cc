@@ -172,6 +172,70 @@ std::mutex& updating_mutex()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether celeritas is disabled, set to kill, or to be enabled.
+ *
+ * This gets the value from environment variables and
+ *
+ * \todo This will be refactored for 0.6 to take a \c celeritas::inp object and
+ * determine values rather than from the environment .
+ */
+auto SharedParams::GetMode() -> Mode
+{
+    using Mode = SharedParams::Mode;
+
+    static bool const kill_offload = [] {
+        if (celeritas::getenv("CELER_KILL_OFFLOAD").empty())
+            return false;
+
+        CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
+                           "offloading since the 'CELER_KILL_OFFLOAD' "
+                        << "environment variable is present and non-empty";
+        return true;
+    }();
+    static bool const disabled = [] {
+        if (celeritas::getenv("CELER_DISABLE").empty())
+            return false;
+
+        if (kill_offload)
+        {
+            CELER_LOG(warning)
+                << "DEPRECATED (remove in 0.7): both CELER_DISABLE "
+                   "and CELER_KILL_OFFLOAD environment variables "
+                   "were defined: choose one";
+            return false;
+        }
+
+        CELER_LOG(info)
+            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
+            << "environment variable is present and non-empty";
+        return true;
+    }();
+
+    if (disabled)
+    {
+        return Mode::disabled;
+    }
+    else if (kill_offload)
+    {
+        return Mode::kill_offload;
+    }
+    return Mode::enabled;
+}
+
+//---------------------------------------------------------------------------//
+bool SharedParams::CeleritasDisabled()
+{
+    return GetMode() == Mode::disabled;
+}
+
+//---------------------------------------------------------------------------//
+bool SharedParams::KillOffloadTracks()
+{
+    return GetMode() == Mode::kill_offload;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Set up Celeritas using Geant4 data.
  *
  * This is a separate step from construction because it has to happen at the
@@ -188,42 +252,15 @@ SharedParams::SharedParams(SetupOptions const& options)
     ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
 
-    static bool const disabled
-        = [] { return !celeritas::getenv("CELER_DISABLE").empty(); }();
-    static bool const kill_offload
-        = [] { return !celeritas::getenv("CELER_KILL_OFFLOAD").empty(); }();
-    CELER_VALIDATE(!disabled || !kill_offload,
-                   << "both CELER_DISABLE and CELER_KILL_OFFLOAD environment "
-                      "variables were defined: choose one");
-
-    if (disabled)
+    mode_ = GetMode();
+    if (mode_ == Mode::kill_offload)
     {
-        CELER_LOG(info)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
-        mode_ = Mode::disabled;
-    }
-    else if (kill_offload)
-    {
-        CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
-                           "offloading since the 'CELER_KILL_OFFLOAD' "
-                           "environment variable is present and non-empty";
-        mode_ = Mode::kill_offload;
-
         // In a Geant4-only simulation, use a hardcoded list
         particles_ = {
             G4Gamma::Gamma(),
             G4Electron::Electron(),
             G4Positron::Positron(),
         };
-    }
-    else
-    {
-        CELER_LOG(info) << "Activating Celeritas version " << celeritas_version
-                        << " on "
-                        << (Device::num_devices() > 0 ? "GPU" : "CPU");
-
-        mode_ = Mode::enabled;
     }
 
     if (mode_ != Mode::enabled)
@@ -254,6 +291,9 @@ SharedParams::SharedParams(SetupOptions const& options)
 
         return;
     }
+
+    CELER_LOG(info) << "Activating Celeritas version " << celeritas_version
+                    << " on " << (Device::num_devices() > 0 ? "GPU" : "CPU");
 
     // Initialize CUDA (CUDA environment variables control the preferred
     // device)

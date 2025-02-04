@@ -72,6 +72,23 @@ class SharedParams
 
   public:
     //!@{
+    //! \name Status
+
+    // Whether celeritas is disabled, set to kill, or to be enabled
+    static Mode GetMode();
+
+    // True if Celeritas is globally disabled using the CELER_DISABLE env
+    // Remove in 0.7
+    [[deprecated]]
+    static bool CeleritasDisabled();
+
+    // Whether to kill tracks that would have been offloaded
+    // Remove in 0.7
+    [[deprecated]]
+    static bool KillOffloadTracks();
+
+    //!@}
+    //!@{
     //! \name Construction
 
     // Construct in an uninitialized state
@@ -95,9 +112,6 @@ class SharedParams
     //!@}
     //!@{
     //! \name Accessors
-
-    //! Initialization status and integration mode
-    Mode StatusMode() const { return mode_; }
 
     // Access constructed Celeritas data
     inline SPConstParams Params() const;
