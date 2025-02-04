@@ -54,8 +54,24 @@ if(CELERITAS_EXTERNAL_Perfetto)
 endif()
 
 #-----------------------------------------------------------------------------#
+# G4VG
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL_G4VG)
+  FetchContent_Declare(
+    G4VG
+    URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.1/g4vg-1.0.1.tar.gz
+  )
+  list(APPEND _celer_external_packages G4VG)
+  foreach(_var BUILD_TESTS DEBUG)
+    set(G4VG_${_var} CELERITAS_${_var})
+  endforeach()
+endif()
+
+#-----------------------------------------------------------------------------#
 # BUILD
 #-----------------------------------------------------------------------------#
+
 # Save some variables to see if badly behaving packages change them
 set(_checked_cmake_variables
   BUILD_SHARED_LIBS CMAKE_CXX_STANDARD CMAKE_CXX_EXTENSIONS
@@ -74,7 +90,7 @@ endforeach()
 FetchContent_MakeAvailable(${_celer_external_packages})
 
 # Check that variables are unmodified
-foreach(_var IN LISTS _checked_variables)
+foreach(_var IN LISTS _checked_cmake_variables)
   set(_orig "${_saved_${_var}}")
   set(_new "${${_var}}")
   if(NOT "${_new}" STREQUAL "${_orig}")

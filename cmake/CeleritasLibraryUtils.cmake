@@ -137,6 +137,7 @@ if(NOT DEFINED CELERITAS_USE_VecGeom)
   )
 endif()
 
+# Include RDC utils if not included already
 include(CudaRdcUtils)
 
 #-----------------------------------------------------------------------------#
