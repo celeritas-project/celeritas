@@ -125,7 +125,7 @@ class CalcIntersections
 {
   public:
     //! Construct from the particle point, direction, face ID, and temp storage
-    CELER_FUNCTION CalcIntersections(F is_valid_isect,
+    CELER_FUNCTION CalcIntersections(F&& is_valid_isect,
                                      Real3 const& pos,
                                      Real3 const& dir,
                                      FaceId on_face,

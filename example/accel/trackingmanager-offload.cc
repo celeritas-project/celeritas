@@ -47,7 +47,7 @@
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
 #include <accel/SimpleOffload.hh>
-#include <accel/TrackingManagerOffload.hh>
+#include <accel/TrackingManager.hh>
 #include <corecel/Assert.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
@@ -142,7 +142,7 @@ class EMPhysicsConstructor final : public G4EmStandardPhysics
         G4EmStandardPhysics::ConstructProcess();
 
         // Add Celeritas tracking manager to electron, positron, gamma.
-        auto* celer_tracking = new celeritas::TrackingManagerOffload(
+        auto* celer_tracking = new celeritas::TrackingManager(
             &shared_params, &local_transporter);
         G4Electron::Definition()->SetTrackingManager(celer_tracking);
         G4Positron::Definition()->SetTrackingManager(celer_tracking);
@@ -156,7 +156,7 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
   public:
     PrimaryGeneratorAction()
     {
-        auto g4particle_def
+        auto* g4particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(2112);
         gun_.SetParticleDefinition(g4particle_def);
         gun_.SetParticleEnergy(100 * GeV);
@@ -255,7 +255,7 @@ int main()
 
     // Use FTFP_BERT, but replace EM constructor with our own that
     // overrides ConstructProcess to use Celeritas tracking for e-/e+/g
-    auto physics_list = new FTFP_BERT{/* verbosity = */ 0};
+    auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
     physics_list->ReplacePhysics(new EMPhysicsConstructor);
     run_manager->SetUserInitialization(physics_list);
 

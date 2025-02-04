@@ -2,24 +2,21 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/CelerFTFPBert.hh
-//! \todo Move out of detail since this is used by celer-g4
+//! \file celeritas/ext/FtfpBertPhysicsList.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4VModularPhysicsList.hh>
 
-#include "../GeantPhysicsOptions.hh"
+#include "GeantPhysicsOptions.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Construct the FTFP_BERT physics list with modified EM standard physics.
+ * Construct the FTFP_BERT physics list with configurable EM standard physics.
  */
-class CelerFTFPBert : public G4VModularPhysicsList
+class FtfpBertPhysicsList : public G4VModularPhysicsList
 {
   public:
     //!@{
@@ -29,9 +26,8 @@ class CelerFTFPBert : public G4VModularPhysicsList
 
   public:
     // Construct with physics options
-    explicit CelerFTFPBert(Options const& options);
+    explicit FtfpBertPhysicsList(Options const& options);
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

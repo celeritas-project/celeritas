@@ -46,8 +46,7 @@ if(CELERITAS_EXTERNAL_Perfetto)
   endif()
   FetchContent_Declare(
     Perfetto
-    # v45.0
-    URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
+    URL https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz
   )
   list(APPEND _celer_external_packages Perfetto)
 endif()

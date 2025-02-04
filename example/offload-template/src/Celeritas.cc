@@ -18,6 +18,7 @@ using namespace celeritas;
 //---------------------------------------------------------------------------//
 /*!
  * Globally shared setup options.
+ *
  * Setup options are constructed the first time this method is invoked.
  */
 SetupOptions& CelerSetupOptions()

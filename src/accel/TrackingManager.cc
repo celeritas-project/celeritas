@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/TrackingManagerOffload.cc
+//! \file accel/TrackingManager.cc
 //---------------------------------------------------------------------------//
-#include "TrackingManagerOffload.hh"
+#include "TrackingManager.hh"
 
 #include <G4ProcessManager.hh>
 #include <G4ProcessVector.hh>
@@ -23,15 +23,11 @@ namespace celeritas
 /*!
  * Construct a tracking manager with data needed to offload to Celeritas.
  *
- * TODO: Clarify thread-locality. Construction/addition to \c
- * G4ParticleDefinition appears to take place on the master thread, typically
- * in the ConstructProcess method, but the tracking manager pointer is part of
- * the split-class data for the particle. It's observed that different threads
- * have distinct pointers to a LocalTransporter instance, and that these match
- * those of the global thread-local instances in test problems.
+ * \note The shared/local pointers must remain valid for the lifetime of the
+ * run.
  */
-TrackingManagerOffload::TrackingManagerOffload(SharedParams const* params,
-                                               LocalTransporter* local)
+TrackingManager::TrackingManager(SharedParams const* params,
+                                 LocalTransporter* local)
     : params_(params), transport_(local)
 {
     CELER_EXPECT(params);
@@ -53,7 +49,7 @@ TrackingManagerOffload::TrackingManagerOffload(SharedParams const* params,
  * The implementation follows that in \c G4VUserPhysicsList::BuildPhysicsTable
  * , see also Geant4 Extended Example runAndEvent/RE07.
  */
-void TrackingManagerOffload::BuildPhysicsTable(G4ParticleDefinition const& part)
+void TrackingManager::BuildPhysicsTable(G4ParticleDefinition const& part)
 {
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
     G4ProcessManager* pManager = part.GetProcessManager();
@@ -88,7 +84,7 @@ void TrackingManagerOffload::BuildPhysicsTable(G4ParticleDefinition const& part)
  * G4VUserPhysicsList::PreparePhysicsTable , see also Geant4 Extended Example
  * runAndEvent/RE07.
  */
-void TrackingManagerOffload::PreparePhysicsTable(G4ParticleDefinition const& part)
+void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 {
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
     G4ProcessManager* pManager = part.GetProcessManager();
@@ -114,7 +110,7 @@ void TrackingManagerOffload::PreparePhysicsTable(G4ParticleDefinition const& par
 /*!
  * Offload the incoming track to Celeritas.
  */
-void TrackingManagerOffload::HandOverOneTrack(G4Track* track)
+void TrackingManager::HandOverOneTrack(G4Track* track)
 {
     CELER_EXPECT(track);
     CELER_EXPECT(*transport_);
@@ -138,10 +134,14 @@ void TrackingManagerOffload::HandOverOneTrack(G4Track* track)
  * That is done to allow for models that may add "onload" particles back to
  * Geant4.
  */
-void TrackingManagerOffload::FlushEvent()
+void TrackingManager::FlushEvent()
 {
+    // TODO: update event ID by querying event manager
+    // G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
+
     ExceptionConverter call_g4exception{"celer0002", params_};
     CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
