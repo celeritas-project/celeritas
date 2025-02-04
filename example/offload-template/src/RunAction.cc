@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
-#include <G4ParticleDefinition.hh>
-#include <G4Threading.hh>
 #include <accel/TrackingManagerIntegration.hh>
 
 //---------------------------------------------------------------------------//

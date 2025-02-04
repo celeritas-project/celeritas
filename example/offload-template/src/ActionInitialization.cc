@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include <accel/SetupOptions.hh>
 #include <accel/TrackingManagerIntegration.hh>
 
 #include "PrimaryGeneratorAction.hh"
@@ -16,20 +15,7 @@
 /*!
  * Construct empty.
  */
-ActionInitialization::ActionInitialization() : G4VUserActionInitialization()
-{
-    // Initialize Celeritas
-    celeritas::SetupOptions& so
-        = celeritas::TrackingManagerIntegration::Instance().Options();
-
-    so.max_num_tracks = 1024 * 16;
-    so.initializer_capacity = 1024 * 128 * 4;
-    so.secondary_stack_factor = 2.0;
-    so.ignore_processes = {"CoulombScat", "Rayl"};  // Ignored processes
-
-    // Save diagnostic information
-    so.output_file = "celeritas-offload-diagnostic.json";
-}
+ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 //---------------------------------------------------------------------------//
 /*!

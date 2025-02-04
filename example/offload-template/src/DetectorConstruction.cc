@@ -14,9 +14,6 @@
 #include <G4SDManager.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4VPhysicalVolume.hh>
-#include <accel/AlongStepFactory.hh>
-#include <accel/SetupOptions.hh>
-#include <accel/TrackingManagerIntegration.hh>
 
 #include "SensitiveDetector.hh"
 
@@ -24,15 +21,7 @@
 /*!
  * Construct empty.
  */
-DetectorConstruction::DetectorConstruction() : G4VUserDetectorConstruction()
-{
-    // Initialize Celeritas
-    celeritas::SetupOptions& so
-        = celeritas::TrackingManagerIntegration::Instance().Options();
-
-    // Set along-step factory with zero field
-    so.make_along_step = celeritas::UniformAlongStepFactory();
-}
+DetectorConstruction::DetectorConstruction() : G4VUserDetectorConstruction() {}
 
 //---------------------------------------------------------------------------//
 /*!
