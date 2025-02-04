@@ -39,6 +39,10 @@ void system(inp::System const& sys)
     {
         // TODO: if using MPI, use communicator
         activate_device();
+        // NOTE: if CELER_DISABLE_DEVICE is set, device may be false
+        CELER_VALIDATE(
+            device(),
+            << R"(failed to activate device when `sys.device` was set)");
 
         if (auto size = sys.device->stack_size)
         {

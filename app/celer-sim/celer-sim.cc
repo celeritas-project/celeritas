@@ -227,10 +227,10 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device();
-
     if (filename == "--device"sv)
     {
+        celeritas::activate_device();
+
         if (celeritas::Device::num_devices() == 0)
         {
             CELER_LOG(critical) << "No GPUs were detected";
@@ -286,6 +286,14 @@ int main(int argc, char* argv[])
     CELER_ASSERT(output);
     output->output(&cout);
     cout << endl;
+
+    // Delete streams before end of program (TODO: this is because of a static
+    // initialization order issue; CUDA can be deactivated before the global
+    // celeritas::device is reset)
+    if (celeritas::device())
+    {
+        celeritas::device().create_streams(0);
+    }
 
     return return_code;
 }
