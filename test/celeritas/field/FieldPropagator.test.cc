@@ -388,13 +388,22 @@ TEST_F(TwoBoxesTest, gamma_exit)
     {
         SCOPED_TRACE("Exact boundary");
         auto geo = this->make_geo_track_view({2, 4.75, 0}, {0, 1, 0});
+        real_type const exact_distance = [&geo] {
+            // Note: exact distance may be slightly off for VecGeom surface,
+            // which applies rotation matrices to planar surfaces
+            auto result = geo.find_next_step();
+            EXPECT_TRUE(result.boundary);
+            EXPECT_SOFT_EQ(result.distance, 0.25);
+            return result.distance;
+        }();
+
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(0.25);
+        auto result = propagate(exact_distance);
 
-        EXPECT_SOFT_EQ(0.25, result.distance);
+        EXPECT_SOFT_EQ(exact_distance, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
         EXPECT_EQ(1, stepper.count());
