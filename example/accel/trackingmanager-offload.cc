@@ -10,24 +10,14 @@
 #include <type_traits>
 #include <FTFP_BERT.hh>
 #include <G4Box.hh>
-#include <G4Electron.hh>
-#include <G4Gamma.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4PVPlacement.hh>
-#include <G4ParticleDefinition.hh>
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
-#include <G4Positron.hh>
-#include <G4Region.hh>
-#include <G4RegionStore.hh>
 #include <G4SDManager.hh>
 #include <G4SystemOfUnits.hh>
-#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
-#include <G4Track.hh>
-#include <G4TrackStatus.hh>
-#include <G4Types.hh>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
 #include <G4UserTrackingAction.hh>
@@ -46,7 +36,7 @@
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
 #include <accel/SimpleOffload.hh>
-#include <accel/TrackingManager.hh>
+#include <accel/TrackingManagerConstructor.hh>
 #include <corecel/Assert.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
@@ -161,26 +151,6 @@ class RunAction final : public G4UserRunAction
     void BeginOfRunAction(G4Run const* run) final
     {
         simple_offload.BeginOfRunAction(run);
-
-        // Add Celeritas tracking manager to electron, positron, gamma.
-        CELER_ASSERT(shared_params);
-        if (shared_params.StatusMode()
-            != celeritas::SharedParams::Mode::disabled)
-        {
-            CELER_LOG_LOCAL(debug) << "Activating tracking manager";
-            auto tm = std::make_unique<celeritas::TrackingManager>(
-                &shared_params, &local_transporter);
-
-            for (G4ParticleDefinition* particle :
-                 shared_params.OffloadParticles())
-            {
-                particle->SetTrackingManager(tm.get());
-            }
-
-            // Intentionally leak tm since Geant4 doesn't support shared
-            // pointer semantics
-            tm.release();
-        }
     }
     void EndOfRunAction(G4Run const* run) final
     {
@@ -252,11 +222,11 @@ int main()
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
-    // Use FTFP_BERT, but replace EM constructor with our own that
-    // overrides ConstructProcess to use Celeritas tracking for e-/e+/g
+    // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
+    physics_list->RegisterPhysics(new celeritas::TrackingManagerConstructor(
+        &shared_params, [](int) { return &local_transporter; }));
     run_manager->SetUserInitialization(physics_list);
-
     run_manager->SetUserInitialization(new ActionInitialization());
 
     // NOTE: these numbers are appropriate for CPU execution

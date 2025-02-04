@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include <accel/TrackingManager.hh>
-
 #include "Celeritas.hh"
 #include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"

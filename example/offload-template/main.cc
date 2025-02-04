@@ -8,9 +8,11 @@
 #include <memory>
 #include <FTFP_BERT.hh>
 #include <G4RunManagerFactory.hh>
+#include <accel/TrackingManagerConstructor.hh>
 
-#include "src/ActionInitialization.hh"
-#include "src/DetectorConstruction.hh"
+#include "ActionInitialization.hh"
+#include "Celeritas.hh"
+#include "DetectorConstruction.hh"
 
 //---------------------------------------------------------------------------//
 /*!
@@ -31,8 +33,13 @@ int main(int argc, char* argv[])
     run_manager.reset(
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default));
 
-    // Initialize physics, geometry, and actions
-    run_manager->SetUserInitialization(new FTFP_BERT(/* verbosity = */ 0));
+    // Initialize physics with celeritas offload
+    auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
+    physics_list->RegisterPhysics(new celeritas::TrackingManagerConstructor(
+        &CelerSharedParams(), [](int) { return &CelerLocalTransporter(); }));
+    run_manager->SetUserInitialization(physics_list);
+
+    // Initialize geometry and actions
     run_manager->SetUserInitialization(new DetectorConstruction());
     run_manager->SetUserInitialization(new ActionInitialization());
 
