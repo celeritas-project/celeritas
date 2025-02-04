@@ -66,7 +66,7 @@ class LocalTransporter
     // Alternative to construction + move assignment
     inline void Initialize(SetupOptions const& options, SharedParams& params);
 
-    // Set the event ID and reseed the Celeritas RNG (remove in v1.0)
+    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
     [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
 
     // Set the event ID and reseed the Celeritas RNG at the start of an event
