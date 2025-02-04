@@ -91,13 +91,7 @@ inline bool operator!=(Label const& lhs, Label const& rhs)
 //! Less-than comparison for sorting
 inline bool operator<(Label const& lhs, Label const& rhs)
 {
-    if (lhs.name < rhs.name)
-        return true;
-    else if (lhs.name > rhs.name)
-        return false;
-    if (lhs.ext < rhs.ext)
-        return true;
-    return false;
+    return std::tie(lhs.name, lhs.ext) < std::tie(rhs.name, rhs.ext);
 }
 
 //---------------------------------------------------------------------------//
