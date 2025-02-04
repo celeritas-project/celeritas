@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.18...3.31)
 
 # Set Celeritas_VERSION using git tags using the following format
-set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
+set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc\\.[0-9]+)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
@@ -392,7 +392,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  set(_min_vecgeom_version 1.2.4)
+  set(_min_vecgeom_version 1.2.8)
   if(NOT VecGeom_FOUND)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
@@ -447,6 +447,9 @@ if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_LIBRARIES)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
+  if(CELERITAS_USE_Geant4)
+    celeritas_find_or_external_package(G4VG)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -487,6 +490,8 @@ endif()
 #----------------------------------------------------------------------------#
 # EXTERNALS
 #----------------------------------------------------------------------------#
+
+include(CudaRdcUtils)
 
 if(CELERITAS_EXTERNAL)
   include(FetchContent)
