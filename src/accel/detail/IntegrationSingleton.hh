@@ -8,6 +8,7 @@
 
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
+#include "accel/SetupOptionsMessenger.hh"
 #include "accel/SharedParams.hh"
 
 namespace celeritas
@@ -61,7 +62,7 @@ class IntegrationSingleton
     void initialize_logger();
 
     // Construct shared params on master (or single) thread
-    bool initialize_shared_params();
+    void initialize_shared_params();
 
     // Construct thread-local transporter
     bool initialize_local_transporter();
@@ -74,12 +75,13 @@ class IntegrationSingleton
 
   private:
     // Only this class can construct
-    IntegrationSingleton() = default;
+    IntegrationSingleton();
 
     //// DATA ////
     Mode mode_{Mode::size_};
     SetupOptions options_;
     SharedParams params_;
+    SetupOptionsMessenger messenger_{&options_};
 };
 
 //---------------------------------------------------------------------------//

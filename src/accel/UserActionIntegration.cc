@@ -6,10 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "UserActionIntegration.hh"
 
+#include <G4Threading.hh>
+
 #include "detail/IntegrationSingleton.hh"
 
 namespace celeritas
 {
+#if 0
 //---------------------------------------------------------------------------//
 /*!
  * Access the singleton.
@@ -73,8 +76,6 @@ void UserActionIntegration::BeginOfRunAction(G4Run const* run)
  */
 void UserActionIntegration::BeginOfEventAction(G4Event const* event)
 {
-    if (
-
     // Set event ID in local transporter and reseed RNG for reproducibility
     ExceptionConverter call_g4exception{"celer.event.begin"};
     CELER_TRY_HANDLE(local_->InitializeEvent(event->GetEventID()),
@@ -106,4 +107,5 @@ void UserActionIntegration::EndOfRunAction(G4Run const* run) {}
 UserActionIntegration::UserActionIntegration() = default;
 
 //---------------------------------------------------------------------------//
+#endif
 }  // namespace celeritas

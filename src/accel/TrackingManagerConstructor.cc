@@ -15,6 +15,9 @@
 
 #include "SharedParams.hh"
 #include "TrackingManager.hh"
+#include "TrackingManagerIntegration.hh"
+
+#include "detail/IntegrationSingleton.hh"
 
 namespace celeritas
 {
@@ -47,6 +50,24 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 {
     // The special "unknown" type will not conflict with any other physics
     this->SetPhysicsType(G4BuilderType::bUnknown);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from tracking manager integration.
+ *
+ * Since there's only ever one trackign manager integration, we can just use
+ * the behind-the-hood objects.
+ */
+TrackingManagerConstructor::TrackingManagerConstructor(
+    TrackingManagerIntegration* tmi)
+    : TrackingManagerConstructor(
+          &detail::IntegrationSingleton::instance().shared_params(), [](int) {
+              return &detail::IntegrationSingleton::instance()
+                          .local_transporter();
+          })
+{
+    CELER_EXPECT(tmi == &TrackingManagerIntegration::Instance());
 }
 
 //---------------------------------------------------------------------------//

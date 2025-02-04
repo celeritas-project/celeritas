@@ -150,9 +150,6 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
  */
 void TrackingManager::FlushEvent()
 {
-    // TODO: update event ID by querying event manager
-    // G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
-
     if (*transport_)
     {
         ExceptionConverter call_g4exception{"celer.event.flush", params_};

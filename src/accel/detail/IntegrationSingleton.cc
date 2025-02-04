@@ -9,7 +9,11 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "accel/ExceptionConverter.hh"
+#include "accel/Logger.hh"
 
 namespace celeritas
 {
@@ -39,11 +43,12 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 /*!
  * Static global setup options before constructing params.
  */
-SetupOptions& setup_options()
+SetupOptions& IntegrationSingleton::setup_options()
 {
     CELER_VALIDATE(
         !params_,
         << R"(options cannot be modified after Celeritas is constructed)");
+    return options_;
 }
 
 //---------------------------------------------------------------------------//
@@ -61,7 +66,8 @@ void IntegrationSingleton::initialize_logger()
         celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
     };
 
-    CELER_TRY_HANDLE(initialize_impl, ExceptionConverter{"celer.init.logger"});
+    CELER_TRY_HANDLE(initialize_impl(),
+                     ExceptionConverter{"celer.init.logger"});
 }
 
 //---------------------------------------------------------------------------//
@@ -81,37 +87,35 @@ void IntegrationSingleton::initialize_shared_params()
 {
     ExceptionConverter call_g4exception{"celer.init.global"};
 
-    if (
-    enabled_ = SharedParams::CeleritasDisabled();
-    if (!enabled_)
-    {
-        auto msg = (G4Threading::IsWorkerThread() ? CELER_LOG_LOCAL(debug)
-                                                  : CELER_LOG(info));
-        msg << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
-        return false;
-    }
-
     if (!G4Threading::IsMultithreadedApplication()
         || G4Threading::IsMasterThread())
     {
         CELER_LOG_LOCAL(debug) << "Initializing shared params";
 
         auto initialize_impl = [this] {
-            CELER_VALIDATE(!params_,
-                           << "params cannot be set up more than once");
-            params_.Initialize(options_)
+            CELER_VALIDATE(
+                !params_,
+                << R"(BeginOfRunAction cannot be called more than once)");
+            params_.Initialize(options_);
         };
 
-        CELER_TRY_HANDLE(initialize_impl, call_g4exception);
+        CELER_TRY_HANDLE(initialize_impl(), call_g4exception);
     }
     else
     {
         CELER_LOG_LOCAL(debug) << "Initializing worker";
-        CELER_TRY_HANDLE(SharedParams::InitializeWorker(*options_),
-                         call_g4exception);
+
+        auto initialize_impl = [this] {
+            CELER_VALIDATE(
+                params_,
+                << R"(BeginOfRunAction was not called on master thread)");
+            params_.InitializeWorker(options_);
+        };
+
+        CELER_TRY_HANDLE(initialize_impl(), call_g4exception);
     }
-    return true;
+
+    CELER_ENSURE(params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -125,15 +129,31 @@ void IntegrationSingleton::initialize_shared_params()
  */
 bool IntegrationSingleton::initialize_local_transporter()
 {
+    CELER_EXPECT(params_);
+
+    if (G4Threading::IsMultithreadedApplication()
+        && G4Threading::IsMasterThread())
+    {
+        // Cannot construct local transporter on master MT thread
+        return false;
+    }
+
     CELER_EXPECT(!G4Threading::IsMultithreadedApplication()
                  || G4Threading::IsWorkerThread());
-    CELER_EXPECT(params_ || !enabled_);
 
-    if (!enabled_)
+    if (params_.mode() == celeritas::SharedParams::Mode::disabled)
     {
-        CELER_LOG_LOCAL(debug) << "Skipping state construction since "
-                                  "Celeritas is disabled";
+        CELER_LOG_LOCAL(debug)
+            << R"(Skipping state construction since Celeritas is completely disabled)";
         return false;
+    }
+
+    if (params_.mode() == celeritas::SharedParams::Mode::kill_offload)
+    {
+        // When "kill offload", we still need to intercept tracks
+        CELER_LOG_LOCAL(debug)
+            << R"(Skipping state construction with offload enabled)";
+        return true;
     }
 
     CELER_LOG_LOCAL(debug) << "Constructing local state";
@@ -142,10 +162,10 @@ bool IntegrationSingleton::initialize_local_transporter()
         auto& lt = IntegrationSingleton::local_transporter();
         CELER_VALIDATE(!lt,
                        << "local thread " << G4Threading::G4GetThreadId() + 1
-                       << " cannot be initialized more than once")
+                       << " cannot be initialized more than once");
         lt.Initialize(options_, params_);
     };
-    CELER_TRY_HANDLE(initialize_impl, ExceptionConverter{"celer.init.local"});
+    CELER_TRY_HANDLE(initialize_impl(), ExceptionConverter{"celer.init.local"});
     return true;
 }
 
@@ -155,26 +175,32 @@ bool IntegrationSingleton::initialize_local_transporter()
  */
 void IntegrationSingleton::finalize_local_transporter()
 {
-    CELER_EXPECT(!G4Threading::IsMultithreadedApplication()
-                 || G4Threading::IsWorkerThread());
-    CELER_EXPECT(params_ || !enabled_);
+    CELER_EXPECT(params_);
 
-    if (!enabled_)
+    if (G4Threading::IsMultithreadedApplication()
+        && G4Threading::IsMasterThread())
+    {
+        // Cannot destroy local transporter on master MT thread
+        return;
+    }
+
+    if (params_.mode() != celeritas::SharedParams::Mode::enabled)
     {
         return;
     }
 
     CELER_LOG_LOCAL(debug) << "Destroying local state";
 
-    auto finalize_impl = [this] {
+    auto finalize_impl = [] {
         auto& lt = IntegrationSingleton::local_transporter();
-        CELER_VALIDATE(!lt,
+        CELER_VALIDATE(lt,
                        << "local thread " << G4Threading::G4GetThreadId() + 1
-                       << " cannot be initialized more than once")
+                       << " cannot be finalized more than once");
         lt.Finalize();
     };
 
-    CELER_TRY_HANDLE(finalize_impl, call_g4exception);
+    CELER_TRY_HANDLE(finalize_impl(),
+                     ExceptionConverter{"celer.finalize.local"});
 }
 
 //---------------------------------------------------------------------------//
@@ -183,23 +209,22 @@ void IntegrationSingleton::finalize_local_transporter()
  */
 void IntegrationSingleton::finalize_shared_params()
 {
-    CELER_EXPECT(params_ || !enabled_);
-
-    if (!enabled_)
-    {
-        return;
-    }
-
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-    ExceptionConverter call_g4exception{"celer.finalize"};
 
     auto finalize_impl = [this] {
         CELER_VALIDATE(params_, << "params cannot be finalized more than once");
         params_.Finalize();
     };
 
-    CELER_TRY_HANDLE(finalize_impl, call_g4exception);
+    CELER_TRY_HANDLE(finalize_impl(),
+                     ExceptionConverter{"celer.finalize.global"});
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct and set up options messenger.
+ */
+IntegrationSingleton::IntegrationSingleton() = default;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

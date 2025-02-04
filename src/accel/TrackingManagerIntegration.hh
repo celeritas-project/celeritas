@@ -16,6 +16,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct SetupOptions;
 class TrackingManager;
+class TrackingManagerIntegration;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -25,11 +26,12 @@ class TrackingManager;
  * application. To use this class in your Geant4 application to offload tracks
  * to Celeritas:
  *
- * - Set up the \c Options before calling \c G4RunManager::Initialize
- * - Call \c Build from your \c G4UserActionInitialization::Build and
- *   \c ::BuildForMaster functions
- * - Call \c BeginOfRunAction from your \c G4UserRunAction::BeginOfRunAction
- * - Call \c EndOfRunAction from your \c G4UserRunAction::EndOfRunAction
+ * - Set up the \c Options before calling \c G4RunManager::Initialize: usually
+ *   in \c main .
+ * - Call \c Build and \c BuildForMaster from the corresponding \c
+ *   G4UserActionInitialization::Build functions
+ * - Call \c BeginOfRunAction and \c EndOfRunAction from the corresponding \c
+ * G4UserRunAction
  *
  * The \c CELER_DISABLE environment variable, if set and non-empty, will
  * disable offloading so that Celeritas will not be built nor kill tracks.
@@ -42,8 +44,8 @@ class TrackingManager;
 class TrackingManagerIntegration
 {
   public:
-    // Access the singleton
-    static TrackingManagerIntegration& instance();
+    // Access the public-facing integration singleton
+    static TrackingManagerIntegration& Instance();
 
     // Edit options before starting the run
     SetupOptions& Options();
@@ -63,9 +65,6 @@ class TrackingManagerIntegration
   private:
     // Tracking manager can only be created privately
     TrackingManagerIntegration();
-
-    // Store tracking manager pointers for later retrieval
-    std::vector<std::unique_ptr<TrackingManager>> thread_managers;
 };
 
 //---------------------------------------------------------------------------//

@@ -34,9 +34,8 @@
 #include <accel/AlongStepFactory.hh>
 #include <accel/LocalTransporter.hh>
 #include <accel/SetupOptions.hh>
-#include <accel/SharedParams.hh>
-#include <accel/SimpleOffload.hh>
 #include <accel/TrackingManagerConstructor.hh>
+#include <accel/TrackingManagerIntegration.hh>
 #include <corecel/Assert.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
@@ -44,16 +43,6 @@
 namespace
 {
 //---------------------------------------------------------------------------//
-// Global shared setup options
-celeritas::SetupOptions setup_options;
-// Shared data and GPU setup
-celeritas::SharedParams shared_params;
-// Thread-local transporter
-G4ThreadLocal celeritas::LocalTransporter local_transporter;
-
-// Simple interface to running celeritas
-G4ThreadLocal celeritas::SimpleOffload simple_offload;
-
 class SensitiveDetector final : public G4VSensitiveDetector
 {
   public:
@@ -88,6 +77,9 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
         : aluminum_{new G4Material{
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
+        celeritas::SetupOptions& setup_options
+            = celeritas::TrackingManagerIntegration::Instance().Options();
+
         setup_options.make_along_step = celeritas::UniformAlongStepFactory();
 
         // Export a GDML file with the problem setup and SDs
@@ -150,11 +142,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        simple_offload.BeginOfRunAction(run);
+        celeritas::TrackingManagerIntegration::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        simple_offload.EndOfRunAction(run);
+        celeritas::TrackingManagerIntegration::Instance().EndOfRunAction(run);
     }
 };
 
@@ -162,10 +154,7 @@ class RunAction final : public G4UserRunAction
 class EventAction final : public G4UserEventAction
 {
   public:
-    void BeginOfEventAction(G4Event const* event) final
-    {
-        simple_offload.BeginOfEventAction(event);
-    }
+    void BeginOfEventAction(G4Event const*) final {}
     void EndOfEventAction(G4Event const* event) final
     {
         // Log total energy deposition
@@ -187,7 +176,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        simple_offload.BuildForMaster(&setup_options, &shared_params);
+        celeritas::TrackingManagerIntegration::Instance().BuildForMaster();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -195,8 +184,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
     void Build() const final
     {
-        simple_offload.Build(
-            &setup_options, &shared_params, &local_transporter);
+        celeritas::TrackingManagerIntegration::Instance().Build();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -225,11 +213,13 @@ int main()
     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
     physics_list->RegisterPhysics(new celeritas::TrackingManagerConstructor(
-        &shared_params, [](int) { return &local_transporter; }));
+        &celeritas::TrackingManagerIntegration::Instance()));
     run_manager->SetUserInitialization(physics_list);
     run_manager->SetUserInitialization(new ActionInitialization());
 
     // NOTE: these numbers are appropriate for CPU execution
+    celeritas::SetupOptions& setup_options
+        = celeritas::TrackingManagerIntegration::Instance().Options();
     setup_options.max_num_tracks = 1024;
     setup_options.initializer_capacity = 1024 * 128;
     // This parameter will eventually be removed
