@@ -103,7 +103,7 @@ class SplineDerivCalculator
   private:
     //// TYPES ////
 
-    using Real4 = Array<real_type, 4>;
+    using Real3 = Array<real_type, 3>;
 
     //// DATA ////
 
@@ -112,8 +112,8 @@ class SplineDerivCalculator
 
     //// HELPER FUNCTIONS ////
 
-    void calc_initial_coeffs(Real4&) const;
-    void calc_final_coeffs(Real4&) const;
+    void calc_initial_coeffs(Real3&, real_type&) const;
+    void calc_final_coeffs(Real3&, real_type&) const;
     void calc_boundaries(VecReal&) const;
     VecReal calc_geant_derivatives() const;
 };

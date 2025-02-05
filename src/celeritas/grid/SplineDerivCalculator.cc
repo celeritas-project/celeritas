@@ -53,10 +53,11 @@ auto SplineDerivCalculator::operator()() const -> VecReal
     }
 
     size_type num_knots = grid_->size();
-    TridiagonalSolver::Coeffs coeffs(num_knots - 2);
+    TridiagonalSolver::Coeffs tridiag(num_knots - 2);
+    VecReal rhs(num_knots - 2);
 
     // Calculate the first row coefficients using the boundary conditions
-    this->calc_initial_coeffs(coeffs[0]);
+    this->calc_initial_coeffs(tridiag[0], rhs[0]);
 
     // Calculate the interior row coefficients of the tridiagonal system
     for (size_type i = 2; i < num_knots - 2; ++i)
@@ -65,18 +66,19 @@ auto SplineDerivCalculator::operator()() const -> VecReal
         real_type h_lower = grid_->delta_x(i - 1);
         real_type h_upper = grid_->delta_x(i);
 
-        coeffs[i - 1][0] = h_lower;
-        coeffs[i - 1][1] = 2 * (h_lower + h_upper);
-        coeffs[i - 1][2] = h_upper;
-        coeffs[i - 1][3] = 6 * grid_->delta_slope(i);
+        tridiag[i - 1][0] = h_lower;
+        tridiag[i - 1][1] = 2 * (h_lower + h_upper);
+        tridiag[i - 1][2] = h_upper;
+        rhs[i - 1] = 6 * grid_->delta_slope(i);
     }
 
     // Calculate the last row coefficients using the boundary conditions
-    this->calc_final_coeffs(coeffs[num_knots - 3]);
+    this->calc_final_coeffs(tridiag[num_knots - 3], rhs[num_knots - 3]);
 
     // Solve the tridiagonal system
     VecReal result(num_knots);
-    TridiagonalSolver(std::move(coeffs))({result.data() + 1, num_knots - 2});
+    TridiagonalSolver(std::move(tridiag))(make_span(rhs),
+                                          {result.data() + 1, num_knots - 2});
 
     // Recover \f$ S''_0 \f$ and \f$ S''_{n - 1} \f$
     this->calc_boundaries(result);
@@ -88,32 +90,34 @@ auto SplineDerivCalculator::operator()() const -> VecReal
 /*!
  * Calculate the coefficients for the first row using the boundary conditions.
  */
-void SplineDerivCalculator::calc_initial_coeffs(Real4& coeffs) const
+void SplineDerivCalculator::calc_initial_coeffs(Real3& tridiag,
+                                                real_type& rhs) const
 {
     CELER_EXPECT(grid_->x(1) > grid_->x(0));
 
     real_type h_lower = grid_->delta_x(0);
     real_type h_upper = grid_->delta_x(1);
 
-    coeffs[0] = 0;
+    tridiag[0] = 0;
     if (bc_ == BoundaryCondition::natural)
     {
-        coeffs[1] = 2 * (h_lower + h_upper);
-        coeffs[2] = h_upper;
+        tridiag[1] = 2 * (h_lower + h_upper);
+        tridiag[2] = h_upper;
     }
     else
     {
-        coeffs[1] = (h_lower + h_upper) * (2 * h_upper + h_lower) / h_upper;
-        coeffs[2] = (ipow<2>(h_upper) - ipow<2>(h_lower)) / h_upper;
+        tridiag[1] = (h_lower + h_upper) * (2 * h_upper + h_lower) / h_upper;
+        tridiag[2] = (ipow<2>(h_upper) - ipow<2>(h_lower)) / h_upper;
     }
-    coeffs[3] = 6 * grid_->delta_slope(1);
+    rhs = 6 * grid_->delta_slope(1);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the coefficients for the last row using the boundary conditions.
  */
-void SplineDerivCalculator::calc_final_coeffs(Real4& coeffs) const
+void SplineDerivCalculator::calc_final_coeffs(Real3& tridiag,
+                                              real_type& rhs) const
 {
     CELER_EXPECT(grid_->x(grid_->size() - 2) > grid_->x(grid_->size() - 3));
 
@@ -122,16 +126,16 @@ void SplineDerivCalculator::calc_final_coeffs(Real4& coeffs) const
 
     if (bc_ == BoundaryCondition::natural)
     {
-        coeffs[0] = h_lower;
-        coeffs[1] = 2 * (h_lower + h_upper);
+        tridiag[0] = h_lower;
+        tridiag[1] = 2 * (h_lower + h_upper);
     }
     else
     {
-        coeffs[0] = (ipow<2>(h_lower) - ipow<2>(h_upper)) / h_lower;
-        coeffs[1] = (h_lower + h_upper) * (2 * h_lower + h_upper) / h_lower;
+        tridiag[0] = (ipow<2>(h_lower) - ipow<2>(h_upper)) / h_lower;
+        tridiag[1] = (h_lower + h_upper) * (2 * h_lower + h_upper) / h_lower;
     }
-    coeffs[2] = 0;
-    coeffs[3] = 6 * grid_->delta_slope(grid_->size() - 2);
+    tridiag[2] = 0;
+    rhs = 6 * grid_->delta_slope(grid_->size() - 2);
 }
 
 //---------------------------------------------------------------------------//

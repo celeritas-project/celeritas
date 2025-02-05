@@ -20,28 +20,28 @@ namespace celeritas
  * Solve a tridiagonal system of equations using the Thomas algorithm.
  *
  * This is a simplified form of Gaussian elimination that can solve a
- * tridiagonal system \f$ a_i x_{i - 1} + b_i x_i + c_i x_{i + 1} = d_i \f$
- * with \f$ n \f$ unknowns where \f$ a_1 = 0 \f$ and \f$ c_n = 0 \f$ in O(n)
- * time.
+ * tridiagonal system \f$ \mathbf{T} \mathbf{x} = \mathbf{b} \f$ in O(n) time.
  */
 class TridiagonalSolver
 {
   public:
     //!@{
     //! \name Type aliases
-    using Coeffs = std::vector<Array<real_type, 4>>;
+    using Real3 = Array<real_type, 3>;
+    using Coeffs = std::vector<Real3>;
+    using SpanConstReal = Span<real_type const>;
     using SpanReal = Span<real_type>;
     //!@}
 
   public:
     // Contruct with coefficients
-    explicit TridiagonalSolver(Coeffs&&);
+    explicit TridiagonalSolver(Coeffs&& tridiag);
 
     // Solve the tridiagonal system
-    void operator()(SpanReal) const;
+    void operator()(SpanConstReal rhs, SpanReal x) const;
 
   private:
-    Coeffs coeffs_;
+    Coeffs tridiag_;
 };
 
 //---------------------------------------------------------------------------//
