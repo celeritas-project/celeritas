@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -92,6 +93,15 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 
     // Load events
     result.events = events(si.events, result.core_params->particle());
+
+    auto const& ctl = problem->control;
+    if (ctl.capacity.events && ctl.num_streams > result.events.size())
+    {
+        CELER_LOG(warning)
+            << "Configured number of streams (" << ctl.num_streams
+            << ") exceeds number of loaded events (" << result.events.size()
+            << ")";
+    }
 
     return result;
 }

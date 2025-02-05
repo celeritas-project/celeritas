@@ -68,17 +68,16 @@ struct StateCapacity
  * as "per stream" whereas \c celer-sim used "per process".
  *
  * Defaults:
- * - \c secondaries: twice the number of track slots.
- *
- * \todo Instead of a special value \c events=0, make a variant or something
- * more descriptive?
+ * - \c secondaries: twice the number of track slots
+ * - \c events: single event runs at a time
  */
 struct CoreStateCapacity : StateCapacity
 {
     //! Maximum number of secondaries created per step
     std::optional<size_type> secondaries;
 
-    //! Maximum number of simultaneous events (zero for Geant4 integration)
+    //! Maximum number of simultaneous events (zero for doing one event at a
+    //! time)
     std::optional<size_type> events;
 };
 

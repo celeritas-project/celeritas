@@ -118,6 +118,9 @@ if "lar" in geometry_filename:
         'auto_flush': 2**31, # Large enough to never launch optical loop
     }
 
+if "simple-cms" in geometry_filename:
+    inp['merge_events'] = True
+
 if physics_filename:
     inp['physics_file'] = physics_filename
 
@@ -172,25 +175,36 @@ else:
     assert steps is None, steps
 
 internal = j["internal"]
-if "lar" in geometry_filename and not use_device:
-    core_sizes = internal["core-sizes"].copy()
-    num_streams = internal["core-sizes"].pop("streams")
-    if "openmp" not in j["system"]["build"]["config"]["use"]:
-        assert num_streams == 1
-    assert internal["core-sizes"] == {
+core_sizes = internal["core-sizes"].copy()
+num_streams = core_sizes.pop("streams")
+if "openmp" not in j["system"]["build"]["config"]["use"]:
+    assert num_streams == 1
+if inp["merge_events"]:
+    assert num_streams == 1
+
+expected_core_sizes = None
+expected_opt_sizes = None
+if not use_device:
+    expected_core_sizes =  {
        "events": 4,
        "initializers": 3200,
        "processes": 1,
        "secondaries": 96,
        "tracks": 32
-      }, core_sizes
-
-    opt_sizes = internal["optical-sizes"].copy()
-    assert num_streams == opt_sizes.pop("streams")
-    assert opt_sizes == {
+      }
+if not use_device and "lar" in geometry_filename:
+    expected_opt_sizes = {
        "generators": 24576,
        "initializers": 32,
        "tracks": 32
-      }, opt_sizes
+    }
+
+
+if expected_core_sizes: 
+    assert core_sizes == expected_core_sizes, core_sizes
+if expected_opt_sizes:
+    opt_sizes = internal["optical-sizes"].copy()
+    assert num_streams == opt_sizes.pop("streams")
+    assert opt_sizes == expected_opt_sizes, opt_sizes
 
 print(json.dumps(time, indent=1))

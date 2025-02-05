@@ -64,6 +64,35 @@ inp::System load_system(RunnerInput const& ri)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the number of streams from the number of OpenMP threads.
+ *
+ * The OMP_NUM_THREADS environment variable can be used to control the number
+ * of threads/streams. The value of OMP_NUM_THREADS should be a list of
+ * positive integers, each of which sets the number of threads for the parallel
+ * region at the corresponding nested level. The number of streams is set to
+ * the first value in the list. If OMP_NUM_THREADS is not set, the value will
+ * be implementation defined.
+ */
+size_type get_num_streams(bool merge_events)
+{
+    size_type result = 1;
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
+    if (!merge_events)
+    {
+#    pragma omp parallel
+        if (omp_get_thread_num() == 0)
+        {
+            result = omp_get_num_threads();
+        }
+#endif
+    }
+    // TODO: Don't create more streams than events
+    // return std::min(result, num_events);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 inp::Problem load_problem(RunnerInput const& ri)
 {
     inp::Problem p;
@@ -127,37 +156,17 @@ inp::Problem load_problem(RunnerInput const& ri)
                                                       * ri.num_track_slots);
 
         // TODO: replace "max" with # events during construction
-        using LimitsT = std::numeric_limits<decltype(capacity.events)>;
-        capacity.events = ri.merge_events ? LimitsT::max() : 0;
+        if (ri.merge_events)
+        {
+            using LimitsT = std::numeric_limits<decltype(capacity.events)>;
+            capacity.events = LimitsT::max();
+        }
 
         p.control.capacity = capacity;
 
         p.control.warm_up = ri.warm_up;
         p.control.seed = ri.seed;
-
-/*!
- * Get the number of streams from the number of OpenMP threads.
- *
- * The OMP_NUM_THREADS environment variable can be used to control the number
- * of threads/streams. The value of OMP_NUM_THREADS should be a list of
- * positive integers, each of which sets the number of threads for the parallel
- * region at the corresponding nested level. The number of streams is set to
- * the first value in the list. If OMP_NUM_THREADS is not set, the value will
- * be implementation defined.
- */
-        p.control.num_streams = 1;
-#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
-        if (!ri.merge_events)
-        {
-#    pragma omp parallel
-            {
-                if (omp_get_thread_num() == 0)
-                {
-                    p.control.num_streams = omp_get_num_threads();
-                }
-            }
-        }
-#endif
+        p.control.num_streams = get_num_streams(ri.merge_events);
 
         if (ri.use_device)
         {
