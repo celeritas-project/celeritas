@@ -81,14 +81,16 @@ size_type get_num_streams(bool merge_events)
     if (!merge_events)
     {
 #    pragma omp parallel
-        if (omp_get_thread_num() == 0)
         {
-            result = omp_get_num_threads();
+            if (omp_get_thread_num() == 0)
+            {
+                result = omp_get_num_threads();
+            }
         }
 #endif
     }
+
     // TODO: Don't create more streams than events
-    // return std::min(result, num_events);
     return result;
 }
 
