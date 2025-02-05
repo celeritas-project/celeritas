@@ -10,25 +10,14 @@
 #include <type_traits>
 #include <FTFP_BERT.hh>
 #include <G4Box.hh>
-#include <G4Electron.hh>
-#include <G4EmStandardPhysics.hh>
-#include <G4Gamma.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4PVPlacement.hh>
-#include <G4ParticleDefinition.hh>
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
-#include <G4Positron.hh>
-#include <G4Region.hh>
-#include <G4RegionStore.hh>
 #include <G4SDManager.hh>
 #include <G4SystemOfUnits.hh>
-#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
-#include <G4Track.hh>
-#include <G4TrackStatus.hh>
-#include <G4Types.hh>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
 #include <G4UserTrackingAction.hh>
@@ -47,7 +36,7 @@
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
 #include <accel/SimpleOffload.hh>
-#include <accel/TrackingManager.hh>
+#include <accel/TrackingManagerConstructor.hh>
 #include <corecel/Assert.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
@@ -131,26 +120,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
-class EMPhysicsConstructor final : public G4EmStandardPhysics
-{
-  public:
-    using G4EmStandardPhysics::G4EmStandardPhysics;
-
-    void ConstructProcess() override
-    {
-        CELER_LOG_LOCAL(status) << "Setting up tracking manager offload";
-        G4EmStandardPhysics::ConstructProcess();
-
-        // Add Celeritas tracking manager to electron, positron, gamma.
-        auto* celer_tracking = new celeritas::TrackingManager(
-            &shared_params, &local_transporter);
-        G4Electron::Definition()->SetTrackingManager(celer_tracking);
-        G4Positron::Definition()->SetTrackingManager(celer_tracking);
-        G4Gamma::Definition()->SetTrackingManager(celer_tracking);
-    }
-};
-
-//---------------------------------------------------------------------------//
+// Generate 100 MeV neutrons
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
@@ -159,12 +129,11 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
         auto* g4particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(2112);
         gun_.SetParticleDefinition(g4particle_def);
-        gun_.SetParticleEnergy(100 * GeV);
+        gun_.SetParticleEnergy(100 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
         gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0});  // +x
     }
 
-    // Generate 100 GeV neutrons
     void GeneratePrimaries(G4Event* event) final
     {
         CELER_LOG_LOCAL(status) << "Generating primaries";
@@ -253,12 +222,11 @@ int main()
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
-    // Use FTFP_BERT, but replace EM constructor with our own that
-    // overrides ConstructProcess to use Celeritas tracking for e-/e+/g
+    // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
-    physics_list->ReplacePhysics(new EMPhysicsConstructor);
+    physics_list->RegisterPhysics(new celeritas::TrackingManagerConstructor(
+        &shared_params, [](int) { return &local_transporter; }));
     run_manager->SetUserInitialization(physics_list);
-
     run_manager->SetUserInitialization(new ActionInitialization());
 
     // NOTE: these numbers are appropriate for CPU execution
@@ -275,8 +243,10 @@ int main()
         setup_options.ignore_processes.push_back("Rayl");
     }
 
+    setup_options.output_file = "trackingmanager-offload.out.json";
+
     run_manager->Initialize();
-    run_manager->BeamOn(1);
+    run_manager->BeamOn(2);
 
     return 0;
 }

@@ -36,18 +36,7 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
-  celeritas_add_object_library(geocel_g4vg
-    g4vg/Converter.cc
-    g4vg/LogicalVolumeConverter.cc
-    g4vg/SolidConverter.cc
-  )
-
-  celeritas_get_g4libs(_cg4vg_libs geometry)
-  list(APPEND _cg4vg_libs Celeritas::corecel VecGeom::vecgeom)
-  celeritas_target_link_libraries(geocel_g4vg PRIVATE ${_cg4vg_libs})
-
-  list(APPEND SOURCES $<TARGET_OBJECTS:geocel_g4vg>)
-  list(APPEND PRIVATE_DEPS geocel_g4vg)
+  list(APPEND PRIVATE_DEPS G4VG::g4vg)
 endif()
 
 if(CELERITAS_USE_Geant4)

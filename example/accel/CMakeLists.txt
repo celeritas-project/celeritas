@@ -58,47 +58,103 @@ foreach(_ds IN LISTS Geant4_DATASETS)
     "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
 endforeach()
 
+set(_mpi_env)
+if(CELERITAS_USE_MPI)
+  set(_mpi_env "CELER_DISABLE_PARALLEL=1")
+endif()
+
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  if("$ENV{CELER_DISABLE_DEVICE}")
+    message(WARNING
+      "Disabling GPU testing because CELER_DISABLE_DEVICE is set"
+    )
+    set(CELER_DISABLE_DEVICE TRUE)
+  else()
+    set(CELER_DISABLE_DEVICE FALSE)
+  endif()
+else()
+  # No device support
+  set(CELER_DISABLE_DEVICE TRUE)
+endif()
+
+# Get correct capitalization for run manager type
+set(_rm_serial Serial)
+set(_rm_mt MT)
+set(_rm_task Tasking)
+
+# Set whether run manager is available
+set(_rm_avail_serial TRUE)
+set(_rm_avail_mt TRUE)
+set(_rm_avail_task TRUE)
+if(NOT Geant4_multithreaded_FOUND)
+  set(_rm_avail_mt FALSE)
+endif()
+if(Geant4_VERSION VERSION_LESS 11.0)
+  set(_rm_avail_task FALSE)
+endif()
+
+# Add all permutations of an example
 function(add_example target)
-  add_example_impl(${target} Serial)
-  if(Geant4_multithreaded_FOUND)
-    add_example_impl(${target} MT)
-    add_example_impl(${target} Tasking)
-  endif()
+  cmake_parse_arguments(PARSE "DISABLE" "" "" ${ARGN})
+  foreach(_offload gpu cpu g4 ko)
+    foreach(_rmtype serial mt task)
+      set(_disable ${PARSE_DISABLE})
+      if(_offload STREQUAL "gpu" AND CELER_DISABLE_DEVICE)
+        set(_disable TRUE)
+      endif()
+      if(NOT _rm_avail_${_rmtype})
+        set(_disable TRUE)
+      endif()
+      add_example_impl(${target} ${_offload} ${_rmtype} ${_disable})
+    endforeach()
+  endforeach()
 endfunction()
 
-function(disable_example target)
-  set(_tests ${target}-Serial)
-  if(Geant4_multithreaded_FOUND)
-    list(APPEND _tests ${target}-MT ${target}-Tasking)
-  endif()
-  set_tests_properties(${_tests} PROPERTIES
-    DISABLED true
-  )
-endfunction()
-
-function(add_example_impl target rmtype)
-  set(_test_name "${target}-${rmtype}")
+# Add a single test
+function(add_example_impl target offload rmtype disabled)
+  set(_test_name "${target}:${offload}:${rmtype}")
   add_test(NAME "${_test_name}" COMMAND "$<TARGET_FILE:${target}>")
   set(_env
     ${_g4data_env}
-    "G4RUN_MANAGER_TYPE=${rmtype}"
-    "CELER_DISABLE_PARALLEL=1"
+    ${_mpi_env}
+    "G4RUN_MANAGER_TYPE=${_rm_${rmtype}}"
   )
-  set_tests_properties(${_test_name} PROPERTIES
+  set(_labels "app")
+  if(offload STREQUAL "gpu")
+    set(_extra_props RESOURCE_LOCK gpu)
+    list(APPEND _labels "gpu")
+  elseif(offload STREQUAL "cpu")
+    list(APPEND _env "CELER_DISABLE_DEVICE=1")
+  elseif(offload STREQUAL "g4")
+    list(APPEND _env "CELER_DISABLE=1")
+  elseif(offload STREQUAL "ko")
+    list(APPEND _env "CELER_KILL_OFFLOAD=1")
+  endif()
+  if(NOT rmtype STREQUAL "serial")
+    list(APPEND _env "G4FORCENUMBEROFTHREADS=2")
+    list(APPEND _extra_props PROCESSORS 2)
+  endif()
+
+  set_tests_properties("${_test_name}" PROPERTIES
     ENVIRONMENT "${_env}"
-    LABELS "app"
+    LABELS "${_labels}"
+    DISABLED "${disabled}"
+    ${_extra_props}
+    ${ARGN}
   )
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
-add_example(simple-offload)
-add_example(fastsim-offload)
-
+set(_needs_g411)
 if(Geant4_VERSION VERSION_LESS 11.1)
-  disable_example(fastsim-offload)
+  set(_needs_g411 DISABLE)
 endif()
 
+add_example(simple-offload)
+add_example(fastsim-offload DISABLE)
+
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
+  # Requires 11.0 to build
   add_example(trackingmanager-offload)
 endif()

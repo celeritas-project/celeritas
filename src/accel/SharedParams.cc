@@ -25,14 +25,19 @@
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -117,7 +122,7 @@ build_processes(ImportData const& imported,
 }
 
 //---------------------------------------------------------------------------//
-std::vector<G4ParticleDefinition const*>
+std::vector<G4ParticleDefinition*>
 build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
                    std::shared_ptr<PhysicsParams const> const& phys)
 {
@@ -127,7 +132,7 @@ build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
     G4ParticleTable* g4particles = G4ParticleTable::GetParticleTable();
     CELER_ASSERT(g4particles);
 
-    std::vector<G4ParticleDefinition const*> result;
+    std::vector<G4ParticleDefinition*> result;
 
     for (auto par_id : range(ParticleId{particles->size()}))
     {
@@ -165,35 +170,68 @@ std::mutex& updating_mutex()
 //---------------------------------------------------------------------------//
 }  // namespace
 
-bool SharedParams::CeleritasDisabled()
+//---------------------------------------------------------------------------//
+/*!
+ * Whether celeritas is disabled, set to kill, or to be enabled.
+ *
+ * This gets the value from environment variables and
+ *
+ * \todo This will be refactored for 0.6 to take a \c celeritas::inp object and
+ * determine values rather than from the environment .
+ */
+auto SharedParams::GetMode() -> Mode
 {
-    static bool const result = [] {
-        if (celeritas::getenv("CELER_DISABLE").empty())
-            return false;
+    using Mode = SharedParams::Mode;
 
-        CELER_LOG(info)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
-        return true;
-    }();
-    return result;
-}
-
-bool SharedParams::KillOffloadTracks()
-{
-    static bool const result = [] {
+    static bool const kill_offload = [] {
         if (celeritas::getenv("CELER_KILL_OFFLOAD").empty())
             return false;
 
-        if (CeleritasDisabled())
-        {
-            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
-                               "offloading since the 'CELER_KILL_OFFLOAD' "
-                               "environment variable is present and non-empty";
-        }
+        CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
+                           "offloading since the 'CELER_KILL_OFFLOAD' "
+                        << "environment variable is present and non-empty";
         return true;
     }();
-    return result;
+    static bool const disabled = [] {
+        if (celeritas::getenv("CELER_DISABLE").empty())
+            return false;
+
+        if (kill_offload)
+        {
+            CELER_LOG(warning)
+                << "DEPRECATED (remove in 0.7): both CELER_DISABLE "
+                   "and CELER_KILL_OFFLOAD environment variables "
+                   "were defined: choose one";
+            return false;
+        }
+
+        CELER_LOG(info)
+            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
+            << "environment variable is present and non-empty";
+        return true;
+    }();
+
+    if (disabled)
+    {
+        return Mode::disabled;
+    }
+    else if (kill_offload)
+    {
+        return Mode::kill_offload;
+    }
+    return Mode::enabled;
+}
+
+//---------------------------------------------------------------------------//
+bool SharedParams::CeleritasDisabled()
+{
+    return GetMode() == Mode::disabled;
+}
+
+//---------------------------------------------------------------------------//
+bool SharedParams::KillOffloadTracks()
+{
+    return GetMode() == Mode::kill_offload;
 }
 
 //---------------------------------------------------------------------------//
@@ -210,18 +248,52 @@ SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
 
-    CELER_VALIDATE(!CeleritasDisabled(),
-                   << "Celeritas shared params cannot be initialized when "
-                      "Celeritas offloading is disabled via "
-                      "\"CELER_DISABLE\"");
-
-    CELER_LOG_LOCAL(info) << "Activating Celeritas version "
-                          << celeritas_version << " on "
-                          << (Device::num_devices() > 0 ? "GPU" : "CPU");
-
     ScopedProfiling profile_this{"construct-params"};
     ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
+
+    mode_ = GetMode();
+    if (mode_ == Mode::kill_offload)
+    {
+        // In a Geant4-only simulation, use a hardcoded list
+        particles_ = {
+            G4Gamma::Gamma(),
+            G4Electron::Electron(),
+            G4Positron::Positron(),
+        };
+    }
+
+    if (mode_ != Mode::enabled)
+    {
+        // Stop initializing but create output registry for diagnostics
+        output_reg_ = std::make_shared<OutputRegistry>();
+        output_filename_ = options.output_file;
+
+        if (!output_filename_.empty())
+        {
+            CELER_LOG(debug)
+                << R"(Constructing output registry for no-offload run)";
+
+            // Celeritas core params didn't add system metadata: do it
+            // ourselves to save system diagnostic information
+            output_reg_->insert(
+                OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+                    OutputInterface::Category::system,
+                    "memory",
+                    celeritas::mem_registry()));
+            output_reg_->insert(
+                OutputInterfaceAdapter<Environment>::from_const_ref(
+                    OutputInterface::Category::system,
+                    "environ",
+                    celeritas::environment()));
+            output_reg_->insert(std::make_shared<BuildOutput>());
+        }
+
+        return;
+    }
+
+    CELER_LOG(info) << "Activating Celeritas version " << celeritas_version
+                    << " on " << (Device::num_devices() > 0 ? "GPU" : "CPU");
 
     // Initialize CUDA (CUDA environment variables control the preferred
     // device)
@@ -243,7 +315,13 @@ SharedParams::SharedParams(SetupOptions const& options)
 
     // Construct core data
     this->initialize_core(options);
-    CELER_ASSERT(output_reg_);
+    CELER_ASSERT(params_ && output_reg_);
+
+    // Translate supported particles
+    particles_ = build_g4_particles(params_->particle(), params_->physics());
+
+    // Save output filename (possibly empty if disabling output)
+    output_filename_ = options.output_file;
 
     if (output_filename_ != "-")
     {
@@ -281,25 +359,6 @@ SharedParams::SharedParams(SetupOptions const& options)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up Celeritas components for a Geant4-only run.
- *
- * This is for doing standalone Geant4 calculations without offloading from
- * Celeritas, but still using components such as the simple calorimeter.
- */
-SharedParams::SharedParams(std::string output_filename)
-    : output_filename_{std::move(output_filename)}
-{
-    CELER_EXPECT(!output_filename_.empty());
-
-    CELER_LOG_LOCAL(debug) << "Constructing output registry for no-offload "
-                              "run";
-    output_reg_ = std::make_shared<OutputRegistry>();
-
-    CELER_ENSURE(output_reg_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * On worker threads, set up data with thread storage duration.
  *
  * Some data that has "static" storage duration (such as CUDA device
@@ -308,10 +367,7 @@ SharedParams::SharedParams(std::string output_filename)
  */
 void SharedParams::InitializeWorker(SetupOptions const&)
 {
-    CELER_VALIDATE(!CeleritasDisabled(),
-                   << "Celeritas shared params cannot be initialized when "
-                      "Celeritas offloading is disabled via "
-                      "\"CELER_DISABLE\"");
+    CELER_EXPECT(*this);
 
     celeritas::activate_device_local();
 }
@@ -342,28 +398,6 @@ void SharedParams::Finalize()
     }
 
     CELER_ENSURE(!*this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a vector of particles supported by Celeritas offloading.
- */
-auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
-{
-    if (!CeleritasDisabled())
-    {
-        // Get the supported particles from Celeritas
-        CELER_ASSERT(*this);
-        return particles_;
-    }
-
-    // In a Geant4-only simulation, use a hardcoded list of supported particles
-    static VecG4ParticleDef const particles = {
-        G4Gamma::Gamma(),
-        G4Electron::Electron(),
-        G4Positron::Positron(),
-    };
-    return particles;
 }
 
 //---------------------------------------------------------------------------//
@@ -660,12 +694,6 @@ void SharedParams::initialize_core(SetupOptions const& options)
         SlotDiagnostic::make_and_insert(*params_,
                                         options.slot_diagnostic_prefix);
     }
-
-    // Translate supported particles
-    particles_ = build_g4_particles(params_->particle(), params_->physics());
-
-    // Save output filename (possibly empty if disabling output)
-    output_filename_ = options.output_file;
 }
 
 //---------------------------------------------------------------------------//
@@ -705,22 +733,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
  */
 void SharedParams::try_output() const
 {
-    if (!output_reg_)
-    {
-        // No output registry exists (either independently of setting up
-        // Celeritas or when calling Initialize)
-        return;
-    }
-
     std::string filename = output_filename_;
-    if (!params_ && filename.empty())
-    {
-        // Setup was not called but we're outputting anyway (called by
-        // celer-g4?)
-        filename = "celeritas.out.json";
-        CELER_LOG(debug) << "Set default Celeritas output filename";
-    }
-
     if (filename.empty())
     {
         CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "

@@ -27,12 +27,15 @@
 #    include <VecGeom/gdml/Frontend.h>
 #endif
 
+#include <G4VG.hh>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -41,7 +44,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/detail/LengthUnits.hh"
-#include "geocel/g4vg/Converter.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 
@@ -271,10 +273,12 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
 {
     // Convert the geometry to VecGeom
     ScopedProfiling profile_this{"load-vecgeom"};
-    g4vg::Converter::Options opts;
+    ScopedMem record_mem("Converter.convert");
+    ScopedTimeLog scoped_time;
+    g4vg::Options opts;
     opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
-    g4vg::Converter convert{opts};
-    auto result = convert(world);
+    opts.scale = static_cast<double>(lengthunits::millimeter);
+    auto result = g4vg::convert(world, opts);
     CELER_ASSERT(result.world != nullptr);
     g4log_volid_map_.reserve(result.logical_volumes.size());
     for (auto vol_idx : range(result.logical_volumes.size()))

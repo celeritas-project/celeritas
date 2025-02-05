@@ -90,11 +90,11 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
-    CELER_VALIDATE(params,
-                   << "Celeritas SharedParams was not initialized before "
-                      "constructing LocalTransporter (perhaps the master "
-                      "thread did not call BeginOfRunAction?");
+    CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
+                   << "cannot create local transporter when Celeritas "
+                      "offloading is disabled");
     particles_ = params.Params()->particle();
+    CELER_ASSERT(particles_);
 
     auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
@@ -307,7 +307,7 @@ void LocalTransporter::Finalize()
                    << " in buffer) were not flushed");
 
     CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum_num_steps_
-                          << " from " << accum_num_primaries_
+                          << " steps from " << accum_num_primaries_
                           << " offloaded tracks over " << accum_num_events_
                           << " events";
 

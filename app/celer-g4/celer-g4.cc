@@ -286,10 +286,13 @@ int main(int argc, char* argv[])
     catch (std::exception const& e)
     {
         CELER_LOG(critical) << "While running " << argv[1] << ": " << e.what();
-        params->output_reg()->insert(
-            std::make_shared<celeritas::ExceptionOutput>(
-                std::current_exception()));
-        params->Finalize();
+        if (*params)
+        {
+            params->output_reg()->insert(
+                std::make_shared<celeritas::ExceptionOutput>(
+                    std::current_exception()));
+            params->Finalize();
+        }
         return EXIT_FAILURE;
     }
 

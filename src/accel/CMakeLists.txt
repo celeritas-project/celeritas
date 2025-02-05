@@ -37,6 +37,7 @@ celeritas_polysource(ExceptionConverter)
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   list(APPEND SOURCES
     TrackingManager.cc
+    TrackingManagerConstructor.cc
   )
 endif()
 
