@@ -111,7 +111,7 @@ NormalDistribution<RealType>::NormalDistribution(real_type mean,
 template<class RealType>
 CELER_FUNCTION
 NormalDistribution<RealType>::NormalDistribution(NormalDistribution const& other)
-    : mean_{other.mean}, stddev_{other.stddev}
+    : mean_{other.mean_}, stddev_{other.stddev_}
 {
 }
 
