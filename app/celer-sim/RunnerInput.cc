@@ -87,8 +87,8 @@ size_type get_num_streams(bool merge_events)
                 result = omp_get_num_threads();
             }
         }
-#endif
     }
+#endif
 
     // TODO: Don't create more streams than events
     return result;
