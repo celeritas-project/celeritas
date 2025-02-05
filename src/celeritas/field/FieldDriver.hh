@@ -44,8 +44,10 @@ namespace celeritas
    r - h = r \cos \frac{s}{2r}
   \f]
  * For small chord lengths or a large radius, we expand
- * \f$ \cos \theta \sim 1 \frac{\theta^2}{2} \f$, giving a radius of curvature
- * \f[ r = \frac{s^2}{8h} \; . \f]
+ * \f$ \cos \theta \sim 1 - \frac{\theta^2}{2} \f$, giving a radius of
+ * curvature \f[
+   r = \frac{s^2}{8h} \; .
+   \f]
  * Given a trial step (chord length) \em s and resulting sagitta of \em h,
  * the exact step needed to give a chord length of \f$ \epsilon = {} \f$ \c
  * delta_chord is \f[
