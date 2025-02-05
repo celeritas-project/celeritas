@@ -49,8 +49,8 @@ TEST_F(CubicSplineTest, derivative_simple)
         EXPECT_VEC_SOFT_EQ(VecReal({-10.5, -3, 4.5, -3, -10.5}), result);
     }
     {
-        auto result = SplineDerivCalculator(
-            make_span(x), make_span(y), BC::not_not_a_knot)();
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
         EXPECT_VEC_SOFT_EQ(VecReal({-4.3125, 0, 4.3125, -3, -10.3125}), result);
     }
 }
@@ -70,8 +70,8 @@ TEST_F(CubicSplineTest, derivative_constant)
         EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
     }
     {
-        auto result = SplineDerivCalculator(
-            make_span(x), make_span(y), BC::not_not_a_knot)();
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
         EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
     }
 }
@@ -153,8 +153,8 @@ TEST_F(CubicSplineTest, derivative_nonuniform)
             0.54085090248942,
             1.5705078953168,
         };
-        auto result = SplineDerivCalculator(
-            make_span(x), make_span(y), BC::not_not_a_knot)();
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
 }
@@ -244,8 +244,8 @@ TEST_F(CubicSplineTest, derivative_log)
             0.0011561116748754,
             -0.0026975939080425,
         };
-        auto result = SplineDerivCalculator(
-            make_span(x), make_span(y), BC::not_not_a_knot)();
+        auto result
+            = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
         EXPECT_VEC_SOFT_EQ(expected_result, result);
 
         SplineInterpolator interpolate({x[0], y[0], result[0]},
@@ -321,8 +321,7 @@ TEST_F(CubicSplineTest, interpolate)
         EXPECT_SOFT_EQ(1.00000224875, interpolate(1.999));
         EXPECT_EQ(1, interpolate(2));
     }
-    y_prime = SplineDerivCalculator(
-        make_span(x), make_span(y), BC::not_not_a_knot)();
+    y_prime = SplineDerivCalculator(make_span(x), make_span(y), BC::geant)();
     {
         SplineInterpolator interpolate({x[0], y[0], y_prime[0]},
                                        {x[1], y[1], y_prime[1]});

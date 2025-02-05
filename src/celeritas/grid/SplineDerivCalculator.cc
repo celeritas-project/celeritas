@@ -44,7 +44,7 @@ auto SplineDerivCalculator::operator()() const -> VecReal
 {
     CELER_EXPECT(grid_->size() >= 5);
 
-    if (bc_ == BoundaryCondition::not_not_a_knot)
+    if (bc_ == BoundaryCondition::geant)
     {
         // Calculate the second derivatives using the default Geant4 method
         // (which supposedly uses not-a-knot boundary conditions but produces

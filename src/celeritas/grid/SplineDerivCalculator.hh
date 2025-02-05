@@ -86,7 +86,7 @@ class SplineDerivCalculator
     {
         natural = 0,
         not_a_knot,
-        not_not_a_knot,  //!< Geant4's "not-a-knot"
+        geant,  //!< Geant4's "not-a-knot"
         size_
     };
 
