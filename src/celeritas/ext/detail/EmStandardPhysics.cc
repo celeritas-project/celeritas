@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/CelerEmStandardPhysics.cc
+//! \file celeritas/ext/detail/EmStandardPhysics.cc
 //---------------------------------------------------------------------------//
-#include "CelerEmStandardPhysics.hh"
+#include "EmStandardPhysics.hh"
 
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -100,7 +100,7 @@ from_form_factor_type(NuclearFormFactorType const& form_factor)
 /*!
  * Construct with physics options.
  */
-CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
+EmStandardPhysics::EmStandardPhysics(Options const& options)
     : options_(options)
 {
     // Set EM options using limits from G4EmParameters
@@ -162,7 +162,7 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
  * Currently only instantiating e+, e-, gamma, mu-, mu+, and proton (the latter
  * is needed for msc)
  */
-void CelerEmStandardPhysics::ConstructParticle()
+void EmStandardPhysics::ConstructParticle()
 {
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
@@ -182,7 +182,7 @@ void CelerEmStandardPhysics::ConstructParticle()
 /*!
  * Build list of available processes and models.
  */
-void CelerEmStandardPhysics::ConstructProcess()
+void EmStandardPhysics::ConstructProcess()
 {
     // Add E.M. processes for photons, electrons, and positrons
     this->add_gamma_processes();
@@ -213,7 +213,7 @@ void CelerEmStandardPhysics::ConstructProcess()
  * calculates a combined total cross section. It's faster in Geant4 but
  * shouldn't result in different answers.
  */
-void CelerEmStandardPhysics::add_gamma_processes()
+void EmStandardPhysics::add_gamma_processes()
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
     auto* gamma = G4Gamma::Gamma();
@@ -307,7 +307,7 @@ void CelerEmStandardPhysics::add_gamma_processes()
  * - Coulomb scattering and multiple scattering (high E) are currently
  *   disabled.
  */
-void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
+void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
@@ -480,7 +480,7 @@ void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
  *
  * \todo Implement energy loss fluctuation models for muon ionization.
  */
-void CelerEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
+void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 

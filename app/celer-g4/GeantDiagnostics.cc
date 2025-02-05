@@ -6,14 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GeantDiagnostics.hh"
 
-#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/MemRegistry.hh"
-#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -61,16 +55,10 @@ auto GeantDiagnostics::queued_output() -> VecOutputInterface&
 //---------------------------------------------------------------------------//
 /*!
  * Construct from shared Celeritas params on the master thread.
- *
- * The shared params will be uninitialized if Celeritas offloading is disabled.
- * In this case, a new output registry will be created for the Geant4
- * diagnostics.
  */
 GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
-    CELER_EXPECT(static_cast<bool>(params)
-                 == !SharedParams::CeleritasDisabled());
-
+    CELER_EXPECT(params);
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
     // Get output registry
@@ -92,25 +80,10 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         output_reg->insert(step_diagnostic_);
 
         // Add the Celeritas step diagnostic if Celeritas offloading is enabled
-        if (params)
+        if (params.mode() == SharedParams::Mode::enabled)
         {
             StepDiagnostic::make_and_insert(*params.Params(), num_bins);
         }
-    }
-
-    if (!params)
-    {
-        // Celeritas core params didn't add system metadata: do it ourselves
-        // to save system diagnostic information
-        output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
-            OutputInterface::Category::system,
-            "memory",
-            celeritas::mem_registry()));
-        output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-            OutputInterface::Category::system,
-            "environ",
-            celeritas::environment()));
-        output_reg->insert(std::make_shared<BuildOutput>());
     }
 
     // Save detectors

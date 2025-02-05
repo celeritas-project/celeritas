@@ -6,8 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
+#include <G4ParticleDefinition.hh>
+#include <G4Threading.hh>
+
 #include "Celeritas.hh"
-#include "G4Threading.hh"
 
 //---------------------------------------------------------------------------//
 /*!

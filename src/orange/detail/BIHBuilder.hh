@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <set>
 #include <variant>
 #include <vector>
 
@@ -35,6 +36,11 @@ namespace detail
  * node with all volumes in the stored inf_vols. This final case is useful in
  * the event that an ORANGE geometry is created via a method where volume
  * bounding boxes are not availible.
+ *
+ * Bounding boxes supplied to this builder should "bumped," i.e. expanded
+ * outward by at least floating-point epsilson from the volumes they bound.
+ * This eliminates the possiblity of accidently missing a volume during
+ * tracking.
  */
 class BIHBuilder
 {
@@ -43,6 +49,7 @@ class BIHBuilder
     //! \name Type aliases
     using VecBBox = std::vector<FastBBox>;
     using Storage = BIHTreeData<Ownership::value, MemSpace::host>;
+    using SetLocalVolId = std::set<LocalVolumeId>;
     //!@}
 
   public:
@@ -50,7 +57,7 @@ class BIHBuilder
     explicit BIHBuilder(Storage* storage);
 
     // Create BIH Nodes
-    BIHTree operator()(VecBBox&& bboxes);
+    BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_ids);
 
   private:
     /// TYPES ///

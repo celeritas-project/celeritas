@@ -53,8 +53,9 @@ class BIHIntersectingVolFinderTest : public Test
         bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
         bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
-        BIHBuilder builder(&storage_);
-        bih_tree_ = builder(std::move(bboxes_));
+        BIHBuilder build(&storage_);
+        BIHBuilder::SetLocalVolId implicit_vol_ids_;
+        bih_tree_ = build(std::move(bboxes_), implicit_vol_ids_);
         ref_storage_ = storage_;
     }
 
@@ -62,10 +63,9 @@ class BIHIntersectingVolFinderTest : public Test
     // Mock class with operator() to serve as a visit_vol functor
     struct MockVisitVol
     {
-        detail::Intersection
-        operator()(LocalVolumeId const& vol_id,
-                   [[maybe_unused]] BIHIntersectingVolFinder::Ray ray,
-                   [[maybe_unused]] real_type max_search_dist)
+        detail::Intersection operator()(LocalVolumeId const& vol_id,
+                                        real_type max_search_dist
+                                        [[maybe_unused]])
         {
             detail::OnLocalSurface on_surface{
                 LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};

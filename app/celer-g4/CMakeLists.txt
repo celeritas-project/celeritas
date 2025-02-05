@@ -73,17 +73,16 @@ set(_env
   "CELER_USE_ROOT=${CELERITAS_USE_ROOT}"
   "CELER_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 )
+set(_required_files "${_driver}" "${_exe}" "${_model}" "${_events}")
+set(_props ${CELER_NEEDS_PYTHON})
 if(Geant4_multithreaded_FOUND)
-  list(APPEND _env
-    "G4FORCENUMBEROFTHREADS=2"
-  )
+  list(APPEND _env "G4FORCENUMBEROFTHREADS=2")
+  list(APPEND _props PROCESSORS 2)
 endif()
 if(CELERITAS_USE_OpenMP)
   list(APPEND _env "OMP_NUM_THREADS=1")
 endif()
 
-set(_required_files "${_driver}" "${_exe}" "${_model}" "${_events}")
-set(_props ${CELER_NEEDS_PYTHON})
 if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   set(_props DISABLED true)
 endif()
