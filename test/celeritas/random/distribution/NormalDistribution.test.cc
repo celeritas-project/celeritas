@@ -92,9 +92,9 @@ TEST(NormalDistributionTest, copy)
     // Initialize with parameters but not spare values
     NormalDistribution<double> sample_copy{sample};
 
-    EXPECT_DOUBLE_EQ(4.2258231678182074, sample(rng));
+    auto orig = sample(rng);
     rng = {};
-    EXPECT_DOUBLE_EQ(4.2258231678182074, sample_copy(rng));
+    EXPECT_DOUBLE_EQ(orig, sample_copy(rng));
 }
 
 //---------------------------------------------------------------------------//

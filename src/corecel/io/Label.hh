@@ -10,6 +10,7 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <tuple>
 #include <utility>
 
 #include "corecel/Config.hh"
