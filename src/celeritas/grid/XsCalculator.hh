@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "corecel/grid/Interpolator.hh"
+#include "corecel/grid/SplineInterpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/Quantity.hh"
 
