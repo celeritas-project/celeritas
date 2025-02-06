@@ -46,7 +46,7 @@ void TrackingManagerIntegration::BuildForMaster()
 {
     CELER_VALIDATE(
         G4Threading::IsMasterThread()
-            || G4Threading::IsMultithreadedApplication(),
+            && G4Threading::IsMultithreadedApplication(),
         << R"(BuildForMaster called from a worker thread or non-MT code)");
 
     detail::IntegrationSingleton::instance().initialize_logger();
@@ -54,7 +54,10 @@ void TrackingManagerIntegration::BuildForMaster()
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize during ActionInitialization.
+ * Initialize during ActionInitialization on a worker thread or serial mode.
+ *
+ * We guard against \c Build being called from \c BuildForMaster since we might
+ * add worker-specific code here.
  */
 void TrackingManagerIntegration::Build()
 {

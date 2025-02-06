@@ -87,8 +87,7 @@ void IntegrationSingleton::initialize_shared_params()
 {
     ExceptionConverter call_g4exception{"celer.init.global"};
 
-    if (!G4Threading::IsMultithreadedApplication()
-        || G4Threading::IsMasterThread())
+    if (G4Threading::IsMasterThread())
     {
         CELER_LOG_LOCAL(debug) << "Initializing shared params";
 
@@ -104,6 +103,7 @@ void IntegrationSingleton::initialize_shared_params()
     else
     {
         CELER_LOG_LOCAL(debug) << "Initializing worker";
+        CELER_ASSERT(G4Threading::IsMultithreadedApplication());
 
         auto initialize_impl = [this] {
             CELER_VALIDATE(

@@ -56,7 +56,7 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 /*!
  * Construct from tracking manager integration.
  *
- * Since there's only ever one trackign manager integration, we can just use
+ * Since there's only ever one tracking manager integration, we can just use
  * the behind-the-hood objects.
  */
 TrackingManagerConstructor::TrackingManagerConstructor(
