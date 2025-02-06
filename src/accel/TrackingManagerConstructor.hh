@@ -16,6 +16,7 @@ namespace celeritas
 {
 class LocalTransporter;
 class SharedParams;
+class TrackingManagerIntegration;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -29,6 +30,14 @@ class SharedParams;
     physics_list->RegisterPhysics(new TrackingManagerConstructor{
         shared_params, [](int){ return &local_transporter; });
    \endcode
+ *
+ * For simpler integration, use celeritas::TrackingManagerIntegration:
+ * \code
+    auto* physics_list = new FTFP_BERT;
+    physics_list->RegisterPhysics(new TrackingManagerConstructor{
+        &TrackingManagerIntegration::Instance()});
+   \endcode
+ *
  *
  * The second argument is a function to get a reference to the thread-local \c
  * LocalTransporter from the Geant4 thread ID.
@@ -51,15 +60,26 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     TrackingManagerConstructor(SharedParams const* shared,
                                LocalTransporterFromThread get_local);
 
+    // Construct from tracking manager integration
+    explicit TrackingManagerConstructor(TrackingManagerIntegration* tmi);
+
     //! Null-op: particles are constructed elsewhere
     void ConstructParticle() override {}
 
     // Build and attach tracking manager
     void ConstructProcess() override;
 
+    //// ACCESSORS ////
+
+    //! Get the shared params associated with this TM
+    SharedParams const* shared_params() const { return shared_; }
+
+    // Get the local transporter associated with the current thread ID
+    LocalTransporter* get_local_transporter() const;
+
   private:
-    SharedParams const* shared_;
-    LocalTransporterFromThread get_local_;
+    SharedParams const* shared_{nullptr};
+    LocalTransporterFromThread get_local_{};
 };
 
 //---------------------------------------------------------------------------//

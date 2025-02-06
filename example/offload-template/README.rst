@@ -28,29 +28,14 @@ Build and run
 Boilerplate offloading code
 ---------------------------
 
-:file:`Celeritas.{hh,cc}`
-   Defines the needed components for a Celeritas offload execution:
-
-   - **Setup options**: memory allocation, physics, field, scoring, and so on
-   - **Shared parameters** used in the run: materials, physics processes
-     cross-section tables, and so on
-   - **Transporter**: execute/manage the particle transport
-   - **Simple Offload**: simplified user interface. Each ``SimpleOffload`` call
-     is briefly described below.
-
 :code:`G4VUserActionInitialization`
-  :code:`Build` and `BuildForMaster` construct Celeritas Simple Offload
-    interface with user-defined options (from ``Celeritas.cc``) and assign the
-    Celeritas tracking manager to the appropriate particles.
+  :code:`Build` and `BuildForMaster` construct the Celeritas integration
+    interface with user-defined options.
 
 :code:`G4UserRunAction`
   :code:`BeginOfRunAction` initializes Celeritas global shared data on master
-  and worker threads. :code:`EndOfRunAction` clears data and finalizes
-  Celeritas data.
-
-:code:`G4UserEventAction`
-  :code:`BeginOfEventAction` initializes an event in Celeritas, and
-  :code:`EndOfEventAction` flushes remaining particles.
+  and worker threads, setting up a tracking manager under the hood.
+  :code:`EndOfRunAction` clears data and finalizes Celeritas data.
 
 :code:`G4VSensitiveDetector`
   :code:`ProcessHits`: is currently the *only* Celeritas callback interface to

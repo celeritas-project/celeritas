@@ -29,6 +29,7 @@ list(APPEND SOURCES
   detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc
   detail/SensDetInserter.cc
+  detail/IntegrationSingleton.cc
   detail/TouchableUpdaterInterface.cc
 )
 
@@ -36,6 +37,7 @@ celeritas_polysource(ExceptionConverter)
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   list(APPEND SOURCES
+    TrackingManagerIntegration.cc
     TrackingManager.cc
     TrackingManagerConstructor.cc
   )

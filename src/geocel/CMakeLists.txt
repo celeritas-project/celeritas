@@ -50,7 +50,8 @@ if(CELERITAS_USE_Geant4)
     g4/detail/GeantGeoNavCollection.cc
   )
 
-  celeritas_get_g4libs(_cg4_libs global geometry materials persistency intercoms)
+  celeritas_get_g4libs(_cg4_libs global geometry materials particles
+    persistency intercoms)
   list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
   celeritas_target_link_libraries(geocel_geant4 PRIVATE ${_cg4_libs})
 
