@@ -88,6 +88,8 @@ size_type get_num_streams(bool merge_events)
             }
         }
     }
+#else
+    CELER_DISCARD(merge_events);
 #endif
 
     // TODO: Don't create more streams than events
