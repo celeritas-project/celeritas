@@ -152,7 +152,7 @@ bool IntegrationSingleton::initialize_local_transporter()
     {
         // When "kill offload", we still need to intercept tracks
         CELER_LOG_LOCAL(debug)
-            << R"(Skipping state construction with offload enabled)";
+            << R"(Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately)";
         return true;
     }
 
