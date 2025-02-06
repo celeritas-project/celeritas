@@ -54,10 +54,10 @@ struct PrintableLV
 };
 
 // Print detailed information about the touchable history.
-std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh);
+std::ostream& operator<<(std::ostream&, PrintableNavHistory const&);
 
 // Print the logical volume name, ID, and address.
-std::ostream& operator<<(std::ostream& os, PrintableLV const& pnh);
+std::ostream& operator<<(std::ostream&, PrintableLV const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

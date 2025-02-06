@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantUtils.hh"
 
+#include <G4ParticleDefinition.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4Version.hh>
@@ -88,6 +89,25 @@ int get_geant_thread_id()
         return G4Threading::G4GetThreadId();
     }
     return 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print a particle definition name and PDG.
+ */
+std::ostream& operator<<(std::ostream& os, PrintablePD const& ppd)
+{
+    if (ppd.pd)
+    {
+        os << '"' << ppd.pd->GetParticleName() << "\"@"
+           << static_cast<void const*>(ppd.pd)
+           << " (PDG=" << ppd.pd->GetParticleDefinitionID() << ')';
+    }
+    else
+    {
+        os << "{null G4ParticleDefinition}";
+    }
+    return os;
 }
 
 //---------------------------------------------------------------------------//
