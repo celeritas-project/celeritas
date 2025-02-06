@@ -72,6 +72,7 @@ class ObservingUniquePtr
     ~ObservingUniquePtr() = default;
 
     T* release() noexcept { return uptr_.release(); }
+    T* release_if_owned() noexcept { return uptr_ ? uptr_.release() : ptr_; }
     operator T*() const noexcept { return ptr_; }
     T* operator->() const noexcept { return ptr_; }
 
@@ -335,7 +336,7 @@ void OpticalPhysics::ConstructProcess()
         if (cherenkov->IsApplicable(*p)
             && process_is_active(OpticalProcessType::cherenkov, options_))
         {
-            process_manager->AddProcess(cherenkov.release());
+            process_manager->AddProcess(cherenkov.release_if_owned());
             process_manager->SetProcessOrdering(cherenkov, idxPostStep);
             CELER_LOG(debug) << "Loaded Optical Cherenkov with G4Cerenkov "
                                 "process for particle "
@@ -344,7 +345,7 @@ void OpticalPhysics::ConstructProcess()
         if (scint->IsApplicable(*p)
             && process_is_active(OpticalProcessType::scintillation, options_))
         {
-            process_manager->AddProcess(scint.release());
+            process_manager->AddProcess(scint.release_if_owned());
             process_manager->SetProcessOrderingToLast(scint, idxAtRest);
             process_manager->SetProcessOrderingToLast(scint, idxPostStep);
             CELER_LOG(debug)
