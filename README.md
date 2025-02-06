@@ -71,7 +71,7 @@ Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 
 # Installation for developers
 
@@ -141,7 +141,7 @@ The full set of configurations is viewable on CI platform [GitHub Actions][gha])
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
-[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development
@@ -152,7 +152,7 @@ details on coding in Celeritas, and [the administration guidelines][administrati
 
 [contributing-guidelines]: https://celeritas-project.github.io/celeritas/user/development/contributing.html
 [development-guidelines]: https://celeritas-project.github.io/celeritas/user/development/coding.html
-[administration-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/administration.html
+[administration-guidelines]: https://celeritas-project.github.io/celeritas/user/development/administration.html
 
 # Directory structure
 

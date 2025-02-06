@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/PolyEvaluator.test.cc
+//! \file corecel/math/PolyEvaluator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/PolyEvaluator.hh"
+#include "corecel/math/PolyEvaluator.hh"
 
 #include <type_traits>
 

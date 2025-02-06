@@ -5,6 +5,7 @@ cd "$(dirname $0)"/..
 SYSTEM_NAME=${LMOD_SYSTEM_NAME}
 if [ -z "${SYSTEM_NAME}" ]; then
   SYSTEM_NAME=${HOSTNAME%%.*}
+  SYSTEM_NAME=${SYSTEM_NAME%%login*}
 fi
 
 # Link user presets for this system if they don't exist

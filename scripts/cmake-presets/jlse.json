@@ -1,0 +1,117 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "inherits": ["full"],
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
+        "CMAKE_CUDA_ARCHITECTURES": "70;80;90",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "base",
+      "displayName": "JLSE default options (CUDA, VecGeom)",
+      "inherits": [".base"],
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "release",
+      "displayName": "Build with optimizations and disable debug assertions",
+      "inherits": [".base", ".ndebug"],
+      "binaryDir": "${sourceDir}/build-release"
+    },
+    {
+      "name": "reldeb",
+      "displayName": "Build with basic optimizations and debug assertions",
+      "inherits": [".base", ".reldeb"],
+      "binaryDir": "${sourceDir}/build-reldeb",
+      "cacheVariables": {
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Build with debug assertions",
+      "inherits": [".base", ".debug"],
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": {
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "release-orange",
+      "displayName": "Build with optimizations and disable VecGeom and debug assertions",
+      "inherits": [".base", "release"],
+      "binaryDir": "${sourceDir}/build-release-orange",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "reldeb-orange",
+      "displayName": "Build with debug assertions and disable VecGeom",
+      "inherits": [".base", "reldeb"],
+      "binaryDir": "${sourceDir}/build-reldeb-orange",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "float",
+      "displayName": "Build with single precision and disable VecGeom",
+      "inherits": ["reldeb-orange"],
+      "binaryDir": "${sourceDir}/build-float",
+      "cacheVariables": {
+        "CELERITAS_REAL_TYPE": "float"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "jobs": 8,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "release", "configurePreset": "release", "inherits": "base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
+    {"name": "debug", "configurePreset": "debug", "inherits": "base"},
+    {"name": "release-orange", "configurePreset": "release-orange", "inherits": "base"},
+    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": "base"},
+    {"name": "float", "configurePreset": "float", "inherits": "base"}
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {"name": "release", "configurePreset": "release", "inherits": "base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
+    {"name": "debug", "configurePreset": "debug", "inherits": "base"},
+    {"name": "release-orange", "configurePreset": "release-orange", "inherits": "base"},
+    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": "base"},
+    {"name": "float", "configurePreset": "float", "inherits": "base"}
+  ]
+}
