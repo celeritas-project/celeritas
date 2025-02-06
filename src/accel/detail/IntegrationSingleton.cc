@@ -167,7 +167,7 @@ bool IntegrationSingleton::initialize_local_transporter()
                            << " cannot be initialized more than once");
             lt.Initialize(options_, params_);
         },
-        ExceptionConverter{"celer.init.local"});
+        ExceptionConverter("celer.init.local"));
     return true;
 }
 
@@ -202,7 +202,7 @@ void IntegrationSingleton::finalize_local_transporter()
                            << " cannot be finalized more than once");
             lt.Finalize();
         },
-        ExceptionConverter{"celer.finalize.local"});
+        ExceptionConverter("celer.finalize.local"));
 }
 
 //---------------------------------------------------------------------------//
@@ -218,7 +218,7 @@ void IntegrationSingleton::finalize_shared_params()
                            << "params cannot be finalized more than once");
             params_.Finalize();
         },
-        ExceptionConverter{"celer.finalize.global"});
+        ExceptionConverter("celer.finalize.global"));
 }
 
 //---------------------------------------------------------------------------//

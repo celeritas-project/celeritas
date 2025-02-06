@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file scripts/ci/test-installation/example-accel.cc
+//! \file accel/user-action-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
@@ -42,23 +42,14 @@
 #include <accel/LocalTransporter.hh>
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
-#include <accel/SimpleOffload.hh>
+#include <accel/UserActionIntegration.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
+using celeritas::UserActionIntegration;
+
 namespace
 {
-//---------------------------------------------------------------------------//
-// Global shared setup options
-celeritas::SetupOptions setup_options;
-// Shared data and GPU setup
-celeritas::SharedParams shared_params;
-// Thread-local transporter
-G4ThreadLocal celeritas::LocalTransporter local_transporter;
-
-// Simple interface to running celeritas
-G4ThreadLocal celeritas::SimpleOffload simple_offload;
-
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
@@ -67,11 +58,6 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
         : aluminum_{new G4Material{
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
-        setup_options.make_along_step = celeritas::UniformAlongStepFactory();
-
-        // NOTE: since no SD is enabled, we must manually disable Celeritas hit
-        // processing
-        setup_options.sd.enabled = false;
     }
 
     G4VPhysicalVolume* Construct() final
@@ -121,11 +107,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        simple_offload.BeginOfRunAction(run);
+        UserActionIntegration::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        simple_offload.EndOfRunAction(run);
+        UserActionIntegration::Instance().EndOfRunAction(run);
     }
 };
 
@@ -135,12 +121,12 @@ class EventAction final : public G4UserEventAction
   public:
     void BeginOfEventAction(G4Event const* event) final
     {
-        simple_offload.BeginOfEventAction(event);
+        UserActionIntegration::Instance().BeginOfEventAction(event);
     }
 
     void EndOfEventAction(G4Event const* event) final
     {
-        simple_offload.EndOfEventAction(event);
+        UserActionIntegration::Instance().EndOfEventAction(event);
     }
 };
 
@@ -149,7 +135,8 @@ class TrackingAction final : public G4UserTrackingAction
 {
     void PreUserTrackingAction(G4Track const* track) final
     {
-        simple_offload.PreUserTrackingAction(const_cast<G4Track*>(track));
+        UserActionIntegration::Instance().PreUserTrackingAction(
+            const_cast<G4Track*>(track));
     }
 };
 
@@ -159,7 +146,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        simple_offload.BuildForMaster(&setup_options, &shared_params);
+        UserActionIntegration::Instance().BuildForMaster();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -167,8 +154,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
     void Build() const final
     {
-        simple_offload.Build(
-            &setup_options, &shared_params, &local_transporter);
+        UserActionIntegration::Instance().Build();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -178,6 +164,38 @@ class ActionInitialization final : public G4VUserActionInitialization
         this->SetUserAction(new TrackingAction{});
     }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct options for Celeritas.
+ */
+celeritas::SetupOptions MakeOptions()
+{
+    celeritas::SetupOptions opts;
+
+    opts.make_along_step = celeritas::UniformAlongStepFactory();
+
+    // NOTE: since no SD is enabled, we must manually disable Celeritas hit
+    // processing
+    opts.sd.enabled = false;
+
+    // NOTE: these numbers are appropriate for CPU execution
+    opts.max_num_tracks = 1024;
+    opts.initializer_capacity = 1024 * 128;
+    // This parameter will eventually be removed
+    opts.max_num_events = 1024;
+    // Celeritas does not support EmStandard MSC physics above 100 MeV
+    opts.ignore_processes = {"CoulombScat"};
+    if (G4VERSION_NUMBER >= 1110)
+    {
+        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
+        // consistent
+        opts.ignore_processes.push_back("Rayl");
+    }
+
+    opts.output_file = "simple-offload.out.json";
+    return opts;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -197,21 +215,7 @@ int main()
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new ActionInitialization());
 
-    // NOTE: these numbers are appropriate for CPU execution
-    setup_options.max_num_tracks = 1024;
-    setup_options.initializer_capacity = 1024 * 128;
-    // This parameter will eventually be removed
-    setup_options.max_num_events = 1024;
-    // Celeritas does not support EmStandard MSC physics above 100 MeV
-    setup_options.ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
-        // consistent
-        setup_options.ignore_processes.push_back("Rayl");
-    }
-
-    setup_options.output_file = "simple-offload.out.json";
+    UserActionIntegration::Instance().SetOptions(MakeOptions());
 
     run_manager->Initialize();
     run_manager->BeamOn(2);
