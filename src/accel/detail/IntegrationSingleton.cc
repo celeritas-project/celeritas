@@ -41,14 +41,13 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 
 //---------------------------------------------------------------------------//
 /*!
- * Static global setup options before constructing params.
+ * Assign global setup options before constructing params.
  */
-SetupOptions& IntegrationSingleton::setup_options()
+void IntegrationSingleton::setup_options(SetupOptions&& opts)
 {
     CELER_VALIDATE(
-        !params_,
-        << R"(options cannot be modified after Celeritas is constructed)");
-    return options_;
+        !params_, << R"(options cannot be set after Celeritas is constructed)");
+    options_ = std::move(opts);
 }
 
 //---------------------------------------------------------------------------//

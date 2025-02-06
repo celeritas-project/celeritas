@@ -136,9 +136,11 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
 /*!
  * Edit options before starting the run.
  */
-SetupOptions& TrackingManagerIntegration::Options()
+void TrackingManagerIntegration::SetOptions(SetupOptions&& opts)
 {
-    return detail::IntegrationSingleton::instance().setup_options();
+    CELER_TRY_HANDLE(
+        detail::IntegrationSingleton::instance().setup_options(std::move(opts)),
+        ExceptionConverter{"celer.setup"});
 }
 
 //---------------------------------------------------------------------------//

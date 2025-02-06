@@ -25,12 +25,10 @@ class TrackingManagerIntegration;
  * application. To use this class in your Geant4 application to offload tracks
  * to Celeritas:
  *
- * - Set up the \c Options before calling \c G4RunManager::Initialize: usually
- *   in \c main .
- * - Call \c Build and \c BuildForMaster from the corresponding \c
- *   G4UserActionInitialization::Build functions
- * - Call \c BeginOfRunAction and \c EndOfRunAction from the corresponding \c
- * G4UserRunAction
+ * - Use \c SetOptions to set up options before \c G4RunManager::Initialize:
+ *   usually in \c main for simple applications.
+ * - Call \c Build and \c BuildForMaster from \c UserActionInitialization
+ * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
  *
  * The \c CELER_DISABLE environment variable, if set and non-empty, will
  * disable offloading so that Celeritas will not be built nor kill tracks.
@@ -47,7 +45,7 @@ class TrackingManagerIntegration
     static TrackingManagerIntegration& Instance();
 
     // Edit options before starting the run
-    SetupOptions& Options();
+    void SetOptions(SetupOptions&& opts);
 
     // Initialize during ActionInitialization on non-worker thread
     void BuildForMaster();

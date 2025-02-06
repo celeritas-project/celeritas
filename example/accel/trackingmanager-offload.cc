@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/trackingmanager-offload.cc
+//! \file accel/trackingmanager-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
@@ -187,26 +187,13 @@ class ActionInitialization final : public G4VUserActionInitialization
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace
-
-int main()
+/*!
+ * Construct options for Celeritas.
+ */
+celeritas::SetupOptions MakeOptions()
 {
-    auto run_manager = std::unique_ptr<G4RunManager>{
-        G4RunManagerFactory::CreateRunManager()};
-
-    run_manager->SetUserInitialization(new DetectorConstruction{});
-
-    auto& tmi = celeritas::TrackingManagerIntegration::Instance();
-
-    // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
-    auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
-    physics_list->RegisterPhysics(
-        new celeritas::TrackingManagerConstructor(&tmi));
-    run_manager->SetUserInitialization(physics_list);
-    run_manager->SetUserInitialization(new ActionInitialization());
-
+    celeritas::SetupOptions opts;
     // NOTE: these numbers are appropriate for CPU execution
-    celeritas::SetupOptions& opts = tmi.Options();
     opts.max_num_tracks = 1024;
     opts.initializer_capacity = 1024 * 128;
     // This parameter will eventually be removed
@@ -227,6 +214,29 @@ int main()
     opts.geometry_output_file = "simple-example.gdml";
     // Save diagnostic file to a unique name
     opts.output_file = "trackingmanager-offload.out.json";
+    return opts;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+int main()
+{
+    auto run_manager = std::unique_ptr<G4RunManager>{
+        G4RunManagerFactory::CreateRunManager()};
+
+    run_manager->SetUserInitialization(new DetectorConstruction{});
+
+    auto& tmi = celeritas::TrackingManagerIntegration::Instance();
+
+    // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
+    auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
+    physics_list->RegisterPhysics(
+        new celeritas::TrackingManagerConstructor(&tmi));
+    run_manager->SetUserInitialization(physics_list);
+    run_manager->SetUserInitialization(new ActionInitialization());
+
+    tmi.SetOptions(MakeOptions());
 
     run_manager->Initialize();
     run_manager->BeamOn(2);
