@@ -20,7 +20,7 @@ High-level interface
 Using Celeritas to "offload" all electrons, photons, and gammas from Geant4 can
 be done using the new-ish Geant4 interface :cpp:class:`G4VTrackingManager`
 implemented by :cpp:class:`celeritas::TrackingManager`. To set up the tracking
-manager correctly, we recommend using this helper class class:
+manager correctly, we recommend using this helper class:
 
 .. doxygenclass:: celeritas::TrackingManagerConstructor
 
