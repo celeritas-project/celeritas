@@ -85,16 +85,17 @@ void TrackingManagerConstructor::ConstructProcess()
 
     CELER_LOG_LOCAL(debug) << "Activating tracking manager";
 
-    CELER_VALIDATE(shared_ && get_local_,
-                   << "invalid null inputs given to "
-                      "TrackingManagerConstructor");
-    auto* local_transporter = get_local_(G4Threading::G4GetThreadId());
-    CELER_VALIDATE(local_transporter, << "invalid null local transporter");
+    // Note that error checking occurs here to provide better error messages
+    CELER_VALIDATE(
+        shared_ && get_local_,
+        << R"(invalid null inputs given to TrackingManagerConstructor)");
+
+    auto* transporter = this->get_local_transporter();
+    CELER_VALIDATE(transporter, << "invalid null local transporter");
 
     // Create *thread-local* tracking manager with pointers to *global*
     // shared params and *thread-local* transporter.
-    auto manager
-        = std::make_unique<TrackingManager>(shared_, local_transporter);
+    auto manager = std::make_unique<TrackingManager>(shared_, transporter);
     auto* manager_ptr = manager.get();
 
     for (auto* p : OffloadParticles())
@@ -106,6 +107,16 @@ void TrackingManagerConstructor::ConstructProcess()
         // (Note that it is leaked in Geant4 11.0 and 11.1 for MT mode.)
         p->SetTrackingManager(manager ? manager.release() : manager_ptr);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the local transporter associated with the current thread ID.
+ */
+LocalTransporter* TrackingManagerConstructor::get_local_transporter() const
+{
+    CELER_EXPECT(get_local_);
+    return this->get_local_(G4Threading::G4GetThreadId());
 }
 
 //---------------------------------------------------------------------------//

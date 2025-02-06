@@ -17,11 +17,21 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
 High-level interface
 --------------------
 
-The :cpp:class:`TrackingManagerIntegration` provides easy-to-use methods for
-using Celeritas as a tracking manager to offload electrons, photons, and gammas
-to Celeritas. See :ref:`example_template` for the boilerplate code
+Using Celeritas to "offload" all electrons, photons, and gammas from Geant4 can
+be done using the new-ish Geant4 interface :cpp:class:`G4VTrackingManager`
+implemented by :cpp:class:`celeritas::TrackingManager`. To set up the tracking
+manager correctly, we recommend using this helper class class:
+
+.. doxygenclass:: celeritas::TrackingManagerConstructor
+
+The high-level :cpp:class:`TrackingManagerIntegration` class should be used in
+addition to the tracking manager constructor to set up and tear down Celeritas.
+See :ref:`example_template` for a template of adding to a user application.
 
 .. doxygenclass:: celeritas::TrackingManagerIntegration
+   :members:
+   :no-link:
+
 
 The :cpp:class:`SetupOptionsMessenger`, instantiated by the Integration helper
 classes, provides a Geant4 "UI" macro interface to an app's Celeritas options.
