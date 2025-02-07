@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/xs/LivermorePEMicroXsCalculator.hh
@@ -10,12 +9,12 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 
 namespace celeritas
 {
@@ -29,7 +28,7 @@ class LivermorePEMicroXsCalculator
     //!@{
     //! \name Type aliases
     using ParamsRef = LivermorePERef;
-    using Energy = Quantity<LivermoreSubshell::EnergyUnits>;
+    using Energy = RealQuantity<LivermoreSubshell::EnergyUnits>;
     using BarnXs = units::BarnXs;
     //!@}
 

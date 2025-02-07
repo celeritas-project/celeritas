@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/grid/XsGridData.hh
@@ -24,6 +23,9 @@ namespace celeritas
  *
  * Interpolation is linear-linear after transforming to log-E space and before
  * scaling the value by E (if the grid point is above prime_index).
+ *
+ * \c derivative stores the second derivative of the interpolating cubic
+ * spline.  If it is non-empty, spline interpolation will be used.
  */
 struct XsGridData
 {
@@ -39,13 +41,15 @@ struct XsGridData
     UniformGridData log_energy;
     size_type prime_index{no_scaling()};
     ItemRange<real_type> value;
+    ItemRange<real_type> derivative;
 
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return log_energy && (value.size() >= 2)
                && (prime_index < log_energy.size || prime_index == no_scaling())
-               && log_energy.size == value.size();
+               && log_energy.size == value.size()
+               && (derivative.empty() || derivative.size() == value.size());
     }
 };
 

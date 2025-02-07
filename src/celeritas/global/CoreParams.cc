@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/CoreParams.cc
@@ -55,6 +54,8 @@
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
+
+#include "detail/CoreSizes.json.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeParams.hh"
@@ -207,6 +208,30 @@ CoreScalars build_actions(ActionRegistry* reg)
 }
 
 //---------------------------------------------------------------------------//
+auto get_core_sizes(CoreParams const& cp)
+{
+    auto const& init = *cp.init();
+
+    detail::CoreSizes result;
+    result.processes = comm_world().size();
+    result.streams = cp.max_streams();
+
+    // NOTE: quantities are *per-process* quantities: integrated over streams,
+    // but not processes
+    result.initializers = result.streams * init.capacity();
+    result.tracks = result.streams * cp.tracks_per_stream();
+    // Number of secondaries is currently based on track size
+    result.secondaries = static_cast<size_type>(
+        cp.physics()->host_ref().scalars.secondary_stack_factor
+        * result.tracks);
+    // Event IDs are the same across all threads so this is *not* multiplied by
+    // streams
+    result.events = init.max_events();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -312,6 +337,11 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
     input_.output_reg->insert(std::make_shared<BuildOutput>());
+    input_.output_reg->insert(
+        OutputInterfaceAdapter<detail::CoreSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "core-sizes",
+            get_core_sizes(*this)));
 
     // Save core diagnostic information
     input_.output_reg->insert(

@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -62,6 +61,9 @@ if(BUILD_SHARED_LIBS)
   string(APPEND CELERITAS_BUILD_TYPE "shared")
 else()
   string(APPEND CELERITAS_BUILD_TYPE "static")
+  if(CMAKE_POSITION_INDEPENDENT_CODE)
+    string(APPEND CELERITAS_BUILD_TYPE ",pic")
+  endif()
 endif()
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
   string(TOLOWER "celeritas_${_var}" _lower)
@@ -83,7 +85,7 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
 set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP CUDA HIP Geant4 Thrust VecGeom)
+foreach(_pkg CLHEP CUDA HepMC3 HIP Geant4 ROOT Thrust VecGeom)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
     set(_value "${${_pkg}_VERSION_STRING}")
@@ -154,6 +156,7 @@ list(APPEND SOURCES
   io/detail/EnumStringMapperImpl.cc
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
+  math/TridiagonalSolver.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc

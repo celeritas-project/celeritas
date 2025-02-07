@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/StringUtils.cc
@@ -69,7 +68,7 @@ bool cstring_equal(char const* lhs, char const* rhs)
 /*!
  * Return a string view with leading and trailing whitespace removed.
  */
-std::string_view trim(std::string_view input)
+[[nodiscard]] std::string_view trim(std::string_view input)
 {
     auto start = input.begin();
     auto stop = input.end();
@@ -82,6 +81,20 @@ std::string_view trim(std::string_view input)
         --stop;
     }
     return {&(*start), static_cast<std::size_t>(stop - start)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a lower-cased copy of the input string.
+ */
+[[nodiscard]] std::string tolower(std::string_view input)
+{
+    std::string result(input.size(), ' ');
+    std::transform(
+        input.begin(), input.end(), result.begin(), [](unsigned char c) {
+            return std::tolower(c);
+        });
+    return result;
 }
 
 //---------------------------------------------------------------------------//

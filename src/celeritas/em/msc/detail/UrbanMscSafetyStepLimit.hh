@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/msc/detail/UrbanMscSafetyStepLimit.hh
@@ -12,10 +11,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
@@ -50,14 +49,15 @@ class UrbanMscSafetyStepLimit
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
-                                                  UrbanMscHelper const& helper,
-                                                  Energy inc_energy,
-                                                  PhysicsTrackView* physics,
-                                                  MaterialId matid,
-                                                  bool on_boundary,
-                                                  real_type safety,
-                                                  real_type phys_step);
+    inline CELER_FUNCTION
+    UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
+                            UrbanMscHelper const& helper,
+                            ParticleTrackView const& particle,
+                            PhysicsTrackView* physics,
+                            MaterialId matid,
+                            bool on_boundary,
+                            real_type safety,
+                            real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>
@@ -106,14 +106,15 @@ class UrbanMscSafetyStepLimit
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
-                                                 UrbanMscHelper const& helper,
-                                                 Energy inc_energy,
-                                                 PhysicsTrackView* physics,
-                                                 MaterialId matid,
-                                                 bool on_boundary,
-                                                 real_type safety,
-                                                 real_type phys_step)
+UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
+    UrbanMscRef const& shared,
+    UrbanMscHelper const& helper,
+    ParticleTrackView const& particle,
+    PhysicsTrackView* physics,
+    MaterialId matid,
+    bool on_boundary,
+    real_type safety,
+    real_type phys_step)
     : shared_(shared), helper_(helper), max_step_(phys_step)
 {
     CELER_EXPECT(safety >= 0);
@@ -121,7 +122,7 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
     CELER_EXPECT(max_step_ > shared_.params.limit_min_fix());
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
-    bool use_safety_plus = physics->scalars().step_limit_algorithm
+    bool use_safety_plus = physics->particle_scalars().step_limit_algorithm
                            == MscStepLimitAlgorithm::safety_plus;
     real_type const range = physics->dedx_range();
     auto const& msc_range = physics->msc_range();
@@ -130,22 +131,27 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
     {
         MscRange new_range;
         // Initialize MSC range cache on the first step in a volume
-        // TODO for hadrons/muons: this value is hard-coded for electrons
-        new_range.range_factor = physics->scalars().range_factor;
+        new_range.range_factor = physics->particle_scalars().range_factor;
+        new_range.range_init = range;
+
         // XXX the 1 MFP limitation is applied to the *geo* step, not the true
         // step, so this isn't quite right (See UrbanMsc.hh)
-        new_range.range_init = use_safety_plus
-                                   ? range
-                                   : max<real_type>(range, helper_.msc_mfp());
-        if (helper_.msc_mfp() > physics->scalars().lambda_limit)
+        if (!particle.is_heavy())
         {
-            real_type c = use_safety_plus ? 0.84 : 0.75;
-            new_range.range_factor *= c
-                                      + (1 - c) * helper_.msc_mfp()
-                                            / physics->scalars().lambda_limit;
+            real_type mfp = helper.msc_mfp();
+            if (!use_safety_plus && mfp > range)
+            {
+                new_range.range_init = mfp;
+            }
+            if (mfp > physics->scalars().lambda_limit)
+            {
+                real_type c = use_safety_plus ? 0.84 : 0.75;
+                new_range.range_factor
+                    *= c + (1 - c) * mfp / physics->scalars().lambda_limit;
+            }
         }
-        new_range.limit_min
-            = this->calc_limit_min(shared_.material_data[matid], inc_energy);
+        new_range.limit_min = this->calc_limit_min(
+            shared_.material_data[matid], particle.energy());
 
         // Store persistent range properties within this tracking volume
         physics->msc_range(new_range);

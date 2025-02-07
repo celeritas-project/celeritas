@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -47,15 +46,30 @@ if(CELERITAS_EXTERNAL_Perfetto)
   endif()
   FetchContent_Declare(
     Perfetto
-    # v45.0
-    URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
+    URL https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz
   )
   list(APPEND _celer_external_packages Perfetto)
 endif()
 
 #-----------------------------------------------------------------------------#
+# G4VG
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL_G4VG)
+  FetchContent_Declare(
+    G4VG
+    URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.1/g4vg-1.0.1.tar.gz
+  )
+  list(APPEND _celer_external_packages G4VG)
+  foreach(_var BUILD_TESTS DEBUG)
+    set(G4VG_${_var} CELERITAS_${_var})
+  endforeach()
+endif()
+
+#-----------------------------------------------------------------------------#
 # BUILD
 #-----------------------------------------------------------------------------#
+
 # Save some variables to see if badly behaving packages change them
 set(_checked_cmake_variables
   BUILD_SHARED_LIBS CMAKE_CXX_STANDARD CMAKE_CXX_EXTENSIONS
@@ -74,7 +88,7 @@ endforeach()
 FetchContent_MakeAvailable(${_celer_external_packages})
 
 # Check that variables are unmodified
-foreach(_var IN LISTS _checked_variables)
+foreach(_var IN LISTS _checked_cmake_variables)
   set(_orig "${_saved_${_var}}")
   set(_new "${${_var}}")
   if(NOT "${_new}" STREQUAL "${_orig}")

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/StepCollector.cc
@@ -47,10 +46,8 @@ StepCollector::StepCollector(SPConstGeo geo,
                              ActionRegistry* action_registry)
 {
     CELER_EXPECT(!callbacks.empty());
-    CELER_EXPECT(std::all_of(
-        callbacks.begin(), callbacks.end(), [](SPStepInterface const& i) {
-            return static_cast<bool>(i);
-        }));
+    CELER_EXPECT(
+        std::all_of(callbacks.begin(), callbacks.end(), LogicalTrue{}));
     CELER_EXPECT(geo);
     CELER_EXPECT(aux_registry);
     CELER_EXPECT(action_registry);

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/process/EPlusAnnihilationProcess.hh
@@ -10,6 +9,7 @@
 #include <memory>
 
 #include "celeritas/Types.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
 
@@ -25,6 +25,7 @@ class EPlusAnnihilationProcess final : public Process
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
     // Options for electron-positron annihilation
@@ -37,6 +38,7 @@ class EPlusAnnihilationProcess final : public Process
   public:
     // Construct from particle data
     explicit EPlusAnnihilationProcess(SPConstParticles particles,
+                                      SPConstImported process_data,
                                       Options options);
 
     // Construct the models associated with this process
@@ -48,6 +50,9 @@ class EPlusAnnihilationProcess final : public Process
     //! Whether to use the integral method to sample interaction length
     bool use_integral_xs() const final { return options_.use_integral_xs; }
 
+    //! Whether the process applies when the particle is stopped
+    bool applies_at_rest() const final { return applies_at_rest_; }
+
     // Name of the process
     std::string_view label() const final;
 
@@ -55,6 +60,7 @@ class EPlusAnnihilationProcess final : public Process
     SPConstParticles particles_;
     ParticleId positron_id_;
     Options options_;
+    bool applies_at_rest_;
 };
 
 //---------------------------------------------------------------------------//

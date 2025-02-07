@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/Units.test.cc
@@ -18,6 +17,13 @@ namespace units
 namespace test
 {
 //---------------------------------------------------------------------------//
+// Locally replace the Celeritas "real" expectation for one that forces
+// Constant objects to double-precision
+#undef EXPECT_REAL_EQ
+#define EXPECT_REAL_EQ(a, b) \
+    EXPECT_DOUBLE_EQ(static_cast<double>(a), static_cast<double>(b))
+
+//---------------------------------------------------------------------------//
 TEST(UnitsTest, equivalence)
 {
     EXPECT_REAL_EQ(ampere * ampere * second * second * second * second
@@ -27,8 +33,7 @@ TEST(UnitsTest, equivalence)
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        constexpr real_type erg = gram * centimeter * centimeter
-                                  / (second * second);
+        constexpr auto erg = gram * centimeter * centimeter / (second * second);
 
         EXPECT_EQ(real_type(1), erg);
         EXPECT_EQ(1e7 * erg, joule);

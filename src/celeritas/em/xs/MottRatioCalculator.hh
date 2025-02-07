@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/xs/MottRatioCalculator.hh
@@ -10,8 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 
 namespace celeritas
 {
@@ -23,13 +22,12 @@ namespace celeritas
  * This ratio is an adjustment of the cross section from a purely classical
  * treatment of a point nucleus in an electronic cloud (Rutherford scattering)
  * to a quantum mechanical treatment. The implementation is an interpolated
- * approximation developed in [LQZ95] and described in the Geant Physics
- * Reference Manual [PRM] (Release 1.11) section 8.4
+ * approximation developed in \citet{lijian-mott-1995,
+ * https://doi.org/10.1016/0969-806X(94)00063-8} and described in \citet{g4prm,
+ * https://geant4-userdoc.web.cern.ch/UsersGuides/PhysicsReferenceManual/html/index.html}
+ * section 8.4.
  *
- * [LQZ95] T. Lijian, H. Quing and L. Zhengming, Radiat. Phys. Chem. 45 (1995),
- *     235-245
- *
- * The parameter \c cos_theta is the cosine of the scattered angle in the
+ * The input argument \c cos_theta is the cosine of the scattered angle in the
  * z-aligned momentum frame.
  */
 class MottRatioCalculator

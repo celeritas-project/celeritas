@@ -1,5 +1,4 @@
-.. Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
 .. _api_g4_interface:
@@ -18,6 +17,27 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
 High-level interface
 --------------------
 
+Using Celeritas to "offload" all electrons, photons, and gammas from Geant4 can
+be done using the new-ish Geant4 interface :cpp:class:`G4VTrackingManager`
+implemented by :cpp:class:`celeritas::TrackingManager`. To set up the tracking
+manager correctly, we recommend using this helper class:
+
+.. doxygenclass:: celeritas::TrackingManagerConstructor
+
+The high-level :cpp:class:`TrackingManagerIntegration` class should be used in
+addition to the tracking manager constructor to set up and tear down Celeritas.
+See :ref:`example_template` for a template of adding to a user application.
+
+.. doxygenclass:: celeritas::TrackingManagerIntegration
+   :members:
+   :no-link:
+
+
+The :cpp:class:`SetupOptionsMessenger`, instantiated by the Integration helper
+classes, provides a Geant4 "UI" macro interface to an app's Celeritas options.
+
+.. doxygenclass:: celeritas::SetupOptionsMessenger
+
 The :cpp:class:`celeritas::SimpleOffload` class is an extremely easy-to-use
 interface for
 offloading tracks to Celeritas in a multithreaded or serial application. The
@@ -27,15 +47,13 @@ and :cpp:class:`celeritas::LocalTransporter` to be owned by
 the calling application; the options described below must also be set up and
 provided.
 
+.. deprecated:: v0.6
+
+   Use the :cpp:class:`celeritas::TrackingManagerIntegration` class.
+
 .. doxygenclass:: celeritas::SimpleOffload
    :members:
    :no-link:
-
-The :cpp:class:`SetupOptionsMessenger` can be instantiated with a reference to
-a global :cpp:class:`SetupOptions` instance in order to provide a Geant4 "UI"
-macro interface to an app's Celeritas options.
-
-.. doxygenclass:: celeritas::SetupOptionsMessenger
 
 Celeritas setup
 ---------------
@@ -44,6 +62,20 @@ The setup options help translate the Geant4 physics and problem setup to
 Celeritas. They are also necessary to set up the GPU offloading
 characteristics. Future versions of Celeritas will automate more of these
 settings.
+
+By default, sensitive detectors are automatically mapped from Geant4 to
+Celeritas using the ``enabled`` option of
+:cpp:struct:`celeritas::SDSetupOptions`. If no SDs are present (e.g., in a test
+problem, or one which has only a "stepping manager" which is not presently
+compatible with Celeritas), the Celeritas setup will fail with an error like:
+
+.. code-block:: none
+
+   *** G4Exception : celer0001
+         issued by : accel/detail/HitManager.cc:210
+   Celeritas runtime error: no G4 sensitive detectors are defined: set `SetupOptions.sd.enabled` to `false` if this is expected
+   *** Fatal Exception *** core dump ***
+
 
 .. doxygenstruct:: celeritas::SetupOptions
    :members:
@@ -81,6 +113,8 @@ Interface utilities
 
 .. doxygenclass:: celeritas::ExceptionConverter
 
+.. doxygenstruct:: celeritas::AlongStepFactoryInput
+
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
 
 
@@ -107,8 +141,6 @@ Geant4 geometry utilities
 
 .. doxygenfunction:: celeritas::load_geant_geometry
 .. doxygenfunction:: celeritas::find_geant_volumes
-
-.. doxygenclass:: celeritas::g4vg::Converter
 
 Geant4 physics interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^

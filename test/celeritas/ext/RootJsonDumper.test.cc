@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/RootJsonDumper.test.cc
@@ -237,7 +236,8 @@ TEST_F(RootJsonDumperTest, all)
       "micro_xs" : []
     }]
   }],
-  "tables" : []
+  "tables" : [],
+  "applies_at_rest" : true
 }, {
   "_typename" : "celeritas::ImportProcess",
   "particle_pdg" : 13,
@@ -273,7 +273,8 @@ TEST_F(RootJsonDumperTest, all)
       "x" : [1000, 100000000],
       "y" : [0, 7.63113707977686e-4]
     }]
-  }]
+  }],
+  "applies_at_rest" : false
 }],
 "msc_models" : [{
   "_typename" : "celeritas::ImportMscModel",
@@ -344,9 +345,14 @@ TEST_F(RootJsonDumperTest, all)
   "integral_approach" : true,
   "linear_loss_limit" : 0.01,
   "lowest_electron_energy" : 0.001,
+  "lowest_muhad_energy" : 0.001,
   "auger" : false,
   "msc_step_algorithm" : 1,
+  "msc_muhad_step_algorithm" : 0,
+  "msc_displaced" : 1,
+  "msc_muhad_displaced" : 0,
   "msc_range_factor" : 0.04,
+  "msc_muhad_range_factor" : 0.2,
   "msc_safety_factor" : 0.6,
   "msc_lambda_limit" : 0.1,
   "msc_theta_limit" : 3.14159265358979,

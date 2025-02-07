@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/SimpleOffload.cc
@@ -46,14 +45,6 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
             celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
         }
     }
-    if (SharedParams::CeleritasDisabled())
-    {
-        CELER_LOG_LOCAL(debug)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
-        *this = {};
-        CELER_ENSURE(!*this);
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -62,10 +53,7 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
  */
 void SimpleOffload::BeginOfRunAction(G4Run const*)
 {
-    if (!*this)
-        return;
-
-    ExceptionConverter call_g4exception{"celer0001"};
+    ExceptionConverter call_g4exception{"celer.init"};
 
     if (G4Threading::IsMasterThread())
     {
@@ -73,8 +61,12 @@ void SimpleOffload::BeginOfRunAction(G4Run const*)
     }
     else
     {
-        CELER_TRY_HANDLE(celeritas::SharedParams::InitializeWorker(*setup_),
-                         call_g4exception);
+        CELER_TRY_HANDLE(params_->InitializeWorker(*setup_), call_g4exception);
+    }
+
+    if (params_->mode() != SharedParams::Mode::enabled)
+    {
+        local_ = {};
     }
 
     if (local_)
@@ -91,11 +83,11 @@ void SimpleOffload::BeginOfRunAction(G4Run const*)
  */
 void SimpleOffload::BeginOfEventAction(G4Event const* event)
 {
-    if (!*this)
+    if (!local_)
         return;
 
     // Set event ID in local transporter and reseed RNG for reproducibility
-    ExceptionConverter call_g4exception{"celer0002"};
+    ExceptionConverter call_g4exception{"celer.event.begin"};
     CELER_TRY_HANDLE(local_->InitializeEvent(event->GetEventID()),
                      call_g4exception);
 }
@@ -106,20 +98,22 @@ void SimpleOffload::BeginOfEventAction(G4Event const* event)
  */
 void SimpleOffload::PreUserTrackingAction(G4Track* track)
 {
-    if (!*this && !SharedParams::KillOffloadTracks())
+    CELER_EXPECT(params_);
+    auto const mode = params_->mode();
+    if (mode == SharedParams::Mode::disabled)
         return;
 
-    if (std::find(params_->OffloadParticles().begin(),
-                  params_->OffloadParticles().end(),
-                  track->GetDefinition())
-        != params_->OffloadParticles().end())
+    auto const& particles = params_->OffloadParticles();
+    if (std::find(particles.begin(), particles.end(), track->GetDefinition())
+        != particles.end())
     {
-        if (!SharedParams::CeleritasDisabled())
+        if (mode == SharedParams::Mode::enabled)
         {
             // Celeritas is transporting this track
-            ExceptionConverter call_g4exception{"celer0003", params_};
+            ExceptionConverter call_g4exception{"celer.track.push", params_};
             CELER_TRY_HANDLE(local_->Push(*track), call_g4exception);
         }
+        // Either "pushed" or we're in kill_offload mode
         track->SetTrackStatus(fStopAndKill);
     }
 }
@@ -130,10 +124,11 @@ void SimpleOffload::PreUserTrackingAction(G4Track* track)
  */
 void SimpleOffload::EndOfEventAction(G4Event const*)
 {
-    if (!*this)
+    CELER_EXPECT(params_);
+    if (!local_)
         return;
 
-    ExceptionConverter call_g4exception{"celer0004", params_};
+    ExceptionConverter call_g4exception{"celer.event.flush", params_};
     CELER_TRY_HANDLE(local_->Flush(), call_g4exception);
 }
 
@@ -143,11 +138,10 @@ void SimpleOffload::EndOfEventAction(G4Event const*)
  */
 void SimpleOffload::EndOfRunAction(G4Run const*)
 {
-    if (!*this)
-        return;
+    CELER_EXPECT(params_);
 
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-    ExceptionConverter call_g4exception{"celer0005"};
+    ExceptionConverter call_g4exception{"celer.finalize"};
 
     if (local_)
     {
@@ -158,6 +152,18 @@ void SimpleOffload::EndOfRunAction(G4Run const*)
     {
         CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether offloading is enabled.
+ *
+ * \warning This is still "false" if this class is used to kill tracks with the
+ * CELER_KILL_OFFLOAD option.
+ */
+SimpleOffload::operator bool() const
+{
+    return params_ && params_->mode() == SharedParams::Mode::enabled;
 }
 
 //---------------------------------------------------------------------------//

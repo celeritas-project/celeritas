@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHBuilder.test.cc
@@ -31,6 +30,7 @@ class BIHBuilderTest : public ::celeritas::test::Test
 
   protected:
     std::vector<FastBBox> bboxes_;
+    BIHBuilder::SetLocalVolId implicit_vol_ids_;
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
 };
 
@@ -84,10 +84,11 @@ TEST_F(BIHBuilderTest, basic)
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
     BIHBuilder build(&storage_);
-    auto bih_tree = build(std::move(bboxes_));
-    ASSERT_EQ(1, bih_tree.inf_volids.size());
+    auto bih_tree = build(std::move(bboxes_), implicit_vol_ids_);
+
+    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test bounding box storage
     auto bbox1 = storage_.bboxes[bih_tree.bboxes[LocalVolumeId{2}]];
@@ -272,10 +273,10 @@ TEST_F(BIHBuilderTest, grid)
     bboxes_.push_back({{2, 3, 0}, {3, 4, 100}});
 
     BIHBuilder build(&storage_);
-    auto bih_tree = build(std::move(bboxes_));
-    ASSERT_EQ(1, bih_tree.inf_volids.size());
+    auto bih_tree = build(std::move(bboxes_), implicit_vol_ids_);
+    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
     auto inner_nodes = bih_tree.inner_nodes;
@@ -480,9 +481,9 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
 
     BIHBuilder build(&storage_);
-    auto bih_tree = build(std::move(bboxes_));
+    auto bih_tree = build(std::move(bboxes_), implicit_vol_ids_);
 
-    ASSERT_EQ(0, bih_tree.inf_volids.size());
+    ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
@@ -498,9 +499,9 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
 
     BIHBuilder build(&storage_);
-    auto bih_tree = build(std::move(bboxes_));
+    auto bih_tree = build(std::move(bboxes_), implicit_vol_ids_);
 
-    ASSERT_EQ(0, bih_tree.inf_volids.size());
+    ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
@@ -516,14 +517,14 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
     bboxes_.push_back(FastBBox::from_infinite());
 
     BIHBuilder build(&storage_);
-    auto bih_tree = build(std::move(bboxes_));
+    auto bih_tree = build(std::move(bboxes_), implicit_vol_ids_);
 
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
-    ASSERT_EQ(1, bih_tree.inf_volids.size());
+    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
 
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 }
 
 TEST_F(BIHBuilderTest, multiple_infinite_volumes)
@@ -532,16 +533,16 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     bboxes_.push_back(FastBBox::from_infinite());
 
     BIHBuilder build(&storage_);
-    auto bih_tree = build(std::move(bboxes_));
+    auto bih_tree = build(std::move(bboxes_), implicit_vol_ids_);
 
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
-    ASSERT_EQ(2, bih_tree.inf_volids.size());
+    ASSERT_EQ(2, bih_tree.inf_vol_ids.size());
 
     EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
     EXPECT_EQ(LocalVolumeId{1},
-              storage_.local_volume_ids[bih_tree.inf_volids[1]]);
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[1]]);
 }
 
 TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
@@ -555,7 +556,7 @@ TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
     bboxes_.push_back(FastBBox{{-inff, 0, 0}, {inff, 1, 1}});
 
     BIHBuilder build(&storage_);
-    EXPECT_THROW(build(std::move(bboxes_)), DebugError);
+    EXPECT_THROW(build(std::move(bboxes_), implicit_vol_ids_), DebugError);
 }
 
 //---------------------------------------------------------------------------//

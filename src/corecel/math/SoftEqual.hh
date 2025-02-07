@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/SoftEqual.hh
@@ -46,9 +45,10 @@ CELER_CONSTEXPR_FUNCTION real_type sqrt_tol()
  \f]
  *
  * \note The edge case where both values are infinite (with the same sign)
- * returns *false* for equality, which could be considered reasonable because
+ * returns \em false for equality, which could be considered reasonable because
  * relative error is meaningless. To explicitly allow infinities to compare
- * equal, you must test separately, e.g., `a == b || soft_eq(a, b)`.
+ * equal, you must test separately, e.g., `a == b || soft_eq(a, b)` using \c
+ * celeritas::EqualOr.
  */
 template<class RealType = ::celeritas::real_type>
 class SoftEqual

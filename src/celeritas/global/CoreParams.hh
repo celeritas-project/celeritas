@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/CoreParams.hh
@@ -38,6 +37,9 @@ class WentzelOKVIParams;
 //---------------------------------------------------------------------------//
 /*!
  * Global parameters required to run a problem.
+ *
+ * \todo Applications specify \c tracks_per_stream to build the states, but
+ * unit tests currently omit this option.
  */
 class CoreParams final : public ParamsDataInterface<CoreParamsData>
 {
@@ -85,6 +87,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
+
+        //! Number of track slots per stream
+        StreamId::size_type tracks_per_stream{0};
 
         //! True if all params are assigned and valid
         explicit operator bool() const
@@ -135,6 +140,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //! Maximum number of streams
     size_type max_streams() const { return input_.max_streams; }
+
+    //! Number of track slots per stream
+    size_type tracks_per_stream() const { return input_.tracks_per_stream; }
 
   private:
     Input input_;

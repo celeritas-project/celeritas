@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/process/EPlusAnnihilationProcess.cc
@@ -25,10 +24,16 @@ namespace celeritas
  * Construct from host data.
  */
 EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
+                                                   SPConstImported process_data,
                                                    Options options)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
     , options_(options)
+    , applies_at_rest_(ImportedProcessAdapter(process_data,
+                                              particles_,
+                                              ImportProcessClass::annihilation,
+                                              {pdg::positron()})
+                           .applies_at_rest())
 {
     CELER_EXPECT(particles_);
     CELER_ENSURE(positron_id_);

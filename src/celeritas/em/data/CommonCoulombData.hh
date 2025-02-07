@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/data/CommonCoulombData.hh
@@ -13,11 +12,12 @@
 
 namespace celeritas
 {
+//! Opaque index to MSC-applicable particles
+using MscParticleId = OpaqueId<struct MscParticle_>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Physics IDs for MSC.
- *
- * TODO these will probably be changed to a map over all particle IDs.
  */
 struct CoulombIds
 {

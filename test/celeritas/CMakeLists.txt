@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -290,9 +289,9 @@ celeritas_add_test(grid/GenericGridInserter.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
 celeritas_add_test(grid/InverseCdfFinder.test.cc)
 celeritas_add_test(grid/InverseRangeCalculator.test.cc)
-celeritas_add_test(grid/PolyEvaluator.test.cc)
 celeritas_add_test(grid/RangeCalculator.test.cc)
 celeritas_add_test(grid/RangeGridCalculator.test.cc)
+celeritas_add_test(grid/SplineDerivCalculator.test.cc)
 celeritas_add_test(grid/SplineXsCalculator.test.cc)
 celeritas_add_test(grid/ValueGridBuilder.test.cc)
 celeritas_add_test(grid/ValueGridInserter.test.cc)
@@ -308,15 +307,17 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Optical
-
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
+celeritas_add_test(optical/ImportedMaterials.test.cc)
+celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
+celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 
@@ -364,14 +365,6 @@ celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
-
-if(CELERITAS_USE_CUDA)
-  celeritas_add_test(random/curand/CurandPerformance.test.cc GPU
-    SOURCES random/curand/CurandPerformance.test.cu
-    LINK_LIBRARIES Celeritas::DeviceToolkit
-    ${_disable_if_debug}
-  )
-endif()
 
 #-----------------------------------------------------------------------------#
 # Track
@@ -444,11 +437,6 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     add_custom_command(
       TARGET update-root-test-data
       POST_BUILD
-      DEPENDS
-        celer-export-geant
-        "${_gdml}"
-        "${_basename}.geant.json"
-        "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
       COMMAND
         "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
         "$<TARGET_FILE:celer-export-geant>"

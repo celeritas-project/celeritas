@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/FaceNamer.test.cc
@@ -21,8 +20,8 @@ namespace test
 class FaceNamerTest : public ::celeritas::test::Test
 {
   protected:
-    static inline constexpr auto in = Sense::inside;
-    static inline constexpr auto out = Sense::outside;
+    static constexpr auto in = Sense::inside;
+    static constexpr auto out = Sense::outside;
 };
 
 TEST_F(FaceNamerTest, typed)

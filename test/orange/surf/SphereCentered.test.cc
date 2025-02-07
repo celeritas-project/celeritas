@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/SphereCentered.test.cc
@@ -22,7 +21,7 @@ class SphereCenteredTest : public Test
   protected:
     using Intersections = SphereCentered::Intersections;
 
-    static constexpr real_type sqrt_third = 1 / constants::sqrt_three;
+    static constexpr auto sqrt_third = real_type{1} / constants::sqrt_three;
     static constexpr Real3 inward{-sqrt_third, -sqrt_third, -sqrt_third};
     static constexpr Real3 outward{sqrt_third, sqrt_third, sqrt_third};
 };

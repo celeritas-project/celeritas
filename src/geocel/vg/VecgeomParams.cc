@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/VecgeomParams.cc
@@ -28,12 +27,15 @@
 #    include <VecGeom/gdml/Frontend.h>
 #endif
 
+#include <G4VG.hh>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -42,7 +44,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/detail/LengthUnits.hh"
-#include "geocel/g4vg/Converter.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 
@@ -253,10 +254,11 @@ void VecgeomParams::build_volumes_vgdml(std::string const& filename)
     ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
 
 #ifdef VECGEOM_GDML
-    vgdml::Frontend::Load(filename,
-                          /* validate_xml_schema = */ false,
-                          /* mm_unit = */ lengthunits::millimeter,
-                          /* verbose = */ vecgeom_verbosity());
+    vgdml::Frontend::Load(
+        filename,
+        /* validate_xml_schema = */ false,
+        /* mm_unit = */ static_cast<double>(lengthunits::millimeter),
+        /* verbose = */ vecgeom_verbosity());
 #else
     CELER_DISCARD(filename);
     CELER_NOT_CONFIGURED("VGDML");
@@ -271,16 +273,25 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
 {
     // Convert the geometry to VecGeom
     ScopedProfiling profile_this{"load-vecgeom"};
-    g4vg::Converter::Options opts;
+    ScopedMem record_mem("Converter.convert");
+    ScopedTimeLog scoped_time;
+    g4vg::Options opts;
     opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
-    g4vg::Converter convert{opts};
-    auto result = convert(world);
+    opts.scale = static_cast<double>(lengthunits::millimeter);
+    auto result = g4vg::convert(world, opts);
     CELER_ASSERT(result.world != nullptr);
     g4log_volid_map_.reserve(result.logical_volumes.size());
     for (auto vol_idx : range(result.logical_volumes.size()))
     {
-        auto&& [iter, inserted] = g4log_volid_map_.insert(
-            {result.logical_volumes[vol_idx], id_cast<VolumeId>(vol_idx)});
+        auto const* lv = result.logical_volumes[vol_idx];
+        if (lv == nullptr)
+        {
+            // VecGeom creates fake volumes for boolean volumes
+            continue;
+        }
+
+        auto&& [iter, inserted]
+            = g4log_volid_map_.insert({lv, id_cast<VolumeId>(vol_idx)});
         if (CELER_UNLIKELY(!inserted))
         {
             // This shouldn't happen...

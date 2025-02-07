@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -61,10 +60,14 @@ celeritas_add_test(detail/UniverseIndexer.test.cc)
 # Bounding interval hierarchy
 celeritas_add_test(detail/BIHBuilder.test.cc)
 celeritas_add_test(detail/BIHEnclosingVolFinder.test.cc)
+celeritas_add_test(detail/BIHIntersectingVolFinder.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
 
 # Oriented Bounding Zone
 celeritas_add_test(detail/OrientedBoundingZone.test.cc)
+
+# Logic utilities
+celeritas_add_test(detail/LogicUtils.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Input construction
@@ -137,7 +140,6 @@ celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
-
 
 #-----------------------------------------------------------------------------#
 # Geant4 construction

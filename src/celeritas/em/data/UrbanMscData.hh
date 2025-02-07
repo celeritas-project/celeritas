@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/data/UrbanMscData.hh
@@ -18,6 +17,15 @@
 
 namespace celeritas
 {
+//! Particle categories for Urban MSC particle and material-dependent data
+enum class UrbanParMatType
+{
+    electron = 0,
+    positron,
+    muhad,
+    size_
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Settable parameters and default values for Urban multiple scattering.
@@ -45,19 +53,19 @@ struct UrbanMscParameters
     //! The minimum value of the true path length limit: 0.01 nm
     static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
     {
-        return real_type(0.01) * units::nanometer;
+        return 0.01 * units::nanometer;
     }
 
     //! Minimum true path when not calculated in the step limiting
     static CELER_CONSTEXPR_FUNCTION real_type limit_min()
     {
-        return 10 * limit_min_fix();
+        return 10.0 * limit_min_fix();
     }
 
     //! For steps below this value, true = geometrical (no MSC to be applied)
     static CELER_CONSTEXPR_FUNCTION real_type min_step()
     {
-        return 1 * units::nanometer;
+        return real_type{1} * units::nanometer;
     }
 
     //! Below this endpoint energy, don't sample scattering: 1 eV
@@ -102,13 +110,18 @@ struct UrbanMscMaterialData
  *
  * The scaled Zeff parameters are:
  *
- *   Particle | a    | b
- *   -------- | ---- | ----
- *   electron | 0.87 | 2/3
- *   positron | 0.7  | 1/2
+ *   Particle             | a    | b
+ *   -------------------- | ---- | ----
+ *   electron/muon/hadron | 0.87 | 2/3
+ *   positron             | 0.7  | 1/2
+ *
+ * Two different \c d_over_r values are used: one for electrons and positrons,
+ * and another for muons and hadrons.
  */
 struct UrbanMscParMatData
 {
+    using UrbanParMatId = OpaqueId<UrbanMscParMatData>;
+
     real_type scaled_zeff{};  //!< a * Z^b
     real_type d_over_r{};  //!< Maximum distance/range heuristic
 
@@ -119,10 +132,6 @@ struct UrbanMscParMatData
 //---------------------------------------------------------------------------//
 /*!
  * Device data for Urban MSC.
- *
- * Since the model currently applies only to electrons and positrons, the
- * particles are hardcoded to be length 2. TODO: extend to other charged
- * particles when further physics is implemented.
  */
 template<Ownership W, MemSpace M>
 struct UrbanMscData
@@ -132,7 +141,9 @@ struct UrbanMscData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using MaterialItems = celeritas::Collection<T, W, M, MaterialId>;
+    using MaterialItems = Collection<T, W, M, MaterialId>;
+    template<class T>
+    using ParticleItems = Collection<T, W, M, ParticleId>;
 
     //// DATA ////
 
@@ -144,6 +155,14 @@ struct UrbanMscData
     UrbanMscParameters params;
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
+    //! Number of particles this model applies to
+    ParticleId::size_type num_particles;
+    //! Number of particle categories for particle and material-dependent data
+    ParticleId::size_type num_par_mat;
+    //! Map from particle ID to index in particle and material-dependent data
+    ParticleItems<UrbanMscParMatData::UrbanParMatId> pid_to_pmdata;
+    //! Map from particle ID to index in cross sections
+    ParticleItems<MscParticleId> pid_to_xs;
     //! Particle and material-dependent data
     Items<UrbanMscParMatData> par_mat_data;  //!< [mat][particle]
     //! Scaled xs data
@@ -158,6 +177,8 @@ struct UrbanMscData
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && !material_data.empty()
+               && num_particles >= 2 && num_par_mat >= 2
+               && !pid_to_pmdata.empty() && !pid_to_xs.empty()
                && !par_mat_data.empty() && !xs.empty() && !reals.empty();
     }
 
@@ -170,21 +191,14 @@ struct UrbanMscData
         electron_mass = other.electron_mass;
         params = other.params;
         material_data = other.material_data;
+        num_particles = other.num_particles;
+        num_par_mat = other.num_par_mat;
+        pid_to_pmdata = other.pid_to_pmdata;
+        pid_to_xs = other.pid_to_xs;
         par_mat_data = other.par_mat_data;
         xs = other.xs;
         reals = other.reals;
         return *this;
-    }
-
-    //! Get the data location for a material + particle
-    template<class T>
-    CELER_FUNCTION ItemId<T> at(MaterialId mat, ParticleId par) const
-    {
-        CELER_EXPECT(mat && par);
-        size_type result = mat.unchecked_get() * 2;
-        result += (par == this->ids.electron ? 0 : 1);
-        CELER_ENSURE(result < this->par_mat_data.size());
-        return ItemId<T>{result};
     }
 };
 

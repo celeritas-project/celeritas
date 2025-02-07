@@ -1,13 +1,12 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Types.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -30,7 +29,10 @@ using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord_>;
  */
 namespace optical
 {
-}
+//---------------------------------------------------------------------------//
+//! Alias for MaterialId in core Celeritas namespace
+using CoreMaterialId = ::celeritas::MaterialId;
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

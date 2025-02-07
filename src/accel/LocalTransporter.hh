@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/LocalTransporter.hh
@@ -20,6 +19,7 @@
 #include "celeritas/phys/Primary.hh"
 
 class G4Track;
+class G4EventManager;
 
 namespace celeritas
 {
@@ -67,7 +67,7 @@ class LocalTransporter
     // Alternative to construction + move assignment
     inline void Initialize(SetupOptions const& options, SharedParams& params);
 
-    // Set the event ID and reseed the Celeritas RNG (remove in v1.0)
+    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
     [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
 
     // Set the event ID and reseed the Celeritas RNG at the start of an event
@@ -99,11 +99,17 @@ class LocalTransporter
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
 
+    // Current event ID or manager for obtaining it
     UniqueEventId event_id_;
+    G4EventManager* event_manager_{nullptr};
 
     size_type auto_flush_{};
     size_type max_step_iters_{};
     double buffer_energy_{0};
+
+    std::size_t accum_num_events_{0};
+    std::size_t accum_num_primaries_{0};
+    std::size_t accum_num_steps_{0};
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;

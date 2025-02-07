@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/distribution/SBEnergyDistribution.hh
@@ -23,7 +22,7 @@ namespace celeritas
  */
 struct SBElectronXsCorrector
 {
-    using Xs = Quantity<SBElementTableData::XsUnits>;
+    using Xs = RealQuantity<SBElementTableData::XsUnits>;
 
     //! No cross section scaling for any exiting energy
     CELER_FUNCTION real_type operator()(units::MevEnergy) const { return 1; }
@@ -37,7 +36,8 @@ struct SBElectronXsCorrector
  * section data from G4EMLOW, which stores scaled cross sections as a function
  * of incident particle energy and exiting gamma energy (see SeltzerBergerModel
  * for details). The sampling procedure is roughly laid out in section
- * [PHYS341] of the GEANT3 physics reference manual, although like Geant4 we
+ * `[PHYS341]` of the GEANT3 reference manual \citep{geant3-1993,
+ * https://cds.cern.ch/record/1082634} , although like Geant4 we
  * use raw tabulated SB data rather than a parameter fit. Also like Geant4 we
  * include the extra density correction factor.
  *
@@ -103,7 +103,7 @@ class SBEnergyDistribution
     //! \name Type aliases
     using SBData = NativeCRef<SeltzerBergerData>;
     using Energy = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:

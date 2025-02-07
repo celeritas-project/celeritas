@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/SimpleOffload.hh
@@ -72,8 +71,8 @@ class SimpleOffload
     // Finalize
     void EndOfRunAction(G4Run const* run);
 
-    //! Whether offloading is enabled
-    explicit operator bool() const { return setup_ != nullptr; }
+    // Whether offloading is enabled
+    explicit operator bool() const;
 
   private:
     SetupOptions const* setup_{nullptr};

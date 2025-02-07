@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/UnitInserter.cc
@@ -285,6 +284,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     std::vector<FastBBox> bboxes;
+    BIHBuilder::SetLocalVolId implicit_vol_ids;
     for (auto i : range(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
@@ -298,6 +298,12 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         else
         {
             bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
+        }
+
+        // Create a set of background volume ids for BIH construction
+        if (inp.volumes[i].flags & VolumeRecord::Flags::implicit_vol)
+        {
+            implicit_vol_ids.insert(id_cast<LocalVolumeId>(i));
         }
 
         // Add oriented bounding zone record
@@ -329,11 +335,9 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
-    CELER_VALIDATE(std::all_of(bboxes.begin(),
-                               bboxes.end(),
-                               [](FastBBox const& b) { return b; }),
+    CELER_VALIDATE(std::all_of(bboxes.begin(), bboxes.end(), LogicalTrue{}),
                    << "not all bounding boxes have been assigned");
-    unit.bih_tree = build_bih_tree_(std::move(bboxes));
+    unit.bih_tree = build_bih_tree_(std::move(bboxes), implicit_vol_ids);
 
     // Save connectivity
     {
@@ -482,7 +486,7 @@ void UnitInserter::process_obz_record(VolumeRecord* vol_record,
     obz_record.offset_ids = {inner_offset_id, outer_offset_id};
 
     // Set transformation
-    obz_record.transform_id = obz_input.transform_id;
+    obz_record.trans_id = obz_input.trans_id;
 
     // Save the OBZ record to the volume record
     vol_record->obz_id = obz_records_.push_back(obz_record);
@@ -497,7 +501,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
 {
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;
-    daughter.transform_id = insert_transform_(daughter_input.transform);
+    daughter.trans_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);
     vol_record->flags |= VolumeRecord::embedded_universe;

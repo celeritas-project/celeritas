@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/LocalTransporter.cc
@@ -11,6 +10,7 @@
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
@@ -91,11 +91,11 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
-    CELER_VALIDATE(params,
-                   << "Celeritas SharedParams was not initialized before "
-                      "constructing LocalTransporter (perhaps the master "
-                      "thread did not call BeginOfRunAction?");
+    CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
+                   << "cannot create local transporter when Celeritas "
+                      "offloading is disabled");
     particles_ = params.Params()->particle();
+    CELER_ASSERT(particles_);
 
     auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
@@ -132,17 +132,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         }
     }
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        /*!
-         * \todo Add support for Geant4 navigation wrapper, which requires
-         * calling \c state.ref().geometry.reset() on the local transporter
-         * thread due to thread-allocated navigator data.
-         */
-        CELER_NOT_IMPLEMENTED(
-            "offloading when using Celeritas Geant4 navigation wrapper");
-    }
-
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
     StreamId stream_id{static_cast<size_type>(thread_id)};
@@ -155,7 +144,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     StepperInput inp;
     inp.params = params.Params();
     inp.stream_id = stream_id;
-    inp.num_track_slots = options.max_num_tracks;
     inp.action_times = options.action_times;
 
     if (celeritas::device())
@@ -169,6 +157,8 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
 
     // Save state for reductions at the end
     params.set_state(stream_id.get(), step_->sp_state());
+
+    CELER_ENSURE(*this);
 }
 
 //---------------------------------------------------------------------------//
@@ -181,6 +171,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
+    ++accum_num_events_;
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -252,9 +243,30 @@ void LocalTransporter::Flush()
     {
         return;
     }
+
+    if (event_manager_ || !event_id_)
+    {
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Save the event manager pointer, thereby marking that
+            // *subsequent* events need to have their IDs checked as well
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
+
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
+        {
+            // The event ID has changed: reseed it
+            this->InitializeEvent(event->GetEventID());
+        }
+    }
+    CELER_ASSERT(event_id_);
+
     if (celeritas::device())
     {
-        CELER_LOG_LOCAL(info)
+        CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
             << buffer_energy_ << " MeV cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
@@ -277,6 +289,9 @@ void LocalTransporter::Flush()
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
+    accum_num_steps_ += track_counts.active;
+    accum_num_primaries_ += buffer_.size();
+
     buffer_.clear();
     buffer_energy_ = 0;
 
@@ -291,6 +306,7 @@ void LocalTransporter::Flush()
                                       *step_);
 
         track_counts = (*step_)();
+        accum_num_steps_ += track_counts.active;
         ++step_iters;
 
         CELER_VALIDATE_OR_KILL_ACTIVE(
@@ -311,6 +327,24 @@ void LocalTransporter::Finalize()
     CELER_VALIDATE(buffer_.empty(),
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
+
+    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum_num_steps_
+                          << " steps from " << accum_num_primaries_
+                          << " offloaded tracks over " << accum_num_events_
+                          << " events";
+
+    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        // Geant4 navigation states *MUST* be deallocated on the thread in
+        // which they're allocated
+        auto state = std::dynamic_pointer_cast<CoreState<MemSpace::host>>(
+            step_->sp_state());
+        CELER_ASSERT(state);
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+        CELER_LOG_LOCAL(debug) << "Deallocating navigation states";
+        state->ref().geometry.reset();
+#endif
+    }
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/Label.hh
@@ -11,6 +10,7 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <tuple>
 #include <utility>
 
 #include "corecel/Config.hh"
@@ -92,13 +92,7 @@ inline bool operator!=(Label const& lhs, Label const& rhs)
 //! Less-than comparison for sorting
 inline bool operator<(Label const& lhs, Label const& rhs)
 {
-    if (lhs.name < rhs.name)
-        return true;
-    else if (lhs.name > rhs.name)
-        return false;
-    if (lhs.ext < rhs.ext)
-        return true;
-    return false;
+    return std::tie(lhs.name, lhs.ext) < std::tie(rhs.name, rhs.ext);
 }
 
 //---------------------------------------------------------------------------//

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/ProcessBuilder.cc
@@ -244,8 +243,8 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
     EPlusAnnihilationProcess::Options options;
     options.use_integral_xs = use_integral_xs_;
 
-    return std::make_shared<EPlusAnnihilationProcess>(this->particle(),
-                                                      options);
+    return std::make_shared<EPlusAnnihilationProcess>(
+        this->particle(), this->imported(), options);
 }
 
 //---------------------------------------------------------------------------//

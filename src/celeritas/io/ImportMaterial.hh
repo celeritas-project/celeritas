@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/io/ImportMaterial.hh
@@ -97,9 +96,7 @@ struct ImportPhysMaterial
     using MapIntCutoff = std::map<PdgInt, ImportProductionCut>;
     //!@}
 
-#ifndef SWIG
-    static inline constexpr Index unspecified = -1;
-#endif
+    static constexpr Index unspecified = -1;
 
     Index geo_material_id{};  //!< Index in geo_materials list
     Index optical_material_id{unspecified};  //!< Optional index in optical mat

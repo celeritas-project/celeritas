@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -14,7 +13,7 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
 
 list(APPEND SOURCES
   AlongStepFactory.cc
-  FastSimulationOffload.cc
+  FastSimulationModel.cc
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   Logger.cc
@@ -25,17 +24,23 @@ list(APPEND SOURCES
   SimpleOffload.cc
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
+  detail/HitManagerOutput.cc
   detail/HitProcessor.cc
   detail/LevelTouchableUpdater.cc
   detail/NaviTouchableUpdater.cc
   detail/SensDetInserter.cc
+  detail/IntegrationSingleton.cc
   detail/TouchableUpdaterInterface.cc
 )
 
 celeritas_polysource(ExceptionConverter)
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
-  list(APPEND SOURCES TrackingManagerOffload.cc)
+  list(APPEND SOURCES
+    TrackingManagerIntegration.cc
+    TrackingManager.cc
+    TrackingManagerConstructor.cc
+  )
 endif()
 
 if(CELERITAS_USE_HepMC3)

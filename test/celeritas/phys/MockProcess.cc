@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/MockProcess.cc
@@ -99,6 +98,12 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
 bool MockProcess::use_integral_xs() const
 {
     return data_.use_integral_xs;
+}
+
+//---------------------------------------------------------------------------//
+bool MockProcess::applies_at_rest() const
+{
+    return data_.applies_at_rest;
 }
 
 //---------------------------------------------------------------------------//

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/UrbanMsc.test.cc
@@ -37,14 +36,14 @@ namespace test
 //---------------------------------------------------------------------------//
 struct InvCentimeter
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return 1 / units::centimeter;
     }
     static char const* label() { return "1/cm"; }
 };
 
-using InvCmAlpha = Quantity<InvCentimeter>;
+using InvCmAlpha = RealQuantity<InvCentimeter>;
 using celeritas::test::from_cm;
 using celeritas::test::to_cm;
 using units::MevEnergy;
@@ -156,13 +155,11 @@ TEST_F(UrbanMscTest, coeff_data)
     }
 
     // Check data for electron in stainless steel
-    auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
-    ASSERT_TRUE(mid);
-    auto pid = this->particle()->find(pdg::electron());
-    ASSERT_TRUE(pid);
-    UrbanMscParMatData const& par
-        = params.par_mat_data[params.at<UrbanMscParMatData>(mid, pid)];
-    EXPECT_SOFT_EQ(par.d_over_r, 0.64474963087322135);
+    auto par = this->make_par_view(pdg::electron(), MevEnergy{10});
+    auto phys = this->make_phys_view(
+        par, "G4_STAINLESS-STEEL", this->physics()->host_ref());
+    UrbanMscHelper helper(params, par, phys);
+    EXPECT_SOFT_EQ(helper.pmdata().d_over_r, 0.64474963087322135);
 }
 
 TEST_F(UrbanMscTest, helper)
@@ -317,12 +314,13 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
         auto phys_params = this->physics()->host_ref();
         if (alg == Algorithm::minimal)
         {
-            phys_params.scalars.step_limit_algorithm = Algorithm::minimal;
-            phys_params.scalars.range_factor = 0.2;
+            phys_params.scalars.light.step_limit_algorithm = Algorithm::minimal;
+            phys_params.scalars.light.range_factor = 0.2;
         }
         else if (alg == Algorithm::safety_plus)
         {
-            phys_params.scalars.step_limit_algorithm = Algorithm::safety_plus;
+            phys_params.scalars.light.step_limit_algorithm
+                = Algorithm::safety_plus;
         }
 
         for (real_type energy : {0.01, 0.1, 1.0, 10.0, 100.0})
@@ -350,7 +348,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                     // Safety/safety plus step limit algorithm
                     UrbanMscSafetyStepLimit calc_limit(msc_params,
                                                        helper,
-                                                       par.energy(),
+                                                       par,
                                                        &phys,
                                                        phys.material_id(),
                                                        on_boundary,
@@ -550,7 +548,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
             }
             UrbanMscSafetyStepLimit calc_limit(msc_params,
                                                helper,
-                                               par.energy(),
+                                               par,
                                                &phys,
                                                mat.material_id(),
                                                geo.is_on_boundary(),

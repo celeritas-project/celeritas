@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/Algorithms.hh
@@ -77,7 +76,9 @@ CELER_FORCEINLINE_FUNCTION void trivial_swap(T& a, T& b) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Exchange values on host or device.
+ * Replace a value and return the original.
+ *
+ * This has a similar signature to atomic updates.
  */
 template<class T, class U = T>
 CELER_FORCEINLINE_FUNCTION T exchange(T& dst, U&& src)
@@ -112,6 +113,32 @@ struct Less<void>
     operator()(T&& lhs, U&& rhs) const -> decltype(auto)
     {
         return ::celeritas::forward<T>(lhs) < ::celeritas::forward<U>(rhs);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate whether the argument is "true".
+ *
+ * This is useful for calls to \c std::all_of .
+ */
+template<class T = void>
+struct LogicalTrue
+{
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return static_cast<bool>(value);
+    }
+};
+
+//! Specialization of LogicalTrue with template deduction
+template<>
+struct LogicalTrue<void>
+{
+    template<class T>
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return static_cast<bool>(value);
     }
 };
 
@@ -200,7 +227,7 @@ inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
 template<class T>
 CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
 {
-    return (v < 0) ? 0 : v;
+    return (v < T{0}) ? T{0} : v;
 }
 
 //---------------------------------------------------------------------------//
@@ -245,6 +272,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
         first, last, value, comp);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Find the insertion point for a value in a sorted list using a linear search.
@@ -256,6 +284,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
 {
     return ::celeritas::lower_bound_linear(first, last, value, Less<>{});
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -361,8 +390,8 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
 /*!
  * Return the higher of two values.
  *
- * This function is specialized when building CUDA device code, which has
- * special intrinsics for max.
+ * This function is specialized so that floating point types use \c std::fmax
+ * for better performance on GPU and ARM.
  */
 template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
@@ -382,8 +411,8 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 /*!
  * Return the lower of two values.
  *
- * This function is specialized when building CUDA device code, which has
- * special intrinsics for min.
+ * This function is specialized so that floating point types use \c std::fmin
+ * for better performance on GPU and ARM.
  */
 template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
@@ -438,7 +467,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
 /*!
- * Return an integer power of the input value.
+ * Return a nonnegative integer power of the input value.
  *
  * Example: \code
   assert(9.0 == ipow<2>(3.0));
@@ -452,7 +481,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
     if constexpr (N == 0)
     {
         CELER_DISCARD(v)  // Suppress warning in older compilers
-        return 1;
+        return T{1};
     }
     else if constexpr (N % 2 == 0)
     {
@@ -465,7 +494,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 #if (__CUDACC_VER_MAJOR__ < 11) \
     || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
     // "error: missing return statement at end of non-void function"
-    return T{};
+    return T{0};
 #endif
 }
 
@@ -473,8 +502,8 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 /*!
  * Raise a number to a power with simplifying assumptions.
  *
- * This should be faster than `std::pow` because we don't worry about
- * exceptions for zeros, infinities, or negative values for a.
+ * This should be faster than \c std::pow because we don't worry about
+ * special cases for zeros, infinities, or negative values for \c a.
  *
  * Example: \code
   assert(9.0 == fastpow(3.0, 2.0));
@@ -611,7 +640,12 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
  * sign of the remainder and denominator don't match, the remainder will be
  * remapped so that it is between zero and the denominator.
  *
- * This function is useful for normalizing user-provided angles.
+ * This function is useful for normalizing user-provided angles. Examples:
+ * \code
+   eumod(3, 2) == 1
+   eumod(-0.5, 2) == 1.5
+   eumod(-2, 2) == 0
+   \endcode
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
@@ -642,16 +676,6 @@ CELER_CONSTEXPR_FUNCTION int signum(T x)
 {
     return (0 < x) - (x < 0);
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Double-precision math constant (POSIX derivative).
- *
- * These should be used in *host* or *type-dependent* circumstances because, if
- * using \c CELERITAS_REAL_TYPE=float, this could have more accuracy than
- * \c celeritas::constants::pi .
- */
-inline constexpr double m_pi{3.14159265358979323846};
 
 //---------------------------------------------------------------------------//
 //!@{
@@ -722,7 +746,7 @@ CELER_FORCEINLINE_FUNCTION double cospi(double a)
 //!@}
 
 //!@{
-//! Simultaneously evaluate the sine and cosine of a value
+//! Simultaneously evaluate the sine and cosine of a value.
 CELER_FORCEINLINE_FUNCTION void sincos(float a, float* s, float* c)
 {
     return CELER_SINCOS_MANGLED(sincosf)(a, s, c);
@@ -731,6 +755,10 @@ CELER_FORCEINLINE_FUNCTION void sincos(double a, double* s, double* c)
 {
     return CELER_SINCOS_MANGLED(sincos)(a, s, c);
 }
+//!@}
+
+//!@{
+//! Simultaneously evaluate the sine and cosine of a value factored by pi.
 CELER_FORCEINLINE_FUNCTION void sincospi(float a, float* s, float* c)
 {
     return CELER_SINCOS_MANGLED(sincospif)(a, s, c);
@@ -740,7 +768,46 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
     return CELER_SINCOS_MANGLED(sincospi)(a, s, c);
 }
 //!@}
+
 //!@}
+
+//---------------------------------------------------------------------------//
+// Portable utilities functions
+//---------------------------------------------------------------------------//
+/*!
+ * Count the number of set bits in an integer.
+ */
+template<class T>
+#if defined(_MSC_VER)
+CELER_FORCEINLINE_FUNCTION int popcount(T x) noexcept
+#else
+CELER_CONSTEXPR_FUNCTION int popcount(T x) noexcept
+#endif
+{
+    static_assert(sizeof(T) <= 8,
+                  "popcount is only defined for 32-bit and 64-bit integers");
+    static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>,
+                  "popcount is only defined for unsigned integral types");
+
+    if constexpr (sizeof(T) <= 4)
+    {
+#if CELER_DEVICE_COMPILE
+        return __popc(x);
+#elif defined(_MSC_VER)
+        return __popcnt(x);
+#else
+        return __builtin_popcount(x);
+#endif
+    }
+
+#if CELER_DEVICE_COMPILE
+    return __popcll(x);
+#elif defined(_MSC_VER)
+    return __popcnt64(x);
+#else
+    return __builtin_popcountl(x);
+#endif
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

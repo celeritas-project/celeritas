@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celer-g4/ActionInitialization.cc
@@ -8,6 +7,8 @@
 #include "ActionInitialization.hh"
 
 #include "corecel/io/Logger.hh"
+#include "celeritas/inp/Events.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"
@@ -102,7 +103,7 @@ void ActionInitialization::Build() const
         ExceptionConverter call_g4exception{"celer0006"};
         CELER_TRY_HANDLE(
             generator_action = std::make_unique<PGPrimaryGeneratorAction>(
-                GlobalSetup::Instance()->input().primary_options),
+                to_input(GlobalSetup::Instance()->input().primary_options)),
             call_g4exception);
     }
     this->SetUserAction(generator_action.release());

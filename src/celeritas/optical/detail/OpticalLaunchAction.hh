@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/detail/OpticalLaunchAction.hh
@@ -79,6 +78,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     //!@{
     //! \name Aux/action metadata interface
+
     //! Short name for the action
     std::string_view label() const final { return "optical-offload-launch"; }
     // Name of the action (for user output)
@@ -87,6 +87,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     //!@{
     //! \name Aux interface
+
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
     // Build optical core state data for a stream
@@ -95,6 +96,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     //!@{
     //! \name Action interface
+
     //! ID of the model
     ActionId action_id() const final { return action_id_; }
     //! Dependency ordering of the action
@@ -106,6 +108,24 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //!@}
 
     // TODO: local end run to flush initializers??
+
+    //!@{
+    //! \name Accessors
+
+    //! Optical tracks per stream
+    size_type state_size() const { return state_size_; }
+    //! Optical core params
+    optical::CoreParams const& optical_params() const
+    {
+        return *optical_params_;
+    }
+    //! Offload params
+    detail::OffloadParams const& offload_params() const
+    {
+        return *offload_params_;
+    }
+
+    //!@}
 
   private:
     using ActionGroupsT = ActionGroups<optical::CoreParams, optical::CoreState>;

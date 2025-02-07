@@ -1,7 +1,6 @@
 
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/TrackSort.test.cc
@@ -617,12 +616,12 @@ TEST_F(PartitionDataTest, step_host)
             "NNNNNNNNNN_NNNNNN_NNNNNNNN_NNN_NN_NNN______CCCCCCCCCCC__CCCCCCCC",
             "NNNNNN_NNN_N__NNNNNNNNNNNNNNNNNN_NNNN_N____CCCCCCCCC_CCCCCCCCCCC",
             "NNNNNNNNNNNNN_NNNNNNNNNNNNNNNNNN_NNNN__NNNCCCCCCCC_CCCCCCCCCCCCC",
-            "NNNNNNNNNNN_NNNNN_NNNNNNNNNNNNNNNNNNN_NNNN_CCCCCCCNC_CCCCCCCCCCC",
-            "NNNNNNNNNNNNNNNNNN_NNNNNNNNN_NN_NNN_NNNNNNNCCCCCC_N_NC_CC_CCCCCC",
-            "NNNNNNNNNNNNNNNN_NNNNNNNNNNNNNN_NNNNNNNNNNNCCCCCC_NNNCNCCCCCCCCC",
-            "NN_N__NNNNN_NNNNNNNNNNNNNNNNNNNNNN_NNNNNNNNCCC_CCCNN_CN_C_CCCCCC",
-            "NNNNNNNNNN__NNNNN_NNNNNN_NNNNN_NNNNNNNNNNNNCCCNC_CNNNCNN__CCCCCC",
-            "NNNNNNNNNNN_NN_NN__NNNNNNNNNNNNNNNNNNNNNNNNCCCNCNC_NNCNNN_CCCCCC",
+            "NNNNNNNNNNN_NNNNN_NNNNNNNNNNNNNNNNNNN_NNNN_CCCCCC_NC_CCCCCCCCCCC",
+            "NNNNNNNNNNNNNNNNNN_NNNNNNNNN_NN_NNN_NNNNNNNCCCCCCNN_CC_CC_CCCCCC",
+            "NNNNNNNNNNNNNNNN_N_NNNNNNNNN_NNNNNNNNNNNNNNCCC_CCNNN_CNCCCCCCCCC",
+            "NN_N__NNNNN_NNNNNN_NNNNNNNNNNNN_NN_NNNNNNNNCCCNCC_NNCCN___CCCCCC",
+            "NNNNN_NNNN_NNNNNN_NNNNNN_NNNNN_NNNNNNNNNNNNCCCNC_NNNCCNNCCCCCCCC",
+            "NNNNN_NNNNNNNN_N_NNNNNNNNNNN_NNNNNNNNNNNNNNCCCNC_N_N_CNN__CCCCCC",
         };
         EXPECT_VEC_EQ(expected_result, result);
     }

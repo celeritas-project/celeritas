@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/StepDiagnostic.hh
@@ -24,7 +23,7 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Tally post-step actions for each particle type.
+ * Tally number of steps taken by each particle type.
  *
  * This adds an \c step-diagnostic entry to the \c result category of the
  * main Celeritas output that bins the total number of steps taken by a track,
@@ -56,6 +55,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
 
     //!@{
     //! \name ExplicitAction interface
+
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
@@ -72,6 +72,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
 
     //!@{
     //! \name Output interface
+
     //! Category of data to write
     Category category() const final { return Category::result; }
     // Write output to the given JSON object

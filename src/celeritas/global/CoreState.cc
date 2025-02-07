@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/CoreState.cc
@@ -23,6 +22,19 @@ CoreStateInterface::~CoreStateInterface() = default;
 //---------------------------------------------------------------------------//
 /*!
  * Construct from CoreParams.
+ */
+template<MemSpace M>
+CoreState<M>::CoreState(CoreParams const& params, StreamId stream_id)
+    : CoreState{params, stream_id, params.tracks_per_stream()}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with manual slot count.
+ *
+ * This is currently used for unit tests, and temporarily used by the \c
+ * Stepper constructor.
  */
 template<MemSpace M>
 CoreState<M>::CoreState(CoreParams const& params,

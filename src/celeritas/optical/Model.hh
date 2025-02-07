@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Model.hh
@@ -28,6 +27,15 @@ class MfpBuilder;
  */
 class Model : public OpticalStepActionInterface, public ConcreteAction
 {
+  public:
+    //!@{
+    //! \name Type aliases
+
+    //! Function to build optical models with a given action id
+    using ModelBuilder = std::function<std::shared_ptr<Model>(ActionId)>;
+
+    //!@}
+
   public:
     using ConcreteAction::ConcreteAction;
 

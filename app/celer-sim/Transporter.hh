@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celer-sim/Transporter.hh
@@ -37,7 +36,6 @@ struct TransporterInput
 {
     // Stepper input
     std::shared_ptr<CoreParams const> params;
-    size_type num_track_slots{};  //!< AKA max_num_tracks
     bool action_times{false};  //!< Whether to synchronize device between
                                //!< actions for timing
 
@@ -45,13 +43,14 @@ struct TransporterInput
     size_type max_steps{};
     bool store_track_counts{};  //!< Store track counts at each step
     bool store_step_times{};  //!< Store time elapsed for each step
+    size_type log_progress{};  //!< CELER_LOG progress every N events
 
     StreamId stream_id{0};
 
     //! True if all params are assigned
     explicit operator bool() const
     {
-        return params && num_track_slots > 0 && max_steps > 0;
+        return params && max_steps > 0 && log_progress > 0;
     }
 };
 
@@ -138,6 +137,7 @@ class Transporter final : public TransporterBase
     std::shared_ptr<Stepper<M>> stepper_;
     size_type max_steps_;
     size_type num_streams_;
+    size_type log_progress_;
     bool store_track_counts_;
     bool store_step_times_;
 };

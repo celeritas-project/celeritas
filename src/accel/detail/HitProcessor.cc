@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/detail/HitProcessor.cc
@@ -106,6 +105,26 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         }
     }
 
+    // Set invalid values for unsupported SD attributes
+    step_->SetNonIonizingEnergyDeposit(
+        -std::numeric_limits<double>::infinity());
+    for (G4StepPoint* p : {step_->GetPreStepPoint(), step_->GetPostStepPoint()})
+    {
+        if (!p)
+        {
+            continue;
+        }
+        // Time since track was created
+        p->SetLocalTime(std::numeric_limits<double>::infinity());
+        // Time in rest frame since track was created
+        p->SetProperTime(std::numeric_limits<double>::infinity());
+        // Speed
+        p->SetVelocity(std::numeric_limits<double>::infinity());
+        // Safety distance
+        p->SetSafety(std::numeric_limits<double>::infinity());
+        // Polarization (default to zero)
+    }
+
     // Create track if user requested particle types
     for (G4ParticleDefinition const* pd : particles)
     {
@@ -208,6 +227,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
 
         HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
+        HP_SET(step_->SetStepLength, out.step_length, clhep_length);
 
         if (update_touchable_)
         {
@@ -273,11 +293,18 @@ void HitProcessor::update_track(ParticleId id) const
     G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
 
-    if (G4StepPoint* pre_step = step_->GetPreStepPoint())
+    G4ParticleDefinition const& pd = *track.GetParticleDefinition();
+
+    for (G4StepPoint* p : {step_->GetPreStepPoint(), step_->GetPostStepPoint()})
     {
-        // Copy data from track to pre-step
-        G4ParticleDefinition const& pd = *track.GetParticleDefinition();
-        pre_step->SetCharge(pd.GetPDGCharge());
+        if (!p)
+        {
+            continue;
+        }
+
+        // Copy data from track to step points
+        p->SetMass(pd.GetPDGMass());
+        p->SetCharge(pd.GetPDGCharge());
     }
     if (G4StepPoint* post_step = step_->GetPostStepPoint())
     {

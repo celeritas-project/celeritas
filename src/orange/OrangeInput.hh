@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeInput.hh
@@ -34,10 +33,10 @@ struct OrientedBoundingZoneInput
     //! Outer bounding box
     BBox outer;
     //! Local to global transformation
-    TransformId transform_id;
+    TransformId trans_id;
 
     //! Whether the obz definition is valid
-    explicit operator bool() const { return inner && outer && transform_id; }
+    explicit operator bool() const { return inner && outer && trans_id; }
 };
 
 //---------------------------------------------------------------------------//

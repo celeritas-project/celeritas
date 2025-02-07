@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/detail/HitManager.test.cc
@@ -22,6 +21,7 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "accel/SDTestBase.hh"
 #include "accel/SetupOptions.hh"
+#include "accel/detail/HitManagerOutput.hh"
 
 #include "celeritas_test.hh"
 
@@ -102,6 +102,13 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         return result;
     }
 
+    std::string get_diagnostics(HitManager const& hm)
+    {
+        HitManagerOutput out(
+            std::shared_ptr<HitManager const>(&hm, [](HitManager const*) {}));
+        return to_string(out);
+    }
+
   protected:
     SDSetupOptions sd_setup_;
     ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger()};
@@ -124,6 +131,13 @@ TEST_F(SimpleCmsTest, no_change)
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
+            this->get_diagnostics(man));
     }
 }
 
@@ -150,6 +164,13 @@ TEST_F(SimpleCmsTest, delete_one)
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[3]})json",
+            this->get_diagnostics(man));
     }
 }
 
@@ -181,6 +202,13 @@ TEST_F(SimpleCmsTest, add_duplicate)
             = {"debug", "debug", "debug"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
+
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
+            this->get_diagnostics(man));
+    }
 }
 
 TEST_F(SimpleCmsTest, add_one)
@@ -199,6 +227,12 @@ TEST_F(SimpleCmsTest, add_one)
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3,4]})json",
+            this->get_diagnostics(man));
     }
 }
 

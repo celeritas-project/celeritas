@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -9,6 +8,8 @@ celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
 #-----------------------------------------------------------------------------#
 # DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
+
+set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
 
 # Use full version string instead of short version
 set(DOXYGEN_PROJECT_NUMBER "${Celeritas_VERSION_STRING}")
@@ -59,6 +60,14 @@ set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
 set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_USE_MATHJAX YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
+
+set(DOXYGEN_ALIASES
+  "cite{1}=\"[\\1]\""
+  "citep{2}=\"([\\1](\\2))\""
+  "citet{2}=\"[\\1](\\2)\""
+  "rst=\"^^\\if (0)^^\""
+  "endrst=\"^^\\endif^^\""
+)
 
 # Verbosity/warning levels
 celeritas_set_default(DOXYGEN_QUIET YES)
@@ -155,6 +164,8 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 # Define a configure file with version and configuration info
+# NOTE: the resulting JSON file should be syntactically correct because
+# of how celeritas_check_python_module is implemented
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
@@ -181,9 +192,19 @@ configure_file("config.json.in" "config.json" @ONLY)
 set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_USER")
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
+set(DOXYGEN_COLLABORATION_GRAPH NO)
+set(DOXYGEN_CLASS_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
+
+set(DOXYGEN_ALIASES
+  "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
+  "citep{2}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
+  "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim \""
+  "rst=\"^^\\verbatim embed:rst^^\""
+  "endrst=\"^^\\endverbatim \""
+)
 
 # Annotations break breathe parsing
 foreach(_var
@@ -192,7 +213,7 @@ foreach(_var
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 
-# Only process top two levels (mostly no detail, generated)
+# Only process top two levels (mostly no detail)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
@@ -211,6 +232,10 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"

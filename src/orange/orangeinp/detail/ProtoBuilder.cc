@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/ProtoBuilder.cc
@@ -46,10 +45,10 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
  * "holed" (placed) in different volumes with different bounds, so long as the
  * enclosures are within the extents of the child universe.
  */
-void ProtoBuilder::expand_bbox(UniverseId uid, BBox const& local_bbox)
+void ProtoBuilder::expand_bbox(UniverseId univ_id, BBox const& local_bbox)
 {
-    CELER_EXPECT(uid < bboxes_.size());
-    BBox& target = bboxes_[uid.get()];
+    CELER_EXPECT(univ_id < bboxes_.size());
+    BBox& target = bboxes_[univ_id.get()];
     target = calc_union(target, local_bbox);
 }
 

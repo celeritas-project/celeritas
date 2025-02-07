@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/UniformField.hh
@@ -17,7 +16,7 @@ namespace celeritas
  * A uniform field.
  *
  * The values of the field should be in native units. For magnetic fields, this
- * unit is gauss.
+ * unit is gauss for the CGS system.
  */
 class UniformField
 {

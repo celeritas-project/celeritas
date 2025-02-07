@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/MemRegistry.hh
@@ -28,7 +27,7 @@ struct Kibi
 };
 
 //! 1024 bytes
-using KibiBytes = Quantity<Kibi>;
+using KibiBytes = Quantity<Kibi, Kibi::value_type>;
 //! Ordered identifiers for memory allocation segments
 using MemUsageId = OpaqueId<struct MemUsageEntry>;
 

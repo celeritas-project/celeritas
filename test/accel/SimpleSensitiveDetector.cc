@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/SimpleSensitiveDetector.cc
@@ -33,6 +32,12 @@ void SimpleHitsResult::print_expected() const
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, "
             "result.energy_deposition);\n"
+
+            "static double const expected_step_length[] = "
+         << repr(this->step_length)
+         << ";\n"
+            "EXPECT_VEC_SOFT_EQ(expected_step_length, "
+            "result.step_length);\n"
 
             "static char const* const expected_particle[] = "
          << repr(this->particle)
@@ -77,6 +82,7 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     hits_.energy_deposition.push_back(step->GetTotalEnergyDeposit()
                                       / CLHEP::MeV);
+    hits_.step_length.push_back(step->GetStepLength() / CLHEP::cm);
     if (auto* track = step->GetTrack())
     {
         hits_.particle.push_back(track->GetDefinition()->GetParticleName());

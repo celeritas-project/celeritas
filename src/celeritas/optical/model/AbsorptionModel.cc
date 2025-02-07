@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/model/AbsorptionModel.cc
@@ -16,6 +15,18 @@ namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Create a model builder for the optical absorption model.
+ */
+auto AbsorptionModel::make_builder(SPConstImported imported) -> ModelBuilder
+{
+    CELER_EXPECT(imported);
+    return [i = std::move(imported)](ActionId id) {
+        return std::make_shared<AbsorptionModel>(id, i);
+    };
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct the model from imported data.

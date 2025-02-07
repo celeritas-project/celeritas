@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/neutron/model/NeutronInelasticModel.hh
@@ -27,6 +26,18 @@ class ParticleParams;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the neutron inelastic model interaction.
+ *
+ * Only neutron-neutron (proton-proton) and neutron-proton channels are
+ * tabulated in [10, 320] (MeV) where pion production is not likely. The cross
+ * sections below 10 MeV will be calculated on the fly using the Stepanov's
+ * function. Tabulated data of cross sections and parameters at the low energy
+ * are from G4CascadePPChannel, G4CascadeNPChannel and G4CascadeNNChannel of
+ * the Geant4 11.2 release while angular c.d.f data are from G4PP2PPAngDst and
+ * G4NP2NPAngDst. Also note that the channel cross sections of nucleon-nucleon
+ * are same as their total cross sections in the energy range and the
+ * proton-proton channel is same as the neutron-neutron channel based on the
+ * charge-independence hypothesis of the nuclear force.
+ * See \cite{bertini-1963,hess-1958}.
  */
 class NeutronInelasticModel final : public Model, public StaticConcreteAction
 {

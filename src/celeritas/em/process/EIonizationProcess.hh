@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/process/EIonizationProcess.hh
@@ -50,6 +49,9 @@ class EIonizationProcess : public Process
 
     //! Whether to use the integral method to sample interaction length
     bool use_integral_xs() const final { return options_.use_integral_xs; }
+
+    //! Whether the process applies when the particle is stopped
+    bool applies_at_rest() const final { return imported_.applies_at_rest(); }
 
     // Name of the process
     std::string_view label() const final;

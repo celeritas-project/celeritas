@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GeantUtils.hh
@@ -11,6 +10,7 @@
 
 #include "corecel/Assert.hh"
 
+class G4ParticleDefinition;
 class G4RunManager;
 
 namespace celeritas
@@ -32,6 +32,16 @@ int get_geant_num_threads();
 int get_geant_thread_id();
 
 //---------------------------------------------------------------------------//
+//! Wrap around a G4ParticleDefinition to get a descriptive output.
+struct PrintablePD
+{
+    G4ParticleDefinition const* pd{nullptr};
+};
+
+// Print the particle definition name and PDG
+std::ostream& operator<<(std::ostream& os, PrintablePD const& pd);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
@@ -48,6 +58,11 @@ inline int get_geant_num_threads()
 }
 
 inline int get_geant_thread_id()
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline std::ostream& operator<<(std::ostream&, PrintablePD const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

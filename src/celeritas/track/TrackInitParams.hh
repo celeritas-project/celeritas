@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/TrackInitParams.hh
@@ -19,6 +18,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Manage persistent track initializer data.
+ *
+ * \todo \c max_events could potentially be per thread, not global? And we
+ * should differentiate between user events and events in flight.
  */
 class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
 {

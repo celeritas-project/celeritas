@@ -1,9 +1,8 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/fastsim-offload.cc
+//! \file accel/fastsim-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
@@ -43,7 +42,7 @@
 #endif
 
 #include <accel/AlongStepFactory.hh>
-#include <accel/FastSimulationOffload.hh>
+#include <accel/FastSimulationModel.hh>
 #include <accel/LocalTransporter.hh>
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
@@ -73,11 +72,15 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
         setup_options.make_along_step = celeritas::UniformAlongStepFactory();
+
+        // NOTE: since no SD is enabled, we must manually disable Celeritas hit
+        // processing
+        setup_options.sd.enabled = false;
     }
 
     G4VPhysicalVolume* Construct() final
     {
-        CELER_LOG_LOCAL(status) << "Setting up detector";
+        CELER_LOG_LOCAL(status) << "Setting up geometry";
         auto* box = new G4Box("world", 1000 * cm, 1000 * cm, 1000 * cm);
         auto* lv = new G4LogicalVolume(box, aluminum_, "world");
         auto* pv = new G4PVPlacement(
@@ -87,16 +90,16 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 
     void ConstructSDandField() final
     {
-        CELER_LOG_LOCAL(status) << "Creating FastSimulationOffload for "
-                                   "default region";
+        CELER_LOG_LOCAL(status)
+            << R"(Creating FastSimulationModel for default region)";
         G4Region* default_region = G4RegionStore::GetInstance()->GetRegion(
             "DefaultRegionForTheWorld");
         // Underlying GVFastSimulationModel constructor handles ownership, so
-        // we can ignore the returned pointer...
-        new celeritas::FastSimulationOffload("accel::FastSimulationOffload",
-                                             default_region,
-                                             &shared_params,
-                                             &local_transporter);
+        // we must ignore the returned pointer...
+        new celeritas::FastSimulationModel("accel::FastSimulationModel",
+                                           default_region,
+                                           &shared_params,
+                                           &local_transporter);
     }
 
   private:
@@ -104,6 +107,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
+// Generate 100 MeV neutrons
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
@@ -112,12 +116,11 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
         auto g4particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(2112);
         gun_.SetParticleDefinition(g4particle_def);
-        gun_.SetParticleEnergy(100 * GeV);
+        gun_.SetParticleEnergy(100 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
         gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0});  // +x
     }
 
-    // Generate 100 GeV neutrons
     void GeneratePrimaries(G4Event* event) final
     {
         CELER_LOG_LOCAL(status) << "Generating primaries";
@@ -218,8 +221,10 @@ int main()
         setup_options.ignore_processes.push_back("Rayl");
     }
 
+    setup_options.output_file = "fastsim-offload.out.json";
+
     run_manager->Initialize();
-    run_manager->BeamOn(1);
+    run_manager->BeamOn(2);
 
     return 0;
 }

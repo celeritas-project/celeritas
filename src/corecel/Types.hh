@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 /*!
@@ -52,8 +51,8 @@ enum class MemSpace
     device,  //!< GPU memory
     mapped,  //!< Unified virtual address space (both host and device)
     size_,
-#ifdef CELER_DEVICE_SOURCE
-    native = device,  //!< When included by a CUDA/HIP file; else 'host'
+#if defined(CELER_DEVICE_SOURCE) || defined(__DOXYGEN__)
+    native = device,  //!< When compiling CUDA files, \c device else \c host
 #else
     native = host,
 #endif
@@ -62,9 +61,9 @@ enum class MemSpace
 //! Data ownership flag
 enum class Ownership
 {
-    value,  //!< Ownership of the data, only on host
-    reference,  //!< Mutable reference to the data
-    const_reference,  //!< Immutable reference to the data
+    value,  //!< The collection \em owns the data
+    reference,  //!< Mutable reference to data
+    const_reference,  //!< Immutable reference to data
 };
 
 //---------------------------------------------------------------------------//

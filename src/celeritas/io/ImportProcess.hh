@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/io/ImportProcess.hh
@@ -102,6 +101,7 @@ struct ImportProcess
     ImportProcessClass process_class{ImportProcessClass::size_};
     std::vector<ImportModel> models;
     std::vector<ImportPhysicsTable> tables;
+    bool applies_at_rest{false};
 
     explicit operator bool() const
     {

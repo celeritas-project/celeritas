@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/detail/OpticalLaunchAction.cc
@@ -10,6 +9,8 @@
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -21,11 +22,36 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
+#include "OpticalSizes.json.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+auto get_core_sizes(OpticalLaunchAction const& ola)
+{
+    // Optical core params
+    auto const& cp = ola.optical_params();
+
+    OpticalSizes result;
+    result.streams = cp.max_streams();
+
+    // NOTE: quantities are *per-process* quantities: integrated over streams,
+    // but not processes
+    result.generators = result.streams
+                        * ola.offload_params().host_ref().setup.capacity;
+    result.initializers = result.streams * cp.init()->capacity();
+    result.tracks = result.streams * ola.state_size();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -76,6 +102,13 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         CELER_ENSURE(inp);
         return inp;
     }());
+
+    // Add optical sizes
+    core.output_reg()->insert(
+        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            get_core_sizes(*this)));
 
     // TODO: add generators to the *optical* stepping loop instead of part of
     // the main loop; for now just make sure enough track initializers are
@@ -151,31 +184,26 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     CELER_ASSERT(offload_state);
     CELER_ASSERT(optical_state.size() > 0);
 
-    constexpr size_type max_steps{1};
-    size_type remaining_steps = max_steps;
+    constexpr size_type max_step_iters{1024};
+    size_type num_step_iters{0};
+    size_type num_steps{0};
 
     // Loop while photons are yet to be tracked
     auto& counters = optical_state.counters();
     auto const& step_actions = optical_actions_->step();
     while (counters.num_initializers > 0 || counters.num_alive > 0)
     {
-        // TODO: generation is done *outside* of the optical tracking loop;
-        // once we move it inside, update the generation count in the
-        // generators
-        counters.num_generated = 0;
-
         // Loop through actions
         for (auto const& action : step_actions)
         {
             action->step(*optical_params_, optical_state);
         }
-        CELER_LOG(debug) << "Stepped " << counters.num_active
-                         << " optical tracks";
 
-        if (CELER_UNLIKELY(--remaining_steps == 0))
+        num_steps += counters.num_active;
+        if (CELER_UNLIKELY(++num_step_iters == max_step_iters))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << max_steps
+                << "Exceeded step count of " << max_step_iters
                 << ": aborting optical transport loop with "
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
@@ -184,6 +212,22 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
             break;
         }
     }
+
+    if (num_step_iters > 0)
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Generated " << counters.num_generated
+            << " optical photons which completed " << num_steps
+            << " total steps over " << num_step_iters << " iterations";
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug) << "No optical steps taken";
+    }
+
+    // TODO: generation is done *outside* of the optical tracking loop;
+    // once we move it inside, update the generation count in the loop here
+    counters.num_generated = 0;
 }
 
 //---------------------------------------------------------------------------//

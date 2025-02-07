@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/InteractionUtils.hh
@@ -58,7 +57,8 @@ struct ExitingDirectionSampler
     template<class Engine>
     inline CELER_FUNCTION Real3 operator()(Engine& rng)
     {
-        UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
+        UniformRealDistribution<real_type> sample_phi(
+            0, real_type(2 * constants::pi));
         return rotate(from_spherical(costheta, sample_phi(rng)), direction);
     }
 };

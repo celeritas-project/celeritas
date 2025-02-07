@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GenericGeoTestBase.hh
@@ -89,7 +88,7 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     virtual size_type num_track_slots() const { return 1; }
 
     //! Unit length for "track" testing and other results
-    virtual real_type unit_length() const { return lengthunits::centimeter; }
+    virtual Constant unit_length() const { return lengthunits::centimeter; }
 
     //! Construct from celeritas test data and "basename" value
     SPConstGeo build_geometry_from_basename();

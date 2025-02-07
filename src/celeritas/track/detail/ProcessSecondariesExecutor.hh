@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/detail/ProcessSecondariesExecutor.hh
@@ -129,7 +128,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                 ParticleTrackView particle(
                     params->particles, state->particles, tid);
                 PhysicsTrackView phys(
-                    params->physics, state->physics, {}, {}, tid);
+                    params->physics, state->physics, particle, {}, tid);
 
                 // The parent was killed, so initialize the first secondary in
                 // the parent's track slot. Keep the parent's geometry state

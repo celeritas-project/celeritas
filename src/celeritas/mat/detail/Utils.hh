@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/mat/detail/Utils.hh
@@ -19,8 +18,8 @@ struct ElementRecord;
 namespace detail
 {
 //---------------------------------------------------------------------------//
-real_type calc_coulomb_correction(AtomicNumber atomic_number);
-real_type calc_mass_rad_coeff(ElementRecord const& el);
+double calc_coulomb_correction(AtomicNumber atomic_number);
+double calc_mass_rad_coeff(ElementRecord const& el);
 units::MevEnergy get_mean_excitation_energy(AtomicNumber atomic_number);
 
 //---------------------------------------------------------------------------//

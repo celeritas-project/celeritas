@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GeantGeoUtils.cc
@@ -37,6 +36,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "orange/g4org/Converter.hh"
 
@@ -259,7 +259,8 @@ void reset_geant_geometry()
         G4ReflectionFactory::Instance()->Clean();
 #endif
         free_and_clear(G4Material::GetMaterialTable());
-        free_and_clear(const_cast<std::vector<G4Element*>*>(G4Element::GetElementTable()));
+        free_and_clear(const_cast<std::vector<G4Element*>*>(
+            G4Element::GetElementTable()));
         free_and_clear(const_cast<std::vector<G4Isotope*>*>(
             G4Isotope::GetIsotopeTable()));
         msg = scoped_log.str();
@@ -394,8 +395,7 @@ std::string make_gdml_name(G4LogicalVolume const& lv)
 void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
 {
     CELER_EXPECT(!stack.empty());
-    CELER_EXPECT(std::all_of(
-        stack.begin(), stack.end(), [](auto* v) -> bool { return v; }));
+    CELER_EXPECT(std::all_of(stack.begin(), stack.end(), LogicalTrue{}));
     CELER_EXPECT(nav);
 
     size_type level = 0;

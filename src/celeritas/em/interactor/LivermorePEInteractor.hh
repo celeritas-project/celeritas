@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/interactor/LivermorePEInteractor.hh
@@ -12,11 +11,11 @@
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 #include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/InteractionUtils.hh"
@@ -231,7 +230,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     auto const& shells = shared_.xs.shells[el.shells];
     size_type shell_id = 0;
 
-    using Xs = Quantity<LivermoreSubshell::XsUnits>;
+    using Xs = RealQuantity<LivermoreSubshell::XsUnits>;
     real_type const cutoff = generate_canonical(rng)
                              * value_as<Xs>(calc_micro_xs_(el_id_));
     if (Energy{inc_energy_} < el.thresh_lo)

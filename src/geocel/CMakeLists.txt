@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -37,18 +36,7 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
-  celeritas_add_object_library(geocel_g4vg
-    g4vg/Converter.cc
-    g4vg/LogicalVolumeConverter.cc
-    g4vg/SolidConverter.cc
-  )
-
-  celeritas_get_g4libs(_cg4vg_libs geometry)
-  list(APPEND _cg4vg_libs Celeritas::corecel VecGeom::vecgeom)
-  celeritas_target_link_libraries(geocel_g4vg PRIVATE ${_cg4vg_libs})
-
-  list(APPEND SOURCES $<TARGET_OBJECTS:geocel_g4vg>)
-  list(APPEND PRIVATE_DEPS geocel_g4vg)
+  list(APPEND PRIVATE_DEPS G4VG::g4vg)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -62,7 +50,8 @@ if(CELERITAS_USE_Geant4)
     g4/detail/GeantGeoNavCollection.cc
   )
 
-  celeritas_get_g4libs(_cg4_libs global geometry materials persistency intercoms)
+  celeritas_get_g4libs(_cg4_libs global geometry materials particles
+    persistency intercoms)
   list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
   celeritas_target_link_libraries(geocel_geant4 PRIVATE ${_cg4_libs})
 

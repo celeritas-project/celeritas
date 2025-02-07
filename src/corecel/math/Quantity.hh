@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/Quantity.hh
@@ -28,21 +27,23 @@ namespace celeritas
  * by large constants. It can also make debugging easier (numeric values are
  * obvious).
  *
- * Example usage by physics class, where charge is in units of q_e+, and
- * mass and momentum are expressed in atomic natural units (where m_e = 1 and c
- * = 1).
+ * Example usage by physics class, where charge is in units of \f$ q_{e^+} \f$,
+ * and mass and momentum are expressed in atomic natural units (where
+ * \f$ m_e = 1 \f$ and \f$ c = 1 \f$).
  * \code
-   using MevEnergy   = Quantity<Mev>;
-   using MevMass     = Quantity<UnitDivide<Mev, CLightSq>>;
-   using MevMomentum = Quantity<UnitDivide<Mev, CLight>>;
+   using MevEnergy   = Quantity<Mev, real_type>;
+   using MevMass     = RealQuantity<UnitDivide<Mev, CLightSq>>;
+   using MevMomentum = RealQuantity<UnitDivide<Mev, CLight>>;
    \endcode
+ *
+ * Note the use of the \c RealQuantity type alias (below).
  *
  * A relativistic equation that operates on these quantities can do so without
  * unnecessary floating point operations involving the speed of light:
  * \code
-   real_type eval = value_as<MevEnergy>(energy); // Natural units
-   MevMomentum momentum{std::sqrt(eval * eval
-                                  + 2 * value_as<MevMass>(mass) * eval)};
+   real_type e_mev = value_as<MevEnergy>(energy); // Natural units
+   MevMomentum momentum{std::sqrt(e_mev * e_mev
+                                  + 2 * value_as<MevMass>(mass) * e_mev)};
    \endcode
  * The resulting quantity can be converted to the native Celeritas unit system
  * with `native_value_from`, which multiplies in the constant value of
@@ -52,7 +53,7 @@ namespace celeritas
  * \endcode
  *
  * When using a Quantity from another part of the code, e.g. an imported unit
- * system, use the \c quantity free function rather than \c .value() in order
+ * system, use the \c value_as free function rather than \c .value() in order
  * to guarantee consistency of units between source and destination.
  *
  * An example unit class would be:
@@ -64,7 +65,7 @@ namespace celeritas
     };
    \endcode
  *
- * The label is used solely for outputting to JSON.
+ * The label is used solely for diagnostic purposes.
  *
  * \note The Quantity is designed to be a simple "strong type" class, not a
  * complex mathematical class. To operate on quantities, you must use
@@ -74,7 +75,7 @@ namespace celeritas
  * values in your mathematical expressions, then return a new Quantity class
  * with the resulting value and correct type.
  */
-template<class UnitT, class ValueT = decltype(UnitT::value())>
+template<class UnitT, class ValueT>
 class Quantity
 {
   public:
@@ -82,6 +83,9 @@ class Quantity
     //! \name Type aliases
     using value_type = ValueT;
     using unit_type = UnitT;
+    using unit_value_type = decltype(UnitT::value());
+    using common_type = decltype(std::declval<value_type>()
+                                 * std::declval<unit_value_type>());
     //!@}
 
   public:
@@ -103,15 +107,11 @@ class Quantity
 
     //!@{
     //! Access the underlying numeric value, discarding units
-#define CELER_DEFINE_QACCESS(FUNC, QUAL)                          \
-    CELER_CONSTEXPR_FUNCTION value_type QUAL FUNC() QUAL noexcept \
-    {                                                             \
-        return value_;                                            \
+    CELER_CONSTEXPR_FUNCTION value_type& value() & noexcept { return value_; }
+    CELER_CONSTEXPR_FUNCTION value_type const& value() const& noexcept
+    {
+        return value_;
     }
-
-    CELER_DEFINE_QACCESS(value, &)
-    CELER_DEFINE_QACCESS(value, const&)
-#undef CELER_DEFINE_QACCESS
     //!@}
 
     //! Access the underlying data for more efficient loading from memory
@@ -120,6 +120,11 @@ class Quantity
   private:
     value_type value_{};
 };
+//---------------------------------------------------------------------------//
+
+//! Type alias for a quantity that uses compile-time precision
+template<class UnitT>
+using RealQuantity = Quantity<UnitT, real_type>;
 
 //---------------------------------------------------------------------------//
 //! \cond
@@ -211,7 +216,9 @@ CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs) noexcept
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get a zero quantity (analogous to nullptr).
+ * Get a typeless zero quantity.
+ *
+ * The zero quantity can be compared against any Quantity.
  */
 CELER_CONSTEXPR_FUNCTION auto zero_quantity() noexcept
 {
@@ -220,7 +227,7 @@ CELER_CONSTEXPR_FUNCTION auto zero_quantity() noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a quantitity greater than any other numeric quantity.
+ * Get a typeless quantitity greater than any other numeric quantity.
  */
 CELER_CONSTEXPR_FUNCTION auto max_quantity() noexcept
 {
@@ -262,7 +269,9 @@ template<class UnitT, class ValueT>
 CELER_CONSTEXPR_FUNCTION auto
 native_value_from(Quantity<UnitT, ValueT> quant) noexcept
 {
-    return quant.value() * UnitT::value();
+    using common_type = typename Quantity<UnitT, ValueT>::common_type;
+    return static_cast<common_type>(quant.value())
+           * static_cast<common_type>(UnitT::value());
 }
 
 //---------------------------------------------------------------------------//
@@ -272,15 +281,17 @@ native_value_from(Quantity<UnitT, ValueT> quant) noexcept
  * This function can be used for defining a constant for use in another unit
  * system (typically a "natural" unit system for use in physics kernels).
  *
- * \code
-   constexpr LightSpeed c = native_value_to<LightSpeed>(constants::c_light);
-   assert(c.value() == 1);
- * \endcode
+ * An extra cast may be needed when mixing \c float, \c double, and \c
+ * celeritas::Constant.
  */
-template<class Q>
-CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value) noexcept
+template<class Q, class T>
+CELER_CONSTEXPR_FUNCTION Q native_value_to(T value) noexcept
 {
-    return Q{value / Q::unit_type::value()};
+    using common_type = typename Q::common_type;
+    using value_type = typename Q::value_type;
+    constexpr auto unit_value = Q::unit_type::value();
+    return Q{
+        static_cast<value_type>(value / static_cast<common_type>(unit_value))};
 }
 
 //---------------------------------------------------------------------------//

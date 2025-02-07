@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/interactor/CombinedBremInteractor.hh
@@ -39,7 +38,7 @@ namespace celeritas
  * interactor at the low energy (< 1 GeV) and the relativistic bremsstrahlung
  * interactor at the high energy for the e-/e+ bremsstrahlung process.
  *
- * \todo: see if there's any occupancy/performance difference by defining the
+ * \todo See if there's any occupancy/performance difference by defining the
  * samplers *inside* the conditional on "is_relativistic".
  */
 class CombinedBremInteractor

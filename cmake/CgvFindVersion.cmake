@@ -1,9 +1,9 @@
-#---------------------------------*-CMake-*----------------------------------#
+#------------------------------- -*- cmake -*- -------------------------------#
 # SPDX-License-Identifier: Apache-2.0
 #
 # https://github.com/sethrj/cmake-git-version
 #
-# Copyright 2021-2024 UT-Battelle, LLC
+# Copyright 2021-2025 UT-Battelle, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ CgvFindVersion
   The default regex used to match the numeric version and full version string
   from the git tag is::
 
-    v([0-9.]+)(-dev[0-9.]+)?
+    v([0-9.]+)(-[a-z]+[0-9.]*)?
 
   but you can override the regex by setting the ``CGV_TAG_REGEX`` variable
   before calling ``cgv_find_version``.
@@ -66,7 +66,7 @@ CgvFindVersion
 #]=======================================================================]
 
 if(CMAKE_SCRIPT_MODE_FILE)
-  cmake_minimum_required(VERSION 3.8)
+  cmake_minimum_required(VERSION 3.8...3.30)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -89,7 +89,7 @@ endfunction()
 function(_cgv_try_archive_md)
   # Get a possible Git version generated using git-archive (see the
   # .gitattributes file)
-  set(_ARCHIVE_DESCR "$Format:%$")
+  set(_ARCHIVE_DESCR "$Format:%(describe:tags)$")
   set(_ARCHIVE_TAG "$Format:%D$")
   set(_ARCHIVE_HASH "$Format:%h$")
   if(_ARCHIVE_HASH MATCHES "Format:%h")
@@ -142,8 +142,7 @@ function(_cgv_try_git_describe)
     return()
   endif()
 
-  # Process description tag: e.g. v0.4.0-2-gc4af497 or v0.4.0
-  # or v2.0.0-dev2
+  # Process description tag: e.g. v0.4.0-2-gc4af497 or v0.4.0 or v2.0.0-rc.2
   set(_DESCR_REGEX "^${CGV_TAG_REGEX}(-([0-9]+)-g([0-9a-f]+))?")
   string(REGEX MATCH "${_DESCR_REGEX}" _MATCH "${_VERSION_STRING}")
   if(NOT _MATCH)
@@ -263,4 +262,4 @@ if(CMAKE_SCRIPT_MODE_FILE)
   endif()
 endif()
 
-# cmake-git-version v1.1.0
+# cmake-git-version 1.1.2

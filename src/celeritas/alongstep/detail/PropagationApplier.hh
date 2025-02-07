@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/detail/PropagationApplier.hh
@@ -103,7 +102,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
         CELER_ASSERT(track.make_particle_view().is_stopped());
         CELER_ASSERT(sim.post_step_action()
                      == track.make_physics_view().scalars().discrete_action());
-        CELER_ASSERT(track.make_physics_view().has_at_rest());
+        CELER_ASSERT(track.make_physics_view().at_rest_process());
         return;
     }
 

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file scripts/ci/test-installation/example-accel.cc
@@ -69,12 +68,15 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
         setup_options.make_along_step = celeritas::UniformAlongStepFactory();
-        setup_options.geometry_output_file = "simple-example.gdml";
+
+        // NOTE: since no SD is enabled, we must manually disable Celeritas hit
+        // processing
+        setup_options.sd.enabled = false;
     }
 
     G4VPhysicalVolume* Construct() final
     {
-        CELER_LOG_LOCAL(status) << "Setting up detector";
+        CELER_LOG_LOCAL(status) << "Setting up geometry";
         auto* box = new G4Box("world", 1000 * cm, 1000 * cm, 1000 * cm);
         auto* lv = new G4LogicalVolume(box, aluminum_, "world");
         auto* pv = new G4PVPlacement(
@@ -89,6 +91,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
+// Generate 100 MeV neutrons
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
@@ -97,12 +100,11 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
         auto g4particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(2112);
         gun_.SetParticleDefinition(g4particle_def);
-        gun_.SetParticleEnergy(100 * GeV);
+        gun_.SetParticleEnergy(100 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
         gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0});  // +x
     }
 
-    // Generate 100 GeV neutrons
     void GeneratePrimaries(G4Event* event) final
     {
         CELER_LOG_LOCAL(status) << "Generating primaries";
@@ -209,8 +211,10 @@ int main()
         setup_options.ignore_processes.push_back("Rayl");
     }
 
+    setup_options.output_file = "simple-offload.out.json";
+
     run_manager->Initialize();
-    run_manager->BeamOn(1);
+    run_manager->BeamOn(2);
 
     return 0;
 }

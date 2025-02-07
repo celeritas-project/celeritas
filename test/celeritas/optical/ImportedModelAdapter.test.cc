@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ImportedModelAdapter.test.cc
@@ -8,10 +7,6 @@
 #include "celeritas/optical/ImportedModelAdapter.hh"
 
 #include <array>
-
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/io/ImportData.hh"
 
 #include "OpticalMockTestBase.hh"
 #include "ValidationUtils.hh"

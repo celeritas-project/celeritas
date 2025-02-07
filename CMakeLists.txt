@@ -1,13 +1,12 @@
-#---------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.18...3.31)
 
 # Set Celeritas_VERSION using git tags using the following format
-set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
+set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc\\.[0-9]+)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
@@ -15,7 +14,6 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
   "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
-cmake_policy(VERSION 3.18...3.28)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -345,7 +343,14 @@ if(CELERITAS_USE_MPI)
 endif()
 
 if(CELERITAS_USE_OpenMP)
-  find_package(OpenMP REQUIRED)
+  if(NOT OpenMP_FOUND)
+    find_package(OpenMP REQUIRED)
+  endif()
+  if(OpenMP_VERSION AND (OpenMP_VERSION VERSION_LESS "3.0"))
+    message(WARNING
+      "OpenMP version ${OpenMP_VERSION} may fail to compile"
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_Perfetto)
@@ -387,7 +392,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  set(_min_vecgeom_version 1.2.4)
+  set(_min_vecgeom_version 1.2.8)
   if(NOT VecGeom_FOUND)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
@@ -442,6 +447,9 @@ if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_LIBRARIES)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
+  if(CELERITAS_USE_Geant4)
+    celeritas_find_or_external_package(G4VG)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -468,6 +476,9 @@ if(CELERITAS_BUILD_DOCS)
     if(CELERITAS_USE_Breathe)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
+    if(CELERITAS_USE_SphinxMermaid)
+      find_program(MMDC_EXECUTABLE mmdc)
+    endif()
   endif()
   include(ExternalProject)
 endif()
@@ -479,6 +490,8 @@ endif()
 #----------------------------------------------------------------------------#
 # EXTERNALS
 #----------------------------------------------------------------------------#
+
+include(CudaRdcUtils)
 
 if(CELERITAS_EXTERNAL)
   include(FetchContent)
@@ -633,8 +646,16 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
-# Thrust dependency is not a cache variable:
+# Thrust dependency is not a cache variable
 celeritas_export_var(CELERITAS_USE_Thrust)
+
+# Save whether we need GDML requirement
+if(Geant4_gdml_FOUND OR VecGeom_GDML_FOUND)
+  set(CELERITAS_USE_GDML ON)
+else()
+  set(CELERITAS_USE_GDML OFF)
+endif()
+celeritas_export_var(CELERITAS_USE_GDML)
 
 # Export defaulted variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
@@ -658,15 +679,23 @@ foreach(_key
   VecCore_DIR VecGeom_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
+  VDT_INCLUDE_DIR VDT_LIBRARY
   XercesC_LIBRARY XercesC_INCLUDE_DIR
 )
   set(_val "${${_key}}")
   if(_val)
+    set(_cache_val "$CACHE{${_key}}")
+    if(_cache_val)
+      list(APPEND CELERITAS_EXPORT_VARIABLES
+        "set(${_key} \"${_cache_val}\" CACHE PATH \"Set by CeleritasConfig.cmake\")"
+      )
+    else()
     list(APPEND CELERITAS_EXPORT_VARIABLES
       "if(NOT DEFINED ${_key})"
       "  set(${_key} \"${_val}\")"
       "endif()"
     )
+  endif()
   endif()
 endforeach()
 list(JOIN CELERITAS_EXPORT_VARIABLES "\n" CELERITAS_EXPORT_VARIABLES)
@@ -679,7 +708,6 @@ configure_file(
 )
 
 # Export version info
-# TODO for version 1.0.0: change COMPATIBILITY to MajorVersion
 write_basic_package_version_file(
   "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
   COMPATIBILITY AnyNewerVersion

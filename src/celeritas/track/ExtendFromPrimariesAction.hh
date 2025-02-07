@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/ExtendFromPrimariesAction.hh
@@ -54,6 +53,7 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
 
     //!@{
     //! \name Metadata interface
+
     //! Label for the auxiliary data and action
     std::string_view label() const final { return sad_.label(); }
     // Description of the action
@@ -62,6 +62,7 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
 
     //!@{
     //! \name Step action interface
+
     //! ID of the action
     ActionId action_id() const final { return sad_.action_id(); }
     //! Dependency ordering of the action
@@ -74,6 +75,7 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
 
     //!@{
     //! \name Aux params interface
+
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
     // Build state data for a stream

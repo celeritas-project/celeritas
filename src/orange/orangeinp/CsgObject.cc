@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/CsgObject.cc
@@ -99,10 +98,7 @@ JoinObjects<Op>::JoinObjects(std::string&& label, VecObject&& objects)
     : label_{std::move(label)}, objects_{std::move(objects)}
 {
     CELER_EXPECT(!label_.empty());
-    CELER_EXPECT(std::all_of(
-        objects_.begin(), objects_.end(), [](SPConstObject const& obj) {
-            return static_cast<bool>(obj);
-        }));
+    CELER_EXPECT(std::all_of(objects_.begin(), objects_.end(), LogicalTrue{}));
     CELER_EXPECT(!objects_.empty());
 }
 
@@ -163,7 +159,8 @@ make_subtraction(std::string&& label,
 /*!
  * Make a combination of possibly negated objects.
  *
- * The Region Definition Vector is the SCALE way for defining media,
+ * The Region Definition Vector (RDV) is an intersection of objects and/or
+ * their negations. It is the KENO/SCALE \cite{kenovi} way for defining media,
  * boundaries, etc. It must not be empty.
  */
 std::shared_ptr<AllObjects const>

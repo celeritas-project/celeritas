@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
@@ -22,6 +21,7 @@ list(APPEND SOURCES
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/DepthCalculator.cc
+  detail/LogicUtils.cc
   detail/OrangeInputIOImpl.json.cc
   detail/RectArrayInserter.cc
   detail/SurfacesRecordBuilder.cc
@@ -51,7 +51,6 @@ list(APPEND SOURCES
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
-  orangeinp/detail/PostfixLogicBuilder.cc
   orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/SenseEvaluator.cc

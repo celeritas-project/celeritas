@@ -31,6 +31,7 @@ The easiest way to install Celeritas as a library/app is with Spack:
 git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
 # Add Spack to the shell environment
 # For bash/zsh/sh (See [spack-start] for other shell)
+. spack/share/spack/setup-env.sh
 ```
 - Install Celeritas with
 ```console
@@ -70,7 +71,7 @@ Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 
 # Installation for developers
 
@@ -106,22 +107,33 @@ $ make && ctest
 ```
 
 Celeritas guarantees full compatibility and correctness only on the
-combinations of compilers and dependencies tested under continuous integration:
-- Compilers:
-    - GCC 8.4, 12.3
-    - Clang 10.0, 15.0
-    - GCC 11.3 + NVCC 11.8
-    - HIP-Clang 15.0
+combinations of compilers and dependencies tested under continuous integration.
+See the configure output from the [GitHub runners](https://github.com/celeritas-project/celeritas/actions/workflows/push.yml) for the full list of combinations.
+- Compilers
+    - GCC 8, 11, 12, 14
+    - Clang 10, 15, 18
+    - MSVC 19
+    - GCC 11.5 + NVCC 12.6
+    - ROCm Clang 18
+- Platforms
+    - Linux x86_64, ARM
+    - Windows x86_64
+- C++ standard
+    - C++17 and C++20
 - Dependencies:
-    - Geant4 11.0.3
-    - VecGeom 1.2.5
+    - Geant4 11.0.4
+    - VecGeom 1.2.10
 
 Partial compatibility and correctness is available for an extended range of
 Geant4:
 - 10.5-10.7: no support for tracking manager offload
 - 11.0: no support for fast simulation offload
-- 11.1-11.2: [no support for default Rayleigh scattering cross section](see
+- 11.1-11.3: [no support for default Rayleigh scattering cross section](see
   https://github.com/celeritas-project/celeritas/issues/1091)
+
+Note also that navigation bugs in Geant4 and VecGeom older than the versions
+listed above *will* cause failures in some geometry-related unit tests. Future
+behavior changes in external packages may also cause failures.
 
 Since we compile with extra warning flags and avoid non-portable code, most
 other compilers *should* work.
@@ -129,7 +141,7 @@ The full set of configurations is viewable on CI platform [GitHub Actions][gha])
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
-[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development
@@ -140,7 +152,7 @@ details on coding in Celeritas, and [the administration guidelines][administrati
 
 [contributing-guidelines]: https://celeritas-project.github.io/celeritas/user/development/contributing.html
 [development-guidelines]: https://celeritas-project.github.io/celeritas/user/development/coding.html
-[administration-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/administration.html
+[administration-guidelines]: https://celeritas-project.github.io/celeritas/user/development/administration.html
 
 # Directory structure
 

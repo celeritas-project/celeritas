@@ -1,5 +1,4 @@
-.. Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
 .. _celeritas_random:
@@ -16,7 +15,7 @@ Engines
 -------
 
 Celeritas defaults to using an in-house implementation of the XORWOW
-:cite:`marsaglia_xorshift_2003` bit shifting generator. Each thread's state is
+:cite:`marsaglia-xorshift-2003` bit shifting generator. Each thread's state is
 seeded at runtime by filling the state with bits generated from a 32-bit
 Mersenne twister. When a new event begins through the Geant4 interface, each
 thread's state is initialized using same seed and skipped ahead a different

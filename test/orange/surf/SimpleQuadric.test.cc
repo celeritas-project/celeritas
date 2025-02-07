@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/SimpleQuadric.test.cc
@@ -21,10 +20,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+constexpr auto sqrt_two = real_type{constants::sqrt_two};
 
 TEST(SimpleQuadricTest, construction)
 {
-    using constants::sqrt_two;
     // Plane
     SimpleQuadric p{Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two}};
 

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/NormalDistribution.test.cc
@@ -83,6 +82,19 @@ TEST(NormalDistributionTest, move)
         return sample_other_normal;
     }();
     EXPECT_DOUBLE_EQ(4 * samples[1], sample_normal(rng));
+}
+
+TEST(NormalDistributionTest, copy)
+{
+    DiagnosticRngEngine<std::mt19937> rng;
+    NormalDistribution<double> sample{4, 0.5};
+
+    // Initialize with parameters but not spare values
+    NormalDistribution<double> sample_copy{sample};
+
+    auto orig = sample(rng);
+    rng = {};
+    EXPECT_DOUBLE_EQ(orig, sample_copy(rng));
 }
 
 //---------------------------------------------------------------------------//

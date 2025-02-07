@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/detail/GeantProcessImporter.cc
@@ -22,7 +21,9 @@
 #include <G4PhysicsTable.hh>
 #include <G4PhysicsVector.hh>
 #include <G4PhysicsVectorType.hh>
+#include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
+#include <G4ProcessVector.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4String.hh>
 #include <G4VEmProcess.hh>
@@ -35,6 +36,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/io/ImportUnits.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -121,6 +123,12 @@ init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
     result.process_type = to_import_process_type(process.GetProcessType());
     result.process_class = to_import_process_class(process);
     result.particle_pdg = particle.GetPDGEncoding();
+
+    auto* rest_processes
+        = particle.GetProcessManager()->GetAtRestProcessVector();
+    CELER_ASSERT(rest_processes);
+    result.applies_at_rest
+        = rest_processes->contains(const_cast<G4VProcess*>(&process));
 
     return result;
 }
@@ -234,9 +242,7 @@ void append_table(G4PhysicsTable const* g4table,
 template<class T>
 bool all_are_assigned(std::vector<T> const& arr)
 {
-    return std::all_of(arr.begin(), arr.end(), [](T const& v) {
-        return static_cast<bool>(v);
-    });
+    return std::all_of(arr.begin(), arr.end(), LogicalTrue<T>{});
 }
 
 //---------------------------------------------------------------------------//

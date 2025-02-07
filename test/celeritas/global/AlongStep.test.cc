@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep.test.cc
@@ -53,7 +52,7 @@ class MockAlongStepFieldTest : public MockAlongStepTest
     {
         // Note that default track direction is {0,0,1}
         UniformFieldParams field_params;
-        field_params.field = {4 * units::tesla, 0, 0};
+        field_params.field = {static_cast<real_type>(4 * units::tesla), 0, 0};
 
         auto& action_reg = *this->action_reg();
         auto result = std::make_shared<AlongStepUniformMscAction>(
@@ -99,7 +98,7 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
     {
         auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
-        field_params.field = {0, 0, 1 * units::tesla};
+        field_params.field = {0, 0, static_cast<real_type>(1 * units::tesla)};
 
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
@@ -229,7 +228,7 @@ TEST_F(MockAlongStepTest, basic)
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_NEAR(1.2431209185653e-12, result.time, 1e-11);
         EXPECT_SOFT_EQ(5.2704627669473e-05, result.step);
-        EXPECT_EQ("physics-discrete-select", result.action);
+        EXPECT_EQ("eloss-range", result.action);
     }
     {
         inp.energy = MevEnergy{1e-12};
@@ -239,7 +238,7 @@ TEST_F(MockAlongStepTest, basic)
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(1.2430647328325e-12, result.time);
         EXPECT_SOFT_EQ(5.2704627669473e-08, result.step);
-        EXPECT_EQ("physics-discrete-select", result.action);
+        EXPECT_EQ("eloss-range", result.action);
     }
     {
         inp.energy = MevEnergy{1e-18};
@@ -248,7 +247,7 @@ TEST_F(MockAlongStepTest, basic)
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(0, result.time);
         EXPECT_SOFT_EQ(5.2704627669473e-11, result.step);
-        EXPECT_EQ("physics-discrete-select", result.action);
+        EXPECT_EQ("eloss-range", result.action);
     }
 }
 
@@ -280,8 +279,8 @@ TEST_F(MockAlongStepFieldTest, TEST_IF_CELERITAS_DOUBLE(basic))
         EXPECT_SOFT_EQ(6.9431339225049422e-10, result.time);
         EXPECT_SOFT_EQ(0.930177246841563, result.step);
         EXPECT_SOFT_EQ(0, result.mfp);
-        EXPECT_SOFT_EQ(1, result.alive);
-        EXPECT_EQ("physics-discrete-select", result.action);
+        EXPECT_SOFT_EQ(0, result.alive);
+        EXPECT_EQ("eloss-range", result.action);
     }
 }
 

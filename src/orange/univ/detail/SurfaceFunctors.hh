@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/univ/detail/SurfaceFunctors.hh
@@ -126,7 +125,7 @@ class CalcIntersections
 {
   public:
     //! Construct from the particle point, direction, face ID, and temp storage
-    CELER_FUNCTION CalcIntersections(F is_valid_isect,
+    CELER_FUNCTION CalcIntersections(F&& is_valid_isect,
                                      Real3 const& pos,
                                      Real3 const& dir,
                                      FaceId on_face,

@@ -1,5 +1,4 @@
-.. Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-.. See the doc/COPYRIGHT file for details.
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
 .. _api_diagnostics:
@@ -26,3 +25,5 @@ These use a special interface to extract step information.
 .. doxygenclass:: celeritas::SimpleCalo
 
 .. doxygenclass:: celeritas::RootStepWriter
+
+.. doxygenstruct:: celeritas::SimpleRootFilterInput

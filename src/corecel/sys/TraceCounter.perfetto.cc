@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/TraceCounter.perfetto.cc
@@ -32,7 +31,9 @@ template<class T>
 void trace_counter(char const* name, T value)
 {
     static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
-    TRACE_COUNTER(detail::perfetto_track_event_category, name, value);
+    TRACE_COUNTER(detail::perfetto_track_event_category,
+                  ::perfetto::DynamicString{name},
+                  value);
 }
 
 //---------------------------------------------------------------------------//

@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/AuxParamsRegistry.hh
@@ -15,11 +14,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Manage auxiliary-added parameter classes.
+ * Manage auxiliary parameter classes.
  *
- * An instance of this class can be added to shared problem data so that users
- * (and other parts of Celeritas) can share arbitrary information between parts
- * of the code and create independent state data for each stream.
+ * This class keeps track of \c AuxParamsInterface classes.
  */
 class AuxParamsRegistry
 {

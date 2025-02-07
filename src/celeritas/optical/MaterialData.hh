@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/MaterialData.hh
@@ -37,6 +36,7 @@ struct MaterialParamsData
 
     OpticalMaterialItems<GenericGridRecord> refractive_index;
     VolumeItems<OpticalMaterialId> optical_id;
+    OpticalMaterialItems<CoreMaterialId> core_material_id;
 
     // Backend data
     Items<real_type> reals;
@@ -47,7 +47,7 @@ struct MaterialParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return !refractive_index.empty() && !optical_id.empty()
-               && !reals.empty();
+               && !core_material_id.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -57,6 +57,7 @@ struct MaterialParamsData
         CELER_EXPECT(other);
         refractive_index = other.refractive_index;
         optical_id = other.optical_id;
+        core_material_id = other.core_material_id;
         reals = other.reals;
         return *this;
     }

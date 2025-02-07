@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/MaterialParams.hh
@@ -15,6 +14,7 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "MaterialData.hh"
+#include "MaterialView.hh"
 
 namespace celeritas
 {
@@ -52,6 +52,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         std::vector<ImportOpticalProperty> properties;
         //! Map logical volume ID to optical material ID
         std::vector<OpticalMaterialId> volume_to_mat;
+        //! Map optical material ID to core material ID
+        std::vector<CoreMaterialId> optical_to_core;
     };
 
   public:
@@ -66,6 +68,9 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
     // Number of optical materials
     inline OpticalMaterialId::size_type num_materials() const;
+
+    // Construct a material view for the given identifier
+    MaterialView get(OpticalMaterialId mat) const;
 
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

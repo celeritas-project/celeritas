@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celer-g4/EventAction.cc
@@ -46,7 +45,7 @@ void EventAction::BeginOfEventAction(G4Event const* event)
 
     get_event_time_ = {};
 
-    if (SharedParams::CeleritasDisabled())
+    if (params_->mode() != SharedParams::Mode::enabled)
         return;
 
     // Set event ID in local transporter and reseed Celerits RNG
@@ -63,7 +62,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
 {
     CELER_EXPECT(event);
 
-    if (!SharedParams::CeleritasDisabled())
+    if (params_->mode() == SharedParams::Mode::enabled)
     {
         // Transport any tracks left in the buffer
         ExceptionConverter call_g4exception{"celer0004", params_.get()};

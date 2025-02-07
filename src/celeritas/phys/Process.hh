@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/Process.hh
@@ -65,6 +64,9 @@ class Process
 
     //! Whether to use the integral method to sample interaction length
     virtual bool use_integral_xs() const = 0;
+
+    //! Whether the process applies when the particle is stopped
+    virtual bool applies_at_rest() const = 0;
 
     //! Name of the process
     virtual std::string_view label() const = 0;

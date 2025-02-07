@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/StringUtils.test.cc
@@ -52,6 +51,13 @@ TEST(StringUtils, trim)
     EXPECT_EQ(""sv, trim(" "));
     EXPECT_EQ("what ho"sv, trim(" what ho  "));
     EXPECT_EQ("what ho"sv, trim("\twhat ho \a \n"));
+}
+
+//---------------------------------------------------------------------------//
+TEST(StringUtils, tolower)
+{
+    EXPECT_EQ("", tolower(""));
+    EXPECT_EQ(" hello!  ", tolower(" HeLLo!  "));
 }
 
 //---------------------------------------------------------------------------//

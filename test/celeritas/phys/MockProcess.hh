@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/MockProcess.hh
@@ -23,24 +22,24 @@ namespace test
 //! Energy loss rate [MeV/cm] per volume [cm^-3] -> [MeV * cm^2]
 struct MevCmSq
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::Mev::value() * ipow<2>(units::centimeter);
     }
 };
 
-using MevCmSqLossDens = Quantity<MevCmSq>;
+using MevCmSqLossDens = RealQuantity<MevCmSq>;
 
 //! Energy loss rate
 struct MevPerCm
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION Constant value()
     {
         return units::Mev::value() / units::centimeter;
     }
 };
 
-using MevPerCmLoss = Quantity<MevPerCm>;
+using MevPerCmLoss = RealQuantity<MevPerCm>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -63,7 +62,7 @@ class MockProcess : public Process
   public:
     //!@{
     //! \name Type aliases
-    using BarnMicroXs = Quantity<units::Barn>;
+    using BarnMicroXs = RealQuantity<units::Barn>;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
@@ -74,7 +73,8 @@ class MockProcess : public Process
     {
         SPConstMaterials materials;
         std::string label;
-        bool use_integral_xs;
+        bool use_integral_xs{true};
+        bool applies_at_rest{false};
         VecApplicability applic;  //!< Applicablity per model
         ModelCallback interact;  //!< MockModel::interact callback
         VecMicroXs xs;  //!< Constant per atom [bn]
@@ -87,6 +87,7 @@ class MockProcess : public Process
     VecModel build_models(ActionIdIter start_id) const final;
     StepLimitBuilders step_limits(Applicability range) const final;
     bool use_integral_xs() const final;
+    bool applies_at_rest() const final;
     std::string_view label() const final;
 
   private:

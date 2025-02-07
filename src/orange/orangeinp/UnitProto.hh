@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/UnitProto.hh
@@ -12,6 +11,7 @@
 
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/orangeinp/CsgTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "ProtoInterface.hh"
@@ -130,6 +130,7 @@ class UnitProto : public ProtoInterface
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
         std::string label;
+        UnitSimplification simplification{UnitSimplification::none};
 
         // True if fully defined
         explicit inline operator bool() const;

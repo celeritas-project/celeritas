@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celer-g4/ExceptionHandler.hh
@@ -9,6 +8,7 @@
 
 #include <exception>
 #include <functional>
+#include <memory>
 #include <G4ExceptionSeverity.hh>
 #include <G4StateManager.hh>
 #include <G4Types.hh>
@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+class SharedParams;
+
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -28,10 +30,12 @@ class ExceptionHandler : public G4VExceptionHandler
     //!@{
     //! \name Type aliases
     using StdExceptionHandler = std::function<void(std::exception_ptr)>;
+    using SPConstParams = std::shared_ptr<SharedParams const>;
     //!@}
 
   public:
-    explicit ExceptionHandler(StdExceptionHandler handle_exception);
+    ExceptionHandler(StdExceptionHandler handle_exception,
+                     SPConstParams params);
 
     // Accept error codes from geant4
     G4bool Notify(char const* originOfException,
@@ -41,6 +45,7 @@ class ExceptionHandler : public G4VExceptionHandler
 
   private:
     StdExceptionHandler handle_;
+    SPConstParams params_;
 };
 
 //---------------------------------------------------------------------------//

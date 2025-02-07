@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/PhysicsParams.cc
@@ -24,6 +23,7 @@
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
@@ -86,9 +86,8 @@ PhysicsParams::PhysicsParams(Input inp)
     , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
-    CELER_EXPECT(std::all_of(processes_.begin(),
-                             processes_.end(),
-                             [](SPConstProcess const& p) { return bool(p); }));
+    CELER_EXPECT(
+        std::all_of(processes_.begin(), processes_.end(), LogicalTrue{}));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
@@ -221,23 +220,49 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct on-device particle-dependent physics options.
+ */
+void PhysicsParams::build_particle_options(ParticleOptions const& opts,
+                                           ParticleScalars* data) const
+{
+    CELER_VALIDATE(opts.min_range > 0,
+                   << "invalid min_range=" << opts.min_range
+                   << " (should be positive)");
+    CELER_VALIDATE(opts.max_step_over_range > 0,
+                   << "invalid max_step_over_range="
+                   << opts.max_step_over_range << " (should be positive)");
+    CELER_VALIDATE(opts.lowest_energy.value() > 0,
+                   << "invalid lowest_energy=" << opts.lowest_energy.value()
+                   << " (should be positive)");
+    CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
+                   << "invalid range_factor=" << opts.range_factor
+                   << " (should be within 0 < limit < 1)");
+    data->min_range = opts.min_range;
+    data->max_step_over_range = opts.max_step_over_range;
+    data->lowest_energy = opts.lowest_energy;
+    data->displaced = opts.displaced;
+    data->range_factor = opts.range_factor;
+    data->step_limit_algorithm = opts.step_limit_algorithm;
+    if (data->step_limit_algorithm
+        == MscStepLimitAlgorithm::distance_to_boundary)
+    {
+        CELER_LOG(warning) << "Unsupported MSC step limit algorithm '"
+                           << to_cstring(data->step_limit_algorithm)
+                           << "': defaulting to '"
+                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+        data->step_limit_algorithm = MscStepLimitAlgorithm::safety;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct on-device physics options.
  */
 void PhysicsParams::build_options(Options const& opts, HostValue* data) const
 {
-    CELER_VALIDATE(opts.max_step_over_range > 0,
-                   << "invalid max_step_over_range="
-                   << opts.max_step_over_range << " (should be positive)");
     CELER_VALIDATE(opts.min_eprime_over_e > 0 && opts.min_eprime_over_e < 1,
                    << "invalid min_eprime_over_e=" << opts.min_eprime_over_e
                    << " (should be be within 0 < limit < 1)");
-    CELER_VALIDATE(opts.min_range > 0,
-                   << "invalid min_range=" << opts.min_range
-                   << " (should be positive)");
-    CELER_VALIDATE(opts.lowest_electron_energy.value() > 0,
-                   << "invalid lowest_electron_energy="
-                   << opts.lowest_electron_energy.value()
-                   << " (should be positive)");
     CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
                    << "invalid linear_loss_limit=" << opts.linear_loss_limit
                    << " (should be within 0 <= limit <= 1)");
@@ -250,32 +275,18 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.safety_factor >= 0.1,
                    << "invalid safety_factor=" << opts.safety_factor
                    << " (should be >= 0.1)");
-    CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
-                   << "invalid range_factor=" << opts.range_factor
-                   << " (should be within 0 < limit < 1)");
     CELER_VALIDATE(opts.spline_eloss_order > 0,
                    << "invalid spline_eloss_order=" << opts.spline_eloss_order
                    << " (should be > 0)");
-    data->scalars.min_range = opts.min_range;
-    data->scalars.max_step_over_range = opts.max_step_over_range;
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
-    data->scalars.lowest_electron_energy = opts.lowest_electron_energy;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
     data->scalars.lambda_limit = opts.lambda_limit;
-    data->scalars.range_factor = opts.range_factor;
     data->scalars.safety_factor = opts.safety_factor;
-    data->scalars.step_limit_algorithm = opts.step_limit_algorithm;
     data->scalars.spline_eloss_order = opts.spline_eloss_order;
-    if (data->scalars.step_limit_algorithm
-        == MscStepLimitAlgorithm::distance_to_boundary)
-    {
-        CELER_LOG(warning) << "Unsupported step limit algorithm '"
-                           << to_cstring(data->scalars.step_limit_algorithm)
-                           << "': defaulting to '"
-                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
-        data->scalars.step_limit_algorithm = MscStepLimitAlgorithm::safety;
-    }
+
+    this->build_particle_options(opts.light, &data->scalars.light);
+    this->build_particle_options(opts.heavy, &data->scalars.heavy);
 }
 
 //---------------------------------------------------------------------------//
@@ -515,6 +526,22 @@ void PhysicsParams::build_xs(Options const& opts,
                 energy_max_xs.resize(mats.size());
             }
 
+            if (proc.applies_at_rest())
+            {
+                /* \todo For now assume only one process per particle applies
+                 * at rest. If a particle has multiple at-rest processes, we
+                 * will need to check which process has the shortest time to
+                 * interaction and choose that process in \c
+                 * select_discrete_interaction.
+                 */
+                CELER_VALIDATE(!process_groups.at_rest,
+                               << "particle ID " << particle_id.get()
+                               << " has multiple at-rest processes");
+
+                // Discrete interaction can occur at rest
+                process_groups.at_rest = ParticleProcessId(pp_idx);
+            }
+
             // Loop over materials
             for (auto mat_idx : range(MaterialId::size_type{mats.size()}))
             {
@@ -545,33 +572,25 @@ void PhysicsParams::build_xs(Options const& opts,
                         = insert_grid(grid.log_energy, make_span(range));
                 }
 
-                if (processes[pp_idx] == data->hardwired.positron_annihilation)
+                if (use_integral_xs)
                 {
-                    // Discrete interaction can occur at rest
-                    process_groups.has_at_rest = true;
+                    // Find and store the energy of the largest cross section
+                    // for this material if the integral approach is used
 
-                    if (use_integral_xs)
+                    if (processes[pp_idx]
+                        == data->hardwired.positron_annihilation)
                     {
                         // Annihilation cross section is maximum at zero and
                         // decreases with increasing energy
                         energy_max_xs[mat_idx] = 0;
                     }
-                }
-                else if (auto grid_id = xs_grid_ids[mat_idx])
-                {
-                    auto const& grid_data = data->value_grids[grid_id];
-                    auto data_ref = make_const_ref(*data);
-                    UniformGrid const loge_grid(grid_data.log_energy);
-                    XsCalculator const calc_xs(grid_data, data_ref.reals);
-
-                    // Check if the particle can have a discrete interaction at
-                    // rest
-                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
-
-                    // Find and store the energy of the largest cross section
-                    // for this material if the integral approach is used
-                    if (use_integral_xs)
+                    else if (auto grid_id = xs_grid_ids[mat_idx])
                     {
+                        auto const& grid_data = data->value_grids[grid_id];
+                        auto data_ref = make_const_ref(*data);
+                        UniformGrid const loge_grid(grid_data.log_energy);
+                        XsCalculator const calc_xs(grid_data, data_ref.reals);
+
                         // Find the energy of the largest cross section
                         real_type xs_max = 0;
                         real_type e_max = 0;

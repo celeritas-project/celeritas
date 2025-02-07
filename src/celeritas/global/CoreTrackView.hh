@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/CoreTrackView.hh
@@ -226,10 +225,9 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
 {
     MaterialId mat_id = this->make_material_view().material_id();
     CELER_ASSERT(mat_id);
-    ParticleId par_id = this->make_particle_view().particle_id();
-    CELER_ASSERT(par_id);
+    auto par = this->make_particle_view();
     return PhysicsTrackView{
-        params_.physics, states_.physics, par_id, mat_id, this->track_slot_id()};
+        params_.physics, states_.physics, par, mat_id, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
