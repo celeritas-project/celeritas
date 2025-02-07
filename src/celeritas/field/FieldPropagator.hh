@@ -243,7 +243,9 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
             // than or exactly on the boundary, or if the crossing
             // doesn't put us past the end of the step
             result.boundary = (linear_step.distance <= chord.length
-                               || soft_zero(linear_step.distance - chord.length)
+                               //                               ||
+                               //                               soft_zero(linear_step.distance
+                               //                               - chord.length)
                                || result.distance + update_length <= step
                                || chord.length == 0);
 

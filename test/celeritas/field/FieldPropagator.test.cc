@@ -404,6 +404,13 @@ TEST_F(TwoBoxesTest, gamma_exit)
         auto result = propagate(exact_distance);
 
         EXPECT_SOFT_EQ(exact_distance, result.distance);
+        if (!result.boundary)
+        {
+            // The chord.length is slightly smaller than exact_distance by
+            // O(1.e-16), due to the position returned by the DP stepper.
+            // This extra step makes sure that track reaches the boundary.
+            // result = propagate(0.001);
+        }
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
         EXPECT_EQ(1, stepper.count());
