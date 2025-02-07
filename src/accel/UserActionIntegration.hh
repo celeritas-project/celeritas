@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-class G4Run;
+#include "IntegrationBase.hh"
+
 class G4Event;
-class G4ParticleDefinition;
 class G4Track;
 
 namespace celeritas
@@ -42,23 +42,14 @@ struct SetupOptions;
  *
  * \todo Provide default minimal action initialization classes for user?
  */
-class UserActionIntegration
+class UserActionIntegration final : public IntegrationBase
 {
   public:
     // Access the singleton
     static UserActionIntegration& Instance();
 
-    // Edit options before starting the run
-    void SetOptions(SetupOptions&& opts);
-
-    // Initialize during ActionInitialization on non-worker thread
-    void BuildForMaster();
-
-    // Initialize during ActionInitialization
-    void Build();
-
     // Start the run
-    void BeginOfRunAction(G4Run const* run);
+    void BeginOfRunAction(G4Run const* run) final;
 
     // Send Celeritas the event ID
     void BeginOfEventAction(G4Event const* event);
@@ -68,9 +59,6 @@ class UserActionIntegration
 
     // Flush offloaded tracks from Celeritas
     void EndOfEventAction(G4Event const* event);
-
-    // End the run
-    void EndOfRunAction(G4Run const* run);
 
   private:
     // Only allow the singleton to construct

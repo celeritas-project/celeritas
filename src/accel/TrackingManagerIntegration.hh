@@ -8,12 +8,11 @@
 
 #include <vector>
 
-class G4Run;
+#include "IntegrationBase.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct SetupOptions;
 class TrackingManager;
 class TrackingManagerIntegration;
 
@@ -38,26 +37,14 @@ class TrackingManagerIntegration;
  *
  * \todo Provide default minimal action initialization classes for user
  */
-class TrackingManagerIntegration
+class TrackingManagerIntegration final : public IntegrationBase
 {
   public:
     // Access the public-facing integration singleton
     static TrackingManagerIntegration& Instance();
 
-    // Edit options before starting the run
-    void SetOptions(SetupOptions&& opts);
-
-    // Initialize during ActionInitialization on non-worker thread
-    void BuildForMaster();
-
-    // Initialize during ActionInitialization
-    void Build();
-
     // Start the run
-    void BeginOfRunAction(G4Run const* run);
-
-    // End the run
-    void EndOfRunAction(G4Run const* run);
+    void BeginOfRunAction(G4Run const* run) final;
 
   private:
     // Tracking manager can only be created privately

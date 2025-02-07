@@ -16,6 +16,7 @@ list(APPEND SOURCES
   FastSimulationModel.cc
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
+  IntegrationBase.cc
   Logger.cc
   LocalTransporter.cc
   SetupOptions.cc

@@ -28,45 +28,6 @@ UserActionIntegration& UserActionIntegration::Instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Edit options before starting the run.
- */
-void UserActionIntegration::SetOptions(SetupOptions&& opts)
-{
-    detail::IntegrationSingleton::instance().setup_options(std::move(opts));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize during ActionInitialization on non-worker thread in MT mode.
- */
-void UserActionIntegration::BuildForMaster()
-{
-    CELER_VALIDATE(
-        G4Threading::IsMasterThread()
-            && G4Threading::IsMultithreadedApplication(),
-        << R"(BuildForMaster called from a worker thread or non-MT code)");
-
-    detail::IntegrationSingleton::instance().initialize_logger();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize during ActionInitialization on worker thread or no-MT mode.
- */
-void UserActionIntegration::Build()
-{
-    if (G4Threading::IsMasterThread())
-    {
-        CELER_VALIDATE(!G4Threading::IsMultithreadedApplication(),
-                       << "cannot call Integration::Build from worker thread "
-                          "in a multithreaded application");
-
-        detail::IntegrationSingleton::instance().initialize_logger();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Start the run.
  */
 void UserActionIntegration::BeginOfRunAction(G4Run const*)
@@ -141,25 +102,6 @@ void UserActionIntegration::EndOfEventAction(G4Event const*)
     CELER_TRY_HANDLE(
         local.Flush(),
         ExceptionConverter("celer.event.flush", &singleton.shared_params()));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * End the run.
- */
-void UserActionIntegration::EndOfRunAction(G4Run const*)
-{
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-
-    auto& singleton = detail::IntegrationSingleton::instance();
-
-    // Remove local transporter
-    singleton.finalize_local_transporter();
-
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.finalize_shared_params();
-    }
 }
 
 //---------------------------------------------------------------------------//
