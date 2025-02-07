@@ -122,15 +122,25 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 void TrackingManager::HandOverOneTrack(G4Track* track)
 {
     CELER_EXPECT(track);
-    CELER_EXPECT(params_->mode()
-                 == (*transport_ ? SharedParams::Mode::enabled
-                                 : SharedParams::Mode::kill_offload));
+
+    if (CELER_UNLIKELY(!validated_))
+    {
+        CELER_TRY_HANDLE(
+            CELER_VALIDATE(
+                params_->mode()
+                    == (*transport_ ? SharedParams::Mode::enabled
+                                    : SharedParams::Mode::kill_offload),
+                << "Celeritas was not initialized properly (maybe "
+                   "BeginOfRunAction was not called?)"),
+            ExceptionConverter("celer.track.validate"));
+        validated_ = true;
+    }
 
     if (*transport_)
     {
         // Offload this track to Celeritas for transport
-        ExceptionConverter call_g4exception{"celer0001", params_};
-        CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
+        CELER_TRY_HANDLE(transport_->Push(*track),
+                         ExceptionConverter("celer.track.push", params_));
     }
 
     // G4VTrackingManager takes ownership, so kill Geant4 track
@@ -150,12 +160,9 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
  */
 void TrackingManager::FlushEvent()
 {
-    // TODO: update event ID by querying event manager
-    // G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
-
     if (*transport_)
     {
-        ExceptionConverter call_g4exception{"celer0002", params_};
+        ExceptionConverter call_g4exception{"celer.event.flush", params_};
         CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
     }
 }

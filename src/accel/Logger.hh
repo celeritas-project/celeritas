@@ -25,4 +25,8 @@ Logger MakeMTLogger(G4RunManager const&);
 }
 
 //---------------------------------------------------------------------------//
+// Get the thread ID printed to logger messages.
+std::string get_thread_label();
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
