@@ -934,7 +934,7 @@ TEST_F(CmseTest, imager)
     inp.lower_left = from_cm({0, 0, 0});
     inp.upper_right = from_cm({350, 0, 1700});
     inp.rightward = {0.0, 0.0, 1.0};
-    inp.vertical_pixels = 512;
+    inp.vertical_pixels = 8;
 
     write_image(ImageParams{inp}, "g4-cmse-xz-mid.jsonl");
 }
@@ -1121,7 +1121,7 @@ TEST_F(PincellTest, imager)
     inp.lower_left = from_cm({-12, -12, 0});
     inp.upper_right = from_cm({12, 12, 0});
     inp.rightward = {1.0, 0.0, 0.0};
-    inp.vertical_pixels = 255;
+    inp.vertical_pixels = 8;
 
     write_image(ImageParams{inp}, "g4-pincell-xy-mid.jsonl");
 
