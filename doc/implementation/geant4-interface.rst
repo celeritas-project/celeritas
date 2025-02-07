@@ -14,8 +14,15 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
 
 .. _api_accel_high_level:
 
-Tracking manager interface
---------------------------
+High level interfaces
+---------------------
+
+.. doxygenclass:: celeritas::IntegrationBase
+   :members:
+   :no-link:
+
+Tracking manager
+^^^^^^^^^^^^^^^^
 
 Using Celeritas to "offload" all electrons, photons, and gammas from Geant4 can
 be done using the new-ish Geant4 interface :cpp:class:`G4VTrackingManager`
@@ -30,18 +37,20 @@ See :ref:`example_template` for a template of adding to a user application.
 
 .. doxygenclass:: celeritas::TrackingManagerIntegration
    :members:
-   :no-link:
 
-Fast simulation interface
--------------------------
+Fast simulation
+^^^^^^^^^^^^^^^
 
 It is currently *not* recommended to offload tracks on a per-region basis, since
 tracks exiting that region remain in Celeritas and on GPU.
 
 .. doxygenclass:: celeritas::FastSimulationModel
 
-User action interface
----------------------
+.. doxygenclass:: celeritas::FastSimulationIntegration
+   :members:
+
+User action
+^^^^^^^^^^^
 
 For compatibility with older versions of Geant4, you may use the following
 class to integrate Celeritas by manually intercepting tracks with a
@@ -49,7 +58,6 @@ class to integrate Celeritas by manually intercepting tracks with a
 
 .. doxygenclass:: celeritas::UserActionIntegration
    :members:
-   :no-link:
 
 
 The :cpp:class:`celeritas::SimpleOffload` class is a slightly lower level
