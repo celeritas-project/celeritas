@@ -926,6 +926,19 @@ TEST_F(CmseTest, trace)
     // clang-format on
 }
 
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({0, 0, 0});
+    inp.upper_right = from_cm({350, 0, 1700});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 512;
+
+    write_image(ImageParams{inp}, "g4-cmse-xz-mid.jsonl");
+}
+
 //---------------------------------------------------------------------------//
 class ZnenvTest : public GeantGeoTest
 {
