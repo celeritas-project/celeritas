@@ -105,7 +105,6 @@ void FastSimulationOffload::DoIt(G4FastTrack const& track, G4FastStep& step)
     step.ProposeTotalEnergyDeposited(0.0);
 }
 
-#if G4VERSION_NUMBER >= 1110
 //---------------------------------------------------------------------------//
 /*!
  * Complete processing of any buffered tracks.
@@ -120,6 +119,5 @@ void FastSimulationOffload::Flush()
     ExceptionConverter call_g4exception{"celer0002", params_};
     CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 }
-#endif
 
 }  // namespace celeritas

@@ -16,7 +16,7 @@ class LocalTransporter;
 
 //---------------------------------------------------------------------------//
 /*!
- * Offload tracks to Celeritas via G4VFastSimulationModel interface
+ * Offload tracks to Celeritas via G4VFastSimulationModel interface.
  *
  * This class must be constructed locally on each worker thread/task, typically
  * within the application's concrete implementation of
@@ -47,10 +47,12 @@ class FastSimulationOffload final : public G4VFastSimulationModel
     // Apply model
     void DoIt(G4FastTrack const& track, G4FastStep& step) final;
 
+    // Complete processing of buffered tracks
+    void Flush()
 #if G4VERSION_NUMBER >= 1110
-    //! Complete processing of buffered tracks
-    void Flush() final;
+        final
 #endif
+        ;
 
   private:
     SharedParams const* params_{nullptr};
