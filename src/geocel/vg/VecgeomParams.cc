@@ -27,7 +27,7 @@
 #    include <VecGeom/gdml/Frontend.h>
 #endif
 
-#if CELERITAS_USE_Geant4
+#if CELERITAS_USE_GEANT4
 #    include <G4VG.hh>
 #endif
 
@@ -277,7 +277,7 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     ScopedProfiling profile_this{"load-vecgeom"};
     ScopedMem record_mem("Converter.convert");
     ScopedTimeLog scoped_time;
-#if CELERITAS_USE_Geant4
+#if CELERITAS_USE_GEANT4
     g4vg::Options opts;
     opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
     opts.scale = static_cast<double>(lengthunits::millimeter);
