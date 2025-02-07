@@ -42,27 +42,14 @@
 #endif
 
 #include <accel/AlongStepFactory.hh>
+#include <accel/FastSimulationIntegration.hh>
 #include <accel/FastSimulationModel.hh>
-#include <accel/LocalTransporter.hh>
 #include <accel/SetupOptions.hh>
-#include <accel/SharedParams.hh>
-#include <accel/SimpleOffload.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
 namespace
 {
-//---------------------------------------------------------------------------//
-// Global shared setup options
-celeritas::SetupOptions setup_options;
-// Shared data and GPU setup
-celeritas::SharedParams shared_params;
-// Thread-local transporter
-G4ThreadLocal celeritas::LocalTransporter local_transporter;
-
-// Simple interface to running celeritas
-G4ThreadLocal celeritas::SimpleOffload simple_offload;
-
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
@@ -71,11 +58,6 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
         : aluminum_{new G4Material{
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
-        setup_options.make_along_step = celeritas::UniformAlongStepFactory();
-
-        // NOTE: since no SD is enabled, we must manually disable Celeritas hit
-        // processing
-        setup_options.sd.enabled = false;
     }
 
     G4VPhysicalVolume* Construct() final
@@ -96,10 +78,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
             "DefaultRegionForTheWorld");
         // Underlying GVFastSimulationModel constructor handles ownership, so
         // we must ignore the returned pointer...
-        new celeritas::FastSimulationModel("accel::FastSimulationModel",
-                                           default_region,
-                                           &shared_params,
-                                           &local_transporter);
+        new celeritas::FastSimulationModel(default_region);
     }
 
   private:
@@ -137,21 +116,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        simple_offload.BeginOfRunAction(run);
+        celeritas::FastSimulationIntegration::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        simple_offload.EndOfRunAction(run);
-    }
-};
-
-//---------------------------------------------------------------------------//
-class EventAction final : public G4UserEventAction
-{
-  public:
-    void BeginOfEventAction(G4Event const* event) final
-    {
-        simple_offload.BeginOfEventAction(event);
+        celeritas::FastSimulationIntegration::Instance().EndOfRunAction(run);
     }
 };
 
@@ -161,7 +130,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        simple_offload.BuildForMaster(&setup_options, &shared_params);
+        celeritas::FastSimulationIntegration::Instance().BuildForMaster();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -169,16 +138,49 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
     void Build() const final
     {
-        simple_offload.Build(
-            &setup_options, &shared_params, &local_transporter);
+        celeritas::FastSimulationIntegration::Instance().Build();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
-        this->SetUserAction(new EventAction{});
     }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct options for Celeritas.
+ */
+celeritas::SetupOptions MakeOptions()
+{
+    celeritas::SetupOptions opts;
+    // NOTE: these numbers are appropriate for CPU execution
+    opts.max_num_tracks = 1024;
+    opts.initializer_capacity = 1024 * 128;
+    // This parameter will eventually be removed
+    opts.max_num_events = 1024;
+    // Celeritas does not support EmStandard MSC physics above 100 MeV
+    opts.ignore_processes = {"CoulombScat"};
+    if (G4VERSION_NUMBER >= 1110)
+    {
+        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
+        // consistent
+        opts.ignore_processes.push_back("Rayl");
+    }
+
+    // NOTE: since no SD is enabled, we must manually disable Celeritas hit
+    // processing
+    opts.sd.enabled = false;
+
+    // Use a uniform (zero) magnetic field
+    opts.make_along_step = celeritas::UniformAlongStepFactory();
+
+    // Export a GDML file with the problem setup and SDs
+    opts.geometry_output_file = "simple-example.gdml";
+    // Save diagnostic file to a unique name
+    opts.output_file = "fastsim-offload.out.json";
+    return opts;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -208,20 +210,6 @@ int main()
     run_manager->SetUserInitialization(physics_list);
 
     run_manager->SetUserInitialization(new ActionInitialization());
-
-    // NOTE: these numbers are appropriate for CPU execution
-    setup_options.max_num_tracks = 1024;
-    setup_options.initializer_capacity = 1024 * 128;
-    // Celeritas does not support EmStandard MSC physics above 100 MeV
-    setup_options.ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
-        // consistent
-        setup_options.ignore_processes.push_back("Rayl");
-    }
-
-    setup_options.output_file = "fastsim-offload.out.json";
 
     run_manager->Initialize();
     run_manager->BeamOn(2);

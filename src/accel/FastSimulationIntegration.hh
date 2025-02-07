@@ -2,11 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/TrackingManagerIntegration.hh
+//! \file accel/FastSimulationIntegration.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include <vector>
 
 #include "IntegrationBase.hh"
 
@@ -20,8 +18,7 @@ namespace celeritas
  * application. To use this class in your Geant4 application to offload tracks
  * to Celeritas:
  *
- * - Use the \c TrackingManagerConstructor class to add the Celeritas tracking
- *   manager to your physics list.
+ * - Add the \c FastSimulationModel to regions of interest.
  * - Use \c SetOptions to set up options before \c G4RunManager::Initialize:
  *   usually in \c main for simple applications.
  * - Call \c Build and \c BuildForMaster from \c UserActionInitialization
@@ -32,21 +29,19 @@ namespace celeritas
  *
  * The method names correspond to methods in Geant4 User Actions and \em must
  * be called from all threads, both worker and master.
- *
- * \todo Provide default minimal action initialization classes for user
  */
-class TrackingManagerIntegration final : public IntegrationBase
+class FastSimulationIntegration final : public IntegrationBase
 {
   public:
     // Access the public-facing integration singleton
-    static TrackingManagerIntegration& Instance();
+    static FastSimulationIntegration& Instance();
 
     // Start the run
     void BeginOfRunAction(G4Run const* run) final;
 
   private:
     // Tracking manager can only be created privately
-    TrackingManagerIntegration();
+    FastSimulationIntegration();
 };
 
 //---------------------------------------------------------------------------//
