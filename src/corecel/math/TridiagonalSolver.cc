@@ -42,9 +42,9 @@ void TridiagonalSolver::operator()(SpanConstReal rhs, SpanReal x) const
     }
 
     // Back substitution
-    for (size_type i = x.size() - 2; i != size_type(-1); --i)
+    for (size_type ip = x.size() - 1; ip > 0; --ip)
     {
-        x[i] -= c_prime[i] * x[i + 1];
+        x[ip - 1] -= c_prime[ip - 1] * x[ip];
     }
 }
 

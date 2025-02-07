@@ -9,29 +9,15 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/TridiagonalSolver.hh"
 
+#include "detail/GridAccessor.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with x and y grids.
+ * Construct from boundary conditions.
  */
-SplineDerivCalculator::SplineDerivCalculator(SpanConstReal x_values,
-                                             SpanConstReal y_values,
-                                             BoundaryCondition bc)
-    : grid_(std::make_unique<detail::SpanGridAccessor>(x_values, y_values))
-    , bc_(bc)
-{
-    CELER_EXPECT(bc_ != BoundaryCondition::size_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with grid data.
- */
-SplineDerivCalculator::SplineDerivCalculator(XsGridData const& grid,
-                                             Values const& values,
-                                             BoundaryCondition bc)
-    : grid_(std::make_unique<detail::XsGridAccessor>(grid, values)), bc_(bc)
+SplineDerivCalculator::SplineDerivCalculator(BoundaryCondition bc) : bc_(bc)
 {
     CELER_EXPECT(bc_ != BoundaryCondition::size_);
 }
@@ -40,48 +26,48 @@ SplineDerivCalculator::SplineDerivCalculator(XsGridData const& grid,
 /*!
  * Calculate the second derivatives.
  */
-auto SplineDerivCalculator::operator()() const -> VecReal
+template<class GA>
+auto SplineDerivCalculator::operator()(GA&& grid) const -> VecReal
 {
-    CELER_EXPECT(grid_->size() >= 5);
+    CELER_EXPECT(grid.size() >= 5);
 
     if (bc_ == BoundaryCondition::geant)
     {
         // Calculate the second derivatives using the default Geant4 method
         // (which supposedly uses not-a-knot boundary conditions but produces
         // different results)
-        return this->calc_geant_derivatives();
+        return this->calc_geant_derivatives(grid);
     }
 
-    size_type num_knots = grid_->size();
+    size_type num_knots = grid.size();
     TridiagonalSolver::Coeffs tridiag(num_knots - 2);
     VecReal rhs(num_knots - 2);
 
     // Calculate the first row coefficients using the boundary conditions
-    this->calc_initial_coeffs(tridiag[0], rhs[0]);
+    this->calc_initial_coeffs(grid, tridiag[0], rhs[0]);
 
     // Calculate the interior row coefficients of the tridiagonal system
     for (size_type i = 2; i < num_knots - 2; ++i)
     {
-        CELER_ASSERT(grid_->x(i) > grid_->x(i - 1));
-        real_type h_lower = grid_->delta_x(i - 1);
-        real_type h_upper = grid_->delta_x(i);
+        real_type h_lower = grid.delta_x(i - 1);
+        real_type h_upper = grid.delta_x(i);
 
         tridiag[i - 1][0] = h_lower;
         tridiag[i - 1][1] = 2 * (h_lower + h_upper);
         tridiag[i - 1][2] = h_upper;
-        rhs[i - 1] = 6 * grid_->delta_slope(i);
+        rhs[i - 1] = 6 * grid.delta_slope(i);
     }
 
     // Calculate the last row coefficients using the boundary conditions
-    this->calc_final_coeffs(tridiag[num_knots - 3], rhs[num_knots - 3]);
+    this->calc_final_coeffs(grid, tridiag[num_knots - 3], rhs[num_knots - 3]);
 
     // Solve the tridiagonal system
     VecReal result(num_knots);
-    TridiagonalSolver(std::move(tridiag))(make_span(rhs),
-                                          {result.data() + 1, num_knots - 2});
+    TridiagonalSolver(std::move(tridiag))(
+        make_span(rhs), make_span(result).subspan(1, num_knots - 2));
 
     // Recover \f$ S''_0 \f$ and \f$ S''_{n - 1} \f$
-    this->calc_boundaries(result);
+    this->calc_boundaries(grid, result);
 
     return result;
 }
@@ -90,13 +76,13 @@ auto SplineDerivCalculator::operator()() const -> VecReal
 /*!
  * Calculate the coefficients for the first row using the boundary conditions.
  */
-void SplineDerivCalculator::calc_initial_coeffs(Real3& tridiag,
+template<class GA>
+void SplineDerivCalculator::calc_initial_coeffs(GA const& grid,
+                                                Real3& tridiag,
                                                 real_type& rhs) const
 {
-    CELER_EXPECT(grid_->x(1) > grid_->x(0));
-
-    real_type h_lower = grid_->delta_x(0);
-    real_type h_upper = grid_->delta_x(1);
+    real_type h_lower = grid.delta_x(0);
+    real_type h_upper = grid.delta_x(1);
 
     tridiag[0] = 0;
     if (bc_ == BoundaryCondition::natural)
@@ -109,20 +95,20 @@ void SplineDerivCalculator::calc_initial_coeffs(Real3& tridiag,
         tridiag[1] = (h_lower + h_upper) * (2 * h_upper + h_lower) / h_upper;
         tridiag[2] = (ipow<2>(h_upper) - ipow<2>(h_lower)) / h_upper;
     }
-    rhs = 6 * grid_->delta_slope(1);
+    rhs = 6 * grid.delta_slope(1);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the coefficients for the last row using the boundary conditions.
  */
-void SplineDerivCalculator::calc_final_coeffs(Real3& tridiag,
+template<class GA>
+void SplineDerivCalculator::calc_final_coeffs(GA const& grid,
+                                              Real3& tridiag,
                                               real_type& rhs) const
 {
-    CELER_EXPECT(grid_->x(grid_->size() - 2) > grid_->x(grid_->size() - 3));
-
-    real_type h_lower = grid_->delta_x(grid_->size() - 3);
-    real_type h_upper = grid_->delta_x(grid_->size() - 2);
+    real_type h_lower = grid.delta_x(grid.size() - 3);
+    real_type h_upper = grid.delta_x(grid.size() - 2);
 
     if (bc_ == BoundaryCondition::natural)
     {
@@ -135,16 +121,17 @@ void SplineDerivCalculator::calc_final_coeffs(Real3& tridiag,
         tridiag[1] = (h_lower + h_upper) * (2 * h_lower + h_upper) / h_lower;
     }
     tridiag[2] = 0;
-    rhs = 6 * grid_->delta_slope(grid_->size() - 2);
+    rhs = 6 * grid.delta_slope(grid.size() - 2);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the first and last values of the second derivative.
  */
-void SplineDerivCalculator::calc_boundaries(VecReal& deriv) const
+template<class GA>
+void SplineDerivCalculator::calc_boundaries(GA const& grid, VecReal& deriv) const
 {
-    CELER_EXPECT(deriv.size() == grid_->size());
+    CELER_EXPECT(deriv.size() == grid.size());
 
     if (bc_ == BoundaryCondition::natural)
     {
@@ -153,15 +140,15 @@ void SplineDerivCalculator::calc_boundaries(VecReal& deriv) const
     }
     else
     {
-        real_type h_lower = grid_->delta_x(0);
-        real_type h_upper = grid_->delta_x(1);
+        real_type h_lower = grid.delta_x(0);
+        real_type h_upper = grid.delta_x(1);
         deriv.front() = ((h_lower + h_upper) * deriv[1] - h_lower * deriv[2])
                         / h_upper;
 
-        h_lower = grid_->delta_x(grid_->size() - 3);
-        h_upper = grid_->delta_x(grid_->size() - 2);
-        deriv.back() = ((h_lower + h_upper) * deriv[grid_->size() - 2]
-                        - h_upper * deriv[grid_->size() - 3])
+        h_lower = grid.delta_x(grid.size() - 3);
+        h_upper = grid.delta_x(grid.size() - 2);
+        deriv.back() = ((h_lower + h_upper) * deriv[grid.size() - 2]
+                        - h_upper * deriv[grid.size() - 3])
                        / h_lower;
     }
 }
@@ -181,9 +168,11 @@ void SplineDerivCalculator::calc_boundaries(VecReal& deriv) const
  * \todo While Geant4 supposedly uses not-a-knot boundary conditions, these
  * second derivatives differ from the expected values.
  */
-auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
+template<class GA>
+auto SplineDerivCalculator::calc_geant_derivatives(GA const& grid) const
+    -> VecReal
 {
-    size_type num_knots = grid_->size();
+    size_type num_knots = grid.size();
 
     // Used to store the result as well as temporary storage for the decomposed
     // factors in the tridiagonal algorithm
@@ -191,9 +180,8 @@ auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
     VecReal rhs(num_knots - 1);
 
     // Set up the initial not-a-knot boundary conditions
-    CELER_ASSERT(grid_->x(1) > grid_->x(0));
-    real_type h_lower = grid_->delta_x(0);
-    real_type h_upper = grid_->delta_x(1);
+    real_type h_lower = grid.delta_x(0);
+    real_type h_upper = grid.delta_x(1);
 
     // First \c c_prime value (negated) for the tridiagonal algorithm: \f$ -c'
     // = -a_2 / a_1 \f$.
@@ -201,14 +189,14 @@ auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
 
     // XXX Almost \f$ a_3 / a_1 \f$ (which would be \f$ 6 r_0 h_1 / ((h_0 + 2
     // h_1)(h_0 + h_1)) \f$ )
-    rhs[1] = 6 * grid_->delta_slope(1) * h_upper / ipow<2>(h_lower + h_upper);
+    rhs[1] = 6 * grid.delta_slope(1) * h_upper / ipow<2>(h_lower + h_upper);
 
     // Tridiagonal algorithm decomposition and forward substitution
     for (size_type i = 2; i < num_knots - 2; ++i)
     {
         // Calculate the coefficients while performing the forward sweep
-        h_lower = grid_->delta_x(i - 1);
-        h_upper = grid_->delta_x(i);
+        h_lower = grid.delta_x(i - 1);
+        h_upper = grid.delta_x(i);
 
         // \f$ a_0 = h_{i - 1} / (h_{i - 1} + h_i) \f$
         real_type sig = h_lower / (h_lower + h_upper);
@@ -221,19 +209,19 @@ auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
 
         // XXX Almost \f$ u_i = (a_3 - a_0 u_{i - 1}) p \f$ (note that the RHS
         // a_3 is not multiplied by p)
-        rhs[i] = 6 * grid_->delta_slope(i) / (h_lower + h_upper)
+        rhs[i] = 6 * grid.delta_slope(i) / (h_lower + h_upper)
                  - sig * rhs[i - 1] * p;
     }
 
     // Set up the final not-a-knot boundary conditions
-    h_lower = grid_->delta_x(num_knots - 3);
-    h_upper = grid_->delta_x(num_knots - 2);
+    h_lower = grid.delta_x(num_knots - 3);
+    h_upper = grid.delta_x(num_knots - 2);
 
     // XXX Calculate the next-to-last derivative outside of the back
     // substitution loop
     real_type sig = h_lower / (h_lower + h_upper);
     real_type p = 1 / (2 + sig * result[num_knots - 3]);
-    rhs[num_knots - 2] = 6 * grid_->delta_slope(num_knots - 2) * sig
+    rhs[num_knots - 2] = 6 * grid.delta_slope(num_knots - 2) * sig
                              / (h_lower + h_upper)
                          - (2 * sig - 1) * rhs[num_knots - 3] * p;
     p = 1 / ((1 + sig) + (2 * sig - 1) * result[num_knots - 3]);
@@ -242,16 +230,25 @@ auto SplineDerivCalculator::calc_geant_derivatives() const -> VecReal
     // XXX Back substitution
     for (size_type i = num_knots - 3; i >= 1; --i)
     {
-        h_lower = grid_->delta_x(i - 1);
-        h_upper = grid_->delta_x(i);
+        h_lower = grid.delta_x(i - 1);
+        h_upper = grid.delta_x(i);
         result[i] *= result[i + 1] - rhs[i] * (h_lower + h_upper) / h_upper;
     }
 
     // Recover \f$ S''_0 \f$ and \f$ S''_{n - 1} \f$
-    this->calc_boundaries(result);
+    this->calc_boundaries(grid, result);
 
     return result;
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template SplineDerivCalculator::VecReal
+SplineDerivCalculator::operator()(detail::SpanGridAccessor&&) const;
+template SplineDerivCalculator::VecReal
+SplineDerivCalculator::operator()(detail::XsGridAccessor&&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

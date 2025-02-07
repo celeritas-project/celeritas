@@ -12,10 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/grid/UniformGrid.hh"
-
-#include "XsGridData.hh"
+#include "corecel/cont/Array.hh"
 
 #include "detail/GridAccessor.hh"
 
@@ -75,9 +72,6 @@ class SplineDerivCalculator
   public:
     //!@{
     //! \name Type aliases
-    using UPGridAccessor = std::unique_ptr<detail::GridAccessor>;
-    using SpanConstReal = detail::SpanGridAccessor::SpanConstReal;
-    using Values = detail::XsGridAccessor::Values;
     using VecReal = std::vector<real_type>;
     //!@}
 
@@ -91,14 +85,12 @@ class SplineDerivCalculator
     };
 
   public:
-    // Construct with x and y grids and boundary type
-    SplineDerivCalculator(SpanConstReal, SpanConstReal, BoundaryCondition);
-
-    // Construct with grid data and boundary type
-    SplineDerivCalculator(XsGridData const&, Values const&, BoundaryCondition);
+    // Construct with boundary conditions
+    explicit SplineDerivCalculator(BoundaryCondition);
 
     // Calculate the second derivatives
-    VecReal operator()() const;
+    template<class GridAccessor>
+    VecReal operator()(GridAccessor&&) const;
 
   private:
     //// TYPES ////
@@ -107,15 +99,18 @@ class SplineDerivCalculator
 
     //// DATA ////
 
-    UPGridAccessor grid_;
     BoundaryCondition bc_;
 
     //// HELPER FUNCTIONS ////
 
-    void calc_initial_coeffs(Real3&, real_type&) const;
-    void calc_final_coeffs(Real3&, real_type&) const;
-    void calc_boundaries(VecReal&) const;
-    VecReal calc_geant_derivatives() const;
+    template<class GridAccessor>
+    void calc_initial_coeffs(GridAccessor const&, Real3&, real_type&) const;
+    template<class GridAccessor>
+    void calc_final_coeffs(GridAccessor const&, Real3&, real_type&) const;
+    template<class GridAccessor>
+    void calc_boundaries(GridAccessor const&, VecReal&) const;
+    template<class GridAccessor>
+    VecReal calc_geant_derivatives(GridAccessor const&) const;
 };
 
 //---------------------------------------------------------------------------//

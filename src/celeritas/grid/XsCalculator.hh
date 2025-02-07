@@ -156,6 +156,7 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
     else
     {
         // Use cubic spline interpolation
+        CELER_ASSERT(data_.prime_index == XsGridData::no_scaling());
         CELER_ASSERT(lower_idx + 1 < data_.derivative.size());
         real_type lower_deriv = reals_[data_.derivative[lower_idx]];
         real_type upper_deriv = reals_[data_.derivative[lower_idx + 1]];

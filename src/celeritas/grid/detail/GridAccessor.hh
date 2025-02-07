@@ -200,13 +200,9 @@ real_type XsGridAccessor::x(size_type index) const
  */
 real_type XsGridAccessor::y(size_type index) const
 {
+    CELER_EXPECT(data_.prime_index == XsGridData::no_scaling());
     CELER_EXPECT(index < this->size());
-    real_type result = reals_[data_.value[index]];
-    if (index >= data_.prime_index)
-    {
-        result /= this->x(index);
-    }
-    return result;
+    return reals_[data_.value[index]];
 }
 
 //---------------------------------------------------------------------------//
