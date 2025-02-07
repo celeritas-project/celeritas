@@ -223,8 +223,8 @@ TEST_F(XsCalculatorTest, spline_deriv)
     static double const expected_deriv[] = {
         105520 / 33.0, 31880 / 11.0, -3160 / 33.0, -790 / 11.0, 5530 / 33.0};
     {
-        auto deriv = SplineDerivCalculator(BC::not_a_knot)(
-            detail::XsGridAccessor(this->data(), this->values()));
+        auto deriv = SplineDerivCalculator(BC::not_a_knot)(this->data(),
+                                                           this->values());
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
     }
     {
@@ -238,8 +238,8 @@ TEST_F(XsCalculatorTest, spline_deriv)
             EXPECT_SOFT_EQ(x[i], std::exp(loge_grid[i]));
             EXPECT_SOFT_EQ(y[i], calc_xs[i]);
         }
-        auto deriv = SplineDerivCalculator(BC::not_a_knot)(
-            detail::SpanGridAccessor(make_span(x), make_span(y)));
+        auto deriv = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
+                                                           make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
     }
 }

@@ -24,6 +24,26 @@ SplineDerivCalculator::SplineDerivCalculator(BoundaryCondition bc) : bc_(bc)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the second derivatives from grid data.
+ */
+auto SplineDerivCalculator::operator()(XsGridData const& data,
+                                       Values const& reals) const -> VecReal
+{
+    return (*this)(detail::XsGridAccessor(data, reals));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the second derivatives from spans.
+ */
+auto SplineDerivCalculator::operator()(SpanConstReal x, SpanConstReal y) const
+    -> VecReal
+{
+    return (*this)(detail::SpanGridAccessor(x, y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the second derivatives.
  */
 template<class GA>
@@ -240,15 +260,6 @@ auto SplineDerivCalculator::calc_geant_derivatives(GA const& grid) const
 
     return result;
 }
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-template SplineDerivCalculator::VecReal
-SplineDerivCalculator::operator()(detail::SpanGridAccessor&&) const;
-template SplineDerivCalculator::VecReal
-SplineDerivCalculator::operator()(detail::XsGridAccessor&&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

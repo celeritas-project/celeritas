@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "corecel/grid/SplineInterpolator.hh"
-#include "celeritas/grid/detail/GridAccessor.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
@@ -27,7 +26,6 @@ class SplineDerivativeTest : public Test
 {
   protected:
     using BC = SplineDerivCalculator::BoundaryCondition;
-    using Grid = detail::SpanGridAccessor;
     using VecReal = std::vector<real_type>;
 };
 
@@ -40,18 +38,18 @@ TEST_F(SplineDerivativeTest, simple)
     VecReal x{0, 1, 2, 3, 4};
     VecReal y{0, 2, 1, 2, 0};
     {
-        auto result = SplineDerivCalculator(BC::natural)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::natural)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(VecReal({0, -6, 6, -6, 0}), result);
     }
     {
-        auto result = SplineDerivCalculator(BC::not_a_knot)(
-            Grid(make_span(x), make_span(y)));
+        auto result = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
+                                                            make_span(y));
         EXPECT_VEC_SOFT_EQ(VecReal({-10.5, -3, 4.5, -3, -10.5}), result);
     }
     {
-        auto result = SplineDerivCalculator(BC::geant)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::geant)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(VecReal({-4.3125, 0, 4.3125, -3, -10.3125}), result);
     }
 }
@@ -61,18 +59,18 @@ TEST_F(SplineDerivativeTest, constant)
     VecReal x{0, 1, 3, 7, 15};
     VecReal y{3, 3, 3, 3, 3};
     {
-        auto result = SplineDerivCalculator(BC::natural)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::natural)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
     }
     {
-        auto result = SplineDerivCalculator(BC::not_a_knot)(
-            Grid(make_span(x), make_span(y)));
+        auto result = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
+                                                            make_span(y));
         EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
     }
     {
-        auto result = SplineDerivCalculator(BC::geant)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::geant)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(VecReal({0, 0, 0, 0, 0}), result);
     }
 }
@@ -102,8 +100,8 @@ TEST_F(SplineDerivativeTest, sin)
         -0.9096114092862184,
         -1.061828271062575,
     };
-    auto result = SplineDerivCalculator(BC::not_a_knot)(
-        Grid(make_span(x), make_span(y)));
+    auto result
+        = SplineDerivCalculator(BC::not_a_knot)(make_span(x), make_span(y));
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
 
@@ -123,8 +121,8 @@ TEST_F(SplineDerivativeTest, nonuniform)
             0.7944766477725745,
             -1.110223024625157e-16,
         };
-        auto result = SplineDerivCalculator(BC::natural)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::natural)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
     {
@@ -139,8 +137,8 @@ TEST_F(SplineDerivativeTest, nonuniform)
             0.5032201626285102,
             1.512880650514041,
         };
-        auto result = SplineDerivCalculator(BC::not_a_knot)(
-            Grid(make_span(x), make_span(y)));
+        auto result = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
+                                                            make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
     {
@@ -154,8 +152,8 @@ TEST_F(SplineDerivativeTest, nonuniform)
             0.54085090248942,
             1.5705078953168,
         };
-        auto result = SplineDerivCalculator(BC::geant)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::geant)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }
 }
@@ -196,8 +194,8 @@ TEST_F(SplineDerivativeTest, log)
             -0.0001057475269338493,
             6.776263578034403e-21,
         };
-        auto result = SplineDerivCalculator(BC::natural)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::natural)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_result, result);
 
         SplineInterpolator interpolate({x[0], y[0], result[0]},
@@ -221,8 +219,8 @@ TEST_F(SplineDerivativeTest, log)
             0.00119268423306982,
             -0.002782929877162913,
         };
-        auto result = SplineDerivCalculator(BC::not_a_knot)(
-            Grid(make_span(x), make_span(y)));
+        auto result = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
+                                                            make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_result, result);
 
         SplineInterpolator interpolate({x[0], y[0], result[0]},
@@ -245,8 +243,8 @@ TEST_F(SplineDerivativeTest, log)
             0.0011561116748754,
             -0.0026975939080425,
         };
-        auto result = SplineDerivCalculator(BC::geant)(
-            Grid(make_span(x), make_span(y)));
+        auto result
+            = SplineDerivCalculator(BC::geant)(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_result, result);
 
         SplineInterpolator interpolate({x[0], y[0], result[0]},

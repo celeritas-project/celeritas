@@ -12,7 +12,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/grid/UniformGrid.hh"
 
 #include "detail/GridAccessor.hh"
 
@@ -72,6 +73,8 @@ class SplineDerivCalculator
   public:
     //!@{
     //! \name Type aliases
+    using SpanConstReal = detail::SpanGridAccessor::SpanConstReal;
+    using Values = detail::XsGridAccessor::Values;
     using VecReal = std::vector<real_type>;
     //!@}
 
@@ -89,8 +92,8 @@ class SplineDerivCalculator
     explicit SplineDerivCalculator(BoundaryCondition);
 
     // Calculate the second derivatives
-    template<class GridAccessor>
-    VecReal operator()(GridAccessor&&) const;
+    VecReal operator()(SpanConstReal, SpanConstReal) const;
+    VecReal operator()(XsGridData const&, Values const&) const;
 
   private:
     //// TYPES ////
@@ -102,6 +105,9 @@ class SplineDerivCalculator
     BoundaryCondition bc_;
 
     //// HELPER FUNCTIONS ////
+
+    template<class GridAccessor>
+    VecReal operator()(GridAccessor&&) const;
 
     template<class GridAccessor>
     void calc_initial_coeffs(GridAccessor const&, Real3&, real_type&) const;
