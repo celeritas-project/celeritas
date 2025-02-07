@@ -95,12 +95,12 @@ void SafetyImager<G>::operator()(ImageParams const& image, std::string filename)
         max_distance};
 
     std::vector<double> line;
-    for (auto j : range(scalars.dims[1]))
+    for (auto i : range(scalars.dims[0]))
     {
         line.clear();
-        for (auto i : range(scalars.dims[0]))
+        for (auto j : range(scalars.dims[1]))
         {
-            line.push_back(calc_safety(i, j));
+            line.push_back(calc_safety(j, i)); // Note: col is 'x' position
         }
         out << nlohmann::json(line).dump() << std::endl;
     }
