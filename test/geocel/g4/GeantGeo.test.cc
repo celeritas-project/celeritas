@@ -53,6 +53,45 @@ class GeantGeoTest : public GeantGeoTestBase
     }
 
     virtual SpanStringView expected_log_levels() const { return {}; }
+
+    //! Get the volume name, adjusting for offsets from loading multiple geo
+    std::string_view get_volume_name(VolumeId i) const
+    {
+        CELER_EXPECT(i);
+        auto const& volumes = this->geometry()->volumes();
+        auto index = this->geometry()->lv_offset() + i.get();
+        if (index >= volumes.size())
+        {
+            return "<out of range>";
+        }
+        return volumes.at(VolumeId{index}).name;
+    }
+
+    //! Get all logical volume names
+    auto get_volume_names() const
+    {
+        std::vector<std::string> result;
+
+        auto const& volumes = this->geometry()->volumes();
+        for (auto vidx : range(this->geometry()->lv_offset(), volumes.size()))
+        {
+            result.push_back(volumes.at(VolumeId{vidx}).name);
+        }
+        return result;
+    }
+
+    //! Get all physical volume names
+    auto get_volume_instance_names() const
+    {
+        std::vector<std::string> result;
+
+        auto const& vol_inst = this->geometry()->volume_instances();
+        for (auto vidx : range(this->geometry()->pv_offset(), vol_inst.size()))
+        {
+            result.push_back(vol_inst.at(VolumeInstanceId{vidx}).name);
+        }
+        return result;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -425,12 +464,10 @@ TEST_F(SolidsTest, accessors)
     // volumes still have incremented the volume ID counter, so there is an
     // offset. This value will be zero if running the solids test as
     // standalone.
-    int const offset = 4;
-    ASSERT_EQ(26 + offset, geom.volumes().size());
-    EXPECT_EQ("box500", geom.volumes().at(VolumeId{0 + offset}).name);
-    EXPECT_EQ("cone1", geom.volumes().at(VolumeId{1 + offset}).name);
-    EXPECT_EQ("World", geom.volumes().at(VolumeId{24 + offset}).name);
-    EXPECT_EQ("trd3_refl", geom.volumes().at(VolumeId{25 + offset}).name);
+    EXPECT_EQ("box500", this->get_volume_name(VolumeId{0}));
+    EXPECT_EQ("cone1", this->get_volume_name(VolumeId{1}));
+    EXPECT_EQ("World", this->get_volume_name(VolumeId{24}));
+    EXPECT_EQ("trd3_refl", this->get_volume_name(VolumeId{25}));
 }
 
 //---------------------------------------------------------------------------//
@@ -979,29 +1016,9 @@ TEST_F(MultiLevelTest, accessors)
     auto const& geo = *this->geometry();
     EXPECT_EQ(3, geo.max_depth());
 
-    auto vol_names = [&geo] {
-        size_type const offset = 72;
-        auto const& vols = geo.volumes();
-        std::vector<std::string> result;
-        for (auto vid : range(offset, vols.size()))
-        {
-            result.push_back(vols.at(VolumeId{vid}).name);
-        }
-        return result;
-    }();
     static char const* const expected_vol_names[] = {"sph", "box", "world"};
-    EXPECT_VEC_EQ(expected_vol_names, vol_names);
+    EXPECT_VEC_EQ(expected_vol_names, this->get_volume_names());
 
-    auto vol_inst_names = [&geo] {
-        size_type const offset = 92;
-        auto const& vols = geo.volume_instances();
-        std::vector<std::string> result;
-        for (auto viid : range(offset, vols.size()))
-        {
-            result.push_back(vols.at(VolumeInstanceId{viid}).name);
-        }
-        return result;
-    }();
     static char const* const expected_vol_inst_names[] = {
         "boxsph1",
         "boxsph2",
@@ -1012,7 +1029,7 @@ TEST_F(MultiLevelTest, accessors)
         "topbox4",
         "world_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+    EXPECT_VEC_EQ(expected_vol_inst_names, this->get_volume_instance_names());
 }
 
 TEST_F(MultiLevelTest, trace)
