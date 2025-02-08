@@ -563,11 +563,11 @@ void PhysicsParams::build_xs(Options const& opts,
                     = build_grid(builders[VGT::energy_loss]);
                 if (auto grid_id = eloss_grid_ids[mat_idx])
                 {
-                    //! \todo Use \c spline_eloss_order when enabled by default
-                    size_type constexpr spline_order = 2;
+                    using BC = SplineDerivCalculator::BoundaryCondition;
+
                     auto const& grid = data->value_grids[grid_id];
-                    auto range = RangeGridCalculator(
-                        grid, make_const_ref(*data).reals, spline_order)();
+                    auto range = RangeGridCalculator(BC::geant)(
+                        grid, make_const_ref(*data).reals);
                     range_grid_ids[mat_idx]
                         = insert_grid(grid.log_energy, make_span(range));
                 }

@@ -58,6 +58,8 @@ Span<real_type const> get_dedx()
 class RangeGridCalculatorTest : public Test
 {
   protected:
+    using BC = SplineDerivCalculator::BoundaryCondition;
+
     void SetUp() override
     {
         auto dedx = get_dedx();
@@ -76,9 +78,7 @@ class RangeGridCalculatorTest : public Test
 
 TEST_F(RangeGridCalculatorTest, all)
 {
-    size_type spline_order = 2;
-
-    auto range = RangeGridCalculator(dedx_grid, reals_ref, spline_order)();
+    auto range = RangeGridCalculator(BC::geant)(dedx_grid, reals_ref);
 
     static double const expected_range[] = {
         2.38189279375507e-07, 2.84408954171739e-07, 3.49102977951787e-07,

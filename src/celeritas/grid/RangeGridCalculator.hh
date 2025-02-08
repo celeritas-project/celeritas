@@ -12,10 +12,12 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/UniformGrid.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/XsGridData.hh"
 
-#include "SplineXsCalculator.hh"
+#include "SplineDerivCalculator.hh"
 
 namespace celeritas
 {
@@ -39,23 +41,21 @@ class RangeGridCalculator
   public:
     //!@{
     //! \name Type aliases
+    using BC = SplineDerivCalculator::BoundaryCondition;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
-    using EnergyLossCalculator = SplineXsCalculator;
+    using VecReal = std::vector<real_type>;
     //!@}
 
   public:
-    // Construct with the energy loss grid and spline interpolation order
-    RangeGridCalculator(XsGridData const& grid,
-                        Values const& reals,
-                        size_type spline_order);
+    // Construct with boundary conditions for spline interpolation
+    explicit RangeGridCalculator(BC);
 
     // Calculate the range for a single material
-    std::vector<real_type> operator()() const;
+    VecReal operator()(XsGridData const& data, Values const& reals) const;
 
   private:
-    EnergyLossCalculator calc_dedx_;
-    UniformGrid loge_grid_;
+    BC bc_;
 
     //! Number of substeps in the numerical integration
     static constexpr size_type integration_substeps() { return 100; }
