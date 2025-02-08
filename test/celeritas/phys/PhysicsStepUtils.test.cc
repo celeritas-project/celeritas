@@ -265,12 +265,14 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const range = 0.00202;
+        real_type const eloss_rate = 0.5;  // MeV / cm
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, range));
+        real_type step = 1e-5 / eloss_rate
+                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
 
@@ -517,12 +519,14 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const range = 0.00202;
+        real_type const eloss_rate = 0.5;  // MeV / cm
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, range));
+        real_type step = 1e-5 / eloss_rate
+                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
 //---------------------------------------------------------------------------//

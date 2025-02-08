@@ -10,17 +10,17 @@
 #include "corecel/data/CollectionBuilder.hh"
 
 #include "EnergyLossCalculator.hh"
+#include "SplineXsCalculator.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with boundary conditions for spline interpolation.
+ *
+ * \todo support polynomial interpolation as well?
  */
-RangeGridCalculator::RangeGridCalculator(BC bc) : bc_(bc)
-{
-    CELER_EXPECT(bc_ != BC::size_);
-}
+RangeGridCalculator::RangeGridCalculator(BC bc) : bc_(bc) {}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -35,12 +35,16 @@ auto RangeGridCalculator::operator()(XsGridData const& orig_data,
 
     CELER_EXPECT(orig_data.prime_index == XsGridData::no_scaling());
 
-    XsGridData data;
     HostValues host_reals;
+    Values reals;
+    XsGridData data;
 
     auto calc_dedx = [&] {
-        if (!orig_data.derivative.empty() || orig_data.value.size() < 5)
+        if (!orig_data.derivative.empty() || bc_ == BC::size_
+            || orig_data.value.size() < 5)
         {
+            // Either the derivatives have already been calculated or linear
+            // interpolation should be used
             return EnergyLossCalculator(orig_data, orig_reals);
         }
 
@@ -53,14 +57,15 @@ auto RangeGridCalculator::operator()(XsGridData const& orig_data,
         data.value = build.insert_back(orig_reals[orig_data.value].begin(),
                                        orig_reals[orig_data.value].end());
         data.derivative = build.insert_back(deriv.begin(), deriv.end());
-        Values reals(host_reals);
+        reals = host_reals;
         return EnergyLossCalculator(data, reals);
     }();
 
     UniformGrid loge_grid(orig_data.log_energy);
     VecReal result(loge_grid.size());
 
-    constexpr real_type delta = 1 / real_type(integration_substeps());
+    constexpr real_type delta
+        = 1 / static_cast<real_type>(integration_substeps());
 
     CELER_ASSERT(calc_dedx[0] > 0);
     real_type cum_range = 2 * std::exp(loge_grid[0]) / calc_dedx[0];
@@ -76,7 +81,9 @@ auto RangeGridCalculator::operator()(XsGridData const& orig_data,
         {
             energy -= delta_energy;
             real_type dedx = calc_dedx(units::MevEnergy(energy));
-            CELER_ASSERT(dedx > 0);
+            CELER_VALIDATE(dedx > 0,
+                           << "negative value in range calculation: the "
+                              "interpolation method may be unstable");
             cum_range += delta_energy / dedx;
         }
         result[i] = cum_range;

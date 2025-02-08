@@ -26,7 +26,7 @@ namespace test
  */
 Span<real_type const> get_dedx()
 {
-    // 0.0001, 100000000
+    // On uniform log energy grid from 1e-4 to 1e8 MeV
     static real_type const dedx[] = {
         839.668353354807, 844.813525381296, 827.450592332634, 789.80588282839,
         705.134542622882, 598.202746440131, 507.487712297195, 430.530096695467,
@@ -60,12 +60,14 @@ class RangeGridCalculatorTest : public Test
   protected:
     using BC = SplineDerivCalculator::BoundaryCondition;
 
-    void SetUp() override
+    //! Build a dE/dx grid from energy bounds and values
+    void build(real_type energy_min,
+               real_type energy_max,
+               Span<real_type const> dedx)
     {
-        auto dedx = get_dedx();
         CollectionBuilder build(&reals);
         dedx_grid.log_energy = UniformGridData::from_bounds(
-            std::log(1e-4), std::log(1e8), dedx.size());
+            std::log(energy_min), std::log(energy_max), dedx.size());
         dedx_grid.value = build.insert_back(dedx.begin(), dedx.end());
         reals_ref = reals;
         CELER_ENSURE(dedx_grid);
@@ -76,10 +78,13 @@ class RangeGridCalculatorTest : public Test
     XsGridData dedx_grid;
 };
 
-TEST_F(RangeGridCalculatorTest, all)
+TEST_F(RangeGridCalculatorTest, geant)
 {
+    this->build(1e-4, 1e8, get_dedx());
+
     auto range = RangeGridCalculator(BC::geant)(dedx_grid, reals_ref);
 
+    // Range values imported from Geant4
     static double const expected_range[] = {
         2.38189279375507e-07, 2.84408954171739e-07, 3.49102977951787e-07,
         4.41948426764455e-07, 5.81556823586e-07,    8.05901114436151e-07,
@@ -114,6 +119,73 @@ TEST_F(RangeGridCalculatorTest, all)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_SOFT_EQ(expected_range, range);
+    }
+}
+
+TEST_F(RangeGridCalculatorTest, mock)
+{
+    std::vector<real_type> dedx{0.5, 0.5, 0.5};
+    this->build(1e-5, 10, make_span(dedx));
+
+    // Linear interpolation will be used because there are fewer than 5 grid
+    // points
+    auto range = RangeGridCalculator(BC::geant)(dedx_grid, reals_ref);
+
+    static double const expected_range[] = {4e-05, 0.02002, 20.00002};
+    EXPECT_VEC_SOFT_EQ(expected_range, range);
+}
+
+TEST_F(RangeGridCalculatorTest, sparse)
+{
+    std::vector<real_type> dedx{
+        839.668353354807,
+        430.530096695467,
+        111.600220710967,
+        22.6117194229536,
+        10.6619173294951,
+        11.0069268409596,
+        11.3553238163283,
+        11.3784262549454,
+        11.378228777509,
+        11.3782267757997,
+        11.3782267557938,
+        11.3782267555937,
+        11.3782267555917,
+    };
+    this->build(1e-4, 1e8, make_span(dedx));
+
+    {
+        // Cubic splines can exhibit oscillations and instability when the
+        // independent variable scale is large and the data is sparse. The
+        // values can be off by orders of magnitude: in this case, some are
+        // negative. Polynomial interpolation works better for this example,
+        // but still has some negative values. Hopefully Geant4 always uses a
+        // large enough grid for the energy loss table.
+        RangeGridCalculator calc_range(BC::geant);
+        EXPECT_THROW(calc_range(dedx_grid, reals_ref), RuntimeError);
+    }
+    {
+        // Linear interpolation
+        auto range = RangeGridCalculator(BC::size_)(dedx_grid, reals_ref);
+        static double const expected_range[] = {
+            2.3818927937551e-07,
+            1.7075905920016e-06,
+            3.9805502137378e-05,
+            0.0016543439268271,
+            0.058275147408879,
+            0.88903109276619,
+            8.9389616221692,
+            88.116423057883,
+            879.09383053631,
+            8788.9372408309,
+            87887.378370992,
+            878871.79037494,
+            8788715.9104847,
+        };
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_SOFT_EQ(expected_range, range);
+        }
     }
 }
 

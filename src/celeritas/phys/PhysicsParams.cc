@@ -563,6 +563,7 @@ void PhysicsParams::build_xs(Options const& opts,
                     = build_grid(builders[VGT::energy_loss]);
                 if (auto grid_id = eloss_grid_ids[mat_idx])
                 {
+                    //! \todo make the interpolation method configurable?
                     auto const& grid = data->value_grids[grid_id];
                     auto range = RangeGridCalculator(BC::geant)(
                         grid, make_const_ref(*data).reals);
