@@ -51,6 +51,7 @@ list(APPEND SOURCES
   global/KernelContextException.cc
   global/Stepper.cc
   grid/GenericGridBuilder.cc
+  grid/SplineDerivCalculator.cc
   grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
