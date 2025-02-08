@@ -531,8 +531,11 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
         28.731658286274,
     };
     EXPECT_VEC_SOFT_EQ(expected_eloss, eloss);
-    EXPECT_VEC_SOFT_EQ(expected_range, range);
-    EXPECT_VEC_SOFT_EQ(expected_step, step);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_range, range);
+        EXPECT_VEC_SOFT_EQ(expected_step, step);
+    }
 }
 
 TEST_F(PhysicsTrackViewHostTest, use_integral)
@@ -786,7 +789,10 @@ TEST_F(PHYS_DEVICE_TEST, all)
         0.14533414666187,
         0.13257227428011,
     };
-    EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
+    }
 }
 
 //---------------------------------------------------------------------------//

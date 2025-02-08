@@ -563,13 +563,17 @@ void PhysicsParams::build_xs(Options const& opts,
                     = build_grid(builders[VGT::energy_loss]);
                 if (auto grid_id = eloss_grid_ids[mat_idx])
                 {
-                    using BC = SplineDerivCalculator::BoundaryCondition;
-
                     auto const& grid = data->value_grids[grid_id];
                     auto range = RangeGridCalculator(BC::geant)(
                         grid, make_const_ref(*data).reals);
+
+                    XsGridData grid_data;
+                    grid_data.log_energy = grid.log_energy;
+                    grid_data.value
+                        = make_builder(&data->reals)
+                              .insert_back(range.begin(), range.end());
                     range_grid_ids[mat_idx]
-                        = insert_grid(grid.log_energy, make_span(range));
+                        = make_builder(&data->value_grids).push_back(grid_data);
                 }
 
                 if (use_integral_xs)

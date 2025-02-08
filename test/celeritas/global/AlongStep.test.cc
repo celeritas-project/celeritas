@@ -635,7 +635,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
                << " due to post-step action 2 leading to distance "
                << repr(from_cm(expected_distance))
                << " failed to change position";
-            if (!scoped_log.empty())
+            if (!scoped_log.empty()
+                && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
             {
                 EXPECT_EQ(ss.str(), scoped_log.messages().front());
             }

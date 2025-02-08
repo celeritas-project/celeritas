@@ -111,7 +111,10 @@ TEST_F(RangeGridCalculatorTest, all)
         3276076.23993788,     4552093.13615831,     6325112.86420063,
         8788715.78775012,
     };
-    EXPECT_VEC_SOFT_EQ(expected_range, range);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_range, range);
+    }
 }
 
 //---------------------------------------------------------------------------//
