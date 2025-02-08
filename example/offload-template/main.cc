@@ -13,7 +13,7 @@
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
-#include "MakeOptions.hh"
+#include "MakeCelerOptions.hh"
 
 //---------------------------------------------------------------------------//
 /*!
