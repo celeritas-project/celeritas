@@ -35,6 +35,12 @@ namespace celeritas
  * possible with what we've been importing from Geant4, this performs the same
  * calculation as in Geant4's \c G4LossTableBuilder::BuildRangeTable, which
  * uses the midpoint rule with 100 substeps for improved accuracy.
+ *
+ * The calculator is constructed with the boundary conditions for cubic spline
+ * interpolation. If the default constructor is used, or if the number of grid
+ * points is less than 5, linear interpolation will be used instead.
+ *
+ * \todo support polynomial interpolation as well?
  */
 class RangeGridCalculator
 {
@@ -48,6 +54,9 @@ class RangeGridCalculator
     //!@}
 
   public:
+    // Default constructor
+    RangeGridCalculator();
+
     // Construct with boundary conditions for spline interpolation
     explicit RangeGridCalculator(BC);
 

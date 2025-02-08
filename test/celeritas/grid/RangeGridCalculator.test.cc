@@ -166,7 +166,7 @@ TEST_F(RangeGridCalculatorTest, sparse)
     }
     {
         // Linear interpolation
-        auto range = RangeGridCalculator(BC::size_)(dedx_grid, reals_ref);
+        auto range = RangeGridCalculator()(dedx_grid, reals_ref);
         static double const expected_range[] = {
             2.3818927937551e-07,
             1.7075905920016e-06,
