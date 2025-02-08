@@ -28,6 +28,7 @@
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
+#include "../GeantImportVolumeResult.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
@@ -93,6 +94,8 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 {
   public:
+    using GeantVolResult = GeantImportVolumeResult;
+
     //! Helper function: build via Geant4 GDML reader
     SPConstGeo load_g4_gdml(std::string_view filename)
     {
@@ -112,17 +115,15 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     }
 
     //! Test conversion for Geant4 geometry
-    GeantVolResult get_direct_geant_volumes()
+    GeantVolResult get_import_geant_volumes()
     {
-        this->geometry();
-        return VecgeomTestBase::get_direct_geant_volumes(world_volume_);
+        return GeantVolResult::from_import(*this->geometry(), world_volume_);
     }
 
     //! Test conversion for Geant4 geometry
-    GeantVolResult get_import_geant_volumes()
+    GeantVolResult get_direct_geant_volumes()
     {
-        this->geometry();
-        return VecgeomTestBase::get_import_geant_volumes(world_volume_);
+        return GeantVolResult::from_pointers(*this->geometry(), world_volume_);
     }
 
     virtual SpanStringView expected_log_levels() const { return {}; }

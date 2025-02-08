@@ -26,7 +26,8 @@ endif()
 #-----------------------------------------------------------------------------#
 set(SOURCES
   LazyGeoManager.cc
-  GenericGeoTestBase.cc
+  GeantImportVolumeResult.cc
+  TrackingTestInterface.cc
 )
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")

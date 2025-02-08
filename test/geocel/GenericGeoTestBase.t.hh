@@ -16,6 +16,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/UnitUtils.hh"
 
+#include "CheckedGeoTrackView.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -282,6 +283,16 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the geometry interface, building if needed.
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::geometry_interface() -> SPConstGeoInterface
+{
+    return this->geometry();
 }
 
 //---------------------------------------------------------------------------//
