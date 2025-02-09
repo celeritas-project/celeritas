@@ -13,8 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
-
-#include "NonuniformGridData.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 
 namespace celeritas
 {
