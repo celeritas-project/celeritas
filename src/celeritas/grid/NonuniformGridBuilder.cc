@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericGridBuilder.cc
+//! \file celeritas/grid/NonuniformGridBuilder.cc
 //---------------------------------------------------------------------------//
-#include "GenericGridBuilder.hh"
+#include "NonuniformGridBuilder.hh"
 
 #include "celeritas/io/ImportPhysicsVector.hh"
 
@@ -14,7 +14,8 @@ namespace celeritas
 /*!
  * Construct with pointers to data that will be modified.
  */
-GenericGridBuilder::GenericGridBuilder(Items<real_type>* reals) : reals_{reals}
+NonuniformGridBuilder::NonuniformGridBuilder(Items<real_type>* reals)
+    : reals_{reals}
 {
     CELER_EXPECT(reals);
 }
@@ -23,8 +24,8 @@ GenericGridBuilder::GenericGridBuilder(Items<real_type>* reals) : reals_{reals}
 /*!
  * Add a grid of generic data with linear interpolation.
  */
-auto GenericGridBuilder::operator()(SpanConstFlt grid,
-                                    SpanConstFlt values) -> Grid
+auto NonuniformGridBuilder::operator()(SpanConstFlt grid, SpanConstFlt values)
+    -> Grid
 {
     return this->insert_impl(grid, values);
 }
@@ -33,8 +34,8 @@ auto GenericGridBuilder::operator()(SpanConstFlt grid,
 /*!
  * Add a grid of generic data with linear interpolation.
  */
-auto GenericGridBuilder::operator()(SpanConstDbl grid,
-                                    SpanConstDbl values) -> Grid
+auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
+    -> Grid
 {
     return this->insert_impl(grid, values);
 }
@@ -43,7 +44,7 @@ auto GenericGridBuilder::operator()(SpanConstDbl grid,
 /*!
  * Add a grid from an imported physics vector.
  */
-auto GenericGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
+auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
 {
     CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
     return this->insert_impl(make_span(pvec.x), make_span(pvec.y));
@@ -54,8 +55,8 @@ auto GenericGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
  * Add a grid from container references.
  */
 template<class T>
-auto GenericGridBuilder::insert_impl(Span<T const> grid,
-                                     Span<T const> values) -> Grid
+auto NonuniformGridBuilder::insert_impl(Span<T const> grid,
+                                        Span<T const> values) -> Grid
 {
     CELER_EXPECT(grid.size() >= 2);
     CELER_EXPECT(grid.front() <= grid.back());

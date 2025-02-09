@@ -50,7 +50,7 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
-  grid/GenericGridBuilder.cc
+  grid/NonuniformGridBuilder.cc
   grid/SplineDerivCalculator.cc
   grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc

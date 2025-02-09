@@ -15,7 +15,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/InteractionUtils.hh"
@@ -250,7 +250,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
             }
 
             // Use the tabulated subshell cross sections
-            GenericCalculator calc_xs(shell.xs, shared_.xs.reals);
+            NonuniformGridCalculator calc_xs(shell.xs, shared_.xs.reals);
             xs += inv_cube_energy * calc_xs(inc_energy_);
 
             if (xs > cutoff)

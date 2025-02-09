@@ -10,7 +10,6 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/NeutronTestBase.hh"

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericCalculator.hh
+//! \file celeritas/grid/NonuniformGridCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 
-#include "GenericGridData.hh"
+#include "NonuniformGridData.hh"
 
 namespace celeritas
 {
@@ -24,9 +24,9 @@ namespace celeritas
  *
  * The end points of the grid are extrapolated outward as constant values.
  *
- * \todo Rename NonuniformGridCalculator? Template on value type and/or units?
+ * \todo Template on value type and/or units?
  */
-class GenericCalculator
+class NonuniformGridCalculator
 {
   public:
     //@{
@@ -38,12 +38,13 @@ class GenericCalculator
 
   public:
     // Construct by *inverting* a monotonicially increasing generic grid
-    static inline CELER_FUNCTION GenericCalculator
-    from_inverse(GenericGridRecord const& grid, Reals const& storage);
+    static inline CELER_FUNCTION NonuniformGridCalculator
+    from_inverse(NonuniformGridRecord const& grid, Reals const& storage);
 
     // Construct from grid data and backend storage
     inline CELER_FUNCTION
-    GenericCalculator(GenericGridRecord const& grid, Reals const& storage);
+    NonuniformGridCalculator(NonuniformGridRecord const& grid,
+                             Reals const& storage);
 
     // Find and interpolate the y value from the given x value
     inline CELER_FUNCTION real_type operator()(real_type x) const;
@@ -55,7 +56,7 @@ class GenericCalculator
     inline CELER_FUNCTION Grid const& grid() const;
 
     // Make a calculator with x and y flipped
-    inline CELER_FUNCTION GenericCalculator make_inverse() const;
+    inline CELER_FUNCTION NonuniformGridCalculator make_inverse() const;
 
   private:
     //// TYPES ////
@@ -71,8 +72,9 @@ class GenericCalculator
     //// HELPERS ////
 
     // Private constructor implementation
-    inline CELER_FUNCTION
-    GenericCalculator(Reals const& storage, RealIds x_grid, RealIds y_grid);
+    inline CELER_FUNCTION NonuniformGridCalculator(Reals const& storage,
+                                                   RealIds x_grid,
+                                                   RealIds y_grid);
 };
 
 //---------------------------------------------------------------------------//
@@ -81,10 +83,10 @@ class GenericCalculator
 /*!
  * Construct by \em inverting a monotonicially increasing generic grid.
  */
-CELER_FUNCTION GenericCalculator GenericCalculator::from_inverse(
-    GenericGridRecord const& grid, Reals const& storage)
+CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
+    NonuniformGridRecord const& grid, Reals const& storage)
 {
-    return GenericCalculator{storage, grid.value, grid.grid};
+    return NonuniformGridCalculator{storage, grid.value, grid.grid};
 }
 
 //---------------------------------------------------------------------------//
@@ -92,9 +94,9 @@ CELER_FUNCTION GenericCalculator GenericCalculator::from_inverse(
  * Construct from grid data and backend storage.
  */
 CELER_FUNCTION
-GenericCalculator::GenericCalculator(GenericGridRecord const& grid,
-                                     Reals const& storage)
-    : GenericCalculator{storage, grid.grid, grid.value}
+NonuniformGridCalculator::NonuniformGridCalculator(
+    NonuniformGridRecord const& grid, Reals const& storage)
+    : NonuniformGridCalculator{storage, grid.grid, grid.value}
 {
     CELER_EXPECT(grid);
 }
@@ -103,7 +105,7 @@ GenericCalculator::GenericCalculator(GenericGridRecord const& grid,
 /*!
  * Calculate the y value at the given x value.
  */
-CELER_FUNCTION real_type GenericCalculator::operator()(real_type x) const
+CELER_FUNCTION real_type NonuniformGridCalculator::operator()(real_type x) const
 {
     // Snap out-of-bounds values to closest grid points
     if (x <= x_grid_.front())
@@ -130,7 +132,7 @@ CELER_FUNCTION real_type GenericCalculator::operator()(real_type x) const
 /*!
  * Get the tabulated y value at a particular index.
  */
-CELER_FUNCTION real_type GenericCalculator::operator[](size_type index) const
+CELER_FUNCTION real_type NonuniformGridCalculator::operator[](size_type index) const
 {
     CELER_EXPECT(index < y_offset_.size());
     return reals_[y_offset_[index]];
@@ -141,7 +143,7 @@ CELER_FUNCTION real_type GenericCalculator::operator[](size_type index) const
  * Get the tabulated x values.
  */
 CELER_FORCEINLINE_FUNCTION NonuniformGrid<real_type> const&
-GenericCalculator::grid() const
+NonuniformGridCalculator::grid() const
 {
     return x_grid_;
 }
@@ -152,9 +154,10 @@ GenericCalculator::grid() const
  *
  * \pre The y values must be monotonic increasing.
  */
-CELER_FUNCTION GenericCalculator GenericCalculator::make_inverse() const
+CELER_FUNCTION NonuniformGridCalculator
+NonuniformGridCalculator::make_inverse() const
 {
-    return GenericCalculator{reals_, y_offset_, x_grid_.offset()};
+    return NonuniformGridCalculator{reals_, y_offset_, x_grid_.offset()};
 }
 
 //---------------------------------------------------------------------------//
@@ -164,9 +167,9 @@ CELER_FUNCTION GenericCalculator GenericCalculator::make_inverse() const
  * Construct from grid data and backend storage.
  */
 CELER_FUNCTION
-GenericCalculator::GenericCalculator(Reals const& storage,
-                                     RealIds x_grid,
-                                     RealIds y_grid)
+NonuniformGridCalculator::NonuniformGridCalculator(Reals const& storage,
+                                                   RealIds x_grid,
+                                                   RealIds y_grid)
     : reals_{storage}, x_grid_{x_grid, reals_}, y_offset_{y_grid}
 {
     CELER_EXPECT(!x_grid.empty() && x_grid.size() == y_grid.size());

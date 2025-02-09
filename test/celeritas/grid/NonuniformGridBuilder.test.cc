@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericGridBuilder.test.cc
+//! \file celeritas/grid/NonuniformGridBuilder.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
 
 #include <iostream>
 #include <vector>
@@ -23,10 +23,13 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GenericGridBuilderTest : public ::celeritas::test::Test
+class NonuniformGridBuilderTest : public ::celeritas::test::Test
 {
   protected:
-    GenericGridBuilder make_builder() { return GenericGridBuilder(&scalars_); }
+    NonuniformGridBuilder make_builder()
+    {
+        return NonuniformGridBuilder(&scalars_);
+    }
 
     static Span<real_type const> span_grid() { return make_span(grid_); }
 
@@ -42,11 +45,11 @@ class GenericGridBuilderTest : public ::celeritas::test::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(GenericGridBuilderTest, build_span)
+TEST_F(NonuniformGridBuilderTest, build_span)
 {
     auto builder = make_builder();
 
-    GenericGridRecord grid_data = builder(span_grid(), span_values());
+    NonuniformGridRecord grid_data = builder(span_grid(), span_values());
 
     ASSERT_TRUE(grid_data);
     ASSERT_EQ(8, scalars_.size());
@@ -57,7 +60,7 @@ TEST_F(GenericGridBuilderTest, build_span)
     EXPECT_VEC_SOFT_EQ(values_, scalars_[grid_data.value]);
 }
 
-TEST_F(GenericGridBuilderTest, TEST_IF_CELERITAS_DOUBLE(build_vec))
+TEST_F(NonuniformGridBuilderTest, TEST_IF_CELERITAS_DOUBLE(build_vec))
 {
     ImportPhysicsVector vect;
     vect.vector_type = ImportPhysicsVectorType::free;
@@ -66,7 +69,7 @@ TEST_F(GenericGridBuilderTest, TEST_IF_CELERITAS_DOUBLE(build_vec))
 
     auto builder = make_builder();
 
-    GenericGridRecord grid_data = builder(vect);
+    NonuniformGridRecord grid_data = builder(vect);
 
     ASSERT_TRUE(grid_data);
     ASSERT_EQ(8, scalars_.size());
