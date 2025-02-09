@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/TrackInitializer.hh"
@@ -73,7 +73,7 @@ class WavelengthShiftInteractor
     PoissonDistribution<real_type> sample_num_photons_;
     ExponentialDistribution<real_type> sample_time_;
     // Grid calculators
-    GenericCalculator calc_cdf_;
+    NonuniformGridCalculator calc_cdf_;
     // Allocate space for secondary particles
     SecondaryAllocator& allocate_;
 };
@@ -136,7 +136,7 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, num_photons};
 
     IsotropicDistribution sample_direction{};
-    GenericCalculator calc_energy = calc_cdf_.make_inverse();
+    NonuniformGridCalculator calc_energy = calc_cdf_.make_inverse();
     for (size_type i : range(num_photons))
     {
         // Sample the emitted energy from the inverse cumulative distribution

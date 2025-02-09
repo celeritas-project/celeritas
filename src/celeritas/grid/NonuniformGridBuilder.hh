@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericGridBuilder.hh
+//! \file celeritas/grid/NonuniformGridBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,7 +10,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 
-#include "GenericGridData.hh"
+#include "NonuniformGridData.hh"
 
 namespace celeritas
 {
@@ -21,21 +21,21 @@ struct ImportPhysicsVector;
  *
  * This uses a deduplicating inserter for real values to improve cacheing.
  */
-class GenericGridBuilder
+class NonuniformGridBuilder
 {
   public:
     //!@{
     //! \name Type aliases
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
-    using Grid = GenericGridRecord;
+    using Grid = NonuniformGridRecord;
     using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
     //!@}
 
   public:
     // Construct with pointers to data that will be modified
-    explicit GenericGridBuilder(Items<real_type>* reals);
+    explicit NonuniformGridBuilder(Items<real_type>* reals);
 
     // Add a grid of generic data with linear interpolation
     Grid operator()(SpanConstFlt grid, SpanConstFlt values);

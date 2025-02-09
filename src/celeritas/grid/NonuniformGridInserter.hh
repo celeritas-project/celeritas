@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericGridInserter.hh
+//! \file celeritas/grid/NonuniformGridInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,8 +16,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
-#include "GenericGridBuilder.hh"
-#include "GenericGridData.hh"
+#include "NonuniformGridBuilder.hh"
+#include "NonuniformGridData.hh"
 
 namespace celeritas
 {
@@ -27,29 +27,28 @@ namespace celeritas
  * the specified grid collection.
  *
  * \code
-    GenericGridInserter insert(&data->reals, &data->generic_grids);
-    std::vector<GenericGridIndex> grid_ids;
+    NonuniformGridInserter insert(&data->reals, &data->generic_grids);
+    std::vector<NonuniformGridIndex> grid_ids;
     for (material : range(MaterialId{mats->size()}))
         grid_ids.push_back(insert(physics_vector[material.get()]));
    \endcode
  */
 template<class Index>
-class GenericGridInserter
+class NonuniformGridInserter
 {
   public:
     //!@{
     //! \name Type aliases
     using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
-    using RealCollection
-        = Collection<real_type, Ownership::value, MemSpace::host>;
-    using GenericGridCollection
-        = Collection<GenericGridRecord, Ownership::value, MemSpace::host, Index>;
+    using Values = Collection<real_type, Ownership::value, MemSpace::host>;
+    using GridValues
+        = Collection<NonuniformGridRecord, Ownership::value, MemSpace::host, Index>;
     //!@}
 
   public:
     // Construct with a reference to mutable host data
-    GenericGridInserter(RealCollection* real_data, GenericGridCollection* grid);
+    NonuniformGridInserter(Values* reals, GridValues* grids);
 
     // Add a grid of generic data with linear interpolation
     Index operator()(SpanConstFlt grid, SpanConstFlt values);
@@ -64,8 +63,8 @@ class GenericGridInserter
     Index operator()();
 
   private:
-    GenericGridBuilder grid_builder_;
-    CollectionBuilder<GenericGridRecord, MemSpace::host, Index> grids_;
+    NonuniformGridBuilder grid_builder_;
+    CollectionBuilder<NonuniformGridRecord, MemSpace::host, Index> grids_;
 };
 
 //---------------------------------------------------------------------------//
@@ -73,11 +72,11 @@ class GenericGridInserter
  * Construct with a reference to mutable host data.
  */
 template<class Index>
-GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
-                                                GenericGridCollection* grid)
-    : grid_builder_(real_data), grids_(grid)
+NonuniformGridInserter<Index>::NonuniformGridInserter(Values* reals,
+                                                      GridValues* grids)
+    : grid_builder_(reals), grids_(grids)
 {
-    CELER_EXPECT(real_data && grid);
+    CELER_EXPECT(reals && grids);
 }
 
 //---------------------------------------------------------------------------//
@@ -88,7 +87,8 @@ GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
  * empty.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec) -> Index
+auto NonuniformGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
+    -> Index
 {
     CELER_EXPECT(!vec.x.empty());
     return grids_.push_back(grid_builder_(vec));
@@ -99,8 +99,8 @@ auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec) -> I
  * Add a grid of generic data with linear interpolation to the collection.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()(SpanConstFlt grid,
-                                            SpanConstFlt values) -> Index
+auto NonuniformGridInserter<Index>::operator()(SpanConstFlt grid,
+                                               SpanConstFlt values) -> Index
 {
     CELER_EXPECT(!grid.empty());
     return grids_.push_back(grid_builder_(grid, values));
@@ -111,8 +111,8 @@ auto GenericGridInserter<Index>::operator()(SpanConstFlt grid,
  * Add a grid of generic data with linear interpolation to the collection.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()(SpanConstDbl grid,
-                                            SpanConstDbl values) -> Index
+auto NonuniformGridInserter<Index>::operator()(SpanConstDbl grid,
+                                               SpanConstDbl values) -> Index
 {
     CELER_EXPECT(!grid.empty());
     return grids_.push_back(grid_builder_(grid, values));
@@ -125,7 +125,7 @@ auto GenericGridInserter<Index>::operator()(SpanConstDbl grid,
  * Useful for when there's no imported grid present for a given material.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()() -> Index
+auto NonuniformGridInserter<Index>::operator()() -> Index
 {
     return grids_.push_back({});
 }

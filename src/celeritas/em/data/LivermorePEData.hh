@@ -13,7 +13,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridData.hh"
 
 namespace celeritas
 {
@@ -36,7 +36,7 @@ struct LivermoreSubshell
     Energy binding_energy;
 
     // Tabulated subshell photoionization cross section (used below 5 keV)
-    GenericGridRecord xs;
+    NonuniformGridRecord xs;
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
@@ -60,12 +60,12 @@ struct LivermoreElement
     // TOTAL CROSS SECTIONS
 
     // Total cross section below the K-shell energy. Uses linear interpolation.
-    GenericGridRecord xs_lo;
+    NonuniformGridRecord xs_lo;
 
     // Total cross section above the K-shell energy but below the energy
     // threshold for the parameterized cross sections. Uses spline
     // interpolation.
-    GenericGridRecord xs_hi;
+    NonuniformGridRecord xs_hi;
 
     // SUBSHELL CROSS SECTIONS
 

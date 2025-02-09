@@ -14,7 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 namespace celeritas
 {
@@ -91,14 +91,14 @@ auto LivermorePEMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
     {
         // Use tabulated cross sections above K-shell energy but below energy
         // limit for parameterization
-        GenericCalculator calc_xs(el.xs_hi, shared_.xs.reals);
+        NonuniformGridCalculator calc_xs(el.xs_hi, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     else
     {
         CELER_ASSERT(el.xs_lo);
         // Use tabulated cross sections below K-shell energy
-        GenericCalculator calc_xs(el.xs_lo, shared_.xs.reals);
+        NonuniformGridCalculator calc_xs(el.xs_lo, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     return BarnXs{result};

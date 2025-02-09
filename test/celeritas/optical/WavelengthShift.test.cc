@@ -9,7 +9,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/UnitTypes.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/WavelengthShiftParams.hh"
 #include "celeritas/optical/interactor/WavelengthShiftInteractor.hh"
@@ -87,7 +87,8 @@ TEST_F(WavelengthShiftTest, data)
     // Test the vector property (emission spectrum) of WLS
 
     // Test the energy range and spectrum of emitted photons
-    GenericCalculator calc_cdf(data_.energy_cdf[material_id_], data_.reals);
+    NonuniformGridCalculator calc_cdf(data_.energy_cdf[material_id_],
+                                      data_.reals);
     auto const& energy = calc_cdf.grid();
     EXPECT_EQ(5, energy.size());
     EXPECT_SOFT_EQ(1.65e-6, energy.front());

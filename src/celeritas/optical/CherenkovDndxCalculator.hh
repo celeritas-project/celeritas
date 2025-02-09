@@ -13,7 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 #include "CherenkovData.hh"
 #include "MaterialView.hh"
@@ -62,10 +62,10 @@ class CherenkovDndxCalculator
 
   private:
     // Calculate refractive index [MeV -> unitless]
-    GenericCalculator calc_refractive_index_;
+    NonuniformGridCalculator calc_refractive_index_;
 
     // Calculate the Cherenkov angle integral [MeV -> unitless]
-    GenericCalculator calc_integral_;
+    NonuniformGridCalculator calc_integral_;
 
     // Square of particle charge
     real_type zsq_;
