@@ -282,7 +282,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
 
     // Load actual number of events, needed to contruct core state before
     // loading events
-    std::get<inp::Problem>(si.problem).control.capacity.events = std::visit(
+    auto num_events = std::visit(
         Overload{
             [](inp::PrimaryGenerator const& pg) { return pg.num_events; },
             [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
@@ -296,6 +296,13 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
             },
         },
         si.events);
+    CELER_ASSERT(num_events > 0);
+
+    // Save number of events
+    auto& ctl = std::get<inp::Problem>(si.problem).control;
+    ctl.capacity.events = num_events;
+    // Limit number of streams
+    ctl.num_streams = std::min(ctl.num_streams, num_events);
 
     return si;
 }
