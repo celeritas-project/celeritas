@@ -17,8 +17,8 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridData.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
@@ -105,7 +105,7 @@ MaterialParams::MaterialParams(Input const& inp)
 
     HostVal<MaterialParamsData> data;
     CollectionBuilder refractive_index{&data.refractive_index};
-    GenericGridBuilder build_grid(&data.reals);
+    NonuniformGridBuilder build_grid(&data.reals);
     for (auto opt_mat_idx : range(inp.properties.size()))
     {
         auto const& mat = inp.properties[opt_mat_idx];

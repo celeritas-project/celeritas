@@ -16,8 +16,8 @@
 #include "corecel/math/CdfUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/GenericGridInserter.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "celeritas/grid/NonuniformGridInserter.hh"
 
 #include "MaterialParams.hh"
 #include "MaterialView.hh"
@@ -35,11 +35,11 @@ CherenkovParams::CherenkovParams(MaterialParams const& mats)
     SegmentIntegrator integrate_rindex{TrapezoidSegmentIntegrator{}};
 
     HostVal<CherenkovData> data;
-    GenericGridInserter insert_angle_integral(&data.reals,
-                                              &data.angle_integral);
+    NonuniformGridInserter insert_angle_integral(&data.reals,
+                                                 &data.angle_integral);
     for (auto mat_id : range(OpticalMaterialId(mats.num_materials())))
     {
-        GenericCalculator refractive_index
+        NonuniformGridCalculator refractive_index
             = MaterialView{mats.host_ref(), mat_id}
                   .make_refractive_index_calculator();
         Span<real_type const> energy = refractive_index.grid().values();

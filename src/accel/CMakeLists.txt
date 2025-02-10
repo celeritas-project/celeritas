@@ -13,7 +13,7 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
 
 list(APPEND SOURCES
   AlongStepFactory.cc
-  FastSimulationOffload.cc
+  FastSimulationModel.cc
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   Logger.cc

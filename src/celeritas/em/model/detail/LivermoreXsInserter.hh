@@ -8,7 +8,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
@@ -36,7 +36,7 @@ class LivermoreXsInserter
     inline void operator()(ImportLivermorePE const& inp);
 
   private:
-    GenericGridBuilder build_grid_;
+    NonuniformGridBuilder build_grid_;
 
     CollectionBuilder<LivermoreSubshell> shells_;
     CollectionBuilder<LivermoreElement, MemSpace::host, ElementId> elements_;
