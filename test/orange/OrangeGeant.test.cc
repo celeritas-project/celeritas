@@ -370,7 +370,7 @@ TEST_F(PincellTest, imager)
     inp.lower_left = from_cm({-12, -12, 0});
     inp.upper_right = from_cm({12, 12, 0});
     inp.rightward = {1.0, 0.0, 0.0};
-    inp.vertical_pixels = 255;
+    inp.vertical_pixels = 16;
 
     write_image(ImageParams{inp}, "org-pincell-xy-mid.jsonl");
 
