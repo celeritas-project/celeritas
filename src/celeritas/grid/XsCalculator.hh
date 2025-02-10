@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "corecel/grid/Interpolator.hh"
+#include "corecel/grid/SplineInterpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/Quantity.hh"
 
@@ -93,7 +94,6 @@ XsCalculator::XsCalculator(XsGridData const& grid, Values const& values)
     : data_(grid), reals_(values), loge_grid_(data_.log_energy)
 {
     CELER_EXPECT(data_);
-    CELER_ASSERT(grid.value.size() == data_.log_energy.size);
 }
 
 //---------------------------------------------------------------------------//
@@ -129,24 +129,42 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
     size_type lower_idx = loge_grid_.find(loge);
     CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
 
-    real_type const upper_energy = std::exp(loge_grid_[lower_idx + 1]);
-    real_type upper_xs = this->get(lower_idx + 1);
-    if (lower_idx + 1 == data_.prime_index)
+    real_type lower_energy = std::exp(loge_grid_[lower_idx]);
+    real_type upper_energy = std::exp(loge_grid_[lower_idx + 1]);
+
+    real_type result;
+    if (data_.derivative.empty())
     {
-        // Cross section data for the upper point is scaled by E: calculate the
-        // unscaled value
-        upper_xs /= upper_energy;
+        // Interpolate *linearly* on energy
+        real_type upper_xs = this->get(lower_idx + 1);
+        if (lower_idx + 1 == data_.prime_index)
+        {
+            // Cross section data for the upper point is scaled by E: calculate
+            // the unscaled value
+            upper_xs /= upper_energy;
+        }
+
+        result = LinearInterpolator<real_type>(
+            {lower_energy, this->get(lower_idx)},
+            {upper_energy, upper_xs})(value_as<Energy>(energy));
+
+        if (lower_idx >= data_.prime_index)
+        {
+            result /= energy.value();
+        }
     }
-
-    // Interpolate *linearly* on energy using the lower_idx data.
-    LinearInterpolator<real_type> interpolate_xs(
-        {std::exp(loge_grid_[lower_idx]), this->get(lower_idx)},
-        {upper_energy, upper_xs});
-    auto result = interpolate_xs(energy.value());
-
-    if (lower_idx >= data_.prime_index)
+    else
     {
-        result /= energy.value();
+        // Use cubic spline interpolation
+        CELER_ASSERT(data_.prime_index == XsGridData::no_scaling());
+        CELER_ASSERT(lower_idx + 1 < data_.derivative.size());
+        real_type lower_deriv = reals_[data_.derivative[lower_idx]];
+        real_type upper_deriv = reals_[data_.derivative[lower_idx + 1]];
+
+        result = SplineInterpolator<real_type>(
+            {lower_energy, (*this)[lower_idx], lower_deriv},
+            {upper_energy, (*this)[lower_idx + 1], upper_deriv})(
+            value_as<Energy>(energy));
     }
     return result;
 }
@@ -157,12 +175,10 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
  */
 CELER_FUNCTION real_type XsCalculator::operator[](size_type index) const
 {
-    real_type energy = std::exp(loge_grid_[index]);
     real_type result = this->get(index);
-
     if (index >= data_.prime_index)
     {
-        result /= energy;
+        result /= std::exp(loge_grid_[index]);
     }
     return result;
 }

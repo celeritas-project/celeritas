@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericCalculator.test.cc
+//! \file celeritas/grid/NonuniformGridCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -12,7 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
 
 #include "celeritas_test.hh"
 
@@ -24,7 +24,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GenericCalculatorTest : public Test
+class NonuniformGridCalculatorTest : public Test
 {
   protected:
     template<class T>
@@ -35,7 +35,7 @@ class GenericCalculatorTest : public Test
 
     void build(Span<real_type const> x, Span<real_type const> y)
     {
-        GenericGridBuilder build_grid(&reals_);
+        NonuniformGridBuilder build_grid(&reals_);
         grid_ = build_grid(x, y);
         reals_ref_ = reals_;
 
@@ -43,7 +43,7 @@ class GenericCalculatorTest : public Test
         CELER_ENSURE(!reals_ref_.empty());
     }
 
-    GenericGridRecord grid_;
+    NonuniformGridRecord grid_;
     Items<real_type> reals_;
     ItemRef<real_type> reals_ref_;
 };
@@ -52,12 +52,12 @@ class GenericCalculatorTest : public Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(GenericCalculatorTest, nonmonotonic)
+TEST_F(NonuniformGridCalculatorTest, nonmonotonic)
 {
     static real_type const grid[] = {1.0, 2.0, 1e2, 1e4};
     static real_type const value[] = {4.0, 8.0, 8.0, 2.0};
     this->build(grid, value);
-    GenericCalculator calc(grid_, reals_ref_);
+    NonuniformGridCalculator calc(grid_, reals_ref_);
 
     // Test accessing tabulated data
     EXPECT_EQ(4.0, calc[0]);
@@ -78,13 +78,13 @@ TEST_F(GenericCalculatorTest, nonmonotonic)
     EXPECT_SOFT_EQ(2.0, calc(1e7));
 }
 
-TEST_F(GenericCalculatorTest, inverse)
+TEST_F(NonuniformGridCalculatorTest, inverse)
 {
     static real_type const grid[] = {0.5, 1.0, 2.0, 4.0};
     static real_type const value[] = {-1, 0, 1, 2};
     this->build(grid, value);
 
-    auto calc = GenericCalculator::from_inverse(grid_, reals_ref_);
+    auto calc = NonuniformGridCalculator::from_inverse(grid_, reals_ref_);
     EXPECT_SOFT_EQ(0.5, calc(-2));
     EXPECT_SOFT_EQ(0.5, calc(-1));
     EXPECT_SOFT_EQ(0.75, calc(-0.5));

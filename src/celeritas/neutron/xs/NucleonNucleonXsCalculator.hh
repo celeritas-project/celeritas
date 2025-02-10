@@ -12,7 +12,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
 
 namespace celeritas
@@ -106,10 +106,10 @@ auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
     else
     {
         // Get tabulated NN cross section data for the given channel
-        GenericGridRecord grid = shared_.nucleon_xs[ch_id];
+        NonuniformGridRecord grid = shared_.nucleon_xs[ch_id];
 
         // Calculate NN cross section at the given energy
-        GenericCalculator calc_xs(grid, shared_.reals);
+        NonuniformGridCalculator calc_xs(grid, shared_.reals);
         result = calc_xs(energy.value());
     }
 

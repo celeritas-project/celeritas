@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/fastsim-offload.cc
+//! \file accel/fastsim-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
@@ -42,7 +42,7 @@
 #endif
 
 #include <accel/AlongStepFactory.hh>
-#include <accel/FastSimulationOffload.hh>
+#include <accel/FastSimulationModel.hh>
 #include <accel/LocalTransporter.hh>
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
@@ -90,16 +90,16 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 
     void ConstructSDandField() final
     {
-        CELER_LOG_LOCAL(status) << "Creating FastSimulationOffload for "
-                                   "default region";
+        CELER_LOG_LOCAL(status)
+            << R"(Creating FastSimulationModel for default region)";
         G4Region* default_region = G4RegionStore::GetInstance()->GetRegion(
             "DefaultRegionForTheWorld");
         // Underlying GVFastSimulationModel constructor handles ownership, so
-        // we can ignore the returned pointer...
-        new celeritas::FastSimulationOffload("accel::FastSimulationOffload",
-                                             default_region,
-                                             &shared_params,
-                                             &local_transporter);
+        // we must ignore the returned pointer...
+        new celeritas::FastSimulationModel("accel::FastSimulationModel",
+                                           default_region,
+                                           &shared_params,
+                                           &local_transporter);
     }
 
   private:

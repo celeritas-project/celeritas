@@ -6,54 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4VFastSimulationModel.hh>
-#include <G4Version.hh>
+#include "FastSimulationOffload.hh"
 
 namespace celeritas
 {
-class SharedParams;
-class LocalTransporter;
 
-//---------------------------------------------------------------------------//
-/*!
- * Offload tracks to Celeritas via G4VFastSimulationModel interface
- *
- * This class must be constructed locally on each worker thread/task, typically
- * within the application's concrete implementation of
- * `G4VUserDetectorConstruction::ConstructSDandField()`.
- */
-class FastSimulationOffload final : public G4VFastSimulationModel
-{
-  public:
-    // Construct with name, shared (across threads) params, and thread-local
-    // transporter
-    FastSimulationOffload(G4String const& name,
-                          SharedParams const* params,
-                          LocalTransporter* local);
+// TODO: Remove in v0.7
+using FastSimulationOffload [[deprecated]] = FastSimulationModel;
 
-    // Construct with name, region, shared (across threads) params, and
-    // thread-local transporter
-    FastSimulationOffload(G4String const& name,
-                          G4Envelope* region,
-                          SharedParams const* params,
-                          LocalTransporter* local);
-
-    // Return true if model is applicable to the `G4ParticleDefinition`
-    G4bool IsApplicable(G4ParticleDefinition const& particle) final;
-
-    // Return true if model is applicable to dynamic state of `G4FastTrack`
-    G4bool ModelTrigger(G4FastTrack const& track) final;
-
-    // Apply model
-    void DoIt(G4FastTrack const& track, G4FastStep& step) final;
-
-#if G4VERSION_NUMBER >= 1110
-    //! Complete processing of buffered tracks
-    void Flush() final;
-#endif
-
-  private:
-    SharedParams const* params_{nullptr};
-    LocalTransporter* transport_{nullptr};
-};
 }  // namespace celeritas

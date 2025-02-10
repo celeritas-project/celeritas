@@ -13,7 +13,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/UnitTypes.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridData.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 
@@ -72,7 +72,7 @@ class GridAccessor
   public:
     //!@{
     //! \name Type aliases
-    using Grid = GenericGridRecord;
+    using Grid = NonuniformGridRecord;
     using GridId = OpaqueId<Grid>;
     using ImportPhysicsTable = std::vector<ImportPhysicsVector>;
     using GridView = std::tuple<Span<real_type const>, Span<real_type const>>;
