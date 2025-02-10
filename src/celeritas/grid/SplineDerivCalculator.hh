@@ -74,7 +74,7 @@ class SplineDerivCalculator
     //!@{
     //! \name Type aliases
     using SpanConstReal = detail::SpanGridAccessor::SpanConstReal;
-    using Values = detail::XsGridAccessor::Values;
+    using Values = detail::UniformGridAccessor::Values;
     using VecReal = std::vector<real_type>;
     //!@}
 
@@ -93,7 +93,7 @@ class SplineDerivCalculator
 
     // Calculate the second derivatives
     VecReal operator()(SpanConstReal, SpanConstReal) const;
-    VecReal operator()(XsGridData const&, Values const&) const;
+    VecReal operator()(UniformGridRecord const&, Values const&) const;
 
   private:
     //// TYPES ////

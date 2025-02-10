@@ -16,7 +16,7 @@
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/grid/UniformLogGridCalculator.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
@@ -78,7 +78,7 @@ class UrbanMscHelper
     inline CELER_FUNCTION UrbanMscParMatData const& pmdata() const;
 
     // Scaled cross section data for this particle+material
-    inline CELER_FUNCTION XsGridData const& xs() const;
+    inline CELER_FUNCTION UniformGridRecord const& xs() const;
 
   private:
     //// DATA ////
@@ -116,7 +116,7 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
 CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
-    XsCalculator calc_scaled_xs(this->xs(), shared_.reals);
+    UniformLogGridCalculator calc_scaled_xs(this->xs(), shared_.reals);
 
     real_type xsec = calc_scaled_xs(energy) / ipow<2>(energy.value());
     CELER_ENSURE(xsec >= 0 && 1 / xsec > 0);
@@ -175,7 +175,7 @@ UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
 /*!
  * Scaled cross section data for this particle+material.
  */
-CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
+CELER_FUNCTION UniformGridRecord const& UrbanMscHelper::xs() const
 {
     auto par_id = shared_.pid_to_xs[particle_.particle_id()];
     CELER_ASSERT(par_id < shared_.num_particles);
@@ -184,7 +184,7 @@ CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
                     + par_id.unchecked_get();
     CELER_ASSERT(idx < shared_.xs.size());
 
-    return shared_.xs[ItemId<XsGridData>(idx)];
+    return shared_.xs[ItemId<UniformGridRecord>(idx)];
 }
 
 //---------------------------------------------------------------------------//

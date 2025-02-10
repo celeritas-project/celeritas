@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/SplineXsCalculator.hh
+//! \file celeritas/grid/SplineCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,9 +10,9 @@
 
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/math/Quantity.hh"
-
-#include "XsGridData.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {
@@ -31,30 +31,29 @@ namespace celeritas
  * scaled by the energy.
  *
  * \code
-    SplineXsCalculator calc_xs(xs_grid, xs_params.reals, order);
+    SplineCalculator calc_xs(xs_grid, xs_params.reals);
     real_type xs = calc_xs(particle);
    \endcode
  */
-class SplineXsCalculator
+class SplineCalculator
 {
   public:
     //!@{
     //! \name Type aliases
-    using Energy = RealQuantity<XsGridData::EnergyUnits>;
+    using Energy = units::MevEnergy;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION SplineXsCalculator(XsGridData const& grid,
-                                             Values const& values,
-                                             size_type const order);
+    inline CELER_FUNCTION
+    SplineCalculator(UniformGridRecord const& grid, Values const& reals);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
-    // Get the cross section at the given index
+    // Get the value at the given index
     inline CELER_FUNCTION real_type operator[](size_type index) const;
 
     // Get the minimum energy
@@ -70,12 +69,10 @@ class SplineXsCalculator
     }
 
   private:
-    XsGridData const& data_;
+    UniformGridRecord const& data_;
     Values const& reals_;
     UniformGrid loge_grid_;
-    size_type order_;
 
-    inline CELER_FUNCTION real_type get(size_type index) const;
     CELER_FORCEINLINE_FUNCTION real_type interpolate(real_type energy,
                                                      size_type low_idx,
                                                      size_type high_idx) const;
@@ -88,18 +85,11 @@ class SplineXsCalculator
  * Construct from cross section data.
  */
 CELER_FUNCTION
-SplineXsCalculator::SplineXsCalculator(XsGridData const& grid,
-                                       Values const& values,
-                                       size_type const order)
-    : data_(grid), reals_(values), loge_grid_(data_.log_energy), order_(order)
+SplineCalculator::SplineCalculator(UniformGridRecord const& grid,
+                                   Values const& reals)
+    : data_(grid), reals_(reals), loge_grid_(data_.grid)
 {
     CELER_EXPECT(data_);
-    CELER_ASSERT(grid.value.size() == data_.log_energy.size);
-
-    // Order of interpolation must be smaller than the grid size for effective
-    // spline interpolation. Max order is set to be clipped at minimum and
-    // maximum energy indices so this may be unnecessary
-    CELER_ASSERT(order < grid.value.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -109,36 +99,27 @@ SplineXsCalculator::SplineXsCalculator(XsGridData const& grid,
  * If needed, we can add a "log(energy/MeV)" accessor if we constantly reuse
  * that value and don't want to repeat the `std::log` operation.
  */
-CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
+CELER_FUNCTION real_type SplineCalculator::operator()(Energy energy) const
 {
     real_type const loge = std::log(energy.value());
-
-    auto calc_extrapolated = [this, &energy](size_type idx) {
-        real_type result = this->get(idx);
-        if (idx >= data_.prime_index)
-        {
-            result /= energy.value();
-        }
-        return result;
-    };
 
     // Snap out-of-bounds values to closest grid points
     if (loge <= loge_grid_.front())
     {
-        return calc_extrapolated(0);
+        return (*this)[0];
     }
     if (loge >= loge_grid_.back())
     {
-        return calc_extrapolated(loge_grid_.size() - 1);
+        return (*this)[loge_grid_.size() - 1];
     }
 
     // Locate the energy bin
     size_type lower_idx = loge_grid_.find(loge);
     CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
 
-    // Number of grid indexs away from the specified energy that need to be
+    // Number of grid indices away from the specified energy that need to be
     // checked in both directions
-    size_type order_steps = order_ / 2 + 1;
+    size_type order_steps = data_.spline_order / 2 + 1;
 
     // True bounding indices of the grid that will be checked.
     // If the interpolation requests out-of-bounds indices, clip the
@@ -158,14 +139,14 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
     size_type true_high_idx
         = min(lower_idx + order_steps + 1, loge_grid_.size());
 
-    if (order_ % 2 == 0)
+    if (data_.spline_order % 2 == 0)
     {
         // If the requested interpolation order is even, a direction must be
         // selected to interpolate to
         real_type low_dist = std::fabs(loge - loge_grid_[lower_idx]);
         real_type high_dist = std::fabs(loge_grid_[lower_idx + 1] - loge);
 
-        if (true_high_idx - true_low_idx > order_ + 1)
+        if (true_high_idx - true_low_idx > data_.spline_order + 1)
         {
             // If we already clipped based on the bounding indices, don't clip
             // again
@@ -179,31 +160,14 @@ CELER_FUNCTION real_type SplineXsCalculator::operator()(Energy energy) const
             }
         }
     }
-
     return this->interpolate(energy.value(), true_low_idx, true_high_idx);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the cross section at the given index.
+ * Get the tabulated value at the given index.
  */
-CELER_FUNCTION real_type SplineXsCalculator::operator[](size_type index) const
-{
-    real_type energy = std::exp(loge_grid_[index]);
-    real_type result = this->get(index);
-
-    if (index >= data_.prime_index)
-    {
-        result /= energy;
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the raw cross section data at a particular index.
- */
-CELER_FUNCTION real_type SplineXsCalculator::get(size_type index) const
+CELER_FUNCTION real_type SplineCalculator::operator[](size_type index) const
 {
     CELER_EXPECT(index < data_.value.size());
     return reals_[data_.value[index]];
@@ -211,10 +175,11 @@ CELER_FUNCTION real_type SplineXsCalculator::get(size_type index) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Interpolate the cross sections using spline.
+ * Interpolate the value using spline.
  */
-CELER_FUNCTION real_type SplineXsCalculator::interpolate(
-    real_type energy, size_type low_idx, size_type high_idx) const
+CELER_FUNCTION real_type SplineCalculator::interpolate(real_type energy,
+                                                       size_type low_idx,
+                                                       size_type high_idx) const
 {
     CELER_EXPECT(high_idx <= loge_grid_.size());
     real_type result = 0;
@@ -237,15 +202,8 @@ CELER_FUNCTION real_type SplineXsCalculator::interpolate(
                 denom *= (outer_e - inner_e);
             }
         }
-        real_type weighted_value = (num / denom) * this->get(outer_idx);
-        if (outer_idx >= data_.prime_index)
-        {
-            weighted_value /= outer_e;
-        }
-
-        result += weighted_value;
+        result += (num / denom) * (*this)[outer_idx];
     }
-
     return result;
 }
 

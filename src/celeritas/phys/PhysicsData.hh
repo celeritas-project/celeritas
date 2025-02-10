@@ -27,8 +27,8 @@ namespace celeritas
 // TYPES
 //---------------------------------------------------------------------------//
 //! Currently all value grids are cross section grids
-using ValueGrid = XsGridData;
-using ValueGridId = OpaqueId<XsGridData>;
+using ValueGrid = XsGridRecord;
+using ValueGridId = OpaqueId<XsGridRecord>;
 using ValueTableId = OpaqueId<struct ValueTable>;
 
 //---------------------------------------------------------------------------//
@@ -345,6 +345,9 @@ struct PhysicsParamsScalars
    const UniformGridData& grid
        = params.particle[1].macro_xs[0].material[2].log_energy;
  * \endcode
+ *
+ * \todo Energy loss, range, and model xs grids should use \c UniformGridRecord
+ * instead of \c XsGridRecord because they have no scaled values.
  */
 template<Ownership W, MemSpace M>
 struct PhysicsParamsData

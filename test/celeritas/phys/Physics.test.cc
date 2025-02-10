@@ -15,7 +15,7 @@
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/SplineXsCalculator.hh"
+#include "celeritas/grid/SplineCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -657,6 +657,7 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
 
 TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
 {
+    // TODO: add spline order = 2 to xs data
     // Cross sections: same across particle types, constant in energy, scale
     // according to material number density
     std::vector<real_type> xs;
@@ -669,7 +670,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.macro_xs_grid(scat_ppid);
             ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator<SplineXsCalculator>(id, 2);
+            auto calc_xs = phys.make_calculator<XsCalculator>(id);
             xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
         }
     }

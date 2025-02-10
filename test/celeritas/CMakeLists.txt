@@ -291,9 +291,9 @@ celeritas_add_test(grid/NonuniformGridBuilder.test.cc)
 celeritas_add_test(grid/NonuniformGridInserter.test.cc)
 celeritas_add_test(grid/RangeCalculator.test.cc)
 celeritas_add_test(grid/SplineDerivCalculator.test.cc)
-celeritas_add_test(grid/SplineXsCalculator.test.cc)
+celeritas_add_test(grid/SplineCalculator.test.cc)
 celeritas_add_test(grid/ValueGridBuilder.test.cc)
-celeritas_add_test(grid/ValueGridInserter.test.cc)
+celeritas_add_test(grid/GridInserter.test.cc)
 celeritas_add_test(grid/XsCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/ValueGridInserter.hh
+//! \file celeritas/grid/UniformGridInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -23,45 +23,29 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Manage data and help construction of physics value grids.
- *
- * Currently this only constructs a single value grid datatype, the
- * XsGridData, but with this framework (virtual \c
- * ValueGridXsBuilder::build method taking an instance of this class) it can be
- * extended to build additional grid types as well.
- *
- * \code
-    ValueGridInserter insert(&data.host.values, &data.host.grids);
-    insert(uniform_grid, values);
-    store.push_back(host_ptrs);
-    store.copy_to_device();
-   \endcode
  */
-class ValueGridInserter
+class UniformGridInserter
 {
   public:
     //!@{
     //! \name Type aliases
+    using GridId = ItemId<UniformGridRecord>;
+    using GridValues
+        = Collection<UniformGridRecord, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
-    using GridValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using SpanConstDbl = Span<double const>;
-    using XsIndex = ItemId<XsGridData>;
     //!@}
 
   public:
     // Construct with a reference to mutable host data
-    ValueGridInserter(Values* reals, GridValues* grids);
-
-    // Add a grid of xs-like data
-    XsIndex operator()(UniformGridData const& log_grid,
-                       size_type prime_index,
-                       SpanConstDbl values);
+    UniformGridInserter(Values* reals, GridValues* grids);
 
     // Add a grid of uniform log-grid data
-    XsIndex operator()(UniformGridData const& log_grid, SpanConstDbl values);
+    GridId operator()(UniformGridData const& grid, SpanConstDbl values);
 
   private:
-    CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> values_;
-    CollectionBuilder<XsGridData, MemSpace::host, ItemId<XsGridData>> xs_grids_;
+    CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> reals_;
+    CollectionBuilder<UniformGridRecord, MemSpace::host, GridId> grids_;
 };
 
 //---------------------------------------------------------------------------//

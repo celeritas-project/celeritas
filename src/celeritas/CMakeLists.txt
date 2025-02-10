@@ -53,9 +53,10 @@ list(APPEND SOURCES
   grid/NonuniformGridBuilder.cc
   grid/SplineDerivCalculator.cc
   grid/TwodGridBuilder.cc
+  grid/UniformGridInserter.cc
   grid/ValueGridBuilder.cc
-  grid/ValueGridInserter.cc
   grid/ValueGridType.cc
+  grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
   io/ImportDataTrimmer.cc

@@ -26,10 +26,10 @@ SplineDerivCalculator::SplineDerivCalculator(BoundaryCondition bc) : bc_(bc)
 /*!
  * Calculate the second derivatives from grid data.
  */
-auto SplineDerivCalculator::operator()(XsGridData const& data,
+auto SplineDerivCalculator::operator()(UniformGridRecord const& data,
                                        Values const& reals) const -> VecReal
 {
-    return (*this)(detail::XsGridAccessor(data, reals));
+    return (*this)(detail::UniformGridAccessor(data, reals));
 }
 
 //---------------------------------------------------------------------------//
