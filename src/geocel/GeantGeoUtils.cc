@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <G4Element.hh>
 #include <G4GDMLParser.hh>
@@ -42,6 +43,7 @@
 
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
+#include "g4/VisitGeantVolumes.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
@@ -381,6 +383,109 @@ std::string make_gdml_name(G4LogicalVolume const& lv)
     }
 
     return temp_writer.GenerateName(lv.GetName(), &lv);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible vector of LV instance ID -> label from the given world.
+ */
+std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world)
+{
+    std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
+    int max_id{0};
+
+    visit_geant_volumes(
+        [&](G4LogicalVolume const& lv) {
+            // Update maximum encountered PV ID
+            max_id = std::max<int>(max_id, lv.GetInstanceID());
+            // Add to name map
+            names[lv.GetName()].push_back(&lv);
+        },
+        world);
+
+    // Construct labels
+    std::vector<Label> labels(static_cast<size_type>(max_id + 1));
+    for (auto&& [name, all_lv] : names)
+    {
+        CELER_ASSERT(!all_lv.empty());
+        if (all_lv.size() == 1)
+        {
+            // Label is just the name since this lv is unique
+            auto const& this_lv = *all_lv.front();
+            labels[this_lv.GetInstanceID()] = Label{name};
+            continue;
+        }
+
+        // Set labels in increasing order
+        for (auto lv_idx : range(all_lv.size()))
+        {
+            auto const& this_lv = *all_lv[lv_idx];
+            labels[this_lv.GetInstanceID()]
+                = Label{name, std::to_string(lv_idx)};
+        }
+    }
+
+    return labels;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible vector of PV instance ID -> label from the given world.
+ */
+std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
+{
+    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
+    std::unordered_map<std::string, std::vector<G4VPhysicalVolume const*>> names;
+    int max_id{0};
+
+    // Visit PVs, mapping names to instances, skipping those that have already
+    // been visited at a deeper level
+    visit_geant_volume_instances(
+        [&](G4VPhysicalVolume const& pv, int depth) {
+            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+            if (!inserted)
+            {
+                if (iter->second >= depth)
+                {
+                    // Already visited PV at this depth or more
+                    return false;
+                }
+                // Update the max depth
+                iter->second = depth;
+            }
+
+            // Update maximum encountered PV ID
+            max_id = std::max<int>(max_id, pv.GetInstanceID());
+            // Add to name map
+            names[pv.GetName()].push_back(&pv);
+            // Visit daughters
+            return true;
+        },
+        world);
+
+    // Construct labels
+    std::vector<Label> labels(static_cast<size_type>(max_id + 1));
+    for (auto&& [name, all_pv] : names)
+    {
+        CELER_ASSERT(!all_pv.empty());
+        if (all_pv.size() == 1)
+        {
+            // Label is just the name since this PV is unique
+            auto const& this_pv = *all_pv.front();
+            labels[this_pv.GetInstanceID()] = Label{name};
+            continue;
+        }
+
+        // Set labels in increasing order
+        for (auto pv_idx : range(all_pv.size()))
+        {
+            auto const& this_pv = *all_pv[pv_idx];
+            labels[this_pv.GetInstanceID()]
+                = Label{name, std::to_string(pv_idx)};
+        }
+    }
+
+    return labels;
 }
 
 //---------------------------------------------------------------------------//

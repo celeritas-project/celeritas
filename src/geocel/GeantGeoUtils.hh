@@ -14,6 +14,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/Label.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations
@@ -89,9 +90,14 @@ G4VPhysicalVolume const* geant_world_volume();
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
 
-//---------------------------------------------------------------------------//
 // Generate the GDML name for a Geant4 logical volume
 std::string make_gdml_name(G4LogicalVolume const&);
+
+// Get a reproducible vector of LV instance ID -> label from the given world
+std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world);
+
+// Get a reproducible vector of PV instance ID -> label from the given world
+std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world);
 
 //---------------------------------------------------------------------------//
 // Update a nav history to match the given pv stack

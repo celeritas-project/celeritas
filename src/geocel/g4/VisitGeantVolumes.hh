@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 namespace celeritas
 {
@@ -25,13 +26,14 @@ namespace celeritas
  * where the return value indicates whether the volume's children should be
  * visited, and the integer is the depth of the volume being visited.
  *
- * By default this will visit the entire "touchable" hierachy: this may be very
- * expensive! If it's desired to only visit single physical volumes, mark them
- * as visited using a set.
+ * By default this will visit the entire "touchable" hierarchy: this may be
+ * very expensive! If it's desired to only visit single physical volumes, mark
+ * them as visited using a set.
  */
 template<class F>
 void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
 {
+    ScopedProfiling profile_this{"visit-geant4-volumes"};
     struct QueuedVolume
     {
         G4VPhysicalVolume const* pv{nullptr};
