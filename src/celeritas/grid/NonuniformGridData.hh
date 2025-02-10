@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericGridData.hh
+//! \file celeritas/grid/NonuniformGridData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * A grid of increasing, sorted 1D data with linear-linear interpolation.
  */
-struct GenericGridRecord
+struct NonuniformGridRecord
 {
     ItemRange<real_type> grid;  //!< x grid
     ItemRange<real_type> value;  //!< f(x) value

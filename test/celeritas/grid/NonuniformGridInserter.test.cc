@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericGridInserter.test.cc
+//! \file celeritas/grid/NonuniformGridInserter.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/GenericGridInserter.hh"
+#include "celeritas/grid/NonuniformGridInserter.hh"
 
 #include <array>
 
@@ -20,18 +20,18 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class GenericGridInserterTest : public ::celeritas::test::Test
+class NonuniformGridInserterTest : public ::celeritas::test::Test
 {
   protected:
-    using GridIndexType = OpaqueId<struct GenericIndexTag_>;
+    using GridIndexType = OpaqueId<struct NonuniformIndexTag_>;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
     using VecReal = std::vector<real_type>;
 
     void SetUp() override { rng_.reset_count(); }
 
-    GenericGridInserter<GridIndexType> make_inserter()
+    NonuniformGridInserter<GridIndexType> make_inserter()
     {
-        return GenericGridInserter<GridIndexType>(&scalars_, &grids_);
+        return NonuniformGridInserter<GridIndexType>(&scalars_, &grids_);
     }
 
     //! Construct an array of random, increasing data to test on
@@ -56,19 +56,19 @@ class GenericGridInserterTest : public ::celeritas::test::Test
         ASSERT_TRUE(id);
         ASSERT_LT(id.get(), grids_.size());
 
-        GenericGridRecord const& grid = grids_[id];
+        NonuniformGridRecord const& grid = grids_[id];
         EXPECT_VEC_EQ(xs, scalars_[grid.grid]);
         EXPECT_VEC_EQ(ys, scalars_[grid.value]);
     }
 
     Collection<real_type, Ownership::value, MemSpace::host> scalars_;
-    Collection<GenericGridRecord, Ownership::value, MemSpace::host, GridIndexType>
+    Collection<NonuniformGridRecord, Ownership::value, MemSpace::host, GridIndexType>
         grids_;
 
     RandomEngine rng_;
 };
 
-TEST_F(GenericGridInserterTest, simple)
+TEST_F(NonuniformGridInserterTest, simple)
 {
     constexpr size_t count = 105;
     auto const xs = build_random_array(count, -100.0);
@@ -84,7 +84,7 @@ TEST_F(GenericGridInserterTest, simple)
     check_grid(grid_index, xs, ys);
 }
 
-TEST_F(GenericGridInserterTest, many_no_repeats)
+TEST_F(NonuniformGridInserterTest, many_no_repeats)
 {
     constexpr size_t count = 58;
     auto inserter = make_inserter();
@@ -115,7 +115,7 @@ TEST_F(GenericGridInserterTest, many_no_repeats)
     }
 }
 
-TEST_F(GenericGridInserterTest, many_with_repeats)
+TEST_F(NonuniformGridInserterTest, many_with_repeats)
 {
     constexpr size_t count = 75;
     auto inserter = make_inserter();

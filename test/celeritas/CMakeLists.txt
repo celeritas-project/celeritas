@@ -283,12 +283,12 @@ celeritas_add_test(global/StepperGeant.test.cc
 
 #-----------------------------------------------------------------------------#
 # Grid
-celeritas_add_test(grid/GenericCalculator.test.cc)
-celeritas_add_test(grid/GenericGridBuilder.test.cc)
-celeritas_add_test(grid/GenericGridInserter.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
 celeritas_add_test(grid/InverseCdfFinder.test.cc)
 celeritas_add_test(grid/InverseRangeCalculator.test.cc)
+celeritas_add_test(grid/NonuniformGridCalculator.test.cc)
+celeritas_add_test(grid/NonuniformGridBuilder.test.cc)
+celeritas_add_test(grid/NonuniformGridInserter.test.cc)
 celeritas_add_test(grid/RangeCalculator.test.cc)
 celeritas_add_test(grid/SplineDerivCalculator.test.cc)
 celeritas_add_test(grid/SplineXsCalculator.test.cc)

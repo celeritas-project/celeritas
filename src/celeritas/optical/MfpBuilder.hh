@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/grid/GenericGridInserter.hh"
+#include "celeritas/grid/NonuniformGridInserter.hh"
 
 namespace celeritas
 {
@@ -24,17 +24,17 @@ class MfpBuilder
   public:
     //!@{
     //! \name Type aliases
-    using GridId = OpaqueId<GenericGridRecord>;
-    using GridInserter = GenericGridInserter<GridId>;
+    using GridId = OpaqueId<NonuniformGridRecord>;
+    using GridInserter = NonuniformGridInserter<GridId>;
     using GridIdRange = Range<GridId>;
 
-    using RealCollection = typename GridInserter::RealCollection;
-    using GridCollection = typename GridInserter::GenericGridCollection;
+    using Values = typename GridInserter::Values;
+    using GridValues = typename GridInserter::GridValues;
     //!@}
 
   public:
     // Construct with given inserter
-    inline MfpBuilder(RealCollection* real_data, GridCollection* grid_data);
+    inline MfpBuilder(Values* real_data, GridValues* grid_data);
 
     // Build the grid
     template<typename... Args>
@@ -45,7 +45,7 @@ class MfpBuilder
 
   private:
     GridInserter insert_grid_;
-    GridCollection* grid_data_;
+    GridValues* grid_data_;
     GridId const grid_id_first_;
 };
 
@@ -55,7 +55,7 @@ class MfpBuilder
 /*!
  * Construct with given collections.
  */
-MfpBuilder::MfpBuilder(RealCollection* real_data, GridCollection* grid_data)
+MfpBuilder::MfpBuilder(Values* real_data, GridValues* grid_data)
     : insert_grid_(real_data, grid_data)
     , grid_data_(grid_data)
     , grid_id_first_(grid_data->size())
@@ -66,7 +66,7 @@ MfpBuilder::MfpBuilder(RealCollection* real_data, GridCollection* grid_data)
 /*!
  * Build the grid.
  *
- * Passes its arguments directly to a GenericGridInserter.
+ * Passes its arguments directly to a \c NonuniformGridInserter.
  */
 template<typename... Args>
 void MfpBuilder::operator()(Args const&... args)
