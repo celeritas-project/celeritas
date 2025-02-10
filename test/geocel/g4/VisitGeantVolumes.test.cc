@@ -106,11 +106,11 @@ TEST_F(FourLevelsTest, physical)
     visit_geant_volume_instances(visit, *this->geometry()->world());
 
     static char const* const expected_names[] = {
-        "0:World",  "1:env1",   "2:Shape1", "3:Shape2", "1:env2",
-        "2:Shape1", "3:Shape2", "1:env3",   "2:Shape1", "3:Shape2",
-        "1:env4",   "2:Shape1", "3:Shape2", "1:env5",   "2:Shape1",
-        "3:Shape2", "1:env6",   "2:Shape1", "3:Shape2", "1:env7",
-        "2:Shape1", "3:Shape2", "1:env8",   "2:Shape1", "3:Shape2",
+        "0:World_PV", "1:env1",   "2:Shape1", "3:Shape2", "1:env2",
+        "2:Shape1",   "3:Shape2", "1:env3",   "2:Shape1", "3:Shape2",
+        "1:env4",     "2:Shape1", "3:Shape2", "1:env5",   "2:Shape1",
+        "3:Shape2",   "1:env6",   "2:Shape1", "3:Shape2", "1:env7",
+        "2:Shape1",   "3:Shape2", "1:env8",   "2:Shape1", "3:Shape2",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
