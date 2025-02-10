@@ -253,17 +253,16 @@ TEST_F(SimpleCmsTest, detached_detector)
     // Detector for LV that isn't in the world tree
     sd_setup_.skip_volumes = {};
     sd_setup_.force_volumes = {SimpleCmsTest::detached_lv};
-    EXPECT_THROW(this->make_hit_manager(), celeritas::RuntimeError);
-
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-    {
-        static char const* const expected_log_messages[]
-            = {"Failed to find VecGeom volume corresponding to Geant4 volume "
-               "\"unused\"@0x0 (ID=7)"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-        static char const* const expected_log_levels[] = {"error"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-    }
+    EXPECT_THROW(
+        try {
+            this->make_hit_manager();
+        } catch (celeritas::RuntimeError const& e) {
+            EXPECT_EQ(
+                R"(logical volume 'unused' is not in the world volume 'world_PV' (7 volumes found))",
+                e.details().what);
+            throw;
+        },
+        celeritas::RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

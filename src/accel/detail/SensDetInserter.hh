@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
 
@@ -71,7 +72,7 @@ SensDetInserter::SensDetInserter(GeoParamsInterface const& geo,
                                  MapIdLv* found,
                                  VecLV* missing)
     : geo_(geo)
-    , g4_to_celer_{geo}
+    , g4_to_celer_(geo)
     , skip_volumes_{skip_volumes}
     , found_{found}
     , missing_{missing}
