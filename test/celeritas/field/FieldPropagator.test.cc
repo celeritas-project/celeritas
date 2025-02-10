@@ -1239,8 +1239,13 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             field, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
+#if CELERITAS_VECGEOM_SURFACE
+        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+        ASSERT_FALSE(geo.is_on_boundary());
+#else
         EXPECT_EQ("si_tracker", this->volume_name(geo));
         ASSERT_TRUE(geo.is_on_boundary());
+#endif
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
