@@ -9,8 +9,6 @@
 #include <accel/AlongStepFactory.hh>
 #include <accel/SetupOptions.hh>
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Build options to set up Celeritas.
@@ -32,6 +30,3 @@ celeritas::SetupOptions MakeCelerOptions()
 
     return opts;
 }
-
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
