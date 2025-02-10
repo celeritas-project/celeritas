@@ -66,6 +66,9 @@ celeritas_add_test(detail/BIHUtils.test.cc)
 # Oriented Bounding Zone
 celeritas_add_test(detail/OrientedBoundingZone.test.cc)
 
+# Logic utilities
+celeritas_add_test(detail/LogicUtils.test.cc)
+
 #-----------------------------------------------------------------------------#
 # Input construction
 celeritas_add_test(orangeinp/CsgObject.test.cc)
@@ -137,7 +140,6 @@ celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
-
 
 #-----------------------------------------------------------------------------#
 # Geant4 construction

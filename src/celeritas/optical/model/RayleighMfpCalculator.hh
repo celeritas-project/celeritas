@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
@@ -63,7 +63,7 @@ class RayleighMfpCalculator
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
-    using Grid = typename GenericCalculator::Grid;
+    using Grid = typename NonuniformGridCalculator::Grid;
     //!@}
 
   public:
@@ -84,7 +84,7 @@ class RayleighMfpCalculator
 
   private:
     // Calculate refractive index [MeV -> unitless]
-    GenericCalculator calc_rindex_;
+    NonuniformGridCalculator calc_rindex_;
 
     // Constant prefactor at all energies
     real_type density_fluctuation_;

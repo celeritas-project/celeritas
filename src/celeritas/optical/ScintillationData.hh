@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridData.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas
@@ -77,7 +77,7 @@ struct MatScintSpectrumRecord
  */
 struct ParScintSpectrumRecord
 {
-    GenericGridRecord yield_per_energy;  //! [MeV] -> [1/MeV]
+    NonuniformGridRecord yield_per_energy;  //! [MeV] -> [1/MeV]
     ItemRange<real_type> yield_pdf;
     ItemRange<ScintRecord> components;
 

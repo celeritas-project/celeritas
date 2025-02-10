@@ -336,7 +336,8 @@ void Runner::build_core_params(RunnerInput const& inp,
         imported, params.particle, params.material);
 
     // Construct shared data for Coulomb scattering
-    params.wentzel = WentzelOKVIParams::from_import(imported, params.material);
+    params.wentzel = WentzelOKVIParams::from_import(
+        imported, params.material, params.particle);
 
     // Load physics: create individual processes with make_shared
     params.physics = [&params, &inp, &imported] {
@@ -345,13 +346,30 @@ void Runner::build_core_params(RunnerInput const& inp,
         input.materials = params.material;
         input.action_registry = params.action_reg.get();
 
+        // Set physics options
         input.options.fixed_step_limiter = inp.step_limiter;
         input.options.secondary_stack_factor = inp.secondary_stack_factor;
-        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
-        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
-            imported.em_params.lowest_electron_energy);
         input.options.spline_eloss_order = inp.spline_eloss_order;
+        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+        input.options.light.lowest_energy = ParticleOptions::Energy(
+            imported.em_params.lowest_electron_energy);
+        input.options.heavy.lowest_energy
+            = ParticleOptions::Energy(imported.em_params.lowest_muhad_energy);
 
+        // Set multiple scattering options
+        input.options.light.range_factor = imported.em_params.msc_range_factor;
+        input.options.heavy.range_factor
+            = imported.em_params.msc_muhad_range_factor;
+        input.options.safety_factor = imported.em_params.msc_safety_factor;
+        input.options.lambda_limit = imported.em_params.msc_lambda_limit;
+        input.options.light.displaced = imported.em_params.msc_displaced;
+        input.options.heavy.displaced = imported.em_params.msc_muhad_displaced;
+        input.options.light.step_limit_algorithm
+            = imported.em_params.msc_step_algorithm;
+        input.options.heavy.step_limit_algorithm
+            = imported.em_params.msc_muhad_step_algorithm;
+
+        // Build processes
         input.processes = [&params, &inp, &imported] {
             std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
@@ -430,6 +448,12 @@ void Runner::build_core_params(RunnerInput const& inp,
                       "streams ("
                    << params.max_streams << " requested)");
 
+    // Store number of tracks per stream
+    CELER_VALIDATE(inp.num_track_slots > 0,
+                   << "nonpositive num_track_slots=" << inp.num_track_slots);
+    params.tracks_per_stream
+        = ceil_div(inp.num_track_slots, params.max_streams);
+
     // Construct track initialization params
     params.init = [&inp, &params, num_events] {
         CELER_VALIDATE(inp.initializer_capacity > 0,
@@ -451,14 +475,10 @@ void Runner::build_core_params(RunnerInput const& inp,
  */
 void Runner::build_transporter_input(RunnerInput const& inp)
 {
-    CELER_VALIDATE(inp.num_track_slots > 0,
-                   << "nonpositive num_track_slots=" << inp.num_track_slots);
     CELER_VALIDATE(inp.max_steps > 0,
                    << "nonpositive max_steps=" << inp.max_steps);
 
     transporter_input_ = std::make_shared<TransporterInput>();
-    transporter_input_->num_track_slots
-        = ceil_div(inp.num_track_slots, core_params_->max_streams());
     transporter_input_->max_steps = inp.max_steps;
     transporter_input_->store_track_counts = inp.write_track_counts;
     transporter_input_->store_step_times = inp.write_step_times;

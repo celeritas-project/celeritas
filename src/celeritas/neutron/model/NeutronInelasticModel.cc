@@ -10,7 +10,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/grid/TwodGridBuilder.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -57,7 +57,7 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
 
     // Load neutron inelastic cross section data
     CollectionBuilder micro_xs{&data.micro_xs};
-    GenericGridBuilder build_grid{&data.reals};
+    NonuniformGridBuilder build_grid{&data.reals};
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
@@ -75,7 +75,7 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     auto cdf_energy_bins = this->get_cdf_energy_bins();
     auto cos_theta_bins = this->get_cos_theta_bins();
 
-    GenericGridBuilder build_xs_grid{&data.reals};
+    NonuniformGridBuilder build_xs_grid{&data.reals};
     TwodGridBuilder build_cdf_grid{&data.reals};
     CollectionBuilder nucleon_xs{&data.nucleon_xs};
     CollectionBuilder angular_cdf{&data.angular_cdf};
@@ -156,21 +156,8 @@ void NeutronInelasticModel::step(CoreParams const&, CoreStateDevice&) const
 //---------------------------------------------------------------------------//
 /*!
  * Get the particle-nucleon cross section (in barn) and the c.d.f (cumulative
- * distribution function) of cos \theta distribution as a function of particle
- * energy. Only neutron-neutron (proton-proton) and neutron-proton channels are
- * tabulated in [10, 320] (MeV) where pion production is not likely. The cross
- * sections below 10 MeV will be calculated on the fly using the Stepanov's
- * function. Tabulated data of cross sections and parameters at the low energy
- * are from G4CascadePPChannel, G4CascadeNPChannel and G4CascadeNNChannel of
- * the Geant4 11.2 release while angular c.d.f data are from G4PP2PPAngDst and
- * G4NP2NPAngDst. Also note that the channel cross sections of nucleon-nucleon
- * are same as their total cross sections in the energy range and the
- * proton-proton channel is same as the neutron-neutron channel based on the
- * charge-independence hypothesis of the nuclear force.
- *
- * H. W. Bertini, "Low-Energy Intranuclear Cascade Calculation", Phys. Rev.
- * Vol. 131, page 1801 (1963). W. Hess, "Summary of High-Energy Nucleon-
- * Nucleon Cross-Section Data", Rev. Mod. Phys. Vol. 30, page 368 (1958).
+ * distribution function) of cos theta distribution as a function of particle
+ * energy.
  */
 auto NeutronInelasticModel::get_channel_data(ChannelId ch_id)
     -> ChannelData const&
@@ -269,7 +256,7 @@ Span<double const> NeutronInelasticModel::get_cdf_energy_bins() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the cos \theta bins of the nucleon-nucleon angular distribution data
+ * Get the cosine angular bins of the nucleon-nucleon angular distribution data
  * in [-1, 1] from G4PP2PPAngDst and G4NP2NPAngDst classes.
  */
 Span<double const> NeutronInelasticModel::get_cos_theta_bins() const

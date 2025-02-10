@@ -11,6 +11,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "celeritas/grid/SplineDerivCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
 
 #include "Test.hh"
@@ -28,6 +29,7 @@ class CalculatorTestBase : public Test
   public:
     //!@{
     //! \name Type aliases
+    using BC = SplineDerivCalculator::BoundaryCondition;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using Data
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
@@ -46,7 +48,15 @@ class CalculatorTestBase : public Test
     //!@}
 
     // Construct from an arbitrary function
-    void build(Real2 bounds, size_type count, XsFunc calc_xs);
+    void build(Real2 bounds, size_type count, XsFunc calc_xs)
+    {
+        return this->build_impl(bounds, count, std::move(calc_xs), BC::size_);
+    }
+    void build_spline(Real2 bounds, size_type count, XsFunc calc_xs, BC bc)
+    {
+        CELER_EXPECT(bc != BC::size_);
+        return this->build_impl(bounds, count, std::move(calc_xs), bc);
+    }
 
     // Scale cross sections at or above this index by a factor of E
     void convert_to_prime(size_type i);
@@ -58,6 +68,8 @@ class CalculatorTestBase : public Test
     XsGridData data_;
     Values value_storage_;
     Data value_ref_;
+
+    void build_impl(Real2 bounds, size_type count, XsFunc calc_xs, BC bc);
 };
 
 //---------------------------------------------------------------------------//

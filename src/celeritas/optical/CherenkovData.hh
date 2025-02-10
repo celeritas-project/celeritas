@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridData.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas
@@ -31,7 +31,7 @@ struct CherenkovData
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridRecord> angle_integral;
+    OpticalMaterialItems<NonuniformGridRecord> angle_integral;
 
     // Backend data
     Items<real_type> reals;

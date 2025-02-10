@@ -12,15 +12,19 @@ primarily pertaining to GPU abstractions.
 Configuration
 -------------
 
-The ``corecel/Config.hh`` configure file contains all-caps definitions of the
+The :file:`corecel/Config.hh` configure file contains all-caps definitions of the
 CMake configuration options as 0/1 defines so they can be used with ``if
 constexpr`` and other C++ expressions. In addition, it defines static C strings
 with configuration options such as key dependent library versions.
-Finally, ``corecel/Version.hh`` defines version numbers as  preprocessor definition,
-a set of integers, and a descriptive string. ``celeritas_version.h``,
-``celeritas_cmake_strings.h``, ``celeritas_sys_config.h``, ``celeritas_config.h``
-and ``corecel/device_runtime_api.h`` are deprecated and kept as aliases for
-backward-compatibility. They may be removed in an upcoming major version.
+Finally, :file:`corecel/Version.hh` defines version numbers as preprocessor
+definition, a set of integers, and a descriptive string.
+
+The files :file:`celeritas_{config,version,cmake_strings,sys_config}.h` and
+:file:`corecel/device_runtime_api.h` are deprecated aliases for
+backward-compatibility.
+.. deprecated:: v0.5
+
+   These will be removed in v0.6.
 
 .. doxygendefine:: CELERITAS_VERSION
 .. doxygenvariable:: celeritas_version
@@ -97,7 +101,8 @@ Utility functions
 -----------------
 
 These functions replace or extend those in the C++ standard library
-``<utility>`` header.
+``<utility>`` header but work in GPU code without the
+special ``--expt-relaxed-constexpr`` flag.
 
 .. doxygenfunction:: celeritas::forward
 .. doxygenfunction:: celeritas::move
@@ -107,14 +112,15 @@ These functions replace or extend those in the C++ standard library
 Algorithms
 ----------
 
-These functions replace or extend those in the C++ standard library
-``<algorithm>`` header. The implementations of ``sort`` and other partitioning
-elements are derived from LLVM's ``libc++``.
+These device-compatible functions replace or extend those in the C++ standard
+library ``<algorithm>`` header. The implementations of ``sort`` and other
+partitioning elements are derived from LLVM's ``libc++``.
 
 .. doxygenfunction:: celeritas::all_of
 .. doxygenfunction:: celeritas::any_of
 .. doxygenfunction:: celeritas::all_adjacent
 .. doxygenfunction:: celeritas::lower_bound
+.. doxygenfunction:: celeritas::lower_bound_linear
 .. doxygenfunction:: celeritas::upper_bound
 .. doxygenfunction:: celeritas::find_sorted
 .. doxygenfunction:: celeritas::partition
@@ -140,8 +146,11 @@ These functions replace or extend those in the C++ standard library
 .. doxygenfunction:: celeritas::eumod
 .. doxygenfunction:: celeritas::signum
 .. doxygenfunction:: celeritas::sincos(double a, double* s, double* c)
+.. doxygenfunction:: celeritas::sincospi(double a, double* s, double* c)
+.. doxygenfunction:: celeritas::popcount
 
 .. doxygenstruct:: celeritas::numeric_limits
+   :members:
 
 Atomics
 --------
@@ -179,6 +188,7 @@ tolerance.
 
 .. doxygenclass:: celeritas::SoftEqual
 .. doxygenclass:: celeritas::SoftZero
+.. doxygenclass:: celeritas::EqualOr
 .. doxygenclass:: celeritas::ArraySoftUnit
 
 

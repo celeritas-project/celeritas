@@ -101,6 +101,12 @@ bool MockProcess::use_integral_xs() const
 }
 
 //---------------------------------------------------------------------------//
+bool MockProcess::applies_at_rest() const
+{
+    return data_.applies_at_rest;
+}
+
+//---------------------------------------------------------------------------//
 std::string_view MockProcess::label() const
 {
     return data_.label;

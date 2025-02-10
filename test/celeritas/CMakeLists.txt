@@ -285,14 +285,14 @@ celeritas_add_test(global/StepperGeant.test.cc
 
 #-----------------------------------------------------------------------------#
 # Grid
-celeritas_add_test(grid/GenericCalculator.test.cc)
-celeritas_add_test(grid/GenericGridBuilder.test.cc)
-celeritas_add_test(grid/GenericGridInserter.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
 celeritas_add_test(grid/InverseCdfFinder.test.cc)
 celeritas_add_test(grid/InverseRangeCalculator.test.cc)
-celeritas_add_test(grid/PolyEvaluator.test.cc)
+celeritas_add_test(grid/NonuniformGridCalculator.test.cc)
+celeritas_add_test(grid/NonuniformGridBuilder.test.cc)
+celeritas_add_test(grid/NonuniformGridInserter.test.cc)
 celeritas_add_test(grid/RangeCalculator.test.cc)
+celeritas_add_test(grid/SplineDerivCalculator.test.cc)
 celeritas_add_test(grid/SplineXsCalculator.test.cc)
 celeritas_add_test(grid/ValueGridBuilder.test.cc)
 celeritas_add_test(grid/ValueGridInserter.test.cc)
@@ -308,15 +308,17 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Optical
-
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
+celeritas_add_test(optical/ImportedMaterials.test.cc)
+celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc)
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
+celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 

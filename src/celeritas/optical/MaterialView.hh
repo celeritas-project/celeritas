@@ -9,7 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 #include "MaterialData.hh"
 
@@ -45,10 +45,13 @@ class MaterialView
     // ID of this optical material
     CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
 
+    // ID of the associated core material
+    CELER_FORCEINLINE_FUNCTION CoreMaterialId core_material_id() const;
+
     //// PARAMETER DATA ////
 
     // Access energy-dependent refractive index
-    inline CELER_FUNCTION GenericCalculator
+    inline CELER_FUNCTION NonuniformGridCalculator
     make_refractive_index_calculator() const;
 
   private:
@@ -106,13 +109,23 @@ CELER_FUNCTION auto MaterialView::material_id() const -> MaterialId
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the id of the core material associated with this optical material.
+ */
+CELER_FUNCTION CoreMaterialId MaterialView::core_material_id() const
+{
+    return params_.core_material_id[mat_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access energy-dependent refractive index.
  */
-CELER_FUNCTION GenericCalculator
+CELER_FUNCTION NonuniformGridCalculator
 MaterialView::make_refractive_index_calculator() const
 {
     CELER_EXPECT(*this);
-    return GenericCalculator(params_.refractive_index[mat_id_], params_.reals);
+    return NonuniformGridCalculator(params_.refractive_index[mat_id_],
+                                    params_.reals);
 }
 
 //---------------------------------------------------------------------------//

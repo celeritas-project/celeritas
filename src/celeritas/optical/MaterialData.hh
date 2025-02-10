@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridData.hh"
 
 #include "Types.hh"
 
@@ -34,8 +34,9 @@ struct MaterialParamsData
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridRecord> refractive_index;
+    OpticalMaterialItems<NonuniformGridRecord> refractive_index;
     VolumeItems<OpticalMaterialId> optical_id;
+    OpticalMaterialItems<CoreMaterialId> core_material_id;
 
     // Backend data
     Items<real_type> reals;
@@ -46,7 +47,7 @@ struct MaterialParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return !refractive_index.empty() && !optical_id.empty()
-               && !reals.empty();
+               && !core_material_id.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -56,6 +57,7 @@ struct MaterialParamsData
         CELER_EXPECT(other);
         refractive_index = other.refractive_index;
         optical_id = other.optical_id;
+        core_material_id = other.core_material_id;
         reals = other.reals;
         return *this;
     }

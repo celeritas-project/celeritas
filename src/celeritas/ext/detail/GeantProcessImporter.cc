@@ -21,7 +21,9 @@
 #include <G4PhysicsTable.hh>
 #include <G4PhysicsVector.hh>
 #include <G4PhysicsVectorType.hh>
+#include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
+#include <G4ProcessVector.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4String.hh>
 #include <G4VEmProcess.hh>
@@ -121,6 +123,12 @@ init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
     result.process_type = to_import_process_type(process.GetProcessType());
     result.process_class = to_import_process_class(process);
     result.particle_pdg = particle.GetPDGEncoding();
+
+    auto* rest_processes
+        = particle.GetProcessManager()->GetAtRestProcessVector();
+    CELER_ASSERT(rest_processes);
+    result.applies_at_rest
+        = rest_processes->contains(const_cast<G4VProcess*>(&process));
 
     return result;
 }

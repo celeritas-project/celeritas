@@ -109,26 +109,22 @@ using TestTypes = ::testing::
 
 TYPED_TEST_SUITE(SenseCalculatorTest, TestTypes, );
 
-TYPED_TEST(SenseCalculatorTest, one_volume)
+#define ONE_VOLUME TEST_IF_CELERITAS_DEBUG(one_volume)
+TYPED_TEST(SenseCalculatorTest, ONE_VOLUME)
 {
-    using MySenseCalc = TypeParam;
-    {
-        typename TestFixture::OneVolInput geo_inp;
-        this->build_geometry(geo_inp);
-    }
+    typename TestFixture::OneVolInput geo_inp;
+    this->build_geometry(geo_inp);
 
     // Test this degenerate case (no surfaces)
     OnFace face;
-    MySenseCalc calc_senses = this->construct_sense_calculator(
-        this->make_surf_visitor(),
-        this->make_volume_view(LocalVolumeId{0}),
-        Real3{123, 345, 567},
-        face);
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(calc_senses(FaceId{0}), DebugError);
-    }
+    auto lsv{this->make_surf_visitor()};
+    auto vol{this->make_volume_view(LocalVolumeId{0})};
+    Real3 pos{0, 0, 0};
+    EXPECT_THROW(
+        this->construct_sense_calculator(lsv, vol, pos, face)(FaceId{0}),
+        DebugError);
 }
+#undef ONE_VOLUME
 
 TYPED_TEST(SenseCalculatorTest, two_volumes)
 {
@@ -205,13 +201,10 @@ TYPED_TEST(SenseCalculatorTest, two_volumes)
     {
         OnFace face;
         // Point is in the outer sphere
-        MySenseCalc calc_senses = this->construct_sense_calculator(
-            this->make_surf_visitor(), inner, Real3{2, 0, 0}, face);
-        {
-            auto result = calc_senses(FaceId{0});
-            EXPECT_EQ(Sense::outside, result);
-            EXPECT_FALSE(face);
-        }
+        auto result = MySenseCalc{this->construct_sense_calculator(
+            this->make_surf_visitor(), inner, Real3{2, 0, 0}, face)}(FaceId{0});
+        EXPECT_EQ(Sense::outside, result);
+        EXPECT_FALSE(face);
     }
 }
 

@@ -31,20 +31,18 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * Celeritas, it is often used as a return value from accessing elements in a
  * \c Collection.
  *
- * Like the \ref celeritas::Array , this class isn't 100% compatible
- * with the \c std::span class (partly of course because language features
- * are missing from C++14). The hope is that it will be complete and correct
- * for the use cases needed by Celeritas (and, as a bonus, it will be
+ * Like the \ref celeritas::Array , this class is not 100% compatible
+ * with the \c std::span class. The hope is that it will be complete and
+ * correct for the use cases needed by Celeritas (and, as a bonus, it will be
  * device-compatible).
  *
- * Notably, only a subset of the functions (those having to do with size) are
- * \c constexpr. This is to allow debug assertions.
- *
- * Span can be instantiated with the special marker type \c LdgValue<T> to
- * optimize reading constant data on device memory. In that case, data returned
- * by \c front, \c back, \c operator[] and \c begin / \c end iterator use value
- * semantics instead of reference. \c data still returns a pointer to the data
- * and can be used to bypass using \c LdgIterator
+ * \c Span can be instantiated with the special marker type \c LdgValue<T> to
+ * optimize constant data access in global device memory.
+ * In that case, data returned
+ * by \c front, \c back, \c operator[] and \c begin / \c end iterators use
+ * value semantics instead of reference. The \c data accessor still returns a
+ * pointer to the underlying memory and can be used to bypass using \c
+ * LdgIterator .
  */
 template<class T, std::size_t Extent = dynamic_extent>
 class Span
@@ -75,11 +73,11 @@ class Span
     constexpr Span() = default;
 
     //! Construct from data and size
-    CELER_FORCEINLINE_FUNCTION Span(pointer d, size_type s) : s_(d, s) {}
+    CELER_CONSTEXPR_FUNCTION Span(pointer d, size_type s) : s_(d, s) {}
 
     //! Construct from two contiguous random-access iterators
     template<class Iter>
-    CELER_FORCEINLINE_FUNCTION Span(Iter first, Iter last)
+    CELER_CONSTEXPR_FUNCTION Span(Iter first, Iter last)
         : s_(&(*first), static_cast<size_type>(last - first))
     {
     }
@@ -137,12 +135,12 @@ class Span
     //!@{
     //! \name Subviews
     template<std::size_t Count>
-    CELER_FUNCTION Span<T, Count> first() const
+    CELER_CONSTEXPR_FUNCTION Span<T, Count> first() const
     {
         CELER_EXPECT(Count == 0 || Count <= this->size());
         return {this->data(), Count};
     }
-    CELER_FUNCTION
+    CELER_CONSTEXPR_FUNCTION
     Span<T, dynamic_extent> first(std::size_t count) const
     {
         CELER_EXPECT(count <= this->size());
@@ -150,15 +148,16 @@ class Span
     }
 
     template<std::size_t Offset, std::size_t Count = dynamic_extent>
-    CELER_FUNCTION Span<T, detail::subspan_extent(Extent, Offset, Count)>
-    subspan() const
+    CELER_CONSTEXPR_FUNCTION
+        Span<T, detail::subspan_extent(Extent, Offset, Count)>
+        subspan() const
     {
         CELER_EXPECT((Count == dynamic_extent) || (Offset == 0 && Count == 0)
                      || (Offset + Count <= this->size()));
         return {this->data() + Offset,
                 detail::subspan_size(this->size(), Offset, Count)};
     }
-    CELER_FUNCTION
+    CELER_CONSTEXPR_FUNCTION
     Span<T, dynamic_extent>
     subspan(std::size_t offset, std::size_t count = dynamic_extent) const
     {
@@ -168,12 +167,12 @@ class Span
     }
 
     template<std::size_t Count>
-    CELER_FUNCTION Span<T, Count> last() const
+    CELER_CONSTEXPR_FUNCTION Span<T, Count> last() const
     {
         CELER_EXPECT(Count == 0 || Count <= this->size());
         return {this->data() + this->size() - Count, Count};
     }
-    CELER_FUNCTION
+    CELER_CONSTEXPR_FUNCTION
     Span<T, dynamic_extent> last(std::size_t count) const
     {
         CELER_EXPECT(count <= this->size());
@@ -185,9 +184,6 @@ class Span
     //! Storage
     detail::SpanImpl<T, Extent> s_;
 };
-
-template<class T, std::size_t N>
-constexpr std::size_t Span<T, N>::extent;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -218,7 +214,7 @@ CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(T (&arr)[N])
 //---------------------------------------------------------------------------//
 //! Get a mutable view to a generic container
 template<class T>
-CELER_FUNCTION Span<typename T::value_type> make_span(T& cont)
+CELER_CONSTEXPR_FUNCTION Span<typename T::value_type> make_span(T& cont)
 {
     return {cont.data(), cont.size()};
 }
@@ -226,7 +222,8 @@ CELER_FUNCTION Span<typename T::value_type> make_span(T& cont)
 //---------------------------------------------------------------------------//
 //! Get a const view to a generic container
 template<class T>
-CELER_FUNCTION Span<typename T::value_type const> make_span(T const& cont)
+CELER_CONSTEXPR_FUNCTION Span<typename T::value_type const>
+make_span(T const& cont)
 {
     return {cont.data(), cont.size()};
 }

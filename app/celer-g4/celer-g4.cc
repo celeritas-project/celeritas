@@ -49,10 +49,10 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
+#include "celeritas/ext/EmPhysicsList.hh"
+#include "celeritas/ext/FtfpBertPhysicsList.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/ext/detail/CelerEmPhysicsList.hh"
-#include "celeritas/ext/detail/CelerFTFPBert.hh"
 #include "accel/SharedParams.hh"
 
 #include "ActionInitialization.hh"
@@ -189,13 +189,13 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
         if (setup.input().physics_list == PhysicsListSelection::celer_ftfp_bert)
         {
             // FTFP BERT with Celeritas EM standard physics
-            auto pl = std::make_unique<detail::CelerFTFPBert>(opts);
+            auto pl = std::make_unique<celeritas::FtfpBertPhysicsList>(opts);
             run_manager->SetUserInitialization(pl.release());
         }
         else
         {
             // Celeritas EM standard physics only
-            auto pl = std::make_unique<detail::CelerEmPhysicsList>(opts);
+            auto pl = std::make_unique<celeritas::EmPhysicsList>(opts);
             run_manager->SetUserInitialization(pl.release());
         }
     }
@@ -286,10 +286,13 @@ int main(int argc, char* argv[])
     catch (std::exception const& e)
     {
         CELER_LOG(critical) << "While running " << argv[1] << ": " << e.what();
-        params->output_reg()->insert(
-            std::make_shared<celeritas::ExceptionOutput>(
-                std::current_exception()));
-        params->Finalize();
+        if (*params)
+        {
+            params->output_reg()->insert(
+                std::make_shared<celeritas::ExceptionOutput>(
+                    std::current_exception()));
+            params->Finalize();
+        }
         return EXIT_FAILURE;
     }
 

@@ -17,6 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class MaterialParams;
+class ParticleParams;
 struct ImportData;
 
 //---------------------------------------------------------------------------//
@@ -32,6 +33,7 @@ class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
     //!@{
     //! \name Type aliases
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     //!@}
 
   public:
@@ -52,10 +54,14 @@ class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
   public:
     // Construct if Wentzel VI or Coulomb is present, else return nullptr
     static std::shared_ptr<WentzelOKVIParams>
-    from_import(ImportData const& data, SPConstMaterials materials);
+    from_import(ImportData const& data,
+                SPConstMaterials materials,
+                SPConstParticles particles);
 
     // Construct from material data and options
-    WentzelOKVIParams(SPConstMaterials materials, Options options);
+    WentzelOKVIParams(SPConstMaterials materials,
+                      SPConstParticles particles,
+                      Options options);
 
     //! Access Wentzel OK&VI data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

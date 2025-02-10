@@ -76,7 +76,9 @@ CELER_FORCEINLINE_FUNCTION void trivial_swap(T& a, T& b) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Exchange values on host or device.
+ * Replace a value and return the original.
+ *
+ * This has a similar signature to atomic updates.
  */
 template<class T, class U = T>
 CELER_FORCEINLINE_FUNCTION T exchange(T& dst, U&& src)
@@ -270,6 +272,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
         first, last, value, comp);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Find the insertion point for a value in a sorted list using a linear search.
@@ -281,6 +284,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
 {
     return ::celeritas::lower_bound_linear(first, last, value, Less<>{});
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -386,8 +390,8 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
 /*!
  * Return the higher of two values.
  *
- * This function is specialized when building CUDA device code, which has
- * special intrinsics for max.
+ * This function is specialized so that floating point types use \c std::fmax
+ * for better performance on GPU and ARM.
  */
 template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
@@ -407,8 +411,8 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 /*!
  * Return the lower of two values.
  *
- * This function is specialized when building CUDA device code, which has
- * special intrinsics for min.
+ * This function is specialized so that floating point types use \c std::fmin
+ * for better performance on GPU and ARM.
  */
 template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
@@ -463,7 +467,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
 /*!
- * Return an integer power of the input value.
+ * Return a nonnegative integer power of the input value.
  *
  * Example: \code
   assert(9.0 == ipow<2>(3.0));
@@ -498,8 +502,8 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 /*!
  * Raise a number to a power with simplifying assumptions.
  *
- * This should be faster than `std::pow` because we don't worry about
- * exceptions for zeros, infinities, or negative values for a.
+ * This should be faster than \c std::pow because we don't worry about
+ * special cases for zeros, infinities, or negative values for \c a.
  *
  * Example: \code
   assert(9.0 == fastpow(3.0, 2.0));
@@ -636,7 +640,12 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
  * sign of the remainder and denominator don't match, the remainder will be
  * remapped so that it is between zero and the denominator.
  *
- * This function is useful for normalizing user-provided angles.
+ * This function is useful for normalizing user-provided angles. Examples:
+ * \code
+   eumod(3, 2) == 1
+   eumod(-0.5, 2) == 1.5
+   eumod(-2, 2) == 0
+   \endcode
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
@@ -737,7 +746,7 @@ CELER_FORCEINLINE_FUNCTION double cospi(double a)
 //!@}
 
 //!@{
-//! Simultaneously evaluate the sine and cosine of a value
+//! Simultaneously evaluate the sine and cosine of a value.
 CELER_FORCEINLINE_FUNCTION void sincos(float a, float* s, float* c)
 {
     return CELER_SINCOS_MANGLED(sincosf)(a, s, c);
@@ -746,6 +755,10 @@ CELER_FORCEINLINE_FUNCTION void sincos(double a, double* s, double* c)
 {
     return CELER_SINCOS_MANGLED(sincos)(a, s, c);
 }
+//!@}
+
+//!@{
+//! Simultaneously evaluate the sine and cosine of a value factored by pi.
 CELER_FORCEINLINE_FUNCTION void sincospi(float a, float* s, float* c)
 {
     return CELER_SINCOS_MANGLED(sincospif)(a, s, c);
@@ -755,6 +768,7 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
     return CELER_SINCOS_MANGLED(sincospi)(a, s, c);
 }
 //!@}
+
 //!@}
 
 //---------------------------------------------------------------------------//

@@ -50,12 +50,12 @@ struct CoulombParameters
  * Per-element data used by the Coulomb scattering and Wentzel VI models.
  *
  * The matrix of coefficients used to approximate the ratio of the Mott to
- * Rutherford cross sections was developed in T. Lijian, H. Quing and L.
- * Zhengming, Radiat. Phys. Chem. 45 (1995), 235-245. Using the same procedure
- * as in Lijian, the coefficients were extended in M.J. Boschini et al, Radiat.
- * Phys. Chem. 90 (2013), 39-66 (doi.org/10.1016/j.radphyschem.2013.04.020) to
- * include positrons and the interaction of electrons and positrons with higher
- * Z nuclei (1 <= Z <= 118).
+ * Rutherford cross sections was developed in \citet{lijian-mott-1995,
+ * https://doi.org/10.1016/0969-806X(94)00063-8}. Using the same procedure as
+ * in Lijian, the coefficients were extended in \citet{boschini-mott-1993,
+ * https://doi.org/10.1016/j.radphyschem.2013.04.020} to include positrons and
+ * the interaction of electrons and positrons with higher Z nuclei (1 <= Z <=
+ * 118).
  */
 struct MottElementData
 {
@@ -82,6 +82,8 @@ struct MottElementData
 template<Ownership W, MemSpace M>
 struct WentzelOKVIData
 {
+    //// TYPES ////
+
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
     template<class T>
@@ -89,30 +91,35 @@ struct WentzelOKVIData
     template<class T>
     using MaterialItems = Collection<T, W, M, MaterialId>;
 
-    // User-assignable parameters
+    //// DATA ////
+
+    //! User-assignable parameters
     CoulombParameters params;
-
-    // Constant prefactor for the squared momentum transfer [(MeV/c)^{-2}]
+    //! Mass of electron in MeV
+    units::MevMass electron_mass;
+    //! Constant prefactor for the squared momentum transfer [(MeV/c)^{-2}]
     IsotopeItems<real_type> nuclear_form_prefactor;
-
-    // Per element form factors
+    //! Per element form factors
     ElementItems<MottElementData> mott_coeffs;
-
-    // Inverse effective A^2/3 [1/mass^2/3]
+    //! Inverse effective A^2/3 [1/mass^2/3]
     MaterialItems<real_type> inv_mass_cbrt_sq;
 
-    // Check if the data is initialized
+    //// METHODS ////
+
+    //! Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return params && !mott_coeffs.empty()
+        return params && electron_mass > zero_quantity() && !mott_coeffs.empty()
                && params.is_combined == !inv_mass_cbrt_sq.empty();
     }
 
+    //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     WentzelOKVIData& operator=(WentzelOKVIData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         params = other.params;
+        electron_mass = other.electron_mass;
         nuclear_form_prefactor = other.nuclear_form_prefactor;
         mott_coeffs = other.mott_coeffs;
         inv_mass_cbrt_sq = other.inv_mass_cbrt_sq;

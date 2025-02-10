@@ -205,7 +205,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
                    v.physics_file.empty()
                        || !ends_with(v.physics_file, ".root"));
 
-    LDIO_SAVE(optical);
+    LDIO_SAVE_WHEN(optical, v.optical);
 
 #undef LDIO_SAVE_OPTION
 #undef LDIO_SAVE_WHEN

@@ -45,20 +45,18 @@ TrackingAction::TrackingAction(SPConstParams params,
 void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
     CELER_EXPECT(track);
-    CELER_EXPECT(static_cast<bool>(*params_)
-                 == !SharedParams::CeleritasDisabled());
-    CELER_EXPECT(static_cast<bool>(*params_) == static_cast<bool>(*transport_));
+    CELER_EXPECT((params_->mode() == SharedParams::Mode::enabled)
+                 == static_cast<bool>(*transport_));
 
-    if (SharedParams::CeleritasDisabled() && !SharedParams::KillOffloadTracks())
+    auto const mode = params_->mode();
+    if (mode == SharedParams::Mode::disabled)
         return;
 
-    auto const& allowed_particles = params_->OffloadParticles();
-    if (std::find(std::begin(allowed_particles),
-                  std::end(allowed_particles),
-                  track->GetDefinition())
-        != std::end(allowed_particles))
+    auto const& particles = params_->OffloadParticles();
+    if (std::find(particles.begin(), particles.end(), track->GetDefinition())
+        != particles.end())
     {
-        if (!SharedParams::CeleritasDisabled())
+        if (mode == SharedParams::Mode::enabled)
         {
             // Celeritas is transporting this track
             ExceptionConverter call_g4exception{"celer0003", params_.get()};

@@ -1,4 +1,4 @@
-# Note that Geant4, VecGeom, and ROOT are added by the CI script.
+# Note that Geant4, VecGeom, G4VG, and ROOT are added by the CI script.
 # Most of these specs should correspond to 
 # https://github.com/celeritas-project/spack-gha-buildcache/blob/main/spack.yaml
 spack:

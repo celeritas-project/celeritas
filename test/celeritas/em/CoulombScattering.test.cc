@@ -130,8 +130,8 @@ class CoulombScatteringTest : public InteractorHostTestBase
         options.is_combined = false;
         options.polar_angle_limit = 0;
         options.form_factor = ff;
-        return std::make_shared<WentzelOKVIParams>(this->material_params(),
-                                                   options);
+        return std::make_shared<WentzelOKVIParams>(
+            this->material_params(), this->particle_params(), options);
     }
 
     void sanity_check(Interaction const& interaction) const
@@ -214,32 +214,42 @@ TEST_F(CoulombScatteringTest, helper)
             / units::barn);
     }
 
-    static double const expected_screen_z[] = {2.1181757502465e-08,
-                                               5.3641196710457e-09,
-                                               1.3498490873627e-09,
-                                               5.4280909096648e-11,
-                                               3.2158426877075e-13};
-    static double const expected_scaled_kin_factor[] = {0.018652406309778,
-                                                        0.0047099159161888,
-                                                        0.0011834423911797,
-                                                        4.7530717872407e-05,
-                                                        2.8151208086621e-07};
-    static double const expected_cos_thetamax_elec[] = {0.99989885103277,
-                                                        0.99997458240728,
-                                                        0.99999362912075,
-                                                        0.99999974463379,
-                                                        0.99999999848823};
+    static double const expected_screen_z[] = {
+        2.1181757502465e-08,
+        5.3641196710457e-09,
+        1.3498490873627e-09,
+        5.4280909096648e-11,
+        3.2158426877075e-13,
+    };
+    static double const expected_scaled_kin_factor[] = {
+        0.018652406025343,
+        0.0047099158443663,
+        0.0011834423731331,
+        4.7530717147601e-05,
+        2.8151207657337e-07,
+    };
+    static double const expected_cos_thetamax_elec[] = {
+        0.99989885103277,
+        0.99997458240728,
+        0.99999362912075,
+        0.99999974463379,
+        0.99999999848823,
+    };
     static double const expected_cos_thetamax_nuc[] = {1, 1, 1, 1, 1};
-    static double const expected_xs_elec[] = {40826.46816866,
-                                              40708.229862005,
-                                              40647.018860182,
-                                              40596.955206725,
-                                              40585.257368735};
-    static double const expected_xs_nuc[] = {1184463.4246675,
-                                             1181036.9405781,
-                                             1179263.0534548,
-                                             1177812.2021574,
-                                             1177473.1955599};
+    static double const expected_xs_elec[] = {
+        40826.467546089,
+        40708.229241237,
+        40647.018240347,
+        40596.954587654,
+        40585.256749842,
+    };
+    static double const expected_xs_nuc[] = {
+        1184463.4066054,
+        1181036.9225682,
+        1179263.035472,
+        1177812.1841967,
+        1177473.1776044,
+    };
     EXPECT_VEC_SOFT_EQ(expected_screen_z, result.screen_z);
     EXPECT_VEC_SOFT_EQ(expected_scaled_kin_factor, result.scaled_kin_factor);
     EXPECT_VEC_SOFT_EQ(expected_cos_thetamax_elec, result.cos_thetamax_elec);
@@ -339,41 +349,43 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
             xs.push_back(calc_transport_xs(cos_thetamax) / units::barn);
         }
     }
-    static double const expected_xs[] = {0.18738907324438,
-                                         0.18698029857321,
-                                         0.18529403401504,
-                                         0.1804875329214,
-                                         0.17432530107014,
-                                         0.14071448472406,
-                                         0,
-                                         0.050844259956663,
-                                         0.050741561907078,
-                                         0.050317873900199,
-                                         0.049110176080819,
-                                         0.047561822391017,
-                                         0.039116564509577,
-                                         0,
-                                         0.00239379259103,
-                                         0.0023896680893247,
-                                         0.0023726516350529,
-                                         0.0023241469141481,
-                                         0.0022619603107973,
-                                         0.0019227725825426,
-                                         0,
-                                         3.4052045960474e-07,
-                                         3.4010759295258e-07,
-                                         3.3840422701414e-07,
-                                         3.3354884935259e-07,
-                                         3.2732389915557e-07,
-                                         2.9337081738993e-07,
-                                         0,
-                                         3.9098094802963e-09,
-                                         3.9056807758002e-09,
-                                         3.8886469597418e-09,
-                                         3.8400927365321e-09,
-                                         3.7778426619946e-09,
-                                         3.4383087213522e-09,
-                                         0};
+    static double const expected_xs[] = {
+        0.18738907038684,
+        0.18698029572191,
+        0.18529403118945,
+        0.1804875301691,
+        0.17432529841181,
+        0.14071448257828,
+        0,
+        0.050844259181328,
+        0.05074156113331,
+        0.050317873132892,
+        0.049110175331928,
+        0.047561821665737,
+        0.039116563913081,
+        0,
+        0.0023937925545266,
+        0.0023896680528842,
+        0.0023726515988718,
+        0.0023241468787067,
+        0.0022619602763042,
+        0.0019227725532218,
+        0,
+        3.4052045441207e-07,
+        3.4010758776621e-07,
+        3.3840422185375e-07,
+        3.3354884426624e-07,
+        3.2732389416414e-07,
+        2.9337081291625e-07,
+        0,
+        3.9098094206748e-09,
+        3.9056807162416e-09,
+        3.8886469004431e-09,
+        3.8400926779737e-09,
+        3.7778426043855e-09,
+        3.4383086689208e-09,
+        0,
+    };
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 

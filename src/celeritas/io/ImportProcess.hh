@@ -101,6 +101,7 @@ struct ImportProcess
     ImportProcessClass process_class{ImportProcessClass::size_};
     std::vector<ImportModel> models;
     std::vector<ImportPhysicsTable> tables;
+    bool applies_at_rest{false};
 
     explicit operator bool() const
     {

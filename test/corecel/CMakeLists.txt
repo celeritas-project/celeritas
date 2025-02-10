@@ -50,6 +50,7 @@ celeritas_add_test(data/AuxInterface.test.cc
 # Grid
 celeritas_add_test(grid/Interpolator.test.cc)
 celeritas_add_test(grid/NonuniformGrid.test.cc)
+celeritas_add_test(grid/SplineInterpolator.test.cc)
 celeritas_add_test(grid/TwodGridCalculator.test.cc)
 celeritas_add_test(grid/UniformGrid.test.cc)
 celeritas_add_test(grid/VectorUtils.test.cc)
@@ -76,12 +77,14 @@ celeritas_add_test(math/Constant.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
 celeritas_add_test(math/Integrator.test.cc)
 celeritas_add_device_test(math/NumericLimits)
+celeritas_add_test(math/PolyEvaluator.test.cc)
 celeritas_add_test(math/Quantity.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(math/SoftEqual.test.cc)
 celeritas_add_test(math/RegulaFalsiRootFinder.test.cc)
 celeritas_add_test(math/BisectionRootFinder.test.cc)
 celeritas_add_test(math/IllinoisRootFinder.test.cc)
+celeritas_add_test(math/TridiagonalSolver.test.cc)
 
 # Sys
 celeritas_add_test(sys/ActionRegistry.test.cc)

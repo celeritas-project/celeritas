@@ -13,10 +13,10 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
 
 namespace celeritas

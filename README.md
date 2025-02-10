@@ -71,7 +71,7 @@ Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 
 # Installation for developers
 
@@ -109,11 +109,16 @@ $ make && ctest
 Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
 See the configure output from the [GitHub runners](https://github.com/celeritas-project/celeritas/actions/workflows/push.yml) for the full list of combinations.
-- Compilers and standard:
+- Compilers
     - GCC 8, 11, 12, 14
     - Clang 10, 15, 18
+    - MSVC 19
     - GCC 11.5 + NVCC 12.6
     - ROCm Clang 18
+- Platforms
+    - Linux x86_64, ARM
+    - Windows x86_64
+- C++ standard
     - C++17 and C++20
 - Dependencies:
     - Geant4 11.0.4
@@ -136,7 +141,7 @@ The full set of configurations is viewable on CI platform [GitHub Actions][gha])
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
-[install]: https://celeritas-project.github.io/celeritas/user/introduction/installation.html
+[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development
@@ -147,7 +152,7 @@ details on coding in Celeritas, and [the administration guidelines][administrati
 
 [contributing-guidelines]: https://celeritas-project.github.io/celeritas/user/development/contributing.html
 [development-guidelines]: https://celeritas-project.github.io/celeritas/user/development/coding.html
-[administration-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/administration.html
+[administration-guidelines]: https://celeritas-project.github.io/celeritas/user/development/administration.html
 
 # Directory structure
 
