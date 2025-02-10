@@ -22,12 +22,15 @@ struct StandaloneInput;
 namespace setup
 {
 //---------------------------------------------------------------------------//
+//! Result from loaded standalone input to be used in front-end apps
 struct StandaloneLoaded
 {
     using VecPrimary = std::vector<Primary>;
     using VecEvent = std::vector<VecPrimary>;
 
+    //! Problem setup
     std::shared_ptr<CoreParams> core_params;
+    //! Events to be run
     VecEvent events;
 };
 

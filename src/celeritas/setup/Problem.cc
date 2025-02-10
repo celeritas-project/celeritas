@@ -312,7 +312,7 @@ auto build_along_step(inp::Field const& var_field,
 
 //---------------------------------------------------------------------------//
 /*!
- * Costruct magnetic field from variant input.
+ * Construct optical tracking offload.
  */
 auto build_optical_offload(inp::OpticalStateCapacity const& cap,
                            CoreParams& params,
