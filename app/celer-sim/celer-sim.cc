@@ -290,9 +290,9 @@ int main(int argc, char* argv[])
     // Delete streams before end of program (TODO: this is because of a static
     // initialization order issue; CUDA can be deactivated before the global
     // celeritas::device is reset)
-    if (celeritas::device())
+    if (auto& d = celeritas::device())
     {
-        celeritas::device().create_streams(0);
+        d.destroy_streams();
     }
 
     return return_code;
