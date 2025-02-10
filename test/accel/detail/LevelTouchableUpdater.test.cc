@@ -100,7 +100,7 @@ TEST_F(LevelTouchableUpdaterTest, all)
         {"world_PV", "topbox1", "boxsph1"},
         {"world_PV", "topbox2", "boxsph2"},
         {"world_PV", "topbox2", "boxsph1"},
-        {"world_PV", "topsph2"},
+        {"world_PV", "topbox4"},
         {"world_PV", "topbox3", "boxsph1"},
         {"world_PV", "topbox3", "boxsph2"},
     };

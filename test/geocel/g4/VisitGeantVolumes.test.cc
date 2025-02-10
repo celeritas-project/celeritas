@@ -151,7 +151,7 @@ TEST_F(MultiLevelTest, physical)
         "1:topbox3",
         "2:boxsph1",
         "2:boxsph2",
-        "1:topsph2",
+        "1:topbox4",
         "2:boxsph1",
         "2:boxsph2",
     };
@@ -159,14 +159,16 @@ TEST_F(MultiLevelTest, physical)
 
     MaxPhysicalVisitor visit_max;
     visit_geant_volume_instances(visit_max, *this->geometry()->world());
-    static std::string const expected_max_names[] = {"0:world_PV",
-                                                     "1:topsph1",
-                                                     "1:topbox1",
-                                                     "2:boxsph1",
-                                                     "2:boxsph2",
-                                                     "1:topbox2",
-                                                     "1:topbox3",
-                                                     "1:topsph2"};
+    static std::string const expected_max_names[] = {
+        "0:world_PV",
+        "1:topsph1",
+        "1:topbox1",
+        "2:boxsph1",
+        "2:boxsph2",
+        "1:topbox2",
+        "1:topbox3",
+        "1:topbox4",
+    };
     EXPECT_VEC_EQ(expected_max_names, visit_max.names);
 }
 

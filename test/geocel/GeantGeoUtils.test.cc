@@ -137,7 +137,7 @@ TEST_F(MultiLevelTest, printable_nav)
 
     std::ostringstream os;
     os << PrintableNavHistory{touchable.GetHistory()};
-    EXPECT_EQ(R"({{pv='boxsph2', lv=26='sph'} -> {pv='topsph2', lv=27='box'}})",
+    EXPECT_EQ(R"({{pv='boxsph2', lv=26='sph'} -> {pv='topbox4', lv=27='box'}})",
               os.str());
 }
 
@@ -153,7 +153,7 @@ TEST_F(MultiLevelTest, set_history)
         {"world_PV", "topbox1", "boxsph1"},
         {"world_PV", "topbox2", "boxsph2"},
         {"world_PV", "topbox2", "boxsph1"},
-        {"world_PV", "topsph2"},
+        {"world_PV", "topbox4"},
         {"world_PV", "topbox3", "boxsph1"},
         {"world_PV", "topbox3", "boxsph2"},
     };

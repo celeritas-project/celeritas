@@ -653,7 +653,7 @@ TEST_F(MultiLevelTest, accessors)
         "topbox1",
         "topbox2",
         "topbox3",
-        "topsph2",
+        "topbox4",
         "world_PV",
     };
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
@@ -1325,7 +1325,7 @@ TEST_F(MultiLevelGeantTest, accessors)
         "topbox1",
         "topbox2",
         "topbox3",
-        "topsph2",
+        "topbox4",
         "world_PV",
     };
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
