@@ -63,9 +63,6 @@ std::ostream& operator<<(std::ostream&, PrintableLV const&);
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Load a GDML file and return the world volume (Geant4 owns!)
-G4VPhysicalVolume* load_geant_geometry(std::string const& gdml_filename);
-
 // Load a GDML file, stripping pointers
 G4VPhysicalVolume* load_geant_geometry_native(std::string const& gdml_filename);
 
@@ -90,9 +87,6 @@ G4VPhysicalVolume const* geant_world_volume();
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
 
-// Generate the GDML name for a Geant4 logical volume
-std::string make_gdml_name(G4LogicalVolume const&);
-
 // Get a reproducible vector of LV instance ID -> label from the given world
 std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world);
 
@@ -108,11 +102,6 @@ void set_history(Span<G4VPhysicalVolume const*> stack,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline G4VPhysicalVolume* load_geant_geometry(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
 inline G4VPhysicalVolume* load_geant_geometry_native(std::string const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
@@ -130,11 +119,6 @@ inline Span<G4LogicalVolume*> geant_logical_volumes()
 
 inline std::unordered_set<G4LogicalVolume const*>
 find_geant_volumes(std::unordered_set<std::string>)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline std::string make_gdml_name(G4LogicalVolume const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

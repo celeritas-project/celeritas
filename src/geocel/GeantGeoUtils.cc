@@ -14,7 +14,6 @@
 #include <unordered_set>
 #include <G4Element.hh>
 #include <G4GDMLParser.hh>
-#include <G4GDMLWriteStructure.hh>
 #include <G4Isotope.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
@@ -169,21 +168,6 @@ std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
         os << "{null G4LogicalVolume}";
     }
     return os;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a Geant4 geometry, leaving the pointer suffixes intact for VecGeom.
- *
- * Do *not* strip `0x` extensions since those are needed to deduplicate complex
- * geometries (e.g. CMS) when loaded separately by VGDML and Geant4. The
- * pointer-based deduplication is handled by the Label and LabelIdMultiMap.
- *
- * \return Geant4-owned world volume
- */
-G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
-{
-    return load_geant_geometry_impl(filename, false);
 }
 
 //---------------------------------------------------------------------------//
@@ -359,32 +343,6 @@ find_geant_volumes(std::unordered_set<std::string> names)
                    << join(names.begin(), names.end(), ", "));
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Generate the GDML name for a Geant4 logical volume.
- */
-std::string make_gdml_name(G4LogicalVolume const& lv)
-{
-    // Run the LV through the GDML export name generator so that the volume is
-    // uniquely identifiable in VecGeom. Reuse the same instance to reduce
-    // overhead: note that the method isn't const correct.
-    static G4GDMLWriteStructure temp_writer;
-
-    auto const* refl_factory = G4ReflectionFactory::Instance();
-    if (auto const* unrefl_lv
-        = refl_factory->GetConstituentLV(const_cast<G4LogicalVolume*>(&lv)))
-    {
-        // If this is a reflected volume, add the reflection extension after
-        // the final pointer to match the converted VecGeom name
-        std::string name
-            = temp_writer.GenerateName(unrefl_lv->GetName(), unrefl_lv);
-        name += refl_factory->GetVolumesNameExtension();
-        return name;
-    }
-
-    return temp_writer.GenerateName(lv.GetName(), &lv);
 }
 
 //---------------------------------------------------------------------------//
