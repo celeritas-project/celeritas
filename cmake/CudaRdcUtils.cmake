@@ -158,7 +158,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     CACHE INTERNAL ""
   )
 else()
-	 message(ERROR "Got ${CMAKE_C_COMPILER_ID} and ${CMAKE_SYSTEM_NAME}")
   set(CMAKE_CXX_LINK_LIBRARY_USING_no_as_needed_SUPPORTED FALSE)
 endif()
 
