@@ -1,8 +1,7 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors, for more details see:
+#   https://github.com/celeritas-project/celeritas/blob/develop/COPYRIGHT
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-#[=======================================================================[.rst:
 
 CudaRdcUtils
 ------------
@@ -123,6 +122,10 @@ relocatable device code and most importantly linking against those libraries.
 #]=======================================================================]
 
 include_guard(GLOBAL)
+
+cmake_policy(VERSION 3.24...3.31)
+# 3.19 is needed for set properties in INTERFACE libraries.
+# 3.24 is needed to be able to mark the final library as always `-Wl,-no-as-needed`
 
 #-----------------------------------------------------------------------------#
 
