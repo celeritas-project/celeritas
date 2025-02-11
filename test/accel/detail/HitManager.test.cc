@@ -192,10 +192,10 @@ TEST_F(SimpleCmsTest, add_duplicate)
         static char const* const expected_log_messages[] = {
             "Mapped sensitive detector \"em_calorimeter\" on logical volume "
             "\"em_calorimeter\"@0x0 (ID=2) to VecGeom volume "
-            "\"em_calorimeter@0x0\" (ID=2)",
+            "\"em_calorimeter\" (ID=2)",
             "Mapped sensitive detector \"had_calorimeter\" on logical volume "
             "\"had_calorimeter\"@0x0 (ID=3) to VecGeom volume "
-            "\"had_calorimeter@0x0\" (ID=3)",
+            "\"had_calorimeter\" (ID=3)",
             "Ignored duplicate logical volume \"em_calorimeter\"@0x0 (ID=2)"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[]
