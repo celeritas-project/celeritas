@@ -1022,7 +1022,6 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
     }
 
     unsigned int const expected_material_ids[] = {1, 1, 1, 1, 0};
-
     static char const* expected_names[] = {
         "box@0",
         "box@1",
@@ -1030,7 +1029,6 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
         "box@3",
         "World",
     };
-
     static char const* expected_solids[] = {
         "box",
         "box",

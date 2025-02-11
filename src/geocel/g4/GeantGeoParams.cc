@@ -110,7 +110,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
         auto msg = CELER_LOG(warning);
         msg << "Geant4 geometry was initialized with inconsistent "
                "world volume: given '"
-            << world->GetName() << "'@' " << static_cast<void const*>(world)
+            << world->GetName() << "'@" << static_cast<void const*>(world)
             << "; navigation world is ";
         if (nav_world)
         {

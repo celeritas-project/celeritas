@@ -151,6 +151,9 @@ void NestedTest::build_g4()
     CELER_NOT_CONFIGURED("Geant4");
 #endif
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+    // Suppress consistency warning from GeoParams constructor
+    G4TransportationManager::GetTransportationManager()->SetWorldForTracking(
+        &this->world());
     geo_params_ = std::make_shared<GeantGeoParams>(&this->world());
 #endif
 }
