@@ -57,12 +57,13 @@ SPConstObject make_explicit_background(LogicalVolume const& lv,
     }
     else
     {
-        interior = std::make_shared<AnyObjects>(lv.name + ".children",
+        interior = std::make_shared<AnyObjects>(lv.label.name + ".children",
                                                 std::move(children));
     }
 
     return Transformed::or_object(
-        orangeinp::make_subtraction(std::string{lv.name}, lv.solid, interior),
+        orangeinp::make_subtraction(
+            std::string{lv.label.name}, lv.solid, interior),
         transform);
 }
 
@@ -84,11 +85,11 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 {
     ProtoInput input;
     input.boundary.interior = lv.solid;
-    input.label = lv.name;
+    input.label = lv.label.name;
 
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "* New proto: " << lv.name
+        std::clog << std::string(depth_, ' ') << "* New proto: " << lv.label
                   << " with shape " << to_string(*lv.solid) << std::endl;
     }
 
@@ -112,7 +113,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         // Create explicit "fill" for this logical volume
         orangeinp::UnitProto::MaterialInput background;
         background.interior = make_explicit_background(lv, NoTransformation{});
-        background.label = Label::from_geant(lv.name);
+        background.label = lv.label;
         background.fill = lv.material_id;
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
@@ -125,7 +126,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
                       << std::endl;
         }
         input.background.fill = lv.material_id;
-        input.background.label = Label::from_geant(lv.name);
+        input.background.label = lv.label;
     }
 
     CELER_ENSURE(input);
@@ -150,7 +151,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "- Add pv " << pv.name
+        std::clog << std::string(depth_, ' ') << "- Add pv " << pv.label
                   << " use_count=" << pv.lv.use_count()
                   << ", num_children=" << pv.lv->children.size() << ", at "
                   << StreamableVariant{transform} << " to " << proto->label
@@ -162,7 +163,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         UnitProto::MaterialInput mat;
         mat.interior = std::move(obj);
         mat.fill = lv.material_id;
-        mat.label = Label::from_geant(lv.name);
+        mat.label = lv.label;
         proto->materials.push_back(std::move(mat));
     };
 
