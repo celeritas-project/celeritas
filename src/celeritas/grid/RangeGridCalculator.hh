@@ -28,7 +28,7 @@ namespace celeritas
  * The range of a particle with energy \f$ E_0 \f$ is calculated by integrating
  * the reciprocal of the stopping power over the energy:
  * \f[
-   R(E_0) = \int_0^{E_0} - \frac{\dif x}{\dif E} \dif E.
+   R(E_0) = \int_0^{E_0} - \difd{x}{E} \dif E.
  * \f]
  * Given an energy loss grid for a single particle type and material, this
  * numerically integrates the range.  To keep the range tables as consistent as
