@@ -822,7 +822,7 @@ function(cuda_rdc_target_link_libraries target)
         #     if(ARGV1 MATCHES "^(PRIVATE|PUBLIC|INTERFACE)$")
         # or simply keep the following:
         get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
-        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} ${_finallibs} )
+        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} "$<LINK_LIBRARY:rdc_no_as_needed,${_finallibs}>" )
       endif()
     elseif(${_final_count} GREATER 1)
       # turn into CUDA executable.
