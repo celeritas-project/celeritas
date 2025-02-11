@@ -94,7 +94,7 @@ MaterialParams::from_import(ImportData const& data)
         MaterialParams::ElementInput element_params;
         element_params.atomic_number = AtomicNumber{element.atomic_number};
         element_params.atomic_mass = units::AmuMass(element.atomic_mass);
-        element_params.label = Label::from_geant(element.name);
+        element_params.label = element.name;
 
         for (auto const& key : element.isotopes_fractions)
         {
@@ -129,7 +129,7 @@ MaterialParams::from_import(ImportData const& data)
         material_params.temperature = geo_mat.temperature;
         material_params.number_density = geo_mat.number_density;
         material_params.matter_state = to_matter_state(geo_mat.state);
-        material_params.label = Label::from_geant(geo_mat.name);
+        material_params.label = geo_mat.name;
 
         for (auto const& elem_comp : geo_mat.elements)
         {

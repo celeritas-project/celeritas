@@ -105,7 +105,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
         // Load GDML and save a copy of the pointer
-        world_ = load_geant_geometry(gdml_filename);
+        world_ = load_geant_geometry_native(gdml_filename);
         CELER_ASSERT(world_);
 
         // Construct the geometry
