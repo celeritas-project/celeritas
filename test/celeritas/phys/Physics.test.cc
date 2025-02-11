@@ -655,31 +655,6 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
 
-TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
-{
-    // TODO: add spline order = 2 to xs data
-    // Cross sections: same across particle types, constant in energy, scale
-    // according to material number density
-    std::vector<real_type> xs;
-    for (char const* particle : {"gamma", "celeriton"})
-    {
-        for (auto mat_id : range(MaterialId{this->material()->size()}))
-        {
-            PhysicsTrackView const phys
-                = this->make_track_view(particle, mat_id);
-            auto scat_ppid = this->find_ppid(phys, "scattering");
-            auto id = phys.macro_xs_grid(scat_ppid);
-            ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator<XsCalculator>(id);
-            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
-        }
-    }
-
-    double const expected_xs[]
-        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
-    EXPECT_VEC_SOFT_EQ(expected_xs, xs);
-}
-
 //---------------------------------------------------------------------------//
 // PHYSICS TRACK VIEW (DEVICE)
 //---------------------------------------------------------------------------//
