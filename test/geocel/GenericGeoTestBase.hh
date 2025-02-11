@@ -10,11 +10,10 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/GeoTraits.hh"
-#include "geocel/detail/LengthUnits.hh"
 
+#include "GenericGeoTestInterface.hh"
 #include "LazyGeoManager.hh"
 #include "Test.hh"
-#include "TrackingTestInterface.hh"
 
 class G4VPhysicalVolume;
 
@@ -49,17 +48,21 @@ class GenericGeoTestBase : virtual public Test,
     //!@}
 
   public:
-    //! Get the basename or unique geometry key (defaults to suite name)
-    virtual std::string geometry_basename() const;
+    // Build geometry during setup
+    void SetUp() override;
 
-    //! Build the geometry
-    virtual SPConstGeo build_geometry() = 0;
+    //// Interface ////
+
+    // Build the geometry (default to from_basename)
+    virtual SPConstGeo build_geometry();
+
+    // Get the basename or unique geometry key (defaults to suite name)
+    virtual std::string geometry_basename() const;
 
     //! Maximum number of local track slots
     virtual size_type num_track_slots() const { return 1; }
 
-    //! Unit length for "track" testing and other results
-    virtual Constant unit_length() const { return lengthunits::centimeter; }
+    //// Geometry-specific functions ////
 
     //! Construct from celeritas test data and "basename" value
     SPConstGeo build_geometry_from_basename();
@@ -82,13 +85,13 @@ class GenericGeoTestBase : virtual public Test,
 
     //// GenericGeoTestInterface ////
 
+    // Access the geometry interface, building if needed
+    SPConstGeoInterface geometry_interface() const final;
     // Find linear segments until outside
     TrackingResult track(Real3 const& pos_cm, Real3 const& dir) final;
     // Find linear segments until outside (maximum count
     TrackingResult
     track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
-    // Access the geometry interface, building if needed
-    SPConstGeoInterface geometry_interface() final;
 
   private:
     template<Ownership W, MemSpace M>

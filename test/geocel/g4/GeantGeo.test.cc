@@ -23,6 +23,7 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
+#include "../MultiLevelGeoTest.hh"
 
 namespace celeritas
 {
@@ -53,45 +54,6 @@ class GeantGeoTest : public GeantGeoTestBase
     }
 
     virtual SpanStringView expected_log_levels() const { return {}; }
-
-    //! Get the volume name, adjusting for offsets from loading multiple geo
-    std::string_view get_volume_name(VolumeId i) const
-    {
-        CELER_EXPECT(i);
-        auto const& volumes = this->geometry()->volumes();
-        auto index = this->geometry()->lv_offset() + i.get();
-        if (index >= volumes.size())
-        {
-            return "<out of range>";
-        }
-        return volumes.at(VolumeId{index}).name;
-    }
-
-    //! Get all logical volume names
-    auto get_volume_names() const
-    {
-        std::vector<std::string> result;
-
-        auto const& volumes = this->geometry()->volumes();
-        for (auto vidx : range(this->geometry()->lv_offset(), volumes.size()))
-        {
-            result.push_back(volumes.at(VolumeId{vidx}).name);
-        }
-        return result;
-    }
-
-    //! Get all physical volume names
-    auto get_volume_instance_names() const
-    {
-        std::vector<std::string> result;
-
-        auto const& vol_inst = this->geometry()->volume_instances();
-        for (auto vidx : range(this->geometry()->pv_offset(), vol_inst.size()))
-        {
-            result.push_back(vol_inst.at(VolumeInstanceId{vidx}).name);
-        }
-        return result;
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -1008,119 +970,116 @@ TEST_F(ZnenvTest, trace)
 //---------------------------------------------------------------------------//
 class MultiLevelTest : public GeantGeoTest
 {
-    std::string geometry_basename() const override { return "multi-level"; }
+  public:
+    using TestImpl = MultiLevelGeoTest;
+
+    std::string geometry_basename() const override
+    {
+        return std::string{TestImpl::geometry_basename()};
+    }
 };
 
 TEST_F(MultiLevelTest, accessors)
 {
-    auto const& geo = *this->geometry();
-    EXPECT_EQ(3, geo.max_depth());
-
-    static char const* const expected_vol_names[] = {"sph", "box", "world"};
-    EXPECT_VEC_EQ(expected_vol_names, this->get_volume_names());
-
-    static char const* const expected_vol_inst_names[] = {
-        "boxsph1",
-        "boxsph2",
-        "topsph1",
-        "topbox1",
-        "topbox2",
-        "topbox3",
-        "topbox4",
-        "world_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_names, this->get_volume_instance_names());
+    TestImpl(this).test_accessors();
 }
 
 TEST_F(MultiLevelTest, trace)
 {
-    {
-        auto result = this->track({-19.9, 7.5, 0}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {
-            "world",
-            "box",
-            "sph",
-            "box",
-            "world",
-            "box",
-            "sph",
-            "box",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[] = {
-            "world_PV",
-            "topbox2",
-            "boxsph2",
-            "topbox2",
-            "world_PV",
-            "topbox1",
-            "boxsph2",
-            "topbox1",
-            "world_PV",
-        };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {
-            2.4,
-            3,
-            4,
-            8,
-            5,
-            3,
-            4,
-            8,
-            6.5,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {
-            1.2,
-            1.5,
-            2,
-            3.0990195135928,
-            2.5,
-            1.5,
-            2,
-            3.0990195135928,
-            3.25,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
+    TestImpl(this).test_trace();
 }
 
 TEST_F(MultiLevelTest, DISABLED_level_strings)
 {
-    using R2 = Array<real_type, 2>;
+    using R2 = Array<double, 2>;
 
     auto const& vol_inst = this->geometry()->volume_instances();
-    std::vector<VolumeInstanceId> ids;
-    std::vector<std::string> names;
-    std::ostringstream os;
+    auto const& vol = this->geometry()->volumes();
 
-    for (R2 xy : {R2{-5, 0},
-                  R2{0, 0},
-                  R2{-5, 0},
-                  R2{7.5, 7.5},
-                  R2{7.5, 12.5},
-                  R2{12.5, 12.5},
-                  R2{-12.5, 7.5},
-                  R2{-7.5, 12.5},
-                  R2{-7.5, -7.5},
-                  R2{-12.5, -12.5}})
+    // Include outer world and center sphere
+    std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
+
+    // Loop over outer and inner x and y signs
+    for (auto signs : range(1 << 4))
+    {
+        auto get_sign = [signs](int i) {
+            CELER_ASSERT(i < 4);
+            return signs & (1 << i) ? -1 : 1;
+        };
+        R2 point{0, 0};
+        point[0] += 2.75 * get_sign(0);
+        point[1] += 2.75 * get_sign(1);
+        point[0] += 10.0 * get_sign(2);
+        point[1] += 10.0 * get_sign(3);
+        points.push_back(point);
+    }
+
+    std::vector<std::string> all_vol;
+    std::vector<std::string> all_vol_inst;
+    for (R2 xy : points)
     {
         auto geo = this->make_geo_track_view({xy[0], xy[1], 0.0}, {1, 0, 0});
 
         auto level = geo.level();
         CELER_ASSERT(level && level >= LevelId{0});
-        ids.resize(level.get() + 1);
-        geo.volume_instance_id(make_span(ids));
-        names.resize(ids.size());
-        for (auto i : range(ids.size()))
+        std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+        geo.volume_instance_id(make_span(inst_ids));
+        std::vector<std::string> names(inst_ids.size());
+        for (auto i : range(inst_ids.size()))
         {
-            names[i] = vol_inst.at(ids[i]).name;
+            names[i] = vol_inst.at(inst_ids[i]).name;
         }
-        PRINT_EXPECTED(names);
+        all_vol_inst.push_back(to_string(repr(names)));
+
+        all_vol.push_back(vol.at(geo.volume_id()).name);
     }
+
+    static std::string const expected_all_vol_inst[] = {
+        "{\"world_PV\"}",
+        R"({"world_PV", "topsph1"})",
+        R"({"world_PV", "topbox1", "boxsph1"})",
+        R"({"world_PV", "topbox1"})",
+        R"({"world_PV", "topbox1", "boxtri", "trisph"})",
+        R"({"world_PV", "topbox1", "boxsph2"})",
+        R"({"world_PV", "topbox2", "boxsph1"})",
+        R"({"world_PV", "topbox2"})",
+        R"({"world_PV", "topbox2", "boxtri", "trisph"})",
+        R"({"world_PV", "topbox2", "boxsph2"})",
+        R"({"world_PV", "topbox4", "boxtri", "trisph"})",
+        R"({"world_PV", "topbox4", "boxsph2"})",
+        R"({"world_PV", "topbox4", "boxsph1"})",
+        R"({"world_PV", "topbox4"})",
+        R"({"world_PV", "topbox3"})",
+        R"({"world_PV", "topbox3", "boxsph2"})",
+        R"({"world_PV", "topbox3", "boxsph1"})",
+        R"({"world_PV", "topbox3", "boxtri", "trisph"})",
+    };
+    static std::string const expected_all_vol[] = {
+        "world",
+        "sph",
+        "sph",
+        "box",
+        "minisph",
+        "sph",
+        "sph",
+        "box",
+        "minisph",
+        "sph",
+        "minisph_refl",
+        "sph_refl",
+        "sph_refl",
+        "box_refl",
+        "box",
+        "sph",
+        "sph",
+        "minisph",
+    };
+
+    // PRINT_EXPECTED(all_vol_inst);
+    EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
+
+    // PRINT_EXPECTED(all_vol);
+    EXPECT_VEC_EQ(expected_all_vol, all_vol);
 }
 
 //---------------------------------------------------------------------------//

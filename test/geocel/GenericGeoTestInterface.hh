@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/TrackingTestInterface.hh
+//! \file geocel/GenericGeoTestInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,6 +12,7 @@
 
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas
 {
@@ -51,7 +52,25 @@ class GenericGeoTestInterface
     //!@}
 
     //! Access the geometry interface, building if needed
-    virtual SPConstGeoInterface geometry_interface() = 0;
+    virtual SPConstGeoInterface geometry_interface() const = 0;
+
+    //! Ignore the first N VolumeId due to global int shenanigans
+    virtual VolumeId::size_type volume_offset() const { return 0; }
+
+    //! Ignore the first N VolumeInstanceId due to global int shenanigans
+    virtual VolumeId::size_type volume_instance_offset() const { return 0; }
+
+    //! Unit length for "track" testing and other results
+    virtual Constant unit_length() const { return lengthunits::centimeter; }
+
+    // Get all logical volume names
+    std::vector<std::string> get_volume_names() const;
+
+    // Get all physical volume names
+    std::vector<std::string> get_volume_instance_names() const;
+
+    // Get the volume name, adjusting for offsets from loading multiple geo
+    std::string_view get_volume_name(VolumeId i) const;
 
   protected:
     // Virtual interface only

@@ -65,6 +65,9 @@ class OrangeGeoTestBase : public OrangeTestBase
     // Convert a string to a sense vector
     static std::vector<Sense> string_to_senses(std::string const& s);
 
+    // Override base class to *not* try geometry during SetUp
+    void SetUp() override;
+
     // Load `test/geocel/data/{filename}` GDML input using Geant4
     void build_gdml_geometry(std::string const& filename);
 

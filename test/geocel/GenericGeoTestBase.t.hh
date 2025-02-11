@@ -24,7 +24,29 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-//
+/*!
+ * Build geometry during setup.
+ */
+template<class HP>
+void GenericGeoTestBase<HP>::SetUp()
+{
+    ASSERT_TRUE(this->geometry());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * ! Build the geometry (default to from_basename).
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::build_geometry() -> SPConstGeo
+{
+    return this->build_geometry_from_basename();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the basename or unique geometry key (defaults to suite name).
+ */
 template<class HP>
 auto GenericGeoTestBase<HP>::geometry_basename() const -> std::string
 {
@@ -290,7 +312,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
  * Access the geometry interface, building if needed.
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::geometry_interface() -> SPConstGeoInterface
+auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoInterface
 {
     return this->geometry();
 }

@@ -17,7 +17,21 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
+class GeantGeoTestBase : public GenericGeoTestBase<GeantGeoParams>
+{
+  public:
+    //! Ignore the first N VolumeId due to global int shenanigans
+    VolumeId::size_type volume_offset() const final
+    {
+        return this->geometry()->lv_offset();
+    }
+
+    //! Ignore the first N VolumeInstanceId due to global int shenanigans
+    VolumeId::size_type volume_instance_offset() const final
+    {
+        return this->geometry()->pv_offset();
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -292,7 +292,7 @@ find_geant_volumes(std::unordered_set<std::string> names)
         {
             CELER_LOG(warning)
                 << "Multiple Geant4 volumes are mapped to name '"
-                << lv->GetName();
+                << lv->GetName() << "'";
         }
     }
 
