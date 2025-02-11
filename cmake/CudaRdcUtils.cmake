@@ -153,6 +153,18 @@ define_property(TARGET PROPERTY CUDA_RDC_OBJECT_LIBRARY
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # This is necessary on platform that default to calling ld with --as-needed
   # (we are looking at you Ubuntu) but also in case user as explicitly using it.
+
+  # This is used for the final libraries because of the following:
+  #   * userlib_with_rdc.so has undefined symbols found in userlib_with_rdc_final (the result of nvlink)
+  #   * userlib_with_rdc_final.so requires the userlib_with_rdc’s object files as input to nvlink
+  #   * userlib_with_rdc_final.so also requires userlib_with_rdc.so for user's code.
+  #   * user executable requires userlib_with_rdc.so due to direct dependencies.
+  # So the link line order to produce the user executable as to be:
+  #   .... userlib_with_rdc_final.so userlib_with_rdc.so
+  # But userlib_with_rdc_final.so does not contains any symbol that is explicit used in the
+  # user executable.  Consequently, if the linker is in the `--as-needed` mode it will drop
+  # userlib_with_rdc_final.so.  However, it will then not be able to be used to resolve
+  # the missing symbol needed by userlib_with_rdc.so
   set(CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed_SUPPORTED TRUE CACHE INTERNAL "")
   set(CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed
     "LINKER:--push-state,--no-as-needed"
