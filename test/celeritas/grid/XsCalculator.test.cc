@@ -8,10 +8,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Repr.hh"
+#include "celeritas/grid/SplineDerivCalculator.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
@@ -187,6 +189,59 @@ TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
     data.prime_index = 3;  // disallowed
 
     EXPECT_THROW(XsCalculator(data, this->values()), DebugError);
+}
+
+TEST_F(XsCalculatorTest, spline)
+{
+    // x = [0.01, 0.1, 1, 10, 100], y = [100, 10, 1, 10, 100}]
+    auto reference_xs
+        = [](real_type energy) { return energy >= 1 ? energy : 1 / energy; };
+    this->build_spline({0.01, 100}, 5, reference_xs, BC::not_a_knot);
+
+    XsCalculator calc_xs(this->data(), this->values());
+    EXPECT_SOFT_EQ(10, calc_xs(Energy(0.1)));
+    EXPECT_SOFT_EQ(-62.572615039281715, calc_xs(Energy(0.2)));
+    EXPECT_SOFT_EQ(1, calc_xs(Energy(1)));
+    EXPECT_SOFT_EQ(847.3120089786757, calc_xs(Energy(5)));
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_SOFT_EQ(60.498378344017667, calc_xs(Energy(99.99)));
+    }
+    else
+    {
+        EXPECT_SOFT_EQ(60.439491271972656, calc_xs(Energy(99.99)));
+    }
+    EXPECT_SOFT_EQ(100, calc_xs(Energy(100)));
+}
+
+TEST_F(XsCalculatorTest, spline_deriv)
+{
+    this->build({0.01, 100}, 5, [](real_type energy) {
+        return energy >= 1 ? energy : 1 / energy;
+    });
+
+    static double const expected_deriv[] = {
+        105520 / 33.0, 31880 / 11.0, -3160 / 33.0, -790 / 11.0, 5530 / 33.0};
+    {
+        auto deriv = SplineDerivCalculator(BC::not_a_knot)(this->data(),
+                                                           this->values());
+        EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
+    }
+    {
+        std::vector<real_type> x{0.01, 0.1, 1, 10, 100};
+        std::vector<real_type> y{100, 10, 1, 10, 100};
+
+        UniformGrid loge_grid(this->data().log_energy);
+        XsCalculator calc_xs(this->data(), this->values());
+        for (auto i : range(loge_grid.size()))
+        {
+            EXPECT_SOFT_EQ(x[i], std::exp(loge_grid[i]));
+            EXPECT_SOFT_EQ(y[i], calc_xs[i]);
+        }
+        auto deriv = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
+                                                           make_span(y));
+        EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
+    }
 }
 
 //---------------------------------------------------------------------------//

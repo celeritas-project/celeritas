@@ -101,8 +101,8 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
     xs.reserve(par_ids_.size() * num_materials);
 
     // TODO: simplify when refactoring ValueGridInserter, etc
-    ValueGridInserter::XsGridCollection xgc;
-    ValueGridInserter vgi{reals, &xgc};
+    ValueGridInserter::GridValues grids;
+    ValueGridInserter vgi{reals, &grids};
 
     for (size_type mat_idx : range(num_materials))
     {
@@ -122,7 +122,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
                                                        make_span(pvec.y));
             auto grid_id = vgb->build(vgi);
             CELER_ASSERT(grid_id.get() == xs.size());
-            xs.push_back(xgc[grid_id]);
+            xs.push_back(grids[grid_id]);
         }
     }
 }

@@ -156,6 +156,7 @@ list(APPEND SOURCES
   io/detail/EnumStringMapperImpl.cc
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
+  math/TridiagonalSolver.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc

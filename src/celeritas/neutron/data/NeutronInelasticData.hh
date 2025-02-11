@@ -13,7 +13,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridData.hh"
 
 namespace celeritas
 {
@@ -144,10 +144,10 @@ struct NeutronInelasticData
     NeutronInelasticScalars scalars;
 
     // Microscopic (element) cross section data (G4PARTICLEXS/neutron/inelZ)
-    ElementItems<GenericGridRecord> micro_xs;
+    ElementItems<NonuniformGridRecord> micro_xs;
 
     // Tabulated nucleon-nucleon cross section data
-    ChannelItems<GenericGridRecord> nucleon_xs;
+    ChannelItems<NonuniformGridRecord> nucleon_xs;
 
     // Parameters of necleon-nucleon cross sections below 10 MeV
     ChannelItems<StepanovParameters> xs_params;

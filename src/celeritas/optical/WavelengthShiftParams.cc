@@ -11,8 +11,8 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/CdfUtils.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
-#include "celeritas/grid/GenericGridInserter.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
 
 namespace celeritas
@@ -57,7 +57,7 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
 
     HostVal<WavelengthShiftData> data;
     CollectionBuilder wls_record{&data.wls_record};
-    GenericGridInserter insert_energy_cdf(&data.reals, &data.energy_cdf);
+    NonuniformGridInserter insert_energy_cdf(&data.reals, &data.energy_cdf);
     for (auto const& wls : input.data)
     {
         if (!wls)

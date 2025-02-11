@@ -12,7 +12,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
 
 namespace celeritas
@@ -69,10 +69,10 @@ auto NeutronInelasticMicroXsCalculator::operator()(ElementId el_id) const -> Bar
     CELER_EXPECT(el_id < shared_.micro_xs.size());
 
     // Get element cross section data
-    GenericGridRecord grid = shared_.micro_xs[el_id];
+    NonuniformGridRecord grid = shared_.micro_xs[el_id];
 
     // Calculate micro cross section at the given energy
-    GenericCalculator calc_xs(grid, shared_.reals);
+    NonuniformGridCalculator calc_xs(grid, shared_.reals);
     real_type result = calc_xs(inc_energy_);
 
     return BarnXs{result};

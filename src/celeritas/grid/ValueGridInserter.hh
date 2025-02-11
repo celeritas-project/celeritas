@@ -41,29 +41,35 @@ class ValueGridInserter
   public:
     //!@{
     //! \name Type aliases
-    using RealCollection
-        = Collection<real_type, Ownership::value, MemSpace::host>;
-    using XsGridCollection
-        = Collection<XsGridData, Ownership::value, MemSpace::host>;
+    using Values = Collection<real_type, Ownership::value, MemSpace::host>;
+    using GridValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using SpanConstDbl = Span<double const>;
+    using SpanConstFlt = Span<float const>;
     using XsIndex = ItemId<XsGridData>;
     //!@}
 
   public:
     // Construct with a reference to mutable host data
-    ValueGridInserter(RealCollection* real_data, XsGridCollection* xs_grid);
+    ValueGridInserter(Values* reals, GridValues* grids);
 
     // Add a grid of xs-like data
     XsIndex operator()(UniformGridData const& log_grid,
                        size_type prime_index,
                        SpanConstDbl values);
+    XsIndex operator()(UniformGridData const& log_grid,
+                       size_type prime_index,
+                       SpanConstFlt values);
 
     // Add a grid of uniform log-grid data
     XsIndex operator()(UniformGridData const& log_grid, SpanConstDbl values);
+    XsIndex operator()(UniformGridData const& log_grid, SpanConstFlt values);
 
   private:
     CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> values_;
     CollectionBuilder<XsGridData, MemSpace::host, ItemId<XsGridData>> xs_grids_;
+
+    template<class T>
+    XsIndex insert_xs(UniformGridData const&, size_type, Span<T const>);
 };
 
 //---------------------------------------------------------------------------//

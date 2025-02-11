@@ -213,40 +213,40 @@ TEST_F(MockAlongStepTest, basic)
     {
         inp.energy = MevEnergy{1};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.29312, result.eloss);
-        EXPECT_SOFT_EQ(0.48853333333333, result.displacement);
+        EXPECT_SOFT_EQ(0.2933228771228768, result.eloss);
+        EXPECT_SOFT_EQ(0.48887146187146258, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_EQ(1.881667426791e-11, result.time);
-        EXPECT_SOFT_EQ(0.48853333333333, result.step);
+        EXPECT_SOFT_EQ(1.8829697851212446e-11, result.time);
+        EXPECT_SOFT_EQ(0.48887146187146258, result.step);
         EXPECT_EQ("eloss-range", result.action);
     }
     {
         inp.energy = MevEnergy{1e-6};
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(1e-06, result.eloss);
-        EXPECT_SOFT_EQ(5.2704627669473e-05, result.displacement);
+        EXPECT_SOFT_EQ(0.00010540925533894604, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_NEAR(1.2431209185653e-12, result.time, 1e-11);
-        EXPECT_SOFT_EQ(5.2704627669473e-05, result.step);
+        EXPECT_SOFT_NEAR(2.4862418371306933e-12, result.time, 1e-11);
+        EXPECT_SOFT_EQ(0.00010540925533894604, result.step);
         EXPECT_EQ("eloss-range", result.action);
     }
     {
         inp.energy = MevEnergy{1e-12};
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(1e-12, result.eloss);
-        EXPECT_SOFT_EQ(5.2704627669473e-08, result.displacement);
+        EXPECT_SOFT_EQ(1.0540925533894604e-07, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_EQ(1.2430647328325e-12, result.time);
-        EXPECT_SOFT_EQ(5.2704627669473e-08, result.step);
+        EXPECT_SOFT_EQ(2.4861294656649357e-12, result.time);
+        EXPECT_SOFT_EQ(1.0540925533894604e-07, result.step);
         EXPECT_EQ("eloss-range", result.action);
     }
     {
         inp.energy = MevEnergy{1e-18};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(5.2704627669473e-11, result.displacement);
+        EXPECT_SOFT_EQ(1.0540925533894607e-10, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(0, result.time);
-        EXPECT_SOFT_EQ(5.2704627669473e-11, result.step);
+        EXPECT_SOFT_EQ(1.0540925533894607e-10, result.step);
         EXPECT_EQ("eloss-range", result.action);
     }
 }
@@ -259,12 +259,12 @@ TEST_F(MockAlongStepFieldTest, TEST_IF_CELERITAS_DOUBLE(basic))
     {
         inp.energy = MevEnergy{0.1};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.0872, result.eloss);
-        EXPECT_SOFT_EQ(0.072418792650354114, result.displacement);
-        EXPECT_SOFT_EQ(-0.79121191105706501, result.angle);
-        EXPECT_SOFT_EQ(1.1636639210937e-11, result.time);
-        EXPECT_SOFT_EQ(0.14533333333333, result.step);
-        EXPECT_SOFT_EQ(0.00013079999999999, result.mfp);
+        EXPECT_SOFT_EQ(0.087685148514851444, result.eloss);
+        EXPECT_SOFT_EQ(0.072154637489842119, result.displacement);
+        EXPECT_SOFT_EQ(-0.77818527618217903, result.angle);
+        EXPECT_SOFT_EQ(1.1701381163128199e-11, result.time);
+        EXPECT_SOFT_EQ(0.14614191419141928, result.step);
+        EXPECT_SOFT_EQ(0.00013152772277225111, result.mfp);
         EXPECT_SOFT_EQ(1, result.alive);
         EXPECT_EQ("eloss-range", result.action);
     }
@@ -635,7 +635,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
                << " due to post-step action 2 leading to distance "
                << repr(from_cm(expected_distance))
                << " failed to change position";
-            if (!scoped_log.empty())
+            if (!scoped_log.empty()
+                && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
             {
                 EXPECT_EQ(ss.str(), scoped_log.messages().front());
             }

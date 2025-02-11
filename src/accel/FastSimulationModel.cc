@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/FastSimulationOffload.cc
+//! \file accel/FastSimulationModel.cc
 //---------------------------------------------------------------------------//
-#include "FastSimulationOffload.hh"
+#include "FastSimulationModel.hh"
 
 #include "corecel/Assert.hh"
 
@@ -18,9 +18,9 @@ namespace celeritas
 /*!
  * Construct a model to be used in all volumes of the problem.
  */
-FastSimulationOffload::FastSimulationOffload(G4String const& name,
-                                             SharedParams const* params,
-                                             LocalTransporter* local)
+FastSimulationModel::FastSimulationModel(G4String const& name,
+                                         SharedParams const* params,
+                                         LocalTransporter* local)
     : G4VFastSimulationModel(name), params_(params), transport_(local)
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
@@ -38,10 +38,10 @@ FastSimulationOffload::FastSimulationOffload(G4String const& name,
  * The envelope cannot be \c nullptr as this will cause a segmentation fault
  * in the \c G4VFastSimulation base class constructor.
  */
-FastSimulationOffload::FastSimulationOffload(G4String const& name,
-                                             G4Envelope* region,
-                                             SharedParams const* params,
-                                             LocalTransporter* local)
+FastSimulationModel::FastSimulationModel(G4String const& name,
+                                         G4Envelope* region,
+                                         SharedParams const* params,
+                                         LocalTransporter* local)
     : G4VFastSimulationModel(name, region), params_(params), transport_(local)
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
@@ -61,7 +61,7 @@ FastSimulationOffload::FastSimulationOffload(G4String const& name,
  * Purely checks if the particle is one that Celeritas has been setup to
  * handle.
  */
-G4bool FastSimulationOffload::IsApplicable(G4ParticleDefinition const& particle)
+G4bool FastSimulationModel::IsApplicable(G4ParticleDefinition const& particle)
 {
     CELER_EXPECT(*params_);
 
@@ -79,7 +79,7 @@ G4bool FastSimulationOffload::IsApplicable(G4ParticleDefinition const& particle)
  * Always returns true because we only make the decision to offload to
  * Celeritas based on geometric region and particle type.
  */
-G4bool FastSimulationOffload::ModelTrigger(G4FastTrack const& /*track*/)
+G4bool FastSimulationModel::ModelTrigger(G4FastTrack const& /*track*/)
 {
     return true;
 }
@@ -88,7 +88,7 @@ G4bool FastSimulationOffload::ModelTrigger(G4FastTrack const& /*track*/)
 /*!
  * Offload the incoming track to Celeritas.
  */
-void FastSimulationOffload::DoIt(G4FastTrack const& track, G4FastStep& step)
+void FastSimulationModel::DoIt(G4FastTrack const& track, G4FastStep& step)
 {
     CELER_EXPECT(track.GetPrimaryTrack());
     CELER_EXPECT(*transport_);
@@ -105,7 +105,6 @@ void FastSimulationOffload::DoIt(G4FastTrack const& track, G4FastStep& step)
     step.ProposeTotalEnergyDeposited(0.0);
 }
 
-#if G4VERSION_NUMBER >= 1110
 //---------------------------------------------------------------------------//
 /*!
  * Complete processing of any buffered tracks.
@@ -115,11 +114,10 @@ void FastSimulationOffload::DoIt(G4FastTrack const& track, G4FastStep& step)
  * That is done to allow for models that may add "onload" particles back to
  * Geant4.
  */
-void FastSimulationOffload::Flush()
+void FastSimulationModel::Flush()
 {
     ExceptionConverter call_g4exception{"celer0002", params_};
     CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 }
-#endif
 
 }  // namespace celeritas
