@@ -166,6 +166,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # user executable.  Consequently, if the linker is in the `--as-needed` mode it will drop
   # userlib_with_rdc_final.so.  However, it will then not be able to be used to resolve
   # the missing symbol needed by userlib_with_rdc.so
+
+  # This implementation requires CMake version 3.24 or higher.  For more details see:
+  #   https://cmake.org/cmake/help/latest/variable/CMAKE_LINK_LIBRARY_USING_FEATURE.html
   set(CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed_SUPPORTED TRUE CACHE INTERNAL "")
   set(CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed
     "LINKER:--push-state,--no-as-needed"
