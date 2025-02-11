@@ -35,7 +35,7 @@
 
 #include "Convert.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
-#include "VisitGeantVolumes.hh"
+#include "VisitVolumes.hh"
 
 namespace celeritas
 {
@@ -45,7 +45,7 @@ namespace
 LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
     LevelId::size_type result{0};
-    visit_geant_volume_instances(
+    visit_volume_instances(
         [&result](G4VPhysicalVolume const&, int level) {
             result = max(level, static_cast<int>(result));
             return true;

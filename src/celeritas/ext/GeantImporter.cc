@@ -71,7 +71,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/g4/VisitGeantVolumes.hh"
+#include "geocel/g4/VisitVolumes.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"

@@ -117,7 +117,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   # These all require the Geant4 geometry wrappers which only are built when
   # double-precision is enabled
   celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs})
-  celeritas_add_test(g4/VisitGeantVolumes.test.cc LINK_LIBRARIES ${_g4_geo_libs})
+  celeritas_add_test(g4/VisitVolumes.test.cc LINK_LIBRARIES ${_g4_geo_libs})
   celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
 endif()
 

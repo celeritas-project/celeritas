@@ -43,7 +43,7 @@
 
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
-#include "g4/VisitGeantVolumes.hh"
+#include "g4/VisitVolumes.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ

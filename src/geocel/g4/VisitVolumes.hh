@@ -2,21 +2,40 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/VisitGeantVolumes.hh
+//! \file geocel/g4/VisitVolumes.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_set>
-#include <vector>
 #include <G4LogicalVolume.hh>
 #include <G4VPhysicalVolume.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/VolumeVisitor.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<>
+struct VolumeVisitorTraits<G4VPhysicalVolume>
+{
+    using PV = G4VPhysicalVolume;
+    using LV = G4LogicalVolume;
+
+    static LV const& get_lv(PV const& pv) { return *pv.GetLogicalVolume(); }
+
+    static void get_children(PV const& parent, std::vector<PV const*>& dst)
+    {
+        LV const& lv = get_lv(parent);
+        auto num_children = lv.GetNoDaughters();
+        for (auto i : range(num_children))
+        {
+            dst.push_back(lv.GetDaughter(i));
+        }
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Perform a depth-first traversal of physical volumes.
@@ -31,42 +50,10 @@ namespace celeritas
  * them as visited using a set.
  */
 template<class F>
-void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
+void visit_volume_instances(F&& visit, G4VPhysicalVolume const& world)
 {
-    ScopedProfiling profile_this{"visit-geant4-volumes"};
-    struct QueuedVolume
-    {
-        G4VPhysicalVolume const* pv{nullptr};
-        int depth{0};
-    };
-
-    std::vector<QueuedVolume> queue;
-    auto visit_impl = [&queue, &visit](G4VPhysicalVolume const& pv, int depth) {
-        if (visit(pv, depth))
-        {
-            // Append children
-            auto const* lv = pv.GetLogicalVolume();
-            CELER_ASSERT(lv);
-            auto num_children = lv->GetNoDaughters();
-            for (auto i : range(num_children))
-            {
-                queue.push_back(
-                    {lv->GetDaughter(num_children - 1 - i), depth + 1});
-            }
-        }
-    };
-
-    // Visit the top-level physical volume
-    visit_impl(world, 0);
-
-    while (!queue.empty())
-    {
-        QueuedVolume qv = queue.back();
-        queue.pop_back();
-
-        // Visit popped daughter
-        visit_impl(*qv.pv, qv.depth);
-    }
+    ScopedProfiling profile_this{"visit-geant-volume-instance"};
+    VolumeVisitor{world}(std::forward<F>(visit));
 }
 
 //---------------------------------------------------------------------------//
@@ -78,22 +65,11 @@ void visit_geant_volume_instances(F&& visit, G4VPhysicalVolume const& world)
  * \code void(*)(G4LogicalVolume const&) \endcode .
  */
 template<class F>
-void visit_geant_volumes(F&& vis, G4VPhysicalVolume const& parent_vol)
+void visit_volumes(F&& vis, G4VPhysicalVolume const& parent_vol)
 {
-    std::unordered_set<G4LogicalVolume const*> visited;
-    auto visit_impl
-        = [&vis, &visited](G4VPhysicalVolume const& pv, int) -> bool {
-        auto const* lv = pv.GetLogicalVolume();
-        if (!visited.insert(lv).second)
-        {
-            // Already visited
-            return false;
-        }
-        vis(*lv);
-        return true;
-    };
+    ScopedProfiling profile_this{"visit-geant-volume"};
 
-    visit_geant_volume_instances(visit_impl, parent_vol);
+    visit_logical_volumes(std::forward<F>(vis), parent_vol);
 }
 
 //---------------------------------------------------------------------------//
