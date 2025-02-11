@@ -86,6 +86,7 @@ jobs:
           curl -LfsS https://github.com/spack/spack/pull/48332.diff | patch -p1
           curl -LfsS https://github.com/spack/spack/pull/48347.diff | patch -p1
           curl -LfsS https://github.com/spack/spack/pull/48844.diff | patch -p1
+          curl -LfsS https://github.com/spack/spack/pull/49003.diff | patch -p1
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
@@ -101,11 +102,7 @@ jobs:
           fi
           if [ "${{matrix.geant}}" != "" ]; then
             spack -e . add geant4@${{matrix.geant}}
-            # FIXME: g4vg FindGeant4 is broken for 10.5
-            if ${{(matrix.geometry == 'vecgeom' && matrix.geant != '10.5')
-                  && 'true' || 'false'}}; then
-              spack -e . add g4vg
-            fi
+            spack -e . add g4vg@1.1:
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
