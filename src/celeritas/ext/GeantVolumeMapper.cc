@@ -29,8 +29,6 @@ GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
 //---------------------------------------------------------------------------//
 /*!
  * Convert from Geant4 world *to* geometry interface ID.
- *
- * During construction, this generates a temporary map of
  */
 GeantVolumeMapper::GeantVolumeMapper(G4VPhysicalVolume const& world,
                                      GeoParamsInterface const& geo)
@@ -55,6 +53,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
 
     if (CELER_UNLIKELY(labels_.empty()))
     {
+        // Lazily construct labels if lookup via pointer fails
         labels_ = make_logical_vol_labels(*world_);
     }
 

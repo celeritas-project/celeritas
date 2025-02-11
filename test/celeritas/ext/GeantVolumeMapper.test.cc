@@ -254,18 +254,20 @@ TEST_F(NestedTest, unique)
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
-        store_log_.print_expected();
-        // EXPECT_VEC_EQ(expected_messages, store_log_.messages());
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        store_log_.print_expected();
-        // EXPECT_VEC_EQ(expected_messages, store_log_.messages());
+        static char const* const expected_log_messages[] = {
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'world'; found 'world@global' by omitting the extension)",
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'outer'; found 'outer@global' by omitting the extension)",
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'middle'; found 'middle@global' by omitting the extension)",
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'inner'; found 'inner@global' by omitting the extension)",
+        };
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[]
+            = {"warning", "warning", "warning", "warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
     else
     {
-        store_log_.print_expected();
-        EXPECT_EQ(0, store_log_.messages().size());
+        EXPECT_EQ(0, store_log_.messages().size()) << store_log_;
     }
 }
 
