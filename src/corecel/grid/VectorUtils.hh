@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
