@@ -337,7 +337,7 @@ if(CELERITAS_USE_HepMC3)
   set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
-celeritas_find_or_external_package(nlohmann_json 3.7.0)
+celeritas_find_or_builtin_package(nlohmann_json 3.7.0)
 
 if(CELERITAS_USE_MPI)
   find_package(MPI REQUIRED)
@@ -362,7 +362,7 @@ if(CELERITAS_USE_Perfetto)
       OFF
     )
   else()
-    celeritas_find_or_external_package(Perfetto)
+    celeritas_find_or_builtin_package(Perfetto)
   endif()
 endif()
 
@@ -449,7 +449,7 @@ if(CELERITAS_USE_VecGeom)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
   if(CELERITAS_USE_Geant4)
-    celeritas_find_or_external_package(G4VG)
+    celeritas_find_or_builtin_package(G4VG)
   endif()
 endif()
 
@@ -485,16 +485,16 @@ if(CELERITAS_BUILD_DOCS)
 endif()
 
 if(CELERITAS_BUILD_TESTS)
-  celeritas_find_or_external_package(GTest 1.10)
+  celeritas_find_or_builtin_package(GTest 1.10)
 endif()
 
 #----------------------------------------------------------------------------#
-# EXTERNALS
+# BUILTINS
 #----------------------------------------------------------------------------#
 
 include(CudaRdcUtils)
 
-if(CELERITAS_EXTERNAL)
+if(CELERITAS_BUILTIN)
   include(FetchContent)
   add_subdirectory(external)
 endif()
