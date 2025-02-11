@@ -147,6 +147,21 @@ define_property(TARGET PROPERTY CUDA_RDC_OBJECT_LIBRARY
   FULL_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # This is necessary on platform that default to calling ld with --as-needed
+  # (we are looking at you Ubuntu) but also in case user as explicitly using it.
+  set(CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed_SUPPORTED TRUE CACHE INTERNAL "")
+  set(CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed
+    "LINKER:--push-state,--no-as-needed"
+    "<LINK_ITEM>"
+    "LINKER:--pop-state"
+    CACHE INTERNAL ""
+  )
+else()
+	 message(ERROR "Got ${CMAKE_C_COMPILER_ID} and ${CMAKE_SYSTEM_NAME}")
+  set(CMAKE_CXX_LINK_LIBRARY_USING_no_as_needed_SUPPORTED FALSE)
+endif()
+
 ##############################################################################
 # Separate the OPTIONS out from the sources
 #
