@@ -2,6 +2,7 @@
 # Copyright Celeritas contributors, for more details see:
 #   https://github.com/celeritas-project/celeritas/blob/develop/COPYRIGHT
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#[=======================================================================[.rst:
 
 CudaRdcUtils
 ------------
