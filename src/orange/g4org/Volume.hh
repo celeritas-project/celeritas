@@ -56,7 +56,7 @@ struct LogicalVolume
     //! Associated Geant4 logical volume
     G4LogicalVolume const* g4lv{nullptr};
 
-    //! Logical volume name and optional uniqifying extension
+    //! Logical volume name and optional uniquifying extension
     Label label;
     //! Filled material ID
     GeoMaterialId material_id;
