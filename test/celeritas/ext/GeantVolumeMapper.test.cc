@@ -260,10 +260,10 @@ TEST_F(NestedTest, unique)
             R"(Failed to exactly match ORANGE volume from Geant4 volume 'middle'; found 'middle@global' by omitting the extension)",
             R"(Failed to exactly match ORANGE volume from Geant4 volume 'inner'; found 'inner@global' by omitting the extension)",
         };
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        EXPECT_VEC_EQ(expected_log_messages, store_log_.messages());
         static char const* const expected_log_levels[]
             = {"warning", "warning", "warning", "warning"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+        EXPECT_VEC_EQ(expected_log_levels, store_log_.levels());
     }
     else
     {

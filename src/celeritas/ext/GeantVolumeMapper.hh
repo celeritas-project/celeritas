@@ -44,16 +44,19 @@ class GeantVolumeMapper
 };
 
 #if !CELERITAS_USE_GEANT4
-inline GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const&)
+inline GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
+    : geo_{geo}
 {
+    CELER_DISCARD(labels_);
+    CELER_DISCARD(world_);
+    CELER_DISCARD(geo_);
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline GeantVolumeMapper::GeantVolumeMapper(G4VPhysicalVolume const*,
-                                            GeoParamsInterface const&)
+inline GeantVolumeMapper::GeantVolumeMapper(G4VPhysicalVolume const&,
+                                            GeoParamsInterface const& geo)
+    : geo_{geo}
 {
-    CELER_DISCARD(geo_);
-    CELER_DISCARD(lv_labels_);
     CELER_NOT_CONFIGURED("Geant4");
 }
 
