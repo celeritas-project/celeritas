@@ -47,16 +47,12 @@ class CalculatorTestBase : public Test
 
   public:
     // Construct from grid bounds and cross section values
-    void build(GridInput grid, GridInput grid_scaled)
-    {
-        return this->build_impl(
-            std::move(grid), std::move(grid_scaled), BC::size_);
-    }
-    void build_spline(GridInput grid, GridInput grid_scaled, BC bc)
-    {
-        CELER_EXPECT(bc != BC::size_);
-        return this->build_impl(std::move(grid), std::move(grid_scaled), bc);
-    }
+    void build(GridInput grid, GridInput grid_scaled);
+    void build_spline(GridInput grid, GridInput grid_scaled, BC bc);
+
+    // Construct without scaled values
+    void build(GridInput grid);
+    void build_spline(GridInput grid, BC bc);
 
     XsGridRecord const& data() const { return data_; }
     Data const& values() const { return value_ref_; }
@@ -67,6 +63,7 @@ class CalculatorTestBase : public Test
     Data value_ref_;
 
     void build_impl(GridInput grid, GridInput grid_scaled, BC bc);
+    void build_impl(GridInput grid, BC bc);
     void build_grid(UniformGridRecord& data, GridInput const& grid, BC bc);
 };
 

@@ -22,6 +22,46 @@ namespace test
 /*!
  * Construct from grid bounds and cross section values.
  */
+void CalculatorTestBase::build(GridInput grid, GridInput grid_scaled)
+{
+    return this->build_impl(std::move(grid), std::move(grid_scaled), BC::size_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from grid bounds and cross section values.
+ */
+void CalculatorTestBase::build_spline(GridInput grid,
+                                      GridInput grid_scaled,
+                                      BC bc)
+{
+    CELER_EXPECT(bc != BC::size_);
+    return this->build_impl(std::move(grid), std::move(grid_scaled), bc);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without scaled values.
+ */
+void CalculatorTestBase::build(GridInput grid)
+{
+    return this->build_impl(std::move(grid), BC::size_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without scaled values.
+ */
+void CalculatorTestBase::build_spline(GridInput grid, BC bc)
+{
+    CELER_EXPECT(bc != BC::size_);
+    return this->build_impl(std::move(grid), bc);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from grid bounds and cross section values.
+ */
 void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc)
 {
     CELER_EXPECT((!grid.value.empty() || !grid_scaled.value.empty())
@@ -59,6 +99,15 @@ void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc
     value_ref_ = value_storage_;
 
     CELER_ENSURE(data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without scaled values.
+ */
+void CalculatorTestBase::build_impl(GridInput grid, BC bc)
+{
+    this->build_impl(grid, {}, bc);
 }
 
 //---------------------------------------------------------------------------//

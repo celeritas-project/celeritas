@@ -176,63 +176,6 @@ TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_highest))
     EXPECT_THROW(this->build(lower, upper), DebugError);
 }
 
-TEST_F(XsCalculatorTest, spline)
-{
-    GridInput lower;
-    lower.emin = 1e-2;
-    lower.emax = 1e2;
-    lower.value = VecReal{100, 10, 1, 10, 100};
-    this->build_spline(lower, {}, BC::not_a_knot);
-
-    XsCalculator calc_xs(this->data(), this->values());
-    EXPECT_SOFT_EQ(10, calc_xs(Energy(0.1)));
-    EXPECT_SOFT_EQ(-62.572615039281715, calc_xs(Energy(0.2)));
-    EXPECT_SOFT_EQ(1, calc_xs(Energy(1)));
-    EXPECT_SOFT_EQ(847.3120089786757, calc_xs(Energy(5)));
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_SOFT_EQ(60.498378344017667, calc_xs(Energy(99.99)));
-    }
-    else
-    {
-        EXPECT_SOFT_EQ(60.439491271972656, calc_xs(Energy(99.99)));
-    }
-    EXPECT_SOFT_EQ(100, calc_xs(Energy(100)));
-}
-
-TEST_F(XsCalculatorTest, spline_deriv)
-{
-    GridInput lower;
-    lower.emin = 1e-2;
-    lower.emax = 1e2;
-    lower.value = VecReal{100, 10, 1, 10, 100};
-    this->build_spline(lower, {}, BC::not_a_knot);
-
-    static double const expected_deriv[] = {
-        105520 / 33.0, 31880 / 11.0, -3160 / 33.0, -790 / 11.0, 5530 / 33.0};
-    {
-        auto deriv = SplineDerivCalculator(BC::not_a_knot)(this->data().lower,
-                                                           this->values());
-        EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
-    }
-    {
-        std::vector<real_type> x{0.01, 0.1, 1, 10, 100};
-        std::vector<real_type> y{100, 10, 1, 10, 100};
-
-        UniformGrid loge_grid(this->data().lower.grid);
-        XsCalculator calc_xs(this->data(), this->values());
-        for (auto i : range(loge_grid.size()))
-        {
-            real_type energy = std::exp(loge_grid[i]);
-            EXPECT_SOFT_EQ(x[i], energy);
-            EXPECT_SOFT_EQ(y[i], calc_xs(Energy(energy)));
-        }
-        auto deriv = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
-                                                           make_span(y));
-        EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
-    }
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

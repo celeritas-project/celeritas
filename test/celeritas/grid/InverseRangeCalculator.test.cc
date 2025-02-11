@@ -29,7 +29,7 @@ class InverseRangeCalculatorTest : public CalculatorTestBase
         grid.emin = 10;
         grid.emax = 1e4;
         grid.value = VecReal{0.5, 5, 50, 500};
-        this->build(grid, {});
+        this->build(grid);
     }
 };
 

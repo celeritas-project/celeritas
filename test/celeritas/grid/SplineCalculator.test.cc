@@ -45,7 +45,7 @@ TEST_F(SplineCalculatorTest, simple)
     for (size_type order = 1; order < 5; ++order)
     {
         grid.spline_order = order;
-        this->build(grid, {});
+        this->build(grid);
 
         SplineCalculator calc(this->data().lower, this->values());
 
@@ -89,7 +89,7 @@ TEST_F(SplineCalculatorTest, quadratic)
         SCOPED_TRACE("order=" + std::to_string(order));
 
         grid.spline_order = order;
-        this->build(grid, {});
+        this->build(grid);
 
         SplineCalculator calc(this->data().lower, this->values());
 
@@ -129,7 +129,7 @@ TEST_F(SplineCalculatorTest, cubic)
     for (size_type order = 3; order < 5; ++order)
     {
         grid.spline_order = order;
-        this->build(grid, {});
+        this->build(grid);
 
         SplineCalculator calc(this->data().lower, this->values());
 
