@@ -139,6 +139,7 @@ list(APPEND SOURCES
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
   data/detail/PinnedAllocatorImpl.cc
+  grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
   io/BuildOutput.cc
   io/ColorUtils.cc

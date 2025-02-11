@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/SplineDerivCalculator.cc
+//! \file corecel/grid/SplineDerivCalculator.cc
 //---------------------------------------------------------------------------//
 #include "SplineDerivCalculator.hh"
 

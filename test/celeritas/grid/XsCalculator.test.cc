@@ -13,7 +13,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Repr.hh"
-#include "celeritas/grid/SplineDerivCalculator.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"

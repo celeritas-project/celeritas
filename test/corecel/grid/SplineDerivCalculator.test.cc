@@ -2,16 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/SplineDerivCalculator.test.cc
+//! \file corecel/grid/SplineDerivCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/SplineDerivCalculator.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 
 #include <cmath>
 #include <vector>
 
 #include "corecel/grid/SplineInterpolator.hh"
 
-#include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
