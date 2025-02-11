@@ -7,8 +7,7 @@
 #include "UniformGridInserter.hh"
 
 #include "corecel/Types.hh"
-
-#include "XsGridData.hh"
+#include "corecel/grid/UniformGridData.hh"
 
 namespace celeritas
 {
@@ -28,6 +27,27 @@ UniformGridInserter::UniformGridInserter(Values* reals, GridValues* grids)
  */
 auto UniformGridInserter::operator()(UniformGridData const& grid,
                                      SpanConstDbl values) -> GridId
+{
+    return this->insert(grid, values);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of physics data.
+ */
+auto UniformGridInserter::operator()(UniformGridData const& grid,
+                                     SpanConstFlt values) -> GridId
+{
+    return this->insert(grid, values);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of physics data.
+ */
+template<class T>
+auto UniformGridInserter::insert(UniformGridData const& grid,
+                                 Span<T const> values) -> GridId
 {
     CELER_EXPECT(grid);
     CELER_EXPECT(grid.size == values.size());

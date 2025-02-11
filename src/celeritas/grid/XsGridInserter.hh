@@ -34,6 +34,7 @@ class XsGridInserter
         = Collection<XsGridRecord, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using SpanConstDbl = Span<double const>;
+    using SpanConstFlt = Span<float const>;
     //!@}
 
   public:
@@ -45,13 +46,24 @@ class XsGridInserter
                       SpanConstDbl lower_values,
                       UniformGridData const& upper_grid,
                       SpanConstDbl upper_values);
+    GridId operator()(UniformGridData const& lower_grid,
+                      SpanConstFlt lower_values,
+                      UniformGridData const& upper_grid,
+                      SpanConstFlt upper_values);
 
     // Add a grid of uniform log-grid data
     GridId operator()(UniformGridData const& grid, SpanConstDbl values);
+    GridId operator()(UniformGridData const& grid, SpanConstFlt values);
 
   private:
     CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> reals_;
     CollectionBuilder<XsGridRecord, MemSpace::host, GridId> grids_;
+
+    template<class T>
+    GridId insert(UniformGridData const&,
+                  Span<T const>,
+                  UniformGridData const&,
+                  Span<T const>);
 };
 
 //---------------------------------------------------------------------------//

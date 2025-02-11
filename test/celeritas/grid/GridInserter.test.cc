@@ -38,7 +38,7 @@ TEST_F(GridInserterTest, xs)
     Collection<XsGridRecord, Ownership::value, MemSpace::host> grids;
     XsGridInserter insert(&reals, &grids);
     {
-        VecDbl values = {10, 20, 3};
+        VecDbl const values = {10, 20, 3};
         auto lower = UniformGridData::from_bounds(1e-2, 1e-1, 2);
         auto upper = UniformGridData::from_bounds(1e-1, 1, 2);
 
@@ -57,7 +57,7 @@ TEST_F(GridInserterTest, xs)
                            reals[inserted.lower.value]);
     }
     {
-        VecDbl values = {1, 2, 4, 6, 8};
+        VecDbl const values = {1, 2, 4, 6, 8};
 
         auto idx = insert(UniformGridData::from_bounds(0.0, 10.0, 5),
                           make_span(values));
@@ -77,7 +77,7 @@ TEST_F(GridInserterTest, uniform)
     Collection<UniformGridRecord, Ownership::value, MemSpace::host> grids;
 
     UniformGridInserter insert(&reals, &grids);
-    VecDbl values = {1, 2, 4, 6, 8};
+    VecDbl const values = {1, 2, 4, 6, 8};
 
     auto idx = insert(UniformGridData::from_bounds(0.0, 10.0, 5),
                       make_span(values));

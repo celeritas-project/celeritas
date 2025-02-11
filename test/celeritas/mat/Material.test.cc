@@ -479,6 +479,8 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     result = m_test(input);
 #endif
 
+    auto inf = std::numeric_limits<real_type>::infinity();
+
     static real_type const expected_temperatures[] = {293, 0, 100, 110};
     static real_type const expected_rad_len[]
         = {3.5393292693170424, inf, 350729.99844063615, 351367.47504673258};

@@ -360,8 +360,20 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
 auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Ellipsoid const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("ellipsoid");
+
+    auto rad_z = solid.GetSemiAxisMax(to_int(Axis::z));
+
+    if (!(soft_equal(-rad_z, solid.GetZBottomCut())
+          && soft_equal(rad_z, solid.GetZTopCut())))
+    {
+        CELER_NOT_IMPLEMENTED("ellipsoids with bottom/top cuts");
+    }
+
+    auto radii = scale_.to<Real3>(solid.GetSemiAxisMax(to_int(Axis::x)),
+                                  solid.GetSemiAxisMax(to_int(Axis::y)),
+                                  rad_z);
+
+    return make_shape<Ellipsoid>(solid, radii);
 }
 
 //---------------------------------------------------------------------------//

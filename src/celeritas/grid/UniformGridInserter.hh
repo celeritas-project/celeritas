@@ -34,6 +34,7 @@ class UniformGridInserter
         = Collection<UniformGridRecord, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using SpanConstDbl = Span<double const>;
+    using SpanConstFlt = Span<float const>;
     //!@}
 
   public:
@@ -42,10 +43,14 @@ class UniformGridInserter
 
     // Add a grid of uniform log-grid data
     GridId operator()(UniformGridData const& grid, SpanConstDbl values);
+    GridId operator()(UniformGridData const& grid, SpanConstFlt values);
 
   private:
     CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> reals_;
     CollectionBuilder<UniformGridRecord, MemSpace::host, GridId> grids_;
+
+    template<class T>
+    GridId insert(UniformGridData const&, Span<T const>);
 };
 
 //---------------------------------------------------------------------------//

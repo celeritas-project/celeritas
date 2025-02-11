@@ -48,6 +48,7 @@ void x_slab(IntersectSurfaceBuilder& build)
 
 TEST_F(IntersectSurfaceBuilderTest, no_transform)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("z_hemi");
         auto css = this->make_state();
@@ -140,6 +141,7 @@ TEST_F(IntersectSurfaceBuilderTest, no_transform)
 
 TEST_F(IntersectSurfaceBuilderTest, translate)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     transform_ = Translation{Real3{1, 2, 3}};
     {
         SCOPED_TRACE("slab");
@@ -261,6 +263,7 @@ TEST_F(IntersectSurfaceBuilderTest, transform)
 
 TEST_F(IntersectSurfaceBuilderTest, finite_extents)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     this->reset(BBox{{-10, -10, -10}, {10, 10, 10}});
     {
         SCOPED_TRACE("slab");
