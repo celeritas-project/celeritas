@@ -17,17 +17,9 @@ except ValueError:
     print("usage: {} inp.gdml inp.hepmc3 mctruth.root (use '' for no ROOT output)".format(argv[0]))
     exit(1)
 
-def strtobool(text):
-    text = text.lower()
-    if text in {"true", "on", "yes", "1"}:
-        return True
-    if text in {"false", "off", "no", "0"}:
-        return False
-    raise ValueError(text)
-
 # We reuse the "disable device" environment variable, which prevents the GPU
-# from being initialized at runtime.
-use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
+# from being initialized at runtime if non-empty.
+use_device = not environ.get('CELER_DISABLE_DEVICE')
 core_geo = environ.get('CELER_CORE_GEO', 'ORANGE').lower()
 geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
 

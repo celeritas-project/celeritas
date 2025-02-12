@@ -7,6 +7,7 @@
 #include "celeritas/grid/ValueGridInserter.hh"
 
 #include <algorithm>
+#include <vector>
 
 #include "corecel/cont/Range.hh"
 
@@ -36,7 +37,7 @@ TEST_F(ValueGridInserterTest, all)
     ValueGridInserter insert(&real_storage, &grid_storage);
 
     {
-        double const values[] = {10, 20, 3};
+        std::vector<double> const values = {10, 20, 3};
 
         auto idx = insert(
             UniformGridData::from_bounds(0.0, 1.0, 3), 1, make_span(values));
@@ -48,7 +49,7 @@ TEST_F(ValueGridInserterTest, all)
         EXPECT_VEC_SOFT_EQ(values, real_storage[inserted.value]);
     }
     {
-        double const values[] = {1, 2, 4, 6, 8};
+        std::vector<double> const values = {1, 2, 4, 6, 8};
 
         auto idx = insert(UniformGridData::from_bounds(0.0, 10.0, 5),
                           make_span(values));

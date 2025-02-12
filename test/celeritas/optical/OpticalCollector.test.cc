@@ -447,7 +447,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
         EXPECT_EQ(39110, result.cherenkov.total_num_photons);
         EXPECT_EQ(81, result.cherenkov.num_photons.size());
 
-        EXPECT_EQ(3619370, result.scintillation.total_num_photons);
+        EXPECT_EQ(3619371, result.scintillation.total_num_photons);
         EXPECT_EQ(200, result.scintillation.num_photons.size());
     }
 }
@@ -496,7 +496,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     else
     {
         EXPECT_SOFT_EQ(
-            1666804.0f,
+            1666806,
             static_cast<float>(result.scintillation.total_num_photons));
         EXPECT_EQ(52, result.scintillation.num_photons.size());
     }

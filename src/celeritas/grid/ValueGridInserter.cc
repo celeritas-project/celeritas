@@ -30,16 +30,18 @@ auto ValueGridInserter::operator()(UniformGridData const& log_grid,
                                    size_type prime_index,
                                    SpanConstDbl values) -> XsIndex
 {
-    CELER_EXPECT(log_grid);
-    CELER_EXPECT(log_grid.size == values.size());
-    CELER_EXPECT(prime_index <= log_grid.size
-                 || prime_index == XsGridData::no_scaling());
+    return this->insert_xs(log_grid, prime_index, values);
+}
 
-    XsGridData grid;
-    grid.log_energy = log_grid;
-    grid.prime_index = prime_index;
-    grid.value = values_.insert_back(values.begin(), values.end());
-    return xs_grids_.push_back(grid);
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of physics xs data.
+ */
+auto ValueGridInserter::operator()(UniformGridData const& log_grid,
+                                   size_type prime_index,
+                                   SpanConstFlt values) -> XsIndex
+{
+    return this->insert_xs(log_grid, prime_index, values);
 }
 
 //---------------------------------------------------------------------------//
@@ -50,6 +52,37 @@ auto ValueGridInserter::operator()(UniformGridData const& log_grid,
                                    SpanConstDbl values) -> XsIndex
 {
     return (*this)(log_grid, XsGridData::no_scaling(), values);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of log-spaced data without 1/E scaling.
+ */
+auto ValueGridInserter::operator()(UniformGridData const& log_grid,
+                                   SpanConstFlt values) -> XsIndex
+{
+    return (*this)(log_grid, XsGridData::no_scaling(), values);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of physics xs data.
+ */
+template<class T>
+auto ValueGridInserter::insert_xs(UniformGridData const& log_grid,
+                                  size_type prime_index,
+                                  Span<T const> values) -> XsIndex
+{
+    CELER_EXPECT(log_grid);
+    CELER_EXPECT(log_grid.size == values.size());
+    CELER_EXPECT(prime_index <= log_grid.size
+                 || prime_index == XsGridData::no_scaling());
+
+    XsGridData grid;
+    grid.log_energy = log_grid;
+    grid.prime_index = prime_index;
+    grid.value = values_.insert_back(values.begin(), values.end());
+    return xs_grids_.push_back(grid);
 }
 
 //---------------------------------------------------------------------------//

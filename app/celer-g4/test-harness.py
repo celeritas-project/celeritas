@@ -23,9 +23,9 @@ def strtobool(text):
 #### LOAD OPTIONS ####
 
 # Load from environment
-use_device = not strtobool(environ.get("CELER_DISABLE_DEVICE", "false"))
+use_device = not environ.get("CELER_DISABLE_DEVICE")
 use_root = strtobool(environ["CELER_USE_ROOT"])
-use_celeritas = not strtobool(environ.get("CELER_DISABLE", "false"))
+use_celeritas = not environ.get("CELER_DISABLE")
 build = environ.get("CELER_BUILD_TYPE", "unknown").lower()
 ext = environ.get("CELER_TEST_EXT", "unknown")
 

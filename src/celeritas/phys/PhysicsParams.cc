@@ -35,6 +35,7 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/grid/RangeGridCalculator.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/ValueGridType.hh"
@@ -514,7 +515,7 @@ void PhysicsParams::build_xs(Options const& opts,
             // Grid IDs for each grid type, each material
             std::vector<ValueGridId> xs_grid_ids(mats.size());
             std::vector<ValueGridId> eloss_grid_ids(mats.size());
-            std::vector<ValueGridId> range_grid_ids(mats.size());
+            std::vector<ValueGridId> range_grid_ids(mats.size(), ValueGridId{});
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
@@ -560,7 +561,17 @@ void PhysicsParams::build_xs(Options const& opts,
                 xs_grid_ids[mat_idx] = build_grid(builders[VGT::macro_xs]);
                 eloss_grid_ids[mat_idx]
                     = build_grid(builders[VGT::energy_loss]);
-                range_grid_ids[mat_idx] = build_grid(builders[VGT::range]);
+                if (auto grid_id = eloss_grid_ids[mat_idx])
+                {
+                    //! \todo make the interpolation method configurable?
+
+                    // Build the range grid from the energy loss
+                    auto const& grid = data->value_grids[grid_id];
+                    auto const range = RangeGridCalculator(BC::geant)(
+                        grid, make_const_ref(*data).reals);
+                    range_grid_ids[mat_idx]
+                        = insert_grid(grid.log_energy, make_span(range));
+                }
 
                 if (use_integral_xs)
                 {

@@ -136,7 +136,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         phys.interaction_mfp(1);
         step = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
-        EXPECT_SOFT_EQ(0.48853333333333326, to_cm(step.step));
+        EXPECT_SOFT_EQ(0.48856714661867118, to_cm(step.step));
     }
     {
         PhysicsTrackView phys = this->init_track(
@@ -144,7 +144,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
-        EXPECT_SOFT_EQ(0.0016666666666666663, to_cm(step.step));
+        EXPECT_SOFT_EQ(0.0018333333333333309, to_cm(step.step));
     }
     {
         PhysicsTrackView phys = this->init_track(&material,
@@ -162,7 +162,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         phys.interaction_mfp(1);
         step = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
-        EXPECT_SOFT_EQ(1.4285714285714282e-5, to_cm(step.step));
+        EXPECT_SOFT_EQ(1.5714285714285705e-05, to_cm(step.step));
     }
     {
         PhysicsTrackView phys = this->init_track(&material,
@@ -173,7 +173,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
-        EXPECT_SOFT_EQ(0.014285714285714284, to_cm(step.step));
+        EXPECT_SOFT_EQ(0.014287142857142861, to_cm(step.step));
     }
     {
         PhysicsTrackView phys = this->init_track(
@@ -188,7 +188,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         phys.interaction_mfp(1);
         step = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
-        EXPECT_SOFT_EQ(0.48853333333333326, to_cm(step.step));
+        EXPECT_SOFT_EQ(0.48856714661867118, to_cm(step.step));
     }
     {
         // Test absurdly low energy (1 + E = 1)
@@ -198,7 +198,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
-        EXPECT_SOFT_EQ(5.2704627669473019e-12, to_cm(step.step));
+        EXPECT_SOFT_EQ(1.0540925533894607e-11, to_cm(step.step));
     }
     {
         // Celerino should have infinite step with no action
@@ -270,7 +270,8 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type step = 1e-5 / eloss_rate
+                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
@@ -322,7 +323,7 @@ TEST_F(PhysicsStepUtilsTest,
 
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
-        EXPECT_SOFT_EQ(0.48853333333333326, to_cm(step.step));
+        EXPECT_SOFT_EQ(0.48856714661867118, to_cm(step.step));
 
         // Testing cheat.
         PhysicsTrackView::PhysicsStateRef state_shortcut(phys_state.ref());
@@ -446,7 +447,7 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
-        EXPECT_SOFT_EQ(0.00016666666666666663, to_cm(step.step));
+        EXPECT_SOFT_EQ(0.00033333333333333343, to_cm(step.step));
 
         particle.energy(MevEnergy{1e-1});
         step = calc_physics_step_limit(material, particle, phys, pstep);
@@ -523,7 +524,8 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type step = 1e-5 / eloss_rate
+                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
