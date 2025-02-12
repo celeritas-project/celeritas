@@ -18,7 +18,6 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL",   "value": "ON"},
-        "CELERITAS_EXTERNAL_G4VG": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
         "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "14"},
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
