@@ -152,7 +152,7 @@ if(Geant4_VERSION VERSION_LESS 11.1)
 endif()
 
 add_example(simple-offload)
-add_example(fastsim-offload DISABLE)
+add_example(fastsim-offload ${_needs_g411})
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   # Requires 11.0 to build
