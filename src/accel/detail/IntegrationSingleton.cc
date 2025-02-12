@@ -50,7 +50,9 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
+            CELER_VALIDATE(options_, << R"(setup options are incomplete)");
             options_ = std::move(opts);
+            CELER_ENSURE(options_);
         },
         ExceptionConverter{"celer.setup"});
 }
@@ -95,6 +97,9 @@ void IntegrationSingleton::initialize_shared_params()
         CELER_LOG_LOCAL(debug) << "Initializing shared params";
         CELER_TRY_HANDLE(
             {
+                CELER_VALIDATE(
+                    options_,
+                    << R"(SetupOptions were not set before BeginRun)");
                 CELER_VALIDATE(
                     !params_,
                     << R"(BeginOfRunAction cannot be called more than once)");

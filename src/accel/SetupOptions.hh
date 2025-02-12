@@ -145,7 +145,7 @@ struct SetupOptions
 
     //! GDML filename (optional: defaults to exporting existing Geant4)
     std::string geometry_file;
-    //! Filename for JSON diagnostic output
+    //! Filename for JSON diagnostic output, empty to disable
     std::string output_file{"celeritas.out.json"};
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
@@ -223,6 +223,11 @@ struct SetupOptions
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
     //!@}
+
+    explicit inline operator bool() const
+    {
+        return max_num_tracks > 0 && static_cast<bool>(make_along_step);
+    }
 };
 
 //---------------------------------------------------------------------------//
