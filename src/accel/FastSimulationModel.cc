@@ -103,9 +103,12 @@ void FastSimulationModel::DoIt(G4FastTrack const& track, G4FastStep& step)
     CELER_EXPECT(*transport_);
 
     // Offload this track to Celeritas for transport
-    ExceptionConverter call_g4exception{"celer0001", params_};
-    CELER_TRY_HANDLE(transport_->Push(*(track.GetPrimaryTrack())),
-                     call_g4exception);
+    if (*transport_)
+    {
+        // Offload this track to Celeritas for transport
+        CELER_TRY_HANDLE(transport_->Push(*(track.GetPrimaryTrack())),
+                         ExceptionConverter("celer.track.push", params_));
+    }
 
     // Kill particle on Geant4 side. Celeritas will take
     // care of energy conservation, so set path, edep to zero.
@@ -125,8 +128,12 @@ void FastSimulationModel::DoIt(G4FastTrack const& track, G4FastStep& step)
  */
 void FastSimulationModel::Flush()
 {
-    ExceptionConverter call_g4exception{"celer0002", params_};
-    CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+    if (*transport_)
+    {
+        CELER_TRY_HANDLE(transport_->Flush(),
+                         ExceptionConverter("celer.event.flush", params_));
+    }
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

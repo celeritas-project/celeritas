@@ -162,8 +162,8 @@ void TrackingManager::FlushEvent()
 {
     if (*transport_)
     {
-        ExceptionConverter call_g4exception{"celer.event.flush", params_};
-        CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+        CELER_TRY_HANDLE(transport_->Flush(),
+                         ExceptionConverter("celer.event.flush", params_));
     }
 }
 
