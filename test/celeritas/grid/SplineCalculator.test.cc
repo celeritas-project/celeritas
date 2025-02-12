@@ -123,8 +123,14 @@ TEST_F(SplineCalculatorTest, cubic)
     GridInput grid;
     grid.emin = 1e-3;
     grid.emax = 1e4;
-    grid.value = VecReal{
-        xs(1e-3), xs(1e-2), xs(1e-1), xs(1), xs(1e1), xs(1e2), xs(1e3), xs(1e4)};
+
+    auto loge_grid = UniformGridData::from_bounds(
+        std::log(grid.emin), std::log(grid.emax), 8);
+    UniformGrid loge(loge_grid);
+    for (auto i : range(loge.size()))
+    {
+        grid.value.push_back(xs(std::exp(loge[i])));
+    }
 
     for (size_type order = 3; order < 5; ++order)
     {
