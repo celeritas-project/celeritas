@@ -21,6 +21,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/rasterize/SafetyImager.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
@@ -321,6 +322,10 @@ TEST_F(FourLevelsTest, consecutive_compute)
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
     EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
 }
 
 //---------------------------------------------------------------------------//
@@ -427,7 +432,7 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-8, to_cm(next.distance));
+    EXPECT_SOFT_EQ(1e-8, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
@@ -540,7 +545,7 @@ TEST_F(FourLevelsTest, safety)
     for (auto i : range(11))
     {
         real_type r = 2.0 * i + 0.1;
-        geo = {{r, r, r}, {1, 0, 0}};
+        geo = {from_cm({r, r, r}), {1, 0, 0}};
 
         if (!geo.is_outside())
         {
@@ -1127,6 +1132,19 @@ TEST_F(CmseTest, trace)
     // clang-format on
 }
 
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({0, 0, 0});
+    inp.upper_right = from_cm({350, 0, 1700});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "vg-cmse-xz-mid.jsonl");
+}
+
 //---------------------------------------------------------------------------//
 // ARBITRARY VGDML TEST
 //---------------------------------------------------------------------------//
@@ -1707,6 +1725,36 @@ TEST_F(ArbitraryGeantTest, dump)
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
     world->PrintContent();
+}
+
+//---------------------------------------------------------------------------//
+class PincellTest : public VecgeomGeantTestBase
+{
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml(this->geometry_basename() + ".gdml");
+    }
+    std::string geometry_basename() const override { return "pincell"; }
+};
+
+TEST_F(PincellTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-12, -12, 0});
+    inp.upper_right = from_cm({12, 12, 0});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "vg-pincell-xy-mid.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5.5);
+    write_image(ImageParams{inp}, "vg-pincell-xy-lo.jsonl");
+
+    inp.lower_left = from_cm({-12, 0, -12});
+    inp.upper_right = from_cm({12, 0, 12});
+    write_image(ImageParams{inp}, "vg-pincell-xz-mid.jsonl");
 }
 
 //---------------------------------------------------------------------------//
