@@ -13,10 +13,11 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
-#include "corecel/Version.hh"
 
 #include "corecel/io/ExceptionOutput.hh"
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
@@ -228,9 +229,9 @@ void run(std::istream& is)
         {
             "runtime",
             {
-                {"version", std::string(celeritas_version)},
                 {"device", device()},
                 {"kernels", kernel_registry()},
+                {"build", json_pimpl_output(BuildOutput{})},
             },
         },
     } << std::endl;

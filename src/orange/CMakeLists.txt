@@ -18,6 +18,7 @@ list(APPEND SOURCES
   OrangeParams.cc
   OrangeParamsOutput.cc
   OrangeTypes.cc
+  SafetyImager.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/DepthCalculator.cc
