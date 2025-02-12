@@ -60,7 +60,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 {
     CELER_EXPECT(run);
 
-    ExceptionConverter call_g4exception{"celer0001"};
+    ExceptionConverter call_g4exception{"celer.init.global"};
 
     if (init_shared_)
     {
@@ -87,7 +87,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
     {
         // Allocate data in shared thread-local transporter
         CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
-                         call_g4exception);
+                         ExceptionConverter{"celer.init.local"});
         CELER_ASSERT(*transport_);
     }
 
@@ -113,7 +113,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
  */
 void RunAction::EndOfRunAction(G4Run const*)
 {
-    ExceptionConverter call_g4exception{"celer0005"};
+    ExceptionConverter call_g4exception{"celer.finalize"};
 
     if (GlobalSetup::Instance()->root_sd_io())
     {

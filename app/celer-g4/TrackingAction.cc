@@ -59,7 +59,8 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
         if (mode == SharedParams::Mode::enabled)
         {
             // Celeritas is transporting this track
-            ExceptionConverter call_g4exception{"celer0003", params_.get()};
+            ExceptionConverter call_g4exception{"celer.track.push",
+                                                params_.get()};
             CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
         }
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);

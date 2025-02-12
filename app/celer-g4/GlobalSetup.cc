@@ -19,7 +19,6 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
-#include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
