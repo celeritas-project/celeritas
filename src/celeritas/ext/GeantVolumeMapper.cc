@@ -18,29 +18,54 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Convert to target geometry from geant4 transportation world.
+ */
+GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
+    : world_{geant_world_volume()}, geo_{geo}
+{
+    CELER_VALIDATE(world_, << "world was not set up before mapping volumes");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert from Geant4 world *to* geometry interface ID.
+ */
+GeantVolumeMapper::GeantVolumeMapper(G4VPhysicalVolume const& world,
+                                     GeoParamsInterface const& geo)
+    : world_{&world}, geo_{geo}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find the celeritas (VecGeom/ORANGE) volume ID for a Geant4 volume.
  *
  * This will warn if the name's extension had to be changed to match the
  * volume; and it will return an empty ID if no match was found.
  */
-VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
+VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
 {
-    if (VolumeId id = geo.find_volume(&lv))
+    if (VolumeId id = geo_.find_volume(&lv))
     {
         // Volume is mapped from an externally loaded Geant4 geometry
         return id;
     }
 
-    // Convert volume name to GPU geometry ID
-    auto label = Label::from_geant(lv.GetName());
-    if (label.ext.empty())
+    if (CELER_UNLIKELY(labels_.empty()))
     {
-        // Label doesn't have a pointer address attached: we probably need
-        // to regenerate to match the exported GDML file
-        label = Label::from_geant(make_gdml_name(lv));
+        // Lazily construct labels if lookup via pointer fails
+        labels_ = make_logical_vol_labels(*world_);
     }
 
-    auto const& volumes = geo.volumes();
+    // Convert volume name to GPU geometry ID
+    CELER_VALIDATE(
+        static_cast<std::size_t>(lv.GetInstanceID()) < labels_.size(),
+        << "logical volume '" << lv.GetName()
+        << "' is not in the world volume '" << world_->GetName() << "' ("
+        << labels_.size() << " volumes found)");
+    auto const& label = labels_[lv.GetInstanceID()];
+
+    auto const& volumes = geo_.volumes();
     if (auto id = volumes.find_exact(label))
     {
         // Exact match
@@ -52,19 +77,12 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
     if (all_ids.size() == 1)
     {
         CELER_LOG(warning) << "Failed to exactly match " << celeritas_core_geo
-                           << " volume from Geant4 volume '" << lv.GetName()
-                           << "'@" << static_cast<void const*>(&lv)
-                           << "; found '" << volumes.at(all_ids.front())
+                           << " volume from Geant4 volume '" << label
+                           << "'; found '" << volumes.at(all_ids.front())
                            << "' by omitting the extension";
         return all_ids.front();
     }
-
-    // Try regenerating the name even if we *did* have a pointer
-    // address attached (in case an original GDML volume name already
-    // had a pointer suffix and LoadGdml added another)
-    label = Label::from_geant(make_gdml_name(lv));
-    all_ids = volumes.find_all(label.name);
-    if (all_ids.size() > 1)
+    else if (all_ids.size() > 1)
     {
         CELER_LOG(warning)
             << "Multiple volumes '"
@@ -72,15 +90,13 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
                     all_ids.end(),
                     "', '",
                     [&volumes](VolumeId v) { return volumes.at(v); })
-            << "' match the Geant4 volume with extension omitted: returning "
-               "the last one";
+            << "' match the Geant4 volume '" << label
+            << "' without extension: returning the last one";
         return all_ids.back();
     }
-    else if (all_ids.empty())
-    {
-        return {};
-    }
-    return all_ids.front();
+
+    // No match
+    return {};
 }
 
 //---------------------------------------------------------------------------//

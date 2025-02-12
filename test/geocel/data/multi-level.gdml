@@ -42,7 +42,7 @@
         <volumeref ref="box"/>
         <position name="tb3_pos" unit="mm" x="-100.0" y="-100.0" z="0.0"/>
       </physvol>
-      <physvol copynumber="12" name="topsph2">
+      <physvol copynumber="12" name="topbox4">
         <volumeref ref="box"/>
         <position name="ts2_pos" unit="mm" x="100.0" y="-100.0" z="0.0"/>
       </physvol>

@@ -75,7 +75,7 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
     EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
     EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
-    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.volumes().at(VolumeId{3}));
+    EXPECT_EQ(Label("World"), geom.volumes().at(VolumeId{3}));
 
     auto const& vol_instances = geom.volume_instances();
     std::vector<std::string> instance_names;
@@ -94,7 +94,7 @@ TEST_F(FourLevelsTest, accessors)
         "env6",
         "env7",
         "env8",
-        "World",
+        "World_PV",
     };
     EXPECT_VEC_EQ(expected_instance_names, instance_names);
 
@@ -373,24 +373,23 @@ TEST_F(FourLevelsTest, safety)
 TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World@0xdeadbeef_PV/env1/Shape1/Shape2",
+    EXPECT_EQ("World_PV/env1/Shape1/Shape2",
               this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World@0xdeadbeef_PV/env1/Shape1",
-              this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1", this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World@0xdeadbeef_PV/env1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1", this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World@0xdeadbeef_PV", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV", this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
@@ -443,7 +442,7 @@ TEST_F(SolidsTest, output)
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl@0"]}})json",
             to_string(out));
     }
 }
@@ -1010,7 +1009,7 @@ TEST_F(MultiLevelTest, accessors)
         "topbox1",
         "topbox2",
         "topbox3",
-        "topsph2",
+        "topbox4",
         "world_PV",
     };
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);

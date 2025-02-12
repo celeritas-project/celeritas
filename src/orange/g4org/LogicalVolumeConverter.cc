@@ -26,8 +26,9 @@ namespace g4org
 /*!
  * Construct with solid conversion helper.
  */
-LogicalVolumeConverter::LogicalVolumeConverter(SolidConverter& convert_solid)
-    : convert_solid_(convert_solid)
+LogicalVolumeConverter::LogicalVolumeConverter(VecLabel const& labels,
+                                               SolidConverter& convert_solid)
+    : labels_{labels}, convert_solid_(convert_solid)
 {
 }
 
@@ -68,12 +69,20 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
     result->g4lv = &g4lv;
 
     // Save name
-    result->name = g4lv.GetName();
-    if (result->name.find("0x") == std::string::npos)
-    {
-        // No pointer address: add one
-        result->name = make_gdml_name(g4lv);
-    }
+    result->label = [&] {
+        Label result;
+        if (static_cast<std::size_t>(g4lv.GetInstanceID()) < labels_.size())
+        {
+            result = labels_[g4lv.GetInstanceID()];
+        }
+        if (result.empty())
+        {
+            result.name = g4lv.GetName();
+            CELER_LOG(warning) << "Logical volume '" << result.name
+                               << "' is not in the world geometry";
+        }
+        return result;
+    }();
 
     // Save material ID
     // NOTE: this is *not* the physics material ("cut couple")
@@ -83,7 +92,7 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
     }
     else
     {
-        CELER_LOG(warning) << "Logical volume '" << result->name
+        CELER_LOG(warning) << "Logical volume '" << result->label
                            << "' has no associated material";
         result->material_id = GeoMaterialId{0};
     }

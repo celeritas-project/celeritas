@@ -71,7 +71,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/g4/VisitGeantVolumes.hh"
+#include "geocel/g4/VisitVolumes.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
@@ -1189,8 +1189,15 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 imported.mu_pair_production_data = std::move(mu_minus);
             }
         }
+        if (selected.unique_volumes)
+        {
+            // TODO: remove in v0.7
+            CELER_LOG(warning)
+                << R"(DEPRECATED: volumes are always reproducibly uniquified)";
+        }
+
         imported.regions = import_regions();
-        imported.volumes = import_volumes(*world_, selected.unique_volumes);
+        imported.volumes = import_volumes(*world_);
         if (selected.particles != DataSelection::none)
         {
             imported.trans_params = import_trans_parameters(selected.particles);
@@ -1237,26 +1244,17 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 /*!
  * Return a populated \c ImportVolume vector.
  */
-std::vector<ImportVolume>
-import_volumes(G4VPhysicalVolume const& world, bool unique_volumes)
+std::vector<ImportVolume> import_volumes(G4VPhysicalVolume const& world)
 {
-    // Note: if the LV has been purged (i.e. by trying to run multiple
-    // geometries in the same execution), the instance ID's won't correspond to
-    // the location in the vector.
-    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(lv_store);
-    std::vector<ImportVolume> result;
-    result.reserve(lv_store->size());
+    auto labels = make_logical_vol_labels(world);
+    std::vector<ImportVolume> result(labels.size());
 
     // Recursive loop over all logical volumes to populate volumes
     int count = 0;
-    visit_geant_volumes(
-        [unique_volumes, &result, &count](G4LogicalVolume const& lv) {
-            auto i = static_cast<std::size_t>(lv.GetInstanceID());
-            if (i >= result.size())
-            {
-                result.resize(i + 1);
-            }
+    visit_volumes(
+        [&](G4LogicalVolume const& lv) {
+            CELER_ASSERT(static_cast<std::size_t>(lv.GetInstanceID())
+                         < labels.size());
             ++count;
 
             ImportVolume& volume = result[lv.GetInstanceID()];
@@ -1272,26 +1270,22 @@ import_volumes(G4VPhysicalVolume const& world, bool unique_volumes)
             {
                 volume.phys_material_id = cuts->GetIndex();
             }
-            volume.name = lv.GetName();
+            // TODO: when changing to celeritas::inp, just make this a label
+            // instead of converting to and from a std::string
+            volume.name = to_string(labels[lv.GetInstanceID()]);
             volume.solid_name = lv.GetSolid()->GetName();
 
             if (volume.name.empty())
             {
-                CELER_LOG(warning)
-                    << "No logical volume name specified for instance ID " << i
-                    << " (material " << volume.phys_material_id << ")";
-            }
-            else if (unique_volumes)
-            {
-                // Add pointer as GDML writer does
-                volume.name = make_gdml_name(lv);
+                CELER_LOG(warning) << "No logical volume name specified for "
+                                   << PrintableLV{&lv} << " (material "
+                                   << volume.phys_material_id << ")";
             }
         },
         world);
 
-    CELER_LOG(debug) << "Loaded " << count << " volumes with "
-                     << (unique_volumes ? "uniquified" : "original")
-                     << " names";
+    CELER_LOG(debug) << "Loaded " << count << " of " << result.size()
+                     << " volumes";
     return result;
 }
 
