@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     so.max_num_tracks = 1024 * 16;
     so.initializer_capacity = 1024 * 128 * 4;
     so.secondary_stack_factor = 2.0;
-    so.ignore_processes = {"CoulombScat", "Rayl"};  // Ignored processes
+    so.ignore_processes = {"CoulombScat"};  // Ignored processes
 
     // Set along-step factory with zero field
     so.make_along_step = celeritas::UniformAlongStepFactory();

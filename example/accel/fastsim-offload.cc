@@ -214,13 +214,6 @@ int main()
     setup_options.initializer_capacity = 1024 * 128;
     // Celeritas does not support EmStandard MSC physics above 100 MeV
     setup_options.ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
-        // consistent
-        setup_options.ignore_processes.push_back("Rayl");
-    }
-
     setup_options.output_file = "fastsim-offload.out.json";
 
     run_manager->Initialize();
