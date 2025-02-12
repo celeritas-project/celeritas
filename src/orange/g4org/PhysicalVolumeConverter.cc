@@ -137,7 +137,6 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         }
         return result;
     }();
-    result.label = g4pv.GetName();
     result.copy_number = g4pv.GetCopyNo();
     result.transform = [&]() -> VariantTransform {
         auto const& g4trans = g4pv.GetObjectTranslation();
