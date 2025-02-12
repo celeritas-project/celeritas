@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <materials>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="1.0" ref="Ar40"/>
+    </element>
+    <material name="lAr" state="liquid">
+      <T unit="K" value="293.15"/>
+      <D unit="g/cm3" value="1.396"/>
+      <fraction n="1" ref="Ar"/>
+    </material>
+  </materials>
+  <solids>
+    <polyhedra name="hex_s" lunit="cm" aunit="deg" deltaphi="360" numsides="6" startphi="0" >
+       <zplane z="-5.0" rmin="0" rmax="5.0"/>
+       <zplane z=" 5.0" rmin="0" rmax="5.0"/>
+    </polyhedra>
+    <tube name="cyl_s" lunit="cm" aunit="deg" z="20.0" rmax="10.0" rmin="0" startphi="0" deltaphi="360"/>
+    <box lunit="cm" name="box_s" x="30" y="30" z="50"/>
+  </solids>
+  <structure>
+    <volume name="hex">
+      <materialref ref="lAr"/>
+      <solidref ref="hex_s"/>
+    </volume>
+    <volume name="cyl">
+      <materialref ref="lAr"/>
+      <solidref ref="cyl_s"/>
+      <physvol>
+        <volumeref ref="hex"/>
+      </physvol>
+      <materialref ref="lAr"/>
+    </volume>
+    <volume name="box">
+      <materialref ref="lAr"/>
+      <solidref ref="box_s"/>
+      <physvol>
+        <volumeref ref="cyl"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="box"/>
+  </setup>
+</gdml>

@@ -3,18 +3,18 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-set(_celer_external_packages)
+set(_celer_builtin_packages)
 
 #-----------------------------------------------------------------------------#
 # GTest
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_EXTERNAL_GTest)
+if(CELERITAS_BUILTIN_GTest)
   FetchContent_Declare(
     GTest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
   )
-  list(APPEND _celer_external_packages GTest)
+  list(APPEND _celer_builtin_packages GTest)
 
   set(BUILD_GMOCK OFF) # For compatibility
   set(INSTALL_GTEST OFF)
@@ -26,12 +26,12 @@ endif()
 # nlohmann_json
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_EXTERNAL_nlohmann_json)
+if(CELERITAS_BUILTIN_nlohmann_json)
   FetchContent_Declare(
     nlohmann_json
     URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
   )
-  list(APPEND _celer_external_packages nlohmann_json)
+  list(APPEND _celer_builtin_packages nlohmann_json)
 
   set(JSON_Install ON)
 endif()
@@ -40,7 +40,7 @@ endif()
 # Perfetto
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_EXTERNAL_Perfetto)
+if(CELERITAS_BUILTIN_Perfetto)
   if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
     set(FETCHCONTENT_SOURCE_DIR_PERFETTO ${PERFETTO_ROOT})
   endif()
@@ -48,19 +48,19 @@ if(CELERITAS_EXTERNAL_Perfetto)
     Perfetto
     URL https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz
   )
-  list(APPEND _celer_external_packages Perfetto)
+  list(APPEND _celer_builtin_packages Perfetto)
 endif()
 
 #-----------------------------------------------------------------------------#
 # G4VG
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_EXTERNAL_G4VG)
+if(CELERITAS_BUILTIN_G4VG)
   FetchContent_Declare(
     G4VG
     URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.1/g4vg-1.0.1.tar.gz
   )
-  list(APPEND _celer_external_packages G4VG)
+  list(APPEND _celer_builtin_packages G4VG)
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} CELERITAS_${_var})
   endforeach()
@@ -75,7 +75,7 @@ set(_checked_cmake_variables
   BUILD_SHARED_LIBS CMAKE_CXX_STANDARD CMAKE_CXX_EXTENSIONS
 )
 if(NOT WIN32)
-  # RPath doesn't matter on windows, and some CI externalas change them
+  # RPath doesn't matter on windows, and some CI externals change them
   list(APPEND _checked_cmake_variables
     CMAKE_INSTALL_RPATH CMAKE_INSTALL_RPATH_USE_LINK_PATH
   )
@@ -85,7 +85,7 @@ foreach(_var IN LISTS _checked_cmake_variables)
 endforeach()
 
 # Activate externals
-FetchContent_MakeAvailable(${_celer_external_packages})
+FetchContent_MakeAvailable(${_celer_builtin_packages})
 
 # Check that variables are unmodified
 foreach(_var IN LISTS _checked_cmake_variables)
@@ -101,7 +101,7 @@ endforeach()
 # POST-FETCH CONFIG
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_EXTERNAL_Perfetto AND perfetto_POPULATED)
+if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   set(Perfetto_INCLUDE_DIR ${perfetto_SOURCE_DIR}/sdk)
   add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
   add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
