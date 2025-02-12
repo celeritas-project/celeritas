@@ -48,6 +48,8 @@
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
+using celeritas::FastSimulationIntegration;
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -116,11 +118,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        celeritas::FastSimulationIntegration::Instance().BeginOfRunAction(run);
+        FastSimulationIntegration::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        celeritas::FastSimulationIntegration::Instance().EndOfRunAction(run);
+        FastSimulationIntegration::Instance().EndOfRunAction(run);
     }
 };
 
@@ -130,7 +132,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        celeritas::FastSimulationIntegration::Instance().BuildForMaster();
+        FastSimulationIntegration::Instance().BuildForMaster();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -138,7 +140,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
     void Build() const final
     {
-        celeritas::FastSimulationIntegration::Instance().Build();
+        FastSimulationIntegration::Instance().Build();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -157,8 +159,6 @@ celeritas::SetupOptions MakeOptions()
     // NOTE: these numbers are appropriate for CPU execution
     opts.max_num_tracks = 1024;
     opts.initializer_capacity = 1024 * 128;
-    // This parameter will eventually be removed
-    opts.max_num_events = 1024;
     // Celeritas does not support EmStandard MSC physics above 100 MeV
     opts.ignore_processes = {"CoulombScat"};
     if (G4VERSION_NUMBER >= 1110)
@@ -210,6 +210,8 @@ int main()
     run_manager->SetUserInitialization(physics_list);
 
     run_manager->SetUserInitialization(new ActionInitialization());
+
+    FastSimulationIntegration::Instance().SetOptions(MakeOptions());
 
     run_manager->Initialize();
     run_manager->BeamOn(2);

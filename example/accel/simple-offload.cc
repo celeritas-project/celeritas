@@ -182,8 +182,6 @@ celeritas::SetupOptions MakeOptions()
     // NOTE: these numbers are appropriate for CPU execution
     opts.max_num_tracks = 1024;
     opts.initializer_capacity = 1024 * 128;
-    // This parameter will eventually be removed
-    opts.max_num_events = 1024;
     // Celeritas does not support EmStandard MSC physics above 100 MeV
     opts.ignore_processes = {"CoulombScat"};
     if (G4VERSION_NUMBER >= 1110)
