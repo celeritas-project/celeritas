@@ -143,8 +143,9 @@ CELER_FUNCTION auto XsCalculator::energy_max() const -> Energy
  */
 CELER_FUNCTION bool XsCalculator::use_scaled(Energy energy) const
 {
-    real_type loge = std::log(value_as<Energy>(energy));
-    return !data_.lower || (data_.upper && loge >= data_.upper.grid.front);
+    return !data_.lower
+           || (data_.upper
+               && std::log(value_as<Energy>(energy)) >= data_.upper.grid.front);
 }
 
 //---------------------------------------------------------------------------//

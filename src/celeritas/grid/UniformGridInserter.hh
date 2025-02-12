@@ -13,6 +13,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
 
@@ -46,7 +47,7 @@ class UniformGridInserter
     GridId operator()(UniformGridData const& grid, SpanConstFlt values);
 
   private:
-    CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> reals_;
+    DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<UniformGridRecord, MemSpace::host, GridId> grids_;
 
     template<class T>
