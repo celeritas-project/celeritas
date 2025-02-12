@@ -1218,6 +1218,7 @@ TEST_F(InfWedgeTest, errors)
 
 TEST_F(InfWedgeTest, quarter_turn)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("first quadrant");
         auto result = this->test(InfWedge(Turn{0}, Turn{0.25}));
@@ -1275,6 +1276,7 @@ TEST_F(InfWedgeTest, quarter_turn)
 
 TEST_F(InfWedgeTest, half_turn)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("north half");
         auto result = this->test(InfWedge(Turn{0}, Turn{0.5}));

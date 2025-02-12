@@ -27,7 +27,9 @@
 #    include <VecGeom/gdml/Frontend.h>
 #endif
 
-#include <G4VG.hh>
+#if CELERITAS_USE_GEANT4
+#    include <G4VG.hh>
+#endif
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -275,6 +277,7 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     ScopedProfiling profile_this{"load-vecgeom"};
     ScopedMem record_mem("Converter.convert");
     ScopedTimeLog scoped_time;
+#if CELERITAS_USE_GEANT4
     g4vg::Options opts;
     opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
     opts.scale = static_cast<double>(lengthunits::millimeter);
@@ -309,6 +312,10 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
 
     // NOTE: setting and closing changes the world
     CELER_ASSERT(vg_manager.GetWorld() != nullptr);
+#else
+    CELER_DISCARD(world);
+    CELER_NOT_CONFIGURED("Geant4");
+#endif
 }
 
 //---------------------------------------------------------------------------//
