@@ -35,78 +35,17 @@
 
 #include "Convert.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
-#include "VisitGeantVolumes.hh"
+#include "VisitVolumes.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-std::vector<Label>
-get_volume_labels(G4VPhysicalVolume const& world, bool unique_volumes)
-{
-    std::vector<Label> labels;
-    visit_geant_volumes(
-        [&](G4LogicalVolume const& lv) {
-            auto i = static_cast<std::size_t>(lv.GetInstanceID());
-            if (i >= labels.size())
-            {
-                labels.resize(i + 1);
-            }
-            if (unique_volumes)
-            {
-                labels[i] = Label::from_geant(make_gdml_name(lv));
-            }
-            else
-            {
-                labels[i] = Label::from_geant(lv.GetName());
-            }
-        },
-        world);
-    return labels;
-}
-
-//---------------------------------------------------------------------------//
-std::vector<Label> get_pv_labels(G4VPhysicalVolume const& world)
-{
-    std::vector<Label> labels;
-    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
-
-    visit_geant_volume_instances(
-        [&labels, &max_depth](G4VPhysicalVolume const& pv, int depth) {
-            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
-            if (!inserted)
-            {
-                if (iter->second >= depth)
-                {
-                    // Already visited PV at this depth or more
-                    return false;
-                }
-                // Update the max depth
-                iter->second = depth;
-            }
-
-            auto i = static_cast<std::size_t>(pv.GetInstanceID());
-            if (i >= labels.size())
-            {
-                labels.resize(i + 1);
-            }
-            if (labels[i].empty())
-            {
-                labels[i] = Label::from_geant(pv.GetName());
-                CELER_ASSERT(!labels[i].empty());
-            }
-            return true;
-        },
-        world);
-    return labels;
-}
-
-//---------------------------------------------------------------------------//
 LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
     LevelId::size_type result{0};
-    visit_geant_volume_instances(
+    visit_volume_instances(
         [&result](G4VPhysicalVolume const&, int level) {
             result = max(level, static_cast<int>(result));
             return true;
@@ -137,7 +76,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    host_ref_.world = load_geant_geometry(filename);
+    host_ref_.world = load_geant_geometry_native(filename);
     loaded_gdml_ = true;
 
     // NOTE: only instantiate the logger/exception handler *after* loading
@@ -171,7 +110,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
         auto msg = CELER_LOG(warning);
         msg << "Geant4 geometry was initialized with inconsistent "
                "world volume: given '"
-            << world->GetName() << "'@' " << static_cast<void const*>(world)
+            << world->GetName() << "'@" << static_cast<void const*>(world)
             << "; navigation world is ";
         if (nav_world)
         {
@@ -310,13 +249,12 @@ void GeantGeoParams::build_metadata()
     }
 
     // Construct volume labels
-    volumes_ = VolumeMap{"volume",
-                         get_volume_labels(*host_ref_.world, !loaded_gdml_)};
-    vol_instances_
-        = VolInstanceMap{"volume instance", get_pv_labels(*host_ref_.world)};
+    volumes_ = VolumeMap{"volume", make_logical_vol_labels(*host_ref_.world)};
+    vol_instances_ = VolInstanceMap{
+        "volume instance", make_physical_vol_labels(*host_ref_.world)};
     max_depth_ = get_max_depth(*host_ref_.world);
 
-    // Save world bbox (NOTE: assumes no transformation on PV?)
+    // Save world bbox (NOTE: assumes no transformation on PV)
     bbox_ = [world_lv = host_ref_.world->GetLogicalVolume()] {
         CELER_EXPECT(world_lv);
         G4VSolid const* solid = world_lv->GetSolid();

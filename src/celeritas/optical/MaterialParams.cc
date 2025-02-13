@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
@@ -18,7 +19,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
-#include "celeritas/grid/NonuniformGridData.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 

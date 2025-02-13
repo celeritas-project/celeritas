@@ -10,10 +10,10 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <G4Element.hh>
 #include <G4GDMLParser.hh>
-#include <G4GDMLWriteStructure.hh>
 #include <G4Isotope.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
@@ -42,6 +42,9 @@
 
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
+#include "g4/VisitVolumes.hh"
+
+#include "detail/MakeLabelVector.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
@@ -165,21 +168,6 @@ std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
         os << "{null G4LogicalVolume}";
     }
     return os;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a Geant4 geometry, leaving the pointer suffixes intact for VecGeom.
- *
- * Do *not* strip `0x` extensions since those are needed to deduplicate complex
- * geometries (e.g. CMS) when loaded separately by VGDML and Geant4. The
- * pointer-based deduplication is handled by the Label and LabelIdMultiMap.
- *
- * \return Geant4-owned world volume
- */
-G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
-{
-    return load_geant_geometry_impl(filename, false);
 }
 
 //---------------------------------------------------------------------------//
@@ -359,28 +347,59 @@ find_geant_volumes(std::unordered_set<std::string> names)
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate the GDML name for a Geant4 logical volume.
+ * Get a reproducible vector of LV instance ID -> label from the given world.
  */
-std::string make_gdml_name(G4LogicalVolume const& lv)
+std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world)
 {
-    // Run the LV through the GDML export name generator so that the volume is
-    // uniquely identifiable in VecGeom. Reuse the same instance to reduce
-    // overhead: note that the method isn't const correct.
-    static G4GDMLWriteStructure temp_writer;
+    std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
 
-    auto const* refl_factory = G4ReflectionFactory::Instance();
-    if (auto const* unrefl_lv
-        = refl_factory->GetConstituentLV(const_cast<G4LogicalVolume*>(&lv)))
-    {
-        // If this is a reflected volume, add the reflection extension after
-        // the final pointer to match the converted VecGeom name
-        std::string name
-            = temp_writer.GenerateName(unrefl_lv->GetName(), unrefl_lv);
-        name += refl_factory->GetVolumesNameExtension();
-        return name;
-    }
+    visit_volumes(
+        [&](G4LogicalVolume const& lv) {
+            // Add to name map
+            names[lv.GetName()].push_back(&lv);
+        },
+        world);
 
-    return temp_writer.GenerateName(lv.GetName(), &lv);
+    return detail::make_label_vector<G4LogicalVolume>(
+        std::move(names),
+        [](G4LogicalVolume const& lv) { return lv.GetInstanceID(); });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible vector of PV instance ID -> label from the given world.
+ */
+std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
+{
+    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
+    std::unordered_map<std::string, std::vector<G4VPhysicalVolume const*>> names;
+
+    // Visit PVs, mapping names to instances, skipping those that have already
+    // been visited at a deeper level
+    visit_volume_instances(
+        [&](G4VPhysicalVolume const& pv, int depth) {
+            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+            if (!inserted)
+            {
+                if (iter->second >= depth)
+                {
+                    // Already visited PV at this depth or more
+                    return false;
+                }
+                // Update the max depth
+                iter->second = depth;
+            }
+
+            // Add to name map
+            names[pv.GetName()].push_back(&pv);
+            // Visit daughters
+            return true;
+        },
+        world);
+
+    return detail::make_label_vector<G4VPhysicalVolume>(
+        std::move(names),
+        [](G4VPhysicalVolume const& lv) { return lv.GetInstanceID(); });
 }
 
 //---------------------------------------------------------------------------//

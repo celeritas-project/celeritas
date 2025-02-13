@@ -266,8 +266,8 @@ GeoMaterialParams::from_import(ImportData const& data,
 
     // Assume that since Geant4 is using internal geometry and
     // we're using ORANGE or VecGeom that volume IDs will not be
-    // the same. We'll just remap them based on their labels (which may include
-    // Geant4's uniquifying pointer addresses).
+    // the same. We'll just remap them based on their labels (which should
+    // include uniquifying suffix if needed).
     input.volume_labels.resize(data.volumes.size());
     for (auto volume_idx : range(data.volumes.size()))
     {
@@ -276,7 +276,7 @@ GeoMaterialParams::from_import(ImportData const& data,
 
         CELER_EXPECT(!data.volumes[volume_idx].name.empty());
         input.volume_labels[volume_idx]
-            = Label::from_geant(data.volumes[volume_idx].name);
+            = Label::from_separator(data.volumes[volume_idx].name);
     }
 
     return std::make_shared<GeoMaterialParams>(std::move(input));

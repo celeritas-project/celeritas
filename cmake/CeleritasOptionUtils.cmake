@@ -8,17 +8,17 @@ CeleritasOptionUtils
 
 CMake configuration utility functions for Celeritas, primarily for option setup.
 
-.. command:: celeritas_find_or_external_package
+.. command:: celeritas_find_or_builtin_package
 
   Look for an external dependency ``<package>`` and cache whether we found it or
   not.
 
-    celeritas_find_or_external_package(<package> [...])
+    celeritas_find_or_builtin_package(<package> [...])
 
-  The cache variable ``CELERITAS_EXTERNAL_<package>`` is used so that on
+  The cache variable ``CELERITAS_BUILTIN_<package>`` is used so that on
   subsequent configures we do not "find" an external that we
-  configured/installed ourself (since CMake's search path includes the
-  installation prefix). Additional arguments (e.g. a version number) will be
+  configured/installed ourself as a built-in (since CMake's search path includes
+  the installation prefix). Additional arguments (e.g. a version number) will be
   forwarded to ``find_package``.
 
 .. command:: celeritas_optional_language
@@ -126,8 +126,8 @@ include(CheckLanguage)
 
 # List of variables configured via `celeritas_set_default`
 set(CELERITAS_DEFAULT_VARIABLES)
-# True if any CELERITAS_EXTERNAL_XXX
-set(CELERITAS_EXTERNAL FALSE)
+# True if any CELERITAS_BUILTIN_XXX
+set(CELERITAS_BUILTIN FALSE)
 
 #-----------------------------------------------------------------------------#
 
@@ -159,10 +159,10 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-macro(celeritas_find_or_external_package package)
-  set(_var "CELERITAS_EXTERNAL_${package}")
-  set(_use_external "${${_var}}")
-  if(NOT _use_external)
+macro(celeritas_find_or_builtin_package package)
+  set(_var "CELERITAS_BUILTIN_${package}")
+  set(_use_builtin "${${_var}}")
+  if(NOT _use_builtin)
     if(NOT ${package}_FOUND)
       # Only look for the package if it's not "found" (which can occur if
       # Celeritas is a subproject)
@@ -171,18 +171,18 @@ macro(celeritas_find_or_external_package package)
     if(NOT DEFINED ${_var})
       set(_found "${${package}_FOUND}")
       if(NOT _found)
-        set(_use_external ON)
+        set(_use_builtin ON)
       endif()
-      set("${_var}" "${_use_external}" CACHE BOOL
+      set("${_var}" "${_use_builtin}" CACHE BOOL
         "Fetch and build ${package}")
       mark_as_advanced(${_var})
       unset(_found)
     endif()
   endif()
-  if(_use_external)
-    set(CELERITAS_EXTERNAL TRUE)
+  if(_use_builtin)
+    set(CELERITAS_BUILTIN TRUE)
   endif()
-  unset(_use_external)
+  unset(_use_builtin)
   unset(_var)
 endmacro()
 

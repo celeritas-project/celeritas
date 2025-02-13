@@ -16,8 +16,8 @@
 
 namespace celeritas
 {
-class ValueGridInserter;
-struct XsGridData;
+class XsGridInserter;
+struct XsGridRecord;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -31,7 +31,7 @@ class ValueGridBuilder
   public:
     //!@{
     //! \name Type aliases
-    using ValueGridId = ItemId<struct XsGridData>;
+    using ValueGridId = ItemId<struct XsGridRecord>;
     //!@}
 
   public:
@@ -39,7 +39,7 @@ class ValueGridBuilder
     virtual ~ValueGridBuilder() = 0;
 
     //! Construct the grid given a mutable reference to a store
-    virtual ValueGridId build(ValueGridInserter) const = 0;
+    virtual ValueGridId build(XsGridInserter) const = 0;
 
   protected:
     ValueGridBuilder() = default;
@@ -69,6 +69,13 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     using VecDbl = std::vector<double>;
     //!@}
 
+    struct GridInput
+    {
+        double emin{0};
+        double emax{0};
+        VecDbl xs;
+    };
+
   public:
     // Construct from imported data
     static std::unique_ptr<ValueGridXsBuilder>
@@ -82,16 +89,14 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     from_scaled(SpanConstDbl lambda_prim_energy, SpanConstDbl lambda_prim);
 
     // Construct
-    ValueGridXsBuilder(double emin, double eprime, double emax, VecDbl xs);
+    ValueGridXsBuilder(GridInput grid, GridInput grid_prime);
 
     // Construct in the given store
-    ValueGridId build(ValueGridInserter) const final;
+    ValueGridId build(XsGridInserter) const final;
 
   private:
-    double log_emin_;
-    double log_eprime_;
-    double log_emax_;
-    VecDbl xs_;
+    GridInput lower_;
+    GridInput upper_;
 };
 
 //---------------------------------------------------------------------------//
@@ -99,6 +104,9 @@ class ValueGridXsBuilder final : public ValueGridBuilder
  * Build a physics vector for energy loss and other quantities.
  *
  * This vector is still uniform in log(E).
+ *
+ * \todo Currently this builds and inserts an \c XsGridRecord, but should build
+ * a \c UniformGridRecord since there are no scaled values.
  */
 class ValueGridLogBuilder : public ValueGridBuilder
 {
@@ -107,7 +115,6 @@ class ValueGridLogBuilder : public ValueGridBuilder
     //! \name Type aliases
     using VecDbl = std::vector<double>;
     using SpanConstDbl = Span<double const>;
-    using Id = ItemId<XsGridData>;
     using UPLogBuilder = std::unique_ptr<ValueGridLogBuilder>;
     //!@}
 
@@ -122,7 +129,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
     ValueGridLogBuilder(double emin, double emax, VecDbl value);
 
     // Construct in the given store
-    ValueGridId build(ValueGridInserter) const final;
+    ValueGridId build(XsGridInserter) const final;
 
     // Access values
     SpanConstDbl value() const;
@@ -148,7 +155,7 @@ class ValueGridOTFBuilder final : public ValueGridBuilder
 {
   public:
     // Don't construct anything
-    ValueGridId build(ValueGridInserter) const final;
+    ValueGridId build(XsGridInserter) const final;
 };
 
 //---------------------------------------------------------------------------//

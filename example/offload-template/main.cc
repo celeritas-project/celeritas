@@ -2,19 +2,18 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/main.cc
+//! \file offload-template/main.cc
 //! \brief Minimal Geant4 application with Celeritas offloading
 //---------------------------------------------------------------------------//
 #include <memory>
 #include <FTFP_BERT.hh>
 #include <G4RunManagerFactory.hh>
-#include <accel/AlongStepFactory.hh>
-#include <accel/SetupOptions.hh>
 #include <accel/TrackingManagerConstructor.hh>
 #include <accel/TrackingManagerIntegration.hh>
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+#include "MakeCelerOptions.hh"
 
 //---------------------------------------------------------------------------//
 /*!
@@ -37,24 +36,13 @@ int main(int argc, char* argv[])
 
     // Initialize Celeritas
     auto& tmi = celeritas::TrackingManagerIntegration::Instance();
-    celeritas::SetupOptions& so = tmi.Options();
-
-    so.max_num_tracks = 1024 * 16;
-    so.initializer_capacity = 1024 * 128 * 4;
-    so.secondary_stack_factor = 2.0;
-    so.ignore_processes = {"CoulombScat", "Rayl"};  // Ignored processes
-
-    // Set along-step factory with zero field
-    so.make_along_step = celeritas::UniformAlongStepFactory();
-
-    // Save diagnostic information
-    so.output_file = "celeritas-offload-diagnostic.json";
 
     // Initialize physics with celeritas offload
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
     physics_list->RegisterPhysics(
         new celeritas::TrackingManagerConstructor(&tmi));
     run_manager->SetUserInitialization(physics_list);
+    tmi.SetOptions(MakeCelerOptions());
 
     // Initialize geometry and actions
     run_manager->SetUserInitialization(new DetectorConstruction());

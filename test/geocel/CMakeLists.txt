@@ -103,7 +103,7 @@ if(CELERITAS_USE_VecGeom)
     set(_vecgeom_tests DISABLE)
   endif()
   celeritas_add_device_test(vg/Vecgeom
-    LINK_LIBRARIES VecGeom::vecgeom ${_g4_geo_libs}
+    LINK_LIBRARIES VecGeom::vecgeom ${_g4_geo_libs} nlohmann_json::nlohmann_json
     FILTER ${_vecgeom_tests}
     ${_fixme_cgs}
   )
@@ -120,7 +120,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   # These all require the Geant4 geometry wrappers which only are built when
   # double-precision is enabled
   celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs})
-  celeritas_add_test(g4/VisitGeantVolumes.test.cc LINK_LIBRARIES ${_g4_geo_libs})
+  celeritas_add_test(g4/VisitVolumes.test.cc LINK_LIBRARIES ${_g4_geo_libs})
   celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
 endif()
 

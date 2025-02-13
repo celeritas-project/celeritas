@@ -23,26 +23,26 @@ class TrackingManagerIntegration;
  * Construct a Celeritas tracking manager that offloads EM tracks.
  *
  * This should be composed with your physics list after it is constructed,
- * before the simulation begins.
- *
- * \code
-    auto* physics_list = new FTFP_BERT;
-    physics_list->RegisterPhysics(new TrackingManagerConstructor{
-        shared_params, [](int){ return &local_transporter; });
-   \endcode
- *
- * For simpler integration, use celeritas::TrackingManagerIntegration:
+ * before the simulation begins.  By default this uses the \c
+ * celeritas::TrackingManagerIntegration helper:
  * \code
     auto* physics_list = new FTFP_BERT;
     physics_list->RegisterPhysics(new TrackingManagerConstructor{
         &TrackingManagerIntegration::Instance()});
    \endcode
  *
+ * but for manual integration it can be constructed with a function to get a
+ * reference to the thread-local \c LocalTransporter from the Geant4 thread ID:
+ * \code
+    auto* physics_list = new FTFP_BERT;
+    physics_list->RegisterPhysics(new TrackingManagerConstructor{
+        shared_params, [](int){ return &local_transporter; });
+   \endcode
  *
- * The second argument is a function to get a reference to the thread-local \c
- * LocalTransporter from the Geant4 thread ID.
- *
- * If Celeritas is globally disabled, it will not add the track manager.
+ * \note If Celeritas is globally disabled, it will not add the track manager.
+ * If Celeritas is configured to "kill offload" mode (for testing maximum
+ * theoretical performance) then the tracking manager will be added but will
+ * not send the tracks to Celeritas: it will simply kill them.
  */
 class TrackingManagerConstructor final : public G4VPhysicsConstructor
 {

@@ -13,8 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
-
-#include "NonuniformGridData.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 
 namespace celeritas
 {
@@ -31,7 +30,7 @@ class NonuniformGridCalculator
   public:
     //@{
     //! Type aliases
-    using Reals
+    using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     using Grid = NonuniformGrid<real_type>;
     //@}
@@ -39,12 +38,12 @@ class NonuniformGridCalculator
   public:
     // Construct by *inverting* a monotonicially increasing generic grid
     static inline CELER_FUNCTION NonuniformGridCalculator
-    from_inverse(NonuniformGridRecord const& grid, Reals const& storage);
+    from_inverse(NonuniformGridRecord const& grid, Values const& reals);
 
     // Construct from grid data and backend storage
     inline CELER_FUNCTION
     NonuniformGridCalculator(NonuniformGridRecord const& grid,
-                             Reals const& storage);
+                             Values const& reals);
 
     // Find and interpolate the y value from the given x value
     inline CELER_FUNCTION real_type operator()(real_type x) const;
@@ -65,14 +64,14 @@ class NonuniformGridCalculator
 
     //// DATA ////
 
-    Reals const& reals_;
+    Values const& reals_;
     Grid x_grid_;
     RealIds y_offset_;
 
-    //// HELPERS ////
+    //// HELPER FUNCTIONS ////
 
     // Private constructor implementation
-    inline CELER_FUNCTION NonuniformGridCalculator(Reals const& storage,
+    inline CELER_FUNCTION NonuniformGridCalculator(Values const& reals,
                                                    RealIds x_grid,
                                                    RealIds y_grid);
 };
@@ -84,9 +83,9 @@ class NonuniformGridCalculator
  * Construct by \em inverting a monotonicially increasing generic grid.
  */
 CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
-    NonuniformGridRecord const& grid, Reals const& storage)
+    NonuniformGridRecord const& grid, Values const& reals)
 {
-    return NonuniformGridCalculator{storage, grid.value, grid.grid};
+    return NonuniformGridCalculator{reals, grid.value, grid.grid};
 }
 
 //---------------------------------------------------------------------------//
@@ -95,8 +94,8 @@ CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
  */
 CELER_FUNCTION
 NonuniformGridCalculator::NonuniformGridCalculator(
-    NonuniformGridRecord const& grid, Reals const& storage)
-    : NonuniformGridCalculator{storage, grid.grid, grid.value}
+    NonuniformGridRecord const& grid, Values const& reals)
+    : NonuniformGridCalculator{reals, grid.grid, grid.value}
 {
     CELER_EXPECT(grid);
 }
@@ -167,10 +166,10 @@ NonuniformGridCalculator::make_inverse() const
  * Construct from grid data and backend storage.
  */
 CELER_FUNCTION
-NonuniformGridCalculator::NonuniformGridCalculator(Reals const& storage,
+NonuniformGridCalculator::NonuniformGridCalculator(Values const& reals,
                                                    RealIds x_grid,
                                                    RealIds y_grid)
-    : reals_{storage}, x_grid_{x_grid, reals_}, y_offset_{y_grid}
+    : reals_{reals}, x_grid_{x_grid, reals_}, y_offset_{y_grid}
 {
     CELER_EXPECT(!x_grid.empty() && x_grid.size() == y_grid.size());
     CELER_EXPECT(*x_grid.end() <= reals_.size()

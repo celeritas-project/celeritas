@@ -2,31 +2,20 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/NonuniformGridData.hh
+//! \file geocel/vg/SafetyImager.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "geocel/rasterize/SafetyImager.t.hh"
 
-#include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
-#include "celeritas/Types.hh"
+#include "VecgeomData.hh"
+#include "VecgeomGeoTraits.hh"
+#include "VecgeomParams.hh"
+#include "VecgeomTrackView.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * A grid of increasing, sorted 1D data with linear-linear interpolation.
- */
-struct NonuniformGridRecord
-{
-    ItemRange<real_type> grid;  //!< x grid
-    ItemRange<real_type> value;  //!< f(x) value
 
-    //! Whether the record is initialized and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return grid.size() >= 2 && value.size() == grid.size();
-    }
-};
+template class SafetyImager<VecgeomParams>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

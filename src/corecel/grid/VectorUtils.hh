@@ -8,11 +8,14 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 
 namespace celeritas
 {
@@ -46,6 +49,33 @@ inline bool is_monotonic_increasing(Span<T> grid)
     return all_adjacent(grid.begin(), grid.end(), [](T& left, T& right) {
         return left < right;
     });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate (geometric) ratio of successive grid points in a uniform log grid.
+ */
+template<class T>
+T calc_log_delta(Span<T const> grid)
+{
+    CELER_EXPECT(grid.size() > 1);
+    return fastpow(grid.back() / grid.front(), T(1) / (grid.size() - 1));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * True if the grid has logarithmic spacing.
+ */
+template<class T>
+inline bool has_log_spacing(Span<T const> grid)
+{
+    T delta = calc_log_delta(grid);
+    for (auto i : range(grid.size() - 1))
+    {
+        if (!soft_equal(delta, grid[i + 1] / grid[i]))
+            return false;
+    }
+    return true;
 }
 
 //---------------------------------------------------------------------------//

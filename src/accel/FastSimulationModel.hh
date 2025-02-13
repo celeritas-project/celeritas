@@ -23,18 +23,22 @@ class LocalTransporter;
  * `G4VUserDetectorConstruction::ConstructSDandField()`.
  *
  * Note that the argument \c G4Envelope is a type alias to \c G4Region.
+ *
+ * \todo Maybe need a helper to create a single fast sim model for multiple
+ * regions?
  */
 class FastSimulationModel final : public G4VFastSimulationModel
 {
   public:
-    // Construct with name, shared (across threads) params, and thread-local
-    // transporter
+    // Construct using the FastSimulationIntegration for a region
+    explicit FastSimulationModel(G4Envelope* region);
+
+    // Construct without attaching to a region
     FastSimulationModel(G4String const& name,
                         SharedParams const* params,
                         LocalTransporter* local);
 
-    // Construct with name, region, shared (across threads) params, and
-    // thread-local transporter
+    // Construct and build a fast sim manager for the given region
     FastSimulationModel(G4String const& name,
                         G4Envelope* region,
                         SharedParams const* params,

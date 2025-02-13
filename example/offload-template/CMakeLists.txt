@@ -36,6 +36,7 @@ add_executable(run-offload
   main.cc
   src/ActionInitialization.cc
   src/DetectorConstruction.cc
+  src/MakeCelerOptions.cc
   src/PrimaryGeneratorAction.cc
   src/RunAction.cc
   src/SensitiveDetector.cc

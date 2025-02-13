@@ -16,7 +16,7 @@
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/SplineXsCalculator.hh"
+#include "celeritas/grid/SplineCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/random/Selector.hh"
@@ -243,20 +243,8 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         auto grid_id = physics.energy_loss_grid();
         CELER_ASSERT(grid_id);
 
-        size_type order = physics.scalars().spline_eloss_order;
-
-        if (order == 1)
-        {
-            auto calc_eloss_rate
-                = physics.make_calculator<XsCalculator>(grid_id);
-            eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
-        }
-        else
-        {
-            auto calc_eloss_rate
-                = physics.make_calculator<SplineXsCalculator>(grid_id, order);
-            eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
-        }
+        auto calc_eloss_rate = physics.make_calculator<XsCalculator>(grid_id);
+        eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
     }
 
     if (eloss >= pre_step_energy * physics.scalars().linear_loss_limit)

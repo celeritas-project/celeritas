@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Collection.hh"
 
 namespace celeritas
 {
@@ -39,6 +40,35 @@ struct UniformGridData
     // Construct on host from front/back
     inline static UniformGridData
     from_bounds(value_type front, value_type back, size_type size);
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Parameterization of a discrete scalar field on a given 1D grid.
+ *
+ * \c derivative stores the second derivative of the interpolating cubic
+ * spline. If it is non-empty, cubic spline interpolation will be used.
+ *
+ * \c spline_order stores the order of the piecewise polynomials used for
+ * spline interpolation without continuous derivatives. The order must be
+ * smaller than the grid size for effective spline interpolation. If the order
+ * is set to 1, linear or cubic spline interpolation will be used.
+ */
+struct UniformGridRecord
+{
+    UniformGridData grid;
+    ItemRange<real_type> value;
+    ItemRange<real_type> derivative;
+    size_type spline_order{1};
+
+    //! Whether the record is initialized and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return grid && grid.size == value.size()
+               && (derivative.empty() || grid.size == derivative.size())
+               && spline_order > 0 && spline_order < value.size()
+               && (derivative.empty() || spline_order == 1);
+    }
 };
 
 //---------------------------------------------------------------------------//

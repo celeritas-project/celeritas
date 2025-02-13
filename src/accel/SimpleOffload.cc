@@ -53,8 +53,7 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
  */
 void SimpleOffload::BeginOfRunAction(G4Run const*)
 {
-    ExceptionConverter call_g4exception{"celer.init"};
-
+    ExceptionConverter call_g4exception{"celer.init.global"};
     if (G4Threading::IsMasterThread())
     {
         CELER_TRY_HANDLE(params_->Initialize(*setup_), call_g4exception);
@@ -73,7 +72,7 @@ void SimpleOffload::BeginOfRunAction(G4Run const*)
     {
         CELER_LOG_LOCAL(status) << "Constructing local state";
         CELER_TRY_HANDLE(local_->Initialize(*setup_, *params_),
-                         call_g4exception);
+                         ExceptionConverter{"celer.init.local"});
     }
 }
 
@@ -87,7 +86,7 @@ void SimpleOffload::BeginOfEventAction(G4Event const* event)
         return;
 
     // Set event ID in local transporter and reseed RNG for reproducibility
-    ExceptionConverter call_g4exception{"celer.event.begin"};
+    ExceptionConverter call_g4exception{"celer.event.init"};
     CELER_TRY_HANDLE(local_->InitializeEvent(event->GetEventID()),
                      call_g4exception);
 }
@@ -141,16 +140,17 @@ void SimpleOffload::EndOfRunAction(G4Run const*)
     CELER_EXPECT(params_);
 
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-    ExceptionConverter call_g4exception{"celer.finalize"};
 
     if (local_)
     {
-        CELER_TRY_HANDLE(local_->Finalize(), call_g4exception);
+        CELER_TRY_HANDLE(local_->Finalize(),
+                         ExceptionConverter{"celer.finalize.local"});
     }
 
     if (G4Threading::IsMasterThread())
     {
-        CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
+        CELER_TRY_HANDLE(params_->Finalize(),
+                         ExceptionConverter{"celer.finalize.global"});
     }
 }
 

@@ -19,6 +19,7 @@
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
+#include "geocel/rasterize/SafetyImager.hh"
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
@@ -74,7 +75,7 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
     EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
     EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
-    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.volumes().at(VolumeId{3}));
+    EXPECT_EQ(Label("World"), geom.volumes().at(VolumeId{3}));
 
     auto const& vol_instances = geom.volume_instances();
     std::vector<std::string> instance_names;
@@ -93,7 +94,7 @@ TEST_F(FourLevelsTest, accessors)
         "env6",
         "env7",
         "env8",
-        "World",
+        "World_PV",
     };
     EXPECT_VEC_EQ(expected_instance_names, instance_names);
 
@@ -112,7 +113,7 @@ TEST_F(FourLevelsTest, consecutive_compute)
 {
     auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ("Shape2", this->volume_name(geo));
     EXPECT_FALSE(geo.is_on_boundary());
 
     auto next = geo.find_next_step(from_cm(10.0));
@@ -121,6 +122,10 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
     EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
 }
 
@@ -132,7 +137,7 @@ TEST_F(FourLevelsTest, detailed_track)
         SCOPED_TRACE("rightward along corner");
         auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ("Shape2", this->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Check for surfaces up to a distance of 4 units away
@@ -150,9 +155,10 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ("Shape2", this->volume_name(geo));
+
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ("Shape1", this->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
         // Find the next boundary and make sure that nearer distances aren't
@@ -169,7 +175,7 @@ TEST_F(FourLevelsTest, detailed_track)
         SCOPED_TRACE("inside out");
         auto geo = this->make_geo_track_view({-23.5, 6.5, 6.5}, {-1, 0, 0});
         EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
+        EXPECT_EQ("World", this->volume_name(geo));
 
         auto next = geo.find_next_step(from_cm(2));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
@@ -367,24 +373,23 @@ TEST_F(FourLevelsTest, safety)
 TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World@0xdeadbeef_PV/env1/Shape1/Shape2",
+    EXPECT_EQ("World_PV/env1/Shape1/Shape2",
               this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World@0xdeadbeef_PV/env1/Shape1",
-              this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1", this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World@0xdeadbeef_PV/env1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1", this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World@0xdeadbeef_PV", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV", this->all_volume_instance_names(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
@@ -437,7 +442,7 @@ TEST_F(SolidsTest, output)
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl@0"]}})json",
             to_string(out));
     }
 }
@@ -920,6 +925,19 @@ TEST_F(CmseTest, trace)
     // clang-format on
 }
 
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({0, 0, 0});
+    inp.upper_right = from_cm({350, 0, 1700});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "g4-cmse-xz-mid.jsonl");
+}
+
 //---------------------------------------------------------------------------//
 class ZnenvTest : public GeantGeoTest
 {
@@ -991,7 +1009,7 @@ TEST_F(MultiLevelTest, accessors)
         "topbox1",
         "topbox2",
         "topbox3",
-        "topsph2",
+        "topbox4",
         "world_PV",
     };
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
@@ -1086,6 +1104,32 @@ TEST_F(MultiLevelTest, DISABLED_level_strings)
         }
         PRINT_EXPECTED(names);
     }
+}
+
+//---------------------------------------------------------------------------//
+class PincellTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override { return "pincell"; }
+};
+
+TEST_F(PincellTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-12, -12, 0});
+    inp.upper_right = from_cm({12, 12, 0});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "g4-pincell-xy-mid.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5.5);
+    write_image(ImageParams{inp}, "g4-pincell-xy-lo.jsonl");
+
+    inp.lower_left = from_cm({-12, 0, -12});
+    inp.upper_right = from_cm({12, 0, 12});
+    write_image(ImageParams{inp}, "g4-pincell-xz-mid.jsonl");
 }
 
 //---------------------------------------------------------------------------//

@@ -8,15 +8,10 @@
 
 #include <vector>
 
-class G4Run;
+#include "IntegrationBase.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-struct SetupOptions;
-class TrackingManager;
-class TrackingManagerIntegration;
-
 //---------------------------------------------------------------------------//
 /*!
  * Simple interface for G4VTrackingManager-based integration.
@@ -25,12 +20,12 @@ class TrackingManagerIntegration;
  * application. To use this class in your Geant4 application to offload tracks
  * to Celeritas:
  *
- * - Set up the \c Options before calling \c G4RunManager::Initialize: usually
- *   in \c main .
- * - Call \c Build and \c BuildForMaster from the corresponding \c
- *   G4UserActionInitialization::Build functions
- * - Call \c BeginOfRunAction and \c EndOfRunAction from the corresponding \c
- * G4UserRunAction
+ * - Use the \c TrackingManagerConstructor class to add the Celeritas tracking
+ *   manager to your physics list.
+ * - Use \c SetOptions to set up options before \c G4RunManager::Initialize:
+ *   usually in \c main for simple applications.
+ * - Call \c Build and \c BuildForMaster from \c UserActionInitialization
+ * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
  *
  * The \c CELER_DISABLE environment variable, if set and non-empty, will
  * disable offloading so that Celeritas will not be built nor kill tracks.
@@ -40,26 +35,14 @@ class TrackingManagerIntegration;
  *
  * \todo Provide default minimal action initialization classes for user
  */
-class TrackingManagerIntegration
+class TrackingManagerIntegration final : public IntegrationBase
 {
   public:
     // Access the public-facing integration singleton
     static TrackingManagerIntegration& Instance();
 
-    // Edit options before starting the run
-    SetupOptions& Options();
-
-    // Initialize during ActionInitialization on non-worker thread
-    void BuildForMaster();
-
-    // Initialize during ActionInitialization
-    void Build();
-
     // Start the run
-    void BeginOfRunAction(G4Run const* run);
-
-    // End the run
-    void EndOfRunAction(G4Run const* run);
+    void BeginOfRunAction(G4Run const* run) final;
 
   private:
     // Tracking manager can only be created privately

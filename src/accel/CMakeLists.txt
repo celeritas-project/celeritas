@@ -13,15 +13,18 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
 
 list(APPEND SOURCES
   AlongStepFactory.cc
+  FastSimulationIntegration.cc
   FastSimulationModel.cc
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
+  IntegrationBase.cc
   Logger.cc
   LocalTransporter.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
+  UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
   detail/HitManagerOutput.cc

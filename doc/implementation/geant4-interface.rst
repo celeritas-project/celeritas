@@ -14,8 +14,15 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
 
 .. _api_accel_high_level:
 
-High-level interface
---------------------
+High level interfaces
+---------------------
+
+.. doxygenclass:: celeritas::IntegrationBase
+   :members:
+   :no-link:
+
+Tracking manager
+^^^^^^^^^^^^^^^^
 
 Using Celeritas to "offload" all electrons, photons, and gammas from Geant4 can
 be done using the new-ish Geant4 interface :cpp:class:`G4VTrackingManager`
@@ -30,15 +37,30 @@ See :ref:`example_template` for a template of adding to a user application.
 
 .. doxygenclass:: celeritas::TrackingManagerIntegration
    :members:
-   :no-link:
+
+Fast simulation
+^^^^^^^^^^^^^^^
+
+It is currently *not* recommended to offload tracks on a per-region basis, since
+tracks exiting that region remain in Celeritas and on GPU.
+
+.. doxygenclass:: celeritas::FastSimulationModel
+
+.. doxygenclass:: celeritas::FastSimulationIntegration
+   :members:
+
+User action
+^^^^^^^^^^^
+
+For compatibility with older versions of Geant4, you may use the following
+class to integrate Celeritas by manually intercepting tracks with a
+``UserTrackingAction``.
+
+.. doxygenclass:: celeritas::UserActionIntegration
+   :members:
 
 
-The :cpp:class:`SetupOptionsMessenger`, instantiated by the Integration helper
-classes, provides a Geant4 "UI" macro interface to an app's Celeritas options.
-
-.. doxygenclass:: celeritas::SetupOptionsMessenger
-
-The :cpp:class:`celeritas::SimpleOffload` class is an extremely easy-to-use
+The :cpp:class:`celeritas::SimpleOffload` class is a slightly lower level
 interface for
 offloading tracks to Celeritas in a multithreaded or serial application. The
 class names correspond to user actions and ``ActionInitialization``. It
@@ -91,6 +113,13 @@ compatible with Celeritas), the Celeritas setup will fail with an error like:
 
 .. doxygenclass:: celeritas::RZMapFieldAlongStepFactory
 
+
+The :cpp:class:`SetupOptionsMessenger`, instantiated automatically by the
+Integration helper classes, provides a Geant4 "UI" macro interface to many of
+the options.
+
+.. doxygenclass:: celeritas::SetupOptionsMessenger
+
 Detailed interface
 ------------------
 
@@ -139,7 +168,7 @@ This subsection contains details of importing Geant4 data into Celeritas.
 Geant4 geometry utilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: celeritas::load_geant_geometry
+.. doxygenfunction:: celeritas::load_geant_geometry_native
 .. doxygenfunction:: celeritas::find_geant_volumes
 
 Geant4 physics interfaces

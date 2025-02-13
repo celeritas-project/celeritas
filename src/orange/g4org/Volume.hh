@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/io/Label.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -35,7 +36,7 @@ struct LogicalVolume;
  */
 struct PhysicalVolume
 {
-    std::string name;
+    Label label;
     size_type copy_number{};
     VariantTransform transform;
     std::shared_ptr<LogicalVolume const> lv;
@@ -55,8 +56,8 @@ struct LogicalVolume
     //! Associated Geant4 logical volume
     G4LogicalVolume const* g4lv{nullptr};
 
-    //! Logical volume name
-    std::string name;
+    //! Logical volume name and optional uniquifying extension
+    Label label;
     //! Filled material ID
     GeoMaterialId material_id;
 

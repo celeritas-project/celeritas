@@ -8,7 +8,6 @@
 
 #include <memory>
 #include <G4ParticleDefinition.hh>
-#include <G4Run.hh>
 #include <G4Threading.hh>
 
 #include "corecel/io/Join.hh"
@@ -26,7 +25,6 @@ namespace celeritas
 {
 namespace
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Check actual versus expected offloading.
@@ -134,48 +132,6 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Edit options before starting the run.
- */
-SetupOptions& TrackingManagerIntegration::Options()
-{
-    return detail::IntegrationSingleton::instance().setup_options();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize during ActionInitialization on non-worker thread in MT mode.
- */
-void TrackingManagerIntegration::BuildForMaster()
-{
-    CELER_VALIDATE(
-        G4Threading::IsMasterThread()
-            && G4Threading::IsMultithreadedApplication(),
-        << R"(BuildForMaster called from a worker thread or non-MT code)");
-
-    detail::IntegrationSingleton::instance().initialize_logger();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize during ActionInitialization on a worker thread or serial mode.
- *
- * We guard against \c Build being called from \c BuildForMaster since we might
- * add worker-specific code here.
- */
-void TrackingManagerIntegration::Build()
-{
-    if (G4Threading::IsMasterThread())
-    {
-        CELER_VALIDATE(!G4Threading::IsMultithreadedApplication(),
-                       << "cannot call Integration::Build from worker thread "
-                          "in a multithreaded application");
-
-        detail::IntegrationSingleton::instance().initialize_logger();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Start the run, initializing Celeritas options.
  */
 void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
@@ -201,25 +157,6 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
                 singleton.shared_params(),
                 singleton.local_transporter()),
             ExceptionConverter{"celer.init.verify"});
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * End the run.
- */
-void TrackingManagerIntegration::EndOfRunAction(G4Run const*)
-{
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-
-    auto& singleton = detail::IntegrationSingleton::instance();
-
-    // Remove local transporter
-    singleton.finalize_local_transporter();
-
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.finalize_shared_params();
     }
 }
 
