@@ -23,6 +23,8 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
+#include "../FourLevelsGeoTest.hh"
+#include "../GenericGeoParameterizedTest.hh"
 #include "../MultiLevelGeoTest.hh"
 
 namespace celeritas
@@ -57,55 +59,12 @@ class GeantGeoTest : public GeantGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-class FourLevelsTest : public GeantGeoTest
-{
-    std::string geometry_basename() const override { return "four-levels"; }
-};
+using FourLevelsTest
+    = GenericGeoParameterizedTest<GeantGeoTest, FourLevelsGeoTest>;
 
 TEST_F(FourLevelsTest, accessors)
 {
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(4, geom.max_depth());
-
-    auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-24., -24., -24.}), to_cm(bbox.lower()));
-    EXPECT_VEC_SOFT_EQ((Real3{24., 24., 24.}), to_cm(bbox.upper()));
-
-    ASSERT_EQ(4, geom.volumes().size());
-    EXPECT_EQ("Shape2", geom.volumes().at(VolumeId{0}).name);
-    EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
-    EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
-    EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
-    EXPECT_EQ(Label("World"), geom.volumes().at(VolumeId{3}));
-
-    auto const& vol_instances = geom.volume_instances();
-    std::vector<std::string> instance_names;
-    for (auto viid : range(VolumeInstanceId{vol_instances.size()}))
-    {
-        instance_names.push_back(vol_instances.at(viid).name);
-    }
-    static char const* const expected_instance_names[] = {
-        "Shape2",
-        "Shape1",
-        "env1",
-        "env2",
-        "env3",
-        "env4",
-        "env5",
-        "env6",
-        "env7",
-        "env8",
-        "World_PV",
-    };
-    EXPECT_VEC_EQ(expected_instance_names, instance_names);
-
-    auto const* lv = geom.id_to_lv(VolumeId{2});
-    ASSERT_TRUE(lv);
-    EXPECT_EQ("Envelope", lv->GetName());
-
-    auto const* pv = geom.id_to_pv(VolumeInstanceId{2});
-    ASSERT_TRUE(pv);
-    EXPECT_EQ("Envelope", lv->GetName());
+    this->impl().test_accessors();
 }
 
 //---------------------------------------------------------------------------//
@@ -242,84 +201,9 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(FourLevelsTest, tracking)
+TEST_F(FourLevelsTest, trace)
 {
-    constexpr real_type safety_tol{1e-10};
-    {
-        SCOPED_TRACE("Rightward");
-        auto result = this->track({-10, -10, -10}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {"Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {2.5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
-    }
-    {
-        SCOPED_TRACE("From just inside outside edge");
-        auto result = this->track({-24 + 0.001, 10., 10.}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {"World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {7 - 0.001, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {3.4995, 0.5, 0.5, 5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
-    }
-    {
-        SCOPED_TRACE("Leaving world");
-        auto result = this->track({-10, 10, 10}, {0, 1, 0});
-
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 2, 6};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {2.5, 0.5, 1, 3};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
-    }
-    {
-        SCOPED_TRACE("Upward");
-        auto result = this->track({-10, 10, 10}, {0, 0, 1});
-
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 3, 5};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {2.5, 0.5, 1.5, 2.5};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
-    }
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
@@ -342,30 +226,34 @@ TEST_F(FourLevelsTest, safety)
         }
     }
 
-    static double const expected_safeties[] = {2.9,
-                                               0.9,
-                                               0.1,
-                                               1.7549981495186,
-                                               1.7091034656191,
-                                               4.8267949192431,
-                                               1.3626933041054,
-                                               1.9,
-                                               0.1,
-                                               1.1,
-                                               3.1};
+    static double const expected_safeties[] = {
+        2.9,
+        0.9,
+        0.1,
+        1.7549981495186,
+        1.7091034656191,
+        4.8267949192431,
+        1.3626933041054,
+        1.9,
+        0.1,
+        1.1,
+        3.1,
+    };
     EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
 
-    static double const expected_lim_safeties[] = {2.9,
-                                                   0.9,
-                                                   0.1,
-                                                   1.7549981495186,
-                                                   1.7091034656191,
-                                                   4.8267949192431,
-                                                   1.3626933041054,
-                                                   1.9,
-                                                   0.1,
-                                                   1.1,
-                                                   3.1};
+    static double const expected_lim_safeties[] = {
+        2.9,
+        0.9,
+        0.1,
+        1.7549981495186,
+        1.7091034656191,
+        4.8267949192431,
+        1.3626933041054,
+        1.9,
+        0.1,
+        1.1,
+        3.1,
+    };
     EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 
@@ -968,25 +856,17 @@ TEST_F(ZnenvTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-class MultiLevelTest : public GeantGeoTest
-{
-  public:
-    using TestImpl = MultiLevelGeoTest;
-
-    std::string geometry_basename() const override
-    {
-        return std::string{TestImpl::geometry_basename()};
-    }
-};
+using MultiLevelTest
+    = GenericGeoParameterizedTest<GeantGeoTest, MultiLevelGeoTest>;
 
 TEST_F(MultiLevelTest, accessors)
 {
-    TestImpl(this).test_accessors();
+    this->impl().test_accessors();
 }
 
 TEST_F(MultiLevelTest, trace)
 {
-    TestImpl(this).test_trace();
+    this->impl().test_trace();
 }
 
 TEST_F(MultiLevelTest, DISABLED_level_strings)

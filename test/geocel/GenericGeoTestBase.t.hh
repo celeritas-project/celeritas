@@ -44,20 +44,6 @@ auto GenericGeoTestBase<HP>::build_geometry() -> SPConstGeo
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Get the basename or unique geometry key (defaults to suite name).
- */
-template<class HP>
-auto GenericGeoTestBase<HP>::geometry_basename() const -> std::string
-{
-    // Get filename based on unit test name
-    ::testing::TestInfo const* const test_info
-        = ::testing::UnitTest::GetInstance()->current_test_info();
-    CELER_ASSERT(test_info);
-    return test_info->test_case_name();
-}
-
-//---------------------------------------------------------------------------//
 //
 template<class HP>
 auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
@@ -76,7 +62,7 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
     if (!geo_)
     {
         std::string key = this->geometry_basename() + "/"
-                          + std::string{TraitsT::name};
+                          + std::string{this->geometry_type()};
         // Construct via LazyGeoManager
         auto geo = this->get_geometry(key);
         EXPECT_TRUE(geo);

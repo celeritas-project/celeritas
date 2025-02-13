@@ -56,9 +56,6 @@ class GenericGeoTestBase : virtual public Test,
     // Build the geometry (default to from_basename)
     virtual SPConstGeo build_geometry();
 
-    // Get the basename or unique geometry key (defaults to suite name)
-    virtual std::string geometry_basename() const;
-
     //! Maximum number of local track slots
     virtual size_type num_track_slots() const { return 1; }
 

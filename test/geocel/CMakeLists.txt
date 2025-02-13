@@ -28,6 +28,7 @@ set(SOURCES
   LazyGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoTestInterface.cc
+  FourLevelsGeoTest.cc
   MultiLevelGeoTest.cc
 )
 

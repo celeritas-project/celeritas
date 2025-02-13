@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
+#include <gtest/gtest.h>
+
 #include "corecel/Config.hh"
 
 #include "corecel/io/Repr.hh"
@@ -43,6 +45,19 @@ void GenericGeoTrackingResult::print_expected()
         << ";\n"
            "EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);\n"
            "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the basename or unique geometry key (defaults to suite name).
+ */
+auto GenericGeoTestInterface::geometry_basename() const -> std::string
+{
+    // Get filename based on unit test name
+    ::testing::TestInfo const* const test_info
+        = ::testing::UnitTest::GetInstance()->current_test_info();
+    CELER_ASSERT(test_info);
+    return test_info->test_case_name();
 }
 
 //---------------------------------------------------------------------------//

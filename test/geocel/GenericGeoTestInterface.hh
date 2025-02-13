@@ -59,6 +59,9 @@ class GenericGeoTestInterface
     //! Access the geometry interface, building if needed
     virtual SPConstGeoInterface geometry_interface() const = 0;
 
+    // Get the basename or unique geometry key (defaults to suite name)
+    virtual std::string geometry_basename() const;
+
     //! Ignore the first N VolumeId due to global int shenanigans
     virtual VolumeId::size_type volume_offset() const { return 0; }
 
