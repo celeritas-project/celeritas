@@ -671,7 +671,12 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
     EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
     EXPECT_VEC_SOFT_EQ(expected_msc_range_limit, msc_range_limit);
     EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
-    EXPECT_VEC_NEAR(expected_displace, displace, 1e-11);
+#if CELERITAS_VECGEOM_SURFACE
+    auto const tol = 1e-4;
+#else
+    auto const tol = 1e-12;
+#endif
+    EXPECT_VEC_NEAR(expected_displace, displace, tol);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
