@@ -171,7 +171,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
-    ++accum_num_events_;
+    ++run_accum_.events;
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -221,7 +221,7 @@ void LocalTransporter::Push(G4Track const& g4track)
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
-    buffer_energy_ += track.energy.value();
+    buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
         /*!
@@ -268,7 +268,8 @@ void LocalTransporter::Flush()
     {
         CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
-            << buffer_energy_ << " MeV cumulative kinetic energy) from event "
+            << buffer_accum_.energy
+            << " MeV cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
     }
 
@@ -289,11 +290,11 @@ void LocalTransporter::Flush()
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
-    accum_num_steps_ += track_counts.active;
-    accum_num_primaries_ += buffer_.size();
+    run_accum_.steps += track_counts.active;
+    run_accum_.primaries += buffer_.size();
 
     buffer_.clear();
-    buffer_energy_ = 0;
+    buffer_accum_ = {};
 
     size_type step_iters = 1;
 
@@ -306,7 +307,7 @@ void LocalTransporter::Flush()
                                       *step_);
 
         track_counts = (*step_)();
-        accum_num_steps_ += track_counts.active;
+        run_accum_.steps += track_counts.active;
         ++step_iters;
 
         CELER_VALIDATE_OR_KILL_ACTIVE(
@@ -328,9 +329,9 @@ void LocalTransporter::Finalize()
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
 
-    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum_num_steps_
-                          << " steps from " << accum_num_primaries_
-                          << " offloaded tracks over " << accum_num_events_
+    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << run_accum_.steps
+                          << " steps from " << run_accum_.primaries
+                          << " offloaded tracks over " << run_accum_.events
                           << " events";
 
     if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
