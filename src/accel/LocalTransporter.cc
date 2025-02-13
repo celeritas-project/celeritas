@@ -293,7 +293,7 @@ void LocalTransporter::Flush()
     }
     if (buffer_accum_.lost_primaries > 0)
     {
-        CELER_LOG_LOCAL(warning)
+        CELER_LOG_LOCAL(info)
             << "Lost " << buffer_accum_.lost_energy
             << " MeV cumulative kinetic energy from "
             << buffer_accum_.lost_primaries
@@ -320,6 +320,7 @@ void LocalTransporter::Flush()
     auto track_counts = (*step_)(make_span(buffer_));
     run_accum_.steps += track_counts.active;
     run_accum_.primaries += buffer_.size();
+    run_accum_.lost_primaries += buffer_accum_.lost_primaries;
 
     buffer_.clear();
     buffer_accum_ = {};
@@ -361,6 +362,12 @@ void LocalTransporter::Finalize()
                           << " steps from " << run_accum_.primaries
                           << " offloaded tracks over " << run_accum_.events
                           << " events";
+    if (run_accum_.lost_primaries > 0)
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Lost a total of " << run_accum_.lost_primaries
+            << " primaries that started outside the world";
+    }
 
     if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
     {
