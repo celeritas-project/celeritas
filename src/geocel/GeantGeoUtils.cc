@@ -40,7 +40,6 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "orange/g4org/Converter.hh"
 
-#include "GeantGdmlLoader.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 #include "g4/VisitVolumes.hh"
@@ -60,6 +59,47 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Load a gdml input file, creating a pointer owned by Geant4.
+ *
+ * Geant4's constructors for physical/logical volumes register \c this pointers
+ * in a vector which is cleaned up manually. Yuck.
+ *
+ * \return the world volume
+ */
+G4VPhysicalVolume*
+load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
+{
+    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
+
+    if (!G4Threading::IsMasterThread())
+    {
+        // Always-on debug assertion (not a "runtime" error but a
+        // subtle programming logic error that always causes a crash)
+        CELER_DEBUG_FAIL(
+            "Geant4 geometry cannot be loaded from a worker thread", internal);
+    }
+
+    ScopedMem record_mem("load_geant_geometry");
+    ScopedTimeLog scoped_time;
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
+
+    G4GDMLParser gdml_parser;
+    // Note that material and element names (at least as
+    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
+    // their extension.
+    gdml_parser.SetStripFlag(strip_pointer_ext);
+
+    gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
+
+    G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
+    CELER_ENSURE(result);
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Free all pointers in a table.
@@ -142,7 +182,7 @@ std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
  */
 G4VPhysicalVolume* load_geant_geometry_native(std::string const& filename)
 {
-    return GeantGdmlLoader()(filename).world;
+    return load_geant_geometry_impl(filename, true);
 }
 
 //---------------------------------------------------------------------------//

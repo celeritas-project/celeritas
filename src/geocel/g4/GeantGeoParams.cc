@@ -80,8 +80,8 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
     loaded_gdml_ = true;
 
     // NOTE: only instantiate the logger/exception handler *after* loading
-    // Geant4 geometry, since the UI manager in the GDML parser's call chain
-    // resets the Geant logger.
+    // Geant4 geometry, since something in the GDML parser's call chain resets
+    // the Geant logger.
     scoped_logger_ = std::make_unique<ScopedGeantLogger>();
     scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
 
