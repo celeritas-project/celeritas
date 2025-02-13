@@ -268,8 +268,11 @@ void Device::create_streams(unsigned int num_streams) const
  */
 void Device::destroy_streams() const
 {
-    CELER_LOG(debug) << "Destroying streams";
-    *streams_ = {};
+    if (streams_)
+    {
+        CELER_LOG(debug) << "Destroying streams";
+        *streams_ = {};
+    }
 }
 
 //---------------------------------------------------------------------------//
