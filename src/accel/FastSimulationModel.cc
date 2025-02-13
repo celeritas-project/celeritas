@@ -100,7 +100,6 @@ G4bool FastSimulationModel::ModelTrigger(G4FastTrack const& /*track*/)
 void FastSimulationModel::DoIt(G4FastTrack const& track, G4FastStep& step)
 {
     CELER_EXPECT(track.GetPrimaryTrack());
-    CELER_EXPECT(*transport_);
 
     // Offload this track to Celeritas for transport
     if (*transport_)
