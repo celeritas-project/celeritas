@@ -14,6 +14,8 @@
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 namespace test
@@ -51,6 +53,9 @@ class GenericGeoTestInterface
         = 0;
     //!@}
 
+    //! Get the label for this geometry: Geant4, VecGeom, ORANGE
+    virtual std::string_view geometry_type() const = 0;
+
     //! Access the geometry interface, building if needed
     virtual SPConstGeoInterface geometry_interface() const = 0;
 
@@ -63,11 +68,17 @@ class GenericGeoTestInterface
     //! Unit length for "track" testing and other results
     virtual Constant unit_length() const { return lengthunits::centimeter; }
 
+    //! Access the loaded geant4 world (if one exists)
+    virtual G4VPhysicalVolume const* g4world() const { return nullptr; }
+
     // Get all logical volume names
     std::vector<std::string> get_volume_names() const;
 
     // Get all physical volume names
     std::vector<std::string> get_volume_instance_names() const;
+
+    // Get mapped Geant4 physical volume names
+    std::vector<std::string> get_g4pv_names() const;
 
     // Get the volume name, adjusting for offsets from loading multiple geo
     std::string_view get_volume_name(VolumeId i) const;

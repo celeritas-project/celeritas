@@ -6,7 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/Repr.hh"
+#include "geocel/GeantGeoUtils.hh"
+
+#if CELERITAS_USE_GEANT4
+#    include <G4VPhysicalVolume.hh>
+#endif
 
 namespace celeritas
 {
@@ -69,6 +76,53 @@ GenericGeoTestInterface::get_volume_instance_names() const
         result.push_back(vol_inst.at(VolumeInstanceId{vidx}).name);
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get all Geant4 PV names corresponding to volume instances.
+ */
+std::vector<std::string> GenericGeoTestInterface::get_g4pv_names() const
+{
+    auto* world = this->g4world();
+    CELER_VALIDATE(world,
+                   << "cannot get g4pv names from " << this->geometry_type()
+                   << " geometry: Geant4 world has not been set");
+
+#if CELERITAS_USE_GEANT4
+    auto pv_labels = make_physical_vol_labels(*world);
+
+    auto& geo = *this->geometry_interface();
+    auto const& vol_inst = geo.volume_instances();
+
+    std::vector<std::string> result;
+    for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
+    {
+        result.push_back([&] {
+            using namespace std::literals;
+
+            G4VPhysicalVolume const* pv = geo.id_to_pv(VolumeInstanceId{vidx});
+            if (!pv)
+            {
+                return "<null>"s;
+            }
+            auto id = static_cast<std::size_t>(pv->GetInstanceID());
+            if (id >= pv_labels.size())
+            {
+                return "<out of range: "s + pv->GetName() + ">"s;
+            }
+            auto const& label = pv_labels[id];
+            if (label.empty())
+            {
+                return "<not visited: "s + pv->GetName() + ">"s;
+            }
+            return to_string(label);
+        }());
+    }
+    return result;
+#else
+    CELER_NOT_CONFIGURED("Geant4");
+#endif
 }
 
 //---------------------------------------------------------------------------//

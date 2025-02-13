@@ -85,6 +85,8 @@ class GenericGeoTestBase : virtual public Test,
 
     //// GenericGeoTestInterface ////
 
+    // Get the label for this geometry: Geant4, VecGeom, ORANGE
+    std::string_view geometry_type() const final;
     // Access the geometry interface, building if needed
     SPConstGeoInterface geometry_interface() const final;
     // Find linear segments until outside

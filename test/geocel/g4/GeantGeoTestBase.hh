@@ -31,6 +31,12 @@ class GeantGeoTestBase : public GenericGeoTestBase<GeantGeoParams>
     {
         return this->geometry()->pv_offset();
     }
+
+    //! Get the world volume
+    G4VPhysicalVolume const* g4world() const final
+    {
+        return this->geometry()->world();
+    }
 };
 
 //---------------------------------------------------------------------------//

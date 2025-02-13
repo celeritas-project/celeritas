@@ -309,6 +309,16 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the label for this geometry: Geant4, VecGeom, ORANGE.
+ */
+template<class HP>
+std::string_view GenericGeoTestBase<HP>::geometry_type() const
+{
+    return TraitsT::name;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access the geometry interface, building if needed.
  */
 template<class HP>

@@ -127,7 +127,9 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
         return GeantVolResult::from_pointers(*this->geometry(), world_volume_);
     }
 
-    virtual SpanStringView expected_log_levels() const { return {}; }
+    SpanStringView expected_log_levels() const override { return {}; }
+
+    G4VPhysicalVolume const* g4world() const final { return world_volume_; }
 
   protected:
     // Note that this is static because the geometry may be loaded
@@ -1235,6 +1237,29 @@ TEST_F(MultiLevelGeantTest, accessors)
     EXPECT_VEC_EQ(expected_vol_names, this->get_volume_names());
 
     // NOTE: pv ordering differs from VGDML and G4
+    static char const* const expected_vol_inst_names[] = {
+        "topsph1",
+        "boxsph1",
+        "boxsph2",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topbox4",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_names, this->get_volume_instance_names());
+
+    static char const* const expected_pv_names[] = {
+        "topsph1",
+        "boxsph1",
+        "boxsph2",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topbox4",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_pv_names, this->get_g4pv_names());
 }
 
 TEST_F(MultiLevelGeantTest, trace)
