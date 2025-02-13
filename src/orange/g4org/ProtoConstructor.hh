@@ -45,7 +45,7 @@ class ProtoConstructor
     explicit ProtoConstructor(bool verbose) : verbose_{verbose} {}
 
     // Construct a proto from a logical volume
-    SPUnitProto operator()(LogicalVolume const& pv);
+    SPUnitProto operator()(LogicalVolume const& lv);
 
   private:
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;

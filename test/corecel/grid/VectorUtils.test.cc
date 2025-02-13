@@ -84,19 +84,47 @@ TEST(VectorUtils, logspace)
 
 //---------------------------------------------------------------------------//
 
+TEST(VectorUtils, monotonic_nondecreasing)
+{
+    {
+        std::vector<real_type> v{2, 4, 8, 16, 32};
+        EXPECT_TRUE(is_monotonic_nondecreasing(make_span(v)));
+    }
+    {
+        std::vector<real_type> v{10, 100, 1000, 1000};
+        EXPECT_TRUE(is_monotonic_nondecreasing(make_span(v)));
+    }
+    {
+        std::vector<real_type> v{10, 100, 1000, 100};
+        EXPECT_FALSE(is_monotonic_nondecreasing(make_span(v)));
+    }
+}
+
 TEST(VectorUtils, monotonic_increasing)
 {
     {
-        std::vector<double> v{2, 4, 8, 16, 32};
+        std::vector<real_type> v{2, 4, 8, 16, 32};
         EXPECT_TRUE(is_monotonic_increasing(make_span(v)));
     }
     {
-        std::vector<double> v{10, 100, 1000, 1000};
+        std::vector<real_type> v{10, 100, 1000, 1000};
         EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
     }
     {
-        std::vector<double> v{1e-16, 0, 1, 2};
+        std::vector<real_type> v{1e-16, 0, 1, 2};
         EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
+    }
+}
+
+TEST(VectorUtils, has_log_spacing)
+{
+    {
+        std::vector<real_type> const v{1e1, 1e2, 1e3, 1e4};
+        EXPECT_TRUE(has_log_spacing(make_span(v)));
+    }
+    {
+        std::vector<real_type> const v{1e1, 1e2, 1e3, 1e5};
+        EXPECT_FALSE(has_log_spacing(make_span(v)));
     }
 }
 

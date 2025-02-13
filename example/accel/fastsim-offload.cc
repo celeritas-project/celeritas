@@ -161,12 +161,6 @@ celeritas::SetupOptions MakeOptions()
     opts.initializer_capacity = 1024 * 128;
     // Celeritas does not support EmStandard MSC physics above 100 MeV
     opts.ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
-        // consistent
-        opts.ignore_processes.push_back("Rayl");
-    }
 
     // NOTE: since no SD is enabled, we must manually disable Celeritas hit
     // processing

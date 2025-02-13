@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/VisitGeantVolumes.test.cc
+//! \file geocel/g4/VisitVolumes.test.cc
 //---------------------------------------------------------------------------//
-#include "geocel/g4/VisitGeantVolumes.hh"
+#include "geocel/g4/VisitVolumes.hh"
 
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@ struct LogicalVisitor
     std::vector<std::string> names;
     void operator()(G4LogicalVolume const& lv)
     {
-        names.push_back(Label::from_geant(lv.GetName()).name);
+        names.push_back(lv.GetName());
     }
 };
 
@@ -38,7 +38,7 @@ struct PhysicalVisitor
     bool operator()(G4VPhysicalVolume const& pv, int depth)
     {
         std::ostringstream os;
-        os << depth << ':' << Label::from_geant(pv.GetName()).name;
+        os << depth << ':' << pv.GetName();
         names.push_back(std::move(os).str());
         return true;
     }
@@ -91,7 +91,7 @@ class FourLevelsTest : public VisitGeantVolumesTest
 TEST_F(FourLevelsTest, logical)
 {
     LogicalVisitor visit;
-    visit_geant_volumes(visit, *this->geometry()->world());
+    visit_volumes(visit, *this->geometry()->world());
 
     static char const* const expected_names[]
         = {"World", "Envelope", "Shape1", "Shape2"};
@@ -103,14 +103,14 @@ TEST_F(FourLevelsTest, logical)
 TEST_F(FourLevelsTest, physical)
 {
     PhysicalVisitor visit;
-    visit_geant_volume_instances(visit, *this->geometry()->world());
+    visit_volume_instances(visit, *this->geometry()->world());
 
     static char const* const expected_names[] = {
-        "0:World",  "1:env1",   "2:Shape1", "3:Shape2", "1:env2",
-        "2:Shape1", "3:Shape2", "1:env3",   "2:Shape1", "3:Shape2",
-        "1:env4",   "2:Shape1", "3:Shape2", "1:env5",   "2:Shape1",
-        "3:Shape2", "1:env6",   "2:Shape1", "3:Shape2", "1:env7",
-        "2:Shape1", "3:Shape2", "1:env8",   "2:Shape1", "3:Shape2",
+        "0:World_PV", "1:env1",   "2:Shape1", "3:Shape2", "1:env2",
+        "2:Shape1",   "3:Shape2", "1:env3",   "2:Shape1", "3:Shape2",
+        "1:env4",     "2:Shape1", "3:Shape2", "1:env5",   "2:Shape1",
+        "3:Shape2",   "1:env6",   "2:Shape1", "3:Shape2", "1:env7",
+        "2:Shape1",   "3:Shape2", "1:env8",   "2:Shape1", "3:Shape2",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
@@ -126,7 +126,7 @@ class MultiLevelTest : public VisitGeantVolumesTest
 TEST_F(MultiLevelTest, logical)
 {
     LogicalVisitor visit;
-    visit_geant_volumes(visit, *this->geometry()->world());
+    visit_volumes(visit, *this->geometry()->world());
 
     static char const* const expected_names[] = {"world", "sph", "box"};
     EXPECT_VEC_EQ(expected_names, visit.names);
@@ -137,7 +137,7 @@ TEST_F(MultiLevelTest, logical)
 TEST_F(MultiLevelTest, physical)
 {
     PhysicalVisitor visit;
-    visit_geant_volume_instances(visit, *this->geometry()->world());
+    visit_volume_instances(visit, *this->geometry()->world());
 
     static char const* const expected_names[] = {
         "0:world_PV",
@@ -151,22 +151,24 @@ TEST_F(MultiLevelTest, physical)
         "1:topbox3",
         "2:boxsph1",
         "2:boxsph2",
-        "1:topsph2",
+        "1:topbox4",
         "2:boxsph1",
         "2:boxsph2",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
 
     MaxPhysicalVisitor visit_max;
-    visit_geant_volume_instances(visit_max, *this->geometry()->world());
-    static std::string const expected_max_names[] = {"0:world_PV",
-                                                     "1:topsph1",
-                                                     "1:topbox1",
-                                                     "2:boxsph1",
-                                                     "2:boxsph2",
-                                                     "1:topbox2",
-                                                     "1:topbox3",
-                                                     "1:topsph2"};
+    visit_volume_instances(visit_max, *this->geometry()->world());
+    static std::string const expected_max_names[] = {
+        "0:world_PV",
+        "1:topsph1",
+        "1:topbox1",
+        "2:boxsph1",
+        "2:boxsph2",
+        "1:topbox2",
+        "1:topbox3",
+        "1:topbox4",
+    };
     EXPECT_VEC_EQ(expected_max_names, visit_max.names);
 }
 

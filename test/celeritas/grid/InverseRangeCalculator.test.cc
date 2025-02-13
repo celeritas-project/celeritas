@@ -25,18 +25,11 @@ class InverseRangeCalculatorTest : public CalculatorTestBase
     void SetUp() override
     {
         // Energy from 1e1 to 1e4 MeV with 3 bins (4 points)
-        this->build(10, 1e4, 4);
-
-        // InverseRange is 1/20 of energy
-        auto value_span = this->mutable_values();
-        for (real_type& xs : value_span)
-        {
-            xs *= .05;
-        }
-
-        // Adjust final point for roundoff for exact top-of-range testing
-        CELER_ASSERT(soft_equal(real_type(500), value_span.back()));
-        value_span.back() = 500;
+        GridInput grid;
+        grid.emin = 10;
+        grid.emax = 1e4;
+        grid.value = VecReal{0.5, 5, 50, 500};
+        this->build(grid);
     }
 };
 

@@ -9,8 +9,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 
-#include "EnergyLossCalculator.hh"
-#include "SplineXsCalculator.hh"
+#include "UniformLogGridCalculator.hh"
 
 namespace celeritas
 {
@@ -32,16 +31,14 @@ RangeGridCalculator::RangeGridCalculator(BC bc) : bc_(bc) {}
  *
  * This assumes the same log energy grid is used for range and energy loss.
  */
-auto RangeGridCalculator::operator()(XsGridData const& orig_data,
+auto RangeGridCalculator::operator()(UniformGridRecord const& orig_data,
                                      Values const& orig_reals) const -> VecReal
 {
     using HostValues = Collection<real_type, Ownership::value, MemSpace::host>;
 
-    CELER_EXPECT(orig_data.prime_index == XsGridData::no_scaling());
-
     HostValues host_reals;
     Values reals;
-    XsGridData data;
+    UniformGridRecord data;
 
     auto calc_dedx = [&] {
         if (orig_data.value.size() < 5 || bc_ == BC::size_)
@@ -49,7 +46,7 @@ auto RangeGridCalculator::operator()(XsGridData const& orig_data,
             // Use linear interpolation
             data = orig_data;
             data.derivative = {};
-            return EnergyLossCalculator(data, orig_reals);
+            return UniformLogGridCalculator(data, orig_reals);
         }
         else if (orig_data.derivative.empty())
         {
@@ -58,18 +55,18 @@ auto RangeGridCalculator::operator()(XsGridData const& orig_data,
 
             // Create a copy of the grid data with the derivatives
             CollectionBuilder build(&host_reals);
-            data.log_energy = orig_data.log_energy;
+            data.grid = orig_data.grid;
             data.value = build.insert_back(orig_reals[orig_data.value].begin(),
                                            orig_reals[orig_data.value].end());
             data.derivative = build.insert_back(deriv.begin(), deriv.end());
             reals = host_reals;
-            return EnergyLossCalculator(data, reals);
+            return UniformLogGridCalculator(data, reals);
         }
         // The derivatives have already been calculated
-        return EnergyLossCalculator(orig_data, orig_reals);
+        return UniformLogGridCalculator(orig_data, orig_reals);
     }();
 
-    UniformGrid loge_grid(orig_data.log_energy);
+    UniformGrid loge_grid(orig_data.grid);
     VecReal result(loge_grid.size());
 
     constexpr real_type delta

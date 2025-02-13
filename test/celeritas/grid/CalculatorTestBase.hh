@@ -6,12 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
+#include <vector>
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/grid/SplineDerivCalculator.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
 
 #include "Test.hh"
@@ -34,42 +34,37 @@ class CalculatorTestBase : public Test
     using Data
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
     using SpanReal = Span<real_type>;
-    using XsFunc = std::function<real_type(real_type)>;
-    using Real2 = Array<real_type, 2>;
+    using VecReal = std::vector<real_type>;
     //!@}
+
+    struct GridInput
+    {
+        real_type emin{0};
+        real_type emax{0};
+        VecReal value;
+        size_type spline_order{1};
+    };
 
   public:
-    //!@{
-    //! Deprecated: use the "build" (with function) and "convert_to_prime"
-    // Construct linear cross sections
-    void build(real_type emin, real_type emax, size_type count);
-    void set_prime_index(size_type i);
-    SpanReal mutable_values();
-    //!@}
+    // Construct from grid bounds and cross section values
+    void build(GridInput grid, GridInput grid_scaled);
+    void build_spline(GridInput grid, GridInput grid_scaled, BC bc);
 
-    // Construct from an arbitrary function
-    void build(Real2 bounds, size_type count, XsFunc calc_xs)
-    {
-        return this->build_impl(bounds, count, std::move(calc_xs), BC::size_);
-    }
-    void build_spline(Real2 bounds, size_type count, XsFunc calc_xs, BC bc)
-    {
-        CELER_EXPECT(bc != BC::size_);
-        return this->build_impl(bounds, count, std::move(calc_xs), bc);
-    }
+    // Construct without scaled values
+    void build(GridInput grid);
+    void build_spline(GridInput grid, BC bc);
 
-    // Scale cross sections at or above this index by a factor of E
-    void convert_to_prime(size_type i);
-
-    XsGridData const& data() const { return data_; }
+    XsGridRecord const& data() const { return data_; }
     Data const& values() const { return value_ref_; }
 
   private:
-    XsGridData data_;
+    XsGridRecord data_;
     Values value_storage_;
     Data value_ref_;
 
-    void build_impl(Real2 bounds, size_type count, XsFunc calc_xs, BC bc);
+    void build_impl(GridInput grid, GridInput grid_scaled, BC bc);
+    void build_impl(GridInput grid, BC bc);
+    void build_grid(UniformGridRecord& data, GridInput const& grid, BC bc);
 };
 
 //---------------------------------------------------------------------------//

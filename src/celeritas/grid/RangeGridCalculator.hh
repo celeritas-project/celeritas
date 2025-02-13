@@ -13,11 +13,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/XsGridData.hh"
-
-#include "SplineDerivCalculator.hh"
 
 namespace celeritas
 {
@@ -61,7 +60,8 @@ class RangeGridCalculator
     explicit RangeGridCalculator(BC);
 
     // Calculate the range for a single material
-    VecReal operator()(XsGridData const& data, Values const& reals) const;
+    VecReal
+    operator()(UniformGridRecord const& data, Values const& reals) const;
 
   private:
     BC bc_;

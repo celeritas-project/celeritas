@@ -160,13 +160,6 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     }
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        CELER_LOG(warning) << "Default Rayleigh scattering 'MinKinEnergyPrim' "
-                              "is not compatible between Celeritas and "
-                              "Geant4@11.1: disabling Rayleigh scattering";
-        ignore_processes.push_back("Rayl");
-    }
     setup.SetIgnoreProcesses(ignore_processes);
 
     // Construct geometry and SD factory
@@ -181,11 +174,6 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     else
     {
         auto opts = setup.GetPhysicsOptions();
-        if (std::find(ignore_processes.begin(), ignore_processes.end(), "Rayl")
-            != ignore_processes.end())
-        {
-            opts.rayleigh_scattering = false;
-        }
         if (setup.input().physics_list == PhysicsListSelection::celer_ftfp_bert)
         {
             // FTFP BERT with Celeritas EM standard physics

@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/UnitTypes.hh"
@@ -16,40 +15,26 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Parameterization of a discrete scalar field on a given 1D grid.
+ * Tabulated cross section as a function of energy on a 1D grid.
  *
- * For all  \code i >= prime_index \endcode, the \code value[i] \endcode is
- * expected to be pre-scaled by a factor of \code energy[i] \endcode.
+ * The upper grid values are expected to be pre-scaled by a factor of 1 / E.
  *
- * Interpolation is linear-linear after transforming to log-E space and before
- * scaling the value by E (if the grid point is above prime_index).
- *
- * \c derivative stores the second derivative of the interpolating cubic
- * spline.  If it is non-empty, spline interpolation will be used.
+ * Interpolation is linear-linear or spline after transforming from log-E space
+ * and before scaling the value by E (if the grid point is in the upper grid).
  */
-struct XsGridData
+struct XsGridRecord
 {
     using EnergyUnits = units::Mev;
     using XsUnits = units::Native;
 
-    //! "Special" value indicating none of the values are scaled by 1/E
-    static CELER_CONSTEXPR_FUNCTION size_type no_scaling()
-    {
-        return size_type(-1);
-    }
+    UniformGridRecord lower;
+    UniformGridRecord upper;  //!< Values scaled by 1/E
 
-    UniformGridData log_energy;
-    size_type prime_index{no_scaling()};
-    ItemRange<real_type> value;
-    ItemRange<real_type> derivative;
-
-    //! Whether the interface is initialized and valid
+    //! Whether the record is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return log_energy && (value.size() >= 2)
-               && (prime_index < log_energy.size || prime_index == no_scaling())
-               && log_energy.size == value.size()
-               && (derivative.empty() || derivative.size() == value.size());
+        return (lower || upper)
+               && (!lower || !upper || lower.grid.back == upper.grid.front);
     }
 };
 

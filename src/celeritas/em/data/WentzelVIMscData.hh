@@ -63,7 +63,7 @@ struct WentzelVIMscData
     //! Map from particle ID to index in cross sections
     ParticleItems<MscParticleId> pid_to_xs;
     //! Scaled xs data
-    Items<XsGridData> xs;  //!< [mat][particle]
+    Items<UniformGridRecord> xs;  //!< [mat][particle]
 
     // Backend storage
     Items<real_type> reals;

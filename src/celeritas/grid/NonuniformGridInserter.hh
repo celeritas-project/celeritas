@@ -13,11 +13,11 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
 #include "NonuniformGridBuilder.hh"
-#include "NonuniformGridData.hh"
 
 namespace celeritas
 {

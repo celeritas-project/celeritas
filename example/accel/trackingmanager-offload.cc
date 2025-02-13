@@ -198,12 +198,6 @@ celeritas::SetupOptions MakeOptions()
     opts.initializer_capacity = 1024 * 128;
     // Celeritas does not support EmStandard MSC physics above 100 MeV
     opts.ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
-        // consistent
-        opts.ignore_processes.push_back("Rayl");
-    }
 
     // Use a uniform (zero) magnetic field
     opts.make_along_step = celeritas::UniformAlongStepFactory();

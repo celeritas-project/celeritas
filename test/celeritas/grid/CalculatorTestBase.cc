@@ -19,69 +19,83 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-void CalculatorTestBase::build(real_type emin, real_type emax, size_type count)
+/*!
+ * Construct from grid bounds and cross section values.
+ */
+void CalculatorTestBase::build(GridInput grid, GridInput grid_scaled)
 {
-    this->build({emin, emax}, count, [](real_type energy) { return energy; });
-    CELER_ENSURE(soft_equal(emax, value_ref_[data_.value].back()));
+    return this->build_impl(std::move(grid), std::move(grid_scaled), BC::size_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the index above which data is scaled by 1/E.
+ * Construct from grid bounds and cross section values.
  */
-void CalculatorTestBase::set_prime_index(size_type i)
+void CalculatorTestBase::build_spline(GridInput grid,
+                                      GridInput grid_scaled,
+                                      BC bc)
 {
-    CELER_EXPECT(data_);
-    CELER_EXPECT(i < data_.log_energy.size);
-    data_.prime_index = i;
+    CELER_EXPECT(bc != BC::size_);
+    return this->build_impl(std::move(grid), std::move(grid_scaled), bc);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get cross sections that can be modified.
+ * Construct without scaled values.
  */
-auto CalculatorTestBase::mutable_values() -> SpanReal
+void CalculatorTestBase::build(GridInput grid)
 {
-    CELER_EXPECT(data_);
-    return value_storage_[data_.value];
+    return this->build_impl(std::move(grid), BC::size_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from an arbitrary function.
+ * Construct without scaled values.
  */
-void CalculatorTestBase::build_impl(Real2 bounds,
-                                    size_type count,
-                                    XsFunc calc_xs,
-                                    BC bc)
+void CalculatorTestBase::build_spline(GridInput grid, BC bc)
 {
-    CELER_EXPECT(bounds[1] > bounds[0]);
-    CELER_EXPECT(count >= 2);
-    CELER_EXPECT(calc_xs);
+    CELER_EXPECT(bc != BC::size_);
+    return this->build_impl(std::move(grid), bc);
+}
 
-    data_.log_energy = UniformGridData::from_bounds(
-        std::log(bounds[0]), std::log(bounds[1]), count);
-
-    UniformGrid loge{data_.log_energy};
-    CELER_ASSERT(loge.size() == count);
-
-    std::vector<real_type> temp_xs(loge.size());
-    temp_xs.front() = calc_xs(bounds[0]);
-    for (auto i : range<std::size_t>(1, loge.size() - 1))
-    {
-        temp_xs[i] = calc_xs(std::exp(loge[i]));
-    }
-    temp_xs.back() = calc_xs(bounds[1]);
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from grid bounds and cross section values.
+ */
+void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc)
+{
+    CELER_EXPECT((!grid.value.empty() || !grid_scaled.value.empty())
+                 && (grid.value.empty() || grid_scaled.value.empty()
+                     || grid.emax == grid_scaled.emin));
+    CELER_EXPECT(grid.value.empty()
+                 || (grid.value.size() >= 2 && grid.emin > 0
+                     && grid.emax > grid.emin && grid.spline_order > 0));
+    CELER_EXPECT(grid_scaled.value.empty()
+                 || (grid_scaled.value.size() >= 2 && grid_scaled.emin > 0
+                     && grid_scaled.emax > grid_scaled.emin
+                     && grid_scaled.spline_order > 0));
 
     value_storage_ = {};
-    CollectionBuilder build(&value_storage_);
-    data_.value = build.insert_back(temp_xs.begin(), temp_xs.end());
-    if (bc != BC::size_)
+
+    if (!grid.value.empty())
     {
-        Data value_ref{value_storage_};
-        auto deriv = SplineDerivCalculator(bc)(data_, value_ref);
-        data_.derivative = build.insert_back(deriv.begin(), deriv.end());
+        this->build_grid(data_.lower, grid, bc);
     }
+    if (!grid_scaled.value.empty())
+    {
+        // Scale cross section values by energy
+        auto loge_grid
+            = UniformGridData::from_bounds(std::log(grid_scaled.emin),
+                                           std::log(grid_scaled.emax),
+                                           grid_scaled.value.size());
+        UniformGrid loge{loge_grid};
+        for (auto i : range(loge.size()))
+        {
+            grid_scaled.value[i] *= std::exp(loge[i]);
+        }
+        this->build_grid(data_.upper, grid_scaled, bc);
+    }
+
     value_ref_ = value_storage_;
 
     CELER_ENSURE(data_);
@@ -89,22 +103,34 @@ void CalculatorTestBase::build_impl(Real2 bounds,
 
 //---------------------------------------------------------------------------//
 /*!
- * Scale cross sections at or above this index by a factor of E.
+ * Construct without scaled values.
  */
-void CalculatorTestBase::convert_to_prime(size_type prime_index)
+void CalculatorTestBase::build_impl(GridInput grid, BC bc)
 {
-    CELER_EXPECT(data_);
-    CELER_EXPECT(prime_index < data_.log_energy.size);
-    CELER_EXPECT(data_.prime_index == XsGridData::no_scaling());
+    this->build_impl(grid, {}, bc);
+}
 
-    UniformGrid loge{data_.log_energy};
-    SpanReal values = value_storage_[data_.value];
+//---------------------------------------------------------------------------//
+/*!
+ * Build a uniform grid.
+ */
+void CalculatorTestBase::build_grid(UniformGridRecord& data,
+                                    GridInput const& grid,
+                                    BC bc)
+{
+    CollectionBuilder build(&value_storage_);
 
-    for (auto i : range(prime_index, data_.log_energy.size))
+    data.grid = UniformGridData::from_bounds(
+        std::log(grid.emin), std::log(grid.emax), grid.value.size());
+    data.value = build.insert_back(grid.value.begin(), grid.value.end());
+    data.spline_order = grid.spline_order;
+
+    if (bc != BC::size_)
     {
-        values[i] *= std::exp(loge[i]);
+        Data value_ref{value_storage_};
+        auto deriv = SplineDerivCalculator(bc)(data, value_ref);
+        data.derivative = build.insert_back(deriv.begin(), deriv.end());
     }
-    data_.prime_index = prime_index;
 }
 
 //---------------------------------------------------------------------------//

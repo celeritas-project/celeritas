@@ -3,7 +3,7 @@ spack:
     - cmake
     - doxygen
     - "geant4@11"
-    - g4vg
+    - g4vg@1.1:
     - git
     - git-lfs
     - "googletest@1.10:"

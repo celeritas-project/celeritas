@@ -55,7 +55,7 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
     PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("world_PV", world.name);
+    EXPECT_EQ("world_PV", world.label.name);
     EXPECT_EQ(0, world.copy_number);
     if (!std::holds_alternative<NoTransformation>(world.transform))
     {
@@ -76,12 +76,12 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
     PhysicalVolume world = convert(*g4world);
 
     ASSERT_TRUE(world.lv);
-    EXPECT_EQ("world0x0", this->genericize_pointers(world.lv->name));
+    EXPECT_EQ(Label{"world"}, world.lv->label);
     ASSERT_EQ(1, world.lv->children.size());
 
     auto const& inner_pv = world.lv->children.front();
     ASSERT_TRUE(inner_pv.lv);
-    EXPECT_EQ("inner0x0", this->genericize_pointers(inner_pv.lv->name));
+    EXPECT_EQ(Label{"inner"}, inner_pv.lv->label);
     ASSERT_TRUE(inner_pv.lv->solid);
     EXPECT_JSON_EQ(
         R"json(
@@ -115,7 +115,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("world_PV", world.name);
+    EXPECT_EQ("world_PV", world.label.name);
     EXPECT_EQ(0, world.copy_number);
 
     ASSERT_TRUE(world.lv);
@@ -125,7 +125,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     {
         // Test world's logical volume
         EXPECT_NE(nullptr, lv->g4lv);
-        EXPECT_EQ("world0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ(Label{"world"}, lv->label);
         ASSERT_TRUE(lv->solid);
         EXPECT_JSON_EQ(
             R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
@@ -139,7 +139,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test calorimeter
-        EXPECT_EQ("calorimeter0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ(Label{"calorimeter"}, lv->label);
         ASSERT_EQ(50, lv->children.size());
 
         auto const& first_layer = lv->children.front();
@@ -164,7 +164,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test layer
-        EXPECT_EQ("layer0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ(Label{"layer"}, lv->label);
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
@@ -180,7 +180,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test lead
-        EXPECT_EQ("pb0x0", this->genericize_pointers(lv->name));
+        EXPECT_EQ(Label{"pb"}, lv->label);
         EXPECT_EQ(0, lv->children.size());
     }
 }
@@ -192,14 +192,14 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
 
     PhysicalVolumeConverter convert{make_options()};
     PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("world_PV", this->genericize_pointers(world.name));
+    EXPECT_EQ(Label{"world_PV"}, world.label);
 
     ASSERT_TRUE(world.lv);
     ASSERT_EQ(3, world.lv->children.size());
 
     {
         auto const& pv = world.lv->children[0];
-        EXPECT_EQ("transrot", pv.name);
+        EXPECT_EQ("transrot", pv.label.name);
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, -10}), trans->translation());
@@ -217,7 +217,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
     }
     {
         auto const& pv = world.lv->children[1];
-        EXPECT_EQ("default", pv.name);
+        EXPECT_EQ("default", pv.label.name);
         if (!std::holds_alternative<NoTransformation>(pv.transform))
         {
             ADD_FAILURE() << "Unexpected transform type: "
@@ -226,7 +226,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
     }
     {
         auto const& pv = world.lv->children[2];
-        EXPECT_EQ("trans", pv.name);
+        EXPECT_EQ("trans", pv.label.name);
         if (auto* trans = std::get_if<Translation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, 10}), trans->translation());
@@ -242,7 +242,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         CELER_ASSERT(lv_parent);
         ASSERT_EQ(1, lv_parent->children.size());
         auto const& pv = lv_parent->children[0];
-        EXPECT_EQ("rot", pv.name);
+        EXPECT_EQ("rot", pv.label.name);
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), trans->translation());

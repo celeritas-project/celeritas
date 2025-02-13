@@ -16,11 +16,11 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/grid/SplineDerivCalculator.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"

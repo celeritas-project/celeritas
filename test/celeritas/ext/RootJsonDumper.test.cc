@@ -188,15 +188,15 @@ TEST_F(RootJsonDumperTest, all)
   "geo_material_id" : 0,
   "region_id" : 0,
   "phys_material_id" : 1,
-  "name" : "box0x125555be0",
-  "solid_name" : "box0x125555b70"
+  "name" : "box@0",
+  "solid_name" : "box"
 }, {
   "_typename" : "celeritas::ImportVolume",
   "geo_material_id" : 1,
   "region_id" : 0,
   "phys_material_id" : 0,
-  "name" : "World0x125555f10",
-  "solid_name" : "World0x125555ea0"
+  "name" : "World",
+  "solid_name" : "World"
 }],
 "particles" : [{
   "_typename" : "celeritas::ImportParticle",

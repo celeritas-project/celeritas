@@ -9,7 +9,7 @@
 
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/grid/XsGridData.hh"
+#include "corecel/grid/UniformGridData.hh"
 
 #include "celeritas_test.hh"
 
@@ -66,7 +66,7 @@ class RangeGridCalculatorTest : public Test
                Span<real_type const> dedx)
     {
         CollectionBuilder build(&reals);
-        dedx_grid.log_energy = UniformGridData::from_bounds(
+        dedx_grid.grid = UniformGridData::from_bounds(
             std::log(energy_min), std::log(energy_max), dedx.size());
         dedx_grid.value = build.insert_back(dedx.begin(), dedx.end());
         reals_ref = reals;
@@ -75,7 +75,7 @@ class RangeGridCalculatorTest : public Test
 
     Collection<real_type, Ownership::value, MemSpace::host> reals;
     Collection<real_type, Ownership::const_reference, MemSpace::host> reals_ref;
-    XsGridData dedx_grid;
+    UniformGridRecord dedx_grid;
 };
 
 TEST_F(RangeGridCalculatorTest, geant)

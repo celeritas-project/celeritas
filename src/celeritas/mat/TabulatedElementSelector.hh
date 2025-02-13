@@ -30,7 +30,7 @@ class TabulatedElementSelector
   public:
     //!@{
     //! \name Type aliases
-    using Energy = RealQuantity<XsGridData::EnergyUnits>;
+    using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
     using GridValues
         = Collection<ValueGrid, Ownership::const_reference, MemSpace::native>;
     using GridIdValues

@@ -101,8 +101,7 @@ class GeantImporter final : public ImporterInterface
 
 //---------------------------------------------------------------------------//
 
-std::vector<ImportVolume>
-import_volumes(G4VPhysicalVolume const& world, bool unique_volumes);
+std::vector<ImportVolume> import_volumes(G4VPhysicalVolume const& world);
 
 ImportParticle import_particle(G4ParticleDefinition const& p);
 

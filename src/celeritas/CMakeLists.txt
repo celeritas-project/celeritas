@@ -52,11 +52,11 @@ list(APPEND SOURCES
   global/Stepper.cc
   grid/NonuniformGridBuilder.cc
   grid/RangeGridCalculator.cc
-  grid/SplineDerivCalculator.cc
   grid/TwodGridBuilder.cc
+  grid/UniformGridInserter.cc
   grid/ValueGridBuilder.cc
-  grid/ValueGridInserter.cc
   grid/ValueGridType.cc
+  grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
   io/ImportDataTrimmer.cc

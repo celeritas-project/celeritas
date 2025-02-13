@@ -37,13 +37,15 @@ namespace celeritas
  * \f]
  * This scaling is the inverse of the off-the-end energy scaling in the
  * RangeCalculator.
+ *
+ * \todo Construct with \c UniformGridRecord
  */
 class InverseRangeCalculator
 {
   public:
     //!@{
     //! \name Type aliases
-    using Energy = RealQuantity<XsGridData::EnergyUnits>;
+    using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
@@ -51,7 +53,7 @@ class InverseRangeCalculator
   public:
     // Construct from state-independent data
     inline CELER_FUNCTION
-    InverseRangeCalculator(XsGridData const& grid, Values const& values);
+    InverseRangeCalculator(XsGridRecord const& grid, Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION Energy operator()(real_type range) const;
@@ -71,11 +73,12 @@ class InverseRangeCalculator
  * Lower-energy particles have shorter ranges.
  */
 CELER_FUNCTION
-InverseRangeCalculator::InverseRangeCalculator(XsGridData const& grid,
+InverseRangeCalculator::InverseRangeCalculator(XsGridRecord const& grid,
                                                Values const& values)
-    : log_energy_(grid.log_energy), range_(grid.value, values)
+    : log_energy_(grid.lower.grid), range_(grid.lower.value, values)
 {
     CELER_EXPECT(range_.size() == log_energy_.size());
+    CELER_EXPECT(!grid.upper);
 }
 
 //---------------------------------------------------------------------------//

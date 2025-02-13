@@ -2,13 +2,12 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/NonuniformGridData.hh
+//! \file corecel/grid/NonuniformGridData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {

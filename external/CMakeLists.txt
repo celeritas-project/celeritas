@@ -58,7 +58,7 @@ endif()
 if(CELERITAS_BUILTIN_G4VG)
   FetchContent_Declare(
     G4VG
-    URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.1/g4vg-1.0.1.tar.gz
+    URL https://github.com/celeritas-project/g4vg/archive/8ae036eeaf3b0bfcd2a29521f5fdd340e977e38f.zip
   )
   list(APPEND _celer_builtin_packages G4VG)
   foreach(_var BUILD_TESTS DEBUG)
