@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/SplineDerivCalculator.hh
+//! \file corecel/grid/SplineDerivCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -74,7 +74,7 @@ class SplineDerivCalculator
     //!@{
     //! \name Type aliases
     using SpanConstReal = detail::SpanGridAccessor::SpanConstReal;
-    using Values = detail::XsGridAccessor::Values;
+    using Values = detail::UniformGridAccessor::Values;
     using VecReal = std::vector<real_type>;
     //!@}
 
@@ -93,7 +93,7 @@ class SplineDerivCalculator
 
     // Calculate the second derivatives
     VecReal operator()(SpanConstReal, SpanConstReal) const;
-    VecReal operator()(XsGridData const&, Values const&) const;
+    VecReal operator()(UniformGridRecord const&, Values const&) const;
 
   private:
     //// TYPES ////

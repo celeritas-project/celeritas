@@ -25,8 +25,9 @@ namespace celeritas
  *
  * This class is needed because names in Geant4/VecGeom can be non-unique. The
  * only way to map between duplicate volume names between VecGeom and Geant4 is
- * to ensure that pointers are written on output (and not cleared on input),
- * and to use those as an "extension" to differentiate the duplicate volumes.
+ * to ensure that uniquifying, consistent extensions are written on output (and
+ * not cleared on input), and to use those to differentiate the duplicate
+ * volumes.
  *
  * Materials likewise can have duplicate names (perhaps because some have
  * different range cutoffs, etc.), so this class can be used to return a range
@@ -67,9 +68,6 @@ struct Label
     bool empty() const { return name.empty() && ext.empty(); }
 
     //// STATIC METHODS ////
-
-    // Construct a label from a Geant4 pointer-appended name
-    static Label from_geant(std::string const& name);
 
     // Construct a label from by splitting on a separator
     static Label

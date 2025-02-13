@@ -41,14 +41,21 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 
 //---------------------------------------------------------------------------//
 /*!
- * Static global setup options before constructing params.
+ * Assign global setup options before constructing params.
  */
-SetupOptions& IntegrationSingleton::setup_options()
+void IntegrationSingleton::setup_options(SetupOptions&& opts)
 {
-    CELER_VALIDATE(
-        !params_,
-        << R"(options cannot be modified after Celeritas is constructed)");
-    return options_;
+    CELER_TRY_HANDLE(
+        {
+            CELER_VALIDATE(
+                !params_,
+                << R"(options cannot be set after Celeritas is constructed)");
+            CELER_VALIDATE(opts,
+                           << R"(SetOptions called with incomplete input)");
+            options_ = std::move(opts);
+            CELER_ENSURE(options_);
+        },
+        ExceptionConverter{"celer.setup"});
 }
 
 //---------------------------------------------------------------------------//
@@ -57,17 +64,16 @@ SetupOptions& IntegrationSingleton::setup_options()
  */
 void IntegrationSingleton::initialize_logger()
 {
-    auto initialize_impl = [this] {
-        auto* run_man = G4RunManager::GetRunManager();
-        CELER_VALIDATE(run_man,
-                       << "logger cannot be set up before run manager");
-        CELER_VALIDATE(!params_,
-                       << "logger cannot be set up after shared params");
-        celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
-    };
-
-    CELER_TRY_HANDLE(initialize_impl(),
-                     ExceptionConverter{"celer.init.logger"});
+    CELER_TRY_HANDLE(
+        {
+            auto* run_man = G4RunManager::GetRunManager();
+            CELER_VALIDATE(run_man,
+                           << "logger cannot be set up before run manager");
+            CELER_VALIDATE(!params_,
+                           << "logger cannot be set up after shared params");
+            celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
+        },
+        ExceptionConverter{"celer.init.logger"});
 }
 
 //---------------------------------------------------------------------------//
@@ -90,29 +96,30 @@ void IntegrationSingleton::initialize_shared_params()
     if (G4Threading::IsMasterThread())
     {
         CELER_LOG_LOCAL(debug) << "Initializing shared params";
-
-        auto initialize_impl = [this] {
-            CELER_VALIDATE(
-                !params_,
-                << R"(BeginOfRunAction cannot be called more than once)");
-            params_.Initialize(options_);
-        };
-
-        CELER_TRY_HANDLE(initialize_impl(), call_g4exception);
+        CELER_TRY_HANDLE(
+            {
+                CELER_VALIDATE(
+                    options_,
+                    << R"(SetOptions was not called before BeginRun)");
+                CELER_VALIDATE(
+                    !params_,
+                    << R"(BeginOfRunAction cannot be called more than once)");
+                params_.Initialize(options_);
+            },
+            call_g4exception);
     }
     else
     {
         CELER_LOG_LOCAL(debug) << "Initializing worker";
-        CELER_ASSERT(G4Threading::IsMultithreadedApplication());
-
-        auto initialize_impl = [this] {
-            CELER_VALIDATE(
-                params_,
-                << R"(BeginOfRunAction was not called on master thread)");
-            params_.InitializeWorker(options_);
-        };
-
-        CELER_TRY_HANDLE(initialize_impl(), call_g4exception);
+        CELER_TRY_HANDLE(
+            {
+                CELER_ASSERT(G4Threading::IsMultithreadedApplication());
+                CELER_VALIDATE(
+                    params_,
+                    << R"(BeginOfRunAction was not called on master thread)");
+                params_.InitializeWorker(options_);
+            },
+            call_g4exception);
     }
 
     CELER_ENSURE(params_);
@@ -131,6 +138,13 @@ bool IntegrationSingleton::initialize_local_transporter()
 {
     CELER_EXPECT(params_);
 
+    if (params_.mode() == celeritas::SharedParams::Mode::disabled)
+    {
+        CELER_LOG_LOCAL(debug)
+            << R"(Skipping state construction since Celeritas is completely disabled)";
+        return false;
+    }
+
     if (G4Threading::IsMultithreadedApplication()
         && G4Threading::IsMasterThread())
     {
@@ -138,15 +152,8 @@ bool IntegrationSingleton::initialize_local_transporter()
         return false;
     }
 
-    CELER_EXPECT(!G4Threading::IsMultithreadedApplication()
+    CELER_ASSERT(!G4Threading::IsMultithreadedApplication()
                  || G4Threading::IsWorkerThread());
-
-    if (params_.mode() == celeritas::SharedParams::Mode::disabled)
-    {
-        CELER_LOG_LOCAL(debug)
-            << R"(Skipping state construction since Celeritas is completely disabled)";
-        return false;
-    }
 
     if (params_.mode() == celeritas::SharedParams::Mode::kill_offload)
     {
@@ -157,15 +164,16 @@ bool IntegrationSingleton::initialize_local_transporter()
     }
 
     CELER_LOG_LOCAL(debug) << "Constructing local state";
-
-    auto initialize_impl = [this] {
-        auto& lt = IntegrationSingleton::local_transporter();
-        CELER_VALIDATE(!lt,
-                       << "local thread " << G4Threading::G4GetThreadId() + 1
-                       << " cannot be initialized more than once");
-        lt.Initialize(options_, params_);
-    };
-    CELER_TRY_HANDLE(initialize_impl(), ExceptionConverter{"celer.init.local"});
+    CELER_TRY_HANDLE(
+        {
+            auto& lt = IntegrationSingleton::local_transporter();
+            CELER_VALIDATE(!lt,
+                           << "local thread "
+                           << G4Threading::G4GetThreadId() + 1
+                           << " cannot be initialized more than once");
+            lt.Initialize(options_, params_);
+        },
+        ExceptionConverter("celer.init.local"));
     return true;
 }
 
@@ -177,6 +185,11 @@ void IntegrationSingleton::finalize_local_transporter()
 {
     CELER_EXPECT(params_);
 
+    if (params_.mode() != celeritas::SharedParams::Mode::enabled)
+    {
+        return;
+    }
+
     if (G4Threading::IsMultithreadedApplication()
         && G4Threading::IsMasterThread())
     {
@@ -184,23 +197,18 @@ void IntegrationSingleton::finalize_local_transporter()
         return;
     }
 
-    if (params_.mode() != celeritas::SharedParams::Mode::enabled)
-    {
-        return;
-    }
-
     CELER_LOG_LOCAL(debug) << "Destroying local state";
 
-    auto finalize_impl = [] {
-        auto& lt = IntegrationSingleton::local_transporter();
-        CELER_VALIDATE(lt,
-                       << "local thread " << G4Threading::G4GetThreadId() + 1
-                       << " cannot be finalized more than once");
-        lt.Finalize();
-    };
-
-    CELER_TRY_HANDLE(finalize_impl(),
-                     ExceptionConverter{"celer.finalize.local"});
+    CELER_TRY_HANDLE(
+        {
+            auto& lt = IntegrationSingleton::local_transporter();
+            CELER_VALIDATE(lt,
+                           << "local thread "
+                           << G4Threading::G4GetThreadId() + 1
+                           << " cannot be finalized more than once");
+            lt.Finalize();
+        },
+        ExceptionConverter("celer.finalize.local"));
 }
 
 //---------------------------------------------------------------------------//
@@ -210,14 +218,13 @@ void IntegrationSingleton::finalize_local_transporter()
 void IntegrationSingleton::finalize_shared_params()
 {
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-
-    auto finalize_impl = [this] {
-        CELER_VALIDATE(params_, << "params cannot be finalized more than once");
-        params_.Finalize();
-    };
-
-    CELER_TRY_HANDLE(finalize_impl(),
-                     ExceptionConverter{"celer.finalize.global"});
+    CELER_TRY_HANDLE(
+        {
+            CELER_VALIDATE(params_,
+                           << "params cannot be finalized more than once");
+            params_.Finalize();
+        },
+        ExceptionConverter("celer.finalize.global"));
 }
 
 //---------------------------------------------------------------------------//

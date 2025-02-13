@@ -12,8 +12,8 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/UnitTypes.hh"
-#include "celeritas/grid/NonuniformGridData.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 

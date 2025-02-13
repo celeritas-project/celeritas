@@ -279,7 +279,7 @@ TEST_F(SimpleCmsTest, output)
              && CELERITAS_USE_GEANT4)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box@mx","world_box@px","world_box@my","world_box@py","world_box@mz","world_box@pz","crystal_em_calorimeter@excluded.mz","crystal_em_calorimeter@excluded.pz","lhc_vacuum_tube@cz","crystal_em_calorimeter@excluded.cz","crystal_em_calorimeter@interior.cz","hadron_calorimeter@interior.cz","iron_muon_chambers@excluded.cz","iron_muon_chambers@interior.cz"]},"volumes":{"label":["[EXTERIOR]@world0x0","vacuum_tube@0x0","si_tracker@0x0","em_calorimeter@0x0","had_calorimeter@0x0","sc_solenoid@0x0","fe_muon_chambers@0x0","world@0x0"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box@mx","world_box@px","world_box@my","world_box@py","world_box@mz","world_box@pz","crystal_em_calorimeter@excluded.mz","crystal_em_calorimeter@excluded.pz","lhc_vacuum_tube@cz","crystal_em_calorimeter@excluded.cz","crystal_em_calorimeter@interior.cz","hadron_calorimeter@interior.cz","iron_muon_chambers@excluded.cz","iron_muon_chambers@interior.cz"]},"volumes":{"label":["[EXTERIOR]@world","vacuum_tube@world","si_tracker@world","em_calorimeter@world","had_calorimeter@world","sc_solenoid@world","fe_muon_chambers@world","world@world"]}})json",
             this->genericize_pointers(to_string(out)));
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)

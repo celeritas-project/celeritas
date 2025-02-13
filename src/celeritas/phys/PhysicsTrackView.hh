@@ -161,11 +161,6 @@ class PhysicsTrackView
     template<class T>
     inline CELER_FUNCTION T make_calculator(ValueGridId) const;
 
-    // Construct a grid calculator from a physics table
-    template<class T>
-    inline CELER_FUNCTION T make_calculator(ValueGridId,
-                                            size_type order) const;
-
     //// HACKS ////
 
     // Get hardwired model, null if not present
@@ -691,21 +686,6 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 {
     CELER_EXPECT(id < params_.value_grids.size());
     return T{params_.value_grids[id], params_.reals};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a Spline grid calculator of the given type
- *
- * The calculator must take three arguments: a reference to XsGridRef, a
- * reference to the Values data structure, and an interpolation order.
- */
-template<class T>
-CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id,
-                                                   size_type order) const
-{
-    CELER_EXPECT(id < params_.value_grids.size());
-    return T{params_.value_grids[id], params_.reals, order};
 }
 
 //---------------------------------------------------------------------------//

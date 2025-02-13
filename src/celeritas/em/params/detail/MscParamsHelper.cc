@@ -10,10 +10,11 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/grid/UniformGridInserter.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportModel.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -100,28 +101,29 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
     size_type num_materials = xs_tables_[0]->physics_vectors.size();
     xs.reserve(par_ids_.size() * num_materials);
 
-    // TODO: simplify when refactoring ValueGridInserter, etc
-    ValueGridInserter::GridValues grids;
-    ValueGridInserter vgi{reals, &grids};
+    // TODO: simplify when refactoring GridInserter, etc
+    UniformGridInserter::GridValues grids;
+    UniformGridInserter insert{reals, &grids};
 
     for (size_type mat_idx : range(num_materials))
     {
         for (size_type par_idx : range(par_ids_.size()))
         {
-            // Get the cross section data for this particle and material
             CELER_ASSERT(pid_to_xs_[par_ids_[par_idx].get()].get() == par_idx);
             CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
-            ImportPhysicsVector const& pvec
-                = xs_tables_[par_idx]->physics_vectors[mat_idx];
-            CELER_ASSERT(pvec.vector_type == ImportPhysicsVectorType::log);
 
-            // To reuse existing code (TODO: simplify when refactoring)
-            // use the value grid builder to construct the grid entry in a
-            // temporary container and then copy it into the pm data.
-            auto vgb = ValueGridLogBuilder::from_geant(make_span(pvec.x),
-                                                       make_span(pvec.y));
-            auto grid_id = vgb->build(vgi);
+            // Get the cross section data for this particle and material
+            ImportPhysicsVector const& pv
+                = xs_tables_[par_idx]->physics_vectors[mat_idx];
+            CELER_ASSERT(pv.vector_type == ImportPhysicsVectorType::log);
+            CELER_ASSERT(pv.x.front() > 0 && pv.x.back() > pv.x.front());
+            CELER_ASSERT(has_log_spacing(make_span(pv.x)));
+
+            auto grid = UniformGridData::from_bounds(
+                std::log(pv.x.front()), std::log(pv.x.back()), pv.x.size());
+            auto grid_id = insert(grid, make_span(pv.y));
             CELER_ASSERT(grid_id.get() == xs.size());
+
             xs.push_back(grids[grid_id]);
         }
     }

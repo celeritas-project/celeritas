@@ -21,6 +21,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/rasterize/SafetyImager.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
@@ -302,7 +303,7 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
     EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
     EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
-    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.volumes().at(VolumeId{3}));
+    EXPECT_EQ(Label("World"), geom.volumes().at(VolumeId{3}));
 }
 
 //---------------------------------------------------------------------------//
@@ -320,6 +321,10 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
     EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
 }
 
@@ -427,7 +432,7 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-8, to_cm(next.distance));
+    EXPECT_SOFT_EQ(1e-8, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
@@ -540,7 +545,7 @@ TEST_F(FourLevelsTest, safety)
     for (auto i : range(11))
     {
         real_type r = 2.0 * i + 0.1;
-        geo = {{r, r, r}, {1, 0, 0}};
+        geo = {from_cm({r, r, r}), {1, 0, 0}};
 
         if (!geo.is_outside())
         {
@@ -653,7 +658,7 @@ TEST_F(MultiLevelTest, accessors)
         "topbox1",
         "topbox2",
         "topbox3",
-        "topsph2",
+        "topbox4",
         "world_PV",
     };
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
@@ -735,14 +740,8 @@ class SolidsTest : public VecgeomVgdmlTestBase
             static std::string_view const levels[] = {"warning", "warning"};
             return make_span(levels);
         }
-        else if (geant4_version >= Version{11})
-        {
-            static std::string_view const levels[] = {"warning"};
-            return make_span(levels);
-        }
         else
         {
-            // Vecgeom 1 and Geant4 10 have no warnings
             return {};
         }
     }
@@ -797,12 +796,12 @@ TEST_F(SolidsTest, names)
     }
 
     // clang-format off
-    static char const* const expected_labels[] = {"b500", "b100", "union1",
-        "b100", "box500", "cone1", "para1", "sphere1", "parabol1", "trap1",
-        "trd1", "trd2", "trd3", "trd3_refl", "tube100", "boolean1",
+    static char const* const expected_labels[] = {"", "", "",
+        "", "box500", "cone1", "para1", "sphere1", "parabol1", "trap1",
+        "trd1", "trd2", "", "trd3_refl@1", "tube100", "boolean1",
         "polycone1", "genPocone1", "ellipsoid1", "tetrah1", "orb1",
         "polyhedr1", "hype1", "elltube1", "ellcone1", "arb8b", "arb8a",
-        "xtru1", "World", "", "trd3_refl"};
+        "xtru1", "World", "", "trd3_refl@0"};
     // clang-format on
     EXPECT_VEC_EQ(expected_labels, labels);
 }
@@ -818,7 +817,7 @@ TEST_F(SolidsTest, output)
         auto out_str = this->genericize_pointers(to_string(out));
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
             out_str);
     }
 }
@@ -1127,6 +1126,19 @@ TEST_F(CmseTest, trace)
     // clang-format on
 }
 
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({0, 0, 0});
+    inp.upper_right = from_cm({350, 0, 1700});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "vg-cmse-xz-mid.jsonl");
+}
+
 //---------------------------------------------------------------------------//
 // ARBITRARY VGDML TEST
 //---------------------------------------------------------------------------//
@@ -1325,7 +1337,7 @@ TEST_F(MultiLevelGeantTest, accessors)
         "topbox1",
         "topbox2",
         "topbox3",
-        "topsph2",
+        "topbox4",
         "world_PV",
     };
     EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
@@ -1415,13 +1427,13 @@ TEST_F(SolidsGeantTest, names)
     }
 
     // clang-format off
-    static char const* const expected_labels[] = {"box500@0x0", "cone1@0x0",
-        "para1@0x0", "sphere1@0x0", "parabol1@0x0", "trap1@0x0", "trd1@0x0",
-        "trd2@0x0", "trd3@0x0", "trd3_refl@0x0", "tube100@0x0", "", "", "", "",
-        "boolean1@0x0", "polycone1@0x0", "genPocone1@0x0", "ellipsoid1@0x0",
-        "tetrah1@0x0", "orb1@0x0", "polyhedr1@0x0", "hype1@0x0",
-        "elltube1@0x0", "ellcone1@0x0", "arb8b@0x0", "arb8a@0x0", "xtru1@0x0",
-        "World@0x0", "", "trd3@0x0_refl"};;
+    static char const* const expected_labels[] = {"box500", "cone1",
+        "para1", "sphere1", "parabol1", "trap1", "trd1",
+        "trd2", "", "trd3_refl@1", "tube100", "", "", "", "",
+        "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1", "orb1", "polyhedr1", "hype1",
+        "elltube1", "ellcone1", "arb8b", "arb8a", "xtru1",
+        "World", "", "trd3_refl@0"};
     // clang-format on
     EXPECT_VEC_EQ(expected_labels, labels);
 }
@@ -1437,7 +1449,7 @@ TEST_F(SolidsGeantTest, output)
         auto out_str = this->genericize_pointers(to_string(out));
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd2@0x0","trd3@0x0","trd3_refl@0x0","tube100@0x0","","","","","boolean1@0x0","polycone1@0x0","genPocone1@0x0","ellipsoid1@0x0","tetrah1@0x0","orb1@0x0","polyhedr1@0x0","hype1@0x0","elltube1@0x0","ellcone1@0x0","arb8b@0x0","arb8a@0x0","xtru1@0x0","World@0x0","","trd3@0x0_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
             out_str);
     }
 }
@@ -1604,7 +1616,7 @@ TEST_F(SolidsGeantTest, trace)
         SCOPED_TRACE("Low +y");
         auto result = this->track({-500, -250, 0}, {0, 1, 0});
         static char const* const expected_volumes[]
-            = {"World", "trd3", "World", "trd2", "World"};
+            = {"World", "trd3_refl", "World", "trd2", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {96.555879457157,
                                                        52.35421982848,
@@ -1628,8 +1640,8 @@ TEST_F(SolidsGeantTest, reflected_vol)
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
     EXPECT_EQ(VolumeId{30}, geo.volume_id());
     auto const& label = this->geometry()->volumes().at(geo.volume_id());
-    EXPECT_EQ("trd3", label.name);
-    EXPECT_TRUE(ends_with(label.ext, "_refl"));
+    EXPECT_EQ("trd3_refl", label.name);
+    EXPECT_EQ("0", label.ext);
 }
 
 //---------------------------------------------------------------------------//
@@ -1707,6 +1719,36 @@ TEST_F(ArbitraryGeantTest, dump)
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
     world->PrintContent();
+}
+
+//---------------------------------------------------------------------------//
+class PincellTest : public VecgeomGeantTestBase
+{
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml(this->geometry_basename() + ".gdml");
+    }
+    std::string geometry_basename() const override { return "pincell"; }
+};
+
+TEST_F(PincellTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-12, -12, 0});
+    inp.upper_right = from_cm({12, 12, 0});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "vg-pincell-xy-mid.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5.5);
+    write_image(ImageParams{inp}, "vg-pincell-xy-lo.jsonl");
+
+    inp.lower_left = from_cm({-12, 0, -12});
+    inp.upper_right = from_cm({12, 0, 12});
+    write_image(ImageParams{inp}, "vg-pincell-xz-mid.jsonl");
 }
 
 //---------------------------------------------------------------------------//

@@ -41,8 +41,8 @@ class IntegrationSingleton
 
     //// ACCESSORS ////
 
-    // Static global setup options before constructing params
-    SetupOptions& setup_options();
+    // Assign setup options before constructing params
+    void setup_options(SetupOptions&&);
 
     //! Static global setup options before or after constructing params
     SetupOptions const& setup_options() const { return options_; }

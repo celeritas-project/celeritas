@@ -25,19 +25,22 @@ Build and run
    $ ./run-offload
 
 
-Boilerplate offloading code
----------------------------
+Example classes
+---------------
 
-:code:`G4VUserActionInitialization`
-  :code:`Build` and `BuildForMaster` construct the Celeritas integration
-    interface with user-defined options.
+:cpp:class:`MakeCelerOptions`
+  Build Celeritas integration options before the beginning of the run.
 
-:code:`G4UserRunAction`
-  :code:`BeginOfRunAction` initializes Celeritas global shared data on master
-  and worker threads, setting up a tracking manager under the hood.
-  :code:`EndOfRunAction` clears data and finalizes Celeritas data.
+:cpp:class:`ActionInitialization`
+  :cpp:class:`Build` and `BuildForMaster` construct the Celeritas integration
+  interface with user-defined options.
 
-:code:`G4VSensitiveDetector`
-  :code:`ProcessHits`: is currently the *only* Celeritas callback interface to
-  Geant4; at each step, Celeritas sends data back as a ``G4Step`` to be
-  processed by Geant4.
+:cpp:class:`RunAction`
+  :cpp:class:`BeginOfRunAction` initializes Celeritas global shared data on
+  master and worker threads, setting up a tracking manager under the hood.
+  :cpp:class:`EndOfRunAction` clears data and finalizes Celeritas data.
+
+:cpp:class:`SensitiveDetector`
+  :cpp:class:`ProcessHits`: is currently the *only* Celeritas callback
+  interface to Geant4; at each step, Celeritas sends data back as a
+  :cpp:class:`G4Step` to be processed by Geant4.

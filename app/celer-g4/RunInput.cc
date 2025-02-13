@@ -243,13 +243,6 @@ inp::StandaloneInput to_input(RunInput const& ri)
 
     inp::GeantImport geant_import;
     geant_import.ignore_processes.push_back("CoulombScat");
-    if (CELERITAS_GEANT4_VERSION >= 0x0b0100)
-    {
-        CELER_LOG(warning) << "Default Rayleigh scattering 'MinKinEnergyPrim' "
-                              "is not compatible between Celeritas and "
-                              "Geant4@11.1: disabling Rayleigh scattering";
-        geant_import.ignore_processes.push_back("Rayl");
-    }
     si.physics_import = std::move(geant_import);
 
     si.geant_data = inp::GeantDataImport{};

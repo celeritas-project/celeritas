@@ -50,6 +50,7 @@ celeritas_add_test(data/AuxInterface.test.cc
 # Grid
 celeritas_add_test(grid/Interpolator.test.cc)
 celeritas_add_test(grid/NonuniformGrid.test.cc)
+celeritas_add_test(grid/SplineDerivCalculator.test.cc)
 celeritas_add_test(grid/SplineInterpolator.test.cc)
 celeritas_add_test(grid/TwodGridCalculator.test.cc)
 celeritas_add_test(grid/UniformGrid.test.cc)

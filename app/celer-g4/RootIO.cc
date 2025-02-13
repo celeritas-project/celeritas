@@ -21,7 +21,6 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
 #include "celeritas/ext/RootFileManager.hh"
-#include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"

@@ -235,7 +235,7 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
             "second",
             "isect",
             "",
-            "world0x0",
+            "world",
         };
         static char const* const expected_bound_strings[] = {
             "11: {{{-50,-50,-50}, {50,50,50}}, {{-50,-50,-50}, {50,50,50}}}",
@@ -263,7 +263,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
     auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
-    static std::string const expected_proto_names[] = {"world0x0"};
+    static std::string const expected_proto_names[] = {"world"};
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(1, protos.size());
@@ -316,7 +316,7 @@ TEST_F(ProtoConstructorTest, testem3)
     auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
-    static std::string const expected_proto_names[] = {"world0x0", "layer0x0"};
+    static std::string const expected_proto_names[] = {"world", "layer"};
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(2, protos.size());
@@ -376,9 +376,9 @@ TEST_F(ProtoConstructorTest, testem3)
             "",
             "Absorber1",
             "Absorber2",
-            "layer0x0.children",
+            "layer.children",
             "",
-            "layer0x0",
+            "layer",
         };
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -396,7 +396,7 @@ TEST_F(ProtoConstructorTest, tilecal_plug)
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
-        "Tile_ITCModule0x0",
+        "Tile_ITCModule",
     };
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
@@ -441,15 +441,15 @@ TEST_F(ProtoConstructorTest, znenv)
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
-        "World0x0",
-        "ZNTX0x0",
-        "ZN10x0",
-        "ZNSL0x0",
-        "ZNST0x0",
-        "ZNG10x0",
-        "ZNG20x0",
-        "ZNG30x0",
-        "ZNG40x0",
+        "World",
+        "ZNTX",
+        "ZN1",
+        "ZNSL",
+        "ZNST",
+        "ZNG1",
+        "ZNG2",
+        "ZNG3",
+        "ZNG4",
     };
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 

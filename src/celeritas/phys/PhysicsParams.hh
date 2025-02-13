@@ -16,6 +16,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
@@ -256,6 +257,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
+    using BC = SplineDerivCalculator::BoundaryCondition;
     using SPAction = std::shared_ptr<StaticConcreteAction>;
     using VecModel = std::vector<std::pair<SPConstModel, ProcessId>>;
     using HostValue = celeritas::HostVal<PhysicsParamsData>;

@@ -117,7 +117,7 @@ TEST_F(ConverterTest, testem3)
     if (auto* unit = std::get_if<UnitInput>(&result.universes[0]))
     {
         SCOPED_TRACE("universe 0");
-        EXPECT_EQ("world0x0", this->genericize_pointers(unit->label.name));
+        EXPECT_EQ(Label{"world"}, unit->label);
         EXPECT_EQ(53, unit->volumes.size());
         EXPECT_EQ(61, unit->surfaces.size());
         EXPECT_VEC_SOFT_EQ((Real3{-24, -24, -24}), to_cm(unit->bbox.lower()));
@@ -131,7 +131,7 @@ TEST_F(ConverterTest, testem3)
     if (auto* unit = std::get_if<UnitInput>(&result.universes[1]))
     {
         SCOPED_TRACE("universe 1");
-        EXPECT_EQ("layer0x0", genericize_pointers(unit->label.name));
+        EXPECT_EQ(Label{"layer"}, unit->label);
         EXPECT_EQ(4, unit->volumes.size());
         EXPECT_EQ(1, unit->surfaces.size());
         EXPECT_VEC_SOFT_EQ((Real3{-0.4, -20, -20}), to_cm(unit->bbox.lower()));
@@ -155,12 +155,9 @@ TEST_F(ConverterTest, tilecal_plug)
     {
         auto const& unit = std::get<UnitInput>(result.universes[0]);
         ASSERT_EQ(4, unit.volumes.size());
-        EXPECT_EQ("Tile_Plug1Module",
-                  this->genericize_pointers(unit.volumes[1].label.name));
-        EXPECT_EQ("Tile_Absorber",
-                  this->genericize_pointers(unit.volumes[2].label.name));
-        EXPECT_EQ("Tile_ITCModule",
-                  this->genericize_pointers(unit.volumes[3].label.name));
+        EXPECT_EQ("Tile_Plug1Module", unit.volumes[1].label.name);
+        EXPECT_EQ("Tile_Absorber", unit.volumes[2].label.name);
+        EXPECT_EQ("Tile_ITCModule", unit.volumes[3].label.name);
     }
 }
 

@@ -12,28 +12,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a label from a Geant4 pointer-appended name.
- */
-Label Label::from_geant(std::string const& name)
-{
-    // Remove possible Geant uniquifying pointer-address suffix
-    // (Geant4 does this automatically, but VGDML does not)
-    auto split_point = name.end();
-    auto pos = name.find("0x");
-    if (pos != std::string::npos)
-    {
-        // Copy pointer as 'extension' and delete from name
-        split_point = name.begin() + pos;
-    }
-
-    Label result;
-    result.name.assign(name.begin(), split_point);
-    result.ext.assign(split_point, name.end());
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct a label from by splitting on a separator.
  */
 Label Label::from_separator(std::string const& name, char sep)

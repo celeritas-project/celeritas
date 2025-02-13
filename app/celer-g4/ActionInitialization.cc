@@ -42,7 +42,7 @@ ActionInitialization::ActionInitialization(SPParams params)
     auto const& input = GlobalSetup::Instance()->input();
     if (!input.event_file.empty())
     {
-        ExceptionConverter call_g4exception{"celer0007"};
+        ExceptionConverter call_g4exception{"celer.init.hepmc3"};
         CELER_TRY_HANDLE(hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
                              input.event_file),
                          call_g4exception);
@@ -92,7 +92,7 @@ void ActionInitialization::Build() const
     std::unique_ptr<G4VUserPrimaryGeneratorAction> generator_action;
     if (hepmc_gen_)
     {
-        ExceptionConverter call_g4exception{"celer0007"};
+        ExceptionConverter call_g4exception{"celer.init.hepmc3"};
         CELER_TRY_HANDLE(
             generator_action
             = std::make_unique<HepMC3PrimaryGeneratorAction>(hepmc_gen_),
@@ -100,7 +100,7 @@ void ActionInitialization::Build() const
     }
     else
     {
-        ExceptionConverter call_g4exception{"celer0006"};
+        ExceptionConverter call_g4exception{"celer.init.pgp"};
         CELER_TRY_HANDLE(
             generator_action = std::make_unique<PGPrimaryGeneratorAction>(
                 to_input(GlobalSetup::Instance()->input().primary_options)),

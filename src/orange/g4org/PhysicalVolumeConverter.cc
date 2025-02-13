@@ -44,8 +44,10 @@ struct PhysicalVolumeConverter::Data
     Transformer make_transform{scale};
     // Convert a solid/shape
     SolidConverter make_solid{scale, make_transform};
+    // Map of G4LV instance ID -> unique label
+    std::vector<Label> g4lv_labels;
     // Convert and cache a logical volume
-    LogicalVolumeConverter make_lv{make_solid};
+    LogicalVolumeConverter make_lv{g4lv_labels, make_solid};
     // Whether to print extra output
     bool verbose{false};
 };
@@ -61,6 +63,7 @@ struct PhysicalVolumeConverter::Builder
 
     Data* data;
     std::deque<QueuedDaughter> child_queue;
+    std::vector<Label> g4pv_labels;
 
     // Convert a physical volume, queuing children if needed
     PhysicalVolume make_pv(int depth, G4VPhysicalVolume const& pv);
@@ -100,8 +103,11 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
     CELER_LOG(status) << "Converting Geant4 geometry elements to ORANGE input";
     ScopedTimeLog scoped_time;
 
+    // Get labels
+    data_->g4lv_labels = make_logical_vol_labels(g4world);
+
     // Construct world volume
-    Builder impl{data_.get(), {}};
+    Builder impl{data_.get(), {}, make_physical_vol_labels(g4world)};
     auto world = impl.make_pv(0, g4world);
     impl.build_children();
     return world;
@@ -117,7 +123,20 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 {
     PhysicalVolume result;
 
-    result.name = g4pv.GetName();
+    result.label = [&] {
+        Label result;
+        if (static_cast<std::size_t>(g4pv.GetInstanceID()) < g4pv_labels.size())
+        {
+            result = g4pv_labels[g4pv.GetInstanceID()];
+        }
+        if (result.empty())
+        {
+            result.name = g4pv.GetName();
+            CELER_LOG(warning) << "Physical volume '" << result.name
+                               << "' is not in the world geometry";
+        }
+        return result;
+    }();
     result.copy_number = g4pv.GetCopyNo();
     result.transform = [&]() -> VariantTransform {
         auto const& g4trans = g4pv.GetObjectTranslation();

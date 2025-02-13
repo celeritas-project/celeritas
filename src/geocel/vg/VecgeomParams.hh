@@ -8,6 +8,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"

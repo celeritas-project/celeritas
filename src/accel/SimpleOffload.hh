@@ -30,8 +30,13 @@ class LocalTransporter;
  *
  * The method names correspond to methods in Geant4 User Actions and *must* be
  * called from all threads, both worker and master.
+ *
+ * \deprecated Use the \c UserActionIntegration class instead of this, or
+ * manually interface with the \c SharedParams and \c LocalTransporter for
+ * fine-grained control.
+ *
  */
-class SimpleOffload
+class [[deprecated]] SimpleOffload  // REMOVE in 0.7
 {
   public:
     //! Construct with celeritas disabled

@@ -51,7 +51,8 @@ celeritas_add_test(RaytraceImager.test.cc GPU)
 
 # High level
 celeritas_add_test(Orange.test.cc)
-celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org})
+celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(OrangeJson.test.cc)
 celeritas_add_device_test(OrangeShift)
 

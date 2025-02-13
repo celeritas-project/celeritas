@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/detail/GridAccessor.hh
+//! \file coreceel/grid/detail/GridAccessor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,8 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/grid/UniformGrid.hh"
-
-#include "../XsGridData.hh"
+#include "corecel/grid/UniformGridData.hh"
 
 namespace celeritas
 {
@@ -79,9 +78,9 @@ class SpanGridAccessor : public GridAccessor
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for accessing grid data from a cross section grid.
+ * Helper class for accessing grid data from a uniform grid.
  */
-class XsGridAccessor : public GridAccessor
+class UniformGridAccessor : public GridAccessor
 {
   public:
     //!@{
@@ -91,8 +90,9 @@ class XsGridAccessor : public GridAccessor
     //!@}
 
   public:
-    // Construct with cross section grid
-    inline XsGridAccessor(XsGridData const& grid, Values const& values);
+    // Construct with grid data
+    inline UniformGridAccessor(UniformGridRecord const& grid,
+                               Values const& values);
 
     //! Get the x grid value at the given index
     inline real_type x(size_type index) const final;
@@ -104,7 +104,7 @@ class XsGridAccessor : public GridAccessor
     size_type size() const final { return loge_grid_.size(); }
 
   private:
-    XsGridData const& data_;
+    UniformGridRecord const& data_;
     Values const& reals_;
     UniformGrid loge_grid_;
 };
@@ -178,8 +178,9 @@ real_type SpanGridAccessor::y(size_type index) const
 /*!
  * Contruct from cross section grid.
  */
-XsGridAccessor::XsGridAccessor(XsGridData const& grid, Values const& values)
-    : data_(grid), reals_(values), loge_grid_(data_.log_energy)
+UniformGridAccessor::UniformGridAccessor(UniformGridRecord const& grid,
+                                         Values const& values)
+    : data_(grid), reals_(values), loge_grid_(data_.grid)
 {
     CELER_EXPECT(data_);
 }
@@ -188,7 +189,7 @@ XsGridAccessor::XsGridAccessor(XsGridData const& grid, Values const& values)
 /*!
  * Get the x grid value at the given index.
  */
-real_type XsGridAccessor::x(size_type index) const
+real_type UniformGridAccessor::x(size_type index) const
 {
     CELER_EXPECT(index < this->size());
     return std::exp(loge_grid_[index]);
@@ -198,9 +199,8 @@ real_type XsGridAccessor::x(size_type index) const
 /*!
  * Get the y grid value at the given index.
  */
-real_type XsGridAccessor::y(size_type index) const
+real_type UniformGridAccessor::y(size_type index) const
 {
-    CELER_EXPECT(data_.prime_index == XsGridData::no_scaling());
     CELER_EXPECT(index < this->size());
     return reals_[data_.value[index]];
 }

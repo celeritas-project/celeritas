@@ -17,7 +17,7 @@
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 
-#include "ValueGridInserter.hh"
+#include "XsGridInserter.hh"
 
 namespace celeritas
 {
@@ -35,34 +35,9 @@ bool is_contiguous_increasing(SpanConstDbl first, SpanConstDbl second)
            && second.back() > second.front();
 }
 
-double calc_log_delta(SpanConstDbl vec)
-{
-    return std::pow(vec.back() / vec.front(), double(1) / (vec.size() - 1));
-}
-
-bool has_log_spacing(SpanConstDbl vec)
-{
-    double delta = calc_log_delta(vec);
-    for (auto i : range(vec.size() - 1))
-    {
-        if (!soft_equal(delta, vec[i + 1] / vec[i]))
-            return false;
-    }
-    return true;
-}
-
 bool is_nonnegative(SpanConstDbl vec)
 {
     return std::all_of(vec.begin(), vec.end(), [](double v) { return v >= 0; });
-}
-
-bool is_on_grid_point(double value, double lo, double hi, size_type size)
-{
-    if (value < lo || value > hi)
-        return false;
-
-    double delta = (hi - lo) / size;
-    return soft_mod(value - lo, delta);
 }
 
 //---------------------------------------------------------------------------//
@@ -95,26 +70,14 @@ ValueGridXsBuilder::from_geant(SpanConstDbl lambda_energy,
                             lambda_prim.front() / lambda_prim_energy.front()));
     CELER_EXPECT(is_nonnegative(lambda) && is_nonnegative(lambda_prim));
 
-    double const log_delta_lo = calc_log_delta(lambda_energy);
-    double const log_delta_hi = calc_log_delta(lambda_prim_energy);
-    CELER_VALIDATE(
-        soft_equal(log_delta_lo, log_delta_hi),
-        << "Lower and upper energy grids have inconsistent spacing: "
-           "log delta E for lower grid is "
-        << log_delta_lo << " log(MeV) per bin but upper is " << log_delta_hi);
-
-    // Concatenate the two XS vectors: insert the scaled (lambda_prim) value at
-    // the coincident point.
-    VecDbl xs(lambda.size() + lambda_prim.size() - 1);
-    auto dst = std::copy(lambda.begin(), lambda.end() - 1, xs.begin());
-    dst = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
-    CELER_ASSERT(dst == xs.end());
-
     // Construct the grid
-    return std::make_unique<ValueGridXsBuilder>(lambda_energy.front(),
-                                                lambda_prim_energy.front(),
-                                                lambda_prim_energy.back(),
-                                                VecDbl(std::move(xs)));
+    return std::make_unique<ValueGridXsBuilder>(
+        GridInput{lambda_energy.front(),
+                  lambda_prim_energy.front(),
+                  VecDbl{lambda.begin(), lambda.end()}},
+        GridInput{lambda_prim_energy.front(),
+                  lambda_prim_energy.back(),
+                  VecDbl{lambda_prim.begin(), lambda_prim.end()}});
 }
 
 //---------------------------------------------------------------------------//
@@ -130,58 +93,49 @@ ValueGridXsBuilder::from_scaled(SpanConstDbl lambda_prim_energy,
     CELER_EXPECT(is_nonnegative(lambda_prim));
 
     return std::make_unique<ValueGridXsBuilder>(
-        lambda_prim_energy.front(),
-        lambda_prim_energy.front(),
-        lambda_prim_energy.back(),
-        VecDbl{lambda_prim.begin(), lambda_prim.end()});
+        GridInput{lambda_prim_energy.front(), lambda_prim_energy.front(), {}},
+        GridInput{lambda_prim_energy.front(),
+                  lambda_prim_energy.back(),
+                  VecDbl{lambda_prim.begin(), lambda_prim.end()}});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
  */
-ValueGridXsBuilder::ValueGridXsBuilder(double emin,
-                                       double eprime,
-                                       double emax,
-                                       VecDbl xs)
-    : log_emin_(std::log(emin))
-    , log_eprime_(std::log(eprime))
-    , log_emax_(std::log(emax))
-    , xs_(std::move(xs))
+ValueGridXsBuilder::ValueGridXsBuilder(GridInput grid, GridInput grid_prime)
+    : lower_(std::move(grid)), upper_(std::move(grid_prime))
 {
-    CELER_EXPECT(emin > 0);
-    CELER_EXPECT(eprime >= emin);
-    CELER_EXPECT(emax > eprime);
-    CELER_EXPECT(xs_.size() >= 2);
-    CELER_EXPECT(
-        is_on_grid_point(log_eprime_, log_emin_, log_emax_, xs_.size() - 1));
-    CELER_EXPECT(is_nonnegative(make_span(xs_)));
+    CELER_EXPECT((!lower_.xs.empty() || !upper_.xs.empty())
+                 && (lower_.xs.empty() || upper_.xs.empty()
+                     || lower_.emax == upper_.emin));
+    CELER_EXPECT(lower_.xs.empty()
+                 || (lower_.emin > 0 && lower_.emax > lower_.emin
+                     && lower_.xs.size() >= 2));
+    CELER_EXPECT(upper_.xs.empty()
+                 || (upper_.emin > 0 && upper_.emax > upper_.emin
+                     && upper_.xs.size() >= 2));
+    CELER_EXPECT(is_nonnegative(make_span(lower_.xs)));
+    CELER_EXPECT(is_nonnegative(make_span(upper_.xs)));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct on device.
  */
-auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
+auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
-    auto log_energy
-        = UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size());
-
-    // Find and check prime energy index. Due to floating-point roundoff,
-    // \c log_eprime might not be *exactly* on a grid point, and it's possible
-    // the index below that of the correct grid point will be returned instead.
-    // Check and correct for this.
-    UniformGrid grid{log_energy};
-    auto prime_index = grid.find(log_eprime_);
-    if (soft_equal<real_type>(grid[prime_index + 1], log_eprime_))
-        ++prime_index;
-    CELER_ASSERT(prime_index + 1 < xs_.size());
-    CELER_ASSERT(soft_equal<real_type>(grid[prime_index], log_eprime_));
-
-    return insert(
-        UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
-        prime_index,
-        make_span(xs_));
+    auto lower = !lower_.xs.empty()
+                     ? UniformGridData::from_bounds(std::log(lower_.emin),
+                                                    std::log(lower_.emax),
+                                                    lower_.xs.size())
+                     : UniformGridData{};
+    auto upper = !upper_.xs.empty()
+                     ? UniformGridData::from_bounds(std::log(upper_.emin),
+                                                    std::log(upper_.emax),
+                                                    upper_.xs.size())
+                     : UniformGridData{};
+    return insert(lower, make_span(lower_.xs), upper, make_span(upper_.xs));
 }
 
 //---------------------------------------------------------------------------//
@@ -236,7 +190,7 @@ ValueGridLogBuilder::ValueGridLogBuilder(double emin, double emax, VecDbl value)
 /*!
  * Construct on device.
  */
-auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
+auto ValueGridLogBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
     return insert(
         UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
@@ -258,7 +212,7 @@ auto ValueGridLogBuilder::value() const -> SpanConstDbl
 /*!
  * Always return an 'invalid' ID.
  */
-auto ValueGridOTFBuilder::build(ValueGridInserter) const -> ValueGridId
+auto ValueGridOTFBuilder::build(XsGridInserter) const -> ValueGridId
 {
     return {};
 }

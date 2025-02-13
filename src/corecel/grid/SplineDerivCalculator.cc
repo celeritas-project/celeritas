@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/SplineDerivCalculator.cc
+//! \file corecel/grid/SplineDerivCalculator.cc
 //---------------------------------------------------------------------------//
 #include "SplineDerivCalculator.hh"
 
@@ -26,10 +26,10 @@ SplineDerivCalculator::SplineDerivCalculator(BoundaryCondition bc) : bc_(bc)
 /*!
  * Calculate the second derivatives from grid data.
  */
-auto SplineDerivCalculator::operator()(XsGridData const& data,
+auto SplineDerivCalculator::operator()(UniformGridRecord const& data,
                                        Values const& reals) const -> VecReal
 {
-    return (*this)(detail::XsGridAccessor(data, reals));
+    return (*this)(detail::UniformGridAccessor(data, reals));
 }
 
 //---------------------------------------------------------------------------//

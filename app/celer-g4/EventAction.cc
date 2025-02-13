@@ -49,7 +49,7 @@ void EventAction::BeginOfEventAction(G4Event const* event)
         return;
 
     // Set event ID in local transporter and reseed Celerits RNG
-    ExceptionConverter call_g4exception{"celer0002"};
+    ExceptionConverter call_g4exception{"celer.event.begin"};
     CELER_TRY_HANDLE(transport_->InitializeEvent(event->GetEventID()),
                      call_g4exception);
 }
@@ -65,7 +65,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     if (params_->mode() == SharedParams::Mode::enabled)
     {
         // Transport any tracks left in the buffer
-        ExceptionConverter call_g4exception{"celer0004", params_.get()};
+        ExceptionConverter call_g4exception{"celer.event.flush", params_.get()};
         CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
     }
 

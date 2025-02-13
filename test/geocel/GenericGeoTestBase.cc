@@ -9,9 +9,6 @@
 #include "corecel/Config.hh"
 #if CELERITAS_USE_GEANT4
 #    include <G4LogicalVolume.hh>
-#    include <G4LogicalVolumeStore.hh>
-
-#    include "geocel/g4/VisitGeantVolumes.hh"
 #endif
 
 #include "corecel/io/Repr.hh"
@@ -80,35 +77,29 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
 #if CELERITAS_USE_GEANT4
     using Result = GenericGeoGeantImportVolumeResult;
 
-    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(lv_store);
+    auto vol_labels = make_logical_vol_labels(*world);
 
     Result result;
-    result.volumes.assign(lv_store->size(), Result::empty);
+    result.volumes.resize(vol_labels.size());
 
-    visit_geant_volumes(
-        [&result, &geom](G4LogicalVolume const& lv) {
-            // Add pointer as GDML writer does, to emulate accel/SharedParams
-            auto name = make_gdml_name(lv);
-            if (name.empty())
+    for (auto i : range(vol_labels.size()))
+    {
+        result.volumes[i] = [&label = vol_labels[i], &geom, &result] {
+            if (label.empty())
             {
-                return;
+                return Result::empty;
             }
-
-            auto i = static_cast<std::size_t>(lv.GetInstanceID());
-            CELER_ASSERT(i < result.volumes.size());
-
-            auto label = Label::from_geant(name);
-            auto id = geom.volumes().find_exact(label);
-            if (!id)
+            else if (VolumeId id = geom.volumes().find_exact(label))
             {
-                result.volumes[i] = Result::missing;
+                return static_cast<int>(id.get());
+            }
+            else
+            {
                 result.missing_names.push_back(to_string(label));
-                return;
+                return Result::missing;
             }
-            result.volumes[i] = static_cast<int>(id.unchecked_get());
-        },
-        *world);
+        }();
+    }
 
     // Trim leading 'empty' values
     auto first_nonempty = std::find_if(

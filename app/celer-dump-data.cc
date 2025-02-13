@@ -546,8 +546,7 @@ void print_volumes(std::vector<ImportVolume> const& volumes,
                 static_cast<std::size_t>(volume.region_id) < regions.size(),
                 << "region ID " << volume.region_id << " is out of range");
             auto const& region = regions[volume.region_id];
-            // Strip pointers
-            auto region_name = Label::from_geant(region.name).name;
+            auto region_name = region.name;
 
             cout << " | " << setw(3) << std::right << volume.region_id << ": "
                  << setw(12) << std::left << region_name;

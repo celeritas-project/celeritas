@@ -41,6 +41,16 @@ decltype(auto) get_vol_names(InputIterator iter, InputIterator stop)
     return result;
 }
 
+auto labels_to_strings(std::vector<Label> const& labels)
+{
+    std::vector<std::string> result;
+    for (auto lab : labels)
+    {
+        result.push_back(to_string(lab));
+    }
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -120,6 +130,34 @@ TEST_F(SolidsTest, find_geant_volumes_duplicate)
     EXPECT_VEC_EQ(expected_vol_names, vol_names);
 }
 
+TEST_F(SolidsTest, make_vol_labels)
+{
+    auto const& world = *this->geometry()->world();
+
+    auto lv_str = labels_to_strings(make_logical_vol_labels(world));
+    static char const* const expected_lv_str[] = {
+        "box500",      "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",       "trd1",     "trd2",      "",           "trd3_refl@1",
+        "tube100",     "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",     "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",    "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl@0",
+    };
+    EXPECT_VEC_EQ(expected_lv_str, lv_str);
+
+    auto pv_str = labels_to_strings(make_physical_vol_labels(world));
+    static char const* const expected_pv_str[] = {
+        "box500_PV",   "cone1_PV",     "para1_PV",      "sphere1_PV",
+        "parabol1_PV", "trap1_PV",     "trd1_PV",       "reflNormal",
+        "reflected@0", "reflected@1",  "tube100_PV",    "boolean1_PV",
+        "orb1_PV",     "polycone1_PV", "hype1_PV",      "polyhedr1_PV",
+        "tetrah1_PV",  "arb8a_PV",     "arb8b_PV",      "ellipsoid1_PV",
+        "elltube1_PV", "ellcone1_PV",  "genPocone1_PV", "xtru1_PV",
+        "World_PV",
+    };
+    EXPECT_VEC_EQ(expected_pv_str, pv_str);
+}
+
 //---------------------------------------------------------------------------//
 class MultiLevelTest : public GeantGeoUtilsTest
 {
@@ -137,7 +175,7 @@ TEST_F(MultiLevelTest, printable_nav)
 
     std::ostringstream os;
     os << PrintableNavHistory{touchable.GetHistory()};
-    EXPECT_EQ(R"({{pv='boxsph2', lv=26='sph'} -> {pv='topsph2', lv=27='box'}})",
+    EXPECT_EQ(R"({{pv='boxsph2', lv=26='sph'} -> {pv='topbox4', lv=27='box'}})",
               os.str());
 }
 
@@ -153,7 +191,7 @@ TEST_F(MultiLevelTest, set_history)
         {"world_PV", "topbox1", "boxsph1"},
         {"world_PV", "topbox2", "boxsph2"},
         {"world_PV", "topbox2", "boxsph1"},
-        {"world_PV", "topsph2"},
+        {"world_PV", "topbox4"},
         {"world_PV", "topbox3", "boxsph1"},
         {"world_PV", "topbox3", "boxsph2"},
     };

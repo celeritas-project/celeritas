@@ -12,28 +12,37 @@
 #include "LocalTransporter.hh"
 #include "SharedParams.hh"
 
+#include "detail/IntegrationSingleton.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a model to be used in all volumes of the problem.
+ * Construct using the FastSimulationIntegration for all regions.
+ */
+FastSimulationModel::FastSimulationModel(G4Envelope* region)
+    : FastSimulationModel(
+          "celeritas",
+          region,
+          &detail::IntegrationSingleton::instance().shared_params(),
+          &detail::IntegrationSingleton::local_transporter())
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without attaching to a region.
  */
 FastSimulationModel::FastSimulationModel(G4String const& name,
                                          SharedParams const* params,
                                          LocalTransporter* local)
     : G4VFastSimulationModel(name), params_(params), transport_(local)
 {
-    CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
-                   << "the current version of Geant4 (" << G4VERSION_NUMBER
-                   << ") is too old to support the fast simulation Flush() "
-                      "interface");
-    CELER_EXPECT(params);
-    CELER_EXPECT(local);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a model for a specific volume of space (an "envelope").
+ * Construct and build a fast sim manager for the given region.
  *
  * The envelope cannot be \c nullptr as this will cause a segmentation fault
  * in the \c G4VFastSimulation base class constructor.
@@ -91,12 +100,14 @@ G4bool FastSimulationModel::ModelTrigger(G4FastTrack const& /*track*/)
 void FastSimulationModel::DoIt(G4FastTrack const& track, G4FastStep& step)
 {
     CELER_EXPECT(track.GetPrimaryTrack());
-    CELER_EXPECT(*transport_);
 
     // Offload this track to Celeritas for transport
-    ExceptionConverter call_g4exception{"celer0001", params_};
-    CELER_TRY_HANDLE(transport_->Push(*(track.GetPrimaryTrack())),
-                     call_g4exception);
+    if (*transport_)
+    {
+        // Offload this track to Celeritas for transport
+        CELER_TRY_HANDLE(transport_->Push(*(track.GetPrimaryTrack())),
+                         ExceptionConverter("celer.track.push", params_));
+    }
 
     // Kill particle on Geant4 side. Celeritas will take
     // care of energy conservation, so set path, edep to zero.
@@ -116,8 +127,12 @@ void FastSimulationModel::DoIt(G4FastTrack const& track, G4FastStep& step)
  */
 void FastSimulationModel::Flush()
 {
-    ExceptionConverter call_g4exception{"celer0002", params_};
-    CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+    if (*transport_)
+    {
+        CELER_TRY_HANDLE(transport_->Flush(),
+                         ExceptionConverter("celer.event.flush", params_));
+    }
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

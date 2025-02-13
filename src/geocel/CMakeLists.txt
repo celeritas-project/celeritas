@@ -47,12 +47,13 @@ if(CELERITAS_USE_Geant4)
     ScopedGeantLogger.cc
     g4/GeantGeoParams.cc
     g4/RaytraceImager.cc
+    g4/SafetyImager.cc
     g4/detail/GeantGeoNavCollection.cc
   )
 
   celeritas_get_g4libs(_cg4_libs global geometry materials particles
     persistency intercoms)
-  list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
+  list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC nlohmann_json::nlohmann_json)
   celeritas_target_link_libraries(geocel_geant4 PRIVATE ${_cg4_libs})
 
   list(APPEND SOURCES $<TARGET_OBJECTS:geocel_geant4>)
@@ -65,6 +66,7 @@ if(CELERITAS_USE_VecGeom)
     vg/VecgeomParamsOutput.cc
     vg/detail/VecgeomNavCollection.cc
     vg/RaytraceImager.cc
+    vg/SafetyImager.cc
   )
   if(VecGeom_GDML_FOUND)
     list(APPEND PRIVATE_DEPS VecGeom::vgdml)
