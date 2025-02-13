@@ -13,6 +13,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
@@ -95,10 +96,13 @@ class LocalTransporter
     //// TYPES ////
 
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using BBox = BoundingBox<double>;
 
     struct BufferAccum
     {
-        double energy{0};
+        double energy{0};  // MeV
+        double lost_energy{0};  // MeV
+        std::size_t lost_primaries{0};
     };
 
     struct RunAccum
@@ -106,11 +110,15 @@ class LocalTransporter
         std::size_t events{0};
         std::size_t primaries{0};
         std::size_t steps{0};
+        std::size_t lost_primaries{0};
     };
 
     //// DATA ////
 
     std::shared_ptr<ParticleParams const> particles_;
+    BBox bbox_;
+
+    // Thread-local data
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;

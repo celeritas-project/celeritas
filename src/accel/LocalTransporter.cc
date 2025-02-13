@@ -23,6 +23,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
@@ -96,6 +97,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "offloading is disabled");
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
+    bbox_ = params.bbox();
 
     auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
@@ -191,6 +193,23 @@ void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
 
+    if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
+        !is_inside(bbox_, pos))
+    {
+        // Primary may have been created by a particle generator outside the
+        // geometry
+        double energy = g4track.GetKineticEnergy() / CLHEP::MeV;
+        CELER_LOG(debug)
+            << "Discarding track outside world: " << energy << " MeV from "
+            << g4track.GetDefinition()->GetParticleName() << " at " << pos
+            << " along "
+            << convert_from_geant(g4track.GetMomentumDirection(), 1);
+
+        buffer_accum_.lost_energy += energy;
+        ++buffer_accum_.lost_primaries;
+        return;
+    }
+
     Primary track;
 
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
@@ -271,6 +290,15 @@ void LocalTransporter::Flush()
             << buffer_accum_.energy
             << " MeV cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
+    }
+    if (buffer_accum_.lost_primaries > 0)
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Lost " << buffer_accum_.lost_energy
+            << " MeV cumulative kinetic energy from "
+            << buffer_accum_.lost_primaries
+            << " primaries that started outside the geometry in event "
+            << event_id_.unchecked_get();
     }
 
     if (dump_primaries_)
