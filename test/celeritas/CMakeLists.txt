@@ -225,7 +225,8 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 # Global
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
+    "-Em3*:SimpleCms*:LeadBox*:Mock*"
+    "Mock*"
     "Em3AlongStepTest.nofluct_nomsc"
     "Em3AlongStepTest.msc_nofluct"
     "Em3AlongStepTest.msc_nofluct_finegrid"
