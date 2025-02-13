@@ -218,7 +218,8 @@ else()
   set(_needs_geant_or_root)
 endif()
 celeritas_add_test(geo/GeoMaterial.test.cc
-  ${_needs_geant_or_root} ${_optional_geant4_env})
+  ${_needs_geant_or_root} ${_optional_geant4_env}
+  FILTER "SimpleCms*" "TestEm3*")
 
 #-----------------------------------------------------------------------------#
 # Global
