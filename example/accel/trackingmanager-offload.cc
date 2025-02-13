@@ -81,7 +81,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     G4VPhysicalVolume* Construct() final
     {
         CELER_LOG_LOCAL(status) << "Setting up detector";
-        auto* box = new G4Box("world", 1000 * cm, 1000 * cm, 1000 * cm);
+        auto* box = new G4Box("world", 100 * cm, 100 * cm, 100 * cm);
         auto* lv = new G4LogicalVolume(box, aluminum_, "world");
         world_lv_ = lv;
         auto* pv = new G4PVPlacement(
@@ -104,16 +104,16 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
-// Generate 100 MeV neutrons
+// Generate 200 MeV pi+
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction()
     {
         auto* g4particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(2112);
+            = G4ParticleTable::GetParticleTable()->FindParticle(211);
         gun_.SetParticleDefinition(g4particle_def);
-        gun_.SetParticleEnergy(100 * MeV);
+        gun_.SetParticleEnergy(200 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
         gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0});  // +x
     }
@@ -152,12 +152,13 @@ class EventAction final : public G4UserEventAction
         // Log total energy deposition
         if (global_sd)
         {
-            CELER_LOG(info) << "Total energy deposited: "
-                            << (global_sd->edep() / CLHEP::MeV) << " MeV";
+            CELER_LOG_LOCAL(info)
+                << "Total energy deposited for event " << event->GetEventID()
+                << ": " << (global_sd->edep() / CLHEP::MeV) << " MeV";
         }
         else
         {
-            CELER_LOG(error) << "Global SD was not set";
+            CELER_LOG_LOCAL(error) << "Global SD was not set";
         }
     }
 };
@@ -194,9 +195,9 @@ celeritas::SetupOptions MakeOptions()
 {
     celeritas::SetupOptions opts;
     // NOTE: these numbers are appropriate for CPU execution
-    opts.max_num_tracks = 1024;
-    opts.initializer_capacity = 1024 * 128;
-    // Celeritas does not support EmStandard MSC physics above 100 MeV
+    opts.max_num_tracks = 2024;
+    opts.initializer_capacity = 2024 * 128;
+    // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
     // Use a uniform (zero) magnetic field
