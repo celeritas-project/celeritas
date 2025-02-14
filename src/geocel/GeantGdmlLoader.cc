@@ -6,8 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "GeantGdmlLoader.hh"
 
+#include <regex>
 #include <G4GDMLAuxStructType.hh>
 #include <G4GDMLParser.hh>
+#include <G4LogicalVolumeStore.hh>
+#include <G4PhysicalVolumeStore.hh>
+#include <G4SolidStore.hh>
 
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
@@ -17,6 +21,42 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+bool search_pointer(std::string const& s, std::smatch& ptr_match)
+{
+    // Search either for th end of the expression, or an underscore that likely
+    // indicates a _refl or _PV suffix
+    static std::regex const ptr_regex{"0x[0-9a-f]{4,16}(?=_|$)"};
+    return std::regex_search(s, ptr_match, ptr_regex);
+}
+
+//---------------------------------------------------------------------------//
+//! Remove pointer address from inside geometry names
+template<class StoreT>
+void excise_pointers(StoreT& obj_store)
+{
+    std::smatch sm;
+    for (auto* obj : obj_store)
+    {
+        if (!obj)
+            continue;
+
+        std::string const& name = obj->GetName();
+        if (search_pointer(name, sm))
+        {
+            std::string new_name = name.substr(0, sm.position());
+            new_name += name.substr(sm.position() + sm.length());
+            obj->SetName(new_name);
+        }
+    }
+    obj_store.UpdateMap();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Load a gdml input file, creating a pointer owned by Geant4.
@@ -49,7 +89,7 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
     ScopedGeantExceptionHandler scoped_exceptions;
 
     G4GDMLParser gdml_parser;
-    gdml_parser.SetStripFlag(opts_.clean);
+    gdml_parser.SetStripFlag(opts_.pointers == PointerTreatment::amputate);
 
     gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
 
@@ -69,6 +109,13 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
                 }
             }
         }
+    }
+
+    if (opts_.pointers == PointerTreatment::excise)
+    {
+        excise_pointers(*G4SolidStore::GetInstance());
+        excise_pointers(*G4PhysicalVolumeStore::GetInstance());
+        excise_pointers(*G4LogicalVolumeStore::GetInstance());
     }
 
     CELER_ENSURE(result.world);

@@ -34,10 +34,18 @@ class GeantGdmlLoader
     using MapDetectors = std::multimap<std::string, G4LogicalVolume*>;
     //!@}
 
+    //! How to handle pointers in volume names
+    enum class PointerTreatment
+    {
+        ignore,  //!< Pointers will remain in the volume name
+        amputate,  //!< All text after '0x' is removed
+        excise,  //!< Only pointers are carefully removed
+    };
+
     struct Options
     {
         //! Strip pointer extensions from solids/volumes
-        bool clean{true};
+        PointerTreatment pointers{PointerTreatment::amputate};
         //! Load sensitive detector map
         bool detectors{false};
     };
