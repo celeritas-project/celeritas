@@ -102,11 +102,6 @@ void set_history(Span<G4VPhysicalVolume const*> stack,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline G4VPhysicalVolume* load_geant_geometry_native(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
 inline void reset_geant_geometry()
 {
     CELER_NOT_CONFIGURED("Geant4");
