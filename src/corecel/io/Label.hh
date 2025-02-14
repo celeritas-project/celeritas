@@ -51,10 +51,10 @@ struct Label
     //! Create an empty label
     Label() = default;
 
-    //! Create *implicitly* from a captured string name (capture)
+    //! Create *implicitly* from a captured string name
     Label(std::string&& n) : name{std::move(n)} {}
 
-    // Create *implicitly* from a name without extension
+    // Create *implicitly* from a string name
     Label(std::string_view n);
     Label(char const* n) : Label{std::string_view{n}} {}
     Label(std::string const& n) : Label{std::string_view{n}} {}
