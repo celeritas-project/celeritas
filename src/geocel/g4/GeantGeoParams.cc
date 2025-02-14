@@ -69,6 +69,9 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
 {
     ScopedMem record_mem("GeantGeoParams.construct");
 
+    scoped_logger_ = std::make_unique<ScopedGeantLogger>();
+    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
+
     disable_geant_signal_handler();
 
     if (!ends_with(filename, ".gdml"))
@@ -78,12 +81,6 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
 
     host_ref_.world = load_geant_geometry_native(filename);
     loaded_gdml_ = true;
-
-    // NOTE: only instantiate the logger/exception handler *after* loading
-    // Geant4 geometry, since something in the GDML parser's call chain resets
-    // the Geant logger.
-    scoped_logger_ = std::make_unique<ScopedGeantLogger>();
-    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
 
     this->build_tracking();
     this->build_metadata();

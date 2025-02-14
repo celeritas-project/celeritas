@@ -134,13 +134,14 @@ class GeantLoggerAdapter final : public G4coutDestination
  */
 GeantLoggerAdapter::GeantLoggerAdapter()
 {
-    if (!G4UImanager::GetUIpointer())
+    // Make sure both UI pointers have been instantiated, since its cosntructor
+    // resets the destination
+    if (!(G4UImanager::GetUIpointer() && G4UImanager::GetMasterUIpointer()))
     {
         // Always-on debug assertion (not a "runtime" error but a
         // subtle programming logic error that always causes a crash)
         CELER_DEBUG_FAIL(
-            "Geant4 logging cannot be changed after G4UImanager has been "
-            "destroyed",
+            R"(Geant4 logging cannot be changed after G4UImanager has been destroyed)",
             precondition);
     }
 
