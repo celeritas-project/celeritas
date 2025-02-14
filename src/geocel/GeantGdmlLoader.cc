@@ -42,7 +42,7 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
             "Geant4 geometry cannot be loaded from a worker thread", internal);
     }
 
-    ScopedMem record_mem("load_geant_geometry");
+    ScopedMem record_mem("GeantGdmlLoader.load");
     ScopedTimeLog scoped_time;
 
     ScopedGeantLogger scoped_logger;
