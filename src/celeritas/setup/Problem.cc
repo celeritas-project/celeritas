@@ -97,6 +97,8 @@ struct GeoBuilder
     {
         if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
+            // NOTE: this is used to allow a custom "ideal" TestEM3 definition
+            // in our regression suite
             static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
             auto const& filename = celeritas::getenv(fi_hack_envname);
             if (!filename.empty())
