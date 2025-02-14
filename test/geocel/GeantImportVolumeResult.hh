@@ -32,7 +32,7 @@ struct GeantImportVolumeResult
                   G4VPhysicalVolume const* world);
 
     std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
-    std::vector<std::string> missing_names;  //!< G4LV names without a match
+    std::vector<std::string> missing_labels;  //!< G4LV names without a match
 
     void print_expected() const;
 };

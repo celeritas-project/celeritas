@@ -48,7 +48,7 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom,
             }
             else
             {
-                result.missing_names.push_back(to_string(label));
+                result.missing_labels.push_back(to_string(label));
                 return Result::missing;
             }
         }();
@@ -90,7 +90,7 @@ GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom,
                                     : Result::missing);
         if (!id)
         {
-            result.missing_names.push_back(lv->GetName());
+            result.missing_labels.push_back(lv->GetName());
         }
     }
     return result;
@@ -110,11 +110,11 @@ void GeantImportVolumeResult::print_expected() const
          << repr(this->volumes)
          << ";\n"
             "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-            "EXPECT_EQ(0, result.missing_names.size()) << "
-            "repr(result.missing_names);\n";
-    if (!this->missing_names.empty())
+            "EXPECT_EQ(0, result.missing_labels.size()) << "
+            "repr(result.missing_labels);\n";
+    if (!this->missing_labels.empty())
     {
-        cout << "/* Currently missing: " << repr(this->missing_names)
+        cout << "/* Currently missing: " << repr(this->missing_labels)
              << " */\n";
     }
     cout << "/*** END CODE ***/\n";

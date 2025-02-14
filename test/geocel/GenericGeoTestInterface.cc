@@ -62,33 +62,33 @@ auto GenericGeoTestInterface::geometry_basename() const -> std::string
 
 //---------------------------------------------------------------------------//
 /*!
- * Get all logical volume names.
+ * Get all logical volume labels.
  */
-std::vector<std::string> GenericGeoTestInterface::get_volume_names() const
+std::vector<std::string> GenericGeoTestInterface::get_volume_labels() const
 {
     std::vector<std::string> result;
 
     auto const& volumes = this->geometry_interface()->volumes();
     for (auto vidx : range(this->volume_offset(), volumes.size()))
     {
-        result.push_back(volumes.at(VolumeId{vidx}).name);
+        result.push_back(to_string(volumes.at(VolumeId{vidx})));
     }
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get all physical volume names.
+ * Get all physical volume labels, including extensions.
  */
 std::vector<std::string>
-GenericGeoTestInterface::get_volume_instance_names() const
+GenericGeoTestInterface::get_volume_instance_labels() const
 {
     std::vector<std::string> result;
 
     auto const& vol_inst = this->geometry_interface()->volume_instances();
     for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
     {
-        result.push_back(vol_inst.at(VolumeInstanceId{vidx}).name);
+        result.push_back(to_string(vol_inst.at(VolumeInstanceId{vidx})));
     }
     return result;
 }
@@ -97,7 +97,7 @@ GenericGeoTestInterface::get_volume_instance_names() const
 /*!
  * Get all Geant4 PV names corresponding to volume instances.
  */
-std::vector<std::string> GenericGeoTestInterface::get_g4pv_names() const
+std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
 {
     auto* world = this->g4world();
     CELER_VALIDATE(world,

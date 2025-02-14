@@ -75,13 +75,13 @@ class GenericGeoTestInterface
     virtual G4VPhysicalVolume const* g4world() const { return nullptr; }
 
     // Get all logical volume names
-    std::vector<std::string> get_volume_names() const;
+    std::vector<std::string> get_volume_labels() const;
 
     // Get all physical volume names
-    std::vector<std::string> get_volume_instance_names() const;
+    std::vector<std::string> get_volume_instance_labels() const;
 
     // Get mapped Geant4 physical volume names
-    std::vector<std::string> get_g4pv_names() const;
+    std::vector<std::string> get_g4pv_labels() const;
 
     // Get the volume name, adjusting for offsets from loading multiple geo
     std::string_view get_volume_name(VolumeId i) const;

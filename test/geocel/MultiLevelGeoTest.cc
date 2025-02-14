@@ -29,14 +29,14 @@ void MultiLevelGeoTest::test_accessors() const
     auto const& geo = *geo_test_->geometry_interface();
     EXPECT_EQ(3, geo.max_depth());
 
-    static char const* const expected_vol_names[] = {
+    static char const* const expected_vol_labels[] = {
         "sph",
         "box",
         "world",
     };
-    EXPECT_VEC_EQ(expected_vol_names, geo_test_->get_volume_names());
+    EXPECT_VEC_EQ(expected_vol_labels, geo_test_->get_volume_labels());
 
-    static char const* const expected_vol_inst_names[] = {
+    static char const* const expected_vol_inst_labels[] = {
         "boxsph1",
         "boxsph2",
         "topsph1",
@@ -46,12 +46,12 @@ void MultiLevelGeoTest::test_accessors() const
         "topbox4",
         "world_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_names,
-                  geo_test_->get_volume_instance_names());
+    EXPECT_VEC_EQ(expected_vol_inst_labels,
+                  geo_test_->get_volume_instance_labels());
 
     if (geo_test_->g4world())
     {
-        EXPECT_VEC_EQ(expected_vol_inst_names, geo_test_->get_g4pv_names());
+        EXPECT_VEC_EQ(expected_vol_inst_labels, geo_test_->get_g4pv_labels());
     }
 }
 

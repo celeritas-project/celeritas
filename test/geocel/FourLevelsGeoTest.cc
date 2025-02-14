@@ -45,15 +45,15 @@ void FourLevelsGeoTest::test_accessors() const
     EXPECT_VEC_SOFT_EQ(expected_lo, to_cm(bbox.lower()));
     EXPECT_VEC_SOFT_EQ(expected_hi, to_cm(bbox.upper()));
 
-    static char const* const expected_vol_names[] = {
+    static char const* const expected_vol_labels[] = {
         "Shape2",
         "Shape1",
         "Envelope",
         "World",
     };
-    EXPECT_VEC_EQ(expected_vol_names, test_->get_volume_names());
+    EXPECT_VEC_EQ(expected_vol_labels, test_->get_volume_labels());
 
-    static char const* const expected_vol_inst_names[] = {
+    static char const* const expected_vol_inst_labels[] = {
         "Shape2",
         "Shape1",
         "env1",
@@ -66,11 +66,12 @@ void FourLevelsGeoTest::test_accessors() const
         "env8",
         "World_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_names, test_->get_volume_instance_names());
+    EXPECT_VEC_EQ(expected_vol_inst_labels,
+                  test_->get_volume_instance_labels());
 
     if (test_->g4world())
     {
-        EXPECT_VEC_EQ(expected_vol_inst_names, test_->get_g4pv_names());
+        EXPECT_VEC_EQ(expected_vol_inst_labels, test_->get_g4pv_labels());
     }
 }
 

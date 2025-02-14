@@ -289,15 +289,15 @@ TEST_F(FourLevelsTest, accessors)
 
     // this->impl().test_accessors();
 
-    static char const* const expected_vol_names[] = {
+    static char const* const expected_vol_labels[] = {
         "Shape2",
         "Shape1",
         "Envelope",
         "World",
     };
-    EXPECT_VEC_EQ(expected_vol_names, this->get_volume_names());
+    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
 
-    static char const* const expected_vol_inst_names[] = {
+    static char const* const expected_vol_inst_labels[] = {
         "Shape2",
         "Shape1",
         "env1",
@@ -310,7 +310,7 @@ TEST_F(FourLevelsTest, accessors)
         "env8",
         "World0xdeadbeef_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_names, this->get_volume_instance_names());
+    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
 }
 
 //---------------------------------------------------------------------------//
@@ -1068,15 +1068,15 @@ TEST_F(MultiLevelGeantTest, accessors)
     auto const& geo = *this->geometry();
     EXPECT_EQ(3, geo.max_depth());
 
-    static char const* const expected_vol_names[] = {
+    static char const* const expected_vol_labels[] = {
         "sph",
         "box",
         "world",
     };
-    EXPECT_VEC_EQ(expected_vol_names, this->get_volume_names());
+    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
 
     // NOTE: pv ordering differs from VGDML and G4
-    static char const* const expected_vol_inst_names[] = {
+    static char const* const expected_vol_inst_labels[] = {
         "topsph1",
         "boxsph1",
         "boxsph2",
@@ -1086,9 +1086,9 @@ TEST_F(MultiLevelGeantTest, accessors)
         "topbox4",
         "world_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_names, this->get_volume_instance_names());
+    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
 
-    static char const* const expected_pv_names[] = {
+    static char const* const expected_pv_labels[] = {
         "topsph1",
         "boxsph1",
         "boxsph2",
@@ -1098,7 +1098,7 @@ TEST_F(MultiLevelGeantTest, accessors)
         "topbox4",
         "world_PV",
     };
-    EXPECT_VEC_EQ(expected_pv_names, this->get_g4pv_names());
+    EXPECT_VEC_EQ(expected_pv_labels, this->get_g4pv_labels());
 }
 
 TEST_F(MultiLevelGeantTest, trace)
@@ -1205,7 +1205,8 @@ TEST_F(SolidsGeantTest, geant_volumes)
             17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30,
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
+        EXPECT_EQ(0, result.missing_labels.size())
+            << repr(result.missing_labels);
     }
     {
         auto result = this->get_direct_geant_volumes();
@@ -1215,7 +1216,7 @@ TEST_F(SolidsGeantTest, geant_volumes)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
 
         static char const* const expected_missing[] = {"trd3_refl"};
-        EXPECT_VEC_EQ(expected_missing, result.missing_names);
+        EXPECT_VEC_EQ(expected_missing, result.missing_labels);
     }
 }
 
@@ -1446,7 +1447,7 @@ TEST_F(ArbitraryGeantTest, conversion)
     auto result = GeantImportVolumeResult::from_import(*this->geometry(),
                                                        world_volume_);
     result.print_expected();
-    EXPECT_EQ(0, result.missing_names.size());
+    EXPECT_EQ(0, result.missing_labels.size());
 }
 
 TEST_F(ArbitraryGeantTest, dump)
