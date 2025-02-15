@@ -25,7 +25,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
@@ -104,8 +104,9 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     {
         CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
-        // Load GDML and save a copy of the pointer
-        world_ = load_geant_geometry_native(gdml_filename);
+        // Load GDML and reference the world pointer
+        // TODO: pass GdmlLoader options through SetupOptions
+        world_ = load_gdml(gdml_filename);
         CELER_ASSERT(world_);
 
         // Construct the geometry

@@ -28,6 +28,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
@@ -78,7 +79,7 @@ OrangeInput input_from_file(std::string filename)
             && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             // Load with Geant4: must *not* be using run manager
-            auto* world = ::celeritas::load_geant_geometry_native(filename);
+            auto* world = ::celeritas::load_gdml(filename);
             auto result = g4org::Converter{}(world).input;
             ::celeritas::reset_geant_geometry();
             return result;

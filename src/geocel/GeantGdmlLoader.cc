@@ -123,4 +123,42 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write a GDML file to the given filename.
+ */
+void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename)
+{
+    CELER_EXPECT(world);
+
+    CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
+    ScopedMem record_mem("save_gdml");
+    ScopedTimeLog scoped_time;
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
+
+    G4GDMLParser parser;
+    parser.SetOverlapCheck(false);
+
+    if (!world->GetLogicalVolume()->GetRegion())
+    {
+        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping "
+                              "export of energy cuts and regions";
+    }
+    else
+    {
+        parser.SetEnergyCutsExport(true);
+        parser.SetRegionExport(true);
+    }
+
+    parser.SetSDExport(true);
+    parser.SetStripFlag(false);
+#if G4VERSION_NUMBER >= 1070
+    parser.SetOutputFileOverwrite(true);
+#endif
+
+    parser.Write(out_filename, world, /* append_pointers = */ true);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

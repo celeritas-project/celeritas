@@ -100,7 +100,7 @@ TEST_F(SolidsTest, write_geant_geometry)
     ASSERT_TRUE(world);
 
     ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
-    write_geant_geometry(world, this->make_unique_filename(".gdml"));
+    save_gdml(world, this->make_unique_filename(".gdml"));
 
     static char const* const expected_log_messages[] = {
         R"(Geant4 regions have not been set up: skipping export of energy cuts and regions)"};

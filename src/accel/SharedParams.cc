@@ -41,6 +41,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
@@ -499,8 +500,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
                           "when manually loading a geometry (the "
                           "'geometry_file' option is also set)");
 
-        write_geant_geometry(GeantImporter::get_world_volume(),
-                             options.geometry_output_file);
+        save_gdml(GeantImporter::get_world_volume(),
+                  options.geometry_output_file);
     }
 
     CoreParams::Input params;

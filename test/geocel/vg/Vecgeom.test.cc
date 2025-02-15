@@ -18,6 +18,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
@@ -103,8 +104,8 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
         }
         ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                     LogLevel::warning};
-        world_volume_ = ::celeritas::load_geant_geometry_native(
-            this->test_data_path("geocel", filename));
+        world_volume_
+            = ::celeritas::load_gdml(this->test_data_path("geocel", filename));
         auto result = std::make_shared<VecgeomParams>(world_volume_);
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
@@ -1702,7 +1703,7 @@ class ArbitraryGeantTest : public VecgeomGeantTestBase
             // Clear old geant4 data
             ::celeritas::reset_geant_geometry();
         }
-        world_volume_ = ::celeritas::load_geant_geometry_native(filename);
+        world_volume_ = ::celeritas::load_gdml(filename);
         return std::make_shared<VecgeomParams>(world_volume_);
     }
 };

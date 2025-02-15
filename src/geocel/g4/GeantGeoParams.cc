@@ -28,6 +28,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -79,7 +80,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    host_ref_.world = load_geant_geometry_native(filename);
+    host_ref_.world = load_gdml(filename);
     loaded_gdml_ = true;
 
     this->build_tracking();

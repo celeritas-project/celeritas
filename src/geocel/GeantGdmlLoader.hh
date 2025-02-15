@@ -22,6 +22,15 @@ namespace celeritas
 /*!
  * Load a GDML file into memory.
  *
+ * The pointer treatment gives three options:
+ * - \c ignore leaves names as they are imported by Geant4's GDML reader, which
+ *   strips them from material/region names but leaves solid/logical/physical
+ *   pointers in place.
+ * - \c amputate lets the Geant4 GDML remove the pointers, which cuts
+ *   everything after \c 0x including suffixes like \c _refl added during
+ *   volume construction.
+ * - \c excise uses a regular expression to remove pointers from volume names.
+ *
  * The \c detectors option reads \c auxiliary tags in the \c structure that
  * have \c auxtype=SensDet and returns a multimap of strings to volume
  * pointers.
@@ -73,13 +82,39 @@ class GeantGdmlLoader
 };
 
 //---------------------------------------------------------------------------//
+// Load a Geant4 geometry, excising pointers
+G4VPhysicalVolume* load_gdml(std::string const& filename);
+
+// Save a Geant4 geometry to a file
+void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Load a Geant4 geometry, excising pointers.
+ *
+ * This provides a good default for using GDML in Celeritas.
+ *
+ * \return Geant4-owned world volume
+ */
+inline G4VPhysicalVolume* load_gdml(std::string const& filename)
+{
+    return GeantGdmlLoader()(filename).world;
+}
+
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
 
-auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
+inline auto
+GeantGdmlLoader::operator()(std::string const& filename) const -> Result
 {
     CELER_DISCARD(opts_);
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline void save_gdml(G4VPhysicalVolume const*, std::string const&)
+{
     CELER_NOT_CONFIGURED("Geant4");
 }
 

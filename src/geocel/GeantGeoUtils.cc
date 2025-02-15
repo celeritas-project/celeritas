@@ -35,14 +35,9 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "orange/g4org/Converter.hh"
 
-#include "GeantGdmlLoader.hh"
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
 #include "g4/VisitVolumes.hh"
 
 #include "detail/MakeLabelVector.hh"
@@ -128,60 +123,6 @@ std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
         os << "{null G4LogicalVolume}";
     }
     return os;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a Geant4 geometry, stripping suffixes like a typical Geant4 app.
- *
- * With this implementation, we let Geant4 strip the uniquifying pointers,
- * which allows our application to construct its own based on the actual
- * in-memory addresses.
- *
- * \return Geant4-owned world volume
- */
-G4VPhysicalVolume* load_geant_geometry_native(std::string const& filename)
-{
-    return GeantGdmlLoader()(filename).world;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write a GDML file to the given filename.
- */
-void write_geant_geometry(G4VPhysicalVolume const* world,
-                          std::string const& out_filename)
-{
-    CELER_EXPECT(world);
-
-    CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
-    ScopedMem record_mem("write_geant_geometry");
-    ScopedTimeLog scoped_time;
-
-    ScopedGeantLogger scoped_logger;
-    ScopedGeantExceptionHandler scoped_exceptions;
-
-    G4GDMLParser parser;
-    parser.SetOverlapCheck(false);
-
-    if (!world->GetLogicalVolume()->GetRegion())
-    {
-        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping "
-                              "export of energy cuts and regions";
-    }
-    else
-    {
-        parser.SetEnergyCutsExport(true);
-        parser.SetRegionExport(true);
-    }
-
-    parser.SetSDExport(true);
-    parser.SetStripFlag(false);
-#if G4VERSION_NUMBER >= 1070
-    parser.SetOutputFileOverwrite(true);
-#endif
-
-    parser.Write(out_filename, world, /* append_pointers = */ true);
 }
 
 //---------------------------------------------------------------------------//
