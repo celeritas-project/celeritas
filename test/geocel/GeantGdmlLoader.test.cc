@@ -41,7 +41,6 @@ TEST_F(SolidsTest, load_save)
     ScopedLogStorer scoped_log_local_{&celeritas::self_logger(),
                                       LogLevel::warning};
     auto* world = load_gdml(this->gdml_path("solids"));
-    scoped_log_local_.print_expected();
     static char const* const expected_local_log_levels[] = {"error"};
     EXPECT_VEC_EQ(expected_local_log_levels, scoped_log_local_.levels());
     scoped_log_local_ = {};
