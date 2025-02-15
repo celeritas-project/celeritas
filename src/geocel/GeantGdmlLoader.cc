@@ -13,6 +13,7 @@
 #include <G4PhysicalVolumeStore.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4SolidStore.hh>
+#include <G4Version.hh>
 
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
@@ -148,7 +149,6 @@ void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename)
     ScopedGeantExceptionHandler scoped_exceptions;
 
     G4GDMLParser parser;
-    parser.SetOutputFileOverwrite(true);
     parser.SetOverlapCheck(false);
 
     if (!world->GetLogicalVolume()->GetRegion())
