@@ -11,6 +11,7 @@
 #include <G4GDMLParser.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4PhysicalVolumeStore.hh>
+#include <G4ReflectionFactory.hh>
 #include <G4SolidStore.hh>
 
 #include "corecel/io/ScopedTimeLog.hh"
@@ -99,13 +100,22 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
     if (opts_.detectors)
     {
         // Find sensitive detectors
-        for (auto const& lv_vecaux : *gdml_parser.GetAuxMap())
+        auto const* refl_factory = G4ReflectionFactory::Instance();
+        CELER_ASSERT(refl_factory);
+
+        for (auto&& [lv, vecaux] : *gdml_parser.GetAuxMap())
         {
-            for (G4GDMLAuxStructType const& aux : lv_vecaux.second)
+            for (G4GDMLAuxStructType const& aux : vecaux)
             {
+                std::string const& sd_name = aux.value;
                 if (aux.type == "SensDet")
                 {
-                    result.detectors.insert({aux.value, lv_vecaux.first});
+                    result.detectors.insert({sd_name, lv});
+                    if (auto* refl_lv = refl_factory->GetReflectedLV(lv))
+                    {
+                        // Add the reflected volume as well
+                        result.detectors.insert({sd_name, refl_lv});
+                    }
                 }
             }
         }
