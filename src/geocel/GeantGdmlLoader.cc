@@ -53,7 +53,9 @@ void excise_pointers(StoreT& obj_store)
             obj->SetName(new_name);
         }
     }
-    obj_store.UpdateMap();
+#if G4VERSION_NUMBER >= 1100
+    obj_store.UpdateMap();  // Added by geommng-V10-07-00
+#endif
 }
 
 //---------------------------------------------------------------------------//
