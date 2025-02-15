@@ -106,8 +106,7 @@ inline G4VPhysicalVolume* load_gdml(std::string const& filename)
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
 
-inline auto
-GeantGdmlLoader::operator()(std::string const& filename) const -> Result
+inline auto GeantGdmlLoader::operator()(std::string const&) const -> Result
 {
     CELER_DISCARD(opts_);
     CELER_NOT_CONFIGURED("Geant4");
