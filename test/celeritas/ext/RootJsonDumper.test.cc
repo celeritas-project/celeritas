@@ -266,12 +266,14 @@ TEST_F(RootJsonDumperTest, all)
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [1000, 100000000],
-      "y" : [0, 2.30830366120884e-30]
+      "y" : [0, 2.30830366120884e-30],
+      "spline" : true
     }, {
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [1000, 100000000],
-      "y" : [0, 7.63113707977686e-4]
+      "y" : [0, 7.63113707977686e-4],
+      "spline" : true
     }]
   }],
   "applies_at_rest" : false
@@ -289,12 +291,14 @@ TEST_F(RootJsonDumperTest, all)
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [1e-4, 100],
-      "y" : [3.64953143614647e-27, 1.39709799580588e-25]
+      "y" : [3.64953143614647e-27, 1.39709799580588e-25],
+      "spline" : true
     }, {
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [1e-4, 100],
-      "y" : [0.0919755519795958, 128.588033594672]
+      "y" : [0.0919755519795958, 128.588033594672],
+      "spline" : true
     }]
   }
 }, {
@@ -310,12 +314,14 @@ TEST_F(RootJsonDumperTest, all)
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [100, 100000000],
-      "y" : [1.5060677760307e-25, 1.59603068918702e-25]
+      "y" : [1.5060677760307e-25, 1.59603068918702e-25],
+      "spline" : true
     }, {
       "_typename" : "celeritas::ImportPhysicsVector",
       "vector_type" : 2,
       "x" : [100, 100000000],
-      "y" : [114.932650722669, 116.590357663561]
+      "y" : [114.932650722669, 116.590357663561],
+      "spline" : true
     }]
   }
 }],

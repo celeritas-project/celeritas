@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
@@ -189,6 +190,7 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
  */
 void append_table(G4PhysicsTable const* g4table,
                   ImportTableType table_type,
+                  [[maybe_unused]] ImportProcessClass process_class,
                   std::vector<ImportPhysicsTable>* tables)
 {
     if (!g4table)
@@ -231,6 +233,19 @@ void append_table(G4PhysicsTable const* g4table,
     {
         table.physics_vectors.emplace_back(
             import_physics_vector(*g4vector, {table.x_units, table.y_units}));
+#if G4VERSION_NUMBER < 1100
+        // Hardcode whether the lambda table uses spline for older Geant4
+        // versions. Always use spline for lambda prime, energy loss, range,
+        // and msc
+        static std::unordered_set<ImportProcessClass> disable_spline{
+            ImportProcessClass::rayleigh};
+
+        table.physics_vectors.back().spline
+            = table_type != ImportTableType::lambda
+              || !disable_spline.count(process_class);
+#else
+        table.physics_vectors.back().spline = g4vector->GetSpline();
+#endif
     }
 
     CELER_ENSURE(
@@ -289,10 +304,13 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     }
 
     // Save cross section tables if available
-    append_table(
-        process.LambdaTable(), ImportTableType::lambda, &result.tables);
+    append_table(process.LambdaTable(),
+                 ImportTableType::lambda,
+                 result.process_class,
+                 &result.tables);
     append_table(process.LambdaTablePrim(),
                  ImportTableType::lambda_prim,
+                 result.process_class,
                  &result.tables);
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
@@ -331,15 +349,20 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
         // each energy loss process are stored in the "ionization process"
         // (which might be ionization or might be another arbitrary energy loss
         // process if there is no ionization in the problem).
-        append_table(
-            process.DEDXTable(), ImportTableType::dedx, &result.tables);
+        append_table(process.DEDXTable(),
+                     ImportTableType::dedx,
+                     result.process_class,
+                     &result.tables);
         append_table(process.RangeTableForLoss(),
                      ImportTableType::range,
+                     result.process_class,
                      &result.tables);
     }
 
-    append_table(
-        process.LambdaTable(), ImportTableType::lambda, &result.tables);
+    append_table(process.LambdaTable(),
+                 ImportTableType::lambda,
+                 result.process_class,
+                 &result.tables);
 
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
@@ -396,6 +419,7 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
             }
             append_table(model->GetCrossSectionTable(),
                          ImportTableType::msc_xs,
+                         ImportProcessClass::size_,
                          &temp_tables);
             CELER_EXPECT(temp_tables.size() == 1);
             imm.xs_table = std::move(temp_tables.back());

@@ -264,17 +264,18 @@ void print_table(ImportPhysicsTable const& table)
 {
     cout << to_cstring(table.table_type) << ":\n\n";
 
-    cout << "| Type          | Size  | Endpoints ("
+    cout << "| Type          | Spline | Size  | Endpoints ("
          << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
          << ") |"
          << R"gfm(
-| ------------- | ----- | ------------------------------------------------------------ |
+| ------------- | ------ | ----- | ------------------------------------------------------------ |
 )gfm";
 
     for (auto const& physvec : table.physics_vectors)
     {
         cout << "| " << setw(13) << std::left
-             << to_cstring(physvec.vector_type) << " | " << setw(5)
+             << to_cstring(physvec.vector_type) << " | " << setw(6)
+             << (physvec.spline ? "true" : "false") << " | " << setw(5)
              << physvec.x.size() << " | (" << setprecision(3) << setw(12)
              << physvec.x.front() << ", " << setprecision(3) << setw(12)
              << physvec.y.front() << ") -> (" << setprecision(3) << setw(12)

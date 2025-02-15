@@ -38,6 +38,7 @@ struct ImportPhysicsVector
     ImportPhysicsVectorType vector_type;
     std::vector<double> x;  //!< Geant4 binVector
     std::vector<double> y;  //!< Geant4 dataVector
+    bool spline{false};
 
     explicit operator bool() const
     {
