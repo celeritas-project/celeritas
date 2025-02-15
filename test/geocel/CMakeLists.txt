@@ -109,6 +109,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Geant4
 
+celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4} LINK_LIBRARIES ${_g4_geo_libs})
+
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
 endif()

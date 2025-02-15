@@ -138,6 +138,7 @@ void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename)
     ScopedGeantExceptionHandler scoped_exceptions;
 
     G4GDMLParser parser;
+    parser.SetOutputFileOverwrite(true);
     parser.SetOverlapCheck(false);
 
     if (!world->GetLogicalVolume()->GetRegion())
