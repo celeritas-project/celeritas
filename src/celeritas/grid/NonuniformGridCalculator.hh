@@ -88,6 +88,7 @@ class NonuniformGridCalculator
 CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
     NonuniformGridRecord const& grid, Values const& reals)
 {
+    CELER_EXPECT(grid.derivative.empty());
     return NonuniformGridCalculator{reals, grid.value, grid.grid, {}};
 }
 
@@ -175,6 +176,7 @@ NonuniformGridCalculator::grid() const
 CELER_FUNCTION NonuniformGridCalculator
 NonuniformGridCalculator::make_inverse() const
 {
+    CELER_EXPECT(deriv_offset_.empty());
     return NonuniformGridCalculator{reals_, y_offset_, x_grid_.offset(), {}};
 }
 
