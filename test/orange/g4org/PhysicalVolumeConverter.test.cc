@@ -6,13 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
-#include "geocel/GeantGeoUtils.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
 
+#include "GeantLoadTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -33,22 +34,14 @@ auto make_options()
 }
 
 //---------------------------------------------------------------------------//
-class PhysicalVolumeConverterTest : public ::celeritas::test::Test
+class PhysicalVolumeConverterTest : public GeantLoadTestBase
 {
-  protected:
-    G4VPhysicalVolume const* load(std::string const& filename)
-    {
-        return ::celeritas::load_geant_geometry_native(
-            this->test_data_path("geocel", filename));
-    }
-
-    void TearDown() final { ::celeritas::reset_geant_geometry(); }
 };
 
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
 {
-    G4VPhysicalVolume const* g4world = this->load("four-levels.gdml");
+    G4VPhysicalVolume const* g4world = this->load_test_gdml("four-levels");
     PhysicalVolumeConverter::Options opts;
     opts.verbose = false;
     opts.scale = 0.1;
@@ -70,7 +63,8 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
 {
-    G4VPhysicalVolume const* g4world = this->load("intersection-boxes.gdml");
+    G4VPhysicalVolume const* g4world
+        = this->load_test_gdml("intersection-boxes");
 
     PhysicalVolumeConverter convert{make_options()};
     PhysicalVolume world = convert(*g4world);
@@ -101,7 +95,7 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
 TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
 {
     celeritas::environment().insert({"G4ORG_ALLOW_ERRORS", "1"});
-    G4VPhysicalVolume const* g4world = this->load("solids.gdml");
+    G4VPhysicalVolume const* g4world = this->load_test_gdml("solids");
 
     PhysicalVolumeConverter convert{make_options()};
 
@@ -111,7 +105,7 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, testem3)
 {
-    G4VPhysicalVolume const* g4world = this->load("testem3.gdml");
+    G4VPhysicalVolume const* g4world = this->load_test_gdml("testem3");
     PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
@@ -188,7 +182,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, transformed_box)
 {
-    G4VPhysicalVolume const* g4world = this->load("transformed-box.gdml");
+    G4VPhysicalVolume const* g4world = this->load_test_gdml("transformed-box");
 
     PhysicalVolumeConverter convert{make_options()};
     PhysicalVolume world = convert(*g4world);
@@ -265,7 +259,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, znenv)
 {
-    G4VPhysicalVolume const* g4world = this->load("znenv.gdml");
+    G4VPhysicalVolume const* g4world = this->load_test_gdml("znenv");
     PhysicalVolumeConverter convert{make_options()};
     PhysicalVolume world = convert(*g4world);
     (void)sizeof(world);
