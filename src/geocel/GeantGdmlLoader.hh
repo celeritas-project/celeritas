@@ -54,7 +54,7 @@ class GeantGdmlLoader
     struct Options
     {
         //! Strip pointer extensions from solids/volumes
-        PointerTreatment pointers{PointerTreatment::amputate};
+        PointerTreatment pointers{PointerTreatment::excise};
         //! Load sensitive detector map
         bool detectors{false};
     };
