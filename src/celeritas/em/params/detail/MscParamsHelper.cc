@@ -121,9 +121,19 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
             CELER_ASSERT(pv.x.front() > 0 && pv.x.back() > pv.x.front());
             CELER_ASSERT(has_log_spacing(make_span(pv.x)));
 
+            bool spline = spline_ && pv.spline;
+            if (mat_idx == 0)
+            {
+                CELER_LOG(debug)
+                    << (spline ? "Enabled" : "Disabled")
+                    << " spline interpolation for "
+                    << particles_.id_to_label(ParticleId(par_ids_[par_idx]))
+                    << " " << to_cstring(model_class_)
+                    << " cross section grid";
+            }
             auto grid = UniformGridData::from_bounds(
                 std::log(pv.x.front()), std::log(pv.x.back()), pv.x.size());
-            auto grid_id = insert(grid, make_span(pv.y), spline_ && pv.spline);
+            auto grid_id = insert(grid, make_span(pv.y), spline);
             CELER_ASSERT(grid_id.get() == xs.size());
 
             xs.push_back(grids[grid_id]);

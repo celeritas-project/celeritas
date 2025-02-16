@@ -78,6 +78,10 @@ inp::Problem load_problem(RunInput const& ri)
         limits.steps = ri.max_steps;
     }
 
+    // Physics
+    CELER_ASSERT(p.physics.em);
+    p.physics.em->spline = ri.spline;
+
     // Field setup
     if (ri.field_type == "rzmap")
     {

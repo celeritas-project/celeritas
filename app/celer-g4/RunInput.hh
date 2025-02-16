@@ -95,6 +95,7 @@ struct RunInput
     // Physics setup options
     PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};
     GeantPhysicsOptions physics_options;
+    bool spline{false};  //!< Whether to use cubic spline interpolation
 
     // Field setup options
     std::string field_type{"uniform"};

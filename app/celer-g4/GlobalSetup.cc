@@ -172,6 +172,8 @@ void GlobalSetup::ReadInput(std::string const& filename)
 
         options_->max_field_substeps = input_.field_options.max_substeps;
 
+        options_->spline = input_.spline;
+
         options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
         options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
 

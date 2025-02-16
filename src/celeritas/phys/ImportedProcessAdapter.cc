@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
@@ -238,6 +239,17 @@ auto ImportedProcessAdapter::step_limits_impl(
 
     StepLimitBuilders builders;
 
+    auto log_message = [&](bool spline, std::string grid) {
+        // Should be the same for all materials; just print for one
+        if (applic.material.get() == 0)
+        {
+            CELER_LOG(debug)
+                << (spline ? "Enabled" : "Disabled")
+                << " spline interpolation for " << to_cstring(process_class_)
+                << " " << grid << " grid";
+        }
+    };
+
     // Construct cross section tables
     if (import_process.process_class == ImportProcessClass::msc)
     {
@@ -250,50 +262,48 @@ auto ImportedProcessAdapter::step_limits_impl(
         CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
         auto const& hi = get_vector(ids.lambda_prim);
         CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
+        bool spline_lo = spline_ && lo.spline;
+        bool spline_hi = spline_ && hi.spline;
+        log_message(spline_lo, "lambda");
+        log_message(spline_hi, "lambda prime");
         builders[ValueGridType::macro_xs]
             = ValueGridXsBuilder::from_geant(make_span(lo.x),
                                              make_span(lo.y),
-                                             spline_ && lo.spline,
+                                             spline_lo,
                                              make_span(hi.x),
                                              make_span(hi.y),
-                                             spline_ && hi.spline);
+                                             spline_hi);
     }
     else if (ids.lambda_prim)
     {
         // Only high-energy (energy-scale) cross sections are presesnt
         auto const& vec = get_vector(ids.lambda_prim);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
+        bool spline = spline_ && vec.spline;
+        log_message(spline, "lambda prime");
         builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_scaled(
-            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
+            make_span(vec.x), make_span(vec.y), spline);
     }
     else if (ids.lambda)
     {
         // Only low-energy cross sections are presesnt
         auto const& vec = get_vector(ids.lambda);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-
+        bool spline = spline_ && vec.spline;
+        log_message(spline, "lambda");
         builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
+            make_span(vec.x), make_span(vec.y), spline);
     }
-
-    // Construct slowing-down data
     if (ids.dedx)
     {
+        // Construct slowing-down data
         auto const& vec = get_vector(ids.dedx);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
+        bool spline = spline_ && vec.spline;
+        log_message(spline, "energy loss");
         builders[ValueGridType::energy_loss] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
+            make_span(vec.x), make_span(vec.y), spline);
     }
-
-    // Construct range limiters
-    if (ids.range)
-    {
-        auto const& vec = get_vector(ids.range);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::range] = ValueGridLogBuilder::from_range(
-            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
-    }
-
     return builders;
 }
 
