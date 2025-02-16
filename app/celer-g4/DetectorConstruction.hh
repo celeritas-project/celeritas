@@ -47,7 +47,8 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     //// TYPES ////
 
     using UPPhysicalVolume = std::unique_ptr<G4VPhysicalVolume>;
-    using MapDetectors = std::multimap<std::string, G4LogicalVolume*>;
+    using MapDetectors
+        = std::map<std::pair<std::string, int>, G4LogicalVolume*>;
     using AlongStepFactory = SetupOptions::AlongStepFactory;
     using SPMagneticField = std::shared_ptr<G4MagneticField>;
     using SPSimpleCalo = std::shared_ptr<GeantSimpleCalo>;
