@@ -32,6 +32,7 @@
 #include "../GeantImportVolumeResult.hh"
 #include "../GenericGeoParameterizedTest.hh"
 #include "../MultiLevelGeoTest.hh"
+#include "../SolidsGeoTest.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
@@ -661,217 +662,6 @@ TEST_F(SolidsTest, output)
             out_str);
     }
 }
-
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsTest, trace)
-{
-    {
-        SCOPED_TRACE("Center -x");
-        auto result = this->track({375, 0, 0}, {-1, 0, 0});
-
-        static char const* const expected_volumes[] = {"ellipsoid1",
-                                                       "World",
-                                                       "polycone1",
-                                                       "World",
-                                                       "sphere1",
-                                                       "World",
-                                                       "box500",
-                                                       "World",
-                                                       "cone1",
-                                                       "World",
-                                                       "trd1",
-                                                       "World",
-                                                       "parabol1",
-                                                       "World",
-                                                       "trd2",
-                                                       "World",
-                                                       "xtru1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       95,
-                                                       20,
-                                                       125,
-                                                       40,
-                                                       60,
-                                                       50,
-                                                       73,
-                                                       54,
-                                                       83,
-                                                       30,
-                                                       88.786678713601,
-                                                       42.426642572799,
-                                                       88.786678713601,
-                                                       30,
-                                                       1.4761904761905,
-                                                       15.880952380952,
-                                                       67.642857142857};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0,
-                                                       45.496748548005,
-                                                       0,
-                                                       44.83475568122,
-                                                       13.934134186943,
-                                                       30,
-                                                       25,
-                                                       36.240004604773,
-                                                       25,
-                                                       41.204388797207,
-                                                       14.92555785315,
-                                                       42.910442345001,
-                                                       18.741024106017,
-                                                       42.910442345001,
-                                                       14.92555785315,
-                                                       0.7344322118216,
-                                                       6.5489918373272,
-                                                       33.481506089183};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Upper +x");
-        auto result = this->track({-375, 125, 0}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {"World",
-                                                       "hype1",
-                                                       "World",
-                                                       "para1",
-                                                       "World",
-                                                       "tube100",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "ellcone1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       4,
-                                                       71,
-                                                       60,
-                                                       75,
-                                                       4,
-                                                       116.000001,
-                                                       12.499999,
-                                                       20.000001,
-                                                       17.499999,
-                                                       191.98703789108,
-                                                       25.9774128070174,
-                                                       14.0710986038011,
-                                                       25.977412807017,
-                                                       86.987037891082,
-                                                       10,
-                                                       220};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0,
-                                                       1.9937213884673,
-                                                       0,
-                                                       24.961508830135,
-                                                       31.201886037669,
-                                                       2,
-                                                       42.0000005,
-                                                       6.2499995,
-                                                       9.9999995,
-                                                       8.7499995,
-                                                       75,
-                                                       0,
-                                                       6.4970769728954,
-                                                       11.928052271225,
-                                                       43.188475615448,
-                                                       4.9751859510499,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Lower +x");
-        auto result = this->track({-375, -125, 0}, {1, 0, 0});
-
-        if (vecgeom_version < Version(1, 2, 3))
-        {
-            ADD_FAILURE()
-                << "VecGeom " << vecgeom_version
-                << " does not correctly trace through some polycones: "
-                   "upgrade to 1.2.3 to pass this test";
-        }
-
-        static char const* const expected_volumes[] = {"arb8b",
-                                                       "World",
-                                                       "arb8a",
-                                                       "World",
-                                                       "trap1",
-                                                       "World",
-                                                       "tetrah1",
-                                                       "World",
-                                                       "orb1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "elltube1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {40,
-                                                       45,
-                                                       80,
-                                                       68.125,
-                                                       33.75,
-                                                       57.519332346491,
-                                                       50.605667653509,
-                                                       85,
-                                                       80,
-                                                       40,
-                                                       45,
-                                                       127.5,
-                                                       3.7499999999998,
-                                                       60,
-                                                       40,
-                                                       205};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {19.9007438042,
-                                                       17.5,
-                                                       21.951571334408,
-                                                       29.0625,
-                                                       15.746700605861,
-                                                       26.836732015088,
-                                                       2.7598369213007,
-                                                       4.6355704644931,
-                                                       40,
-                                                       19.156525704423,
-                                                       0,
-                                                       0,
-                                                       0,
-                                                       28.734788556635,
-                                                       20,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Low +y");
-        auto result = this->track({-500, -250, 0}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"World", "trd3_refl", "World", "trd2", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {96.555879457157,
-                                                       52.35421982848,
-                                                       77.179801428726,
-                                                       52.35421982848,
-                                                       271.55587945716};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {37.766529475342,
-                                                       15.038346086645,
-                                                       26.6409955055738,
-                                                       15.038346086645,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-}
-
 //---------------------------------------------------------------------------//
 
 TEST_F(SolidsTest, reflected_vol)
@@ -1108,11 +898,11 @@ TEST_F(MultiLevelGeantTest, trace)
 
 //---------------------------------------------------------------------------//
 
-class SolidsGeantTest : public VecgeomGeantTestBase
+class SolidsGeantTest
+    : public GenericGeoParameterizedTest<VecgeomGeantTestBase, SolidsGeoTest>
 {
   public:
-    std::string geometry_basename() const final { return "solids"; }
-
+    // trd_refl is inthe GDML *and* generated by ReflFactory
     SpanStringView expected_log_levels() const final
     {
         static std::string_view const levels[] = {"error"};
@@ -1138,9 +928,6 @@ TEST_F(SolidsGeantTest, accessors)
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
 
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
-
     if (vecgeom_version < Version(1, 2, 2))
     {
         ADD_FAILURE()
@@ -1148,34 +935,60 @@ TEST_F(SolidsGeantTest, accessors)
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
-    auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}),
-                       to_cm(bbox.lower()));
-    EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), to_cm(bbox.upper()));
+    auto const& geo = *this->geometry_interface();
+    EXPECT_EQ(2, geo.max_depth());
+
+    static char const* const expected_vol_labels[] = {
+        "box500",      "cone1",     "para1",      "sphere1",    "parabol1",
+        "trap1",       "trd1",      "trd2",       "",           "trd3_refl@1",
+        "tube100",     "",          "",           "",           "",
+        "boolean1",    "polycone1", "genPocone1", "ellipsoid1", "tetrah1",
+        "orb1",        "polyhedr1", "hype1",      "elltube1",   "ellcone1",
+        "arb8b",       "arb8a",     "xtru1",      "World",      "",
+        "trd3_refl@0",
+    };
+    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
+
+    static char const* const expected_vol_inst_labels[] = {
+        "",
+        "",
+        "",
+        "",
+        "box500_PV",
+        "cone1_PV",
+        "para1_PV",
+        "sphere1_PV",
+        "parabol1_PV",
+        "trap1_PV",
+        "trd1_PV",
+        "reflNormal",
+        "",
+        "reflected_refl",
+        "reflected",
+        "tube100_PV",
+        "boolean1_PV",
+        "orb1_PV",
+        "polycone1_PV",
+        "hype1_PV",
+        "polyhedr1_PV",
+        "tetrah1_PV",
+        "arb8a_PV",
+        "arb8b_PV",
+        "ellipsoid1_PV",
+        "elltube1_PV",
+        "ellcone1_PV",
+        "genPocone1_PV",
+        "xtru1_PV",
+        "World_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsGeantTest, names)
+TEST_F(SolidsGeantTest, trace)
 {
-    auto const& geom = *this->geometry();
-    std::vector<std::string> labels;
-    for (auto vid : range(VolumeId{geom.volumes().size()}))
-    {
-        labels.push_back(
-            this->genericize_pointers(to_string(geom.volumes().at(vid))));
-    }
-
-    // clang-format off
-    static char const* const expected_labels[] = {"box500", "cone1",
-        "para1", "sphere1", "parabol1", "trap1", "trd1",
-        "trd2", "", "trd3_refl@1", "tube100", "", "", "", "",
-        "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-        "tetrah1", "orb1", "polyhedr1", "hype1",
-        "elltube1", "ellcone1", "arb8b", "arb8a", "xtru1",
-        "World", "", "trd3_refl@0"};
-    // clang-format on
-    EXPECT_VEC_EQ(expected_labels, labels);
+    TestImpl(this).test_trace();
 }
 
 //---------------------------------------------------------------------------//
@@ -1217,160 +1030,6 @@ TEST_F(SolidsGeantTest, geant_volumes)
 
         static char const* const expected_missing[] = {"trd3_refl"};
         EXPECT_VEC_EQ(expected_missing, result.missing_labels);
-    }
-}
-
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, trace)
-{
-    {
-        SCOPED_TRACE("Center -x");
-        auto result = this->track({375, 0, 0}, {-1, 0, 0});
-        static char const* const expected_volumes[] = {"ellipsoid1",
-                                                       "World",
-                                                       "polycone1",
-                                                       "World",
-                                                       "sphere1",
-                                                       "World",
-                                                       "box500",
-                                                       "World",
-                                                       "cone1",
-                                                       "World",
-                                                       "trd1",
-                                                       "World",
-                                                       "parabol1",
-                                                       "World",
-                                                       "trd2",
-                                                       "World",
-                                                       "xtru1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       95,
-                                                       20,
-                                                       125,
-                                                       40,
-                                                       60,
-                                                       50,
-                                                       73,
-                                                       54,
-                                                       83,
-                                                       30,
-                                                       88.786678713601,
-                                                       42.426642572799,
-                                                       88.786678713601,
-                                                       30,
-                                                       1.4761904761905,
-                                                       15.880952380952,
-                                                       67.642857142857};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Upper +x");
-        auto result = this->track({-375, 125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"World",
-                                                       "hype1",
-                                                       "World",
-                                                       "para1",
-                                                       "World",
-                                                       "tube100",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "ellcone1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       4,
-                                                       71,
-                                                       60,
-                                                       75,
-                                                       4,
-                                                       116.000001,
-                                                       12.499999,
-                                                       20.000001,
-                                                       17.499999,
-                                                       191.98703789108,
-                                                       25.9774128070174,
-                                                       14.0710986038011,
-                                                       25.977412807017,
-                                                       86.987037891082,
-                                                       10,
-                                                       220};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Lower +x");
-
-        if (vecgeom_version < Version(1, 2, 3))
-        {
-            ADD_FAILURE()
-                << "VecGeom " << vecgeom_version
-                << " does not correctly trace through some polycones: "
-                   "upgrade to 1.2.3 to pass this test";
-        }
-
-        auto result = this->track({-375, -125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"arb8b",
-                                                       "World",
-                                                       "arb8a",
-                                                       "World",
-                                                       "trap1",
-                                                       "World",
-                                                       "tetrah1",
-                                                       "World",
-                                                       "orb1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "elltube1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {40,
-                                                       45,
-                                                       80,
-                                                       68.125,
-                                                       33.75,
-                                                       57.519332346491,
-                                                       50.605667653509,
-                                                       85,
-                                                       80,
-                                                       40,
-                                                       45,
-                                                       127.5,
-                                                       3.7499999999998,
-                                                       60,
-                                                       40,
-                                                       205};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Low +y");
-        auto result = this->track({-500, -250, 0}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"World", "trd3_refl", "World", "trd2", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {96.555879457157,
-                                                       52.35421982848,
-                                                       77.179801428726,
-                                                       52.35421982848,
-                                                       271.55587945716};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {37.766529475342,
-                                                       15.038346086645,
-                                                       26.6409955055738,
-                                                       15.038346086645,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
 }
 

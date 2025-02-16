@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/MultiLevelGeoTest.hh
+//! \file geocel/SolidsGeoTest.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,14 +16,14 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test the multi-level geometry.
+ * Test the solids geometry.
  */
-class MultiLevelGeoTest
+class SolidsGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "multi-level"; }
+    static std::string_view geometry_basename() { return "solids"; }
 
-    MultiLevelGeoTest(GenericGeoTestInterface* geo_test);
+    SolidsGeoTest(GenericGeoTestInterface* geo_test);
     void test_accessors() const;
     void test_trace() const;
 
