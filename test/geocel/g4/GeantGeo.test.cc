@@ -339,6 +339,22 @@ TEST_F(SolidsTest, reflected_vol)
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }
 
+TEST_F(SolidsTest, DISABLED_imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-550, -250, 5});
+    inp.upper_right = from_cm({550, 250, 5});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "g4-solids-xy-hi.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5);
+    write_image(ImageParams{inp}, "g4-solids-xy-lo.jsonl");
+}
+
 //---------------------------------------------------------------------------//
 class TilecalPlugTest : public GeantGeoTest
 {

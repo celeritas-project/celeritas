@@ -56,8 +56,6 @@ namespace
 {
 auto const vecgeom_version
     = celeritas::Version::from_string(celeritas_vecgeom_version);
-auto const geant4_version = celeritas::Version::from_string(
-    CELERITAS_USE_GEANT4 ? celeritas_geant4_version : "0.0.0");
 
 }  // namespace
 
@@ -1042,6 +1040,22 @@ TEST_F(SolidsGeantTest, reflected_vol)
     auto const& label = this->geometry()->volumes().at(geo.volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_EQ("0", label.ext);
+}
+
+TEST_F(SolidsGeantTest, DISABLED_imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-550, -250, 5});
+    inp.upper_right = from_cm({550, 250, 5});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 256;
+
+    write_image(ImageParams{inp}, "vg-solids-xy-hi.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5);
+    write_image(ImageParams{inp}, "vg-solids-xy-lo.jsonl");
 }
 
 //---------------------------------------------------------------------------//
