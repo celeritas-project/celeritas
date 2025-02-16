@@ -101,6 +101,7 @@ build_processes(ImportData const& imported,
         ignore.emplace(ipc, WarnAndIgnoreProcess{ipc});
     }
     ProcessBuilder::Options opts;
+    opts.spline = options.spline;
     ProcessBuilder build_process(imported, particle, material, ignore, opts);
 
     // Build proceses
@@ -664,6 +665,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         asfi.cutoff = params.cutoff;
         asfi.physics = params.physics;
         asfi.imported = imported;
+        asfi.spline = options.spline;
         auto along_step{options.make_along_step(asfi)};
         CELER_VALIDATE(along_step,
                        << "along-step factory returned a null pointer");

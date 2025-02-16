@@ -35,17 +35,26 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
+    //! Urban multiple scattering options
+    struct Options
+    {
+        //! Use cubic spline interpolation for cross sections
+        bool spline{false};
+    };
+
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<UrbanMscParams>
     from_import(ParticleParams const& particles,
                 MaterialParams const& materials,
-                ImportData const& data);
+                ImportData const& data,
+                Options options);
 
     // Construct from process data
     UrbanMscParams(ParticleParams const& particles,
                    MaterialParams const& materials,
-                   VecImportMscModel const& mdata);
+                   VecImportMscModel const& mdata,
+                   Options options);
 
     // TODO: possible "applicability" interface used for constructing
     // along-step kernels?

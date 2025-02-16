@@ -34,8 +34,10 @@ struct EmPhysics
     //!@{
     //! \name Energy loss and slowing down
 
-    //! Use cubic spline interpolation for energy loss
+    //! Use piecewise polynomial spline interpolation for energy loss
     bool eloss_spline{false};
+    //! Use cubic spline interpolation for physics grids
+    bool spline{false};
 #if 0
      //! Energy loss fluctuations
      bool eloss_fluct{true};

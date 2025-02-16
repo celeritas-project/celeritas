@@ -106,6 +106,7 @@ struct RunnerInput
     size_type num_track_slots{};  //!< Divided among streams
     size_type max_steps = static_cast<size_type>(-1);  //!< Step *iterations*
     size_type initializer_capacity{};  //!< Divided among streams
+    bool spline{false};  //!< Cubic spline interpolation
     size_type spline_eloss_order = 1;
     real_type secondary_stack_factor{};
     bool use_device{};

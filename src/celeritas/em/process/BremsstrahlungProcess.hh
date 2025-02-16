@@ -39,14 +39,15 @@ class BremsstrahlungProcess : public Process
     // TODO: update options based on ImportData
     struct Options
     {
-        BremsModelSelection selection{BremsModelSelection::all};  //!> Model
-                                                                  //! selection
-        bool combined_model{false};  //!> Use a unified relativistic/SB
-                                     //! interactor
-        bool enable_lpm{true};  //!> Account for LPM effect at very high
-                                //! energies
-        bool use_integral_xs{true};  //!> Use integral method for sampling
-                                     //! discrete interaction length
+        BremsModelSelection selection{BremsModelSelection::all};
+        //! Use a unified relativistic/SB interactor
+        bool combined_model{false};
+        //! Account for LPM effect at very high energies
+        bool enable_lpm{true};
+        //! Use integral method for sampling discrete interaction length
+        bool use_integral_xs{true};
+        //! Use cubic spline interpolation
+        bool spline{false};
     };
 
   public:

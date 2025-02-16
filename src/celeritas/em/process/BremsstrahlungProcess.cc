@@ -32,7 +32,8 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::e_brems,
-                {pdg::electron(), pdg::positron()})
+                {pdg::electron(), pdg::positron()},
+                options.spline)
     , load_sb_(std::move(load_sb))
     , options_(options)
 {

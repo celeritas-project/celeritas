@@ -115,8 +115,11 @@ auto ImportedProcesses::find(key_type particle_process) const -> ImportProcessId
 ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
                                                SPConstParticles const& particles,
                                                ImportProcessClass process_class,
-                                               SpanConstPDG pdg_numbers)
-    : imported_(std::move(imported)), process_class_(process_class)
+                                               SpanConstPDG pdg_numbers,
+                                               bool spline)
+    : imported_(std::move(imported))
+    , process_class_(process_class)
+    , spline_(spline)
 {
     CELER_EXPECT(particles);
     CELER_EXPECT(!pdg_numbers.empty());
@@ -184,11 +187,13 @@ ImportedProcessAdapter::ImportedProcessAdapter(
     SPConstImported imported,
     SPConstParticles const& particles,
     ImportProcessClass process_class,
-    std::initializer_list<PDGNumber> pdg_numbers)
+    std::initializer_list<PDGNumber> pdg_numbers,
+    bool spline)
     : ImportedProcessAdapter(std::move(imported),
                              particles,
                              std::move(process_class),
-                             {pdg_numbers.begin(), pdg_numbers.end()})
+                             {pdg_numbers.begin(), pdg_numbers.end()},
+                             spline)
 {
 }
 
@@ -245,8 +250,13 @@ auto ImportedProcessAdapter::step_limits_impl(
         CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
         auto const& hi = get_vector(ids.lambda_prim);
         CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_geant(
-            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
+        builders[ValueGridType::macro_xs]
+            = ValueGridXsBuilder::from_geant(make_span(lo.x),
+                                             make_span(lo.y),
+                                             spline_ && lo.spline,
+                                             make_span(hi.x),
+                                             make_span(hi.y),
+                                             spline_ && hi.spline);
     }
     else if (ids.lambda_prim)
     {
@@ -254,7 +264,7 @@ auto ImportedProcessAdapter::step_limits_impl(
         auto const& vec = get_vector(ids.lambda_prim);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_scaled(
-            make_span(vec.x), make_span(vec.y));
+            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
     }
     else if (ids.lambda)
     {
@@ -263,7 +273,7 @@ auto ImportedProcessAdapter::step_limits_impl(
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
 
         builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
+            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
     }
 
     // Construct slowing-down data
@@ -272,7 +282,7 @@ auto ImportedProcessAdapter::step_limits_impl(
         auto const& vec = get_vector(ids.dedx);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::energy_loss] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
+            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
     }
 
     // Construct range limiters
@@ -281,7 +291,7 @@ auto ImportedProcessAdapter::step_limits_impl(
         auto const& vec = get_vector(ids.range);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::range] = ValueGridLogBuilder::from_range(
-            make_span(vec.x), make_span(vec.y));
+            make_span(vec.x), make_span(vec.y), spline_ && vec.spline);
     }
 
     return builders;

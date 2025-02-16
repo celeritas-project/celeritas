@@ -279,9 +279,6 @@ struct PhysicsParamsScalars
     ParticleScalars light;
     ParticleScalars heavy;
 
-    //! Order for energy loss interpolation
-    size_type spline_eloss_order{};
-
     real_type secondary_stack_factor = 3;  //!< Secondary storage per state
                                            //!< size
     // When fixed step limiter is used, this is the corresponding action ID
@@ -295,8 +292,7 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && spline_eloss_order > 0 && lambda_limit > 0
-               && safety_factor >= 0.1 && light && heavy;
+               && lambda_limit > 0 && safety_factor >= 0.1 && light && heavy;
     }
 
     //! Stop early due to MSC limitation

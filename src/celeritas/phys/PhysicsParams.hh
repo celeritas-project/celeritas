@@ -136,6 +136,11 @@ struct ParticleOptions
  *   spline interpolation. If it is 1, then the existing linear interpolation
  *   is used. If it is 2+, the spline interpolation is used for energy loss
  *   using the specified order. Default value is 1.
+ * - \c spline: Whether to use cubic spline interpolation for the physics
+ *   grids. If this option is enabled, spline interpolation will be used only
+ *   for the Geant4 grids that use it (this includes energy loss, range,
+ *   inverse range, MSC cross sections, scaled corss section tables, and most
+ *   unscaled cross section tables.
  */
 struct PhysicsParamsOptions
 {

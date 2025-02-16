@@ -30,10 +30,12 @@ namespace detail
  */
 MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
                                  VecImportMscModel const& mdata,
-                                 ImportModelClass model_class)
+                                 ImportModelClass model_class,
+                                 bool spline)
     : particles_(particles)
     , model_class_(model_class)
     , pid_to_xs_(particles_.size())
+    , spline_(spline)
 {
     // Filter MSC data by model and particle type
     for (ImportMscModel const& imm : mdata)
@@ -121,7 +123,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
 
             auto grid = UniformGridData::from_bounds(
                 std::log(pv.x.front()), std::log(pv.x.back()), pv.x.size());
-            auto grid_id = insert(grid, make_span(pv.y));
+            auto grid_id = insert(grid, make_span(pv.y), spline_ && pv.spline);
             CELER_ASSERT(grid_id.get() == xs.size());
 
             xs.push_back(grids[grid_id]);

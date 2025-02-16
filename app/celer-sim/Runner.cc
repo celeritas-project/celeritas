@@ -375,6 +375,7 @@ void Runner::build_core_params(RunnerInput const& inp,
             ProcessBuilder::Options opts;
             opts.brem_combined = inp.brem_combined;
             opts.brems_selection = inp.physics_options.brems;
+            opts.spline = inp.spline;
 
             ProcessBuilder build_process(
                 imported, params.particle, params.material, opts);
@@ -391,8 +392,10 @@ void Runner::build_core_params(RunnerInput const& inp,
     }();
 
     bool eloss = imported.em_params.energy_loss_fluct;
+    UrbanMscParams::Options opts;
+    opts.spline = inp.spline;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported);
+        *params.particle, *params.material, imported, opts);
     if (inp.field == RunnerInput::no_field())
     {
         // Create along-step action

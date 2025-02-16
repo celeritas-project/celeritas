@@ -32,7 +32,8 @@ EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
     , applies_at_rest_(ImportedProcessAdapter(process_data,
                                               particles_,
                                               ImportProcessClass::annihilation,
-                                              {pdg::positron()})
+                                              {pdg::positron()},
+                                              false)
                            .applies_at_rest())
 {
     CELER_EXPECT(particles_);

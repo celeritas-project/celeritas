@@ -22,11 +22,16 @@ namespace celeritas
  */
 RayleighProcess::RayleighProcess(SPConstParticles particles,
                                  SPConstMaterials materials,
-                                 SPConstImported process_data)
+                                 SPConstImported process_data,
+                                 Options options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
-    , imported_(
-          process_data, particles_, ImportProcessClass::rayleigh, {pdg::gamma()})
+    , imported_(process_data,
+                particles_,
+                ImportProcessClass::rayleigh,
+                {pdg::gamma()},
+                options.spline)
+    , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);

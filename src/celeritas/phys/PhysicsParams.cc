@@ -328,7 +328,6 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
     data->scalars.lambda_limit = opts.lambda_limit;
     data->scalars.safety_factor = opts.safety_factor;
-    data->scalars.spline_eloss_order = opts.spline_eloss_order;
 
     this->build_particle_options(opts.light, &data->scalars.light);
     this->build_particle_options(opts.heavy, &data->scalars.heavy);
@@ -615,7 +614,9 @@ void PhysicsParams::build_xs(Options const& opts,
                     auto const range = RangeGridCalculator(BC::geant)(
                         grid.lower, make_const_ref(*data).reals);
                     range_grid_ids[mat_idx]
-                        = insert_grid(grid.lower.grid, make_span(range));
+                        = insert_grid(grid.lower.grid,
+                                      make_span(range),
+                                      !grid.lower.derivative.empty());
                 }
 
                 if (auto grid_id = eloss_grid_ids[mat_idx])
@@ -627,7 +628,7 @@ void PhysicsParams::build_xs(Options const& opts,
                      * support cubic spline interpolation as well.
                      */
                     data->value_grids[grid_id].lower.spline_order
-                        = data->scalars.spline_eloss_order;
+                        = opts.spline_eloss_order;
                 }
 
                 if (use_integral_xs)

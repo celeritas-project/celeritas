@@ -68,8 +68,10 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
         field_params.field = {0, 0, real_type(1 * units::tesla)};
-        auto msc = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data());
+        auto msc = UrbanMscParams::from_import(*this->particle(),
+                                               *this->material(),
+                                               this->imported_data(),
+                                               UrbanMscParams::Options{});
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
             action_reg.next_id(), field_params, nullptr, msc);

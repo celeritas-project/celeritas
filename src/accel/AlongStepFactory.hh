@@ -47,6 +47,7 @@ struct AlongStepFactoryInput
     std::shared_ptr<CutoffParams const> cutoff;
     std::shared_ptr<PhysicsParams const> physics;
     std::shared_ptr<ImportData const> imported;
+    bool spline;
 
     //! True if all data is assigned
     explicit operator bool() const

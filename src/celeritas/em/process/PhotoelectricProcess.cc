@@ -23,13 +23,16 @@ namespace celeritas
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
                                            SPConstMaterials materials,
                                            SPConstImported process_data,
+                                           Options options,
                                            ReadData load_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::photoelectric,
-                {pdg::gamma()})
+                {pdg::gamma()},
+                options.spline)
+    , options_(options)
     , load_pe_(std::move(load_data))
 {
     CELER_EXPECT(particles_);

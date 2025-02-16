@@ -133,10 +133,11 @@ inp::Problem load_problem(RunnerInput const& ri)
         em.brems->combined_model = ri.brem_combined;
 
         // Spline energy loss order
-        CELER_VALIDATE(ri.spline_eloss_order == 1 || ri.spline_eloss_order == 3,
-                       << "unsupported energy loss spline order "
-                       << ri.spline_eloss_order);
-        em.eloss_spline = (ri.spline_eloss_order == 3);
+        CELER_VALIDATE(ri.spline_eloss_order == 1 || !ri.spline,
+                       << "piecewise polynomial spline order cannot be set if "
+                          "cubic spline interpolation is enabled");
+        em.eloss_spline = ri.spline_eloss_order;
+        em.spline = ri.spline;
     }
 
     // Tracking

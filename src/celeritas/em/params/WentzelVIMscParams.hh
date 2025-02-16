@@ -33,14 +33,24 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
+    //! Wentzel VI multiple scattering options
+    struct Options
+    {
+        //! Use cubic spline interpolation for cross sections
+        bool spline{false};
+    };
+
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<WentzelVIMscParams>
-    from_import(ParticleParams const& particles, ImportData const& data);
+    from_import(ParticleParams const& particles,
+                ImportData const& data,
+                Options options);
 
     // Construct from process data
     WentzelVIMscParams(ParticleParams const& particles,
-                       VecImportMscModel const& mdata);
+                       VecImportMscModel const& mdata,
+                       Options options);
 
     //! Access Wentzel VI data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

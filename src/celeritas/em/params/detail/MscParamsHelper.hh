@@ -43,7 +43,8 @@ class MscParamsHelper
 
     MscParamsHelper(ParticleParams const&,
                     VecImportMscModel const&,
-                    ImportModelClass);
+                    ImportModelClass,
+                    bool spline);
 
     void build_ids(CoulombIds*, IndexValues*) const;
     void build_xs(XsValues*, Values*) const;
@@ -58,6 +59,7 @@ class MscParamsHelper
     std::vector<MscParticleId> pid_to_xs_;
     std::vector<ParticleId> par_ids_;
     std::vector<ImportPhysicsTable const*> xs_tables_;
+    bool spline_;
 };
 
 //---------------------------------------------------------------------------//

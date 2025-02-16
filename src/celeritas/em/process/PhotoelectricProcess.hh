@@ -35,11 +35,19 @@ class PhotoelectricProcess : public Process
     using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
     //!@}
 
+    // Options for photoelectric process
+    struct Options
+    {
+        //! Use cubic spline interpolation
+        bool spline{false};
+    };
+
   public:
     // Construct from Livermore photoelectric data
     PhotoelectricProcess(SPConstParticles particles,
                          SPConstMaterials materials,
                          SPConstImported process_data,
+                         Options options,
                          ReadData load_data);
 
     // Construct the models associated with this process
@@ -61,6 +69,7 @@ class PhotoelectricProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
+    Options options_;
     ReadData load_pe_;
 };
 

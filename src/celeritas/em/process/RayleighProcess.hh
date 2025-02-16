@@ -30,11 +30,19 @@ class RayleighProcess : public Process
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
+    //! Options for Rayleigh scattering
+    struct Options
+    {
+        //! Use cubic spline interpolation
+        bool spline{false};
+    };
+
   public:
     // Construct from particle, material and imported data
     RayleighProcess(SPConstParticles particles,
                     SPConstMaterials materials,
-                    SPConstImported process_data);
+                    SPConstImported process_data,
+                    Options options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -55,6 +63,7 @@ class RayleighProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//

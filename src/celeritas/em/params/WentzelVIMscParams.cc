@@ -23,14 +23,16 @@ namespace celeritas
  */
 std::shared_ptr<WentzelVIMscParams>
 WentzelVIMscParams::from_import(ParticleParams const& particles,
-                                ImportData const& data)
+                                ImportData const& data,
+                                Options options)
 {
     if (!has_msc_model(data, ImportModelClass::wentzel_vi_uni))
     {
         // No WentzelVI MSC present
         return nullptr;
     }
-    return std::make_shared<WentzelVIMscParams>(particles, data.msc_models);
+    return std::make_shared<WentzelVIMscParams>(
+        particles, data.msc_models, options);
 }
 
 //---------------------------------------------------------------------------//
@@ -38,7 +40,8 @@ WentzelVIMscParams::from_import(ParticleParams const& particles,
  * Construct from cross section data and material properties.
  */
 WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
-                                       VecImportMscModel const& mdata_vec)
+                                       VecImportMscModel const& mdata_vec,
+                                       Options options)
 {
     using units::MevEnergy;
 
@@ -47,7 +50,7 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
     HostVal<WentzelVIMscData> host_data;
 
     detail::MscParamsHelper helper(
-        particles, mdata_vec, ImportModelClass::wentzel_vi_uni);
+        particles, mdata_vec, ImportModelClass::wentzel_vi_uni, options.spline);
     helper.build_ids(&host_data.ids, &host_data.pid_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
     host_data.num_particles = helper.particle_ids().size();

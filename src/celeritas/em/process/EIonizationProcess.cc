@@ -27,7 +27,8 @@ EIonizationProcess::EIonizationProcess(SPConstParticles particles,
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::e_ioni,
-                {pdg::electron(), pdg::positron()})
+                {pdg::electron(), pdg::positron()},
+                options.spline)
     , options_(options)
 {
     CELER_EXPECT(particles_);

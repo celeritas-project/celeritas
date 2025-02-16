@@ -38,6 +38,8 @@ class MuIonizationProcess : public Process
         Energy bethe_bloch_upper_limit{1e3};  //!< 1 GeV
         //! Use integral method for sampling discrete interaction length
         bool use_integral_xs{true};
+        //! Use cubic spline interpolation
+        bool spline{false};
     };
 
   public:

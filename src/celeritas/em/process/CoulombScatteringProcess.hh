@@ -36,6 +36,8 @@ class CoulombScatteringProcess : public Process
     {
         //! Whether to use integral method to sample interaction length
         bool use_integral_xs{true};
+        //! Whether to use cubic spline interpolation
+        bool spline{false};
     };
 
   public:

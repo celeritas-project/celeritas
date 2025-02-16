@@ -61,6 +61,8 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
     MaterialView mat(data_.materials->host_ref(), applic.material);
     real_type numdens = mat.number_density();
 
+    static constexpr bool spline{false};
+
     StepLimitBuilders builders;
     if (!data_.xs.empty())
     {
@@ -71,7 +73,7 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
         }
         builders[ValueGridType::macro_xs]
             = std::make_unique<ValueGridLogBuilder>(
-                applic.lower.value(), applic.upper.value(), xs_grid);
+                applic.lower.value(), applic.upper.value(), xs_grid, spline);
     }
     if (data_.energy_loss > zero_quantity())
     {
@@ -82,7 +84,8 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
             = std::make_unique<ValueGridLogBuilder>(
                 applic.lower.value(),
                 applic.upper.value(),
-                VecDbl(3, eloss_rate.value()));
+                VecDbl(3, eloss_rate.value()),
+                spline);
     }
 
     return builders;

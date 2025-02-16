@@ -44,8 +44,10 @@ class WentzelVIMscTest : public MscTestBase
     void SetUp() override
     {
         // Load Wentzel VI MSC data
-        msc_params_ = WentzelVIMscParams::from_import(*this->particle(),
-                                                      this->imported_data());
+        msc_params_
+            = WentzelVIMscParams::from_import(*this->particle(),
+                                              this->imported_data(),
+                                              WentzelVIMscParams::Options{});
         ASSERT_TRUE(msc_params_);
 
         // Default to using both single and multiple Coulomb scattering

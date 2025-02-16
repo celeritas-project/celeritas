@@ -35,6 +35,7 @@ struct ProcessBuilderOptions
 {
     bool brem_combined{false};
     BremsModelSelection brems_selection{BremsModelSelection::all};
+    bool spline{false};
 };
 
 //---------------------------------------------------------------------------//
@@ -121,6 +122,7 @@ class ProcessBuilder
     bool brem_combined_;
     bool enable_lpm_;
     bool use_integral_xs_;
+    bool spline_;
 
     //// HELPER FUNCTIONS ////
 

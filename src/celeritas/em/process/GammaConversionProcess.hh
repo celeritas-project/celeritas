@@ -31,7 +31,10 @@ class GammaConversionProcess : public Process
     // Options for pair production
     struct Options
     {
-        bool enable_lpm{true};  //!< Account for LPM effect at high energies
+        //! Account for LPM effect at high energies
+        bool enable_lpm{true};
+        //! Use cubic spline interpolation
+        bool spline{false};
     };
 
   public:

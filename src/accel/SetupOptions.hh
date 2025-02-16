@@ -202,6 +202,8 @@ struct SetupOptions
 
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
+    //! Enable cubic spline interpolation in Celeritas
+    bool spline{false};
     //!@}
 
     //!@{

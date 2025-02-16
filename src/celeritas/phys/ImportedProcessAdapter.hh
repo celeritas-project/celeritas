@@ -105,13 +105,15 @@ class ImportedProcessAdapter
     ImportedProcessAdapter(SPConstImported imported,
                            SPConstParticles const& particles,
                            ImportProcessClass process_class,
-                           SpanConstPDG pdg_numbers);
+                           SpanConstPDG pdg_numbers,
+                           bool spline);
 
     // Construct from shared table data
     ImportedProcessAdapter(SPConstImported imported,
                            SPConstParticles const& particles,
                            ImportProcessClass process_class,
-                           std::initializer_list<PDGNumber> pdg_numbers);
+                           std::initializer_list<PDGNumber> pdg_numbers,
+                           bool spline);
 
     // Construct step limits from the given particle/material type
     StepLimitBuilders step_limits(Applicability const& applic) const;
@@ -144,6 +146,7 @@ class ImportedProcessAdapter
     SPConstImported imported_;
     ImportProcessClass process_class_;
     std::map<ParticleId, ParticleProcessIds> ids_;
+    bool spline_;
 
     // Construct step limits from the given particle/material type
     StepLimitBuilders step_limits_impl(Applicability const& applic) const;

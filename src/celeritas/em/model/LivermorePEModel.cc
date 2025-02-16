@@ -34,6 +34,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct from model ID and other necessary data.
+ *
+ * TODO: spline
  */
 LivermorePEModel::LivermorePEModel(ActionId id,
                                    ParticleParams const& particles,

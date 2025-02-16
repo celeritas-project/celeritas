@@ -28,9 +28,18 @@ class ComptonProcess : public Process
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
+    // Options for Compton scattering
+    struct Options
+    {
+        //! Use cubic spline interpolation
+        bool spline{false};
+    };
+
   public:
     // Construct from imported data
-    ComptonProcess(SPConstParticles particles, SPConstImported process_data);
+    ComptonProcess(SPConstParticles particles,
+                   SPConstImported process_data,
+                   Options options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -50,6 +59,7 @@ class ComptonProcess : public Process
   private:
     SPConstParticles particles_;
     ImportedProcessAdapter imported_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//

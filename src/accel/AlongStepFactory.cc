@@ -62,7 +62,10 @@ auto UniformAlongStepFactory::operator()(
             *input.particle,
             field_params,
             celeritas::UrbanMscParams::from_import(
-                *input.particle, *input.material, *input.imported),
+                *input.particle,
+                *input.material,
+                *input.imported,
+                UrbanMscParams::Options{input.spline}),
             input.imported->em_params.energy_loss_fluct);
     }
     else
@@ -73,7 +76,10 @@ auto UniformAlongStepFactory::operator()(
             *input.material,
             *input.particle,
             celeritas::UrbanMscParams::from_import(
-                *input.particle, *input.material, *input.imported),
+                *input.particle,
+                *input.material,
+                *input.imported,
+                UrbanMscParams::Options{input.spline}),
             input.imported->em_params.energy_loss_fluct);
     }
 }
@@ -114,7 +120,10 @@ auto RZMapFieldAlongStepFactory::operator()(
         *input.particle,
         get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
-            *input.particle, *input.material, *input.imported),
+            *input.particle,
+            *input.material,
+            *input.imported,
+            UrbanMscParams::Options{input.spline}),
         input.imported->em_params.energy_loss_fluct);
 }
 

@@ -31,8 +31,10 @@ class EIonizationProcess : public Process
     // Options for electron and positron ionization
     struct Options
     {
-        bool use_integral_xs{true};  //!> Use integral method for sampling
-                                     //! discrete interaction length
+        //! Use integral method for sampling discrete interaction length
+        bool use_integral_xs{true};
+        //! Whether to use cubic spline interpolation
+        bool spline{false};
     };
 
   public:

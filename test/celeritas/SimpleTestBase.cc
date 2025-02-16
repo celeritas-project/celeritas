@@ -156,8 +156,8 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
 
     input.particles = this->particle();
     input.materials = this->material();
-    input.processes
-        = {std::make_shared<ComptonProcess>(input.particles, process_data)};
+    input.processes = {std::make_shared<ComptonProcess>(
+        input.particles, process_data, ComptonProcess::Options{})};
     input.action_registry = this->action_reg().get();
 
     return std::make_shared<PhysicsParams>(std::move(input));

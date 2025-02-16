@@ -14,6 +14,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
 
@@ -45,26 +46,39 @@ class XsGridInserter
     // Add a grid of xs-like data
     GridId operator()(UniformGridData const& lower_grid,
                       SpanConstDbl lower_values,
+                      bool lower_spline,
                       UniformGridData const& upper_grid,
-                      SpanConstDbl upper_values);
+                      SpanConstDbl upper_values,
+                      bool upper_spline);
     GridId operator()(UniformGridData const& lower_grid,
                       SpanConstFlt lower_values,
+                      bool lower_spline,
                       UniformGridData const& upper_grid,
-                      SpanConstFlt upper_values);
+                      SpanConstFlt upper_values,
+                      bool upper_spline);
 
     // Add a grid of uniform log-grid data
-    GridId operator()(UniformGridData const& grid, SpanConstDbl values);
-    GridId operator()(UniformGridData const& grid, SpanConstFlt values);
+    GridId
+    operator()(UniformGridData const& grid, SpanConstDbl values, bool spline);
+    GridId
+    operator()(UniformGridData const& grid, SpanConstFlt values, bool spline);
 
   private:
+    using BC = SplineDerivCalculator::BoundaryCondition;
+    using ValuesRef
+        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
+
+    Values const& values_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<XsGridRecord, MemSpace::host, GridId> grids_;
 
     template<class T>
     GridId insert(UniformGridData const&,
                   Span<T const>,
+                  bool,
                   UniformGridData const&,
-                  Span<T const>);
+                  Span<T const>,
+                  bool);
 };
 
 //---------------------------------------------------------------------------//

@@ -175,8 +175,10 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1e-3 * units::tesla};
 
-        auto msc = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data());
+        auto msc = UrbanMscParams::from_import(*this->particle(),
+                                               *this->material(),
+                                               this->imported_data(),
+                                               UrbanMscParams::Options{});
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(

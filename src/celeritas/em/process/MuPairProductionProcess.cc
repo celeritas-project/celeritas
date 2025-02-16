@@ -28,7 +28,8 @@ MuPairProductionProcess::MuPairProductionProcess(SPConstParticles particles,
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::mu_pair_prod,
-                {pdg::mu_minus(), pdg::mu_plus()})
+                {pdg::mu_minus(), pdg::mu_plus()},
+                options.spline)
     , options_(options)
     , table_(std::move(table))
 {

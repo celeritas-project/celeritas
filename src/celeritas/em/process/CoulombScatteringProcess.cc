@@ -27,7 +27,8 @@ CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::coulomb_scat,
-                {pdg::electron(), pdg::positron()})
+                {pdg::electron(), pdg::positron()},
+                options.spline)
     , options_(options)
 {
     CELER_EXPECT(particles_);

@@ -35,8 +35,10 @@ class MuPairProductionProcess : public Process
     // Options for the pair production process
     struct Options
     {
-        bool use_integral_xs{true};  //!> Use integral method for sampling
-                                     //! discrete interaction length
+        //! Use integral method for sampling discrete interaction length
+        bool use_integral_xs{true};
+        //! Use cubic spline interpolation
+        bool spline{false};
     };
 
   public:
