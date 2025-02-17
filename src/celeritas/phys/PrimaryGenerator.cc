@@ -81,6 +81,7 @@ std::vector<ParticleId> make_particle_ids(std::vector<PDGNumber> const& pdgs,
                                           ParticleParams const& particles)
 {
     std::vector<ParticleId> result;
+    result.reserve(pdgs.size());
     for (auto const& pdg : pdgs)
     {
         result.push_back(particles.find(pdg));
