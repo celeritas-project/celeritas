@@ -188,6 +188,11 @@ class Ellipsoid final : public IntersectRegionInterface
     // Output to JSON
     void output(JsonPimpl*) const final;
 
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another ellipsoid
+    bool encloses(Ellipsoid const& other) const;
+
     //// ACCESSORS ////
 
     //! Radius along each axis
@@ -287,6 +292,35 @@ class GenPrism final : public IntersectRegionInterface
     VecReal2 lo_;  //!< corners of the -z face
     VecReal2 hi_;  //!< corners of the +z face
     Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * An infinite slab bound by lower and upper z-planes.
+ */
+class InfSlab final : public IntersectRegionInterface
+{
+  public:
+    // Construct from lower and upper z-planes
+    InfSlab(real_type lower, real_type upper);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Write output to the given JSON object
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Lower z-plane
+    real_type lower() const { return lower_; }
+
+    //! Upper z-plane
+    real_type upper() const { return upper_; }
+
+  private:
+    real_type lower_;
+    real_type upper_;
 };
 
 //---------------------------------------------------------------------------//
