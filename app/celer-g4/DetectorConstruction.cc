@@ -199,6 +199,7 @@ auto DetectorConstruction::construct_field() const -> FieldData
     }
 
     CELER_VALIDATE(false, << "invalid field type '" << field_type << "'");
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

@@ -47,10 +47,9 @@ class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
   private:
     using GeneratorImpl = celeritas::PrimaryGenerator;
 
-    GeneratorImpl::SPConstParticles particle_params_;
+    std::vector<PDGNumber> pdg_;
     GeneratorImpl generate_primaries_;
     G4ParticleGun gun_;
-    std::vector<G4ParticleDefinition*> particle_def_;
 };
 
 //---------------------------------------------------------------------------//

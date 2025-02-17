@@ -16,7 +16,6 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/inp/Events.hh"
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
 namespace celeritas
@@ -26,7 +25,7 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
-auto make_particles(std::vector<PDGNumber> const& all_pdg)
+std::vector<ParticleId> make_particle_ids(std::vector<PDGNumber> const& all_pdg)
 {
     CELER_VALIDATE(!all_pdg.empty(),
                    << "primary generator has no input particles");
@@ -34,19 +33,18 @@ auto make_particles(std::vector<PDGNumber> const& all_pdg)
     auto* par_table = G4ParticleTable::GetParticleTable();
     CELER_ASSERT(par_table);
 
-    // Find and convert Geant4 particles
-    ParticleParams::Input inp;
-    for (auto pdg : all_pdg)
+    // Find and Geant4 particles and create fake Particle IDs
+    std::vector<ParticleId> result(all_pdg.size());
+    for (auto i : range(all_pdg.size()))
     {
+        auto const& pdg = all_pdg[i];
         CELER_EXPECT(pdg);
         auto* p = par_table->FindParticle(pdg.get());
         CELER_VALIDATE(
             p, << "particle with PDG " << pdg.get() << " is not loaded");
-        inp.push_back(
-            ParticleParams::ParticleInput::from_import(import_particle(*p)));
+        result[i] = ParticleId(i);
     }
-
-    return std::make_shared<ParticleParams>(std::move(inp));
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -57,19 +55,10 @@ auto make_particles(std::vector<PDGNumber> const& all_pdg)
  * Construct primary action.
  */
 PGPrimaryGeneratorAction::PGPrimaryGeneratorAction(Input const& i)
-    : particle_params_{make_particles(i.pdg)}
-    , generate_primaries_{i, *particle_params_}
+    : pdg_(i.pdg), generate_primaries_(i, make_particle_ids(i.pdg))
 {
     // Generate one particle at each call to \c GeneratePrimaryVertex()
     gun_.SetNumberOfParticles(1);
-
-    // Save the particle definitions corresponding to particle IDs
-    particle_def_.reserve(i.pdg.size());
-    for (auto const& pdg : i.pdg)
-    {
-        particle_def_.push_back(
-            G4ParticleTable::GetParticleTable()->FindParticle(pdg.get()));
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -92,9 +81,10 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 
     for (auto const& p : primaries)
     {
-        CELER_ASSERT(p.particle_id < particle_def_.size());
+        CELER_ASSERT(p.particle_id < pdg_.size());
         gun_.SetParticleDefinition(
-            particle_def_[p.particle_id.unchecked_get()]);
+            G4ParticleTable::GetParticleTable()->FindParticle(
+                pdg_[p.particle_id.unchecked_get()].get()));
         gun_.SetParticlePosition(convert_to_geant(p.position, clhep_length));
         gun_.SetParticleMomentumDirection(convert_to_geant(p.direction, 1));
         gun_.SetParticleEnergy(convert_to_geant(p.energy, CLHEP::MeV));

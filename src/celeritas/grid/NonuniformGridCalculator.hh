@@ -14,6 +14,7 @@
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/grid/SplineInterpolator.hh"
 
 namespace celeritas
 {
@@ -67,13 +68,15 @@ class NonuniformGridCalculator
     Values const& reals_;
     Grid x_grid_;
     RealIds y_offset_;
+    RealIds deriv_offset_;
 
     //// HELPER FUNCTIONS ////
 
     // Private constructor implementation
     inline CELER_FUNCTION NonuniformGridCalculator(Values const& reals,
                                                    RealIds x_grid,
-                                                   RealIds y_grid);
+                                                   RealIds y_grid,
+                                                   RealIds deriv);
 };
 
 //---------------------------------------------------------------------------//
@@ -85,7 +88,8 @@ class NonuniformGridCalculator
 CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
     NonuniformGridRecord const& grid, Values const& reals)
 {
-    return NonuniformGridCalculator{reals, grid.value, grid.grid};
+    CELER_EXPECT(grid.derivative.empty());
+    return NonuniformGridCalculator{reals, grid.value, grid.grid, {}};
 }
 
 //---------------------------------------------------------------------------//
@@ -95,7 +99,7 @@ CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
 CELER_FUNCTION
 NonuniformGridCalculator::NonuniformGridCalculator(
     NonuniformGridRecord const& grid, Values const& reals)
-    : NonuniformGridCalculator{reals, grid.grid, grid.value}
+    : NonuniformGridCalculator{reals, grid.grid, grid.value, grid.derivative}
 {
     CELER_EXPECT(grid);
 }
@@ -120,11 +124,25 @@ CELER_FUNCTION real_type NonuniformGridCalculator::operator()(real_type x) const
     size_type lower_idx = x_grid_.find(x);
     CELER_ASSERT(lower_idx + 1 < x_grid_.size());
 
-    // Interpolate *linearly* on x using the bin data.
-    LinearInterpolator<real_type> interpolate_xs(
-        {x_grid_[lower_idx], (*this)[lower_idx]},
-        {x_grid_[lower_idx + 1], (*this)[lower_idx + 1]});
-    return interpolate_xs(x);
+    real_type result;
+    if (deriv_offset_.empty())
+    {
+        // Interpolate *linearly* on x using the bin data.
+        result = LinearInterpolator<real_type>(
+            {x_grid_[lower_idx], (*this)[lower_idx]},
+            {x_grid_[lower_idx + 1], (*this)[lower_idx + 1]})(x);
+    }
+    else
+    {
+        // Use cubic spline interpolation
+        real_type lower_deriv = reals_[deriv_offset_[lower_idx]];
+        real_type upper_deriv = reals_[deriv_offset_[lower_idx + 1]];
+
+        result = SplineInterpolator<real_type>(
+            {x_grid_[lower_idx], (*this)[lower_idx], lower_deriv},
+            {x_grid_[lower_idx + 1], (*this)[lower_idx + 1], upper_deriv})(x);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -152,11 +170,14 @@ NonuniformGridCalculator::grid() const
  * Make a calculator with x and y flipped.
  *
  * \pre The y values must be monotonic increasing.
+ *
+ * \note Spline interpolation will not be used on an inverse grid.
  */
 CELER_FUNCTION NonuniformGridCalculator
 NonuniformGridCalculator::make_inverse() const
 {
-    return NonuniformGridCalculator{reals_, y_offset_, x_grid_.offset()};
+    CELER_EXPECT(deriv_offset_.empty());
+    return NonuniformGridCalculator{reals_, y_offset_, x_grid_.offset(), {}};
 }
 
 //---------------------------------------------------------------------------//
@@ -168,12 +189,17 @@ NonuniformGridCalculator::make_inverse() const
 CELER_FUNCTION
 NonuniformGridCalculator::NonuniformGridCalculator(Values const& reals,
                                                    RealIds x_grid,
-                                                   RealIds y_grid)
-    : reals_{reals}, x_grid_{x_grid, reals_}, y_offset_{y_grid}
+                                                   RealIds y_grid,
+                                                   RealIds deriv)
+    : reals_{reals}
+    , x_grid_{x_grid, reals_}
+    , y_offset_{y_grid}
+    , deriv_offset_(deriv)
 {
     CELER_EXPECT(!x_grid.empty() && x_grid.size() == y_grid.size());
     CELER_EXPECT(*x_grid.end() <= reals_.size()
                  && *y_grid.end() <= reals_.size());
+    CELER_EXPECT(deriv.empty() || deriv.size() == x_grid.size());
 }
 
 //---------------------------------------------------------------------------//
