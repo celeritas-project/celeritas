@@ -83,6 +83,7 @@ VariantTransform import_transform(nlohmann::json const& src)
                        << "invalid number of elements in transform: "
                        << data.size());
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 
 #include "celeritas_test.hh"
@@ -27,25 +28,30 @@ namespace test
 class NonuniformGridCalculatorTest : public Test
 {
   protected:
-    template<class T>
-    using Items = Collection<T, Ownership::value, MemSpace::host>;
+    using BC = SplineDerivCalculator::BoundaryCondition;
+    using Values = Collection<real_type, Ownership::value, MemSpace::host>;
+    using ValuesRef
+        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
 
-    template<class T>
-    using ItemRef = Collection<T, Ownership::const_reference, MemSpace::host>;
-
-    void build(Span<real_type const> x, Span<real_type const> y)
+    void build_spline(Span<real_type const> x, Span<real_type const> y, BC bc)
     {
-        NonuniformGridBuilder build_grid(&reals_);
+        NonuniformGridBuilder build_grid(&reals_, bc);
         grid_ = build_grid(x, y);
         reals_ref_ = reals_;
 
         CELER_ENSURE(grid_);
+        CELER_ENSURE(!grid_.derivative.empty() || bc == BC::size_);
         CELER_ENSURE(!reals_ref_.empty());
     }
 
+    void build(Span<real_type const> x, Span<real_type const> y)
+    {
+        this->build_spline(x, y, BC::size_);
+    }
+
     NonuniformGridRecord grid_;
-    Items<real_type> reals_;
-    ItemRef<real_type> reals_ref_;
+    Values reals_;
+    ValuesRef reals_ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -97,6 +103,21 @@ TEST_F(NonuniformGridCalculatorTest, inverse)
     {
         EXPECT_SOFT_EQ(x, calc(uninverted_calc(x)));
     }
+}
+
+TEST_F(NonuniformGridCalculatorTest, spline)
+{
+    static real_type const grid[] = {0, 1, 3, 7, 9, 10};
+    static real_type const value[] = {0, 1, 0, 1, 0, 1};
+    this->build_spline(grid, value, BC::not_a_knot);
+
+    auto calc = NonuniformGridCalculator(grid_, reals_ref_);
+    EXPECT_SOFT_EQ(0, calc(0));
+    EXPECT_SOFT_EQ(0.6184210526315791, calc(2));
+    EXPECT_SOFT_EQ(-0.07360197368421052, calc(3.5));
+    EXPECT_SOFT_EQ(1.073601973684211, calc(6.5));
+    EXPECT_SOFT_EQ(1, calc(10));
+    EXPECT_SOFT_EQ(1, calc(100));
 }
 
 //---------------------------------------------------------------------------//
