@@ -62,6 +62,9 @@ class PrimaryGenerator : public EventReaderInterface
     // Construct from shared particle data and new input
     PrimaryGenerator(Input const&, ParticleParams const& particles);
 
+    // Construct from particle IDs and new input
+    PrimaryGenerator(Input const&, std::vector<ParticleId> particle_ids);
+
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(PrimaryGenerator);
     ~PrimaryGenerator() override = default;
