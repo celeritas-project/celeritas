@@ -84,16 +84,18 @@ void FourLevelsGeoTest::test_trace() const
         SCOPED_TRACE("Rightward");
         auto result = test_->track({-10, -10, -10}, {1, 0, 0});
 
-        static char const* const expected_volumes[] = {"Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
+        static char const* const expected_volumes[] = {
+            "Shape2",
+            "Shape1",
+            "Envelope",
+            "World",
+            "Envelope",
+            "Shape1",
+            "Shape2",
+            "Shape1",
+            "Envelope",
+            "World",
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[]
             = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
@@ -107,19 +109,21 @@ void FourLevelsGeoTest::test_trace() const
         SCOPED_TRACE("From just inside outside edge");
         auto result = test_->track({-24 + 0.001, 10., 10.}, {1, 0, 0});
 
-        static char const* const expected_volumes[] = {"World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
+        static char const* const expected_volumes[] = {
+            "World",
+            "Envelope",
+            "Shape1",
+            "Shape2",
+            "Shape1",
+            "Envelope",
+            "World",
+            "Envelope",
+            "Shape1",
+            "Shape2",
+            "Shape1",
+            "Envelope",
+            "World",
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[]
             = {7 - 0.001, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
