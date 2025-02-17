@@ -34,6 +34,8 @@ class GeantGdmlLoaderTest : public ::celeritas::test::Test
     ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
 };
 
+//---------------------------------------------------------------------------//
+
 using SolidsTest = GeantGdmlLoaderTest;
 
 TEST_F(SolidsTest, load_save)
@@ -58,6 +60,8 @@ TEST_F(SolidsTest, load_save)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
+//---------------------------------------------------------------------------//
+
 using SimpleCmsTest = GeantGdmlLoaderTest;
 
 TEST_F(SimpleCmsTest, detectors)
@@ -73,6 +77,8 @@ TEST_F(SimpleCmsTest, detectors)
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
+
+//---------------------------------------------------------------------------//
 
 using CmsEeTest = GeantGdmlLoaderTest;
 
@@ -95,13 +101,15 @@ TEST_F(CmsEeTest, ignore)
                                                 "refl"}));
     EXPECT_EQ(2, found.size());
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+
+    save_gdml(loaded.world, this->make_unique_filename(".gdml"));
 }
 
-TEST_F(CmsEeTest, amputate)
+TEST_F(CmsEeTest, truncate)
 {
     GeantGdmlLoader::Options opts;
     opts.detectors = true;
-    opts.pointers = PT::amputate;
+    opts.pointers = PT::truncate;
 
     GeantGdmlLoader load_gdml(opts);
     auto loaded = load_gdml(this->gdml_path("cms-ee-back-dee"));
@@ -119,13 +127,15 @@ TEST_F(CmsEeTest, amputate)
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[] = {"warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+
+    save_gdml(loaded.world, this->make_unique_filename(".gdml"));
 }
 
-TEST_F(CmsEeTest, excise)
+TEST_F(CmsEeTest, remove)
 {
     GeantGdmlLoader::Options opts;
     opts.detectors = true;
-    opts.pointers = PT::excise;
+    opts.pointers = PT::remove;
 
     GeantGdmlLoader load_gdml(opts);
     auto loaded = load_gdml(this->gdml_path("cms-ee-back-dee"));
@@ -133,13 +143,15 @@ TEST_F(CmsEeTest, excise)
     EXPECT_EQ(2, loaded.detectors.count("ee_back_plate"));
     EXPECT_EQ(2, loaded.detectors.count("ee_s_ring"));
 
-    // Reflected volume name is deleted by G4 GDML parser
+    // Pointer is removed but reflected volume suffix is retained
     SetLV found;
     EXPECT_NO_THROW(
         found = find_geant_volumes({"EEBackQuad", "EEBackQuad_refl"}));
     EXPECT_EQ(2, found.size());
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+
+    save_gdml(loaded.world, this->make_unique_filename(".gdml"));
 }
 
 //---------------------------------------------------------------------------//

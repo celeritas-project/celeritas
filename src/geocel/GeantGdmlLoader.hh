@@ -26,10 +26,10 @@ namespace celeritas
  * - \c ignore leaves names as they are imported by Geant4's GDML reader, which
  *   strips them from material/region names but leaves solid/logical/physical
  *   pointers in place.
- * - \c amputate lets the Geant4 GDML remove the pointers, which cuts
+ * - \c truncate lets the Geant4 GDML remove the pointers, which cuts
  *   everything after \c 0x including suffixes like \c _refl added during
  *   volume construction.
- * - \c excise uses a regular expression to remove pointers from volume names.
+ * - \c remove uses a regular expression to remove pointers from volume names.
  *
  * The \c detectors option reads \c auxiliary tags in the \c structure that
  * have \c auxtype=SensDet and returns a multimap of strings to volume
@@ -47,14 +47,14 @@ class GeantGdmlLoader
     enum class PointerTreatment
     {
         ignore,  //!< Pointers will remain in the volume name
-        amputate,  //!< All text after '0x' is removed
-        excise,  //!< Only pointers are carefully removed
+        truncate,  //!< All text after '0x' is removed
+        remove,  //!< Only pointers are carefully removed
     };
 
     struct Options
     {
         //! Strip pointer extensions from solids/volumes
-        PointerTreatment pointers{PointerTreatment::excise};
+        PointerTreatment pointers{PointerTreatment::remove};
         //! Load sensitive detector map
         bool detectors{false};
     };

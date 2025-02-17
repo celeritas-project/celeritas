@@ -37,7 +37,7 @@ bool search_pointer(std::string const& s, std::smatch& ptr_match)
 //---------------------------------------------------------------------------//
 //! Remove pointer address from inside geometry names
 template<class StoreT>
-void excise_pointers(StoreT& obj_store)
+void remove_pointers(StoreT& obj_store)
 {
     std::smatch sm;
     for (auto* obj : obj_store)
@@ -93,7 +93,7 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
     ScopedGeantExceptionHandler scoped_exceptions;
 
     G4GDMLParser gdml_parser;
-    gdml_parser.SetStripFlag(opts_.pointers == PointerTreatment::amputate);
+    gdml_parser.SetStripFlag(opts_.pointers == PointerTreatment::truncate);
 
     gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
 
@@ -124,11 +124,11 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
         }
     }
 
-    if (opts_.pointers == PointerTreatment::excise)
+    if (opts_.pointers == PointerTreatment::remove)
     {
-        excise_pointers(*G4SolidStore::GetInstance());
-        excise_pointers(*G4PhysicalVolumeStore::GetInstance());
-        excise_pointers(*G4LogicalVolumeStore::GetInstance());
+        remove_pointers(*G4SolidStore::GetInstance());
+        remove_pointers(*G4PhysicalVolumeStore::GetInstance());
+        remove_pointers(*G4LogicalVolumeStore::GetInstance());
     }
 
     CELER_ENSURE(result.world);
