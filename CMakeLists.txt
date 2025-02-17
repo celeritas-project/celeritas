@@ -392,7 +392,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  set(_min_vecgeom_version 1.2.8)
+  set(_min_vecgeom_version 1.2.10)
   if(NOT VecGeom_FOUND)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
