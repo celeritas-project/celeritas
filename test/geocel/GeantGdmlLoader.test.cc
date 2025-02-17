@@ -83,7 +83,7 @@ TEST_F(CmsEeTest, ignore)
     opts.pointers = PT::ignore;
 
     GeantGdmlLoader load_gdml(opts);
-    auto loaded = load_gdml(this->gdml_path("cms-eebackdee"));
+    auto loaded = load_gdml(this->gdml_path("cms-ee-back-dee"));
 
     EXPECT_EQ(2, loaded.detectors.count("ee_back_plate"));
     EXPECT_EQ(2, loaded.detectors.count("ee_s_ring"));
@@ -104,7 +104,7 @@ TEST_F(CmsEeTest, amputate)
     opts.pointers = PT::amputate;
 
     GeantGdmlLoader load_gdml(opts);
-    auto loaded = load_gdml(this->gdml_path("cms-eebackdee"));
+    auto loaded = load_gdml(this->gdml_path("cms-ee-back-dee"));
 
     EXPECT_EQ(2, loaded.detectors.count("ee_back_plate"));
     EXPECT_EQ(2, loaded.detectors.count("ee_s_ring"));
@@ -128,7 +128,7 @@ TEST_F(CmsEeTest, excise)
     opts.pointers = PT::excise;
 
     GeantGdmlLoader load_gdml(opts);
-    auto loaded = load_gdml(this->gdml_path("cms-eebackdee"));
+    auto loaded = load_gdml(this->gdml_path("cms-ee-back-dee"));
 
     EXPECT_EQ(2, loaded.detectors.count("ee_back_plate"));
     EXPECT_EQ(2, loaded.detectors.count("ee_s_ring"));
