@@ -23,10 +23,13 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
+#include "../CmseGeoTest.hh"
 #include "../FourLevelsGeoTest.hh"
 #include "../GenericGeoParameterizedTest.hh"
 #include "../MultiLevelGeoTest.hh"
 #include "../SolidsGeoTest.hh"
+#include "../TransformedBoxGeoTest.hh"
+#include "../ZnenvGeoTest.hh"
 
 namespace celeritas
 {
@@ -386,223 +389,25 @@ TEST_F(TilecalPlugTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-class TransformedBoxTest : public GeantGeoTest
+using TransformedBoxTest
+    = GenericGeoParameterizedTest<GeantGeoTest, TransformedBoxGeoTest>;
+
+TEST_F(TransformedBoxTest, accessors)
 {
-    std::string geometry_basename() const override
-    {
-        return "transformed-box";
-    }
-};
+    this->impl().test_accessors();
+}
 
 TEST_F(TransformedBoxTest, trace)
 {
-    {
-        auto result = this->track({0, 0, -25}, {0, 0, 1});
-        static char const* const expected_volumes[] = {
-            "world",
-            "simple",
-            "world",
-            "enclosing",
-            "tiny",
-            "enclosing",
-            "world",
-            "simple",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
-            13,
-            4,
-            6,
-            1.75,
-            0.5,
-            1.75,
-            6,
-            4,
-            38,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {
-            5.3612159321677,
-            1,
-            2.3301270189222,
-            0.875,
-            0.25,
-            0.875,
-            3,
-            1,
-            19,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        auto result = this->track({0.25, 0, -25}, {0., 0, 1});
-        static char const* const expected_volumes[] = {
-            "world",
-            "simple",
-            "world",
-            "enclosing",
-            "tiny",
-            "enclosing",
-            "world",
-            "simple",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
-            12.834936490539,
-            3.7320508075689,
-            6.4330127018922,
-            1.75,
-            0.5,
-            1.75,
-            6,
-            4,
-            38,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {
-            5.5576905283833,
-            0.93301270189222,
-            2.0176270189222,
-            0.75,
-            0.25,
-            0.75,
-            3,
-            0.75,
-            19,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        auto result = this->track({0, 0.25, -25}, {0, 0., 1});
-        static char const* const expected_volumes[] = {
-            "world",
-            "simple",
-            "world",
-            "enclosing",
-            "tiny",
-            "enclosing",
-            "world",
-            "simple",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
-            13,
-            4,
-            6,
-            1.75,
-            0.5,
-            1.75,
-            6,
-            4,
-            38,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {
-            5.3612159321677,
-            1,
-            2.3301270189222,
-            0.875,
-            0.12530113594871,
-            0.875,
-            3,
-            1,
-            19,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        auto result = this->track({0.01, -20, 0.20}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"world", "enclosing", "tiny", "enclosing", "world"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
-class CmseTest : public GeantGeoTest
-{
-  public:
-    std::string geometry_basename() const override { return "cmse"; }
-};
+using CmseTest = GenericGeoParameterizedTest<GeantGeoTest, CmseGeoTest>;
 
 TEST_F(CmseTest, trace)
 {
-    // clang-format off
-    {
-        SCOPED_TRACE("Center +z");
-        auto result = this->track({0, 0, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "BEAM3",
-            "BEAM2", "BEAM1", "BEAM", "BEAM", "BEAM1", "BEAM2", "BEAM3",
-            "CMStoZDC", "CMSE", "ZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1096.95, 549.15,
-            403.9, 650, 650, 403.9, 549.15, 1096.95, 11200, 9.9999999999992,
-            180, 910, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {100, 2.1499999999997,
-            10.3027302206744, 13.023518051922, 6.95, 6.95, 13.023518051922,
-            10.3027302206745, 2.15, 100, 5, 8, 100, 100, 100};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Offset +z");
-        auto result = this->track({30, 30, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "OQUA",
-            "VCAL", "OQUA", "CMSE", "TotemT1", "CMSE", "MUON", "CALO",
-            "Tracker", "CALO", "MUON", "CMSE", "TotemT1", "CMSE", "OQUA",
-            "VCAL", "OQUA", "CMStoZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1419.95, 165.1,
-            28.95, 36, 300.1, 94.858988388759, 100.94101161124, 260.9, 586.4,
-            260.9, 100.94101161124, 94.858988388759, 300.1, 36, 28.95, 165.1,
-            1419.95, 11200, 1100, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {57.573593128807,
-            40.276406871193, 29.931406871193, 14.475, 18, 28.702447147997,
-            29.363145173005, 32.665765921596, 34.260814069425, 39.926406871193,
-            34.260814069425, 32.665765921596, 29.363145173005, 28.702447147997,
-            18, 14.475, 29.931406871193, 40.276406871193, 57.573593128807,
-            57.573593128807, 57.573593128807, 57.573593128807};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Across muon");
-        auto result = this->track({-1000, 0, -48.5}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"OCMS", "MUON", "CALO",
-            "Tracker", "CMSE", "BEAM", "CMSE", "Tracker", "CALO", "MUON",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {170, 535, 171.7, 120.8,
-            0.15673306650246, 4.6865338669951, 0.15673306650246, 120.8, 171.7,
-            535, 920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
-            60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
-            60.4, 85.85, 267.5, 460};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Differs between G4/VG");
-        auto result = this->track({0, 0, 1328.0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"BEAM2", "OQUA", "CMSE",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {12.495, 287.505, 530,
-            920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    // clang-format on
+    this->impl().test_trace();
 }
 
 TEST_F(CmseTest, imager)
@@ -619,33 +424,11 @@ TEST_F(CmseTest, imager)
 }
 
 //---------------------------------------------------------------------------//
-class ZnenvTest : public GeantGeoTest
-{
-  public:
-    std::string geometry_basename() const override { return "znenv"; }
-};
+using ZnenvTest = GenericGeoParameterizedTest<GeantGeoTest, ZnenvGeoTest>;
 
 TEST_F(ZnenvTest, trace)
 {
-    static char const* const expected_mid_volumes[]
-        = {"World", "ZNENV", "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNENV", "World"};
-    static real_type const expected_mid_distances[]
-        = {6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
-           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
-           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38};
-    {
-        auto result = this->track({-10, 0.0001, 0}, {1, 0, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
-    }
-    {
-        auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
-    }
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

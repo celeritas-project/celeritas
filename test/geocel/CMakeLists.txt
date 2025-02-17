@@ -31,6 +31,7 @@ set(SOURCES
   FourLevelsGeoTest.cc
   MultiLevelGeoTest.cc
   SolidsGeoTest.cc
+  TransformedBoxGeoTest.cc
 )
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
@@ -79,24 +80,21 @@ if(CELERITAS_USE_VecGeom)
   set(_vecgeom_tests)
   if(VecGeom_GDML_FOUND)
     list(APPEND _vecgeom_tests
-      "SimpleCmsTest.*"
+      "SimpleCmsVgdmlTest.*"
+      "FourLevelsVgdmlTest.*"
+      "MultiLevelVgdmlTest.*"
+      "SolidsVgdmlTest.*"
     )
-    if(NOT VecGeom_SURF_FOUND)
-      # TODO: vecgeom surface doesn't support some of these shapes
-      list(APPEND _vecgeom_tests
-        "FourLevelsTest.*"
-        "MultiLevelTest.*"
-        "SolidsTest.*"
-        "CmseTest.*"
-      )
-    endif()
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
-      "FourLevelsGeantTest.*"
-      "MultiLevelGeantTest.*"
-      "SolidsGeantTest.*"
-      "ZnenvGeantTest.*"
+      "CmseTest.*"
+      "FourLevelsTest.*"
+      "MultiLevelTest.*"
+      "PincellTest.*"
+      "SolidsTest.*"
+      "TransformedBoxTest.*"
+      "ZnenvTest.*"
     )
   endif()
   if(NOT _vecgeom_tests)
