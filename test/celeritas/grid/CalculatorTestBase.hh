@@ -53,6 +53,7 @@ class CalculatorTestBase : public Test
     // Construct without scaled values
     void build(GridInput grid);
     void build_spline(GridInput grid, BC bc);
+    void build_spline_inverse(GridInput grid, BC bc);
 
     XsGridRecord const& data() const { return data_; }
     Data const& values() const { return value_ref_; }
@@ -62,9 +63,9 @@ class CalculatorTestBase : public Test
     Values value_storage_;
     Data value_ref_;
 
-    void build_impl(GridInput grid, GridInput grid_scaled, BC bc);
-    void build_impl(GridInput grid, BC bc);
-    void build_grid(UniformGridRecord& data, GridInput const& grid, BC bc);
+    void build_impl(GridInput, GridInput, BC, bool);
+    void build_impl(GridInput, BC, bool);
+    void build_grid(UniformGridRecord&, GridInput const&, BC, bool);
 };
 
 //---------------------------------------------------------------------------//

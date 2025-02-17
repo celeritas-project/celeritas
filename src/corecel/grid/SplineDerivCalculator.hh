@@ -95,6 +95,9 @@ class SplineDerivCalculator
     VecReal operator()(SpanConstReal, SpanConstReal) const;
     VecReal operator()(UniformGridRecord const&, Values const&) const;
 
+    // Calculate the second derivatives from an inverted uniform grid
+    VecReal calc_from_inverse(UniformGridRecord const&, Values const&) const;
+
   private:
     //// TYPES ////
 

@@ -44,6 +44,17 @@ auto SplineDerivCalculator::operator()(SpanConstReal x, SpanConstReal y) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the second derivatives from inverted grid data.
+ */
+auto SplineDerivCalculator::calc_from_inverse(UniformGridRecord const& data,
+                                              Values const& reals) const
+    -> VecReal
+{
+    return (*this)(detail::InverseGridAccessor(data, reals));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the second derivatives.
  */
 template<class GA>

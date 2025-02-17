@@ -24,7 +24,8 @@ namespace test
  */
 void CalculatorTestBase::build(GridInput grid, GridInput grid_scaled)
 {
-    return this->build_impl(std::move(grid), std::move(grid_scaled), BC::size_);
+    return this->build_impl(
+        std::move(grid), std::move(grid_scaled), BC::size_, false);
 }
 
 //---------------------------------------------------------------------------//
@@ -36,7 +37,7 @@ void CalculatorTestBase::build_spline(GridInput grid,
                                       BC bc)
 {
     CELER_EXPECT(bc != BC::size_);
-    return this->build_impl(std::move(grid), std::move(grid_scaled), bc);
+    return this->build_impl(std::move(grid), std::move(grid_scaled), bc, false);
 }
 
 //---------------------------------------------------------------------------//
@@ -45,7 +46,7 @@ void CalculatorTestBase::build_spline(GridInput grid,
  */
 void CalculatorTestBase::build(GridInput grid)
 {
-    return this->build_impl(std::move(grid), BC::size_);
+    return this->build_impl(std::move(grid), BC::size_, false);
 }
 
 //---------------------------------------------------------------------------//
@@ -55,14 +56,27 @@ void CalculatorTestBase::build(GridInput grid)
 void CalculatorTestBase::build_spline(GridInput grid, BC bc)
 {
     CELER_EXPECT(bc != BC::size_);
-    return this->build_impl(std::move(grid), bc);
+    return this->build_impl(std::move(grid), bc, false);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without scaled values and with inverted grid.
+ */
+void CalculatorTestBase::build_spline_inverse(GridInput grid, BC bc)
+{
+    CELER_EXPECT(bc != BC::size_);
+    return this->build_impl(std::move(grid), bc, true);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from grid bounds and cross section values.
  */
-void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc)
+void CalculatorTestBase::build_impl(GridInput grid,
+                                    GridInput grid_scaled,
+                                    BC bc,
+                                    bool invert)
 {
     CELER_EXPECT((!grid.value.empty() || !grid_scaled.value.empty())
                  && (grid.value.empty() || grid_scaled.value.empty()
@@ -79,7 +93,7 @@ void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc
 
     if (!grid.value.empty())
     {
-        this->build_grid(data_.lower, grid, bc);
+        this->build_grid(data_.lower, grid, bc, invert);
     }
     if (!grid_scaled.value.empty())
     {
@@ -93,7 +107,7 @@ void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc
         {
             grid_scaled.value[i] *= std::exp(loge[i]);
         }
-        this->build_grid(data_.upper, grid_scaled, bc);
+        this->build_grid(data_.upper, grid_scaled, bc, invert);
     }
 
     value_ref_ = value_storage_;
@@ -105,9 +119,9 @@ void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc
 /*!
  * Construct without scaled values.
  */
-void CalculatorTestBase::build_impl(GridInput grid, BC bc)
+void CalculatorTestBase::build_impl(GridInput grid, BC bc, bool invert)
 {
-    this->build_impl(grid, {}, bc);
+    this->build_impl(grid, {}, bc, invert);
 }
 
 //---------------------------------------------------------------------------//
@@ -116,7 +130,8 @@ void CalculatorTestBase::build_impl(GridInput grid, BC bc)
  */
 void CalculatorTestBase::build_grid(UniformGridRecord& data,
                                     GridInput const& grid,
-                                    BC bc)
+                                    BC bc,
+                                    bool invert)
 {
     CollectionBuilder build(&value_storage_);
 
@@ -128,7 +143,9 @@ void CalculatorTestBase::build_grid(UniformGridRecord& data,
     if (bc != BC::size_)
     {
         Data value_ref{value_storage_};
-        auto deriv = SplineDerivCalculator(bc)(data, value_ref);
+        SplineDerivCalculator calc_deriv(bc);
+        auto deriv = invert ? calc_deriv.calc_from_inverse(data, value_ref)
+                            : calc_deriv(data, value_ref);
         data.derivative = build.insert_back(deriv.begin(), deriv.end());
     }
 }

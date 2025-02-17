@@ -136,6 +136,7 @@ struct ProcessGroup
     ItemRange<ValueTable> macro_xs;  //!< [ppid]
     ValueTableId energy_loss;  //!< Process-integrated energy loss
     ValueTableId range;  //!< Process-integrated range
+    ValueTableId inverse_range;  //!< Inverse process-integrated range
     ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid

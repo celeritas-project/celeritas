@@ -95,18 +95,35 @@ class UniformGridAccessor : public GridAccessor
                                Values const& values);
 
     //! Get the x grid value at the given index
-    inline real_type x(size_type index) const final;
+    inline real_type x(size_type index) const;
 
     //! Get the y grid value at the given index
-    inline real_type y(size_type index) const final;
+    inline real_type y(size_type index) const;
 
     //! Get the grid size
     size_type size() const final { return loge_grid_.size(); }
 
-  private:
+  protected:
     UniformGridRecord const& data_;
     Values const& reals_;
     UniformGrid loge_grid_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper class for accessing grid data from an inverse uniform grid.
+ */
+class InverseGridAccessor : public UniformGridAccessor
+{
+  public:
+    // Construct with grid data
+    using UniformGridAccessor::UniformGridAccessor;
+
+    //! Get the x grid value at the given index
+    inline real_type x(size_type index) const final;
+
+    //! Get the y grid value at the given index
+    inline real_type y(size_type index) const final;
 };
 
 //---------------------------------------------------------------------------//
@@ -203,6 +220,26 @@ real_type UniformGridAccessor::y(size_type index) const
 {
     CELER_EXPECT(index < this->size());
     return reals_[data_.value[index]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the x grid value at the given index.
+ */
+real_type InverseGridAccessor::x(size_type index) const
+{
+    CELER_EXPECT(index < this->size());
+    return reals_[data_.value[index]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the y grid value at the given index.
+ */
+real_type InverseGridAccessor::y(size_type index) const
+{
+    CELER_EXPECT(index < this->size());
+    return std::exp(loge_grid_[index]);
 }
 
 //---------------------------------------------------------------------------//

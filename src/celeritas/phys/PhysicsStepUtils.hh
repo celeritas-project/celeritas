@@ -272,8 +272,11 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         // this process. If the step is very near the range (a few ULP off, for
         // example), then the post-step energy will be calculated as zero
         // without going through the condition above.
-        auto calc_energy
-            = physics.make_calculator<InverseRangeCalculator>(grid_id);
+        auto calc_energy = physics.make_calculator<InverseRangeCalculator>(
+            physics.inverse_range_grid());
+        // printf("%.16e, %.16e\n", calc_energy(range - step).value(),
+        // physics.make_calculator<InverseRangeCalculator>(grid_id)(range -
+        // step).value());
         eloss = pre_step_energy - calc_energy(range - step);
     }
 

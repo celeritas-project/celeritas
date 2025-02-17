@@ -21,6 +21,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
@@ -539,6 +540,7 @@ void PhysicsParams::build_xs(Options const& opts,
         std::vector<ValueTable> xs_table(processes.size());
         ValueTable eloss_table;
         ValueTable range_table;
+        ValueTable inverse_range_table;
 
         // Processes with dE/dx and macro xs tables
         std::vector<IntegralXsProcess> temp_integral_xs(processes.size());
@@ -560,6 +562,7 @@ void PhysicsParams::build_xs(Options const& opts,
             std::vector<ValueGridId> xs_grid_ids(mats.size());
             std::vector<ValueGridId> eloss_grid_ids(mats.size());
             std::vector<ValueGridId> range_grid_ids(mats.size(), ValueGridId{});
+            std::vector<ValueGridId> inv_range_grid_ids;
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
@@ -610,13 +613,37 @@ void PhysicsParams::build_xs(Options const& opts,
                     //! \todo make the interpolation method configurable?
 
                     // Build the range grid from the energy loss
-                    auto const& grid = data->value_grids[grid_id];
+                    auto const& eloss_grid = data->value_grids[grid_id];
                     auto const range = RangeGridCalculator(BC::geant)(
-                        grid.lower, make_const_ref(*data).reals);
+                        eloss_grid.lower, make_const_ref(*data).reals);
                     range_grid_ids[mat_idx]
-                        = insert_grid(grid.lower.grid,
+                        = insert_grid(eloss_grid.lower.grid,
                                       make_span(range),
-                                      !grid.lower.derivative.empty());
+                                      !eloss_grid.lower.derivative.empty());
+
+                    if (!eloss_grid.lower.derivative.empty())
+                    {
+                        // Build the inverse range grid if spline interpolation
+                        // is used. The grid and values are not inverted on the
+                        // \c UniformGridRecord, but the derivatives are
+                        // calculated using the inverted grid.
+                        CELER_ASSERT(is_monotonic_increasing(make_span(range)));
+                        inv_range_grid_ids.resize(mats.size(), ValueGridId{});
+
+                        XsGridRecord range_grid
+                            = data->value_grids[range_grid_ids[mat_idx]];
+                        auto deriv
+                            = SplineDerivCalculator(BC::geant).calc_from_inverse(
+                                range_grid.lower, make_const_ref(*data).reals);
+
+                        range_grid.lower.derivative
+                            = make_builder(&data->reals)
+                                  .insert_back(deriv.begin(), deriv.end());
+                        CELER_ASSERT(range_grid);
+                        inv_range_grid_ids[mat_idx]
+                            = make_builder(&data->value_grids)
+                                  .push_back(range_grid);
+                    }
                 }
 
                 if (auto grid_id = eloss_grid_ids[mat_idx])
@@ -678,8 +705,12 @@ void PhysicsParams::build_xs(Options const& opts,
                     eloss_grid_ids.begin(), eloss_grid_ids.end());
                 range_table.grids = value_grid_ids.insert_back(
                     range_grid_ids.begin(), range_grid_ids.end());
+                inverse_range_table.grids = value_grid_ids.insert_back(
+                    inv_range_grid_ids.begin(), inv_range_grid_ids.end());
                 CELER_ASSERT(eloss_table.grids.size() == mats.size()
-                             && range_table.grids.size() == mats.size());
+                             && range_table.grids.size() == mats.size()
+                             && (inverse_range_table.grids.size() == mats.size()
+                                 || inverse_range_table.grids.empty()));
             }
 
             // Store the energies of the maximum cross sections
@@ -701,6 +732,8 @@ void PhysicsParams::build_xs(Options const& opts,
             = value_tables.insert_back(xs_table.begin(), xs_table.end());
         process_groups.energy_loss = value_tables.push_back(eloss_table);
         process_groups.range = value_tables.push_back(range_table);
+        process_groups.inverse_range
+            = value_tables.push_back(inverse_range_table);
     }
 }
 
