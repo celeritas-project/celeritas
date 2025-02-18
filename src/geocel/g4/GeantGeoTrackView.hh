@@ -12,6 +12,7 @@
 #include <G4Navigator.hh>
 #include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
+#include <G4VPhysicalVolume.hh>
 
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"

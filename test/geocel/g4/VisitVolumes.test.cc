@@ -69,16 +69,7 @@ struct MaxPhysicalVisitor : PhysicalVisitor
 }  // namespace
 
 //---------------------------------------------------------------------------//
-class VisitGeantVolumesTest : public GeantGeoTestBase
-{
-  public:
-    using SpanStringView = Span<std::string_view const>;
-
-    SPConstGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-};
+using VisitGeantVolumesTest = GeantGeoTestBase;
 
 //---------------------------------------------------------------------------//
 class FourLevelsTest : public VisitGeantVolumesTest

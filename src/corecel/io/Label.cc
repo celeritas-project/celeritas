@@ -12,14 +12,20 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Create *implicitly* from a name without extension.
+ */
+Label::Label(std::string_view n) : name{n} {}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a label from by splitting on a separator.
  */
-Label Label::from_separator(std::string const& name, char sep)
+Label Label::from_separator(std::string_view name, char sep)
 {
     auto pos = name.rfind(sep);
-    if (pos == std::string::npos)
+    if (pos == std::string_view::npos)
     {
-        return Label{name};
+        return Label{std::string{name}};
     }
 
     auto iter = name.begin() + pos;

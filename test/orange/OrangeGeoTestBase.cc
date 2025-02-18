@@ -73,6 +73,12 @@ std::vector<Sense> OrangeGeoTestBase::string_to_senses(std::string const& s)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Override base class to *not* try geometry during SetUp.
+ */
+void OrangeGeoTestBase::SetUp() {}
+
+//---------------------------------------------------------------------------//
+/*!
  * Load `test/geocel/data/{filename}` GDML input using Geant4.
  */
 void OrangeGeoTestBase::build_gdml_geometry(std::string const& filename)

@@ -10,8 +10,8 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/GeoTraits.hh"
-#include "geocel/detail/LengthUnits.hh"
 
+#include "GenericGeoTestInterface.hh"
 #include "LazyGeoManager.hh"
 #include "Test.hh"
 
@@ -21,36 +21,6 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-struct GenericGeoTrackingResult
-{
-    std::vector<std::string> volumes;
-    std::vector<std::string> volume_instances;
-    std::vector<real_type> distances;  //!< [cm]
-    std::vector<real_type> halfway_safeties;  //!< [cm]
-
-    void print_expected();
-};
-
-//---------------------------------------------------------------------------//
-struct GenericGeoGeantImportVolumeResult
-{
-    static constexpr int empty = -1;
-    static constexpr int missing = -2;
-
-    static GenericGeoGeantImportVolumeResult
-    from_import(GeoParamsInterface const& geom, G4VPhysicalVolume const* world);
-
-    static GenericGeoGeantImportVolumeResult
-    from_pointers(GeoParamsInterface const& geom,
-                  G4VPhysicalVolume const* world);
-
-    std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
-    std::vector<std::string> missing_names;  //!< G4LV names without a match
-
-    void print_expected() const;
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Templated base class for loading geometry.
@@ -62,7 +32,9 @@ struct GenericGeoGeantImportVolumeResult
  * \note This class is instantiated in XTestBase.cc for geometry type X.
  */
 template<class G>
-class GenericGeoTestBase : virtual public Test, private LazyGeoManager
+class GenericGeoTestBase : virtual public Test,
+                           public GenericGeoTestInterface,
+                           private LazyGeoManager
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, G>);
 
@@ -73,22 +45,21 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<G const>;
     using GeoTrackView = typename TraitsT::TrackView;
-    using TrackingResult = GenericGeoTrackingResult;
-    using GeantVolResult = GenericGeoGeantImportVolumeResult;
     //!@}
 
   public:
-    //! Get the basename or unique geometry key (defaults to suite name)
-    virtual std::string geometry_basename() const;
+    // Build geometry during setup
+    void SetUp() override;
 
-    //! Build the geometry
-    virtual SPConstGeo build_geometry() = 0;
+    //// Interface ////
+
+    // Build the geometry (default to from_basename)
+    virtual SPConstGeo build_geometry();
 
     //! Maximum number of local track slots
     virtual size_type num_track_slots() const { return 1; }
 
-    //! Unit length for "track" testing and other results
-    virtual Constant unit_length() const { return lengthunits::centimeter; }
+    //// Geometry-specific functions ////
 
     //! Construct from celeritas test data and "basename" value
     SPConstGeo build_geometry_from_basename();
@@ -109,23 +80,17 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     //! Get and initialize a single-thread host track view
     GeoTrackView make_geo_track_view(Real3 const& pos_cm, Real3 dir);
 
-    //! Find linear segments until outside
-    TrackingResult track(Real3 const& pos_cm, Real3 const& dir);
-    //! Find linear segments until outside (maximum count
-    TrackingResult track(Real3 const& pos_cm, Real3 const& dir, int max_step);
+    //// GenericGeoTestInterface ////
 
-    //! Try to map Geant4 volumes using ImportVolume and name
-    GeantVolResult
-    get_import_geant_volumes(G4VPhysicalVolume const* world) const
-    {
-        return GeantVolResult::from_import(*this->geometry(), world);
-    }
-    //! Try to map Geant4 volumes using pointers
-    GeantVolResult
-    get_direct_geant_volumes(G4VPhysicalVolume const* world) const
-    {
-        return GeantVolResult::from_pointers(*this->geometry(), world);
-    }
+    // Get the label for this geometry: Geant4, VecGeom, ORANGE
+    std::string_view geometry_type() const final;
+    // Access the geometry interface, building if needed
+    SPConstGeoInterface geometry_interface() const final;
+    // Find linear segments until outside
+    TrackingResult track(Real3 const& pos_cm, Real3 const& dir) final;
+    // Find linear segments until outside (maximum count
+    TrackingResult
+    track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
 
   private:
     template<Ownership W, MemSpace M>

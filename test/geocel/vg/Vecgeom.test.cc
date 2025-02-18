@@ -29,6 +29,14 @@
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
+#include "../CmseGeoTest.hh"
+#include "../FourLevelsGeoTest.hh"
+#include "../GeantImportVolumeResult.hh"
+#include "../GenericGeoParameterizedTest.hh"
+#include "../MultiLevelGeoTest.hh"
+#include "../SolidsGeoTest.hh"
+#include "../TransformedBoxGeoTest.hh"
+#include "../ZnenvGeoTest.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
@@ -52,8 +60,6 @@ namespace
 {
 auto const vecgeom_version
     = celeritas::Version::from_string(celeritas_vecgeom_version);
-auto const geant4_version = celeritas::Version::from_string(
-    CELERITAS_USE_GEANT4 ? celeritas_geant4_version : "0.0.0");
 
 }  // namespace
 
@@ -68,21 +74,17 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
     virtual SpanStringView expected_log_levels() const { return {}; }
 };
 
-/*!
- * Preserve the VecGeom geometry across test cases.
- *
- * Test cases should be matched to unique geometries.
- */
+//---------------------------------------------------------------------------//
+//! Load a geometry using VecGeom's GDML reader
 class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 {
   public:
-    //! Helper function: build with VecGeom using VGDML
-    SPConstGeo load_vgdml(std::string_view filename)
+    SPConstGeo build_geometry() final
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-        auto result = std::make_shared<VecgeomParams>(
-            this->test_data_path("geocel", filename));
+        auto result = std::make_shared<VecgeomParams>(this->test_data_path(
+            "geocel", this->geometry_basename() + std::string{".gdml"}));
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -90,12 +92,14 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 };
 
 //---------------------------------------------------------------------------//
-
+//! Load a geometry using G4VG
 class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 {
   public:
+    using GeantVolResult = GeantImportVolumeResult;
+
     //! Helper function: build via Geant4 GDML reader
-    SPConstGeo load_g4_gdml(std::string_view filename)
+    SPConstGeo build_geometry() final
     {
         if (world_volume_)
         {
@@ -104,8 +108,8 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
         }
         ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                     LogLevel::warning};
-        world_volume_
-            = ::celeritas::load_gdml(this->test_data_path("geocel", filename));
+        world_volume_ = ::celeritas::load_gdml(this->test_data_path(
+            "geocel", this->geometry_basename() + std::string{".gdml"}));
         auto result = std::make_shared<VecgeomParams>(world_volume_);
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
@@ -113,20 +117,20 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     }
 
     //! Test conversion for Geant4 geometry
-    GeantVolResult get_direct_geant_volumes()
+    GeantVolResult get_import_geant_volumes()
     {
-        this->geometry();
-        return VecgeomTestBase::get_direct_geant_volumes(world_volume_);
+        return GeantVolResult::from_import(*this->geometry(), world_volume_);
     }
 
     //! Test conversion for Geant4 geometry
-    GeantVolResult get_import_geant_volumes()
+    GeantVolResult get_direct_geant_volumes()
     {
-        this->geometry();
-        return VecgeomTestBase::get_import_geant_volumes(world_volume_);
+        return GeantVolResult::from_pointers(*this->geometry(), world_volume_);
     }
 
-    virtual SpanStringView expected_log_levels() const { return {}; }
+    SpanStringView expected_log_levels() const override { return {}; }
+
+    G4VPhysicalVolume const* g4world() const final { return world_volume_; }
 
   protected:
     // Note that this is static because the geometry may be loaded
@@ -136,30 +140,23 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 
 //---------------------------------------------------------------------------//
-// SIMPLE CMS TEST
+// VGDML TESTS
 //---------------------------------------------------------------------------//
 
-class SimpleCmsTest : public VecgeomVgdmlTestBase
+class SimpleCmsVgdmlTest : public VecgeomVgdmlTestBase
 {
   public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_vgdml("simple-cms.gdml");
-    }
+    std::string geometry_basename() const final { return "simple-cms"; }
 };
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SimpleCmsTest, accessors)
+TEST_F(SimpleCmsVgdmlTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
     EXPECT_EQ(7, geom.volumes().size());
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SimpleCmsTest, track)
+TEST_F(SimpleCmsVgdmlTest, track)
 {
     auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));
@@ -199,9 +196,7 @@ TEST_F(SimpleCmsTest, track)
     EXPECT_SOFT_EQ(60., to_cm(next.distance));
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 {
     using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
 
@@ -276,40 +271,42 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
-// FOUR-LEVELS TEST
-//---------------------------------------------------------------------------//
 
-class FourLevelsTest : public VecgeomVgdmlTestBase
+using FourLevelsVgdmlTest
+    = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, FourLevelsGeoTest>;
+
+TEST_F(FourLevelsVgdmlTest, accessors)
 {
-  public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_vgdml("four-levels.gdml");
-    }
-};
+    // TODO: VGDML leaves pointer in the world PV name before appending _PV
+    // suffix
 
-//---------------------------------------------------------------------------//
+    // this->impl().test_accessors();
 
-TEST_F(FourLevelsTest, accessors)
-{
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(4, geom.max_depth());
+    static char const* const expected_vol_labels[] = {
+        "Shape2",
+        "Shape1",
+        "Envelope",
+        "World",
+    };
+    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
 
-    auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), to_cm(bbox.lower()));
-    EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), to_cm(bbox.upper()));
-
-    ASSERT_EQ(4, geom.volumes().size());
-    EXPECT_EQ("Shape2", geom.volumes().at(VolumeId{0}).name);
-    EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
-    EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
-    EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
-    EXPECT_EQ(Label("World"), geom.volumes().at(VolumeId{3}));
+    static char const* const expected_vol_inst_labels[] = {
+        "Shape2",
+        "Shape1",
+        "env1",
+        "env2",
+        "env3",
+        "env4",
+        "env5",
+        "env6",
+        "env7",
+        "env8",
+        "World0xdeadbeef_PV",
+    };
+    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(FourLevelsTest, consecutive_compute)
+TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
     auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
@@ -329,9 +326,7 @@ TEST_F(FourLevelsTest, consecutive_compute)
     EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(FourLevelsTest, detailed_track)
+TEST_F(FourLevelsVgdmlTest, detailed_track)
 {
     {
         SCOPED_TRACE("rightward along corner");
@@ -406,9 +401,7 @@ TEST_F(FourLevelsTest, detailed_track)
     }
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(FourLevelsTest, reentrant_boundary)
+TEST_F(FourLevelsVgdmlTest, reentrant_boundary)
 {
     auto geo = this->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
@@ -458,86 +451,12 @@ TEST_F(FourLevelsTest, reentrant_boundary)
     next = geo.find_next_step(from_cm(10.0));
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(FourLevelsTest, tracking)
+TEST_F(FourLevelsVgdmlTest, trace)
 {
-    {
-        SCOPED_TRACE("Rightward");
-        auto result = this->track({-10, -10, -10}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {"Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {2.5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("From just inside outside edge");
-        auto result = this->track({-24 + 0.001, 10., 10.}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {"World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {7 - 0.001, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {3.4995, 0.5, 0.5, 5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Leaving world");
-        auto result = this->track({-10, 10, 10}, {0, 1, 0});
-
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 2, 6};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {2.5, 0.5, 1, 3};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Upward");
-        auto result = this->track({-10, 10, 10}, {0, 0, 1});
-
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 3, 5};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {2.5, 0.5, 1.5, 2.5};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
+    this->impl().test_trace();
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(FourLevelsTest, safety)
+TEST_F(FourLevelsVgdmlTest, safety)
 {
     auto geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
@@ -574,9 +493,7 @@ TEST_F(FourLevelsTest, safety)
     EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 {
     using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
 
@@ -612,127 +529,26 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
-// MULTI-LEVEL TEST
-//---------------------------------------------------------------------------//
 
-class MultiLevelTest : public VecgeomVgdmlTestBase
+using MultiLevelVgdmlTest
+    = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, MultiLevelGeoTest>;
+
+TEST_F(MultiLevelVgdmlTest, accessors)
 {
-  public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_vgdml("multi-level.gdml");
-    }
-};
+    TestImpl(this).test_accessors();
+}
 
-//---------------------------------------------------------------------------//
-
-TEST_F(MultiLevelTest, accessors)
+TEST_F(MultiLevelVgdmlTest, trace)
 {
-    auto const& geo = *this->geometry();
-    EXPECT_EQ(3, geo.max_depth());
-
-    auto vol_names = [&geo] {
-        auto const& vols = geo.volumes();
-        std::vector<std::string> result;
-        for (auto vid : range(VolumeId{vols.size()}))
-        {
-            result.push_back(vols.at(vid).name);
-        }
-        return result;
-    }();
-    static std::string const expected_vol_names[] = {"sph", "box", "world"};
-    EXPECT_VEC_EQ(expected_vol_names, vol_names);
-
-    auto vol_inst_names = [&geo] {
-        auto const& vols = geo.volume_instances();
-        std::vector<std::string> result;
-        for (auto viid : range(VolumeInstanceId{vols.size()}))
-        {
-            result.push_back(vols.at(viid).name);
-        }
-        return result;
-    }();
-    static std::string const expected_vol_inst_names[] = {
-        "boxsph1",
-        "boxsph2",
-        "topsph1",
-        "topbox1",
-        "topbox2",
-        "topbox3",
-        "topbox4",
-        "world_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+    TestImpl(this).test_trace();
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(MultiLevelTest, trace)
-{
-    {
-        auto result = this->track({-19.9, 7.5, 0}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {
-            "world",
-            "box",
-            "sph",
-            "box",
-            "world",
-            "box",
-            "sph",
-            "box",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[] = {
-            "world_PV",
-            "topbox2",
-            "boxsph2",
-            "topbox2",
-            "world_PV",
-            "topbox1",
-            "boxsph2",
-            "topbox1",
-            "world_PV",
-        };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {
-            2.4,
-            3,
-            4,
-            8,
-            5,
-            3,
-            4,
-            8,
-            6.5,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {
-            1.2,
-            1.5,
-            2,
-            3.0990195135928,
-            2.5,
-            1.5,
-            2,
-            3.0990195135928,
-            3.25,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-}
-//---------------------------------------------------------------------------//
-// SOLIDS TEST
-//---------------------------------------------------------------------------//
-
-class SolidsTest : public VecgeomVgdmlTestBase
+class SolidsVgdmlTest : public VecgeomVgdmlTestBase
 {
   public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_vgdml("solids.gdml");
-    }
+    std::string geometry_basename() const final { return "solids"; }
 
     SpanStringView expected_log_levels() const final
     {
@@ -748,9 +564,7 @@ class SolidsTest : public VecgeomVgdmlTestBase
     }
 };
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsTest, DISABLED_dump)
+TEST_F(SolidsVgdmlTest, DISABLED_dump)
 {
     this->geometry();
     auto const& geomgr = vecgeom::GeoManager::Instance();
@@ -759,9 +573,7 @@ TEST_F(SolidsTest, DISABLED_dump)
     world->PrintContent();
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsTest, accessors)
+TEST_F(SolidsVgdmlTest, accessors)
 {
     if (vecgeom_version <= Version(1, 1, 17))
     {
@@ -784,9 +596,7 @@ TEST_F(SolidsTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), to_cm(bbox.upper()));
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsTest, names)
+TEST_F(SolidsVgdmlTest, names)
 {
     auto const& geom = *this->geometry();
     std::vector<std::string> labels;
@@ -807,8 +617,7 @@ TEST_F(SolidsTest, names)
     EXPECT_VEC_EQ(expected_labels, labels);
 }
 
-//---------------------------------------------------------------------------//
-TEST_F(SolidsTest, output)
+TEST_F(SolidsVgdmlTest, output)
 {
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
@@ -823,219 +632,7 @@ TEST_F(SolidsTest, output)
     }
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsTest, trace)
-{
-    {
-        SCOPED_TRACE("Center -x");
-        auto result = this->track({375, 0, 0}, {-1, 0, 0});
-
-        static char const* const expected_volumes[] = {"ellipsoid1",
-                                                       "World",
-                                                       "polycone1",
-                                                       "World",
-                                                       "sphere1",
-                                                       "World",
-                                                       "box500",
-                                                       "World",
-                                                       "cone1",
-                                                       "World",
-                                                       "trd1",
-                                                       "World",
-                                                       "parabol1",
-                                                       "World",
-                                                       "trd2",
-                                                       "World",
-                                                       "xtru1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       95,
-                                                       20,
-                                                       125,
-                                                       40,
-                                                       60,
-                                                       50,
-                                                       73,
-                                                       54,
-                                                       83,
-                                                       30,
-                                                       88.786678713601,
-                                                       42.426642572799,
-                                                       88.786678713601,
-                                                       30,
-                                                       1.4761904761905,
-                                                       15.880952380952,
-                                                       67.642857142857};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0,
-                                                       45.496748548005,
-                                                       0,
-                                                       44.83475568122,
-                                                       13.934134186943,
-                                                       30,
-                                                       25,
-                                                       36.240004604773,
-                                                       25,
-                                                       41.204388797207,
-                                                       14.92555785315,
-                                                       42.910442345001,
-                                                       18.741024106017,
-                                                       42.910442345001,
-                                                       14.92555785315,
-                                                       0.7344322118216,
-                                                       6.5489918373272,
-                                                       33.481506089183};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Upper +x");
-        auto result = this->track({-375, 125, 0}, {1, 0, 0});
-
-        static char const* const expected_volumes[] = {"World",
-                                                       "hype1",
-                                                       "World",
-                                                       "para1",
-                                                       "World",
-                                                       "tube100",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "ellcone1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       4,
-                                                       71,
-                                                       60,
-                                                       75,
-                                                       4,
-                                                       116.000001,
-                                                       12.499999,
-                                                       20.000001,
-                                                       17.499999,
-                                                       191.98703789108,
-                                                       25.9774128070174,
-                                                       14.0710986038011,
-                                                       25.977412807017,
-                                                       86.987037891082,
-                                                       10,
-                                                       220};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0,
-                                                       1.9937213884673,
-                                                       0,
-                                                       24.961508830135,
-                                                       31.201886037669,
-                                                       2,
-                                                       42.0000005,
-                                                       6.2499995,
-                                                       9.9999995,
-                                                       8.7499995,
-                                                       75,
-                                                       0,
-                                                       6.4970769728954,
-                                                       11.928052271225,
-                                                       43.188475615448,
-                                                       4.9751859510499,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Lower +x");
-        auto result = this->track({-375, -125, 0}, {1, 0, 0});
-
-        if (vecgeom_version < Version(1, 2, 3))
-        {
-            ADD_FAILURE()
-                << "VecGeom " << vecgeom_version
-                << " does not correctly trace through some polycones: "
-                   "upgrade to 1.2.3 to pass this test";
-        }
-
-        static char const* const expected_volumes[] = {"arb8b",
-                                                       "World",
-                                                       "arb8a",
-                                                       "World",
-                                                       "trap1",
-                                                       "World",
-                                                       "tetrah1",
-                                                       "World",
-                                                       "orb1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "elltube1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {40,
-                                                       45,
-                                                       80,
-                                                       68.125,
-                                                       33.75,
-                                                       57.519332346491,
-                                                       50.605667653509,
-                                                       85,
-                                                       80,
-                                                       40,
-                                                       45,
-                                                       127.5,
-                                                       3.7499999999998,
-                                                       60,
-                                                       40,
-                                                       205};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {19.9007438042,
-                                                       17.5,
-                                                       21.951571334408,
-                                                       29.0625,
-                                                       15.746700605861,
-                                                       26.836732015088,
-                                                       2.7598369213007,
-                                                       4.6355704644931,
-                                                       40,
-                                                       19.156525704423,
-                                                       0,
-                                                       0,
-                                                       0,
-                                                       28.734788556635,
-                                                       20,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Low +y");
-        auto result = this->track({-500, -250, 0}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"World", "trd3_refl", "World", "trd2", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {96.555879457157,
-                                                       52.35421982848,
-                                                       77.179801428726,
-                                                       52.35421982848,
-                                                       271.55587945716};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {37.766529475342,
-                                                       15.038346086645,
-                                                       26.6409955055738,
-                                                       15.038346086645,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-}
-
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsTest, reflected_vol)
+TEST_F(SolidsVgdmlTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
     auto const& label = this->geometry()->volumes().at(geo.volume_id());
@@ -1045,227 +642,32 @@ TEST_F(SolidsTest, reflected_vol)
 }
 
 //---------------------------------------------------------------------------//
-// CMS EXTERIOR TEST
+// G4VG TESTS
 //---------------------------------------------------------------------------//
 
-class CmseTest : public VecgeomVgdmlTestBase
-{
-  public:
-    SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
-};
-
-//---------------------------------------------------------------------------//
+using CmseTest = GenericGeoParameterizedTest<VecgeomGeantTestBase, CmseGeoTest>;
 
 TEST_F(CmseTest, trace)
 {
-    // clang-format off
-    {
-        SCOPED_TRACE("Center +z");
-        auto result = this->track({0, 0, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "BEAM3",
-            "BEAM2", "BEAM1", "BEAM", "BEAM", "BEAM1", "BEAM2", "BEAM3",
-            "CMStoZDC", "CMSE", "ZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1096.95, 549.15,
-            403.9, 650, 650, 403.9, 549.15, 1096.95, 11200, 9.9999999999992,
-            180, 910, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {100, 2.1499999999997,
-            10.302730220675, 13.023518051922, 6.95, 6.95, 13.023518051922,
-            10.302730220675, 2.15, 100, 5, 8, 100, 100, 100};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Offset +z");
-        auto result = this->track({30, 30, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "OQUA",
-            "VCAL", "OQUA", "CMSE", "TotemT1", "CMSE", "MUON", "CALO",
-            "Tracker", "CALO", "MUON", "CMSE", "TotemT1", "CMSE", "OQUA",
-            "VCAL", "OQUA", "CMStoZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1419.95, 165.1,
-            28.95, 36, 300.1, 94.858988388759, 100.94101161124, 260.9, 586.4,
-            260.9, 100.94101161124, 94.858988388759, 300.1, 36, 28.95, 165.1,
-            1419.95, 11200, 1100, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {57.573593128807,
-            40.276406871193, 29.931406871193, 14.475, 18, 28.702447147997,
-            29.363145173005, 32.665765921596, 34.260814069425, 39.926406871193,
-            34.260814069425, 32.665765921596, 29.363145173005, 28.702447147997,
-            18, 14.475, 29.931406871193, 40.276406871193, 57.573593128807,
-            57.573593128807, 57.573593128807, 57.573593128807};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Across muon");
-        auto result = this->track({-1000, 0, -48.5}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"OCMS", "MUON", "CALO",
-            "Tracker", "CMSE", "BEAM", "CMSE", "Tracker", "CALO", "MUON",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {170, 535, 171.7, 120.8,
-            0.15673306650246, 4.6865338669951, 0.15673306650246, 120.8, 171.7,
-            535, 920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
-            60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
-            60.4, 85.85, 267.5, 460};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    {
-        SCOPED_TRACE("Differs between G4/VG");
-        auto result = this->track({0, 0, 1328.0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"BEAM2", "OQUA", "CMSE",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {12.495, 287.505, 530,
-            920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    // clang-format on
-}
-
-TEST_F(CmseTest, imager)
-{
-    SafetyImager write_image{this->geometry()};
-
-    ImageInput inp;
-    inp.lower_left = from_cm({0, 0, 0});
-    inp.upper_right = from_cm({350, 0, 1700});
-    inp.rightward = {0.0, 0.0, 1.0};
-    inp.vertical_pixels = 8;
-
-    write_image(ImageParams{inp}, "vg-cmse-xz-mid.jsonl");
-}
-
-//---------------------------------------------------------------------------//
-// ARBITRARY VGDML TEST
-//---------------------------------------------------------------------------//
-
-#define ArbitraryVgdmlTest DISABLED_ArbitraryVgdmlTest
-class ArbitraryVgdmlTest : public VecgeomTestBase
-{
-  public:
-    SPConstGeo build_geometry() final
-    {
-        auto filename = celeritas::getenv("GDML");
-        CELER_VALIDATE(!filename.empty(),
-                       << "Set the 'GDML' environment variable and run this "
-                          "test with "
-                          "--gtest_filter=*ArbitraryVgdmlTest* "
-                          "--gtest_also_run_disabled_tests");
-        return std::make_shared<VecgeomParams>(filename);
-    }
-};
-
-TEST_F(ArbitraryVgdmlTest, dump)
-{
-    this->geometry();
-    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
-    world->PrintContent();
-}
-
-//---------------------------------------------------------------------------//
-// CONSTRUCT FROM GEANT4
-//---------------------------------------------------------------------------//
-
-#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
-class FourLevelsGeantTest : public VecgeomGeantTestBase
-{
-  public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_g4_gdml("four-levels.gdml");
-    }
-};
-
-//---------------------------------------------------------------------------//
-
-TEST_F(FourLevelsGeantTest, accessors)
-{
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(4, geom.max_depth());
-
-    auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), to_cm(bbox.lower()));
-    EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), to_cm(bbox.upper()));
-
-    ASSERT_EQ(4, geom.volumes().size());
-    EXPECT_EQ("Shape2", geom.volumes().at(VolumeId{0}).name);
-    EXPECT_EQ("Shape1", geom.volumes().at(VolumeId{1}).name);
-    EXPECT_EQ("Envelope", geom.volumes().at(VolumeId{2}).name);
-    EXPECT_EQ("World", geom.volumes().at(VolumeId{3}).name);
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(FourLevelsGeantTest, tracking)
+using FourLevelsTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, FourLevelsGeoTest>;
+
+TEST_F(FourLevelsTest, accessors)
 {
-    {
-        SCOPED_TRACE("Rightward");
-        auto result = this->track({-10, -10, -10}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("From exactly on outside edge");
-        auto result = this->track({-24, 10., 10.}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"[OUTSIDE]",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {1e-13, 7.0 - 1e-13, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Leaving world");
-        auto result = this->track({-10, 10, 10}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 2, 6};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Upward");
-        auto result = this->track({-10, 10, 10}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 3, 5};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
+    this->impl().test_accessors();
 }
 
-//---------------------------------------------------------------------------//
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
+}
 
-TEST_F(FourLevelsGeantTest, levels)
+TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
     EXPECT_EQ("World_PV/env1/Shape1/Shape2",
@@ -1294,44 +696,25 @@ TEST_F(FourLevelsGeantTest, levels)
 
 //---------------------------------------------------------------------------//
 
-class MultiLevelGeantTest : public VecgeomGeantTestBase
-{
-  public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_g4_gdml("multi-level.gdml");
-    }
-};
+using MultiLevelTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, MultiLevelGeoTest>;
 
-//---------------------------------------------------------------------------//
-
-TEST_F(MultiLevelGeantTest, accessors)
+TEST_F(MultiLevelTest, accessors)
 {
+    // NOTE: the volume instances are out of order compared to VGDML-loaded
+    // ones.
     auto const& geo = *this->geometry();
     EXPECT_EQ(3, geo.max_depth());
 
-    auto vol_names = [&geo] {
-        auto const& vols = geo.volumes();
-        std::vector<std::string> result;
-        for (auto vid : range(VolumeId{vols.size()}))
-        {
-            result.push_back(vols.at(vid).name);
-        }
-        return result;
-    }();
-    static char const* const expected_vol_names[] = {"sph", "box", "world"};
-    EXPECT_VEC_EQ(expected_vol_names, vol_names);
+    static char const* const expected_vol_labels[] = {
+        "sph",
+        "box",
+        "world",
+    };
+    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
 
-    auto vol_inst_names = [&geo] {
-        auto const& vols = geo.volume_instances();
-        std::vector<std::string> result;
-        for (auto viid : range(VolumeInstanceId{vols.size()}))
-        {
-            result.push_back(vols.at(viid).name);
-        }
-        return result;
-    }();
-    static char const* const expected_vol_inst_names[] = {
+    // NOTE: pv ordering differs from VGDML and G4
+    static char const* const expected_vol_inst_labels[] = {
         "topsph1",
         "boxsph1",
         "boxsph2",
@@ -1341,39 +724,33 @@ TEST_F(MultiLevelGeantTest, accessors)
         "topbox4",
         "world_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_names, vol_inst_names);
+    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
 
-    auto g4names = [&geo] {
-        std::vector<std::string> result;
-        for (auto viid : range(VolumeInstanceId{geo.volume_instances().size()}))
-        {
-#if CELERITAS_USE_GEANT4
-            if (auto* g4pv = geo.id_to_pv(viid))
-            {
-                result.push_back(g4pv->GetName());
-            }
-            else
-#endif
-            {
-                result.push_back("<NULL>");
-            }
-        }
-        return result;
-    }();
-    EXPECT_VEC_EQ(expected_vol_inst_names, g4names);
+    static char const* const expected_pv_labels[] = {
+        "topsph1",
+        "boxsph1",
+        "boxsph2",
+        "topbox1",
+        "topbox2",
+        "topbox3",
+        "topbox4",
+        "world_PV",
+    };
+    EXPECT_VEC_EQ(expected_pv_labels, this->get_g4pv_labels());
+}
+
+TEST_F(MultiLevelTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
 
-#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
-class SolidsGeantTest : public VecgeomGeantTestBase
+class SolidsTest
+    : public GenericGeoParameterizedTest<VecgeomGeantTestBase, SolidsGeoTest>
 {
   public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_g4_gdml("solids.gdml");
-    }
-
+    // trd_refl is inthe GDML *and* generated by ReflFactory
     SpanStringView expected_log_levels() const final
     {
         static std::string_view const levels[] = {"error"};
@@ -1381,26 +758,19 @@ class SolidsGeantTest : public VecgeomGeantTestBase
     }
 };
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, DISABLED_dump)
+TEST_F(SolidsTest, DISABLED_dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
     world->PrintContent();
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, accessors)
+TEST_F(SolidsTest, accessors)
 {
     if (vecgeom_version <= Version(1, 1, 17))
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
-
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
 
     if (vecgeom_version < Version(1, 2, 2))
     {
@@ -1409,38 +779,15 @@ TEST_F(SolidsGeantTest, accessors)
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
-    auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}),
-                       to_cm(bbox.lower()));
-    EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), to_cm(bbox.upper()));
+    TestImpl(this).test_accessors();
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, names)
+TEST_F(SolidsTest, trace)
 {
-    auto const& geom = *this->geometry();
-    std::vector<std::string> labels;
-    for (auto vid : range(VolumeId{geom.volumes().size()}))
-    {
-        labels.push_back(
-            this->genericize_pointers(to_string(geom.volumes().at(vid))));
-    }
-
-    // clang-format off
-    static char const* const expected_labels[] = {"box500", "cone1",
-        "para1", "sphere1", "parabol1", "trap1", "trd1",
-        "trd2", "", "trd3_refl@1", "tube100", "", "", "", "",
-        "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-        "tetrah1", "orb1", "polyhedr1", "hype1",
-        "elltube1", "ellcone1", "arb8b", "arb8a", "xtru1",
-        "World", "", "trd3_refl@0"};
-    // clang-format on
-    EXPECT_VEC_EQ(expected_labels, labels);
+    TestImpl(this).test_trace();
 }
 
-//---------------------------------------------------------------------------//
-TEST_F(SolidsGeantTest, output)
+TEST_F(SolidsTest, output)
 {
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
@@ -1455,9 +802,7 @@ TEST_F(SolidsGeantTest, output)
     }
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, geant_volumes)
+TEST_F(SolidsTest, geant_volumes)
 {
     {
         auto result = this->get_import_geant_volumes();
@@ -1466,7 +811,8 @@ TEST_F(SolidsGeantTest, geant_volumes)
             17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30,
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
+        EXPECT_EQ(0, result.missing_labels.size())
+            << repr(result.missing_labels);
     }
     {
         auto result = this->get_direct_geant_volumes();
@@ -1476,167 +822,11 @@ TEST_F(SolidsGeantTest, geant_volumes)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
 
         static char const* const expected_missing[] = {"trd3_refl"};
-        EXPECT_VEC_EQ(expected_missing, result.missing_names);
+        EXPECT_VEC_EQ(expected_missing, result.missing_labels);
     }
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, trace)
-{
-    {
-        SCOPED_TRACE("Center -x");
-        auto result = this->track({375, 0, 0}, {-1, 0, 0});
-        static char const* const expected_volumes[] = {"ellipsoid1",
-                                                       "World",
-                                                       "polycone1",
-                                                       "World",
-                                                       "sphere1",
-                                                       "World",
-                                                       "box500",
-                                                       "World",
-                                                       "cone1",
-                                                       "World",
-                                                       "trd1",
-                                                       "World",
-                                                       "parabol1",
-                                                       "World",
-                                                       "trd2",
-                                                       "World",
-                                                       "xtru1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       95,
-                                                       20,
-                                                       125,
-                                                       40,
-                                                       60,
-                                                       50,
-                                                       73,
-                                                       54,
-                                                       83,
-                                                       30,
-                                                       88.786678713601,
-                                                       42.426642572799,
-                                                       88.786678713601,
-                                                       30,
-                                                       1.4761904761905,
-                                                       15.880952380952,
-                                                       67.642857142857};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Upper +x");
-        auto result = this->track({-375, 125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"World",
-                                                       "hype1",
-                                                       "World",
-                                                       "para1",
-                                                       "World",
-                                                       "tube100",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "boolean1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "polyhedr1",
-                                                       "World",
-                                                       "ellcone1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {20,
-                                                       4,
-                                                       71,
-                                                       60,
-                                                       75,
-                                                       4,
-                                                       116.000001,
-                                                       12.499999,
-                                                       20.000001,
-                                                       17.499999,
-                                                       191.98703789108,
-                                                       25.9774128070174,
-                                                       14.0710986038011,
-                                                       25.977412807017,
-                                                       86.987037891082,
-                                                       10,
-                                                       220};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Lower +x");
-
-        if (vecgeom_version < Version(1, 2, 3))
-        {
-            ADD_FAILURE()
-                << "VecGeom " << vecgeom_version
-                << " does not correctly trace through some polycones: "
-                   "upgrade to 1.2.3 to pass this test";
-        }
-
-        auto result = this->track({-375, -125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"arb8b",
-                                                       "World",
-                                                       "arb8a",
-                                                       "World",
-                                                       "trap1",
-                                                       "World",
-                                                       "tetrah1",
-                                                       "World",
-                                                       "orb1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "genPocone1",
-                                                       "World",
-                                                       "elltube1",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {40,
-                                                       45,
-                                                       80,
-                                                       68.125,
-                                                       33.75,
-                                                       57.519332346491,
-                                                       50.605667653509,
-                                                       85,
-                                                       80,
-                                                       40,
-                                                       45,
-                                                       127.5,
-                                                       3.7499999999998,
-                                                       60,
-                                                       40,
-                                                       205};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Low +y");
-        auto result = this->track({-500, -250, 0}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"World", "trd3_refl", "World", "trd2", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {96.555879457157,
-                                                       52.35421982848,
-                                                       77.179801428726,
-                                                       52.35421982848,
-                                                       271.55587945716};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {37.766529475342,
-                                                       15.038346086645,
-                                                       26.6409955055738,
-                                                       15.038346086645,
-                                                       75};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-}
-
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, reflected_vol)
+TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
     EXPECT_EQ(VolumeId{30}, geo.volume_id());
@@ -1645,77 +835,64 @@ TEST_F(SolidsGeantTest, reflected_vol)
     EXPECT_EQ("0", label.ext);
 }
 
-//---------------------------------------------------------------------------//
-
-#define ZnenvGeantTest TEST_IF_CELERITAS_GEANT(ZnenvGeantTest)
-class ZnenvGeantTest : public VecgeomGeantTestBase
+TEST_F(SolidsTest, DISABLED_imager)
 {
-  public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_g4_gdml("znenv.gdml");
-    }
-};
+    SafetyImager write_image{this->geometry()};
 
-//---------------------------------------------------------------------------//
+    ImageInput inp;
+    inp.lower_left = from_cm({-550, -250, 5});
+    inp.upper_right = from_cm({550, 250, 5});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 256;
 
-TEST_F(ZnenvGeantTest, trace)
-{
-    // NOTE: This tests the capability of the G4PVDivision conversion based on
-    // an ALICE component
-    static char const* const expected_mid_volumes[]
-        = {"World", "ZNENV", "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNENV", "World"};
-    static real_type const expected_mid_distances[]
-        = {6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
-           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
-           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38};
-    {
-        auto result = this->track({-10, 0.0001, 0}, {1, 0, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
-    }
-    {
-        auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
-    }
+    write_image(ImageParams{inp}, "vg-solids-xy-hi.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5);
+    write_image(ImageParams{inp}, "vg-solids-xy-lo.jsonl");
 }
 
 //---------------------------------------------------------------------------//
+using TransformedBoxTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, TransformedBoxGeoTest>;
 
-#define ArbitraryGeantTest DISABLED_ArbitraryGeantTest
-class ArbitraryGeantTest : public VecgeomGeantTestBase
+TEST_F(TransformedBoxTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(TransformedBoxTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+using ZnenvTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, ZnenvGeoTest>;
+
+TEST_F(ZnenvTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+// UTILITIES
+//---------------------------------------------------------------------------//
+
+#define ArbitraryVgdmlTest DISABLED_ArbitraryVgdmlTest
+class ArbitraryVgdmlTest : public VecgeomTestBase
 {
   public:
     SPConstGeo build_geometry() final
     {
         auto filename = celeritas::getenv("GDML");
-        CELER_VALIDATE(!filename.empty(),
-                       << "Set the 'GDML' environment variable and run this "
-                          "test with "
-                          "--gtest_filter=*ArbitraryGeantTest* "
-                          "--gtest_also_run_disabled_tests");
-        if (world_volume_)
-        {
-            // Clear old geant4 data
-            ::celeritas::reset_geant_geometry();
-        }
-        world_volume_ = ::celeritas::load_gdml(filename);
-        return std::make_shared<VecgeomParams>(world_volume_);
+        CELER_VALIDATE(
+            !filename.empty(),
+            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryVgdmlTest*' --gtest_also_run_disabled_tests)");
+        return std::make_shared<VecgeomParams>(filename);
     }
 };
 
-TEST_F(ArbitraryGeantTest, conversion)
-{
-    auto result = this->get_import_geant_volumes();
-    result.print_expected();
-    EXPECT_EQ(0, result.missing_names.size());
-}
-
-TEST_F(ArbitraryGeantTest, dump)
+TEST_F(ArbitraryVgdmlTest, dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
@@ -1723,33 +900,38 @@ TEST_F(ArbitraryGeantTest, dump)
 }
 
 //---------------------------------------------------------------------------//
-class PincellTest : public VecgeomGeantTestBase
+
+#define ArbitraryTest DISABLED_ArbitraryGeantTest
+class ArbitraryGeantTest : public VecgeomTestBase
 {
+  public:
     SPConstGeo build_geometry() final
     {
-        return this->load_g4_gdml(this->geometry_basename() + ".gdml");
+        auto filename = celeritas::getenv("GDML");
+        CELER_VALIDATE(
+            !filename.empty(),
+            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryGeantTest*' --gtest_also_run_disabled_tests)");
+        world_volume_ = ::celeritas::load_gdml(filename);
+        return std::make_shared<VecgeomParams>(world_volume_);
     }
-    std::string geometry_basename() const override { return "pincell"; }
+    static G4VPhysicalVolume* world_volume_;
 };
 
-TEST_F(PincellTest, imager)
+G4VPhysicalVolume* ArbitraryGeantTest::world_volume_{nullptr};
+
+TEST_F(ArbitraryGeantTest, conversion)
 {
-    SafetyImager write_image{this->geometry()};
+    auto result = GeantImportVolumeResult::from_import(*this->geometry(),
+                                                       world_volume_);
+    result.print_expected();
+    EXPECT_EQ(0, result.missing_labels.size());
+}
 
-    ImageInput inp;
-    inp.lower_left = from_cm({-12, -12, 0});
-    inp.upper_right = from_cm({12, 12, 0});
-    inp.rightward = {1.0, 0.0, 0.0};
-    inp.vertical_pixels = 8;
-
-    write_image(ImageParams{inp}, "vg-pincell-xy-mid.jsonl");
-
-    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5.5);
-    write_image(ImageParams{inp}, "vg-pincell-xy-lo.jsonl");
-
-    inp.lower_left = from_cm({-12, 0, -12});
-    inp.upper_right = from_cm({12, 0, 12});
-    write_image(ImageParams{inp}, "vg-pincell-xz-mid.jsonl");
+TEST_F(ArbitraryGeantTest, dump)
+{
+    this->geometry();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    world->PrintContent();
 }
 
 //---------------------------------------------------------------------------//

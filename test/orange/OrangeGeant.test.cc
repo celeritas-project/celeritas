@@ -9,12 +9,14 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
+#include "geocel/GenericGeoParameterizedTest.hh"
+#include "geocel/TransformedBoxGeoTest.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/ZnenvGeoTest.hh"
 #include "geocel/detail/LengthUnits.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 
 #include "OrangeGeoTestBase.hh"
-#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -228,132 +230,25 @@ TEST_F(TilecalPlugTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-class TransformedBoxGeantTest : public GeantOrangeTest
-{
-    std::string geometry_basename() const final { return "transformed-box"; }
-};
+using TransformedBoxTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, TransformedBoxGeoTest>;
 
-TEST_F(TransformedBoxGeantTest, trace)
+TEST_F(TransformedBoxTest, accessors)
 {
-    {
-        auto result = this->track({0, 0, -25}, {0, 0, 1});
-        static char const* const expected_volumes[] = {
-            "world",
-            "simple",
-            "world",
-            "enclosing",
-            "tiny",
-            "enclosing",
-            "world",
-            "simple",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
-            13,
-            4,
-            6,
-            1.75,
-            0.5,
-            1.75,
-            6,
-            4,
-            38,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        auto result = this->track({0.25, 0, -25}, {0., 0, 1});
-        static char const* const expected_volumes[] = {
-            "world",
-            "simple",
-            "world",
-            "enclosing",
-            "tiny",
-            "enclosing",
-            "world",
-            "simple",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
-            12.834936490539,
-            3.7320508075689,
-            6.4330127018922,
-            1.75,
-            0.5,
-            1.75,
-            6,
-            4,
-            38,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        auto result = this->track({0, 0.25, -25}, {0, 0., 1});
-        static char const* const expected_volumes[] = {
-            "world",
-            "simple",
-            "world",
-            "enclosing",
-            "tiny",
-            "enclosing",
-            "world",
-            "simple",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
-            13,
-            4,
-            6,
-            1.75,
-            0.5,
-            1.75,
-            6,
-            4,
-            38,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        auto result = this->track({0.01, -20, 0.20}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"world", "enclosing", "tiny", "enclosing", "world"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
+    this->impl().test_accessors();
+}
+
+TEST_F(TransformedBoxTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
-class ZnenvGeantTest : public GeantOrangeTest
-{
-    std::string geometry_basename() const final { return "znenv"; }
-};
+using ZnenvTest = GenericGeoParameterizedTest<GeantOrangeTest, ZnenvGeoTest>;
 
-TEST_F(ZnenvGeantTest, trace)
+TEST_F(ZnenvTest, trace)
 {
-    static char const* const expected_mid_volumes[]
-        = {"World", "ZNENV", "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
-           "ZNST",  "ZNST",  "ZNST", "ZNENV", "World"};
-    static real_type const expected_mid_distances[]
-        = {6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
-           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
-           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38};
-    {
-        auto result = this->track({-10, 0.0001, 0}, {1, 0, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
-    }
-    {
-        auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
-    }
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -228,9 +229,10 @@ struct ReprTraits<std::string_view>
         os.width(
             std::max(width - static_cast<ssize>(value.size()) - 2, ssize{0}));
 
-        if (value.size() > 70)
+        if (value.size() > 70
+            || std::count(value.begin(), value.end(), '"') > 2)
         {
-            // Print long literal string on one line
+            // Print long literal strings or ones with many quotes on one line
             os << "R\"(" << value << ")\"";
             return;
         }
