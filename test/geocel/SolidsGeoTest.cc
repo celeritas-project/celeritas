@@ -255,10 +255,6 @@ void SolidsGeoTest::test_trace() const
             "orb1_PV",       "World_PV",  "genPocone1_PV", "World_PV",
             "genPocone1_PV", "World_PV",  "elltube1_PV",   "World_PV",
         };
-        if (test_->geometry_type() == "VecGeom")
-        {
-            expected_volume_instances[2] = "reflected_refl";
-        }
         EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
         static real_type const expected_distances[] = {
             34.956698760421,

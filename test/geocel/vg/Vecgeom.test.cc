@@ -779,53 +779,7 @@ TEST_F(SolidsTest, accessors)
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
-    auto const& geo = *this->geometry_interface();
-    EXPECT_EQ(2, geo.max_depth());
-
-    static char const* const expected_vol_labels[] = {
-        "box500",      "cone1",     "para1",      "sphere1",    "parabol1",
-        "trap1",       "trd1",      "trd2",       "",           "trd3_refl@1",
-        "tube100",     "",          "",           "",           "",
-        "boolean1",    "polycone1", "genPocone1", "ellipsoid1", "tetrah1",
-        "orb1",        "polyhedr1", "hype1",      "elltube1",   "ellcone1",
-        "arb8b",       "arb8a",     "xtru1",      "World",      "",
-        "trd3_refl@0",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
-        "",
-        "",
-        "",
-        "",
-        "box500_PV",
-        "cone1_PV",
-        "para1_PV",
-        "sphere1_PV",
-        "parabol1_PV",
-        "trap1_PV",
-        "trd1_PV",
-        "reflNormal",
-        "",
-        "reflected_refl",
-        "reflected",
-        "tube100_PV",
-        "boolean1_PV",
-        "orb1_PV",
-        "polycone1_PV",
-        "hype1_PV",
-        "polyhedr1_PV",
-        "tetrah1_PV",
-        "arb8a_PV",
-        "arb8b_PV",
-        "ellipsoid1_PV",
-        "elltube1_PV",
-        "ellcone1_PV",
-        "genPocone1_PV",
-        "xtru1_PV",
-        "World_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
+    TestImpl(this).test_accessors();
 }
 
 TEST_F(SolidsTest, trace)
