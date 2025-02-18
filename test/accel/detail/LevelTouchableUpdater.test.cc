@@ -108,14 +108,20 @@ TEST_F(LevelTouchableUpdaterTest, all)
         {"world_PV"},
         {"world_PV", "topsph1"},
         {"world_PV"},
-        {"world_PV", "topbox1", "boxsph2"},
         {"world_PV", "topbox1"},
-        {"world_PV", "topbox1", "boxsph1"},
-        {"world_PV", "topbox2", "boxsph2"},
-        {"world_PV", "topbox2", "boxsph1"},
+        {"world_PV", "topbox1", "boxsph1@0"},
+        {"world_PV", "topbox2", "boxsph1@0"},
+        {"world_PV", "topbox4", "boxsph1@1"},
         {"world_PV", "topbox4"},
-        {"world_PV", "topbox3", "boxsph1"},
-        {"world_PV", "topbox3", "boxsph2"},
+        {"world_PV", "topbox3"},
+        {"world_PV", "topbox1", "boxsph2@0"},
+        {"world_PV", "topbox2", "boxsph2@0"},
+        {"world_PV", "topbox1", "boxtri@0"},
+        {"world_PV", "topbox2", "boxtri@1"},
+        {"world_PV", "topbox3", "boxsph1@0"},
+        {"world_PV", "topbox3", "boxsph2@0"},
+        {"world_PV", "topbox4", "boxsph2@1"},
+        {"world_PV", "topbox4", "boxtri@1"},
     };
 
     TouchableUpdater update = this->make_touchable_updater();
@@ -157,21 +163,28 @@ TEST_F(LevelTouchableUpdaterTest, all)
     }
 
     static double const expected_coords[] = {
-        -0,  -0,   -0, -0,  -0,  -0,  75,   75,  100, 100,  125,
-        125, -125, 75, -75, 125, 100, -100, -75, -75, -125, -125,
+        -0,  -0,   -0,  -0,   -0,   -0,   100, 100, 125,  125, -75, 125,
+        125, -125, 100, -100, -100, -100, 75,  75,  -125, 75,  125, 75,
+        -75, 75,   -75, -125, -125, -75,  75,  -75, 125,  -75,
     };
     static char const* const expected_replicas[] = {
         "0",
-        "11,0",
+        "0,0",
         "0",
-        "32,21,0",
         "21,0",
         "31,21,0",
-        "32,22,0",
         "31,22,0",
-        "12,0",
+        "31,24,0",
+        "24,0",
+        "23,0",
+        "32,21,0",
+        "32,22,0",
+        "1,21,0",
+        "1,22,0",
         "31,23,0",
         "32,23,0",
+        "32,24,0",
+        "1,24,0",
     };
 
     EXPECT_VEC_SOFT_EQ(expected_coords, coords);

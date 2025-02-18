@@ -23,6 +23,7 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
+#include "../CmsEeBackDeeGeoTest.hh"
 #include "../CmseGeoTest.hh"
 #include "../FourLevelsGeoTest.hh"
 #include "../GenericGeoParameterizedTest.hh"
@@ -421,6 +422,20 @@ TEST_F(CmseTest, imager)
     inp.vertical_pixels = 8;
 
     write_image(ImageParams{inp}, "g4-cmse-xz-mid.jsonl");
+}
+
+//---------------------------------------------------------------------------//
+using CmsEeBackDeeTest
+    = GenericGeoParameterizedTest<GeantGeoTest, CmsEeBackDeeGeoTest>;
+
+TEST_F(CmsEeBackDeeTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(CmsEeBackDeeTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

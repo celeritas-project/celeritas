@@ -25,6 +25,7 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
+  CmsEeBackDeeGeoTest.cc
   LazyGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoTestInterface.cc
@@ -89,6 +90,7 @@ if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
       "CmseTest.*"
+      "CmsEeBackDeeTest.*"
       "FourLevelsTest.*"
       "MultiLevelTest.*"
       "SolidsTest.*"
