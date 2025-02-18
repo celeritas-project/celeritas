@@ -65,16 +65,28 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
         auto const& geo = *this->geometry();
         auto const& vol_inst = geo.volume_instances();
 
-        // Pad the remaining depth with empty volumes
-        VecVI result(geo.max_depth());
-        auto name_iter = names.begin();
-        for (auto i : range(names.size()))
-        {
-            result[i] = vol_inst.find_unique(std::string(*name_iter++));
-            CELER_ASSERT(result[i]);
-        }
-        CELER_ASSERT(name_iter == names.end());
+        CELER_VALIDATE(names.size() < geo.max_depth() + 1,
+                       << "input stack is too deep: " << names.size()
+                       << " exceeds " << geo.max_depth());
 
+        VecVI result;
+        std::vector<std::string_view> missing;
+        for (std::string_view sv : names)
+        {
+            auto vi = vol_inst.find_exact(Label::from_separator(sv));
+            if (!vi)
+            {
+                missing.push_back(sv);
+                continue;
+            }
+            result.push_back(vi);
+        }
+        CELER_VALIDATE(missing.empty(),
+                       << "missing PVs from stack: "
+                       << join(missing.begin(), missing.end(), ','));
+
+        // Fill extra entries with empty volumes
+        result.resize(geo.max_depth() + 1);
         return result;
     }
 
@@ -116,7 +128,17 @@ TEST_F(LevelTouchableUpdaterTest, all)
     {
         // Update the touchable
         auto vi_stack = this->find_vi_stack(level_names);
-        EXPECT_TRUE(update(make_span(vi_stack), this->touchable_history()));
+        try
+        {
+            EXPECT_TRUE(update(make_span(vi_stack), this->touchable_history()));
+        }
+        catch (celeritas::RuntimeError const& e)
+        {
+            ADD_FAILURE() << e.what();
+            coords.insert(coords.end(), {0, 0});
+            replicas.push_back(e.details().what);
+            continue;
+        }
 
         // Get the local-to-global x/y translation coordinates
         auto const& trans = touch->GetTranslation(0);

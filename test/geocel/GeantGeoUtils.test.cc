@@ -77,13 +77,21 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
         auto const& vol_inst = geo.volume_instances();
 
         VecPVConst result;
+        std::vector<std::string_view> missing;
         for (std::string_view sv : names)
         {
-            auto vi = vol_inst.find_unique(std::string(sv));
-            CELER_ASSERT(vi);
+            auto vi = vol_inst.find_exact(Label::from_separator(sv));
+            if (!vi)
+            {
+                missing.push_back(sv);
+                continue;
+            }
             result.push_back(geo.id_to_pv(vi));
             CELER_ASSERT(result.back());
         }
+        CELER_VALIDATE(missing.empty(),
+                       << "missing PVs from stack: "
+                       << join(missing.begin(), missing.end(), ','));
         return result;
     }
 };
