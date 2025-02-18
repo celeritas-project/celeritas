@@ -10,8 +10,6 @@
 #include <G4ChordFinder.hh>
 #include <G4Exception.hh>
 #include <G4FieldManager.hh>
-#include <G4GDMLAuxStructType.hh>
-#include <G4GDMLParser.hh>
 #include <G4LogicalVolume.hh>
 #include <G4MagneticField.hh>
 #include <G4SDManager.hh>
@@ -23,6 +21,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -78,9 +77,27 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  == (GlobalSetup::Instance()->input().sd_type
                      != SensitiveDetectorType::none));
 
-    auto geo = this->construct_geo();
-    CELER_ASSERT(geo.world);
-    detectors_ = std::move(geo.detectors);
+    std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
+    CELER_VALIDATE(!filename.empty(),
+                   << "no GDML input file was specified (geometry_file)");
+
+    auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
+    auto loaded = [&] {
+        GeantGdmlLoader::Options opts;
+        opts.detectors = sd.enabled;
+        GeantGdmlLoader load(opts);
+        return load(filename);
+    }();
+
+    if (sd.enabled && loaded.detectors.empty())
+    {
+        CELER_LOG(warning)
+            << R"(No sensitive detectors were found in the GDML file)";
+        sd.enabled = false;
+    }
+
+    CELER_ASSERT(loaded.world);
+    detectors_ = std::move(loaded.detectors);
 
     if (!detectors_.empty()
         && GlobalSetup::Instance()->input().sd_type
@@ -110,54 +127,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     CELER_ASSERT(field.along_step);
     GlobalSetup::Instance()->SetAlongStepFactory(std::move(field.along_step));
     mag_field_ = std::move(field.g4field);
-    return geo.world.release();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct shared geometry information.
- */
-auto DetectorConstruction::construct_geo() const -> GeoData
-{
-    CELER_LOG_LOCAL(status) << "Loading detector geometry";
-
-    G4GDMLParser gdml_parser;
-    gdml_parser.SetStripFlag(true);
-
-    std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
-    CELER_VALIDATE(!filename.empty(),
-                   << "no GDML input file was specified (geometry_file)");
-    constexpr bool validate_gdml_schema = false;
-    gdml_parser.Read(filename, validate_gdml_schema);
-
-    auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
-
-    MapDetectors detectors;
-    if (sd.enabled)
-    {
-        // Find sensitive detectors
-        for (auto const& lv_vecaux : *gdml_parser.GetAuxMap())
-        {
-            for (G4GDMLAuxStructType const& aux : lv_vecaux.second)
-            {
-                if (aux.type == "SensDet")
-                {
-                    detectors.insert({aux.value, lv_vecaux.first});
-                }
-            }
-        }
-
-        if (detectors.empty())
-        {
-            CELER_LOG(warning) << "No sensitive detectors were found in the "
-                                  "GDML file";
-            sd.enabled = false;
-        }
-    }
-
-    // Claim ownership of world volume and pass it to the caller
-    return {std::move(detectors),
-            UPPhysicalVolume{gdml_parser.GetWorldVolume()}};
+    return loaded.world;
 }
 
 //---------------------------------------------------------------------------//

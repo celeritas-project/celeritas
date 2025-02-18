@@ -18,6 +18,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
@@ -107,9 +108,8 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
         }
         ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                     LogLevel::warning};
-        world_volume_
-            = ::celeritas::load_geant_geometry_native(this->test_data_path(
-                "geocel", this->geometry_basename() + std::string{".gdml"}));
+        world_volume_ = ::celeritas::load_gdml(this->test_data_path(
+            "geocel", this->geometry_basename() + std::string{".gdml"}));
         auto result = std::make_shared<VecgeomParams>(world_volume_);
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
@@ -961,7 +961,7 @@ class ArbitraryGeantTest : public VecgeomTestBase
                           "test with "
                           "--gtest_filter=*ArbitraryGeantTest* "
                           "--gtest_also_run_disabled_tests");
-        world_volume_ = ::celeritas::load_geant_geometry_native(filename);
+        world_volume_ = ::celeritas::load_gdml(filename);
         return std::make_shared<VecgeomParams>(world_volume_);
     }
     static G4VPhysicalVolume* world_volume_;

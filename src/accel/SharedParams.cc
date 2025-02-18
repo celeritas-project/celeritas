@@ -20,11 +20,13 @@
 #include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4VisExtent.hh>
 
 #include "corecel/Config.hh"
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
@@ -41,6 +43,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
@@ -320,6 +323,24 @@ SharedParams::SharedParams(SetupOptions const& options)
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
 
+    // Create bounding box from navigator geometry
+    bbox_ = [] {
+        G4VPhysicalVolume const* world = GeantImporter::get_world_volume();
+        CELER_ASSERT(world);
+        G4LogicalVolume const* world_lv = world->GetLogicalVolume();
+        CELER_ASSERT(world_lv);
+        G4VSolid const* solid = world_lv->GetSolid();
+        CELER_ASSERT(solid);
+        G4VisExtent const& extent = solid->GetExtent();
+
+        BBox result{{extent.GetXmin(), extent.GetYmin(), extent.GetZmin()},
+                    {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
+        CELER_VALIDATE(result,
+                       << "world bounding box {" << result.lower() << ", "
+                       << result.upper() << "} is invalid");
+        return result;
+    }();
+
     // Save output filename (possibly empty if disabling output)
     output_filename_ = options.output_file;
 
@@ -499,8 +520,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
                           "when manually loading a geometry (the "
                           "'geometry_file' option is also set)");
 
-        write_geant_geometry(GeantImporter::get_world_volume(),
-                             options.geometry_output_file);
+        save_gdml(GeantImporter::get_world_volume(),
+                  options.geometry_output_file);
     }
 
     CoreParams::Input params;

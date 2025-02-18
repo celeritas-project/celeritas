@@ -6,6 +6,7 @@
 celeritas_add_test_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
+  g4org/GeantLoadTestBase.cc
   orangeinp/CsgTestUtils.cc
   orangeinp/ObjectTestBase.cc
 )

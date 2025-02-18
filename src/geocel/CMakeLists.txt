@@ -43,6 +43,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_object_library(geocel_geant4
     GeantUtils.cc
     GeantGeoUtils.cc
+    GeantGdmlLoader.cc
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     g4/GeantGeoParams.cc

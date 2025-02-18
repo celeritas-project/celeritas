@@ -94,21 +94,6 @@ class SolidsTest : public GeantGeoUtilsTest
     std::string geometry_basename() const override { return "solids"; }
 };
 
-TEST_F(SolidsTest, write_geant_geometry)
-{
-    auto* world = this->geometry()->world();
-    ASSERT_TRUE(world);
-
-    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
-    write_geant_geometry(world, this->make_unique_filename(".gdml"));
-
-    static char const* const expected_log_messages[] = {
-        R"(Geant4 regions have not been set up: skipping export of energy cuts and regions)"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"warning"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-}
-
 TEST_F(SolidsTest, find_geant_volumes)
 {
     auto vols = find_geant_volumes({"box500", "trd3", "trd1"});

@@ -7,12 +7,12 @@
 #include "orange/g4org/ProtoConstructor.hh"
 
 #include "corecel/io/Repr.hh"
-#include "geocel/GeantGeoUtils.hh"
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/orangeinp/detail/ProtoMap.hh"
 
+#include "GeantLoadTestBase.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas::orangeinp::test;
@@ -26,16 +26,16 @@ namespace g4org
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ProtoConstructorTest : public ::celeritas::test::Test
+class ProtoConstructorTest : public GeantLoadTestBase
 {
   protected:
     using Unit = orangeinp::detail::CsgUnit;
     using Tol = Tolerance<>;
 
-    LogicalVolume load_impl(std::string const& path)
+    LogicalVolume load(std::string const& filename)
     {
         G4VPhysicalVolume const* g4world
-            = ::celeritas::load_geant_geometry_native(path);
+            = this->load_gdml(this->test_data_path("geocel", filename));
         CELER_ASSERT(g4world);
         PhysicalVolumeConverter::Options opts;
         opts.verbose = false;
@@ -46,11 +46,6 @@ class ProtoConstructorTest : public ::celeritas::test::Test
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
         return *world.lv;
-    }
-
-    LogicalVolume load(std::string const& filename)
-    {
-        return this->load_impl(this->test_data_path("geocel", filename));
     }
 
     auto get_proto_names(ProtoMap const& protos) const
@@ -74,8 +69,6 @@ class ProtoConstructorTest : public ::celeritas::test::Test
                                                 : BBox{{-1000, -1000, -1000},
                                                        {1000, 1000, 1000}});
     }
-
-    void TearDown() final { ::celeritas::reset_geant_geometry(); }
 
     Tolerance<> tol_ = Tol::from_relative(1e-5);
 };

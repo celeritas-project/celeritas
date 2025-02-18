@@ -10,6 +10,7 @@
 #include <G4TouchableHistory.hh>
 
 #include "corecel/cont/Span.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
@@ -48,7 +49,7 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
     // otherwise PV pointers won't be set
     SPConstGeoI build_fresh_geometry(std::string_view basename) override
     {
-        auto* world_volume = ::celeritas::load_geant_geometry_native(
+        auto* world_volume = ::celeritas::load_gdml(
             this->test_data_path("geocel", std::string(basename) + ".gdml"));
 
         return std::make_shared<GeoParams>(world_volume);
