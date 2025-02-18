@@ -88,7 +88,7 @@ class GenericGeoTestBase : virtual public Test,
     SPConstGeoInterface geometry_interface() const final;
     // Find linear segments until outside
     TrackingResult track(Real3 const& pos_cm, Real3 const& dir) final;
-    // Find linear segments until outside (maximum count
+    // Find linear segments until outside or max_step count is reached
     TrackingResult
     track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
 
