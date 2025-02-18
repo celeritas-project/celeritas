@@ -6,7 +6,7 @@
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
 endif()
-if(CELERITAS_CORE_GEO STREQUAL CELERITAS_CORE_GEO_ORANGE)
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_needs_not_orange DISABLE)
 endif()
 

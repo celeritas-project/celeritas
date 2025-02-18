@@ -42,8 +42,8 @@ void CmsEeBackDeeGeoTest::test_accessors() const
         expected_hi += .001;
     }
 
-    EXPECT_VEC_NEAR(expected_lo, to_cm(bbox.lower()), 1e-10);
-    EXPECT_VEC_NEAR(expected_hi, to_cm(bbox.upper()), 1e-10);
+    EXPECT_VEC_NEAR(expected_lo, to_cm(bbox.lower()), real_type{1e-10});
+    EXPECT_VEC_NEAR(expected_hi, to_cm(bbox.upper()), real_type{1e-10});
 
     static char const* const expected_vol_labels[] = {
         "EEBackPlate",

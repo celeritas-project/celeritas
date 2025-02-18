@@ -18,6 +18,7 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/g4/Convert.hh"
 
+#include "UnitUtils.hh"
 #include "celeritas_test.hh"
 #include "g4/GeantGeoTestBase.hh"
 
@@ -167,7 +168,7 @@ TEST_F(MultiLevelTest, printable_nav)
 
     auto get_nav_str = [&](Real3 const& pos) {
         navi.LocateGlobalPointAndUpdateTouchable(
-            convert_to_geant(pos, clhep_length),
+            convert_to_geant(from_cm(pos), clhep_length),
             G4ThreeVector(1, 0, 0),
             &touchable);
         std::ostringstream os;
