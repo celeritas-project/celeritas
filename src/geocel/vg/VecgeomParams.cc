@@ -373,6 +373,7 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     opts.scale = static_cast<double>(lengthunits::millimeter);
     opts.append_pointers = false;
     opts.verbose = static_cast<bool>(vecgeom_verbosity());
+    opts.reflection_factory = false;
     auto result = g4vg::convert(world, opts);
     CELER_ASSERT(result.world != nullptr);
     g4log_volid_map_.reserve(result.logical_volumes.size());
