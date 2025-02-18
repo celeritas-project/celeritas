@@ -19,7 +19,7 @@ spack:
     - py-sphinxcontrib-bibtex
     - py-sphinxcontrib-mermaid
     - "root@6.28:"
-    - "vecgeom@1.2.8: +gdml"
+    - "vecgeom@1.2.10: +gdml"
   view: true
   concretizer:
     unify: true
