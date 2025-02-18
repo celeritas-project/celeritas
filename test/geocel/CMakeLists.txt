@@ -91,7 +91,6 @@ if(CELERITAS_USE_VecGeom)
       "CmseTest.*"
       "FourLevelsTest.*"
       "MultiLevelTest.*"
-      "PincellTest.*"
       "SolidsTest.*"
       "TransformedBoxTest.*"
       "ZnenvTest.*"
