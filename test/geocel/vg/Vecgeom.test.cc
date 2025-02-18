@@ -931,11 +931,9 @@ class ArbitraryVgdmlTest : public VecgeomTestBase
     SPConstGeo build_geometry() final
     {
         auto filename = celeritas::getenv("GDML");
-        CELER_VALIDATE(!filename.empty(),
-                       << "Set the 'GDML' environment variable and run this "
-                          "test with "
-                          "--gtest_filter=*ArbitraryVgdmlTest* "
-                          "--gtest_also_run_disabled_tests");
+        CELER_VALIDATE(
+            !filename.empty(),
+            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryVgdmlTest*' --gtest_also_run_disabled_tests)");
         return std::make_shared<VecgeomParams>(filename);
     }
 };
@@ -956,11 +954,9 @@ class ArbitraryGeantTest : public VecgeomTestBase
     SPConstGeo build_geometry() final
     {
         auto filename = celeritas::getenv("GDML");
-        CELER_VALIDATE(!filename.empty(),
-                       << "Set the 'GDML' environment variable and run this "
-                          "test with "
-                          "--gtest_filter=*ArbitraryGeantTest* "
-                          "--gtest_also_run_disabled_tests");
+        CELER_VALIDATE(
+            !filename.empty(),
+            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryGeantTest*' --gtest_also_run_disabled_tests)");
         world_volume_ = ::celeritas::load_gdml(filename);
         return std::make_shared<VecgeomParams>(world_volume_);
     }

@@ -59,7 +59,7 @@ void SolidsGeoTest::test_accessors() const
     EXPECT_VEC_SOFT_EQ(expected_hi, to_cm(bbox.upper()));
 
     static char const* const expected_vol_labels[] = {
-        "box500",      "cone1",    "para1",     "sphere1",    "parabol1",
+        "box500",   "cone1",     "para1",      "sphere1",     "parabol1",
         "trap1",    "trd1",      "trd2",       "trd3_refl@1", "tube100",
         "boolean1", "polycone1", "genPocone1", "ellipsoid1",  "tetrah1",
         "orb1",     "polyhedr1", "hype1",      "elltube1",    "ellcone1",
