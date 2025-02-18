@@ -1,6 +1,6 @@
 spack:
   specs:
-    - g4vg
+    - "g4vg@1.0.2:"
     - "geant4@11"
     - "googletest@1.10:"
     - hepmc3
