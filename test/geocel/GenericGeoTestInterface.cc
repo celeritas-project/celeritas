@@ -71,7 +71,11 @@ std::vector<std::string> GenericGeoTestInterface::get_volume_labels() const
     auto const& volumes = this->geometry_interface()->volumes();
     for (auto vidx : range(this->volume_offset(), volumes.size()))
     {
-        result.push_back(to_string(volumes.at(VolumeId{vidx})));
+        Label const& lab = volumes.at(VolumeId{vidx});
+        if (!lab.empty())
+        {
+            result.emplace_back(to_string(lab));
+        }
     }
     return result;
 }
@@ -88,7 +92,11 @@ GenericGeoTestInterface::get_volume_instance_labels() const
     auto const& vol_inst = this->geometry_interface()->volume_instances();
     for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
     {
-        result.push_back(to_string(vol_inst.at(VolumeInstanceId{vidx})));
+        Label const& lab = vol_inst.at(VolumeInstanceId{vidx});
+        if (!lab.empty())
+        {
+            result.emplace_back(to_string(lab));
+        }
     }
     return result;
 }
@@ -113,6 +121,12 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
     std::vector<std::string> result;
     for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
     {
+        if (vol_inst.at(VolumeInstanceId{vidx}).empty())
+        {
+            // Skip "virtual" PV
+            continue;
+        }
+
         result.push_back([&] {
             using namespace std::literals;
 

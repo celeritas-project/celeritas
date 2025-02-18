@@ -34,6 +34,12 @@ struct GenericGeoTrackingResult
 //---------------------------------------------------------------------------//
 /*!
  * Access capabilities from any templated GenericGeo test.
+ *
+ * The volume/instance offsets are usually used with Geant4, which has volume
+ * IDs that may not start with zero if the problem has been reinitaialized.
+ * (This is because geant4 uses global static integers for counting.) It can
+ * also be used in other circumstances (vecgeom internal construction) where
+ * fake volumes/instances are inserted before the "real" volumes/instances.
  */
 class GenericGeoTestInterface
 {
@@ -62,11 +68,14 @@ class GenericGeoTestInterface
     // Get the basename or unique geometry key (defaults to suite name)
     virtual std::string geometry_basename() const;
 
-    //! Ignore the first N VolumeId due to global int shenanigans
+    //! Ignore the first N VolumeId
     virtual VolumeId::size_type volume_offset() const { return 0; }
 
-    //! Ignore the first N VolumeInstanceId due to global int shenanigans
-    virtual VolumeId::size_type volume_instance_offset() const { return 0; }
+    //! Ignore the first N VolumeInstanceId
+    virtual VolumeInstanceId::size_type volume_instance_offset() const
+    {
+        return 0;
+    }
 
     //! Unit length for "track" testing and other results
     virtual Constant unit_length() const { return lengthunits::centimeter; }

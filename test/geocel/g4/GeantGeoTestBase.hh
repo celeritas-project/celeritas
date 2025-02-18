@@ -27,7 +27,7 @@ class GeantGeoTestBase : public GenericGeoTestBase<GeantGeoParams>
     }
 
     //! Ignore the first N VolumeInstanceId due to global int shenanigans
-    VolumeId::size_type volume_instance_offset() const final
+    VolumeInstanceId::size_type volume_instance_offset() const final
     {
         return this->geometry()->pv_offset();
     }
