@@ -150,14 +150,21 @@ auto build_physics_processes(inp::EmPhysics const& em,
         }();
     }
 
-    // TODO: add callback for user processes
     ProcessBuilder build_process(
-        imported, params.particle, params.material, opts);
+        imported, params.particle, params.material, em.user_processes, opts);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));
-        CELER_ASSERT(result.back());
+        if (!result.back())
+        {
+            // Deliberately ignored process
+            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
+            result.pop_back();
+        }
     }
+
+    CELER_VALIDATE(!result.empty(),
+                   << "no supported physics processes were found");
     return result;
 }
 

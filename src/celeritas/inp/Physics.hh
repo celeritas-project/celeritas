@@ -15,6 +15,7 @@
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "PhysicsProcess.hh"
+#include "ProcessBuilder.hh"
 
 namespace celeritas
 {
@@ -23,6 +24,11 @@ namespace inp
 //---------------------------------------------------------------------------//
 /*!
  * Electromagnetic physics processes and options.
+ *
+ * \todo The ProcessBuilder is the "general" process builder type and should be
+ * refactored once import data is moved into the `inp` classes. The \c
+ * user_processes can be set externally or via
+ * \c FrameworkInput.geant.ignore_processes.
  */
 struct EmPhysics
 {
@@ -45,6 +51,9 @@ struct EmPhysics
 #endif
     //
     //!@}
+
+    //!
+    ProcessBuilderMap user_processes;
 };
 
 //---------------------------------------------------------------------------//
