@@ -37,11 +37,8 @@ class CmseGeoTest
 //---------------------------------------------------------------------------//
 void CmseGeoTest::test_trace() const
 {
-    // Surface geometry needs lower safety tolerance
-    double const safety_tol
-        = (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE
-               ? 3e-5
-               : 1e-11);
+    // Surface VecGeom needs lower safety tolerance
+    real_type const safety_tol = test_->safety_tol();
 
     // clang-format off
     {

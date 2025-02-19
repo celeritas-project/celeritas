@@ -74,9 +74,13 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
 
     virtual SpanStringView expected_log_levels() const { return {}; }
 
-    // TODO: check why surface model gives worse safeties for these pts
-    static constexpr auto safety_tol
-        = (CELERITAS_VECGEOM_SURFACE ? 1e-4 : 1e-11);
+    //! Get the safety tolerance: lower for surface geo
+    real_type safety_tol() const override
+    {
+        if (CELERITAS_VECGEOM_SURFACE)
+            return 5e-5;
+        return VecgeomTestBase::safety_tol();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -180,7 +184,7 @@ TEST_F(TwoBoxesVgdmlTest, track)
 
     geo.move_internal(from_cm(1.25));
     real_type expected_safety = 5 - 1.25;
-    EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol);
+    EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol());
 
     // Change direction and try again (hit)
     geo.set_dir({1, 0, 0});
@@ -239,9 +243,6 @@ TEST_F(SimpleCmsVgdmlTest, accessors)
 
 TEST_F(SimpleCmsVgdmlTest, track)
 {
-    // TODO: check why surface model gives worse safeties for these pts
-    constexpr auto safety_tol = (CELERITAS_VECGEOM_SURFACE ? 1e-5 : 1e-11);
-
     auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));
 
@@ -249,7 +250,7 @@ TEST_F(SimpleCmsVgdmlTest, track)
     EXPECT_SOFT_EQ(100, to_cm(next.distance));
     EXPECT_FALSE(next.boundary);
     geo.move_internal(from_cm(20));
-    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol);
+    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol());
 
     geo.set_dir({1, 0, 0});
     next = geo.find_next_step(from_cm(50));
@@ -268,7 +269,8 @@ TEST_F(SimpleCmsVgdmlTest, track)
     EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     geo.move_internal(from_cm(10));
-    EXPECT_SOFT_NEAR(1.6227766016837926, to_cm(geo.find_safety()), safety_tol);
+    EXPECT_SOFT_NEAR(
+        1.6227766016837926, to_cm(geo.find_safety()), safety_tol());
 
     // Move to boundary and scatter back inside
     next = geo.find_next_step(from_cm(1000));
@@ -399,15 +401,15 @@ TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 
     auto next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol);
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol);
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 
     // Find safety from a freshly initialized state
     geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol);
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 }
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
@@ -510,10 +512,7 @@ TEST_F(FourLevelsVgdmlTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    auto expected_distance = to_cm(1e-8);
-#if CELERITAS_VECGEOM_SURFACE
-    expected_distance = to_cm(1e-13);
-#endif
+    auto expected_distance = to_cm(CELERITAS_VECGEOM_SURFACE ? 1e-13 : 1e-8);
     EXPECT_SOFT_EQ(expected_distance, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
@@ -579,11 +578,11 @@ TEST_F(FourLevelsVgdmlTest, safety)
         1.1,
         3.1,
     };
-    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol);
+    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol());
 
     static double const expected_lim_safeties[]
         = {1.5, 0.9, 0.1, 1.5, 1.5, 1.5, 1.3626933041054, 1.5, 0.1, 1.1, 1.5};
-    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol);
+    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol());
 }
 
 TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))

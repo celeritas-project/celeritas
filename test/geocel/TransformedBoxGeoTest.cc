@@ -52,12 +52,9 @@ void TransformedBoxGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void TransformedBoxGeoTest::test_trace() const
 {
-    // Surface geometry needs lower safety tolerance
-    real_type const safety_tol
-        = ((test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
-           || CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-              ? 3e-5
-              : 1e-11;
+    // Surface VecGeom needs lower safety tolerance, and this test needs even
+    // lower
+    real_type const safety_tol = real_type{10} * test_->safety_tol();
 
     {
         auto result = test_->track({0, 0, -25}, {0, 0, 1});

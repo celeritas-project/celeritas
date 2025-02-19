@@ -11,6 +11,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/io/Repr.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 #if CELERITAS_USE_GEANT4
@@ -25,26 +26,27 @@ namespace test
 void GenericGeoTrackingResult::print_expected()
 {
     using std::cout;
-    cout
-        << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-           "static char const* const expected_volumes[] = "
-        << repr(this->volumes)
-        << ";\n"
-           "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-           "static char const* const expected_volume_instances[] = "
-        << repr(this->volume_instances)
-        << ";\n"
-           "EXPECT_VEC_EQ(expected_volume_instances, "
-           "result.volume_instances);\n"
-           "static real_type const expected_distances[] = "
-        << repr(this->distances)
-        << ";\n"
-           "EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);\n"
-           "static real_type const expected_hw_safety[] = "
-        << repr(this->halfway_safeties)
-        << ";\n"
-           "EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);\n"
-           "/*** END CODE ***/\n";
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "real_type const safety_tol = test_->safety_tol()\n;"
+            "static char const* const expected_volumes[] = "
+         << repr(this->volumes)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
+            "static char const* const expected_volume_instances[] = "
+         << repr(this->volume_instances)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_volume_instances, "
+            "result.volume_instances);\n"
+            "static real_type const expected_distances[] = "
+         << repr(this->distances)
+         << ";\n"
+            "EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);\n"
+            "static real_type const expected_hw_safety[] = "
+         << repr(this->halfway_safeties)
+         << ";\n"
+            "EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, "
+            "safety_tol);\n"
+            "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -58,6 +60,16 @@ auto GenericGeoTestInterface::geometry_basename() const -> std::string
         = ::testing::UnitTest::GetInstance()->current_test_info();
     CELER_ASSERT(test_info);
     return test_info->test_case_name();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the safety tolerance (defaults to SoftEq tol).
+ */
+real_type GenericGeoTestInterface::safety_tol() const
+{
+    constexpr SoftEqual<> default_seq{};
+    return default_seq.rel();
 }
 
 //---------------------------------------------------------------------------//

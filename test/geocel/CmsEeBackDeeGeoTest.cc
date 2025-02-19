@@ -77,12 +77,8 @@ void CmsEeBackDeeGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void CmsEeBackDeeGeoTest::test_trace() const
 {
-    // Surface geometry needs lower safety tolerance
-    real_type const safety_tol
-        = ((test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
-           || CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-              ? 3e-5
-              : 1e-11;
+    // Surface VecGeom needs lower safety tolerance
+    real_type const safety_tol = test_->safety_tol();
 
     {
         SCOPED_TRACE("+z top");
