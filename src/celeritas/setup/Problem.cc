@@ -440,6 +440,13 @@ problem(inp::Problem const& p, ImportData const& imported)
     // Construct track initialization params
     params.init = build_track_init(p.control, num_streams);
 
+    // Set up streams
+    if (p.control.device_debug && !p.control.device_debug->default_stream
+        && p.control.num_streams > 1 && celeritas::device())
+    {
+        celeritas::device().create_streams(num_streams);
+    }
+
     // Number of tracks per stream
     auto tracks = p.control.capacity.tracks;
     CELER_VALIDATE(tracks > 0,
@@ -503,8 +510,9 @@ problem(inp::Problem const& p, ImportData const& imported)
 
         if (!ef.offload.empty())
         {
-            CELER_LOG(error) << "Ignoring ExportFiles.offload: not yet "
-                                "implemented";
+            // TODO: this is only implemented in accel::SharedParams, not in
+            // celeritas core: should we hook this into the to-be-updated
+            // "primary" mechanism?
         }
     }
 

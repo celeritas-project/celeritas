@@ -86,6 +86,16 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         },
         si.physics_import);
 
+    if (si.geant_data)
+    {
+        CELER_NOT_IMPLEMENTED("loading data directly into celeritas::inp");
+    }
+
+    if (si.update)
+    {
+        CELER_NOT_IMPLEMENTED("updating input problem from external file");
+    }
+
     StandaloneLoaded result;
 
     // Set up core params

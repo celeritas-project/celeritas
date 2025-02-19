@@ -102,11 +102,6 @@ std::shared_ptr<OutputRegistry> run(std::istream* is)
 
     // Allocate device streams, or use the default stream if there is only one.
     size_type num_streams = run_stream.num_streams();
-    if (run_input->use_device && !run_input->default_stream && num_streams > 1)
-    {
-        CELER_ASSERT(device());
-        device().create_streams(num_streams);
-    }
     result.num_streams = num_streams;
 
     if (run_input->warm_up)
