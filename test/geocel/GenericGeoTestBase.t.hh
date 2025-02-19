@@ -16,6 +16,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/UnitUtils.hh"
 
+#include "CheckedGeoTrackView.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -23,15 +24,23 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-//
+/*!
+ * Build geometry during setup.
+ */
 template<class HP>
-auto GenericGeoTestBase<HP>::geometry_basename() const -> std::string
+void GenericGeoTestBase<HP>::SetUp()
 {
-    // Get filename based on unit test name
-    ::testing::TestInfo const* const test_info
-        = ::testing::UnitTest::GetInstance()->current_test_info();
-    CELER_ASSERT(test_info);
-    return test_info->test_case_name();
+    ASSERT_TRUE(this->geometry());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * ! Build the geometry (default to from_basename).
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::build_geometry() -> SPConstGeo
+{
+    return this->build_geometry_from_basename();
 }
 
 //---------------------------------------------------------------------------//
@@ -53,7 +62,7 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
     if (!geo_)
     {
         std::string key = this->geometry_basename() + "/"
-                          + std::string{TraitsT::name};
+                          + std::string{this->geometry_type()};
         // Construct via LazyGeoManager
         auto geo = this->get_geometry(key);
         EXPECT_TRUE(geo);
@@ -282,6 +291,26 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the label for this geometry: Geant4, VecGeom, ORANGE.
+ */
+template<class HP>
+std::string_view GenericGeoTestBase<HP>::geometry_type() const
+{
+    return TraitsT::name;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the geometry interface, building if needed.
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoInterface
+{
+    return this->geometry();
 }
 
 //---------------------------------------------------------------------------//

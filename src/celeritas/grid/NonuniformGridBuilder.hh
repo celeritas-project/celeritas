@@ -10,6 +10,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 
 namespace celeritas
 {
@@ -27,6 +28,7 @@ class NonuniformGridBuilder
     //! \name Type aliases
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
+    using BC = SplineDerivCalculator::BoundaryCondition;
     using Grid = NonuniformGridRecord;
     using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
@@ -35,6 +37,9 @@ class NonuniformGridBuilder
   public:
     // Construct with pointers to data that will be modified
     explicit NonuniformGridBuilder(Items<real_type>* reals);
+
+    // Construct with pointers to data and spline boundary conditions
+    NonuniformGridBuilder(Items<real_type>* reals, BC bc);
 
     // Add a grid of generic data with linear interpolation
     Grid operator()(SpanConstFlt grid, SpanConstFlt values);
@@ -46,7 +51,9 @@ class NonuniformGridBuilder
     Grid operator()(ImportPhysicsVector const&);
 
   private:
+    Items<real_type> const& values_;
     DedupeCollectionBuilder<real_type> reals_;
+    BC bc_;
 
     // Insert with floating point conversion if needed
     template<class T>

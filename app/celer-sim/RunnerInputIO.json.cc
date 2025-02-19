@@ -128,12 +128,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 #undef LDIO_LOAD_OPTION
 #undef LDIO_LOAD_REQUIRED
 
-    CELER_VALIDATE(v.event_file.empty() != !v.primary_options,
-                   << "either a event filename or options to generate "
-                      "primaries must be provided (but not both)");
-    CELER_VALIDATE(!v.mctruth_filter || !v.mctruth_file.empty(),
-                   << "'mctruth_filter' cannot be specified without providing "
-                      "'mctruth_file'");
     CELER_VALIDATE(v.field != RunnerInput::no_field()
                        || !j.contains("field_options"),
                    << "'field_options' cannot be specified without providing "

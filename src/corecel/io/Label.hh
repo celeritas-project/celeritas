@@ -10,6 +10,7 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 
@@ -50,14 +51,13 @@ struct Label
     //! Create an empty label
     Label() = default;
 
-    //! Create *implicitly* from a C string (mostly for testing)
-    Label(char const* cstr) : name{cstr} {}
-
-    //! Create *implicitly* from just a string name (capture)
+    //! Create *implicitly* from a captured string name
     Label(std::string&& n) : name{std::move(n)} {}
 
-    //! Create *implicitly* from just a string name (copy)
-    Label(std::string const& n) : name{n} {}
+    // Create *implicitly* from a string name
+    Label(std::string_view n);
+    Label(char const* n) : Label{std::string_view{n}} {}
+    Label(std::string const& n) : Label{std::string_view{n}} {}
 
     //! Create from a name and label
     Label(std::string n, std::string e) : name{std::move(n)}, ext{std::move(e)}
@@ -70,8 +70,7 @@ struct Label
     //// STATIC METHODS ////
 
     // Construct a label from by splitting on a separator
-    static Label
-    from_separator(std::string const& name, char sep = default_sep);
+    static Label from_separator(std::string_view name, char sep = default_sep);
 };
 
 //---------------------------------------------------------------------------//

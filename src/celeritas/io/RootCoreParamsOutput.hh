@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-sim/RootOutput.hh
+//! \file celeritas/io/RootCoreParamsOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,42 +12,24 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class CoreParams;
+class ActionRegistry;
 class RootFileManager;
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
-
-namespace celeritas
-{
-namespace app
-{
-//---------------------------------------------------------------------------//
-struct RunnerInput;
+struct GeantPhysicsOptions;
 
 //---------------------------------------------------------------------------//
 
-// Store RunnerInput to ROOT file when ROOT is available
-void write_to_root(RunnerInput const& cargs, RootFileManager* root_manager);
-
-// Store CoreParams to ROOT file when ROOT is available
-void write_to_root(CoreParams const& core_params,
+// Store actions to ROOT file
+void write_to_root(ActionRegistry const& actions,
                    RootFileManager* root_manager);
 
 //---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_ROOT
-inline void write_to_root(RunnerInput const&, RootFileManager*)
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline void write_to_root(CoreParams const&, RootFileManager*)
+inline void write_to_root(ActionRegistry const&, RootFileManager*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

@@ -25,8 +25,14 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
+  CmsEeBackDeeGeoTest.cc
   LazyGeoManager.cc
-  GenericGeoTestBase.cc
+  GeantImportVolumeResult.cc
+  GenericGeoTestInterface.cc
+  FourLevelsGeoTest.cc
+  MultiLevelGeoTest.cc
+  SolidsGeoTest.cc
+  TransformedBoxGeoTest.cc
 )
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
@@ -75,27 +81,26 @@ if(CELERITAS_USE_VecGeom)
   set(_vecgeom_tests)
   if(VecGeom_GDML_FOUND)
     list(APPEND _vecgeom_tests
-      "TwoBoxesTest.*"
-      "SimpleCmsTest.*"
-      "FourLevelsTest.*"
-      "CmseTest.*"
+      "TwoBoxesVgdmlTest.*"
+      "SimpleCmsVgdmlTest.*"
+      "FourLevelsVgdmlTest.*"
+      "MultiLevelVgdmlTest.*"
     )
     if(NOT VecGeom_SURF_FOUND)
-      # TODO: vecgeom surface doesn't support some of these shapes
-      list(APPEND _vecgeom_tests
-        "MultiLevelTest.*"
-        "SolidsTest.*"
-      )
+      list(APPEND _vecgeom_tests "SolidsVgdmlTest.*")
     endif()
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
-      "FourLevelsGeantTest.*"
-      "MultiLevelGeantTest.*"
-      "ZnenvGeantTest.*"
+      "CmseTest.*"
+      "CmsEeBackDeeTest.*"
+      "FourLevelsTest.*"
+      "MultiLevelTest.*"
+      "TransformedBoxTest.*"
+      "ZnenvTest.*"
     )
     if(NOT VecGeom_SURF_FOUND)
-      list(APPEND _vecgeom_tests "SolidsGeantTest.*")
+      list(APPEND _vecgeom_tests "SolidsTest.*")
     endif()
   endif()
   if(NOT _vecgeom_tests)
@@ -111,6 +116,8 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Geant4
+
+celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4} LINK_LIBRARIES ${_g4_geo_libs})
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})

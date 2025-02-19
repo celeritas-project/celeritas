@@ -131,13 +131,8 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
-        "Geant4_DIR": "/Users/seth/Code/geant4-dev/install/lib/cmake/Geant4",
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_UNITS": "CLHEP"
-      },
-      "environment": {
-        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Library/Apple/usr/bin",
-        "CMAKE_PREFIX_PATH": "/opt/spack/opt/spack/sequoia/libpng/1.6.39/3g6j5kh:/opt/spack/opt/spack/sequoia/zlib-ng/2.2.1/6s4rdcx:/opt/spack/opt/spack/sequoia/vecgeom/1.2.8/own7ofl:/opt/spack/opt/spack/sequoia/xerces-c/3.2.5/3zdtn2m:/opt/spack/opt/spack/sequoia/veccore/0.8.1/x34t746:/opt/spack/opt/spack/sequoia/nlohmann-json/3.11.3/fpe7aef:/opt/spack/opt/spack/sequoia/hepmc3/3.3.0/rrfyfcx:/opt/spack/opt/spack/sequoia/googletest/1.14.0/cwduo4b"
       }
     }
   ],

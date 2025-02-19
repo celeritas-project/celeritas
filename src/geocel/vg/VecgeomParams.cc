@@ -18,6 +18,7 @@
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
+#include <VecGeom/management/ReflFactory.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
@@ -169,15 +170,23 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
                 iter->second = depth;
             }
 
-            std::string const& name = pv.GetLabel();
+            std::string name = pv.GetLabel();
             if (starts_with(name, "[TEMP]"))
             {
                 // Temporary volume not directly used in tracking
                 return false;
             }
 
+            if (ends_with(name, "_refl")
+                && vecgeom::ReflFactory::Instance().IsReflected(
+                    pv.GetLogicalVolume()))
+            {
+                // Strip suffix for consistency with Geant4
+                name.erase(name.end() - 5, name.end());
+            }
+
             // Add to name map
-            names[name].push_back(&pv);
+            names[std::move(name)].push_back(&pv);
             // Visit daughters
             return true;
         },
@@ -364,6 +373,8 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
     opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
     opts.scale = static_cast<double>(lengthunits::millimeter);
     opts.append_pointers = false;
+    opts.verbose = static_cast<bool>(vecgeom_verbosity());
+    opts.reflection_factory = false;
     auto result = g4vg::convert(world, opts);
     CELER_ASSERT(result.world != nullptr);
     g4log_volid_map_.reserve(result.logical_volumes.size());
