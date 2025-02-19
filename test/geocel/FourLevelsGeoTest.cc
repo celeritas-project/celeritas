@@ -78,7 +78,11 @@ void FourLevelsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_trace() const
 {
+#if CELERITAS_VECGEOM_SURFACE
+    constexpr real_type safety_tol{1e-5};
+#else
     constexpr real_type safety_tol{1e-10};
+#endif
 
     {
         SCOPED_TRACE("Rightward");

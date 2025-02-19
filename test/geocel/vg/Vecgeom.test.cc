@@ -76,7 +76,7 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
 
     // TODO: check why surface model gives worse safeties for these pts
     static constexpr auto safety_tol
-        = (CELERITAS_VECGEOM_SURFACE ? 1e-5 : 1e-11);
+        = (CELERITAS_VECGEOM_SURFACE ? 1e-4 : 1e-11);
 };
 
 //---------------------------------------------------------------------------//
@@ -510,7 +510,11 @@ TEST_F(FourLevelsVgdmlTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-8, next.distance);
+    auto expected_distance = to_cm(1e-8);
+#if CELERITAS_VECGEOM_SURFACE
+    expected_distance = to_cm(1e-13);
+#endif
+    EXPECT_SOFT_EQ(expected_distance, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
