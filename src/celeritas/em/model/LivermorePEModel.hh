@@ -38,7 +38,8 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
     LivermorePEModel(ActionId id,
                      ParticleParams const& particles,
                      MaterialParams const& materials,
-                     ReadData load_data);
+                     ReadData load_data,
+                     bool spline);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

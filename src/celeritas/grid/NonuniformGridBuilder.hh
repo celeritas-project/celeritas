@@ -28,8 +28,8 @@ class NonuniformGridBuilder
     //! \name Type aliases
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
-    using BC = SplineDerivCalculator::BoundaryCondition;
     using Grid = NonuniformGridRecord;
+    using BC = SplineDerivCalculator::BoundaryCondition;
     using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
     //!@}
@@ -38,26 +38,27 @@ class NonuniformGridBuilder
     // Construct with pointers to data that will be modified
     explicit NonuniformGridBuilder(Items<real_type>* reals);
 
-    // Construct with pointers to data and spline boundary conditions
-    NonuniformGridBuilder(Items<real_type>* reals, BC bc);
-
     // Add a grid of generic data with linear interpolation
     Grid operator()(SpanConstFlt grid, SpanConstFlt values);
-
-    // Add a grid of generic data with linear interpolation
     Grid operator()(SpanConstDbl grid, SpanConstDbl values);
 
-    // Add a grid from an imported physics vector
+    // Add a grid of generic data with spline interpolation
+    Grid operator()(SpanConstFlt grid, SpanConstFlt values, BC bc);
+    Grid operator()(SpanConstDbl grid, SpanConstDbl values, BC bc);
+
+    // Add a grid from an imported physics vector with linear interpolation
     Grid operator()(ImportPhysicsVector const&);
+
+    // Add a grid from an imported physics vector with spline interpolation
+    Grid operator()(ImportPhysicsVector const&, BC bc);
 
   private:
     Items<real_type> const& values_;
     DedupeCollectionBuilder<real_type> reals_;
-    BC bc_;
 
     // Insert with floating point conversion if needed
     template<class T>
-    Grid insert_impl(Span<T const> grid, Span<T const> values);
+    Grid insert_impl(Span<T const> grid, Span<T const> values, BC bc);
 };
 
 //---------------------------------------------------------------------------//

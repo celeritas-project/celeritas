@@ -71,6 +71,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
         // Set the physics vector type and the data type
         result.xs_hi.vector_type = ImportPhysicsVectorType::free;
+        result.xs_hi.spline = true;
 
         // Read tabulated energies and cross sections
         double energy_min = 0.;

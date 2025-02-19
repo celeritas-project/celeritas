@@ -13,6 +13,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/executor/LivermorePEExecutor.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -40,7 +41,8 @@ namespace celeritas
 LivermorePEModel::LivermorePEModel(ActionId id,
                                    ParticleParams const& particles,
                                    MaterialParams const& materials,
-                                   ReadData load_data)
+                                   ReadData load_data,
+                                   bool spline)
     : StaticConcreteAction(
           id, "photoel-livermore", "interact by Livermore photoelectric effect")
 {
@@ -62,8 +64,12 @@ LivermorePEModel::LivermorePEModel(ActionId id,
           / value_as<LivermorePERef::Mass>(
               particles.get(host_data.ids.electron).mass());
 
+    CELER_LOG(debug)
+        << (spline ? "Enabled" : "Disabled")
+        << " spline interpolation for Livermore PE high energy cross sections";
+
     // Load Livermore cross section data
-    detail::LivermoreXsInserter insert_element(&host_data.xs);
+    detail::LivermoreXsInserter insert_element(&host_data.xs, spline);
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();

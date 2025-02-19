@@ -47,7 +47,7 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
 auto PhotoelectricProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
     return {std::make_shared<LivermorePEModel>(
-        *start_id++, *particles_, *materials_, load_pe_)};
+        *start_id++, *particles_, *materials_, load_pe_, options_.spline)};
 }
 
 //---------------------------------------------------------------------------//

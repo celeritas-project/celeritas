@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
@@ -25,12 +26,13 @@ class LivermoreXsInserter
   public:
     //!@{
     //! \name Type aliases
+    using BC = SplineDerivCalculator::BoundaryCondition;
     using Data = HostVal<LivermorePEXsData>;
     //!@}
 
   public:
     // Construct with pointer to host data
-    explicit inline LivermoreXsInserter(Data* data);
+    inline LivermoreXsInserter(Data* data, bool spline);
 
     // Construct cross section data for a single element
     inline void operator()(ImportLivermorePE const& inp);
@@ -40,6 +42,7 @@ class LivermoreXsInserter
 
     CollectionBuilder<LivermoreSubshell> shells_;
     CollectionBuilder<LivermoreElement, MemSpace::host, ElementId> elements_;
+    bool spline_;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,10 +51,11 @@ class LivermoreXsInserter
 /*!
  * Construct with data.
  */
-LivermoreXsInserter::LivermoreXsInserter(Data* data)
+LivermoreXsInserter::LivermoreXsInserter(Data* data, bool spline)
     : build_grid_{&data->reals}
     , shells_{&data->shells}
     , elements_{&data->elements}
+    , spline_(spline)
 {
     CELER_EXPECT(data);
 }
@@ -83,7 +87,15 @@ void LivermoreXsInserter::operator()(ImportLivermorePE const& inp)
         // Z < 3 have no low-energy cross sections
         el.xs_lo = build_grid_(inp.xs_lo);
     }
-    el.xs_hi = build_grid_(inp.xs_hi);
+    if (spline_)
+    {
+        // Use spline interpolation for high-energy cross sections
+        el.xs_hi = build_grid_(inp.xs_hi, BC::geant);
+    }
+    else
+    {
+        el.xs_hi = build_grid_(inp.xs_hi);
+    }
 
     // Add energy thresholds for using low and high xs parameterization
     el.thresh_lo = MevEnergy(inp.thresh_lo);

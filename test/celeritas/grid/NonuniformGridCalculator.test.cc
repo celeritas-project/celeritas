@@ -35,8 +35,8 @@ class NonuniformGridCalculatorTest : public Test
 
     void build_spline(Span<real_type const> x, Span<real_type const> y, BC bc)
     {
-        NonuniformGridBuilder build_grid(&reals_, bc);
-        grid_ = build_grid(x, y);
+        NonuniformGridBuilder build_grid(&reals_);
+        grid_ = build_grid(x, y, bc);
         reals_ref_ = reals_;
 
         CELER_ENSURE(grid_);
