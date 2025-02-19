@@ -93,7 +93,10 @@ jobs:
           fi
           if [ "${{matrix.geant}}" != "" ]; then
             spack -e . add geant4@${{matrix.geant}}
-            spack -e . add g4vg@1.1:
+          fi
+          if [ "${{matrix.geometry}}" == "vecgeom"
+              && "${{matrix.special}}" != "vgsurf"]; then
+            spack -e . add g4vg@1.0.2:
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
