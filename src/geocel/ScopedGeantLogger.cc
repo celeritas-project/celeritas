@@ -131,16 +131,19 @@ class GeantLoggerAdapter final : public G4coutDestination
 //---------------------------------------------------------------------------//
 /*!
  * Redirect geant4's stdout/cerr on construction.
+ *
+ * Note that all these buffers, and the UI pointers, are thread-local.
  */
 GeantLoggerAdapter::GeantLoggerAdapter()
 {
+    // Make sure UI pointer has been instantiated, since its constructor
+    // resets the cout destination
     if (!G4UImanager::GetUIpointer())
     {
         // Always-on debug assertion (not a "runtime" error but a
         // subtle programming logic error that always causes a crash)
         CELER_DEBUG_FAIL(
-            "Geant4 logging cannot be changed after G4UImanager has been "
-            "destroyed",
+            R"(Geant4 logging cannot be changed after G4UImanager has been destroyed)",
             precondition);
     }
 

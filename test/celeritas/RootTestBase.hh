@@ -22,6 +22,9 @@ class RootTestBase : public ImportedDataTestBase
     // Access lazily loaded static ROOT data
     ImportData const& imported_data() const final;
 
+    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
+
   private:
     struct ImportHelper;
     class CleanupGeantEnvironment;

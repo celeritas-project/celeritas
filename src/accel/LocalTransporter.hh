@@ -13,6 +13,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
@@ -92,9 +93,32 @@ class LocalTransporter
     explicit operator bool() const { return static_cast<bool>(step_); }
 
   private:
+    //// TYPES ////
+
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using BBox = BoundingBox<double>;
+
+    struct BufferAccum
+    {
+        double energy{0};  // MeV
+        double lost_energy{0};  // MeV
+        std::size_t lost_primaries{0};
+    };
+
+    struct RunAccum
+    {
+        std::size_t events{0};
+        std::size_t primaries{0};
+        std::size_t steps{0};
+        std::size_t lost_primaries{0};
+    };
+
+    //// DATA ////
 
     std::shared_ptr<ParticleParams const> particles_;
+    BBox bbox_;
+
+    // Thread-local data
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
@@ -105,11 +129,9 @@ class LocalTransporter
 
     size_type auto_flush_{};
     size_type max_step_iters_{};
-    double buffer_energy_{0};
 
-    std::size_t accum_num_events_{0};
-    std::size_t accum_num_primaries_{0};
-    std::size_t accum_num_steps_{0};
+    BufferAccum buffer_accum_;
+    RunAccum run_accum_;
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
