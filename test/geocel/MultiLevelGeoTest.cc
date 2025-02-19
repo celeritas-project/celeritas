@@ -66,6 +66,9 @@ void MultiLevelGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void MultiLevelGeoTest::test_trace() const
 {
+    // Surface VecGeom needs lower safety tolerance
+    real_type const safety_tol = test_->safety_tol();
+
     {
         SCOPED_TRACE("high");
         auto result = test_->track({-19.9, 7.5, 0}, {1, 0, 0});
@@ -132,7 +135,8 @@ void MultiLevelGeoTest::test_trace() const
             1.6650635094611,
             3.25,
         };
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("low");
@@ -192,7 +196,8 @@ void MultiLevelGeoTest::test_trace() const
             1.6650635094611,
             3.25,
         };
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
 }
 

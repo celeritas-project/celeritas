@@ -78,7 +78,8 @@ void FourLevelsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_trace() const
 {
-    constexpr real_type safety_tol{1e-10};
+    // Surface VecGeom needs lower safety tolerance
+    real_type const safety_tol = test_->safety_tol();
 
     {
         SCOPED_TRACE("Rightward");

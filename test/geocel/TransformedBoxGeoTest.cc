@@ -52,6 +52,10 @@ void TransformedBoxGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void TransformedBoxGeoTest::test_trace() const
 {
+    // Surface VecGeom needs lower safety tolerance, and this test needs even
+    // lower
+    real_type const safety_tol = real_type{10} * test_->safety_tol();
+
     {
         auto result = test_->track({0, 0, -25}, {0, 0, 1});
         static char const* const expected_volumes[] = {
@@ -91,7 +95,8 @@ void TransformedBoxGeoTest::test_trace() const
                 1,
                 19,
             };
-            EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
         }
     }
     {
@@ -133,7 +138,8 @@ void TransformedBoxGeoTest::test_trace() const
                 0.75,
                 19,
             };
-            EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
         }
     }
     {
@@ -175,7 +181,8 @@ void TransformedBoxGeoTest::test_trace() const
                 1,
                 19,
             };
-            EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
         }
     }
     {
@@ -190,7 +197,8 @@ void TransformedBoxGeoTest::test_trace() const
         {
             static real_type const expected_hw_safety[]
                 = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
-            EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
         }
     }
 }
