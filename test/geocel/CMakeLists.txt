@@ -84,10 +84,9 @@ if(CELERITAS_USE_VecGeom)
       "TwoBoxesVgdmlTest.*"
       "SimpleCmsVgdmlTest.*"
       "FourLevelsVgdmlTest.*"
-      "MultiLevelVgdmlTest.*"
     )
     if(NOT VecGeom_SURF_FOUND)
-      list(APPEND _vecgeom_tests "SolidsVgdmlTest.*")
+      list(APPEND _vecgeom_tests "SolidsVgdmlTest.*" "MultiLevelVgdmlTest.*")
     endif()
   endif()
   if(CELERITAS_USE_Geant4)
