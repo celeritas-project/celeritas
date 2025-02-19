@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "SetupOptions.hh"
 
+#include <CLHEP/Random/Random.h>
+
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
@@ -116,6 +118,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         p.control.device_debug = std::move(dd);
     }
 
+    p.control.seed = CLHEP::HepRandom::getTheSeed();
+
     if (so.sd.enabled)
     {
         p.scoring.sd = to_inp(so.sd);
@@ -219,7 +223,10 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     inp::FrameworkInput result;
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
-    result.adjuster = ProblemSetup{so};
+    result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
+    result.geant.data_selection.processes = import_opts.particles;
+
+    result.adjust = ProblemSetup{so};
     return result;
 }
 
