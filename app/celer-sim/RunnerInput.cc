@@ -199,6 +199,10 @@ inp::Problem load_problem(RunnerInput const& ri)
     // Tracking
     p.tracking.limits.steps = ri.max_steps;
     p.tracking.force_step_limit = ri.step_limiter;
+    if (!std::holds_alternative<inp::NoField>(p.field))
+    {
+        p.tracking.limits.field_substeps = ri.field_options.max_substeps;
+    }
 
     // Optical options
     if (ri.optical)
