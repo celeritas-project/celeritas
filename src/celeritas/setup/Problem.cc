@@ -25,6 +25,7 @@
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
@@ -33,6 +34,7 @@
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/RootExporter.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
@@ -456,6 +458,47 @@ problem(inp::Problem const& p, ImportData const& imported)
     {
         SlotDiagnostic::make_and_insert(*core_params,
                                         p.diagnostics.slot->basename);
+    }
+
+    //// EXPORT FILES ////
+
+    {
+        auto& ef = p.diagnostics.export_files;
+
+        if (!ef.physics.empty())
+        {
+            try
+            {
+                RootExporter export_root(ef.physics.c_str());
+                export_root(imported);
+            }
+            catch (RuntimeError const& e)
+            {
+                CELER_LOG(debug) << e.what();
+                CELER_LOG(error)
+                    << "Ignoring ExportFiles.physics: " << e.details().what;
+            }
+        }
+
+        if (!ef.geometry.empty())
+        {
+            if (auto* geo
+                = std::get_if<G4VPhysicalVolume const*>(&p.model.geometry))
+            {
+                save_gdml(*geo, ef.geometry);
+            }
+            else
+            {
+                CELER_LOG(error) << "Ignoring ExportFiles.geometry because "
+                                    "the Geant4 geometry has not been loaded";
+            }
+        }
+
+        if (!ef.offload.empty())
+        {
+            CELER_LOG(error) << "Ignoring ExportFiles.offload: not yet "
+                                "implemented";
+        }
     }
 
     //// STEP COLLECTORS ////
