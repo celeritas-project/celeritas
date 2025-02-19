@@ -392,7 +392,15 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  set(_min_vecgeom_version 1.2.8)
+  if(CELERITAS_USE_CUDA)
+    # 1.2.10 is needed due to the `no-as-needed` link feature
+    # requiring VecGeom to be build with a distinct object
+    # and final libraries
+    set(_min_vecgeom_version 1.2.10)
+  else()
+    # 1.2.8 is needed due to G4VG, which needs the logger.
+    set(_min_vecgeom_version 1.2.8)
+  endif()
   if(NOT VecGeom_FOUND)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
