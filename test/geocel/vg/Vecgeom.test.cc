@@ -394,7 +394,7 @@ TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
     auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ("Shape2", this->volume_name(geo));
     EXPECT_FALSE(geo.is_on_boundary());
 
     auto next = geo.find_next_step(from_cm(10.0));
@@ -416,7 +416,7 @@ TEST_F(FourLevelsVgdmlTest, detailed_track)
         SCOPED_TRACE("rightward along corner");
         auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ("Shape2", this->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Check for surfaces up to a distance of 4 units away
@@ -434,9 +434,9 @@ TEST_F(FourLevelsVgdmlTest, detailed_track)
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ("Shape2", this->volume_name(geo));
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ("Shape1", this->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
         // Find the next boundary and make sure that nearer distances aren't
@@ -462,13 +462,13 @@ TEST_F(FourLevelsVgdmlTest, detailed_track)
         EXPECT_TRUE(geo.is_outside());
         geo.cross_boundary();
         EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
+        EXPECT_EQ("World", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("inside out");
         auto geo = this->make_geo_track_view({-23.5, 6.5, 6.5}, {-1, 0, 0});
         EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
+        EXPECT_EQ("World", this->volume_name(geo));
 
         auto next = geo.find_next_step(from_cm(2));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
@@ -685,27 +685,6 @@ TEST_F(SolidsVgdmlTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), to_cm(bbox.upper()));
 }
 
-TEST_F(SolidsVgdmlTest, names)
-{
-    auto const& geom = *this->geometry();
-    std::vector<std::string> labels;
-    for (auto vid : range(VolumeId{geom.volumes().size()}))
-    {
-        labels.push_back(
-            this->genericize_pointers(to_string(geom.volumes().at(vid))));
-    }
-
-    // clang-format off
-    static char const* const expected_labels[] = {"", "", "",
-        "", "box500", "cone1", "para1", "sphere1", "parabol1", "trap1",
-        "trd1", "trd2", "", "trd3_refl@1", "tube100", "boolean1",
-        "polycone1", "genPocone1", "ellipsoid1", "tetrah1", "orb1",
-        "polyhedr1", "hype1", "elltube1", "ellcone1", "arb8b", "arb8a",
-        "xtru1", "World", "", "trd3_refl@0"};
-    // clang-format on
-    EXPECT_VEC_EQ(expected_labels, labels);
-}
-
 TEST_F(SolidsVgdmlTest, output)
 {
     GeoParamsOutput out(this->geometry());
@@ -713,11 +692,9 @@ TEST_F(SolidsVgdmlTest, output)
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        auto out_str = this->genericize_pointers(to_string(out));
-
         EXPECT_JSON_EQ(
             R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
-            out_str);
+            to_string(out));
     }
 }
 
