@@ -34,10 +34,13 @@ struct EmPhysics
     //!@{
     //! \name Energy loss and slowing down
 
-    //! Use piecewise polynomial spline interpolation for energy loss
-    bool eloss_spline{false};
+    //! Use spline interpolation without continuous derivatives for energy loss
+    size_type eloss_spline_order{1};
     //! Use cubic spline interpolation for physics grids
     bool spline{false};
+
+    // TODO: currently eloss fluctuations are set up via geant importer, then
+    // read into ImportEmParams
 #if 0
      //! Energy loss fluctuations
      bool eloss_fluct{true};

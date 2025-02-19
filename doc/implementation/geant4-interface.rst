@@ -168,7 +168,9 @@ This subsection contains details of importing Geant4 data into Celeritas.
 Geant4 geometry utilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: celeritas::load_geant_geometry_native
+.. doxygenclass:: celeritas::GeantGdmlLoader
+.. doxygenfunction:: celeritas::load_gdml
+.. doxygenfunction:: celeritas::save_gdml
 .. doxygenfunction:: celeritas::find_geant_volumes
 
 Geant4 physics interfaces

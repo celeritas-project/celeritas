@@ -51,7 +51,7 @@ inp::Problem load_problem(RunInput const& ri)
 
     // Control
     p.control.capacity = [&ri] {
-        inp::StateCapacity capacity;
+        inp::CoreStateCapacity capacity;
         capacity.tracks = ri.num_track_slots;
         capacity.initializers = ri.initializer_capacity;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor

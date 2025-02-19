@@ -2,9 +2,11 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/GenericGeoTestBase.cc
+//! \file geocel/GeantImportVolumeResult.cc
 //---------------------------------------------------------------------------//
-#include "GenericGeoTestBase.hh"
+#include "GeantImportVolumeResult.hh"
+
+#include <iostream>
 
 #include "corecel/Config.hh"
 #if CELERITAS_USE_GEANT4
@@ -12,70 +14,21 @@
 #endif
 
 #include "corecel/io/Repr.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
-
-#include "CheckedGeoTrackView.hh"
-
-using std::cout;
-using namespace std::literals;
-using GeantVolResult = celeritas::test::GenericGeoGeantImportVolumeResult;
 
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-void GenericGeoTrackingResult::print_expected()
-{
-    cout
-        << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-           "static char const* const expected_volumes[] = "
-        << repr(this->volumes)
-        << ";\n"
-           "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-           "static char const* const expected_volume_instances[] = "
-        << repr(this->volume_instances)
-        << ";\n"
-           "EXPECT_VEC_EQ(expected_volume_instances, "
-           "result.volume_instances);\n"
-           "static real_type const expected_distances[] = "
-        << repr(this->distances)
-        << ";\n"
-           "EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);\n"
-           "static real_type const expected_hw_safety[] = "
-        << repr(this->halfway_safeties)
-        << ";\n"
-           "EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);\n"
-           "/*** END CODE ***/\n";
-}
-
-//---------------------------------------------------------------------------//
-void GeantVolResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static int const expected_volumes[] = "
-         << repr(this->volumes)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-            "EXPECT_EQ(0, result.missing_names.size()) << "
-            "repr(result.missing_names);\n";
-    if (!this->missing_names.empty())
-    {
-        cout << "/* Currently missing: " << repr(this->missing_names)
-             << " */\n";
-    }
-    cout << "/*** END CODE ***/\n";
-}
-
-//---------------------------------------------------------------------------//
-GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
-                                           G4VPhysicalVolume const* world)
+GeantImportVolumeResult
+GeantImportVolumeResult::from_import(GeoParamsInterface const& geom,
+                                     G4VPhysicalVolume const* world)
 {
     CELER_VALIDATE(world, << "world volume is nullptr");
 
 #if CELERITAS_USE_GEANT4
-    using Result = GenericGeoGeantImportVolumeResult;
+    using Result = GeantImportVolumeResult;
 
     auto vol_labels = make_logical_vol_labels(*world);
 
@@ -95,7 +48,7 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
             }
             else
             {
-                result.missing_names.push_back(to_string(label));
+                result.missing_labels.push_back(to_string(label));
                 return Result::missing;
             }
         }();
@@ -116,12 +69,13 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
 }
 
 //---------------------------------------------------------------------------//
-GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
-                                             G4VPhysicalVolume const* world)
+GeantImportVolumeResult
+GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom,
+                                       G4VPhysicalVolume const* world)
 {
     CELER_VALIDATE(world, << "world volume is nullptr");
 #if CELERITAS_USE_GEANT4
-    using Result = GenericGeoGeantImportVolumeResult;
+    using Result = GeantImportVolumeResult;
 
     Result result;
     for (G4LogicalVolume* lv : celeritas::geant_logical_volumes())
@@ -136,7 +90,7 @@ GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
                                     : Result::missing);
         if (!id)
         {
-            result.missing_names.push_back(lv->GetName());
+            result.missing_labels.push_back(lv->GetName());
         }
     }
     return result;
@@ -144,6 +98,26 @@ GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
     CELER_DISCARD(geom);
     CELER_NOT_CONFIGURED("Geant4");
 #endif
+}
+
+//---------------------------------------------------------------------------//
+void GeantImportVolumeResult::print_expected() const
+{
+    using std::cout;
+
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "static int const expected_volumes[] = "
+         << repr(this->volumes)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
+            "EXPECT_EQ(0, result.missing_labels.size()) << "
+            "repr(result.missing_labels);\n";
+    if (!this->missing_labels.empty())
+    {
+        cout << "/* Currently missing: " << repr(this->missing_labels)
+             << " */\n";
+    }
+    cout << "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//

@@ -24,6 +24,8 @@ struct System;
 //---------------------------------------------------------------------------//
 /*!
  * Options for loading problem data from a ROOT/JSON file.
+ *
+ * This should be a serialized version of a \c celeritas::inp::Problem .
  */
 struct FileImport
 {

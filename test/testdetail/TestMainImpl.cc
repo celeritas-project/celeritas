@@ -153,10 +153,10 @@ int test_main(int argc, char** argv)
 
     // Run everything
     int failed = RUN_ALL_TESTS();
+
+    // Check that all processes ran at least one test
     bool no_tests = testing::UnitTest::GetInstance()->test_to_run_count() == 0;
     failed += (no_tests ? 1 : 0);
-
-    // Find out if any process failed
     failed = allreduce(comm, Operation::max, failed);
 
     // If no tests were run, there's a problem.
@@ -175,6 +175,12 @@ int test_main(int argc, char** argv)
         cout << color_code('x') << (argc > 0 ? argv[0] : "UNKNOWN")
              << ": tests " << (failed ? "FAILED" : "PASSED") << color_code(' ')
              << endl;
+    }
+
+    if (auto& d = celeritas::device())
+    {
+        // Destroy device before exiting
+        d.destroy_streams();
     }
 
     // Return 1 if any failure, 0 if all success

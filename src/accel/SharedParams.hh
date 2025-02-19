@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "geocel/BoundingBox.hh"
 
 class G4ParticleDefinition;
 
@@ -97,9 +98,6 @@ class SharedParams
     // Construct Celeritas using Geant4 data on the master thread.
     explicit SharedParams(SetupOptions const& options);
 
-    // Construct for output only
-    explicit SharedParams(std::string output_filename);
-
     // Initialize shared data on the "master" thread
     inline void Initialize(SetupOptions const& options);
 
@@ -131,6 +129,7 @@ class SharedParams
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPState = std::shared_ptr<CoreStateInterface>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
+    using BBox = BoundingBox<double>;
 
     //! Initialization status and integration mode
     Mode mode() const { return mode_; }
@@ -152,6 +151,9 @@ class SharedParams
 
     // Geant geometry wrapper, lazily created
     SPConstGeantGeoParams const& geant_geo_params() const;
+
+    // Geometry bounding box (CLHEP units)
+    BBox const& bbox() const { return bbox_; }
     //!@}
 
   private:
@@ -170,6 +172,7 @@ class SharedParams
     // Lazily created
     SPOutputRegistry output_reg_;
     SPConstGeantGeoParams geant_geo_;
+    BBox bbox_;
 
     //// HELPER FUNCTIONS ////
 

@@ -40,6 +40,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreParams.hh"
 
 #include "Runner.hh"
 #include "RunnerInput.hh"
@@ -69,9 +70,9 @@ int get_openmp_thread()
 
 //---------------------------------------------------------------------------//
 /*!
- * Run, launch, and output.
+ * Run, launch, and get output.
  */
-void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
+std::shared_ptr<OutputRegistry> run(std::istream* is)
 {
     CELER_EXPECT(is);
     ScopedMem record_mem("celer-sim.run");
@@ -79,8 +80,6 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     // Read input options and save a copy for output
     auto run_input = std::make_shared<RunnerInput>();
     nlohmann::json::parse(*is).get_to(*run_input);
-    output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
-        OutputInterface::Category::input, "*", run_input));
 
     // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
@@ -89,13 +88,17 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 
     // Create runner and save setup time
     Stopwatch get_setup_time;
-    Runner run_stream(*run_input, output);
+    Runner run_stream(*run_input);
     SimulationResult result;
     result.setup_time = get_setup_time();
-    if (run_input->transporter_result)
-    {
-        result.events.resize(run_stream.num_events());
-    }
+    result.events.resize(
+        run_input->transporter_result ? run_stream.num_events() : 1);
+
+    // Add processed input to resulting output
+    auto output = run_stream.core_params().output_reg();
+    CELER_ASSERT(output);
+    output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
+        OutputInterface::Category::input, "*", run_input));
 
     // Allocate device streams, or use the default stream if there is only one.
     size_type num_streams = run_stream.num_streams();
@@ -155,6 +158,8 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     result.total_time = get_transport_time();
     record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
+
+    return output;
 }
 
 //---------------------------------------------------------------------------//
@@ -222,10 +227,10 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device();
-
     if (filename == "--device"sv)
     {
+        celeritas::activate_device();
+
         if (celeritas::Device::num_devices() == 0)
         {
             CELER_LOG(critical) << "No GPUs were detected";
@@ -255,26 +260,40 @@ int main(int argc, char* argv[])
     }
 
     // Set up output
-    auto output = std::make_shared<celeritas::OutputRegistry>();
+    std::shared_ptr<celeritas::OutputRegistry> output;
 
     int return_code = EXIT_SUCCESS;
     try
     {
-        celeritas::app::run(instream, output);
+        output = celeritas::app::run(instream);
+        CELER_ASSERT(output);
     }
     catch (std::exception const& e)
     {
         CELER_LOG(critical)
             << "While running input at " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
+        if (!output)
+        {
+            output = std::make_shared<celeritas::OutputRegistry>();
+        }
         output->insert(std::make_shared<celeritas::ExceptionOutput>(
             std::current_exception()));
     }
 
     // Write system properties and (if available) results
     CELER_LOG(status) << "Saving output";
+    CELER_ASSERT(output);
     output->output(&cout);
     cout << endl;
+
+    // Delete streams before end of program (TODO: this is because of a static
+    // initialization order issue; CUDA can be deactivated before the global
+    // celeritas::device is reset)
+    if (auto& d = celeritas::device())
+    {
+        d.destroy_streams();
+    }
 
     return return_code;
 }

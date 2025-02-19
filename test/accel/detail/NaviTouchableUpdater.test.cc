@@ -33,20 +33,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test with simple CMS geometry.
- *
- * | Radius [cm] | Volume name |
- * | ----------: | ----------- |
- * |          0  |             |
- * |         30  | vacuum_tube |
- * |        125  | si_tracker |
- * |        175  | em_calorimeter |
- * |        275  | had_calorimeter |
- * |        375  | sc_solenoid |
- * |        700  | fe_muon_chambers |
- * |             | world |
+ * Base class for navigation touchable updater.
  */
-class NaviTouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
+class NaviTouchableUpdaterBase : public ::celeritas::test::GeantGeoTestBase
 {
   protected:
     using TouchableUpdater = NaviTouchableUpdater;
@@ -57,8 +46,6 @@ class NaviTouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
     {
         return this->build_geometry_from_basename();
     }
-
-    std::string geometry_basename() const override { return "simple-cms"; }
 
     G4LogicalVolume const* find_lv(std::string const& name) const
     {
@@ -82,7 +69,28 @@ class NaviTouchableUpdaterTest : public ::celeritas::test::GeantGeoTestBase
     G4TouchableHandle touch_handle_;
 };
 
-TEST_F(NaviTouchableUpdaterTest, correct)
+//---------------------------------------------------------------------------//
+/*!
+ * Test with simple CMS geometry.
+ *
+ * | Radius [cm] | Volume name |
+ * | ----------: | ----------- |
+ * |          0  |             |
+ * |         30  | vacuum_tube |
+ * |        125  | si_tracker |
+ * |        175  | em_calorimeter |
+ * |        275  | had_calorimeter |
+ * |        375  | sc_solenoid |
+ * |        700  | fe_muon_chambers |
+ * |             | world |
+ */
+class SimpleCmsNaviTest : public NaviTouchableUpdaterBase
+{
+  public:
+    std::string geometry_basename() const final { return "simple-cms"; }
+};
+
+TEST_F(SimpleCmsNaviTest, correct)
 {
     TouchableUpdater update = this->make_touchable_updater();
     auto update_cm = [&](Real3 const& pos_cm, std ::string lv_name) {
@@ -97,7 +105,7 @@ TEST_F(NaviTouchableUpdaterTest, correct)
     EXPECT_TRUE(update_cm({150, 0, 0}, "em_calorimeter"));
 }
 
-TEST_F(NaviTouchableUpdaterTest, just_inside)
+TEST_F(SimpleCmsNaviTest, just_inside)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.5 * TouchableUpdater::max_quiet_step();
@@ -117,7 +125,7 @@ TEST_F(NaviTouchableUpdaterTest, just_inside)
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(NaviTouchableUpdaterTest, coincident)
+TEST_F(SimpleCmsNaviTest, coincident)
 {
     TouchableUpdater update = this->make_touchable_updater();
     auto* th = this->touchable_history();
@@ -139,7 +147,7 @@ TEST_F(NaviTouchableUpdaterTest, coincident)
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(NaviTouchableUpdaterTest, coincident_tangent)
+TEST_F(SimpleCmsNaviTest, coincident_tangent)
 {
     TouchableUpdater update = this->make_touchable_updater();
 
@@ -155,15 +163,14 @@ TEST_F(NaviTouchableUpdaterTest, coincident_tangent)
         update({r, 0, 0}, {0, 1, 0}, this->find_lv("em_calorimeter"), th));
 
     static char const* const expected_log_messages[] = {
-        "Failed to bump navigation state up to a distance of 1 [mm] at {1250, "
-        "0, 0} [mm] along {0, 1, 0} to try to reach \"si_tracker\"@0x0 "
-        "(ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}"};
+        R"(Failed to bump navigation state up to a distance of 1 [mm] at {1250, 0, 0} [mm] along {0, 1, 0} to try to reach "si_tracker"@0x0 (ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}})",
+    };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[] = {"warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(NaviTouchableUpdaterTest, just_outside_nowarn)
+TEST_F(SimpleCmsNaviTest, just_outside_nowarn)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.1 * TouchableUpdater::max_quiet_step();
@@ -185,7 +192,7 @@ TEST_F(NaviTouchableUpdaterTest, just_outside_nowarn)
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(NaviTouchableUpdaterTest, just_outside_warn)
+TEST_F(SimpleCmsNaviTest, just_outside_warn)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 0.1 * TouchableUpdater::max_step();
@@ -204,39 +211,34 @@ TEST_F(NaviTouchableUpdaterTest, just_outside_warn)
         EXPECT_TRUE(update_x(from_cm(125) + eps, -xdir));
     }
 
-    static char const* const expected_log_messages[]
-        = {"Bumping navigation state by 0.10000000000003 [mm] at {299.9, 0, "
-           "0} [mm] along {1, 0, 0} from {{pv='vacuum_tube_pv', "
-           "lv=0='vacuum_tube'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
-           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
-           "Bumping navigation state by 0.1000000000001 [mm] at {1250.1, 0, "
-           "0} [mm] along {-1, 0, 0} from {{pv='em_calorimeter_pv', "
-           "lv=2='em_calorimeter'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
-           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
-           "Bumping navigation state by 0.10000000000003 [mm] at {299.9, 0, "
-           "0} [mm] along {1, -0, -0} from {{pv='vacuum_tube_pv', "
-           "lv=0='vacuum_tube'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
-           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
-           "Bumping navigation state by 0.1000000000001 [mm] at {1250.1, 0, "
-           "0} [mm] along {-1, -0, -0} from {{pv='em_calorimeter_pv', "
-           "lv=2='em_calorimeter'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
-           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}"};
+    static char const* const expected_log_messages[] = {
+        R"(Bumping navigation state by 0.10000000000003 [mm] at {299.9, 0, 0} [mm] along {1, 0, 0} from {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}} to try to reach "si_tracker"@0x0 (ID=1))",
+        "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
+        R"(Bumping navigation state by 0.1000000000001 [mm] at {1250.1, 0, 0} [mm] along {-1, 0, 0} from {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}} to try to reach "si_tracker"@0x0 (ID=1))",
+        "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
+        R"(Bumping navigation state by 0.10000000000003 [mm] at {299.9, 0, 0} [mm] along {1, -0, -0} from {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}} to try to reach "si_tracker"@0x0 (ID=1))",
+        "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
+        R"(Bumping navigation state by 0.1000000000001 [mm] at {1250.1, 0, 0} [mm] along {-1, -0, -0} from {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}} to try to reach "si_tracker"@0x0 (ID=1))",
+        "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
+    };
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
-    static char const* const expected_log_levels[] = {"warning",
-                                                      "diagnostic",
-                                                      "warning",
-                                                      "diagnostic",
-                                                      "warning",
-                                                      "diagnostic",
-                                                      "warning",
-                                                      "diagnostic"};
+    static char const* const expected_log_levels[] = {
+        "warning",
+        "diagnostic",
+        "warning",
+        "diagnostic",
+        "warning",
+        "diagnostic",
+        "warning",
+        "diagnostic",
+    };
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(NaviTouchableUpdaterTest, too_far)
+TEST_F(SimpleCmsNaviTest, too_far)
 {
     TouchableUpdater update = this->make_touchable_updater();
     real_type const eps = 10 * TouchableUpdater::max_step();
@@ -267,7 +269,7 @@ TEST_F(NaviTouchableUpdaterTest, too_far)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(NaviTouchableUpdaterTest, regression)
+TEST_F(SimpleCmsNaviTest, regression)
 {
     using Real2 = Array<real_type, 2>;
 
@@ -330,36 +332,116 @@ TEST_F(NaviTouchableUpdaterTest, regression)
     };
     EXPECT_VEC_SOFT_EQ(expected_ndot, ndot);
 
-    static char const* const expected_log_messages[]
-        = {"Bumping navigation state by 0.09071774570126 [mm] at "
-           "{-180.84752203436, -1236.8514741857, 80.959574210285} [mm] along "
-           "{-0.34086888072834, 0.082800146878107, 0.9364574426144} from "
-           "{{pv='em_calorimeter_pv', lv=2='em_calorimeter'}} to try to reach "
-           "\"si_tracker\"@0x0 (ID=1)",
-           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
-           "Bumping navigation state by 0.15847742469601 [mm] at "
-           "{128.83413807803, -270.82102012142, -2672.7505039643} [mm] along "
-           "{0.77015590259216, -0.30608417592167, -0.55961805095334} from "
-           "{{pv='vacuum_tube_pv', lv=0='vacuum_tube'}} to try to reach "
-           "\"si_tracker\"@0x0 (ID=1)",
-           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
-           "Bumping navigation state by 0.56824514959388 [mm] at "
-           "{-206.25679395806, -217.74488354803, -954.9663190649} [mm] along "
-           "{0.61713971785822, -0.76637525189352, 0.17834669026092} from "
-           "{{pv='vacuum_tube_pv', lv=0='vacuum_tube'}} to try to reach "
-           "\"si_tracker\"@0x0 (ID=1)",
-           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}"};
+    static char const* const expected_log_messages[] = {
+        R"(Bumping navigation state by 0.09071774570126 [mm] at {-180.84752203436, -1236.8514741857, 80.959574210285} [mm] along {-0.34086888072834, 0.082800146878107, 0.9364574426144} from {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}} to try to reach "si_tracker"@0x0 (ID=1))",
+        R"(...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}})",
+        R"(Bumping navigation state by 0.15847742469601 [mm] at {128.83413807803, -270.82102012142, -2672.7505039643} [mm] along {0.77015590259216, -0.30608417592167, -0.55961805095334} from {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}} to try to reach "si_tracker"@0x0 (ID=1))",
+        R"(...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}})",
+        R"(Bumping navigation state by 0.56824514959388 [mm] at {-206.25679395806, -217.74488354803, -954.9663190649} [mm] along {0.61713971785822, -0.76637525189352, 0.17834669026092} from {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}} to try to reach "si_tracker"@0x0 (ID=1))",
+        R"(...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}})",
+    };
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
-    static char const* const expected_log_levels[] = {"warning",
-                                                      "diagnostic",
-                                                      "warning",
-                                                      "diagnostic",
-                                                      "warning",
-                                                      "diagnostic"};
+    static char const* const expected_log_levels[] = {
+        "warning",
+        "diagnostic",
+        "warning",
+        "diagnostic",
+        "warning",
+        "diagnostic",
+    };
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test with multi-level geometry.
+ *
+ * See https://github.com/celeritas-project/g4vg/issues/16 , test point code is
+ * from GeantGeo.test.cc MultiLevelTest.level_strings
+ */
+class MultiLevelNaviTest : public NaviTouchableUpdaterBase
+{
+  public:
+    std::string geometry_basename() const final { return "multi-level"; }
+};
+
+TEST_F(MultiLevelNaviTest, all_points)
+{
+    static struct Inp
+    {
+        real_type x;
+        real_type y;
+        char const* lv;
+    } lv_names[] = {
+        {-5, 0, "world"},
+        {0, 0, "sph"},
+        {12.75, 12.75, "sph"},
+        {7.25, 12.75, "box"},
+        {12.75, 7.25, "tri"},
+        {7.25, 7.25, "sph"},
+        {-7.25, 12.75, "sph"},
+        {-12.75, 12.75, "box"},
+        {-7.25, 7.25, "tri"},
+        {-12.75, 7.25, "sph"},
+        {12.75, -7.25, "tri_refl"},
+        {7.25, -7.25, "sph_refl"},
+        {12.75, -12.75, "sph_refl"},
+        {7.25, -12.75, "box_refl"},
+        {-7.25, -7.25, "box"},
+        {-12.75, -7.25, "sph"},
+        {-7.25, -12.75, "sph"},
+        {-12.75, -12.75, "tri"},
+    };
+
+    TouchableUpdater update = this->make_touchable_updater();
+    auto* touch = this->touchable_history();
+    ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+                                LogLevel::diagnostic};
+
+    std::vector<std::string> replicas;
+    for (auto&& [x, y, lv_name] : lv_names)
+    {
+        update(from_cm(Real3{x, y, 0}),
+               Real3{1, 0, 0},
+               this->find_lv(lv_name),
+               touch);
+
+        // Get the replica/copy numbers
+        replicas.push_back([touch] {
+            std::ostringstream os;
+            os << touch->GetReplicaNumber(0);
+            for (auto i : range(1, touch->GetHistoryDepth() + 1))
+            {
+                os << ',' << touch->GetReplicaNumber(i);
+            }
+            return std::move(os).str();
+        }());
+    }
+
+    static char const* const expected_replicas[] = {
+        "0",
+        "0,0",
+        "31,21,0",
+        "21,0",
+        "1,21,0",
+        "32,21,0",
+        "31,22,0",
+        "22,0",
+        "1,22,0",
+        "32,22,0",
+        "1,24,0",
+        "32,24,0",
+        "31,24,0",
+        "24,0",
+        "23,0",
+        "32,23,0",
+        "31,23,0",
+        "1,23,0",
+    };
+    EXPECT_VEC_EQ(expected_replicas, replicas);
 }
 
 //---------------------------------------------------------------------------//

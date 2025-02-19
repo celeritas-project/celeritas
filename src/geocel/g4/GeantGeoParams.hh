@@ -82,6 +82,12 @@ class GeantGeoParams final : public GeoParamsInterface,
     // DEPRECATED
     using GeoParamsInterface::find_volume;
 
+    //! Offset of logical volume ID after reloading geometry
+    VolumeId::size_type lv_offset() const { return lv_offset_; }
+
+    //! Offset of physical volume ID after reloading geometry
+    VolumeId::size_type pv_offset() const { return pv_offset_; }
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host

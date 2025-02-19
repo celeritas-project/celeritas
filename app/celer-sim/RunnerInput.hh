@@ -6,10 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
@@ -18,6 +22,7 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
+#include "celeritas/user/RootStepWriterInput.hh"
 
 #ifdef _WIN32
 #    include <cstdlib>
