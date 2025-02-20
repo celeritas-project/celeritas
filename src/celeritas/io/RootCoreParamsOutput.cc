@@ -2,43 +2,20 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-sim/RootOutput.cc
+//! \file celeritas/io/RootCoreParamsOutput.cc
 //---------------------------------------------------------------------------//
-#include "RootOutput.hh"
+#include "RootCoreParamsOutput.hh"
 
 #include <string>
 #include <vector>
 #include <TTree.h>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-#include "celeritas/global/CoreParams.hh"
-
-#include "RunnerInput.hh"
-#include "RunnerInputIO.json.hh"
+#include "celeritas/ext/RootFileManager.hh"
 
 namespace celeritas
 {
-namespace app
-{
-//---------------------------------------------------------------------------//
-/*!
- * Store input information to the ROOT MC truth output file.
- */
-void write_to_root(RunnerInput const& cargs, RootFileManager* root_manager)
-{
-    CELER_EXPECT(cargs);
-    CELER_EXPECT(root_manager);
-
-    std::string str_input(nlohmann::json(cargs).dump());
-    std::string str_phys(nlohmann::json(cargs.physics_options).dump());
-
-    auto tree_input = root_manager->make_tree("input", "input");
-    tree_input->Branch("input", &str_input);
-    tree_input->Branch("physics_options", &str_phys);
-    tree_input->Fill();  // Writing happens at destruction
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Store CoreParams data to the ROOT MC truth output file.
@@ -48,10 +25,9 @@ void write_to_root(RunnerInput const& cargs, RootFileManager* root_manager)
  * other parameters are needed for future debugging/analyses, this function can
  * easily be expanded.
  */
-void write_to_root(CoreParams const& core_params, RootFileManager* root_manager)
+void write_to_root(ActionRegistry const& action_reg,
+                   RootFileManager* root_manager)
 {
-    auto const& action_reg = *core_params.action_reg();
-
     // Initialize CoreParams TTree
     auto tree_params = root_manager->make_tree("core_params", "core_params");
 
@@ -77,5 +53,4 @@ void write_to_root(CoreParams const& core_params, RootFileManager* root_manager)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

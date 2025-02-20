@@ -26,6 +26,30 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
+struct TestResult
+{
+    std::vector<double> coords;
+    std::vector<std::string> replicas;
+
+    void print_expected() const;
+};
+
+void TestResult::print_expected() const
+{
+    using std::cout;
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "static double const expected_coords[] = "
+         << repr(this->coords)
+         << ";\n"
+            "EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);\n"
+            "static char const* const expected_replicas[] = "
+         << repr(this->replicas)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_replicas, result.replicas);\n"
+            "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Test with multi-level geometry using "core" implementation.
  */
@@ -65,65 +89,69 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
         auto const& geo = *this->geometry();
         auto const& vol_inst = geo.volume_instances();
 
-        // Pad the remaining depth with empty volumes
-        VecVI result(geo.max_depth());
-        auto name_iter = names.begin();
-        for (auto i : range(names.size()))
-        {
-            result[i] = vol_inst.find_unique(std::string(*name_iter++));
-            CELER_ASSERT(result[i]);
-        }
-        CELER_ASSERT(name_iter == names.end());
+        CELER_VALIDATE(names.size() < geo.max_depth() + 1,
+                       << "input stack is too deep: " << names.size()
+                       << " exceeds " << geo.max_depth());
 
+        VecVI result;
+        std::vector<std::string_view> missing;
+        for (std::string_view sv : names)
+        {
+            auto vi = vol_inst.find_exact(Label::from_separator(sv));
+            if (!vi)
+            {
+                missing.push_back(sv);
+                continue;
+            }
+            result.push_back(vi);
+        }
+        CELER_VALIDATE(missing.empty(),
+                       << "missing PVs from stack: "
+                       << join(missing.begin(), missing.end(), ','));
+
+        // Fill extra entries with empty volumes
+        result.resize(geo.max_depth() + 1);
         return result;
     }
 
     G4VTouchable* touchable_history() { return touch_handle_(); }
 
+    TestResult run(Span<IListSView const> names);
+
   private:
     G4TouchableHandle touch_handle_;
 };
 
-// See GeantGeoUtils.test.cc : MultiLevelTest.set_history
-TEST_F(LevelTouchableUpdaterTest, all)
+//---------------------------------------------------------------------------//
+TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        GTEST_SKIP() << "ORANGE doesn't support volume instances";
-    }
-
-    static IListSView const all_level_names[] = {
-        {"world_PV"},
-        {"world_PV", "topsph1"},
-        {"world_PV"},
-        {"world_PV", "topbox1", "boxsph2"},
-        {"world_PV", "topbox1"},
-        {"world_PV", "topbox1", "boxsph1"},
-        {"world_PV", "topbox2", "boxsph2"},
-        {"world_PV", "topbox2", "boxsph1"},
-        {"world_PV", "topbox4"},
-        {"world_PV", "topbox3", "boxsph1"},
-        {"world_PV", "topbox3", "boxsph2"},
-    };
+    TestResult result;
 
     TouchableUpdater update = this->make_touchable_updater();
     auto* touch = this->touchable_history();
 
-    std::vector<double> coords;
-    std::vector<std::string> replicas;
-
-    for (IListSView level_names : all_level_names)
+    for (IListSView level_names : names)
     {
         // Update the touchable
         auto vi_stack = this->find_vi_stack(level_names);
-        EXPECT_TRUE(update(make_span(vi_stack), this->touchable_history()));
+        try
+        {
+            EXPECT_TRUE(update(make_span(vi_stack), this->touchable_history()));
+        }
+        catch (celeritas::RuntimeError const& e)
+        {
+            ADD_FAILURE() << e.what();
+            result.coords.insert(result.coords.end(), {0, 0});
+            result.replicas.push_back(e.details().what);
+            continue;
+        }
 
         // Get the local-to-global x/y translation coordinates
         auto const& trans = touch->GetTranslation(0);
-        coords.insert(coords.end(), {trans.x(), trans.y()});
+        result.coords.insert(result.coords.end(), {trans.x(), trans.y()});
 
         // Get the replica/copy numbers
-        replicas.push_back([touch] {
+        result.replicas.push_back([touch] {
             std::ostringstream os;
             os << touch->GetReplicaNumber(0);
             for (auto i : range(1, touch->GetHistoryDepth() + 1))
@@ -133,27 +161,114 @@ TEST_F(LevelTouchableUpdaterTest, all)
             return std::move(os).str();
         }());
     }
+    return result;
+}
+
+// See GeantGeoUtils.test.cc : MultiLevelTest.set_history
+TEST_F(LevelTouchableUpdaterTest, out_of_order)
+{
+    static IListSView const all_level_names[] = {
+        {"world_PV"},
+        {"world_PV", "topsph1"},
+        {"world_PV"},
+        {"world_PV", "topbox1"},
+        {"world_PV", "topbox1", "boxsph1@0"},
+        {"world_PV", "topbox2", "boxsph1@0"},
+        {"world_PV", "topbox4", "boxsph1@1"},
+        {"world_PV", "topbox4"},
+        {"world_PV", "topbox3"},
+        {"world_PV", "topbox1", "boxsph2@0"},
+        {"world_PV", "topbox2", "boxsph2@0"},
+        {"world_PV", "topbox1", "boxtri@0"},
+        {"world_PV", "topbox2", "boxtri@1"},
+        {"world_PV", "topbox3", "boxsph1@0"},
+        {"world_PV", "topbox3", "boxsph2@0"},
+        {"world_PV", "topbox4", "boxsph2@1"},
+        {"world_PV", "topbox4", "boxtri@1"},
+    };
+
+    auto result = run(all_level_names);
 
     static double const expected_coords[] = {
-        -0,  -0,   -0, -0,  -0,  -0,  75,   75,  100, 100,  125,
-        125, -125, 75, -75, 125, 100, -100, -75, -75, -125, -125,
+        -0,  -0,   -0,  -0,   -0,   -0,   100, 100, 125,  125, -75, 125,
+        125, -125, 100, -100, -100, -100, 75,  75,  -125, 75,  125, 75,
+        -75, 75,   -75, -125, -125, -75,  75,  -75, 125,  -75,
     };
+    EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);
     static char const* const expected_replicas[] = {
         "0",
-        "11,0",
+        "0,0",
         "0",
-        "32,21,0",
         "21,0",
         "31,21,0",
-        "32,22,0",
         "31,22,0",
-        "12,0",
+        "31,24,0",
+        "24,0",
+        "23,0",
+        "32,21,0",
+        "32,22,0",
+        "1,21,0",
+        "1,22,0",
         "31,23,0",
         "32,23,0",
+        "32,24,0",
+        "1,24,0",
+    };
+    EXPECT_VEC_EQ(expected_replicas, result.replicas);
+}
+
+TEST_F(LevelTouchableUpdaterTest, all_points)
+{
+    static IListSView const all_level_names[] = {
+        {"world_PV"},
+        {"world_PV", "topsph1"},
+        {"world_PV", "topbox1", "boxsph1@0"},
+        {"world_PV", "topbox1"},
+        {"world_PV", "topbox1", "boxtri@0"},
+        {"world_PV", "topbox1", "boxsph2@0"},
+        {"world_PV", "topbox2", "boxsph1@0"},
+        {"world_PV", "topbox2"},
+        {"world_PV", "topbox2", "boxtri@0"},
+        {"world_PV", "topbox2", "boxsph2@0"},
+        {"world_PV", "topbox4", "boxtri@1"},
+        {"world_PV", "topbox4", "boxsph2@1"},
+        {"world_PV", "topbox4", "boxsph1@1"},
+        {"world_PV", "topbox4"},
+        {"world_PV", "topbox3"},
+        {"world_PV", "topbox3", "boxsph2@0"},
+        {"world_PV", "topbox3", "boxsph1@0"},
+        {"world_PV", "topbox3", "boxtri@0"},
     };
 
-    EXPECT_VEC_SOFT_EQ(expected_coords, coords);
-    EXPECT_VEC_EQ(expected_replicas, replicas);
+    auto result = run(all_level_names);
+
+    static double const expected_coords[] = {
+        -0,  -0,   -0,   -0,   125,  125,  100,  100, 125, 75,   75,   75,
+        -75, 125,  -100, 100,  -75,  75,   -125, 75,  125, -75,  75,   -75,
+        125, -125, 100,  -100, -100, -100, -125, -75, -75, -125, -125, -125,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);
+    static char const* const expected_replicas[] = {
+        "0",
+        "0,0",
+        "31,21,0",
+        "21,0",
+        "1,21,0",
+        "32,21,0",
+        "31,22,0",
+        "22,0",
+        "1,22,0",
+        "32,22,0",
+        "1,24,0",
+        "32,24,0",
+        "31,24,0",
+        "24,0",
+        "23,0",
+        "32,23,0",
+        "31,23,0",
+        "1,23,0",
+    };
+    EXPECT_VEC_EQ(expected_replicas, result.replicas);
 }
 
 //---------------------------------------------------------------------------//

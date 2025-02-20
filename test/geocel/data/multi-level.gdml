@@ -3,8 +3,38 @@
 
   <define/>
 
+  <materials>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="1.0" ref="Ar40"/>
+    </element>
+    <material name="lAr" state="liquid">
+      <T unit="K" value="293.15"/>
+      <D unit="g/cm3" value="1.396"/>
+      <fraction n="1" ref="Ar"/>
+    </material>
+    <isotope N="208" Z="82" name="Pb208">
+      <atom unit="g/mole" value="207.977"/>
+    </isotope>
+    <element name="Pb-el">
+      <fraction n="0.524" ref="Pb208"/>
+    </element>
+    <material name="Pb" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="823"/>
+      <D unit="g/cm3" value="11.35"/>
+      <fraction n="1" ref="Pb-el"/>
+    </material>
+  </materials>
+
   <solids>
     <orb lunit="mm" name="sph" r="20"/>
+    <polyhedra name="tri" aunit="deg" deltaphi="360" lunit="mm" numsides="3" startphi="30">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
     <box lunit="mm" name="box" x="150" y="150" z="150"/>
     <box lunit="mm" name="worldbox" x="480" y="480" z="480"/>
   </solids>
@@ -12,9 +42,18 @@
   <structure>
     <volume name="sph">
       <solidref ref="sph"/>
+      <materialref ref="lAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="sph_sd"/>
+    </volume>
+    <volume name="tri">
+      <solidref ref="tri"/>
+      <materialref ref="lAr"/>
+      <physvol name="trisph">
+      </physvol>
     </volume>
     <volume name="box">
       <solidref ref="box"/>
+      <materialref ref="Pb"/>
       <physvol copynumber="31" name="boxsph1">
         <volumeref ref="sph"/>
         <position name="bs1_pos" unit="mm" x="25.0" y="25.0" z="0.0"/>
@@ -23,16 +62,21 @@
         <volumeref ref="sph"/>
         <position name="bs2_pos" unit="mm" x="-25.0" y="-25.0" z="0.0"/>
       </physvol>
+      <physvol copynumber="1" name="boxtri">
+        <volumeref ref="tri"/>
+        <position name="bt_pos" unit="mm" x="25.0" y="-25.0" z="0.0"/>
+      </physvol>
     </volume>
     <volume name="world">
       <solidref ref="worldbox"/>
-      <physvol copynumber="11" name="topsph1">
-        <volumeref ref="sph"/>
-        <position name="ts1_pos" unit="mm" x="0.0" y="0.0" z="0.0"/>
-      </physvol>
+      <materialref ref="lAr"/>
       <physvol copynumber="21" name="topbox1">
         <volumeref ref="box"/>
         <position name="tb1_pos" unit="mm" x="100.0" y="100.0" z="0.0"/>
+      </physvol>
+      <physvol copynumber="0" name="topsph1">
+        <volumeref ref="sph"/>
+        <position name="ts1_pos" unit="mm" x="0.0" y="0.0" z="0.0"/>
       </physvol>
       <physvol copynumber="22" name="topbox2">
         <volumeref ref="box"/>
@@ -41,10 +85,12 @@
       <physvol copynumber="23" name="topbox3">
         <volumeref ref="box"/>
         <position name="tb3_pos" unit="mm" x="-100.0" y="-100.0" z="0.0"/>
+        <rotation name="tb3_rot" unit="deg" x="0" y="0" z="90"/>
       </physvol>
-      <physvol copynumber="12" name="topbox4">
+      <physvol copynumber="24" name="topbox4">
         <volumeref ref="box"/>
-        <position name="ts2_pos" unit="mm" x="100.0" y="-100.0" z="0.0"/>
+        <position name="tb4_pos" unit="mm" x="100.0" y="-100.0" z="0.0"/>
+        <scale name="tb4_refl" x="1" y="-1" z="1"/>
       </physvol>
     </volume>
   </structure>

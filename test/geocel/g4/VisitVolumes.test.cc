@@ -119,7 +119,15 @@ TEST_F(MultiLevelTest, logical)
     LogicalVisitor visit;
     visit_volumes(visit, *this->geometry()->world());
 
-    static char const* const expected_names[] = {"world", "sph", "box"};
+    static char const* const expected_names[] = {
+        "world",
+        "box",
+        "sph",
+        "tri",
+        "box_refl",
+        "sph_refl",
+        "tri_refl",
+    };
     EXPECT_VEC_EQ(expected_names, visit.names);
 }
 
@@ -132,19 +140,23 @@ TEST_F(MultiLevelTest, physical)
 
     static char const* const expected_names[] = {
         "0:world_PV",
-        "1:topsph1",
         "1:topbox1",
         "2:boxsph1",
         "2:boxsph2",
+        "2:boxtri",
+        "1:topsph1",
         "1:topbox2",
         "2:boxsph1",
         "2:boxsph2",
+        "2:boxtri",
         "1:topbox3",
         "2:boxsph1",
         "2:boxsph2",
+        "2:boxtri",
         "1:topbox4",
         "2:boxsph1",
         "2:boxsph2",
+        "2:boxtri",
     };
     EXPECT_VEC_EQ(expected_names, visit.names);
 
@@ -152,13 +164,17 @@ TEST_F(MultiLevelTest, physical)
     visit_volume_instances(visit_max, *this->geometry()->world());
     static std::string const expected_max_names[] = {
         "0:world_PV",
-        "1:topsph1",
         "1:topbox1",
         "2:boxsph1",
         "2:boxsph2",
+        "2:boxtri",
+        "1:topsph1",
         "1:topbox2",
         "1:topbox3",
         "1:topbox4",
+        "2:boxsph1",
+        "2:boxsph2",
+        "2:boxtri",
     };
     EXPECT_VEC_EQ(expected_max_names, visit_max.names);
 }

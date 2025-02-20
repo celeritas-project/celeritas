@@ -2,36 +2,35 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/Model.hh
+//! \file geocel/CmsEeBackDeeGeoTest.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
-#include <variant>
+#include <string_view>
 
-class G4VPhysicalVolume;
+#include "GenericGeoTestInterface.hh"
 
 namespace celeritas
 {
-namespace inp
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up geometry/material model.
- *
- * The geometry filename should almost always be a GDML path. As a temporary
- * measure we also support loading from a \c .org.json file if the \c
- * StandaloneInput::physics_import is a ROOT file with serialized physics data.
+ * Test the four-levels geometry.
  */
-struct Model
+class CmsEeBackDeeGeoTest
 {
-    //! Path to GDML file, or Geant4 world
-    std::variant<std::string, G4VPhysicalVolume const*> geometry;
+  public:
+    static std::string_view geometry_basename() { return "cms-ee-back-dee"; }
 
-    // TODO: Materials
-    // TODO: Regions
+    CmsEeBackDeeGeoTest(GenericGeoTestInterface* geo_test);
+    void test_accessors() const;
+    void test_trace() const;
+
+  private:
+    GenericGeoTestInterface* test_;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace inp
+}  // namespace test
 }  // namespace celeritas

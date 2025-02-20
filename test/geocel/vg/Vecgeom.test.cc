@@ -29,6 +29,7 @@
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
+#include "../CmsEeBackDeeGeoTest.hh"
 #include "../CmseGeoTest.hh"
 #include "../FourLevelsGeoTest.hh"
 #include "../GeantImportVolumeResult.hh"
@@ -645,6 +646,21 @@ TEST_F(SolidsVgdmlTest, reflected_vol)
 // G4VG TESTS
 //---------------------------------------------------------------------------//
 
+using CmsEeBackDeeTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, CmsEeBackDeeGeoTest>;
+
+TEST_F(CmsEeBackDeeTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(CmsEeBackDeeTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+
 using CmseTest = GenericGeoParameterizedTest<VecgeomGeantTestBase, CmseGeoTest>;
 
 TEST_F(CmseTest, trace)
@@ -701,42 +717,7 @@ using MultiLevelTest
 
 TEST_F(MultiLevelTest, accessors)
 {
-    // NOTE: the volume instances are out of order compared to VGDML-loaded
-    // ones.
-    auto const& geo = *this->geometry();
-    EXPECT_EQ(3, geo.max_depth());
-
-    static char const* const expected_vol_labels[] = {
-        "sph",
-        "box",
-        "world",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
-
-    // NOTE: pv ordering differs from VGDML and G4
-    static char const* const expected_vol_inst_labels[] = {
-        "topsph1",
-        "boxsph1",
-        "boxsph2",
-        "topbox1",
-        "topbox2",
-        "topbox3",
-        "topbox4",
-        "world_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
-
-    static char const* const expected_pv_labels[] = {
-        "topsph1",
-        "boxsph1",
-        "boxsph2",
-        "topbox1",
-        "topbox2",
-        "topbox3",
-        "topbox4",
-        "world_PV",
-    };
-    EXPECT_VEC_EQ(expected_pv_labels, this->get_g4pv_labels());
+    this->impl().test_accessors();
 }
 
 TEST_F(MultiLevelTest, trace)
@@ -797,7 +778,7 @@ TEST_F(SolidsTest, output)
         auto out_str = this->genericize_pointers(to_string(out));
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
             out_str);
     }
 }
@@ -807,8 +788,8 @@ TEST_F(SolidsTest, geant_volumes)
     {
         auto result = this->get_import_geant_volumes();
         static int const expected_volumes[] = {
-            0,  1,  2,  3,  4,  5,  6,  7,  -1, 9,  10, 15, 16,
-            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30,
+            0,  1,  2,  3,  4,  5,  6,  7,  -1, 8,  9,  14, 15,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29,
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_labels.size())
@@ -816,12 +797,13 @@ TEST_F(SolidsTest, geant_volumes)
     }
     {
         auto result = this->get_direct_geant_volumes();
-        static int const expected_volumes[]
-            = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 15, 16,
-               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, -2};
+        static int const expected_volumes[] = {
+            0,  1,  2,  3,  4,  5,  6,  7,  -2, 8,  9,  14, 15,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29,
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
 
-        static char const* const expected_missing[] = {"trd3_refl"};
+        static char const* const expected_missing[] = {"trd3"};
         EXPECT_VEC_EQ(expected_missing, result.missing_labels);
     }
 }
@@ -829,10 +811,8 @@ TEST_F(SolidsTest, geant_volumes)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    EXPECT_EQ(VolumeId{30}, geo.volume_id());
     auto const& label = this->geometry()->volumes().at(geo.volume_id());
-    EXPECT_EQ("trd3_refl", label.name);
-    EXPECT_EQ("0", label.ext);
+    EXPECT_EQ("trd3_refl@0", to_string(label));
 }
 
 TEST_F(SolidsTest, DISABLED_imager)

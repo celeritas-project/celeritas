@@ -16,7 +16,9 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/g4/Convert.hh"
 
+#include "UnitUtils.hh"
 #include "celeritas_test.hh"
 #include "g4/GeantGeoTestBase.hh"
 
@@ -77,13 +79,21 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
         auto const& vol_inst = geo.volume_instances();
 
         VecPVConst result;
+        std::vector<std::string_view> missing;
         for (std::string_view sv : names)
         {
-            auto vi = vol_inst.find_unique(std::string(sv));
-            CELER_ASSERT(vi);
+            auto vi = vol_inst.find_exact(Label::from_separator(sv));
+            if (!vi)
+            {
+                missing.push_back(sv);
+                continue;
+            }
             result.push_back(geo.id_to_pv(vi));
             CELER_ASSERT(result.back());
         }
+        CELER_VALIDATE(missing.empty(),
+                       << "missing PVs from stack: "
+                       << join(missing.begin(), missing.end(), ','));
         return result;
     }
 };
@@ -155,30 +165,49 @@ TEST_F(MultiLevelTest, printable_nav)
     G4TouchableHistory touchable;
     navi.SetWorldVolume(
         const_cast<G4VPhysicalVolume*>(this->geometry()->world()));
-    navi.LocateGlobalPointAndUpdateTouchable(
-        G4ThreeVector(75, -125, 0), G4ThreeVector(1, 0, 0), &touchable);
 
-    std::ostringstream os;
-    os << PrintableNavHistory{touchable.GetHistory()};
-    EXPECT_EQ(R"({{pv='boxsph2', lv=26='sph'} -> {pv='topbox4', lv=27='box'}})",
-              os.str());
+    auto get_nav_str = [&](Real3 const& pos) {
+        navi.LocateGlobalPointAndUpdateTouchable(
+            convert_to_geant(from_cm(pos), clhep_length),
+            G4ThreeVector(1, 0, 0),
+            &touchable);
+        std::ostringstream os;
+        os << PrintableNavHistory{touchable.GetHistory()};
+        return std::move(os).str();
+    };
+
+    EXPECT_EQ(R"({{pv='boxtri', lv=27='tri'} -> {pv='topbox1', lv=28='box'}})",
+              get_nav_str({12.5, 7.5, 0}));
+    EXPECT_EQ(
+        R"({{pv='boxtri', lv=32='tri_refl'} -> {pv='topbox4', lv=30='box_refl'}})",
+        get_nav_str({12.5, -7.5, 0}));
+    EXPECT_EQ(R"({{pv='boxtri', lv=27='tri'} -> {pv='topbox2', lv=28='box'}})",
+              get_nav_str({-7.5, 7.5, 0}));
 }
 
 //! Test set_history using some of the same properties that CMS HGcal needs
 TEST_F(MultiLevelTest, set_history)
 {
+    // Note: the shuffled order is to check that we correctly update parent
+    // levels even if we're in the same LV/PV
     static IListSView const all_level_names[] = {
         {"world_PV"},
         {"world_PV", "topsph1"},
         {"world_PV"},
-        {"world_PV", "topbox1", "boxsph2"},
         {"world_PV", "topbox1"},
-        {"world_PV", "topbox1", "boxsph1"},
-        {"world_PV", "topbox2", "boxsph2"},
-        {"world_PV", "topbox2", "boxsph1"},
+        {"world_PV", "topbox1", "boxsph1@0"},
+        {"world_PV", "topbox2", "boxsph1@0"},
+        {"world_PV", "topbox4", "boxsph1@1"},
         {"world_PV", "topbox4"},
-        {"world_PV", "topbox3", "boxsph1"},
-        {"world_PV", "topbox3", "boxsph2"},
+        {"world_PV", "topbox3"},
+        {"world_PV", "topbox1", "boxsph2@0"},
+        {"world_PV", "topbox2", "boxsph2@0"},
+        {"world_PV", "topbox1", "boxtri@0"},
+        {"world_PV", "topbox2", "boxtri@1"},
+        {"world_PV", "topbox3", "boxsph1@0"},
+        {"world_PV", "topbox3", "boxsph2@0"},
+        {"world_PV", "topbox4", "boxsph2@1"},
+        {"world_PV", "topbox4", "boxtri@1"},
     };
 
     G4TouchableHistory touch;
@@ -212,21 +241,28 @@ TEST_F(MultiLevelTest, set_history)
     }
 
     static double const expected_coords[] = {
-        -0,  -0,   -0, -0,  -0,  -0,  75,   75,  100, 100,  125,
-        125, -125, 75, -75, 125, 100, -100, -75, -75, -125, -125,
+        -0,  -0,   -0,  -0,   -0,   -0,   100, 100, 125,  125, -75, 125,
+        125, -125, 100, -100, -100, -100, 75,  75,  -125, 75,  125, 75,
+        -75, 75,   -75, -125, -125, -75,  75,  -75, 125,  -75,
     };
     static char const* const expected_replicas[] = {
         "0",
-        "11,0",
+        "0,0",
         "0",
-        "32,21,0",
         "21,0",
         "31,21,0",
-        "32,22,0",
         "31,22,0",
-        "12,0",
+        "31,24,0",
+        "24,0",
+        "23,0",
+        "32,21,0",
+        "32,22,0",
+        "1,21,0",
+        "1,22,0",
         "31,23,0",
         "32,23,0",
+        "32,24,0",
+        "1,24,0",
     };
 
     EXPECT_VEC_SOFT_EQ(expected_coords, coords);

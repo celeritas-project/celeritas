@@ -98,9 +98,6 @@ class SharedParams
     // Construct Celeritas using Geant4 data on the master thread.
     explicit SharedParams(SetupOptions const& options);
 
-    // Construct for output only
-    explicit SharedParams(std::string output_filename);
-
     // Initialize shared data on the "master" thread
     inline void Initialize(SetupOptions const& options);
 

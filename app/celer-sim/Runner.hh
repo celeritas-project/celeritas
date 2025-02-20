@@ -7,12 +7,14 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -24,7 +26,6 @@ namespace celeritas
 {
 class CoreParams;
 class OpticalCollector;
-class OutputRegistry;
 class ParticleParams;
 class RootFileManager;
 class StepCollector;
@@ -49,12 +50,11 @@ class Runner
     using Input = RunnerInput;
     using MapStrDouble = std::unordered_map<std::string, double>;
     using RunnerResult = TransporterResult;
-    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     //!@}
 
   public:
-    // Construct on all threads from a JSON input and shared output manager
-    Runner(RunnerInput const& inp, SPOutputRegistry output);
+    // Construct on all threads from a parsed JSON input
+    Runner(RunnerInput const& inp);
 
     // Warm up by running a single step with no active tracks
     void warm_up();
@@ -74,6 +74,9 @@ class Runner
     // Get the accumulated action times
     MapStrDouble get_action_times() const;
 
+    // Access core params
+    CoreParams const& core_params() const { return *core_params_; }
+
   private:
     //// TYPES ////
 
@@ -87,7 +90,6 @@ class Runner
     std::shared_ptr<CoreParams> core_params_;
     std::shared_ptr<RootFileManager> root_manager_;
     std::shared_ptr<StepCollector> step_collector_;
-    std::shared_ptr<OpticalCollector> optical_collector_;
 
     // Transporter inputs and stream-local transporters
     bool use_device_{};
@@ -97,16 +99,7 @@ class Runner
 
     //// HELPER FUNCTIONS ////
 
-    void setup_globals(RunnerInput const&) const;
-    void build_core_params(RunnerInput const&,
-                           SPOutputRegistry&&,
-                           G4VPhysicalVolume const*,
-                           ImportData const&);
-    void build_step_collectors(RunnerInput const&);
-    void build_optical_collector(RunnerInput const&, ImportData const&);
-    void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
-    size_type build_events(RunnerInput const&, SPConstParticles);
     TransporterBase& get_transporter(StreamId);
     TransporterBase const* get_transporter_ptr(StreamId) const;
 };

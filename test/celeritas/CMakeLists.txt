@@ -215,8 +215,29 @@ if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
 else()
   set(_needs_geant_or_root)
 endif()
+
+if(CELERITAS_USE_Geant4)
+  set(_geo_mat_filter
+    "-Em3*:MultiLevel*"
+    "Em3Test.*"
+  )
+  if(NOT CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    # TODO: ORANGE reflection is not implemented
+    list(APPEND _geo_mat_filter
+      "MultiLevelTest.*"
+    )
+  endif()
+elseif(CELERITAS_USE_ROOT)
+  set(_geo_mat_filter
+    "SimpleCmsTest"
+  )
+else()
+  set(_geo_mat_filter DISABLE)
+endif()
+
 celeritas_add_test(geo/GeoMaterial.test.cc
-  ${_needs_geant_or_root} ${_optional_geant4_env})
+  FILTER ${_geo_mat_filter}
+  ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#
 # Global

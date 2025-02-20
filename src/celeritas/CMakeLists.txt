@@ -110,7 +110,10 @@ list(APPEND SOURCES
   random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
+  setup/Events.cc
   setup/Import.cc
+  setup/Problem.cc
+  setup/StandaloneInput.cc
   setup/System.cc
   track/SimParams.cc
   track/SortTracksAction.cc
@@ -226,6 +229,7 @@ if(CELERITAS_USE_ROOT)
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
+    io/RootCoreParamsOutput.cc
     io/RootEventReader.cc
     io/RootEventWriter.cc
     phys/RootEventSampler.cc

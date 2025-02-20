@@ -23,10 +23,6 @@ endif()
 if(CELERITAS_USE_OpenMP)
   list(APPEND LIBRARIES OpenMP::OpenMP_CXX)
 endif()
-if(CELERITAS_USE_ROOT)
-  list(APPEND SOURCES RootOutput.cc)
-  list(APPEND LIBRARIES ROOT::Core ROOT::Tree)
-endif()
 
 # Add the executable
 celeritas_add_executable(celer-sim ${SOURCES})
@@ -82,7 +78,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
   )
   set_tests_properties("${_name}" PROPERTIES
-    ENVIRONMENT "${_env};${CELER_G4ENV}"
+    ENVIRONMENT "${_env};${CELER_G4ENV};${CELER_OMP_ENV}"
     RESOURCE_LOCK gpu
     REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     LABELS "app;nomemcheck;gpu"

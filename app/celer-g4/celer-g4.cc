@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
     }
 
     // Create params, which need to be shared with detectors as well as
-    // initialization, and can be written for output
+    // initialization, and can be written for output (default to stdout)
     auto params = std::make_shared<celeritas::SharedParams>();
 
     try
@@ -274,12 +274,18 @@ int main(int argc, char* argv[])
     catch (std::exception const& e)
     {
         CELER_LOG(critical) << "While running " << argv[1] << ": " << e.what();
+        auto e_output = std::make_shared<celeritas::ExceptionOutput>(
+            std::current_exception());
         if (*params)
         {
-            params->output_reg()->insert(
-                std::make_shared<celeritas::ExceptionOutput>(
-                    std::current_exception()));
+            params->output_reg()->insert(e_output);
             params->Finalize();
+        }
+        else
+        {
+            celeritas::OutputRegistry reg;
+            reg.insert(e_output);
+            reg.output(&std::cout);
         }
         return EXIT_FAILURE;
     }

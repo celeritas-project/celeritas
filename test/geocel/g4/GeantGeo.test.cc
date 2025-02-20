@@ -23,6 +23,7 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
+#include "../CmsEeBackDeeGeoTest.hh"
 #include "../CmseGeoTest.hh"
 #include "../FourLevelsGeoTest.hh"
 #include "../GenericGeoParameterizedTest.hh"
@@ -424,6 +425,20 @@ TEST_F(CmseTest, imager)
 }
 
 //---------------------------------------------------------------------------//
+using CmsEeBackDeeTest
+    = GenericGeoParameterizedTest<GeantGeoTest, CmsEeBackDeeGeoTest>;
+
+TEST_F(CmsEeBackDeeTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(CmsEeBackDeeTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
 using ZnenvTest = GenericGeoParameterizedTest<GeantGeoTest, ZnenvGeoTest>;
 
 TEST_F(ZnenvTest, trace)
@@ -445,7 +460,7 @@ TEST_F(MultiLevelTest, trace)
     this->impl().test_trace();
 }
 
-TEST_F(MultiLevelTest, DISABLED_level_strings)
+TEST_F(MultiLevelTest, level_strings)
 {
     using R2 = Array<double, 2>;
 
@@ -483,58 +498,54 @@ TEST_F(MultiLevelTest, DISABLED_level_strings)
         std::vector<std::string> names(inst_ids.size());
         for (auto i : range(inst_ids.size()))
         {
-            names[i] = vol_inst.at(inst_ids[i]).name;
+            names[i] = to_string(vol_inst.at(inst_ids[i]));
         }
         all_vol_inst.push_back(to_string(repr(names)));
-
-        all_vol.push_back(vol.at(geo.volume_id()).name);
+        all_vol.push_back(to_string(vol.at(geo.volume_id())));
     }
 
-    static std::string const expected_all_vol_inst[] = {
+    static char const* const expected_all_vol_inst[] = {
         "{\"world_PV\"}",
         R"({"world_PV", "topsph1"})",
-        R"({"world_PV", "topbox1", "boxsph1"})",
+        R"({"world_PV", "topbox1", "boxsph1@0"})",
         R"({"world_PV", "topbox1"})",
-        R"({"world_PV", "topbox1", "boxtri", "trisph"})",
-        R"({"world_PV", "topbox1", "boxsph2"})",
-        R"({"world_PV", "topbox2", "boxsph1"})",
+        R"({"world_PV", "topbox1", "boxtri@0"})",
+        R"({"world_PV", "topbox1", "boxsph2@0"})",
+        R"({"world_PV", "topbox2", "boxsph1@0"})",
         R"({"world_PV", "topbox2"})",
-        R"({"world_PV", "topbox2", "boxtri", "trisph"})",
-        R"({"world_PV", "topbox2", "boxsph2"})",
-        R"({"world_PV", "topbox4", "boxtri", "trisph"})",
-        R"({"world_PV", "topbox4", "boxsph2"})",
-        R"({"world_PV", "topbox4", "boxsph1"})",
+        R"({"world_PV", "topbox2", "boxtri@0"})",
+        R"({"world_PV", "topbox2", "boxsph2@0"})",
+        R"({"world_PV", "topbox4", "boxtri@1"})",
+        R"({"world_PV", "topbox4", "boxsph2@1"})",
+        R"({"world_PV", "topbox4", "boxsph1@1"})",
         R"({"world_PV", "topbox4"})",
         R"({"world_PV", "topbox3"})",
-        R"({"world_PV", "topbox3", "boxsph2"})",
-        R"({"world_PV", "topbox3", "boxsph1"})",
-        R"({"world_PV", "topbox3", "boxtri", "trisph"})",
+        R"({"world_PV", "topbox3", "boxsph2@0"})",
+        R"({"world_PV", "topbox3", "boxsph1@0"})",
+        R"({"world_PV", "topbox3", "boxtri@0"})",
     };
-    static std::string const expected_all_vol[] = {
+    static char const* const expected_all_vol[] = {
         "world",
         "sph",
         "sph",
         "box",
-        "minisph",
+        "tri",
         "sph",
         "sph",
         "box",
-        "minisph",
+        "tri",
         "sph",
-        "minisph_refl",
+        "tri_refl",
         "sph_refl",
         "sph_refl",
         "box_refl",
         "box",
         "sph",
         "sph",
-        "minisph",
+        "tri",
     };
 
-    // PRINT_EXPECTED(all_vol_inst);
     EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
-
-    // PRINT_EXPECTED(all_vol);
     EXPECT_VEC_EQ(expected_all_vol, all_vol);
 }
 
