@@ -170,7 +170,7 @@ if(CELERITAS_USE_Geant4)
     global geometry materials processes run physicslists tasking
   )
   list(APPEND _cg4_libs
-    Celeritas::corecel XercesC::XercesC nlohmann_json::nlohmann_json
+    Celeritas::corecel Celeritas::geocel XercesC::XercesC nlohmann_json::nlohmann_json
   )
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
