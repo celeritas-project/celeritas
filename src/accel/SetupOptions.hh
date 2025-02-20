@@ -23,7 +23,7 @@ namespace celeritas
 namespace inp
 {
 struct FrameworkInput;
-struct GeantSensitiveDetector;
+struct GeantSd;
 }
 
 struct AlongStepFactoryInput;
@@ -68,7 +68,7 @@ struct AlongStepFactoryInput;
  * FindVolumes helper function can be used to determine LV pointers from
  * the volume names.
  *
- * \note These setup options affect only the \c HitManager construction that is
+ * \note These setup options affect only the \c GeantSd construction that is
  * responsible for reconstructing CPU hits and sending directly to the Geant4
  * detectors. It does not change the underlying physics.
  *
@@ -240,7 +240,7 @@ std::unordered_set<G4LogicalVolume const*>
     FindVolumes(std::unordered_set<std::string>);
 
 // Convert SD options for forward compatibility
-inp::GeantSensitiveDetector to_inp(SDSetupOptions const& so);
+inp::GeantSd to_inp(SDSetupOptions const& so);
 
 // Construct a framework input
 inp::FrameworkInput to_inp(SetupOptions const& so);

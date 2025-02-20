@@ -32,6 +32,7 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
@@ -42,7 +43,6 @@
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 
-#include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas

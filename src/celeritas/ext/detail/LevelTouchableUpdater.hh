@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/LevelTouchableUpdater.hh
+//! \file celeritas/ext/detail/LevelTouchableUpdater.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,7 +30,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Update a "touchable" using volume instances at each level.
+ * Update a Geant4 "touchable" using volume instances at each level.
  */
 class LevelTouchableUpdater final : public TouchableUpdaterInterface
 {

@@ -36,6 +36,7 @@ if(NOT CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  set(_needs_not_orange DISABLE)
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
@@ -45,7 +46,7 @@ endif()
 
 set(_all_geo_libs
   # Geometry includes
-  Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
+  Celeritas::orange ${VecGeom_LIBRARIES} ${_g4_geo_libs}
   # Test harness instantiations
   testcel_geocel testcel_orange
 )
@@ -102,6 +103,20 @@ celeritas_target_link_libraries(testcel_celeritas
     testcel_core testcel_orange testcel_geocel
     nlohmann_json::nlohmann_json ${_g4_geo_libs}
 )
+
+if(CELERITAS_USE_Geant4)
+  celeritas_get_g4libs(_g4_mat_libs materials digits_hits)
+
+  celeritas_add_test_library(testcel_celeritas_g4
+    ext/SDTestBase.cc
+    ext/SimpleSensitiveDetector.cc
+  )
+  celeritas_target_link_libraries(testcel_celeritas_g4
+    PUBLIC
+      testcel_celeritas testcel_harness Celeritas::celeritas
+      ${_g4_mat_libs} ${_g4_geo_libs}
+  )
+endif()
 
 #-----------------------------------------------------------------------------#
 # SETUP
@@ -182,9 +197,28 @@ celeritas_add_test(ext/GeantImporter.test.cc
 )
 celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
+
+
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(ext/GeantSd.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/detail/HitProcessor.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ${_needs_not_orange})
+  if(CELERITAS_REAL_TYPE STREQUAL "double")
+    # This test requires Geant4 *geometry* which is incompatible
+    # with single-precision
+    celeritas_add_test(ext/detail/NaviTouchableUpdater.test.cc
+      LINK_LIBRARIES testcel_celeritas_g4 testcel_geocel)
+  endif()
+endif()
 #-----------------------------------------------------------------------------#
 # Field
 

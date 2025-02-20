@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitManagerOutput.cc
+//! \file celeritas/ext/GeantSdOutput.cc
 //---------------------------------------------------------------------------//
-#include "HitManagerOutput.hh"
+#include "GeantSdOutput.hh"
 
 #include <G4LogicalVolume.hh>
 #include <G4VSensitiveDetector.hh>
@@ -14,18 +14,15 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/sys/TypeDemangler.hh"
 
-#include "HitManager.hh"
+#include "GeantSd.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct from hit manager.
  */
-HitManagerOutput::HitManagerOutput(SPConstHitManager hits)
-    : hits_(std::move(hits))
+GeantSdOutput::GeantSdOutput(SPConstGeantSd hits) : hits_(std::move(hits))
 {
     CELER_EXPECT(hits_);
 }
@@ -34,7 +31,7 @@ HitManagerOutput::HitManagerOutput(SPConstHitManager hits)
 /*!
  * Write output to the given JSON object.
  */
-void HitManagerOutput::output(JsonPimpl* j) const
+void GeantSdOutput::output(JsonPimpl* j) const
 {
     using json = nlohmann::json;
 
@@ -92,5 +89,4 @@ void HitManagerOutput::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

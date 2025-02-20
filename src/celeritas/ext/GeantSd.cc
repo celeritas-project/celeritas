@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitManager.cc
+//! \file celeritas/ext/GeantSd.cc
 //---------------------------------------------------------------------------//
-#include "HitManager.hh"
+#include "GeantSd.hh"
 
 #include <mutex>
 #include <unordered_map>
@@ -24,23 +24,22 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/inp/Scoring.hh"
-#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/ParticleParams.hh"
 
-#include "HitProcessor.hh"
-#include "SensDetInserter.hh"
-#include "../SetupOptions.hh"
+#include "detail/HitProcessor.hh"
+#include "detail/SensDetInserter.hh"
+
+using celeritas::detail::SensDetInserter;
 
 namespace celeritas
-{
-namespace detail
 {
 namespace
 {
 //---------------------------------------------------------------------------//
 void update_selection(StepPointSelection* selection,
-                      inp::GeantSDStepPointAttributes const& options)
+                      inp::GeantSdStepPointAttributes const& options)
 {
     selection->time = options.global_time;
     selection->pos = options.position;
@@ -49,10 +48,10 @@ void update_selection(StepPointSelection* selection,
 }
 
 // Convert volume sets to the correct type for SensDetInserter
-auto make_set_lv(inp::GeantSensitiveDetector::VariantSetVolume const& sv)
+auto make_set_lv(inp::GeantSd::VariantSetVolume const& sv)
 {
-    using InpSD = inp::GeantSensitiveDetector;
-    using SetLV = detail::SensDetInserter::SetLV;
+    using InpSD = inp::GeantSd;
+    using SetLV = SensDetInserter::SetLV;
     return std::visit(
         Overload{[](InpSD::SetVolume const& s) {
                      return SetLV{s.begin(), s.end()};
@@ -70,10 +69,10 @@ auto make_set_lv(inp::GeantSensitiveDetector::VariantSetVolume const& sv)
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(SPConstGeo geo,
-                       ParticleParams const& par,
-                       Input const& setup,
-                       StreamId::size_type num_streams)
+GeantSd::GeantSd(SPConstGeo geo,
+                 ParticleParams const& par,
+                 Input const& setup,
+                 StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
     , geo_{std::move(geo)}
     , locate_touchable_(setup.locate_touchable)
@@ -128,7 +127,7 @@ HitManager::HitManager(SPConstGeo geo,
  * thread on which the resulting processor used. It must be done once per
  * thread and can be done separately.
  */
-auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
+auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 {
     CELER_EXPECT(sid < processor_weakptrs_.size());
     CELER_EXPECT(!processors_[sid.get()]);
@@ -142,13 +141,13 @@ auto HitManager::make_local_processor(StreamId sid) -> SPProcessor
 
 //---------------------------------------------------------------------------//
 //! Default destructor
-HitManager::~HitManager() = default;
+GeantSd::~GeantSd() = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Map volume names to detector IDs and exclude tracks with no deposition.
  */
-auto HitManager::filters() const -> Filters
+auto GeantSd::filters() const -> Filters
 {
     Filters result;
 
@@ -166,7 +165,7 @@ auto HitManager::filters() const -> Filters
 /*!
  * Process detector tallies (CPU).
  */
-void HitManager::process_steps(HostStepState state)
+void GeantSd::process_steps(HostStepState state)
 {
     auto& process_hits = this->get_local_hit_processor(state.stream_id);
     process_hits(state.steps);
@@ -176,7 +175,7 @@ void HitManager::process_steps(HostStepState state)
 /*!
  * Process detector tallies (GPU).
  */
-void HitManager::process_steps(DeviceStepState state)
+void GeantSd::process_steps(DeviceStepState state)
 {
     auto& process_hits = this->get_local_hit_processor(state.stream_id);
     process_hits(state.steps);
@@ -185,8 +184,7 @@ void HitManager::process_steps(DeviceStepState state)
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-void HitManager::setup_volumes(GeoParams const& geo,
-                               inp::GeantSensitiveDetector const& setup)
+void GeantSd::setup_volumes(GeoParams const& geo, inp::GeantSd const& setup)
 {
     // Convert labels or other set types
     auto skip_volumes = make_set_lv(setup.skip_volumes);
@@ -210,7 +208,7 @@ void HitManager::setup_volumes(GeoParams const& geo,
         }
     }
 
-    // Loop over user-specified G4LV
+    // Loop over ext-specified G4LV
     for (G4LogicalVolume const* lv : force_volumes)
     {
         insert_volume(lv);
@@ -244,7 +242,7 @@ void HitManager::setup_volumes(GeoParams const& geo,
 }
 
 //---------------------------------------------------------------------------//
-void HitManager::setup_particles(ParticleParams const& par)
+void GeantSd::setup_particles(ParticleParams const& par)
 {
     CELER_EXPECT(selection_.particle);
 
@@ -283,7 +281,7 @@ void HitManager::setup_particles(ParticleParams const& par)
 /*!
  * Return the local hit processor.
  */
-HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
+auto GeantSd::get_local_hit_processor(StreamId sid) -> HitProcessor&
 {
     CELER_EXPECT(sid < processors_.size());
     CELER_EXPECT(([&] {
@@ -296,5 +294,4 @@ HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -43,7 +43,7 @@ inp::System load_system(SetupOptions const& so)
 //---------------------------------------------------------------------------//
 auto to_inp(SDSetupOptions::StepPoint const& sp)
 {
-    inp::GeantSDStepPointAttributes result;
+    inp::GeantSdStepPointAttributes result;
     result.global_time = sp.global_time;
     result.position = sp.position;
     result.direction = sp.direction;
@@ -182,10 +182,10 @@ FindVolumes(std::unordered_set<std::string> names)
 /*!
  * Convert SD options for forward compatibility.
  */
-inp::GeantSensitiveDetector to_inp(SDSetupOptions const& sd)
+inp::GeantSd to_inp(SDSetupOptions const& sd)
 {
     CELER_EXPECT(sd.enabled);
-    inp::GeantSensitiveDetector result;
+    inp::GeantSd result;
 
     result.ignore_zero_deposition = sd.ignore_zero_deposition;
     result.energy_deposition = sd.energy_deposition;
