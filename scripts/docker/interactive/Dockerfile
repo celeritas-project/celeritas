@@ -1,7 +1,7 @@
 FROM almalinux:latest
 
 ARG PERFETTO_REP=https://android.googlesource.com/platform/external/perfetto
-ARG PERFETTO_VERSION_TAG=v45.0
+ARG PERFETTO_VERSION_TAG=v49.0
 ENV DEVEL_ROOT=/opt/devel
 ENV PERFETTO_ROOT=${DEVEL_ROOT}/perfetto
 ENV PERFETTO_TOOLS=${PERFETTO_ROOT}/out/linux
@@ -21,12 +21,12 @@ RUN mkdir -p "${DEVEL_ROOT}"
 RUN git clone -b${PERFETTO_VERSION_TAG} ${PERFETTO_REP} ${PERFETTO_ROOT} \
     && cd ${PERFETTO_ROOT} \
     && tools/install-build-deps \
-    && tools/gn gen --args='is_debug=false' ${PERFETTO_TOOLS} \
+    && tools/gn gen --args='is_debug=false is_hermetic_clang=false' ${PERFETTO_TOOLS} \
     && tools/ninja -C ${PERFETTO_TOOLS} tracebox traced traced_probes perfetto
 
 # setup spack
 ARG SPACK_REP=https://github.com/spack/spack.git
-ARG SPACK_VERSION_TAG=v0.22.0
+ARG SPACK_VERSION_TAG=develop
 ARG SPACK_ENV_SPEC=${DEVEL_ROOT}/spack.yaml
 ENV SPACK_ROOT=${DEVEL_ROOT}/spack
 ENV SPACK_EXE=${SPACK_ROOT}/bin/spack
@@ -66,13 +66,14 @@ RUN eval $(${SPACK_EXE} env activate --sh ${CELERITAS_ENV_NAME}) \
 # compile geomodel
 ENV GEOMODEL_ROOT=${DEVEL_ROOT}/GeoModel
 RUN dnf install -y eigen3-devel hdf5-devel sqlite-devel \
-    && git clone -bceleritas https://github.com/celeritas-project/GeoModel.git ${GEOMODEL_ROOT}
-
-RUN eval $(${SPACK_EXE} env activate --sh ${CELERITAS_ENV_NAME}) \
+    && git clone -bceleritas https://github.com/celeritas-project/GeoModel.git ${GEOMODEL_ROOT} \
+    && eval $(${SPACK_EXE} env activate --sh ${CELERITAS_ENV_NAME}) \
     && mkdir -p ${GEOMODEL_ROOT}/build && cd ${GEOMODEL_ROOT}/build \
     && git submodule update --init \
     && cmake -DGEOMODEL_BUILD_ATLASEXTENSIONS=ON -DGEOMODEL_BUILD_FULLSIMLIGHT=ON -DGEOMODEL_USE_HEPMC3=ON .. \
     && make -j$(nproc)
+
+ENV LANG=en_US.UTF-8
 
 # setup entrypoint and utilities
 COPY setup_shell.sh /etc/profile.d/setup_shell.sh

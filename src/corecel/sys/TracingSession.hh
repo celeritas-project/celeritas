@@ -58,6 +58,9 @@ class TracingSession
     // Start the profiling session
     void start() noexcept;
 
+    // Flush the track events associated with the calling thread
+    void flush() noexcept;
+
     CELER_DELETE_COPY_MOVE(TracingSession);
 
   private:
@@ -86,6 +89,7 @@ inline void TracingSession::start() noexcept
     CELER_DISCARD(started_);
     CELER_DISCARD(fd_);
 }
+inline void TracingSession::flush() noexcept {}
 inline void TracingSession::Deleter::operator()(perfetto::TracingSession*)
 {
     CELER_ASSERT_UNREACHABLE();
