@@ -236,8 +236,10 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
                    << "nonpositive capacity.events=" << *c.capacity.events);
     // NOTE: if the following assertion fails, a placeholder "event
     // count" should have been changed elsewhere
-    CELER_EXPECT(c.capacity.events
-                 != std::numeric_limits<decltype(c.capacity.events)>::max());
+    CELER_EXPECT(
+        !c.capacity.events
+        || c.capacity.events
+               != std::numeric_limits<decltype(c.capacity.events)>::max());
     TrackInitParams::Input input;
     input.capacity = ceil_div(c.capacity.initializers, num_streams);
     if (c.capacity.events)
@@ -459,6 +461,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     //// DIAGNOSTICS ////
 
+    result.output_file = p.diagnostics.output_file;
+
     if (p.diagnostics.action)
     {
         ActionDiagnostic::make_and_insert(*core_params);
@@ -509,12 +513,10 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             }
         }
 
-        if (!ef.offload.empty())
-        {
-            // TODO: this is only implemented in accel::SharedParams, not in
-            // celeritas core: should we hook this into the to-be-updated
-            // "primary" mechanism?
-        }
+        // TODO: this is only implemented in accel::SharedParams, not in
+        // celeritas core: should hook this into the to-be-updated
+        // "primary" mechanism
+        result.offload_file = ef.offload;
     }
 
     //// STEP COLLECTORS ////

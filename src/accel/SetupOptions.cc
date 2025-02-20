@@ -12,6 +12,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
@@ -127,13 +128,18 @@ void ProblemSetup::operator()(inp::Problem& p) const
 
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
-        // Check if magnitude is zero
+        // Convert from native to Tesla, check if magnitude is zero
         UniformFieldParams params = u->get_field();
+        for (real_type& v : params.field)
+        {
+            v = native_value_to<units::FieldTesla>(v).value();
+        }
         auto field_val = norm(params.field);
         if (field_val > 0)
         {
             CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
             inp::UniformField field;
+            field.units = UnitSystem::si;
             field.strength = params.field;
             field.driver_options = params.options;
             p.field = std::move(field);

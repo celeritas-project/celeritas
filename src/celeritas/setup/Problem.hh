@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 namespace celeritas
 {
@@ -43,6 +44,17 @@ struct ProblemLoaded
     std::shared_ptr<GeantSd> geant_sd;
     //! ROOT file manager
     std::shared_ptr<RootFileManager> root_manager;
+
+    //!@}
+
+    //!@{
+    //! \name Temporary: to be used downstream
+    //! \todo These should be refactored: should be built in Problem
+
+    //! Write offloaded primaries
+    std::string offload_file;
+    //! Write diagnostic output
+    std::string output_file;
 
     //!@}
 };

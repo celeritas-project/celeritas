@@ -10,6 +10,8 @@
 
 #include "Problem.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 class CoreParams;
@@ -24,8 +26,10 @@ namespace setup
 //! Result from loaded standalone input to be used in front-end apps
 struct FrameworkLoaded
 {
-    //! Problem setup
+    //! Loaded problem
     ProblemLoaded problem;
+    //! Geant4 world volume
+    G4VPhysicalVolume const* world{nullptr};
 };
 
 //---------------------------------------------------------------------------//

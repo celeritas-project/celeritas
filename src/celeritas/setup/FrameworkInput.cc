@@ -73,6 +73,7 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     }
 
     FrameworkLoaded result;
+    result.world = world;
 
     // Set up core params
     result.problem = setup::problem(problem, imported);
