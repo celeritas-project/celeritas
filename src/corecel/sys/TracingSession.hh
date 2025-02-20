@@ -57,6 +57,9 @@ class TracingSession
     // Start the profiling session
     void start() noexcept;
 
+    // Flush the track events associated with the calling thread
+    void flush() noexcept;
+
     CELER_DELETE_COPY_MOVE(TracingSession);
 
   private:

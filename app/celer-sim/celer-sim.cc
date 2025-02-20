@@ -143,6 +143,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
                                  id_cast<StreamId>(get_openmp_thread()),
                                  id_cast<EventId>(event)),
                              capture_exception);
+            tracing_session.flush();
             if (run_input->transporter_result)
             {
                 result.events[event] = std::move(event_result);
