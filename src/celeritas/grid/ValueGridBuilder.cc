@@ -58,10 +58,10 @@ ValueGridBuilder::~ValueGridBuilder() = default;
 std::unique_ptr<ValueGridXsBuilder>
 ValueGridXsBuilder::from_geant(SpanConstDbl lambda_energy,
                                SpanConstDbl lambda,
-                               bool spline,
+                               inp::Interpolation interp,
                                SpanConstDbl lambda_prim_energy,
                                SpanConstDbl lambda_prim,
-                               bool spline_prim)
+                               inp::Interpolation interp_prim)
 {
     CELER_EXPECT(is_contiguous_increasing(lambda_energy, lambda_prim_energy));
     CELER_EXPECT(has_log_spacing(lambda_energy)
@@ -77,11 +77,11 @@ ValueGridXsBuilder::from_geant(SpanConstDbl lambda_energy,
         GridInput{lambda_energy.front(),
                   lambda_prim_energy.front(),
                   VecDbl{lambda.begin(), lambda.end()},
-                  spline},
+                  interp},
         GridInput{lambda_prim_energy.front(),
                   lambda_prim_energy.back(),
                   VecDbl{lambda_prim.begin(), lambda_prim.end()},
-                  spline_prim});
+                  interp_prim});
 }
 
 //---------------------------------------------------------------------------//
@@ -91,7 +91,7 @@ ValueGridXsBuilder::from_geant(SpanConstDbl lambda_energy,
 std::unique_ptr<ValueGridXsBuilder>
 ValueGridXsBuilder::from_scaled(SpanConstDbl lambda_prim_energy,
                                 SpanConstDbl lambda_prim,
-                                bool spline)
+                                inp::Interpolation interp)
 {
     CELER_EXPECT(lambda_prim.size() == lambda_prim_energy.size());
     CELER_EXPECT(has_log_spacing(lambda_prim_energy));
@@ -99,11 +99,11 @@ ValueGridXsBuilder::from_scaled(SpanConstDbl lambda_prim_energy,
 
     return std::make_unique<ValueGridXsBuilder>(
         GridInput{
-            lambda_prim_energy.front(), lambda_prim_energy.front(), {}, spline},
+            lambda_prim_energy.front(), lambda_prim_energy.front(), {}, interp},
         GridInput{lambda_prim_energy.front(),
                   lambda_prim_energy.back(),
                   VecDbl{lambda_prim.begin(), lambda_prim.end()},
-                  spline});
+                  interp});
 }
 
 //---------------------------------------------------------------------------//
@@ -113,17 +113,17 @@ ValueGridXsBuilder::from_scaled(SpanConstDbl lambda_prim_energy,
 ValueGridXsBuilder::ValueGridXsBuilder(GridInput grid, GridInput grid_prime)
     : lower_(std::move(grid)), upper_(std::move(grid_prime))
 {
-    CELER_EXPECT((!lower_.xs.empty() || !upper_.xs.empty())
-                 && (lower_.xs.empty() || upper_.xs.empty()
+    CELER_EXPECT((!lower_.value.empty() || !upper_.value.empty())
+                 && (lower_.value.empty() || upper_.value.empty()
                      || lower_.emax == upper_.emin));
-    CELER_EXPECT(lower_.xs.empty()
+    CELER_EXPECT(lower_.value.empty()
                  || (lower_.emin > 0 && lower_.emax > lower_.emin
-                     && lower_.xs.size() >= 2));
-    CELER_EXPECT(upper_.xs.empty()
+                     && lower_.value.size() >= 2));
+    CELER_EXPECT(upper_.value.empty()
                  || (upper_.emin > 0 && upper_.emax > upper_.emin
-                     && upper_.xs.size() >= 2));
-    CELER_EXPECT(is_nonnegative(make_span(lower_.xs)));
-    CELER_EXPECT(is_nonnegative(make_span(upper_.xs)));
+                     && upper_.value.size() >= 2));
+    CELER_EXPECT(is_nonnegative(make_span(lower_.value)));
+    CELER_EXPECT(is_nonnegative(make_span(upper_.value)));
 }
 
 //---------------------------------------------------------------------------//
@@ -132,22 +132,22 @@ ValueGridXsBuilder::ValueGridXsBuilder(GridInput grid, GridInput grid_prime)
  */
 auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
-    auto lower = !lower_.xs.empty()
+    auto lower = !lower_.value.empty()
                      ? UniformGridData::from_bounds(std::log(lower_.emin),
                                                     std::log(lower_.emax),
-                                                    lower_.xs.size())
+                                                    lower_.value.size())
                      : UniformGridData{};
-    auto upper = !upper_.xs.empty()
+    auto upper = !upper_.value.empty()
                      ? UniformGridData::from_bounds(std::log(upper_.emin),
                                                     std::log(upper_.emax),
-                                                    upper_.xs.size())
+                                                    upper_.value.size())
                      : UniformGridData{};
     return insert(lower,
-                  make_span(lower_.xs),
-                  lower_.spline,
+                  make_span(lower_.value),
+                  lower_.interp,
                   upper,
-                  make_span(upper_.xs),
-                  upper_.spline);
+                  make_span(upper_.value),
+                  upper_.interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -158,53 +158,29 @@ auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
  */
 auto ValueGridLogBuilder::from_geant(SpanConstDbl energy,
                                      SpanConstDbl value,
-                                     bool spline) -> UPLogBuilder
+                                     inp::Interpolation interp) -> UPLogBuilder
 {
     CELER_EXPECT(!energy.empty());
     CELER_EXPECT(has_log_spacing(energy));
     CELER_EXPECT(value.size() == energy.size());
 
     return std::make_unique<ValueGridLogBuilder>(
-        energy.front(),
-        energy.back(),
-        VecDbl{value.begin(), value.end()},
-        spline);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct XS arrays from log-spaced geant range data.
- *
- * Range data must be monotonically increasing, since it's the integral of the
- * (always nonnegative) stopping power -dE/dx . If not monotonic then the
- * inverse range cannot be calculated.
- */
-auto ValueGridLogBuilder::from_range(SpanConstDbl energy,
-                                     SpanConstDbl value,
-                                     bool spline) -> UPLogBuilder
-{
-    CELER_EXPECT(!energy.empty());
-    CELER_EXPECT(is_monotonic_increasing(value));
-    CELER_EXPECT(value.front() > 0);
-    return ValueGridLogBuilder::from_geant(energy, value, spline);
+        GridInput{energy.front(),
+                  energy.back(),
+                  VecDbl{value.begin(), value.end()},
+                  interp});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
  */
-ValueGridLogBuilder::ValueGridLogBuilder(double emin,
-                                         double emax,
-                                         VecDbl value,
-                                         bool spline)
-    : log_emin_(std::log(emin))
-    , log_emax_(std::log(emax))
-    , value_(std::move(value))
-    , spline_(spline)
+ValueGridLogBuilder::ValueGridLogBuilder(GridInput grid)
+    : grid_(std::move(grid))
 {
-    CELER_EXPECT(emin > 0);
-    CELER_EXPECT(emax > emin);
-    CELER_EXPECT(value_.size() >= 2);
+    CELER_EXPECT(grid_.emin > 0);
+    CELER_EXPECT(grid_.emax > grid_.emin);
+    CELER_EXPECT(grid_.value.size() >= 2);
 }
 
 //---------------------------------------------------------------------------//
@@ -213,10 +189,11 @@ ValueGridLogBuilder::ValueGridLogBuilder(double emin,
  */
 auto ValueGridLogBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
-    return insert(
-        UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
-        this->value(),
-        spline_);
+    return insert(UniformGridData::from_bounds(std::log(grid_.emin),
+                                               std::log(grid_.emax),
+                                               grid_.value.size()),
+                  this->value(),
+                  grid_.interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -225,7 +202,7 @@ auto ValueGridLogBuilder::build(XsGridInserter insert) const -> ValueGridId
  */
 auto ValueGridLogBuilder::value() const -> SpanConstDbl
 {
-    return make_span(value_);
+    return make_span(grid_.value);
 }
 
 //---------------------------------------------------------------------------//

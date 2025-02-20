@@ -33,20 +33,23 @@ class NonuniformGridCalculatorTest : public Test
     using ValuesRef
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
 
-    void build_spline(Span<real_type const> x, Span<real_type const> y, BC bc)
+    void build(Span<real_type const> x,
+               Span<real_type const> y,
+               inp::Interpolation interp)
     {
         NonuniformGridBuilder build_grid(&reals_);
-        grid_ = build_grid(x, y, bc);
+        grid_ = build_grid(x, y, interp);
         reals_ref_ = reals_;
 
         CELER_ENSURE(grid_);
-        CELER_ENSURE(!grid_.derivative.empty() || bc == BC::size_);
+        CELER_ENSURE(!grid_.derivative.empty()
+                     || interp.type != InterpolationType::cubic_spline);
         CELER_ENSURE(!reals_ref_.empty());
     }
 
     void build(Span<real_type const> x, Span<real_type const> y)
     {
-        this->build_spline(x, y, BC::size_);
+        this->build(x, y, {});
     }
 
     NonuniformGridRecord grid_;
@@ -109,7 +112,10 @@ TEST_F(NonuniformGridCalculatorTest, spline)
 {
     static real_type const grid[] = {0, 1, 3, 7, 9, 10};
     static real_type const value[] = {0, 1, 0, 1, 0, 1};
-    this->build_spline(grid, value, BC::not_a_knot);
+    inp::Interpolation interp;
+    interp.type = InterpolationType::cubic_spline;
+    interp.bc = BC::not_a_knot;
+    this->build(grid, value, interp);
 
     auto calc = NonuniformGridCalculator(grid_, reals_ref_);
     EXPECT_SOFT_EQ(0, calc(0));

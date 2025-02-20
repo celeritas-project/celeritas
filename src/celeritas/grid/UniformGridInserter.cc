@@ -7,7 +7,9 @@
 #include "UniformGridInserter.hh"
 
 #include "corecel/Types.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -27,9 +29,9 @@ UniformGridInserter::UniformGridInserter(Values* reals, GridValues* grids)
  */
 auto UniformGridInserter::operator()(UniformGridData const& grid,
                                      SpanConstDbl values,
-                                     bool spline) -> GridId
+                                     inp::Interpolation interp) -> GridId
 {
-    return this->insert(grid, values, spline);
+    return this->insert(grid, values, interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -38,9 +40,9 @@ auto UniformGridInserter::operator()(UniformGridData const& grid,
  */
 auto UniformGridInserter::operator()(UniformGridData const& grid,
                                      SpanConstFlt values,
-                                     bool spline) -> GridId
+                                     inp::Interpolation interp) -> GridId
 {
-    return this->insert(grid, values, spline);
+    return this->insert(grid, values, interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -50,7 +52,7 @@ auto UniformGridInserter::operator()(UniformGridData const& grid,
 template<class T>
 auto UniformGridInserter::insert(UniformGridData const& grid,
                                  Span<T const> values,
-                                 bool spline) -> GridId
+                                 inp::Interpolation interp) -> GridId
 {
     CELER_EXPECT(grid);
     CELER_EXPECT(grid.size == values.size());
@@ -58,12 +60,36 @@ auto UniformGridInserter::insert(UniformGridData const& grid,
     UniformGridRecord data;
     data.grid = grid;
     data.value = reals_.insert_back(values.begin(), values.end());
-    if (spline)
+    if (interp.type == InterpolationType::cubic_spline)
     {
+        if (data.value.size() < 5)
+        {
+            CELER_LOG(warning)
+                << to_cstring(interp.type)
+                << " interpolation is not supported on a grid with size "
+                << data.value.size() << ": defaulting to linear";
+            return grids_.push_back(data);
+        }
+
         // Calculate second derivatives for cubic spline interpolation
+        CELER_ASSERT(interp.bc
+                     != SplineDerivCalculator::BoundaryCondition::size_);
         ValuesRef ref(values_);
-        auto deriv = SplineDerivCalculator(BC::geant)(data, ref);
+        auto deriv = SplineDerivCalculator(interp.bc)(data, ref);
         data.derivative = reals_.insert_back(deriv.begin(), deriv.end());
+    }
+    else if (interp.type == InterpolationType::poly_spline)
+    {
+        if (interp.order >= data.value.size())
+        {
+            CELER_LOG(warning)
+                << to_cstring(interp.type) << " interpolation with order "
+                << interp.order << " is not supported on a grid with size "
+                << data.value.size() << ": defaulting to linear";
+            return grids_.push_back(data);
+        }
+        CELER_ASSERT(interp.order > 1);
+        data.spline_order = interp.order;
     }
     return grids_.push_back(data);
 }

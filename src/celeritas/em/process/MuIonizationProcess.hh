@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -38,8 +39,8 @@ class MuIonizationProcess : public Process
         Energy bethe_bloch_upper_limit{1e3};  //!< 1 GeV
         //! Use integral method for sampling discrete interaction length
         bool use_integral_xs{true};
-        //! Use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

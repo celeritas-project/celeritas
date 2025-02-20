@@ -31,7 +31,7 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::photoelectric,
                 {pdg::gamma()},
-                options.spline)
+                options.interpolation)
     , options_(options)
     , load_pe_(std::move(load_data))
 {
@@ -47,7 +47,7 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
 auto PhotoelectricProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
     return {std::make_shared<LivermorePEModel>(
-        *start_id++, *particles_, *materials_, load_pe_, options_.spline)};
+        *start_id++, *particles_, *materials_, load_pe_, options_.interpolation)};
 }
 
 //---------------------------------------------------------------------------//

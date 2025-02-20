@@ -32,7 +32,7 @@ MuIonizationProcess::MuIonizationProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::mu_ioni,
                 {pdg::mu_minus(), pdg::mu_plus()},
-                options.spline)
+                options.interpolation)
     , options_(options)
 {
     CELER_EXPECT(particles_);

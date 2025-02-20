@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportSBTable.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
@@ -46,8 +47,8 @@ class BremsstrahlungProcess : public Process
         bool enable_lpm{true};
         //! Use integral method for sampling discrete interaction length
         bool use_integral_xs{true};
-        //! Use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

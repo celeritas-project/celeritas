@@ -188,6 +188,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.xs = {Barn{3.0}, Barn{3.0}};
         inp.energy_loss = MevCmSqLossDens{0.6 * 1e-20};  // 0.6 MeV/cm in
                                                          // celerogen
+        inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -201,6 +202,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
                       make_applicability("anti-celeriton", 1, 100)};
         inp.xs = {Barn{4.0}, Barn{4.0}};
         inp.energy_loss = MevCmSqLossDens{0.7 * 1e-20};
+        inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -223,6 +225,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.applic = {make_applicability("electron", 1e-5, 10)};
         inp.xs = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
         inp.energy_loss = MevCmSqLossDens{0.5 * 1e-20};
+        inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
@@ -265,6 +268,12 @@ auto MockTestBase::build_init() -> SPConstTrackInit
 
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_physics_options() const -> PhysicsOptions
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+inp::Interpolation MockTestBase::interpolation() const
 {
     return {};
 }

@@ -27,7 +27,6 @@ class GridInserterTest : public Test
   protected:
     using VecDbl = std::vector<double>;
 
-    bool spline{false};
     Collection<real_type, Ownership::value, MemSpace::host> reals;
 };
 
@@ -46,10 +45,10 @@ TEST_F(GridInserterTest, xs)
 
         auto idx = insert(lower,
                           make_span(values).subspan(0, 2),
-                          spline,
+                          {},
                           upper,
                           make_span(values).subspan(1, 2),
-                          spline);
+                          {});
         EXPECT_EQ(0, idx.unchecked_get());
         XsGridRecord const& inserted = grids[idx];
 
@@ -63,9 +62,8 @@ TEST_F(GridInserterTest, xs)
     {
         VecDbl const values = {1, 2, 4, 6, 8};
 
-        auto idx = insert(UniformGridData::from_bounds(0.0, 10.0, 5),
-                          make_span(values),
-                          spline);
+        auto idx = insert(
+            UniformGridData::from_bounds(0.0, 10.0, 5), make_span(values), {});
         EXPECT_EQ(1, idx.unchecked_get());
         XsGridRecord const& inserted = grids[idx];
 
@@ -85,7 +83,7 @@ TEST_F(GridInserterTest, uniform)
     VecDbl const values = {1, 2, 4, 6, 8};
 
     auto idx = insert(
-        UniformGridData::from_bounds(0.0, 10.0, 5), make_span(values), spline);
+        UniformGridData::from_bounds(0.0, 10.0, 5), make_span(values), {});
     EXPECT_EQ(0, idx.unchecked_get());
     UniformGridRecord const& inserted = grids[idx];
     EXPECT_EQ(1, grids.size());

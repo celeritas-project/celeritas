@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/ImportSBTable.hh"
 
@@ -35,7 +36,7 @@ struct ProcessBuilderOptions
 {
     bool brem_combined{false};
     BremsModelSelection brems_selection{BremsModelSelection::all};
-    bool spline{false};
+    inp::Interpolation interpolation;
 };
 
 //---------------------------------------------------------------------------//
@@ -122,7 +123,7 @@ class ProcessBuilder
     bool brem_combined_;
     bool enable_lpm_;
     bool use_integral_xs_;
-    bool spline_;
+    inp::Interpolation interpolation_;
 
     //// HELPER FUNCTIONS ////
 

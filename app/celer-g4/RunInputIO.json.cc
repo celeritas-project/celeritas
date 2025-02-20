@@ -102,7 +102,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(physics_list);
     RI_LOAD_OPTION(physics_options);
-    RI_LOAD_OPTION(spline);
+    RI_LOAD_OPTION(interpolation);
+    RI_LOAD_OPTION(poly_spline_order);
 
     RI_LOAD_OPTION(field_type);
     RI_LOAD_OPTION(field_file);
@@ -203,7 +204,8 @@ void to_json(nlohmann::json& j, RunInput const& v)
     {
         RI_SAVE(physics_options);
     }
-    RI_SAVE(spline);
+    RI_SAVE(interpolation);
+    RI_SAVE(poly_spline_order);
 
     RI_SAVE(field_type);
     if (v.field_type == "rzmap")

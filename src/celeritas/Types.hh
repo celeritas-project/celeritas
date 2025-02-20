@@ -192,6 +192,16 @@ enum class NuclearFormFactorType
 };
 
 //---------------------------------------------------------------------------//
+//! Interpolation for physics grids
+enum class InterpolationType
+{
+    linear,
+    poly_spline,  //!< Piecewise polynomial interpolation
+    cubic_spline,  //!< Cubic spline interpolation with \f$ C^2 \f$ continuity
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take
@@ -239,6 +249,9 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
+
+// Get a string corresponding to the interpolation method
+char const* to_cstring(InterpolationType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

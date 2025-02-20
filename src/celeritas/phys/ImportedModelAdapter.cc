@@ -85,9 +85,8 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilde
     MicroXsBuilders builders(imm.micro_xs.size());
     for (size_type elcomp_idx : range(builders.size()))
     {
-        static constexpr bool spline = false;
         builders[elcomp_idx] = ValueGridLogBuilder::from_geant(
-            make_span(imm.energy), make_span(imm.micro_xs[elcomp_idx]), spline);
+            make_span(imm.energy), make_span(imm.micro_xs[elcomp_idx]), {});
     }
     return builders;
 }

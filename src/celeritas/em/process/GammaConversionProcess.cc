@@ -28,7 +28,7 @@ GammaConversionProcess::GammaConversionProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::conversion,
                 {pdg::gamma()},
-                options.spline)
+                options.interpolation)
     , options_(options)
 {
     CELER_EXPECT(particles_);

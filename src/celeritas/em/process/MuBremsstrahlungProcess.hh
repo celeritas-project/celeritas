@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -34,8 +35,8 @@ class MuBremsstrahlungProcess : public Process
     {
         //! Use integral method for sampling discrete interaction length
         bool use_integral_xs{true};
-        //! Use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

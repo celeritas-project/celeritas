@@ -28,7 +28,7 @@ MuBremsstrahlungProcess::MuBremsstrahlungProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::mu_brems,
                 {pdg::mu_minus(), pdg::mu_plus()},
-                options.spline)
+                options.interpolation)
     , options_(options)
 {
     CELER_EXPECT(particles_);

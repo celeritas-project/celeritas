@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -33,8 +34,8 @@ class GammaConversionProcess : public Process
     {
         //! Account for LPM effect at high energies
         bool enable_lpm{true};
-        //! Use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

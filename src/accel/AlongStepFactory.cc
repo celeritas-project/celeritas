@@ -61,11 +61,10 @@ auto UniformAlongStepFactory::operator()(
             *input.material,
             *input.particle,
             field_params,
-            celeritas::UrbanMscParams::from_import(
-                *input.particle,
-                *input.material,
-                *input.imported,
-                UrbanMscParams::Options{input.spline}),
+            celeritas::UrbanMscParams::from_import(*input.particle,
+                                                   *input.material,
+                                                   *input.imported,
+                                                   {input.interpolation}),
             input.imported->em_params.energy_loss_fluct);
     }
     else
@@ -75,11 +74,10 @@ auto UniformAlongStepFactory::operator()(
             input.action_id,
             *input.material,
             *input.particle,
-            celeritas::UrbanMscParams::from_import(
-                *input.particle,
-                *input.material,
-                *input.imported,
-                UrbanMscParams::Options{input.spline}),
+            celeritas::UrbanMscParams::from_import(*input.particle,
+                                                   *input.material,
+                                                   *input.imported,
+                                                   {input.interpolation}),
             input.imported->em_params.energy_loss_fluct);
     }
 }
@@ -119,11 +117,10 @@ auto RZMapFieldAlongStepFactory::operator()(
         *input.material,
         *input.particle,
         get_fieldmap_(),
-        celeritas::UrbanMscParams::from_import(
-            *input.particle,
-            *input.material,
-            *input.imported,
-            UrbanMscParams::Options{input.spline}),
+        celeritas::UrbanMscParams::from_import(*input.particle,
+                                               *input.material,
+                                               *input.imported,
+                                               {input.interpolation}),
         input.imported->em_params.energy_loss_fluct);
 }
 

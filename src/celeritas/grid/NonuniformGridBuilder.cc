@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "NonuniformGridBuilder.hh"
 
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/VectorUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
 namespace celeritas
@@ -28,7 +30,7 @@ NonuniformGridBuilder::NonuniformGridBuilder(Items<real_type>* reals)
 auto NonuniformGridBuilder::operator()(SpanConstFlt grid, SpanConstFlt values)
     -> Grid
 {
-    return this->insert_impl(grid, values, BC::size_);
+    return this->insert_impl(grid, values, {});
 }
 
 //---------------------------------------------------------------------------//
@@ -38,31 +40,29 @@ auto NonuniformGridBuilder::operator()(SpanConstFlt grid, SpanConstFlt values)
 auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
     -> Grid
 {
-    return this->insert_impl(grid, values, BC::size_);
+    return this->insert_impl(grid, values, {});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with linear interpolation.
+ * Add a grid of generic data with interpolation method.
  */
 auto NonuniformGridBuilder::operator()(SpanConstFlt grid,
                                        SpanConstFlt values,
-                                       BC bc) -> Grid
+                                       inp::Interpolation interp) -> Grid
 {
-    CELER_EXPECT(bc != BC::size_);
-    return this->insert_impl(grid, values, bc);
+    return this->insert_impl(grid, values, interp);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with linear interpolation.
+ * Add a grid of generic data with interpolation method.
  */
 auto NonuniformGridBuilder::operator()(SpanConstDbl grid,
                                        SpanConstDbl values,
-                                       BC bc) -> Grid
+                                       inp::Interpolation interp) -> Grid
 {
-    CELER_EXPECT(bc != BC::size_);
-    return this->insert_impl(grid, values, bc);
+    return this->insert_impl(grid, values, interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -72,20 +72,18 @@ auto NonuniformGridBuilder::operator()(SpanConstDbl grid,
 auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
 {
     CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
-    return this->insert_impl(make_span(pvec.x), make_span(pvec.y), BC::size_);
+    return this->insert_impl(make_span(pvec.x), make_span(pvec.y), {});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Add a grid from an imported physics vector.
  */
-auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec, BC bc)
-    -> Grid
+auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec,
+                                       inp::Interpolation interp) -> Grid
 {
-    CELER_EXPECT(bc != BC::size_);
     CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
-    CELER_EXPECT(pvec.spline);
-    return this->insert_impl(make_span(pvec.x), make_span(pvec.y), bc);
+    return this->insert_impl(make_span(pvec.x), make_span(pvec.y), interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -95,24 +93,44 @@ auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec, BC bc)
 template<class T>
 auto NonuniformGridBuilder::insert_impl(Span<T const> grid,
                                         Span<T const> values,
-                                        BC bc) -> Grid
+                                        inp::Interpolation interp) -> Grid
 {
+    using BC = SplineDerivCalculator::BoundaryCondition;
+
     CELER_EXPECT(grid.size() >= 2);
     CELER_EXPECT(grid.front() <= grid.back());
     CELER_EXPECT(values.size() == grid.size());
+    CELER_EXPECT(interp.type != InterpolationType::size_);
+
+    if (interp.type == InterpolationType::poly_spline)
+    {
+        CELER_LOG(warning) << to_cstring(interp.type)
+                           << " interpolation is not supported on a "
+                              "nonuniform grid: defaulting to linear";
+        interp.type = InterpolationType::linear;
+    }
+    else if (interp.type == InterpolationType::cubic_spline
+             && values.size() < 5)
+    {
+        CELER_LOG(warning) << to_cstring(interp.type)
+                           << " interpolation is not supported on a "
+                              "grid with size "
+                           << values.size() << ": defaulting to linear";
+        interp.type = InterpolationType::linear;
+    }
 
     Grid result;
     result.grid = reals_.insert_back(grid.begin(), grid.end());
     result.value = reals_.insert_back(values.begin(), values.end());
-    if (bc != BC::size_)
+    if (interp.type == InterpolationType::cubic_spline)
     {
         // Calculate second derivatives for cubic spline interpolation
+        CELER_ASSERT(interp.bc != BC::size_);
         CELER_ASSERT(is_monotonic_increasing(grid));
-        auto deriv = SplineDerivCalculator(bc)(values_[result.grid],
-                                               values_[result.value]);
+        auto deriv = SplineDerivCalculator(interp.bc)(values_[result.grid],
+                                                      values_[result.value]);
         result.derivative = reals_.insert_back(deriv.begin(), deriv.end());
     }
-
     CELER_ENSURE(result);
     return result;
 }

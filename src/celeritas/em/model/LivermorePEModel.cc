@@ -35,14 +35,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct from model ID and other necessary data.
- *
- * TODO: spline
  */
 LivermorePEModel::LivermorePEModel(ActionId id,
                                    ParticleParams const& particles,
                                    MaterialParams const& materials,
                                    ReadData load_data,
-                                   bool spline)
+                                   inp::Interpolation interpolation)
     : StaticConcreteAction(
           id, "photoel-livermore", "interact by Livermore photoelectric effect")
 {
@@ -65,11 +63,11 @@ LivermorePEModel::LivermorePEModel(ActionId id,
               particles.get(host_data.ids.electron).mass());
 
     CELER_LOG(debug)
-        << (spline ? "Enabled" : "Disabled")
-        << " spline interpolation for Livermore PE high energy cross sections";
+        << "Using " << to_cstring(interpolation.type)
+        << " interpolation for Livermore PE high energy cross sections";
 
     // Load Livermore cross section data
-    detail::LivermoreXsInserter insert_element(&host_data.xs, spline);
+    detail::LivermoreXsInserter insert_element(&host_data.xs, interpolation);
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();

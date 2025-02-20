@@ -30,7 +30,7 @@ RayleighProcess::RayleighProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::rayleigh,
                 {pdg::gamma()},
-                options.spline)
+                options.interpolation)
     , options_(options)
 {
     CELER_EXPECT(particles_);

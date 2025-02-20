@@ -28,7 +28,7 @@ ComptonProcess::ComptonProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::compton,
                 {pdg::gamma()},
-                options.spline)
+                options.interpolation)
     , options_(options)
 {
     CELER_EXPECT(particles_);

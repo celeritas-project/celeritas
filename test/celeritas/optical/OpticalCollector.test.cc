@@ -154,10 +154,8 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
     auto& action_reg = *this->action_reg();
     UniformFieldParams field_params;
     field_params.field = {0, 0, static_cast<real_type>(1 * units::tesla)};
-    auto msc = UrbanMscParams::from_import(*this->particle(),
-                                           *this->material(),
-                                           this->imported_data(),
-                                           UrbanMscParams::Options{});
+    auto msc = UrbanMscParams::from_import(
+        *this->particle(), *this->material(), this->imported_data(), {});
 
     auto result = std::make_shared<AlongStepUniformMscAction>(
         action_reg.next_id(), field_params, nullptr, msc);

@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -33,8 +34,8 @@ class RayleighProcess : public Process
     //! Options for Rayleigh scattering
     struct Options
     {
-        //! Use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

@@ -321,9 +321,6 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.safety_factor >= 0.1,
                    << "invalid safety_factor=" << opts.safety_factor
                    << " (should be >= 0.1)");
-    CELER_VALIDATE(opts.spline_eloss_order > 0,
-                   << "invalid spline_eloss_order=" << opts.spline_eloss_order
-                   << " (should be > 0)");
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
@@ -610,26 +607,42 @@ void PhysicsParams::build_xs(Options const& opts,
                     = build_grid(builders[VGT::energy_loss]);
                 if (auto grid_id = eloss_grid_ids[mat_idx])
                 {
-                    //! \todo make the interpolation method configurable?
-
                     // Build the range grid from the energy loss
                     auto const& eloss_grid = data->value_grids[grid_id];
                     auto const range = RangeGridCalculator(BC::geant)(
                         eloss_grid.lower, make_const_ref(*data).reals);
-                    range_grid_ids[mat_idx]
-                        = insert_grid(eloss_grid.lower.grid,
-                                      make_span(range),
-                                      !eloss_grid.lower.derivative.empty());
+                    CELER_ASSERT(is_monotonic_increasing(make_span(range)));
 
+                    inp::Interpolation interp;
+                    interp.order = eloss_grid.lower.spline_order;
                     if (!eloss_grid.lower.derivative.empty())
                     {
-                        // Build the inverse range grid if spline interpolation
-                        // is used. The grid and values are not inverted on the
-                        // \c UniformGridRecord, but the derivatives are
-                        // calculated using the inverted grid.
-                        CELER_ASSERT(is_monotonic_increasing(make_span(range)));
+                        CELER_ASSERT(interp.order == 1);
+                        interp.type = InterpolationType::cubic_spline;
+                    }
+                    else if (interp.order > 1)
+                    {
+                        if (mat_idx == 0)
+                        {
+                            CELER_LOG(warning)
+                                << to_cstring(InterpolationType::poly_spline)
+                                << " interpolation is not supported for range "
+                                   "or inverse range: defaulting to linear";
+                        }
+                        interp.type = InterpolationType::linear;
+                    }
+                    range_grid_ids[mat_idx] = insert_grid(
+                        eloss_grid.lower.grid, make_span(range), interp);
+
+                    if (interp.type == InterpolationType::cubic_spline)
+                    {
+                        // Build the inverse range grid if cubic spline
+                        // interpolation is used
                         inv_range_grid_ids.resize(mats.size(), ValueGridId{});
 
+                        // The range and energy values are not inverted on the
+                        // grid, but the derivatives are calculated using the
+                        // inverted grid.
                         XsGridRecord range_grid
                             = data->value_grids[range_grid_ids[mat_idx]];
                         auto deriv
@@ -639,23 +652,10 @@ void PhysicsParams::build_xs(Options const& opts,
                         range_grid.lower.derivative
                             = make_builder(&data->reals)
                                   .insert_back(deriv.begin(), deriv.end());
-                        CELER_ASSERT(range_grid);
                         inv_range_grid_ids[mat_idx]
                             = make_builder(&data->value_grids)
                                   .push_back(range_grid);
                     }
-                }
-
-                if (auto grid_id = eloss_grid_ids[mat_idx])
-                {
-                    /*
-                     * \todo Possibly set the spline order for other grid
-                     * types. Store in the import data which physics vectors
-                     * use spline interpolation. Update the physics options to
-                     * support cubic spline interpolation as well.
-                     */
-                    data->value_grids[grid_id].lower.spline_order
-                        = opts.spline_eloss_order;
                 }
 
                 if (use_integral_xs)

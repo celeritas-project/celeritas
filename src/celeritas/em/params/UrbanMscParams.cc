@@ -68,8 +68,10 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
     HostVal<UrbanMscData> host_data;
 
-    detail::MscParamsHelper helper(
-        particles, mdata_vec, ImportModelClass::urban_msc, options.spline);
+    detail::MscParamsHelper helper(particles,
+                                   mdata_vec,
+                                   ImportModelClass::urban_msc,
+                                   options.interpolation);
     helper.build_ids(&host_data.ids, &host_data.pid_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
 

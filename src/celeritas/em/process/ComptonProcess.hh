@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -31,8 +32,8 @@ class ComptonProcess : public Process
     // Options for Compton scattering
     struct Options
     {
-        //! Use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

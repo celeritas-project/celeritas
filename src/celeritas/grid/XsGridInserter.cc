@@ -7,7 +7,9 @@
 #include "XsGridInserter.hh"
 
 #include "corecel/Types.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/VectorUtils.hh"
+#include "corecel/io/Logger.hh"
 
 #include "XsGridData.hh"
 
@@ -29,17 +31,17 @@ XsGridInserter::XsGridInserter(Values* reals, GridValues* grids)
  */
 auto XsGridInserter::operator()(UniformGridData const& lower_grid,
                                 SpanConstDbl lower_values,
-                                bool lower_spline,
+                                inp::Interpolation lower_interp,
                                 UniformGridData const& upper_grid,
                                 SpanConstDbl upper_values,
-                                bool upper_spline) -> GridId
+                                inp::Interpolation upper_interp) -> GridId
 {
     return this->insert(lower_grid,
                         lower_values,
-                        lower_spline,
+                        lower_interp,
                         upper_grid,
                         upper_values,
-                        upper_spline);
+                        upper_interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -48,17 +50,17 @@ auto XsGridInserter::operator()(UniformGridData const& lower_grid,
  */
 auto XsGridInserter::operator()(UniformGridData const& lower_grid,
                                 SpanConstFlt lower_values,
-                                bool lower_spline,
+                                inp::Interpolation lower_interp,
                                 UniformGridData const& upper_grid,
                                 SpanConstFlt upper_values,
-                                bool upper_spline) -> GridId
+                                inp::Interpolation upper_interp) -> GridId
 {
     return this->insert(lower_grid,
                         lower_values,
-                        lower_spline,
+                        lower_interp,
                         upper_grid,
                         upper_values,
-                        upper_spline);
+                        upper_interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -67,9 +69,9 @@ auto XsGridInserter::operator()(UniformGridData const& lower_grid,
  */
 auto XsGridInserter::operator()(UniformGridData const& grid,
                                 SpanConstDbl values,
-                                bool spline) -> GridId
+                                inp::Interpolation interp) -> GridId
 {
-    return (*this)(grid, values, spline, UniformGridData{}, {}, spline);
+    return (*this)(grid, values, interp, UniformGridData{}, {}, interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -78,9 +80,9 @@ auto XsGridInserter::operator()(UniformGridData const& grid,
  */
 auto XsGridInserter::operator()(UniformGridData const& grid,
                                 SpanConstFlt values,
-                                bool spline) -> GridId
+                                inp::Interpolation interp) -> GridId
 {
-    return (*this)(grid, values, spline, UniformGridData{}, {}, spline);
+    return (*this)(grid, values, interp, UniformGridData{}, {}, interp);
 }
 
 //---------------------------------------------------------------------------//
@@ -90,10 +92,10 @@ auto XsGridInserter::operator()(UniformGridData const& grid,
 template<class T>
 auto XsGridInserter::insert(UniformGridData const& lower_grid,
                             Span<T const> lower_values,
-                            bool lower_spline,
+                            inp::Interpolation lower_interp,
                             UniformGridData const& upper_grid,
                             Span<T const> upper_values,
-                            bool upper_spline) -> GridId
+                            inp::Interpolation upper_interp) -> GridId
 {
     CELER_EXPECT(lower_grid || upper_grid);
     CELER_EXPECT(!lower_grid || lower_grid.size == lower_values.size());
@@ -107,22 +109,56 @@ auto XsGridInserter::insert(UniformGridData const& lower_grid,
     grid.upper.value
         = reals_.insert_back(upper_values.begin(), upper_values.end());
 
-    // Calculate second derivatives for cubic spline interpolation
-    // TODO: pass in bc instead of bool?
-    ValuesRef ref(values_);
-    if (lower_spline && lower_grid)
-    {
-        auto deriv = SplineDerivCalculator(BC::geant)(grid.lower, ref);
-        grid.lower.derivative = reals_.insert_back(deriv.begin(), deriv.end());
-    }
-    if (upper_spline && upper_grid)
-    {
-        auto deriv = SplineDerivCalculator(BC::geant)(grid.upper, ref);
-        grid.upper.derivative = reals_.insert_back(deriv.begin(), deriv.end());
-    }
+    set_spline(lower_grid, lower_interp, grid.lower);
+    set_spline(upper_grid, upper_interp, grid.upper);
 
     CELER_ENSURE(grid);
     return grids_.push_back(grid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the second derivatives or set the polynomial order.
+ */
+void XsGridInserter::set_spline(UniformGridData const& grid,
+                                inp::Interpolation const& interp,
+                                UniformGridRecord& data)
+{
+    if (!grid)
+    {
+        return;
+    }
+    if (interp.type == InterpolationType::cubic_spline)
+    {
+        if (data.value.size() < 5)
+        {
+            CELER_LOG(warning)
+                << to_cstring(interp.type)
+                << " interpolation is not supported on a grid with size "
+                << data.value.size() << ": defaulting to linear";
+            return;
+        }
+
+        // Calculate second derivatives for cubic spline interpolation
+        CELER_ASSERT(interp.bc
+                     != SplineDerivCalculator::BoundaryCondition::size_);
+        ValuesRef ref(values_);
+        auto deriv = SplineDerivCalculator(interp.bc)(data, ref);
+        data.derivative = reals_.insert_back(deriv.begin(), deriv.end());
+    }
+    else if (interp.type == InterpolationType::poly_spline)
+    {
+        if (interp.order >= data.value.size())
+        {
+            CELER_LOG(warning)
+                << to_cstring(interp.type) << " interpolation with order "
+                << interp.order << " is not supported on a grid with size "
+                << data.value.size() << ": defaulting to linear";
+            return;
+        }
+        CELER_ASSERT(interp.order > 1);
+        data.spline_order = interp.order;
+    }
 }
 
 //---------------------------------------------------------------------------//

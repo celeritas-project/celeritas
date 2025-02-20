@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Physics.hh"
 
 #include "GlobalGeoTestBase.hh"
 #include "OnlyCoreTestBase.hh"
@@ -82,6 +83,7 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     SPConstWentzelOKVI build_wentzel() override { return nullptr; }
 
     virtual PhysicsOptions build_physics_options() const;
+    virtual inp::Interpolation interpolation() const;
 
   private:
     //// DATA ////

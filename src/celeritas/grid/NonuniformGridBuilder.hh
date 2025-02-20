@@ -10,7 +10,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
+#include "celeritas/inp/Physics.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,6 @@ class NonuniformGridBuilder
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     using Grid = NonuniformGridRecord;
-    using BC = SplineDerivCalculator::BoundaryCondition;
     using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
     //!@}
@@ -42,15 +41,15 @@ class NonuniformGridBuilder
     Grid operator()(SpanConstFlt grid, SpanConstFlt values);
     Grid operator()(SpanConstDbl grid, SpanConstDbl values);
 
-    // Add a grid of generic data with spline interpolation
-    Grid operator()(SpanConstFlt grid, SpanConstFlt values, BC bc);
-    Grid operator()(SpanConstDbl grid, SpanConstDbl values, BC bc);
+    // Add a grid of generic data with interpolation method
+    Grid operator()(SpanConstFlt grid, SpanConstFlt values, inp::Interpolation);
+    Grid operator()(SpanConstDbl grid, SpanConstDbl values, inp::Interpolation);
 
     // Add a grid from an imported physics vector with linear interpolation
     Grid operator()(ImportPhysicsVector const&);
 
-    // Add a grid from an imported physics vector with spline interpolation
-    Grid operator()(ImportPhysicsVector const&, BC bc);
+    // Add a grid from an imported physics vector with interpolation method
+    Grid operator()(ImportPhysicsVector const&, inp::Interpolation);
 
   private:
     Items<real_type> const& values_;
@@ -58,7 +57,8 @@ class NonuniformGridBuilder
 
     // Insert with floating point conversion if needed
     template<class T>
-    Grid insert_impl(Span<T const> grid, Span<T const> values, BC bc);
+    Grid
+    insert_impl(Span<T const> grid, Span<T const> values, inp::Interpolation);
 };
 
 //---------------------------------------------------------------------------//

@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/em/data/WentzelVIMscData.hh"
+#include "celeritas/inp/Physics.hh"
 
 namespace celeritas
 {
@@ -36,8 +37,8 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
     //! Wentzel VI multiple scattering options
     struct Options
     {
-        //! Use cubic spline interpolation for cross sections
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

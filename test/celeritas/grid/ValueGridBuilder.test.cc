@@ -28,6 +28,7 @@ using std::make_shared;
 class ValueGridBuilderTest : public Test
 {
   public:
+    using GridInput = ValueGridBuilder::GridInput;
     using SPConstBuilder = std::shared_ptr<ValueGridBuilder const>;
     using VecBuilder = std::vector<SPConstBuilder>;
     using VecDbl = std::vector<double>;
@@ -48,7 +49,6 @@ class ValueGridBuilderTest : public Test
         real_ref = real_storage;
     }
 
-    bool spline{false};
     Collection<real_type, Ownership::value, MemSpace::host> real_storage;
     Collection<real_type, Ownership::const_reference, MemSpace::host> real_ref;
     Collection<XsGridRecord, Ownership::value, MemSpace::host> grid_storage;
@@ -66,8 +66,8 @@ TEST_F(ValueGridBuilderTest, xs_grid)
     VecBuilder entries;
     {
         entries.push_back(make_shared<Builder_t>(
-            GridInput{1e1, 1e2, {0.1, 0.2 * 1e2}, spline},
-            GridInput{1e2, 1e3, {0.2 * 1e2, 0.3 * 1e3}, spline}));
+            GridInput{1e1, 1e2, {0.1, 0.2 * 1e2}, {}},
+            GridInput{1e2, 1e3, {0.2 * 1e2, 0.3 * 1e3}, {}}));
     }
     {
         double const lambda_energy[] = {1e-3, 1e-2, 1e-1};
@@ -75,17 +75,13 @@ TEST_F(ValueGridBuilderTest, xs_grid)
         double const lambda_prim_energy[] = {1e-1, 1e0, 10};
         double const lambda_prim[] = {.1 * 1e-1, .01 * 1, .001 * 10};
 
-        entries.push_back(Builder_t::from_geant(lambda_energy,
-                                                lambda,
-                                                spline,
-                                                lambda_prim_energy,
-                                                lambda_prim,
-                                                spline));
+        entries.push_back(Builder_t::from_geant(
+            lambda_energy, lambda, {}, lambda_prim_energy, lambda_prim, {}));
     }
     {
         entries.push_back(
-            make_shared<Builder_t>(GridInput{1e-4, 1, VecDbl(18), spline},
-                                   GridInput{1, 1e8, VecDbl(38), spline}));
+            make_shared<Builder_t>(GridInput{1e-4, 1, VecDbl(18), {}},
+                                   GridInput{1, 1e8, VecDbl(38), {}}));
     }
 
     // Build
@@ -115,8 +111,8 @@ TEST_F(ValueGridBuilderTest, log_grid)
 
     VecBuilder entries;
     {
-        entries.push_back(
-            make_shared<Builder_t>(1e1, 1e3, VecDbl{.1, .2, .3}, spline));
+        entries.push_back(make_shared<Builder_t>(
+            GridInput{1e1, 1e3, VecDbl{.1, .2, .3}, {}}));
     }
 
     // Build

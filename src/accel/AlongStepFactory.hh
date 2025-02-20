@@ -13,6 +13,7 @@
 
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/inp/Physics.hh"
 
 namespace celeritas
 {
@@ -47,7 +48,7 @@ struct AlongStepFactoryInput
     std::shared_ptr<CutoffParams const> cutoff;
     std::shared_ptr<PhysicsParams const> physics;
     std::shared_ptr<ImportData const> imported;
-    bool spline;
+    inp::Interpolation interpolation;
 
     //! True if all data is assigned
     explicit operator bool() const

@@ -15,6 +15,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/inp/Physics.hh"
 
 class G4LogicalVolume;
 
@@ -202,8 +203,8 @@ struct SetupOptions
 
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
-    //! Enable cubic spline interpolation in Celeritas
-    bool spline{false};
+    //! Physics grid interpolation options
+    inp::Interpolation interpolation{};
     //!@}
 
     //!@{

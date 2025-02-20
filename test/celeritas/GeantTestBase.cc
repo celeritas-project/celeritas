@@ -121,10 +121,8 @@ auto GeantTestBase::build_init() -> SPConstTrackInit
 auto GeantTestBase::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
-    auto msc = UrbanMscParams::from_import(*this->particle(),
-                                           *this->material(),
-                                           this->imported_data(),
-                                           UrbanMscParams::Options{});
+    auto msc = UrbanMscParams::from_import(
+        *this->particle(), *this->material(), this->imported_data(), {});
     auto result = AlongStepGeneralLinearAction::from_params(
         action_reg.next_id(),
         *this->material(),

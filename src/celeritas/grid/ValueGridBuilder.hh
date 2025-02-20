@@ -13,6 +13,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Physics.hh"
 
 namespace celeritas
 {
@@ -32,7 +33,16 @@ class ValueGridBuilder
     //!@{
     //! \name Type aliases
     using ValueGridId = ItemId<struct XsGridRecord>;
+    using VecDbl = std::vector<double>;
     //!@}
+
+    struct GridInput
+    {
+        double emin{0};
+        double emax{0};
+        VecDbl value;
+        inp::Interpolation interp{};
+    };
 
   public:
     //! Virtual destructor for polymorphic deletion
@@ -66,32 +76,23 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     //!@{
     //! \name Type aliases
     using SpanConstDbl = Span<double const>;
-    using VecDbl = std::vector<double>;
     //!@}
-
-    struct GridInput
-    {
-        double emin{0};
-        double emax{0};
-        VecDbl xs;
-        bool spline{false};
-    };
 
   public:
     // Construct from imported data
     static std::unique_ptr<ValueGridXsBuilder>
     from_geant(SpanConstDbl lambda_energy,
                SpanConstDbl lambda,
-               bool spline,
+               inp::Interpolation interp,
                SpanConstDbl lambda_prim_energy,
                SpanConstDbl lambda_prim,
-               bool spline_prim);
+               inp::Interpolation interp_prim);
 
     // Construct from just scaled cross sections
     static std::unique_ptr<ValueGridXsBuilder>
     from_scaled(SpanConstDbl lambda_prim_energy,
                 SpanConstDbl lambda_prim,
-                bool spline);
+                inp::Interpolation interp);
 
     // Construct
     ValueGridXsBuilder(GridInput grid, GridInput grid_prime);
@@ -118,22 +119,18 @@ class ValueGridLogBuilder : public ValueGridBuilder
   public:
     //!@{
     //! \name Type aliases
-    using VecDbl = std::vector<double>;
     using SpanConstDbl = Span<double const>;
     using UPLogBuilder = std::unique_ptr<ValueGridLogBuilder>;
     //!@}
 
   public:
     // Construct from full grids
-    static UPLogBuilder
-    from_geant(SpanConstDbl energy, SpanConstDbl value, bool spline);
-
-    // Construct from range
-    static UPLogBuilder
-    from_range(SpanConstDbl energy, SpanConstDbl range, bool spline);
+    static UPLogBuilder from_geant(SpanConstDbl energy,
+                                   SpanConstDbl value,
+                                   inp::Interpolation interp);
 
     // Construct
-    ValueGridLogBuilder(double emin, double emax, VecDbl value, bool spline);
+    ValueGridLogBuilder(GridInput grid);
 
     // Construct in the given store
     ValueGridId build(XsGridInserter) const final;
@@ -142,10 +139,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
     SpanConstDbl value() const;
 
   private:
-    double log_emin_;
-    double log_emax_;
-    VecDbl value_;
-    bool spline_;
+    GridInput grid_;
 };
 
 //---------------------------------------------------------------------------//

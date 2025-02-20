@@ -147,7 +147,7 @@ auto build_physics_processes(inp::EmPhysics const& em,
                 return BremsModelSelection::none;
         }();
     }
-    opts.spline = em.spline;
+    opts.interpolation = em.interpolation;
 
     // TODO: add callback for user processes
     ProcessBuilder build_process(
@@ -188,7 +188,6 @@ auto build_physics(inp::Problem const& p,
         // Default: twice the number of track slots
         input.options.secondary_stack_factor = 2.0;
     }
-    input.options.spline_eloss_order = p.physics.em->eloss_spline_order;
     input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
     input.options.light.lowest_energy
         = ParticleOptions::Energy(imported.em_params.lowest_electron_energy);
@@ -272,7 +271,7 @@ auto build_along_step(inp::Field const& var_field,
 {
     bool const eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported, {em.spline});
+        *params.particle, *params.material, imported, {em.interpolation});
 
     CELER_ASSUME(!var_field.valueless_by_exception());
     auto next_id = params.action_reg->next_id();

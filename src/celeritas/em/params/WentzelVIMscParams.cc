@@ -49,8 +49,10 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
 
     HostVal<WentzelVIMscData> host_data;
 
-    detail::MscParamsHelper helper(
-        particles, mdata_vec, ImportModelClass::wentzel_vi_uni, options.spline);
+    detail::MscParamsHelper helper(particles,
+                                   mdata_vec,
+                                   ImportModelClass::wentzel_vi_uni,
+                                   options.interpolation);
     helper.build_ids(&host_data.ids, &host_data.pid_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
     host_data.num_particles = helper.particle_ids().size();

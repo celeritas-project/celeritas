@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/Model.hh"
 
@@ -39,7 +40,7 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
                      ParticleParams const& particles,
                      MaterialParams const& materials,
                      ReadData load_data,
-                     bool spline);
+                     inp::Interpolation interpolation);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

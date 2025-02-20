@@ -79,6 +79,7 @@ class MockProcess : public Process
         ModelCallback interact;  //!< MockModel::interact callback
         VecMicroXs xs;  //!< Constant per atom [bn]
         MevCmSqLossDens energy_loss{};  //!< Constant per atom
+        inp::Interpolation interp{};
     };
 
   public:

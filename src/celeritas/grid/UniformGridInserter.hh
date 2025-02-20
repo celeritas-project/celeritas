@@ -14,9 +14,9 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Physics.hh"
 
 #include "XsGridData.hh"
 
@@ -44,13 +44,10 @@ class UniformGridInserter
     UniformGridInserter(Values* reals, GridValues* grids);
 
     // Add a grid of uniform log-grid data
-    GridId
-    operator()(UniformGridData const& grid, SpanConstDbl values, bool spline);
-    GridId
-    operator()(UniformGridData const& grid, SpanConstFlt values, bool spline);
+    GridId operator()(UniformGridData const&, SpanConstDbl, inp::Interpolation);
+    GridId operator()(UniformGridData const&, SpanConstFlt, inp::Interpolation);
 
   private:
-    using BC = SplineDerivCalculator::BoundaryCondition;
     using ValuesRef
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
 
@@ -59,7 +56,7 @@ class UniformGridInserter
     CollectionBuilder<UniformGridRecord, MemSpace::host, GridId> grids_;
 
     template<class T>
-    GridId insert(UniformGridData const&, Span<T const>, bool);
+    GridId insert(UniformGridData const&, Span<T const>, inp::Interpolation);
 };
 
 //---------------------------------------------------------------------------//

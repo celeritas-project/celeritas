@@ -80,7 +80,8 @@ inp::Problem load_problem(RunInput const& ri)
 
     // Physics
     CELER_ASSERT(p.physics.em);
-    p.physics.em->spline = ri.spline;
+    p.physics.em->interpolation.type = ri.interpolation;
+    p.physics.em->interpolation.order = ri.poly_spline_order;
 
     // Field setup
     if (ri.field_type == "rzmap")

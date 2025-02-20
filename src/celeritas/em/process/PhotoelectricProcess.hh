@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -38,8 +39,8 @@ class PhotoelectricProcess : public Process
     // Options for photoelectric process
     struct Options
     {
-        //! Use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:

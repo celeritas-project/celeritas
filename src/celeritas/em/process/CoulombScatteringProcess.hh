@@ -10,6 +10,7 @@
 
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/model/CoulombScatteringModel.hh"
+#include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
@@ -36,8 +37,8 @@ class CoulombScatteringProcess : public Process
     {
         //! Whether to use integral method to sample interaction length
         bool use_integral_xs{true};
-        //! Whether to use cubic spline interpolation
-        bool spline{false};
+        //! Interpolation method
+        inp::Interpolation interpolation;
     };
 
   public:
