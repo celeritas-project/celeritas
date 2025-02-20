@@ -19,6 +19,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "accel/SDTestBase.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/detail/HitManagerOutput.hh"
@@ -38,7 +39,6 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
   protected:
     void SetUp() override
     {
-        sd_setup_.enabled = true;
         sd_setup_.ignore_zero_deposition = false;
         sd_setup_.track = false;
     }
@@ -110,13 +110,13 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
     }
 
   protected:
-    SDSetupOptions sd_setup_;
+    inp::GeantSensitiveDetector sd_setup_;
     ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger()};
-    static G4LogicalVolume* detached_lv;
+    static G4LogicalVolume const* detached_lv;
     HitManager::SPProcessor processor_;
 };
 
-G4LogicalVolume* SimpleCmsTest::detached_lv{nullptr};
+G4LogicalVolume const* SimpleCmsTest::detached_lv{nullptr};
 
 TEST_F(SimpleCmsTest, no_change)
 {
@@ -252,7 +252,7 @@ TEST_F(SimpleCmsTest, detached_detector)
 {
     // Detector for LV that isn't in the world tree
     sd_setup_.skip_volumes = {};
-    sd_setup_.force_volumes = {SimpleCmsTest::detached_lv};
+    sd_setup_.force_volumes = std::unordered_set{SimpleCmsTest::detached_lv};
     EXPECT_THROW(
         try {
             this->make_hit_manager();

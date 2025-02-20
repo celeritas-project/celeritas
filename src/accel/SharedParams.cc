@@ -53,6 +53,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -698,7 +699,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         hit_manager_
             = std::make_shared<detail::HitManager>(params_->geometry(),
                                                    *params_->particle(),
-                                                   options.sd,
+                                                   to_inp(options.sd),
                                                    params_->max_streams());
         step_collector_
             = StepCollector::make_and_insert(*params_, {hit_manager_});

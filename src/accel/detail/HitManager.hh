@@ -18,8 +18,12 @@ class G4ParticleDefinition;
 
 namespace celeritas
 {
-struct SDSetupOptions;
 class ParticleParams;
+
+namespace inp
+{
+struct GeantSensitiveDetector;
+}
 
 namespace detail
 {
@@ -55,13 +59,14 @@ class HitManager final : public StepInterface
     using SPConstGeo = std::shared_ptr<GeoParams const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
+    using Input = inp::GeantSensitiveDetector;
     //!@}
 
   public:
     // Construct with Celeritas objects for mapping
     HitManager(SPConstGeo geo,
                ParticleParams const& par,
-               SDSetupOptions const& setup,
+               Input const& setup,
                StreamId::size_type num_streams);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(HitManager);
@@ -115,7 +120,7 @@ class HitManager final : public StepInterface
     std::vector<HitProcessor*> processors_;
 
     // Construct vecgeom/geant volumes
-    void setup_volumes(GeoParams const& geo, SDSetupOptions const& setup);
+    void setup_volumes(GeoParams const& geo, Input const& setup);
     // Construct celeritas/geant particles
     void setup_particles(ParticleParams const& par);
 

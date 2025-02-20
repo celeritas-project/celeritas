@@ -7,7 +7,7 @@
 #pragma once
 
 #include <optional>
-#include <set>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -75,13 +75,19 @@ struct GeantSDStepPointAttributes
  * FindVolumes helper function can be used to determine LV pointers from
  * the volume names.
  *
+ * \todo For improved granularity in models with duplicate names, we could add
+ * a vector of \c Label to \c VariantSetVolume .
+ * \todo change from \c unordered_set to \c set for better reproducibility in
+ * serialized output
+ *
  * \sa celeritas::HitManager
  */
 struct GeantSensitiveDetector
 {
     //! Provide either a set of labels or a set of pointers to Geant4 objects
-    using VariantSetVolume
-        = std::variant<std::set<Label>, std::set<G4LogicalVolume const*>>;
+    using SetVolume = std::unordered_set<G4LogicalVolume const*>;
+    using SetString = std::unordered_set<std::string>;
+    using VariantSetVolume = std::variant<SetVolume, SetString>;
 
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};

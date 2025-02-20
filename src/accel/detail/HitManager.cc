@@ -18,11 +18,14 @@
 
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "HitProcessor.hh"
@@ -37,12 +40,27 @@ namespace
 {
 //---------------------------------------------------------------------------//
 void update_selection(StepPointSelection* selection,
-                      SDSetupOptions::StepPoint const& options)
+                      inp::GeantSDStepPointAttributes const& options)
 {
     selection->time = options.global_time;
     selection->pos = options.position;
     selection->dir = options.direction;
     selection->energy = options.kinetic_energy;
+}
+
+// Convert volume sets to the correct type for SensDetInserter
+auto make_set_lv(inp::GeantSensitiveDetector::VariantSetVolume const& sv)
+{
+    using InpSD = inp::GeantSensitiveDetector;
+    using SetLV = detail::SensDetInserter::SetLV;
+    return std::visit(
+        Overload{[](InpSD::SetVolume const& s) {
+                     return SetLV{s.begin(), s.end()};
+                 },
+                 [](InpSD::SetString const& s) {
+                     return find_geant_volumes({s.begin(), s.end()});
+                 }},
+        sv);
 }
 
 //---------------------------------------------------------------------------//
@@ -54,13 +72,12 @@ void update_selection(StepPointSelection* selection,
  */
 HitManager::HitManager(SPConstGeo geo,
                        ParticleParams const& par,
-                       SDSetupOptions const& setup,
+                       Input const& setup,
                        StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
     , geo_{std::move(geo)}
     , locate_touchable_(setup.locate_touchable)
 {
-    CELER_EXPECT(setup.enabled);
     CELER_EXPECT(num_streams > 0);
 
     // Convert setup options to step data
@@ -169,13 +186,16 @@ void HitManager::process_steps(DeviceStepState state)
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 void HitManager::setup_volumes(GeoParams const& geo,
-                               SDSetupOptions const& setup)
+                               inp::GeantSensitiveDetector const& setup)
 {
+    // Convert labels or other set types
+    auto skip_volumes = make_set_lv(setup.skip_volumes);
+    auto force_volumes = make_set_lv(setup.force_volumes);
+
     // Helper for inserting volumes
     SensDetInserter::MapIdLv found_id_lv;
     SensDetInserter::VecLV missing_lv;
-    SensDetInserter insert_volume(
-        geo, setup.skip_volumes, &found_id_lv, &missing_lv);
+    SensDetInserter insert_volume(geo, skip_volumes, &found_id_lv, &missing_lv);
 
     // Loop over all logical volumes and map detectors to Volume IDs
     for (G4LogicalVolume const* lv : *G4LogicalVolumeStore::GetInstance())
@@ -191,7 +211,7 @@ void HitManager::setup_volumes(GeoParams const& geo,
     }
 
     // Loop over user-specified G4LV
-    for (G4LogicalVolume const* lv : setup.force_volumes)
+    for (G4LogicalVolume const* lv : force_volumes)
     {
         insert_volume(lv);
     }
