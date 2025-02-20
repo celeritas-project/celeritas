@@ -88,6 +88,7 @@ inline void TracingSession::start() noexcept
     CELER_DISCARD(started_);
     CELER_DISCARD(fd_);
 }
+inline void TracingSession::flush() noexcept {}
 inline void TracingSession::Deleter::operator()(perfetto::TracingSession*)
 {
     CELER_ASSERT_UNREACHABLE();
