@@ -11,6 +11,8 @@
 
 #include "celeritas/phys/Primary.hh"
 
+#include "Problem.hh"
+
 namespace celeritas
 {
 class CoreParams;
@@ -29,7 +31,7 @@ struct StandaloneLoaded
     using VecEvent = std::vector<VecPrimary>;
 
     //! Problem setup
-    std::shared_ptr<CoreParams> core_params;
+    ProblemLoaded problem;
     //! Events to be run
     VecEvent events;
 };

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Config.hh"
+
 #include "geocel/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -131,7 +132,10 @@ class GeantSd final : public StepInterface
 
 #if !CELERITAS_USE_GEANT4
 
-inline GeantSd::GeantSd(SPConstGeo, ParticleParams const&, Input const&, StreamId::size_type)
+inline GeantSd::GeantSd(SPConstGeo,
+                        ParticleParams const&,
+                        Input const&,
+                        StreamId::size_type)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

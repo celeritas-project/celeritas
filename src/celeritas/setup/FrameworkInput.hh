@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "Problem.hh"
+
 namespace celeritas
 {
 class CoreParams;
@@ -23,7 +25,7 @@ namespace setup
 struct FrameworkLoaded
 {
     //! Problem setup
-    std::shared_ptr<CoreParams> core_params;
+    ProblemLoaded problem;
 };
 
 //---------------------------------------------------------------------------//

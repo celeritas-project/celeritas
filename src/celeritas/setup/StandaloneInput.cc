@@ -99,10 +99,10 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     StandaloneLoaded result;
 
     // Set up core params
-    result.core_params = setup::problem(*problem, imported);
+    result.problem = setup::problem(*problem, imported);
 
     // Load events
-    result.events = events(si.events, result.core_params->particle());
+    result.events = events(si.events, result.problem.core_params->particle());
 
     auto const& ctl = problem->control;
     if (ctl.capacity.events && ctl.num_streams > result.events.size())

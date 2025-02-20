@@ -33,6 +33,7 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/ext/RootFileManager.hh"
@@ -352,9 +353,7 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     CELER_ASSERT(oc_inp);
 
-    // TODO: optical collector really just *builds* the optical setup: it's
-    // ok that it immediately goes out of scope
-    OpticalCollector(params, std::move(oc_inp));
+    return std::make_shared<OpticalCollector>(params, std::move(oc_inp));
 }
 
 //---------------------------------------------------------------------------//
@@ -370,8 +369,7 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
  * \todo Migrate the class "Input"/"Option" code into the class itself, using
  * the \c inp namespace definition.
  */
-std::shared_ptr<CoreParams>
-problem(inp::Problem const& p, ImportData const& imported)
+ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
@@ -456,6 +454,9 @@ problem(inp::Problem const& p, ImportData const& imported)
     // Construct core
     auto core_params = std::make_shared<CoreParams>(std::move(params));
 
+    ProblemLoaded result;
+    result.core_params = core_params;
+
     //// DIAGNOSTICS ////
 
     if (p.diagnostics.action)
@@ -519,7 +520,6 @@ problem(inp::Problem const& p, ImportData const& imported)
     //// STEP COLLECTORS ////
 
     StepCollector::VecInterface step_interfaces;
-    std::shared_ptr<RootFileManager> root_manager;
     if (p.diagnostics.mctruth)
     {
         CELER_VALIDATE(num_streams == 1,
@@ -527,15 +527,23 @@ problem(inp::Problem const& p, ImportData const& imported)
                        << num_streams << " requested)");
 
         // Initialize ROOT file
-        root_manager = std::make_shared<RootFileManager>(
+        result.root_manager = std::make_shared<RootFileManager>(
             p.diagnostics.mctruth->output_file.c_str());
 
         // Create root step writer
         step_interfaces.push_back(std::make_shared<RootStepWriter>(
-            root_manager,
+            result.root_manager,
             core_params->particle(),
             StepSelection::all(),
             make_write_filter(p.diagnostics.mctruth->filter)));
+    }
+
+    if (p.scoring.sd)
+    {
+        result.geant_sd = std::make_shared<GeantSd>(core_params->geometry(),
+                                                    *core_params->particle(),
+                                                    *p.scoring.sd,
+                                                    core_params->max_streams());
     }
 
     if (p.scoring.simple_calo)
@@ -553,25 +561,23 @@ problem(inp::Problem const& p, ImportData const& imported)
 
     if (!step_interfaces.empty())
     {
-        // TODO: step collector really just *builds* the actions: it's ok that
-        // it immediately goes out of scope
-        StepCollector(core_params->geometry(),
-                      std::move(step_interfaces),
-                      core_params->aux_reg().get(),
-                      core_params->action_reg().get());
+        // NOTE: step collector primarily *builds* the actions
+        result.step_collector = StepCollector::make_and_insert(
+            *core_params, std::move(step_interfaces));
     }
 
     if (p.control.optical_capacity)
     {
-        build_optical_offload(
+        result.optical_collector = build_optical_offload(
             *p.control.optical_capacity, *core_params, imported);
     }
 
-    if (root_manager)
+    if (result.root_manager)
     {
-        write_to_root(*core_params->action_reg(), root_manager.get());
+        write_to_root(*core_params->action_reg(), result.root_manager.get());
     }
-    return core_params;
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

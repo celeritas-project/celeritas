@@ -40,7 +40,7 @@ Runner::Runner(RunnerInput const& old_inp)
     // Convert to new format and set up problem
     inp::StandaloneInput si = to_input(old_inp);
     auto loaded = setup::standalone_input(si);
-    core_params_ = std::move(loaded.core_params);
+    core_params_ = std::move(loaded.problem.core_params);
     CELER_ASSERT(core_params_);
     events_ = std::move(loaded.events);
 
