@@ -224,7 +224,7 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
     result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
-    result.geant.data_selection.processes = import_opts.particles;
+    result.geant.data_selection.processes = GeantImportDataSelection::em_basic;
 
     result.adjust = ProblemSetup{so};
     return result;
