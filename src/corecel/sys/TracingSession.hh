@@ -83,7 +83,7 @@ class TracingSession
 //---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_PERFETTO
-inline void flush_tracing() noexcept {};
+inline void flush_tracing() noexcept {}
 inline TracingSession::TracingSession() noexcept = default;
 inline TracingSession::TracingSession(std::string_view) noexcept {}
 inline TracingSession::~TracingSession() = default;
