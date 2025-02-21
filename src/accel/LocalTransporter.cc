@@ -17,6 +17,8 @@
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
 
+#include "corecel/sys/TracingSession.hh"
+
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
@@ -426,6 +428,11 @@ void LocalTransporter::Finalize()
         state->ref().geometry.reset();
 #endif
     }
+
+#if CELERITAS_USE_PERFETTO
+    // Flush any remaining track counters on the worker thread
+    flush_tracing();
+#endif
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";
