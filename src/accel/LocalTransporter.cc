@@ -429,10 +429,8 @@ void LocalTransporter::Finalize()
 #endif
     }
 
-#if CELERITAS_USE_PERFETTO
     // Flush any remaining track counters on the worker thread
     flush_tracing();
-#endif
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";
