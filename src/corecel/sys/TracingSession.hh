@@ -22,6 +22,10 @@ class TracingSession;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// Flush perfetto track events without requiring a TracingSession instance.
+void flush_perfetto() noexcept;
+
+//---------------------------------------------------------------------------//
 /*!
  * RAII wrapper for a tracing session.
  *
