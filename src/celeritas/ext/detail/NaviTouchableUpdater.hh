@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/NaviTouchableUpdater.hh
+//! \file celeritas/ext/detail/NaviTouchableUpdater.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,7 +24,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Update the temporary navigation state based on the position and direction.
+ * Update a navigation state based on the position and direction.
  *
  * This is a helper class for \c HitProcessor.
  */

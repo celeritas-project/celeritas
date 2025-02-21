@@ -92,7 +92,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // ORANGE doesn't yet support level reconstruction: see
-            // HitManager.cc
+            // GeantSd.cc
             CELER_EXPECT(selection.points[StepPoint::pre].pos
                          && selection.points[StepPoint::pre].dir);
             update_touchable_

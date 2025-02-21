@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitManagerOutput.hh
+//! \file celeritas/ext/GeantSdOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,25 +12,24 @@
 
 namespace celeritas
 {
-namespace detail
-{
-class HitManager;
+//---------------------------------------------------------------------------//
+class GeantSd;
 
 //---------------------------------------------------------------------------//
 /*!
  * Save debugging information about sensitive detector mappings.
  */
-class HitManagerOutput final : public OutputInterface
+class GeantSdOutput final : public OutputInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstHitManager = std::shared_ptr<HitManager const>;
+    using SPConstGeantSd = std::shared_ptr<GeantSd const>;
     //!@}
 
   public:
     // Construct from shared hit manager
-    explicit HitManagerOutput(SPConstHitManager hits);
+    explicit GeantSdOutput(SPConstGeantSd hits);
 
     //! Category of data to write
     Category category() const final { return Category::internal; }
@@ -42,9 +41,8 @@ class HitManagerOutput final : public OutputInterface
     void output(JsonPimpl*) const final;
 
   private:
-    SPConstHitManager hits_;
+    SPConstGeantSd hits_;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

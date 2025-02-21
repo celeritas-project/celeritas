@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitManager.test.cc
+//! \file celeritas/ext/GeantSd.test.cc
 //---------------------------------------------------------------------------//
-#include "accel/detail/HitManager.hh"
+#include "celeritas/ext/GeantSd.hh"
 
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
@@ -18,27 +18,23 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "accel/SDTestBase.hh"
-#include "accel/SetupOptions.hh"
-#include "accel/detail/HitManagerOutput.hh"
+#include "celeritas/inp/Scoring.hh"
 
+#include "SDTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SimpleCmsTest : public ::celeritas::test::SDTestBase,
-                      public ::celeritas::test::SimpleCmsTestBase
+class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
 {
   protected:
     void SetUp() override
     {
-        sd_setup_.enabled = true;
         sd_setup_.ignore_zero_deposition = false;
         sd_setup_.track = false;
     }
@@ -77,7 +73,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
     }
 
     std::vector<std::string>
-    particle_names(HitManager::VecParticle const& particles) const
+    particle_names(GeantSd::VecParticle const& particles) const
     {
         std::vector<std::string> result;
         for (auto* par : particles)
@@ -88,10 +84,10 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         return result;
     }
 
-    HitManager make_hit_manager(bool make_hit_proc = true)
+    GeantSd make_hit_manager(bool make_hit_proc = true)
     {
         CELER_EXPECT(!processor_);
-        HitManager result(this->geometry(), *this->particle(), sd_setup_, 1);
+        GeantSd result(this->geometry(), *this->particle(), sd_setup_, 1);
 
         if (make_hit_proc)
         {
@@ -102,25 +98,25 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         return result;
     }
 
-    std::string get_diagnostics(HitManager const& hm)
+    std::string get_diagnostics(GeantSd const& hm)
     {
-        HitManagerOutput out(
-            std::shared_ptr<HitManager const>(&hm, [](HitManager const*) {}));
+        GeantSdOutput out(
+            std::shared_ptr<GeantSd const>(&hm, [](GeantSd const*) {}));
         return to_string(out);
     }
 
   protected:
-    SDSetupOptions sd_setup_;
+    inp::GeantSd sd_setup_;
     ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger()};
-    static G4LogicalVolume* detached_lv;
-    HitManager::SPProcessor processor_;
+    static G4LogicalVolume const* detached_lv;
+    GeantSd::SPProcessor processor_;
 };
 
-G4LogicalVolume* SimpleCmsTest::detached_lv{nullptr};
+G4LogicalVolume const* SimpleCmsTest::detached_lv{nullptr};
 
 TEST_F(SimpleCmsTest, no_change)
 {
-    HitManager man = this->make_hit_manager();
+    GeantSd man = this->make_hit_manager();
 
     EXPECT_EQ(0, man.geant_particles().size());
     EXPECT_EQ(2, man.geant_vols()->size());
@@ -147,7 +143,7 @@ TEST_F(SimpleCmsTest, delete_one)
     sd_setup_.track = true;
 
     sd_setup_.skip_volumes = find_geant_volumes({"had_calorimeter"});
-    HitManager man = this->make_hit_manager();
+    GeantSd man = this->make_hit_manager();
 
     // Check volumes
     EXPECT_EQ(1, man.geant_vols()->size());
@@ -178,7 +174,7 @@ TEST_F(SimpleCmsTest, add_duplicate)
 {
     sd_setup_.force_volumes = find_geant_volumes({"em_calorimeter"});
     scoped_log_.level(LogLevel::debug);
-    HitManager man = this->make_hit_manager();
+    GeantSd man = this->make_hit_manager();
     scoped_log_.level(Logger::default_level());
 
     EXPECT_EQ(2, man.geant_vols()->size());
@@ -216,7 +212,7 @@ TEST_F(SimpleCmsTest, add_one)
     sd_setup_.force_volumes = find_geant_volumes({"si_tracker"});
     // Since we're asking for a volume that doesn't curently have an
     // SD attached, we can't make the hit processor
-    HitManager man = this->make_hit_manager(/* make_hit_proc = */ false);
+    GeantSd man = this->make_hit_manager(/* make_hit_proc = */ false);
 
     EXPECT_EQ(3, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
@@ -252,7 +248,7 @@ TEST_F(SimpleCmsTest, detached_detector)
 {
     // Detector for LV that isn't in the world tree
     sd_setup_.skip_volumes = {};
-    sd_setup_.force_volumes = {SimpleCmsTest::detached_lv};
+    sd_setup_.force_volumes = std::unordered_set{SimpleCmsTest::detached_lv};
     EXPECT_THROW(
         try {
             this->make_hit_manager();
@@ -267,5 +263,4 @@ TEST_F(SimpleCmsTest, detached_detector)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
-}  // namespace detail
 }  // namespace celeritas

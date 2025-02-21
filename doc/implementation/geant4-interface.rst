@@ -94,7 +94,7 @@ compatible with Celeritas), the Celeritas setup will fail with an error like:
 .. code-block:: none
 
    *** G4Exception : celer0001
-         issued by : accel/detail/HitManager.cc:210
+         issued by : accel/detail/GeantSd.cc:210
    Celeritas runtime error: no G4 sensitive detectors are defined: set `SetupOptions.sd.enabled` to `false` if this is expected
    *** Fatal Exception *** core dump ***
 

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitManager.hh
+//! \file celeritas/ext/GeantSd.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,31 +18,34 @@ class G4ParticleDefinition;
 
 namespace celeritas
 {
-struct SDSetupOptions;
-class ParticleParams;
-
+//---------------------------------------------------------------------------//
+namespace inp
+{
+struct GeantSd;
+}
 namespace detail
 {
-//---------------------------------------------------------------------------//
-
 class HitProcessor;
+}
+
+class ParticleParams;
+
 //---------------------------------------------------------------------------//
 /*!
- * Manage the conversion of hits from Celeritas to Geant4.
+ * Hit Geant4 sensitive detectors with Celeritas steps.
  *
  * Construction:
  * - Created during SharedParams::Initialize alongside the step collector
  * - Is shared across threads
- * - Finds *all* logical volumes that have SDs attached (TODO: add list of
- *   exclusions for SDs that are implemented natively on GPU)
- * - Maps those volumes to VecGeom geometry
+ * - Finds all logical volumes that have SDs attached
+ * - Maps those volumes to Celeritas geometry
  *
  * Because of low-level use of Geant4 allocators through the associated Geant4
  * objects, the hit processors \em must be allocated and deallocated on the
  * same thread in which they're used, so \c make_local_processor is deferred
  * until after construction and called in the \c LocalTransporter constructor.
  */
-class HitManager final : public StepInterface
+class GeantSd final : public StepInterface
 {
   public:
     //!@{
@@ -51,23 +54,25 @@ class HitManager final : public StepInterface
     using StepStateDeviceRef = DeviceRef<StepStateData>;
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
+    using HitProcessor = detail::HitProcessor;
     using SPProcessor = std::shared_ptr<HitProcessor>;
     using SPConstGeo = std::shared_ptr<GeoParams const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
+    using Input = inp::GeantSd;
     //!@}
 
   public:
     // Construct with Celeritas objects for mapping
-    HitManager(SPConstGeo geo,
-               ParticleParams const& par,
-               SDSetupOptions const& setup,
-               StreamId::size_type num_streams);
+    GeantSd(SPConstGeo geo,
+            ParticleParams const& par,
+            Input const& setup,
+            StreamId::size_type num_streams);
 
-    CELER_DEFAULT_MOVE_DELETE_COPY(HitManager);
+    CELER_DEFAULT_MOVE_DELETE_COPY(GeantSd);
 
     // Default destructor
-    ~HitManager();
+    ~GeantSd();
 
     // Create local hit processor
     SPProcessor make_local_processor(StreamId sid);
@@ -115,7 +120,7 @@ class HitManager final : public StepInterface
     std::vector<HitProcessor*> processors_;
 
     // Construct vecgeom/geant volumes
-    void setup_volumes(GeoParams const& geo, SDSetupOptions const& setup);
+    void setup_volumes(GeoParams const& geo, Input const& setup);
     // Construct celeritas/geant particles
     void setup_particles(ParticleParams const& par);
 
@@ -124,5 +129,4 @@ class HitManager final : public StepInterface
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
