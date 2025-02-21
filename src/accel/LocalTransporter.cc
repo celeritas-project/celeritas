@@ -62,7 +62,8 @@ bool nonfatal_flush()
     }();
     return result;
 }
-#if CELERITAS_USE_PERFETTO
+
+//---------------------------------------------------------------------------//
 //! Trace the number of active, alive, dead, and queued tracks
 class TrackCounters
 {
@@ -79,7 +80,7 @@ class TrackCounters
         }
     };
 
-    void operator()(StepperResult const& track_counts)
+    void operator()(StepperResult const& track_counts) const
     {
         trace_counter(active_counter_.c_str(), track_counts.active);
         trace_counter(alive_counter_.c_str(), track_counts.alive);
@@ -97,12 +98,9 @@ class TrackCounters
 
 void trace(StepperResult const& track_counts)
 {
-    static thread_local TrackCounters trace_;
+    static thread_local TrackCounters const trace_;
     trace_(track_counts);
 }
-#else
-void trace(StepperResult const&) {}
-#endif
 
 #define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
     do                                                              \
