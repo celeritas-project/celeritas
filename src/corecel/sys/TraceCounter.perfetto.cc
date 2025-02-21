@@ -12,6 +12,7 @@
 #include <perfetto.h>
 
 #include "corecel/Types.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "detail/TrackEvent.perfetto.hh"
 
@@ -32,9 +33,12 @@ template<class T>
 void trace_counter(char const* name, T value)
 {
     static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
-    TRACE_COUNTER(detail::perfetto_track_event_category,
-                  ::perfetto::DynamicString{name},
-                  value);
+    if (use_profiling())
+    {
+        TRACE_COUNTER(detail::perfetto_track_event_category,
+                      ::perfetto::DynamicString{name},
+                      value);
+    }
 }
 
 //---------------------------------------------------------------------------//

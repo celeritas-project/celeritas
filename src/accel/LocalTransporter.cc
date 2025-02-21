@@ -27,12 +27,16 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "corecel/sys/TraceCounter.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/ActionSequence.hh"
+#include "celeritas/global/Stepper.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -55,6 +59,45 @@ bool nonfatal_flush()
         return result.value;
     }();
     return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Trace the number of active, alive, dead, and queued tracks
+class TrackCounters
+{
+  public:
+    TrackCounters()
+    {
+        if (use_profiling())
+        {
+            std::string stream_id = std::to_string(get_geant_thread_id());
+            active_counter_ = std::string("active-" + stream_id);
+            alive_counter_ = std::string("alive-" + stream_id);
+            dead_counter_ = std::string("dead-" + stream_id);
+            queued_counter_ = std::string("queued-" + stream_id);
+        }
+    };
+
+    void operator()(StepperResult const& track_counts) const
+    {
+        trace_counter(active_counter_.c_str(), track_counts.active);
+        trace_counter(alive_counter_.c_str(), track_counts.alive);
+        trace_counter(dead_counter_.c_str(),
+                      track_counts.active - track_counts.alive);
+        trace_counter(queued_counter_.c_str(), track_counts.queued);
+    }
+
+  private:
+    std::string active_counter_;
+    std::string alive_counter_;
+    std::string dead_counter_;
+    std::string queued_counter_;
+};
+
+void trace(StepperResult const& track_counts)
+{
+    static thread_local TrackCounters const trace_;
+    trace_(track_counts);
 }
 
 #define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
@@ -270,6 +313,7 @@ void LocalTransporter::Flush()
     auto track_counts = (*step_)(make_span(buffer_));
     accum_num_steps_ += track_counts.active;
     accum_num_primaries_ += buffer_.size();
+    trace(track_counts);
 
     buffer_.clear();
     buffer_energy_ = 0;
@@ -287,7 +331,7 @@ void LocalTransporter::Flush()
         track_counts = (*step_)();
         accum_num_steps_ += track_counts.active;
         ++step_iters;
-
+        trace(track_counts);
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
@@ -324,6 +368,9 @@ void LocalTransporter::Finalize()
         state->ref().geometry.reset();
 #endif
     }
+
+    // Flush any remaining track counters on the worker thread
+    flush_tracing();
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";
