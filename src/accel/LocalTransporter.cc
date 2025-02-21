@@ -17,8 +17,6 @@
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
 
-#include "corecel/sys/TracingSession.hh"
-
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
@@ -33,6 +31,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
