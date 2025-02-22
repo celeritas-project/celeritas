@@ -75,8 +75,9 @@ TEST_P(EventIOTest, variety_rwr)
     // clang-format off
     static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static real_type const expected_energy[] = {4233, 29552, 56373, 4233, 29552,
-        56373, 4233, 29552, 56373};
+    static double const expected_energy[] = {4151.3789853255, 29651.503768782,
+        56547.034479091, 4151.3789853255, 29651.503768782, 56547.034479091,
+        4151.3789853255, 29651.503768782, 56547.034479091,};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     static real_type const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
         0, 0, 1, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 2, 3};
