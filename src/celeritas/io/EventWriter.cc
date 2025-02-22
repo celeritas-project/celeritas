@@ -151,11 +151,16 @@ void EventWriter::operator()(VecPrimary const& primaries)
         par->set_pid(particles_->id_to_pdg(p.particle_id).get());
         par->set_status(final_code);
 
+        auto mass
+            = value_as<units::MevMass>(particles_->get(p.particle_id).mass());
+        auto energy = value_as<units::MevEnergy>(p.energy) + mass;
+        real_type mom_mag = std::sqrt(ipow<2>(energy) - ipow<2>(mass));
+
         HepMC3::FourVector mom;
-        mom.set_px(p.direction[0]);
-        mom.set_py(p.direction[1]);
-        mom.set_pz(p.direction[2]);
-        mom.set_e(value_as<units::MevEnergy>(p.energy));
+        mom.set_px(mom_mag * p.direction[0]);
+        mom.set_py(mom_mag * p.direction[1]);
+        mom.set_pz(mom_mag * p.direction[2]);
+        mom.set_e(energy);
         par->set_momentum(mom);
 
         if (CELER_UNLIKELY(p.event_id != event_id))

@@ -157,8 +157,9 @@ auto EventReader::operator()() -> result_type
                                      static_cast<real_type>(mom.py()),
                                      static_cast<real_type>(mom.pz())});
 
-        // Get the energy of the primary
-        primary.energy = units::MevEnergy{static_cast<real_type>(mom.e())};
+        // Get the kinetic energy of the primary
+        primary.energy = units::MevEnergy{static_cast<real_type>(mom.e())
+                                          - static_cast<real_type>(mom.m())};
 
         result.push_back(primary);
     }

@@ -144,10 +144,9 @@ TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)
     static int const expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
         22, 22, 22, 22, 22};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static double const expected_energy[] = {1000, 1000, 1000, 999.99998474121,
-        1000, 999.99998474121, 1000, 999.99998474121, 999.99998474121, 1000,
-        1000, 999.99998474121, 1000, 1000, 999.99998474121};
-    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    static real_type const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
+        1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
+    EXPECT_VEC_NEAR(expected_energy, result.energy, 1e-7);
     static double const expected_dir[] = {0.51986662883182, -0.42922054653912,
         -0.7385854118893, 0.73395459362461, 0.18726575230281, 0.65287226354916,
         -0.40053358241289, -0.081839341451527, 0.91261994913013,
@@ -187,9 +186,9 @@ TEST_F(HepMC3PrimaryGeneratorTest, multiple_vertex)
     EXPECT_VEC_EQ(expected_vtx, result.vtx);
     static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static double const expected_energy[] = {4151.3789853255, 29651.503768782,
-        56547.034479091, 4151.3789853255, 29651.503768782, 56547.034479091,
-        4151.3789853255, 29651.503768782, 56547.034479091,};
+    static double const expected_energy[] = {4151.3789242904, 29651.503768773,
+        56547.034479342, 4151.3789242904, 29651.503768773, 56547.034479342,
+        4151.3789242904, 29651.503768773, 56547.034479342,};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     static double const expected_dir[] = {-0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
