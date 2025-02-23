@@ -9,7 +9,6 @@
 #include <mutex>
 #include <G4LogicalVolume.hh>
 #include <G4PhysicalConstants.hh>
-#include <G4ThreeVector.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VSolid.hh>
 #include <HepMC3/GenEvent.h>
@@ -18,11 +17,11 @@
 #include <HepMC3/Reader.h>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/io/EventReader.hh"
 
 namespace celeritas
@@ -63,9 +62,8 @@ class PrimaryInserter
         G4PrimaryParticle* primary = new G4PrimaryParticle(par.pid());
 
         // Set the primary directlon
-        auto p_mag = norm(Real3{p.x(), p.y(), p.z()});
-        G4ThreeVector dir(p.x() / p_mag, p.y() / p_mag, p.z() / p_mag);
-        primary->SetMomentumDirection(dir);
+        auto dir = make_unit_vector(Array<double, 3>{p.x(), p.y(), p.z()});
+        primary->SetMomentumDirection(convert_to_geant(dir, 1));
 
         // Set the kinetic energy
         primary->SetKineticEnergy(p.e() - p.m());
@@ -78,8 +76,6 @@ class PrimaryInserter
     void operator()() { this->insert_vertex(); }
 
   private:
-    using Real3 = Array<real_type, 3>;
-
     G4Event* g4_event_;
     HepMC3::Units::LengthUnit length_unit_;
     HepMC3::Units::MomentumUnit momentum_unit_;

@@ -144,7 +144,7 @@ TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)
     static int const expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
         22, 22, 22, 22, 22};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static real_type const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
+    static double const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
         1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
     EXPECT_VEC_NEAR(expected_energy, result.energy, 1e-7);
     static double const expected_dir[] = {0.51986662883182, -0.42922054653912,
