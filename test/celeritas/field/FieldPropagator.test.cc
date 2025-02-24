@@ -1244,17 +1244,25 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     auto calc_radius
         = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
-    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+    // NOTE: vecgeom surface puts this position slightly *inside* the beam tube
+    // rather than *outside*
+    EXPECT_EQ(using_vecgeom_surface ? "vacuum_tube" : "si_tracker",
+              this->volume_name(geo));
 
     {
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, geo);
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         if (using_vecgeom_surface)
         {
+            // Surface geometry does not intersect the cylinder boundary, so
+            // the track keeps going until the "looping" counter is hit
             EXPECT_EQ("vacuum_tube", this->volume_name(geo));
-            EXPECT_SOFT_EQ(1000, result.distance);
+            EXPECT_SOFT_EQ(2.3659210728880966, result.distance);
+            EXPECT_TRUE(result.looping);
             EXPECT_FALSE(geo.is_on_boundary());
         }
         else
@@ -1266,8 +1274,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             {
                 EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
             }
+            geo.cross_boundary();
         }
     }
+    if (!using_vecgeom_surface)
     {
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
