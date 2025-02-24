@@ -22,7 +22,7 @@ namespace app
 class LocalLogger
 {
   public:
-    // Construct with defaults
+    //! Construct from number of threads
     explicit LocalLogger(unsigned int num_threads) : num_threads_(num_threads)
     {
         CELER_EXPECT(num_threads_ > 0);
