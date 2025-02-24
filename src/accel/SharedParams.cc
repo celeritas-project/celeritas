@@ -286,6 +286,9 @@ SharedParams::SharedParams(SetupOptions const& options)
         return result;
     }();
 
+    // Create streams
+    this->set_num_streams(params_->max_streams());
+
     if (output_filename_ != "-")
     {
         // Write output after params are constructed before anything can go
@@ -366,6 +369,8 @@ void SharedParams::Finalize()
 void SharedParams::set_state(unsigned int stream_id, SPState&& state)
 {
     CELER_EXPECT(*this);
+    CELER_EXPECT(!states_.empty());
+
     CELER_EXPECT(stream_id < states_.size());
     CELER_EXPECT(state);
     CELER_EXPECT(!states_[stream_id]);
