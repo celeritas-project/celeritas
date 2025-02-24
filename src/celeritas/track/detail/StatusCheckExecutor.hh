@@ -24,18 +24,20 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-#if CELER_DEVICE_COMPILE
-#    define CELER_PRINT_TRACK(MSG, TRACK)
-#else
+#if !CELER_DEVICE_COMPILE
+// Print a track and why it failed.
 #    define CELER_PRINT_TRACK(MSG, TRACK) \
-        CELER_LOG(error) << MSG << ": " << ::celeritas::StreamableTrack{TRACK};
+        CELER_LOG_LOCAL(error)            \
+            << MSG << ": " << ::celeritas::StreamableTrack{TRACK};
+#else
+#    define CELER_PRINT_TRACK(MSG, TRACK)
 #endif
 
 /*!
  * Check that the condition is true, otherwise throw an error/assertion.
  *
  * \note This macro is defined so that the condition is still checked in
- * "release" mode.
+ * "release" mode, and so that checking will work on GPU.
  */
 #define CELER_FAIL_IF(COND, MSG)                               \
     do                                                         \
