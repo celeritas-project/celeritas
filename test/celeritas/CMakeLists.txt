@@ -188,13 +188,29 @@ celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 #-----------------------------------------------------------------------------#
 # Field
 
+if(CELERITAS_USE_VecGeom)
+  # VecGeom surface cannot rebuild the geometry
+  set(_fieldprop_filter
+    FILTER
+    "-Layers*:SimpleCms*:Cmse*"
+    "Layers*"
+    "SimpleCms*"
+    "Cmse*"
+  )
+else()
+  # Other geometries should run everything (and some tests e.g. CMSE are
+  # disabled)
+  set(_fieldprop_filter)
+endif()
+
 celeritas_add_test(field/Fields.test.cc)
 celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
- ${_fixme_cgs}
   LINK_LIBRARIES ${_core_geo_libs}
-  FILTER "TwoBoxes*" "Layers*" "SimpleCms*" "Cmse*")
+  ${_fieldprop_filter}
+  ${_fixme_cgs}
+)
 celeritas_add_test(field/LinearPropagator.test.cc
   LINK_LIBRARIES ${_all_geo_libs})
 celeritas_add_test(field/MagFieldEquation.test.cc)
