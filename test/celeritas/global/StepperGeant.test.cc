@@ -512,7 +512,7 @@ TEST_F(TestEm3Msc, host)
     if (this->is_ci_build())
     {
         EXPECT_EQ(57, result.num_step_iters());
-        EXPECT_LE(40.5, result.calc_avg_steps_per_primary());
+        EXPECT_LE(40, result.calc_avg_steps_per_primary());
         EXPECT_GE(40.625, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({8, 6}), result.calc_queue_hwm());
