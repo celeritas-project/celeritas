@@ -2,20 +2,20 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitProcessor.test.cc
+//! \file celeritas/ext/detail/HitProcessor.test.cc
 //---------------------------------------------------------------------------//
-#include "accel/detail/HitProcessor.hh"
+#include "celeritas/ext/detail/HitProcessor.hh"
 
 #include <G4ParticleTable.hh>
 
 #include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/ext/SDTestBase.hh"
+#include "celeritas/ext/SimpleSensitiveDetector.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
-#include "accel/SDTestBase.hh"
-#include "accel/SimpleSensitiveDetector.hh"
 
 #include "celeritas_test.hh"
 
@@ -58,7 +58,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
 //---------------------------------------------------------------------------//
 void SimpleCmsTest::SetUp()
 {
-    // Create default step selection (see HitManager)
+    // Create default step selection (see GeantSd)
     selection_.energy_deposition = true;
     selection_.step_length = true;
     selection_.points[StepPoint::pre].energy = true;

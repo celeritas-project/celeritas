@@ -49,10 +49,13 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -71,8 +74,6 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 
-#include "detail/HitManager.hh"
-#include "detail/HitManagerOutput.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -695,15 +696,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Construct sensitive detector callback
     if (options.sd)
     {
-        hit_manager_
-            = std::make_shared<detail::HitManager>(params_->geometry(),
-                                                   *params_->particle(),
-                                                   options.sd,
-                                                   params_->max_streams());
+        hit_manager_ = std::make_shared<GeantSd>(params_->geometry(),
+                                                 *params_->particle(),
+                                                 to_inp(options.sd),
+                                                 params_->max_streams());
         step_collector_
             = StepCollector::make_and_insert(*params_, {hit_manager_});
-        output_reg_->insert(
-            std::make_shared<detail::HitManagerOutput>(hit_manager_));
+        output_reg_->insert(std::make_shared<GeantSdOutput>(hit_manager_));
     }
 
     // Add diagnostics

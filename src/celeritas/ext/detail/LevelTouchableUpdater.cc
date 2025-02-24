@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/LevelTouchableUpdater.cc
+//! \file celeritas/ext/detail/LevelTouchableUpdater.cc
 //---------------------------------------------------------------------------//
 #include "LevelTouchableUpdater.hh"
 

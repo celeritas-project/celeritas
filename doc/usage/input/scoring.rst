@@ -19,11 +19,11 @@ Geant4 sensitive detectors
 These options are used to integrate Celeritas with Geant4 sensitive detectors
 by reconstructing Geant4 hits and calling back to user code.
 
-.. doxygenstruct:: celeritas::inp::GeantSensitiveDetector
+.. doxygenstruct:: celeritas::inp::GeantSd
    :members:
    :no-link:
 
-.. doxygenstruct:: celeritas::inp::GeantSDStepPointAttributes
+.. doxygenstruct:: celeritas::inp::GeantSdStepPointAttributes
    :members:
    :no-link:
 

@@ -26,7 +26,7 @@ namespace detail
 /*!
  * Map logical volumes to native geometry and log potential issues.
  *
- * This is an implementation detail of \c HitManager .
+ * This is an implementation detail of \c GeantSd .
  */
 class SensDetInserter
 {

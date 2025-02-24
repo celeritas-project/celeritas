@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/NaviTouchableUpdater.test.cc
+//! \file celeritas/ext/detail/NaviTouchableUpdater.test.cc
 //---------------------------------------------------------------------------//
-#include "accel/detail/NaviTouchableUpdater.hh"
+#include "celeritas/ext/detail/NaviTouchableUpdater.hh"
 
 #include <cmath>
 #include <G4Navigator.hh>
