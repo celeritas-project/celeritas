@@ -118,7 +118,7 @@
       }
     },
     {
-      "name": "reldeb-vecgeom-vgsurf",
+      "name": "reldeb-vgsurf",
       "description": "Build with release, assertions, VecGeom",
       "inherits": ["reldeb-vecgeom"],
       "cacheVariables": {
