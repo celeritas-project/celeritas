@@ -189,10 +189,10 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
     static int const expected_event[] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
     // clang-format on
 
-    real_type tol = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE) ? 1e-8
-                                                                        : 1e-4;
+    real_type energy_tol = real_type{0.1} * coarse_eps;
+
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    EXPECT_VEC_NEAR(expected_energy, result.energy, tol);
+    EXPECT_VEC_NEAR(expected_energy, result.energy, energy_tol);
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
     EXPECT_VEC_NEAR(expected_time, result.time, real_type(1e-6));

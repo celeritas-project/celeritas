@@ -72,16 +72,13 @@ TEST_P(EventIOTest, variety_rwr)
         GTEST_SKIP() << "HEPEVT format sorts primaries by PDG";
     }
 
-    real_type tol = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT) ? 1e-3
-                                                                       : 1e-8;
-
     // clang-format off
     static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
     static double const expected_energy[] = {4151.3789853255, 29651.503768782,
         56547.034479091, 4151.3789853255, 29651.503768782, 56547.034479091,
         4151.3789853255, 29651.503768782, 56547.034479091,};
-    EXPECT_VEC_NEAR(expected_energy, result.energy, tol);
+    EXPECT_VEC_NEAR(expected_energy, result.energy, coarse_eps);
     static real_type const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
         0, 0, 1, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
@@ -123,10 +120,7 @@ TEST_P(EventIOTest, no_vertex_rwr)
     EXPECT_EQ(3, read_event.num_events());
     auto result = this->read_all(read_event);
 
-    real_type tol
-        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT || ext == "hepevt")
-              ? 1e-3
-              : 1e-7;
+    real_type energy_tol = ext == "hepevt" ? 1e-3 : coarse_eps;
 
     // clang-format off
     static int const expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
@@ -134,7 +128,7 @@ TEST_P(EventIOTest, no_vertex_rwr)
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
     static real_type const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
         1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
-    EXPECT_VEC_NEAR(expected_energy, result.energy, tol);
+    EXPECT_VEC_NEAR(expected_energy, result.energy, energy_tol);
     static real_type const expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
         50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
         50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
