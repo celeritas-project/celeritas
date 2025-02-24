@@ -14,7 +14,33 @@ jobs:
     strategy:
       matrix:
         include:
+          - runner: focal
+            compiler: gcc
+            version: 8
+          - runner: focal
+            compiler: clang
+            version: 10
+          - runner: jammy
+            compiler: gcc
+            version: 12
+          - runner: jammy
+            compiler: clang
+            version: 15
           - runner: noble
+            compiler: gcc
+            version: 14
+          - runner: noble
+            compiler: clang
+            version: 18
+          - runner: noble
+            compiler: gcc
+            version: 14
+            cxxstd: 20
+          - runner: noble
+            compiler: clang
+            version: 18
+            cxxstd: 20
+          - runner: noble-arm
             compiler: clang
             version: 18
             cxxstd: 20
@@ -100,6 +126,79 @@ jobs:
           }}
         with:
           name: test-results-fast-${{env.GHA_JOB_NAME}}
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
+  windows:
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CCACHE_DIR: "${{github.workspace}}\\.ccache"
+      CCACHE_MAXSIZE: "100Mi"
+      CMAKE_PRESET: fast
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install ninja ccache
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-fast-windows-${{github.run_id}}
+          restore-keys: |
+            ccache-fast
+      - name: Zero ccache stats
+        run: |
+          ccache -z
+      - name: Configure Celeritas
+        run: |
+          Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
+          cmake --preset=$Env:CMAKE_PRESET `
+            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
+              && format(';-pr.{0};', github.event.pull_request.number)
+              || format(';-{0};', github.ref_name)}}"
+      - name: Build
+        id: build
+        run: |
+          cmake --build --preset=$Env:CMAKE_PRESET 
+      - name: Run unit tests
+        id: unittest
+        continue-on-error: true
+        run: |
+          ctest --preset=$Env:CMAKE_PRESET-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        run: |
+          ctest --preset=$Env:CMAKE_PRESET-app
+      - name: Install
+        working-directory: build
+        run: |
+          cmake --install .
+      - name: Check installation
+        working-directory: install
+        run: |
+          ./bin/celer-sim --version
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: >-
+          ${{
+            always()
+            && (steps.unittest.outcome == 'success'
+                || steps.unittest.outcome == 'failure')
+          }}
+        with:
+          name: test-results-fast-windows
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
