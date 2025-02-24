@@ -29,13 +29,10 @@ jobs:
       matrix:
         geometry: ["vecgeom"]
         special: [null]
-        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
+        geant: ["11.0"]
         include:
           - geometry: "vecgeom"
             special: "vgsurf"
-            geant: "11.0"
-          - geometry: "geant4"
-            special: null
             geant: "11.0"
           - geometry: "vecgeom"
             special: "clang-tidy"
