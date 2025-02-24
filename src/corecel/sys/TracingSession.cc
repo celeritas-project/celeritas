@@ -88,6 +88,20 @@ perfetto::TraceConfig configure_session() noexcept
 
 //---------------------------------------------------------------------------//
 /*!
+ * Perform the same action a \c TracingSession::flush, however, it does not
+ * require a session instance. This is useful in geant4 applications, where
+ * workers do not have access to the session instance.
+ */
+void flush_tracing() noexcept
+{
+    if (use_profiling())
+    {
+        perfetto::TrackEvent::Flush();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Start a system tracing session.
  */
 TracingSession::TracingSession() noexcept
@@ -162,7 +176,7 @@ void TracingSession::flush() noexcept
 {
     if (session_ && started_)
     {
-        perfetto::TrackEvent::Flush();
+        flush_tracing();
     }
 }
 

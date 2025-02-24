@@ -22,6 +22,10 @@ class TracingSession;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// Flush perfetto track events without requiring a TracingSession instance.
+void flush_tracing() noexcept;
+
+//---------------------------------------------------------------------------//
 /*!
  * RAII wrapper for a tracing session.
  *
@@ -79,7 +83,7 @@ class TracingSession
 //---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_PERFETTO
-
+inline void flush_tracing() noexcept {}
 inline TracingSession::TracingSession() noexcept = default;
 inline TracingSession::TracingSession(std::string_view) noexcept {}
 inline TracingSession::~TracingSession() = default;
