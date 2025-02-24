@@ -736,6 +736,25 @@ TEST_F(CmseTest, trace)
     this->impl().test_trace();
 }
 
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-550, 0, -4000});
+    inp.upper_right = from_cm({550, 0, 2000});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 256;
+
+    std::string prefix = "vg";
+    if (VecgeomParams::use_surface_tracking())
+    {
+        prefix += "surf";
+    }
+
+    write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
+}
+
 //---------------------------------------------------------------------------//
 
 using FourLevelsTest
@@ -883,7 +902,7 @@ TEST_F(SolidsTest, reflected_vol)
     EXPECT_EQ("trd3_refl@0", to_string(label));
 }
 
-TEST_F(SolidsTest, DISABLED_imager)
+TEST_F(SolidsTest, imager)
 {
     SafetyImager write_image{this->geometry()};
 
@@ -893,10 +912,16 @@ TEST_F(SolidsTest, DISABLED_imager)
     inp.rightward = {1.0, 0.0, 0.0};
     inp.vertical_pixels = 256;
 
-    write_image(ImageParams{inp}, "vg-solids-xy-hi.jsonl");
+    std::string prefix = "vg";
+    if (VecgeomParams::use_surface_tracking())
+    {
+        prefix += "surf";
+    }
+
+    write_image(ImageParams{inp}, prefix + "-solids-xy-hi.jsonl");
 
     inp.lower_left[2] = inp.upper_right[2] = from_cm(-5);
-    write_image(ImageParams{inp}, "vg-solids-xy-lo.jsonl");
+    write_image(ImageParams{inp}, prefix + "-solids-xy-lo.jsonl");
 }
 
 //---------------------------------------------------------------------------//
