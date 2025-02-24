@@ -216,7 +216,7 @@ TEST_F(TwoBoxesVgdmlTest, track)
     // Scatter back inside
     geo.set_dir({-1, 0, 0});
     next = geo.find_next_step(from_cm(1000));
-    // TODO: EXPECT_TRUE(next.boundary);
+    EXPECT_TRUE(next.boundary);
     EXPECT_SOFT_NEAR(2e-8, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());

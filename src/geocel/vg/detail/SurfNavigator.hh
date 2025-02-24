@@ -45,14 +45,14 @@ class SurfNavigator
     /// @param top Check first if pvol contains the point
     /// @param exclude Placed volume id to exclude from the search
     /// @return Index of the placed volume that contains the point
-    CELER_FUNCTION static int
-    LocatePointIn(int pvol_id,
-                  Vector3D const& point,
-                  vecgeom::NavigationState& path,
-                  bool top,
-		  int *exclude = nullptr)
+    CELER_FUNCTION static int LocatePointIn(int pvol_id,
+                                            Vector3D const& point,
+                                            vecgeom::NavigationState& path,
+                                            bool top,
+                                            int* exclude = nullptr)
     {
-      return vgbrep::protonav::BVHSurfNavigator<Precision>::LocatePointIn(pvol_id, point, path, top, exclude);
+        return vgbrep::protonav::BVHSurfNavigator<Precision>::LocatePointIn(
+            pvol_id, point, path, top, exclude);
     }
 
     /// @brief Computes the isotropic safety from the globalpoint.
@@ -63,8 +63,10 @@ class SurfNavigator
     ComputeSafety(Vector3D const& globalpoint,
                   vecgeom::NavigationState const& state)
     {
-        auto safety = vgbrep::protonav::BVHSurfNavigator<Precision>::ComputeSafety(globalpoint, state);
-	return safety;
+        auto safety
+            = vgbrep::protonav::BVHSurfNavigator<Precision>::ComputeSafety(
+                globalpoint, state);
+        return safety;
     }
 
     // Computes a step from the globalpoint (which must be in the current
@@ -79,7 +81,8 @@ class SurfNavigator
                              Vector3D const& globaldir,
                              Precision step_limit,
                              vecgeom::NavigationState const& in_state,
-                             vecgeom::NavigationState& out_state, long& hitsurf)
+                             vecgeom::NavigationState& out_state,
+                             long& hitsurf)
     {
         if (step_limit <= 0)
         {
@@ -88,8 +91,13 @@ class SurfNavigator
             return step_limit;
         }
 
-        auto step = vgbrep::protonav::BVHSurfNavigator<Precision>::ComputeStepAndNextSurface(
-            globalpoint, globaldir, in_state, out_state, hitsurf, step_limit);
+        auto step = vgbrep::protonav::BVHSurfNavigator<
+            Precision>::ComputeStepAndNextSurface(globalpoint,
+                                                  globaldir,
+                                                  in_state,
+                                                  out_state,
+                                                  hitsurf,
+                                                  step_limit);
         return step;
     }
 
@@ -101,11 +109,12 @@ class SurfNavigator
     ComputeStepAndPropagatedState(Vector3D const& globalpoint,
                                   Vector3D const& globaldir,
                                   Precision step_limit,
-                                  long &hit_surf,
+                                  long& hit_surf,
                                   vecgeom::NavigationState const& in,
                                   vecgeom::NavigationState& out)
     {
-      return ComputeStepAndNextVolume(globalpoint, globaldir, step_limit, in, out, hit_surf);
+        return ComputeStepAndNextVolume(
+            globalpoint, globaldir, step_limit, in, out, hit_surf);
     }
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: the
@@ -117,33 +126,15 @@ class SurfNavigator
                          long hitsurf_index,
                          vecgeom::NavigationState& out_state)
     {
-        // in case hit_surf=-1, recalculate hit_surf
-        // this is needed in some celeritas use-cases (rasterizing
-        // out-of-world)
-#if 0
-        if (hitsurf_index < 0)
-        {
-            vecgeom::NavigationState& in_state = out_state;
-            ComputeStepAndNextVolume(globalpoint,
-                                     globaldir,
-                                     kBoundaryPush,
-                                     in_state,
-                                     out_state,
-                                     hitsurf_index);
-        }
-#endif
-
-        if (!out_state.IsOutside())
-        {
-            vgbrep::CrossedSurface crossed_surf;
-            vgbrep::protonav::BVHSurfNavigator<Precision>::RelocateToNextVolume(
-                globalpoint,
-                globaldir,
-                Precision(0),
-                hitsurf_index,
-                out_state,
-                crossed_surf);
-        }
+        CELER_EXPECT(!out_state.IsOutside());
+        vgbrep::CrossedSurface crossed_surf;
+        vgbrep::protonav::BVHSurfNavigator<Precision>::RelocateToNextVolume(
+            globalpoint,
+            globaldir,
+            Precision(0),
+            hitsurf_index,
+            out_state,
+            crossed_surf);
     }
 };
 //---------------------------------------------------------------------------//

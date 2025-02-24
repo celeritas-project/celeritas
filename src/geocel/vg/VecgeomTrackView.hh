@@ -28,6 +28,8 @@
 
 #if CELERITAS_VECGEOM_SURFACE
 #    include "geocel/vg/detail/SurfNavigator.hh"
+#elif VECGEOM_VERSION >= 0x020000
+#    include <VecGeom/navigation/BVHNavigator.h>
 #else
 #    include "geocel/vg/detail/BVHNavigator.hh"
 #endif
@@ -58,6 +60,8 @@ class VecgeomTrackView
     using StateRef = NativeRef<VecgeomStateData>;
 #if CELERITAS_VECGEOM_SURFACE
     using Navigator = celeritas::detail::SurfNavigator;
+#elif VECGEOM_VERSION >= 0x020000
+    using BVHNavigator = vecgeom::BVHNavigator;
 #else
     using Navigator = celeritas::detail::BVHNavigator;
 #endif

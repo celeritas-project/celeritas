@@ -668,7 +668,7 @@ void VecgeomParams::build_metadata()
 
     // Save world bbox
     bbox_ = [world] {
-        // Calculate bounding box
+    // Calculate bounding box
 #if VECGEOM_VERSION < 0x020000
         auto bbox_mgr = ABBoxManager::Instance();
 #else

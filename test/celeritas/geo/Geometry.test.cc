@@ -16,8 +16,12 @@ namespace celeritas
 {
 namespace test
 {
-constexpr bool not_orange_geo
-    = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE);
+constexpr bool using_orange_geo
+    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
+constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
+                                       && CELERITAS_CORE_GEO
+                                              == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 
 class TestEm3Test : public HeuristicGeoTestBase
@@ -237,13 +241,15 @@ TEST_F(TestEm3Test, host)
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
     // TODO: investigate differences w.r.t. surface model
-    real_type tol = not_orange_geo ? 0.95 : 1e-3;
+    real_type tol = using_orange_geo         ? 1e-3
+                    : !using_vecgeom_surface ? 0.35
+                                             : 0.95;
     this->run_host(512, tol);
 }
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    real_type tol = not_orange_geo ? 0.25 : 1e-3;
+    real_type tol = using_orange_geo ? 1e-3 : 0.25;
     this->run_device(512, tol);
 }
 
@@ -254,14 +260,14 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 TEST_F(SimpleCmsTest, host)
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
+    real_type tol = using_orange_geo ? 1e-3 : 0.05;
     this->run_host(512, tol);
 }
 
 TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.025 : 1e-3;
+    real_type tol = using_orange_geo ? 1e-3 : 0.025;
     this->run_device(512, tol);
 }
 
@@ -299,7 +305,9 @@ TEST_F(ThreeSpheresTest, host)
 {
     // Results were generated with ORANGE
     // TODO: investigate differences w.r.t. surface model
-    real_type tol = not_orange_geo ? 0.80 : 1e-3;
+    real_type tol = using_orange_geo         ? 1e-3
+                    : !using_vecgeom_surface ? 0.05
+                                             : 0.80;
     EXPECT_TRUE(this->geometry()->supports_safety());
     this->run_host(512, tol);
 }
@@ -308,7 +316,7 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
     // TODO: investigate differences w.r.t. surface model on GPU
-    real_type tol = not_orange_geo ? 0.025 : 1e-3;
+    real_type tol = using_orange_geo ? 1e-3 : 0.025;
     this->run_device(512, tol);
 }
 

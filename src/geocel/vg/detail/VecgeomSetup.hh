@@ -55,7 +55,7 @@ inline CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
     CELER_ASSERT_UNREACHABLE();
 }
 
-#if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
+#    if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
 inline void
 setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&)
 {
