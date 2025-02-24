@@ -121,18 +121,7 @@ endforeach()
 list(JOIN CELERITAS_DEPENDENCY_VERSIONS "\n" CELERITAS_DEPENDENCY_VERSIONS)
 
 # Save VecGeom surface macro
-if(CELERITAS_USE_VecGeom)
-  if(VecGeom_USE_SURF)
-    set(_surf_geo 1)
-  else()
-    set(_surf_geo 0)
-  endif()
-  set(CELERITAS_VECGEOM_SURFACE_DEF
-    "#define CELERITAS_VECGEOM_SURFACE ${_surf_geo}"
-  )
-else()
-  set(CELERITAS_VECGEOM_SURFACE_DEF "/* #undef CELERITAS_VECGEOM_SURFACE */")
-endif()
+set(CELERITAS_VECGEOM_SURFACE ${VecGeom_USE_SURF})
 
 #-----------------------------------------------------------------------------#
 
