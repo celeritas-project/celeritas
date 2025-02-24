@@ -79,7 +79,7 @@ jobs:
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
-          if ${{matrix.geometry == 'vecgeom'}}; then
+          if ${{matrix.geometry == 'vecgeom' && matrix.special != 'vgsurf'}}; then
             spack -e . add vecgeom+gdml
           fi
           if ${{matrix.special != 'minimal'
@@ -90,7 +90,9 @@ jobs:
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          if ${{matrix.geometry == 'vecgeom' && matrix.special != 'vgsurf'}}; then
+          if ${{(matrix.geometry == 'vecgeom')
+                && (matrix.special != 'vgsurf')
+                && (matrix.geant != '')}}; then
             spack -e . add g4vg@1.0.2:
           fi
           spack -vd -e . compiler find --mixed-toolchain
