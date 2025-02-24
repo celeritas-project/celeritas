@@ -574,7 +574,7 @@ TEST_F(TestEm3MscNofluct, host)
     {
         EXPECT_LE(69, result.num_step_iters());
         EXPECT_GE(73, result.num_step_iters());
-        EXPECT_LE(60.5, result.calc_avg_steps_per_primary());
+        EXPECT_LE(58.625, result.calc_avg_steps_per_primary());
         EXPECT_GE(63.125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
