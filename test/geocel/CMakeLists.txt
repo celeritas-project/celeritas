@@ -44,7 +44,6 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vg/VecgeomTestBase.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
 endif()
 
 celeritas_add_test_library(testcel_geocel ${SOURCES})
@@ -53,7 +52,7 @@ celeritas_target_link_libraries(testcel_geocel
   PUBLIC
     testcel_harness Celeritas::geocel
   PRIVATE
-    testcel_core ${_g4_geo_libs} ${VecGeom_LIBRARIES}
+    testcel_core
 )
 
 #-----------------------------------------------------------------------------#
