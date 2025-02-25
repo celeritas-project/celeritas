@@ -25,9 +25,9 @@ namespace detail
  * ID.
  */
 template<class T, class GetId>
-std::vector<Label> make_label_vector(
-    std::unordered_map<std::string, std::vector<T const*>> const& names,
-    GetId&& get_id)
+std::vector<Label>
+make_label_vector(std::unordered_map<std::string, std::vector<T>> const& names,
+                  GetId&& get_id)
 {
     std::vector<Label> result;
     auto add_label = [&result](std::size_t id, Label&& label) {
@@ -45,7 +45,7 @@ std::vector<Label> make_label_vector(
         {
             // Label is just the name since this item is unique
             CELER_ASSERT(items.front());
-            add_label(get_id(*items.front()), Label{name});
+            add_label(get_id(items.front()), Label{name});
             continue;
         }
 
@@ -53,7 +53,7 @@ std::vector<Label> make_label_vector(
         for (auto idx : range(items.size()))
         {
             CELER_ASSERT(items[idx]);
-            add_label(get_id(*items[idx]), Label{name, std::to_string(idx)});
+            add_label(get_id(items[idx]), Label{name, std::to_string(idx)});
         }
     }
     return result;

@@ -135,8 +135,8 @@ std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<VolT>(
-        std::move(names), [](VolT const& vol) { return vol.id(); });
+    return detail::make_label_vector<VolT const*>(
+        std::move(names), [](VolT const* vol) { return vol->id(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -187,8 +187,8 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<VolT>(
-        std::move(names), [](VolT const& vol) { return vol.id(); });
+    return detail::make_label_vector<VolT const*>(
+        std::move(names), [](VolT const* vol) { return vol->id(); });
 }
 
 //---------------------------------------------------------------------------//

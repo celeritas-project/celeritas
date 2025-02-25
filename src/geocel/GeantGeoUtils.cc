@@ -261,9 +261,9 @@ std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<G4LogicalVolume>(
+    return detail::make_label_vector<G4LogicalVolume const*>(
         std::move(names),
-        [](G4LogicalVolume const& lv) { return lv.GetInstanceID(); });
+        [](G4LogicalVolume const* lv) { return lv->GetInstanceID(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -298,9 +298,9 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<G4VPhysicalVolume>(
+    return detail::make_label_vector<G4VPhysicalVolume const*>(
         std::move(names),
-        [](G4VPhysicalVolume const& lv) { return lv.GetInstanceID(); });
+        [](G4VPhysicalVolume const* pv) { return pv->GetInstanceID(); });
 }
 
 //---------------------------------------------------------------------------//
