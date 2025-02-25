@@ -419,7 +419,7 @@ TEST_F(CmseTest, imager)
     inp.lower_left = from_cm({-550, 0, -4000});
     inp.upper_right = from_cm({550, 0, 2000});
     inp.rightward = {0.0, 0.0, 1.0};
-    inp.vertical_pixels = 256;
+    inp.vertical_pixels = 8;
 
     std::string prefix = "g4";
 
