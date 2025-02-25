@@ -46,7 +46,7 @@ struct PhysicsParamsScalars
         return num_models > 0 && model_to_action >= 1;
     }
 
-    //! Indicate a discrete interaction was rejected by integral method
+    //! Undergo a discrete interaction
     CELER_FORCEINLINE_FUNCTION ActionId discrete_action() const
     {
         return ActionId{model_to_action - 1};
@@ -101,20 +101,6 @@ struct PhysicsParamsData
 
 //---------------------------------------------------------------------------//
 /*!
- * Physics state data for a single track.
- */
-struct PhysicsTrackState
-{
-    // PERSISTENT STATE
-
-    real_type interaction_mfp;
-
-    // TEMPORARY STATE
-    real_type macro_xs;  //!< Total macroscopic cross section [len^-1]
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Dynamic optical physics state data.
  */
 template<Ownership W, MemSpace M>
@@ -128,25 +114,33 @@ struct PhysicsStateData
     using StateItems = StateCollection<T, W, M>;
     //!@}
 
-    //// Data ////
+    //// Persistent State Data ////
 
-    StateItems<PhysicsTrackState> states;
+    StateItems<real_type> interaction_mfp;
+
+    //// Temporary State Data ////
+
+    StateItems<real_type> macro_xs;  //! < Total macroscopic cross section
     Items<real_type> per_model_xs;  //!< XS [track][model]
 
     //// Methods ////
 
     //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const { return !states.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !interaction_mfp.empty();
+    }
 
     //! State size
-    CELER_FUNCTION size_type size() const { return states.size(); }
+    CELER_FUNCTION size_type size() const { return interaction_mfp.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     PhysicsStateData<W, M>& operator=(PhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        states = other.states;
+        interaction_mfp = other.interaction_mfp;
+        macro_xs = other.macro_xs;
         per_model_xs = other.per_model_xs;
         return *this;
     }
@@ -164,7 +158,8 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
 
-    resize(&state->states, size);
+    resize(&state->interaction_mfp, size);
+    resize(&state->macro_xs, size);
     resize(&state->per_model_xs, params.scalars.num_models * size);
 
     CELER_ENSURE(*state);

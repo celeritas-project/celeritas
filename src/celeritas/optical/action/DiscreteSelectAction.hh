@@ -18,6 +18,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Select a model for tracks undergoing a discrete interaction.
  */
 class DiscreteSelectAction final : public OpticalStepActionInterface,
                                    public StaticConcreteAction

@@ -56,9 +56,6 @@ class PhysicsStepView
     TrackSlotId track_id_;
 
     CELER_FUNCTION inline ItemId<real_type> per_model_xs_id(ModelId) const;
-
-    CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
-    CELER_FORCEINLINE_FUNCTION PhysicsTrackState const& state() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -73,7 +70,7 @@ PhysicsStepView::PhysicsStepView(PhysicsParamsRef const& params,
                                  TrackSlotId track)
     : params_(params), state_(state), track_id_(track)
 {
-    CELER_EXPECT(track_id_ < state_.states.size());
+    CELER_EXPECT(track_id_ < state_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -113,7 +110,7 @@ PhysicsStepView::per_model_xs_id(ModelId model) const
  */
 CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
 {
-    return this->state().macro_xs;
+    return state_.macro_xs[track_id_];
 }
 
 //---------------------------------------------------------------------------//
@@ -122,20 +119,7 @@ CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
  */
 CELER_FUNCTION void PhysicsStepView::macro_xs(real_type xs)
 {
-    this->state().macro_xs = xs;
-}
-
-//---------------------------------------------------------------------------//
-//! Access the state associated with the track
-CELER_FUNCTION PhysicsTrackState& PhysicsStepView::state()
-{
-    return state_.states[track_id_];
-}
-
-//! Access the state associated with the track
-CELER_FUNCTION PhysicsTrackState const& PhysicsStepView::state() const
-{
-    return state_.states[track_id_];
+    state_.macro_xs[track_id_] = xs;
 }
 
 //---------------------------------------------------------------------------//

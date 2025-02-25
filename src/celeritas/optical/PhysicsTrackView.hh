@@ -92,9 +92,6 @@ class PhysicsTrackView
     PhysicsStateRef const& states_;
     OpticalMaterialId const opt_material_;
     TrackSlotId const track_id_;
-
-    inline CELER_FUNCTION PhysicsTrackState& state();
-    inline CELER_FUNCTION PhysicsTrackState const& state() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -113,7 +110,7 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
     , opt_material_(opt_mat)
     , track_id_(track_id)
 {
-    CELER_EXPECT(track_id_ < states_.states.size());
+    CELER_EXPECT(track_id_ < states_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -132,7 +129,7 @@ CELER_FUNCTION PhysicsTrackView& PhysicsTrackView::operator=(Initializer const&)
  */
 CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
 {
-    this->state().interaction_mfp = 0;
+    states_.interaction_mfp[track_id_] = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -141,7 +138,7 @@ CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
  */
 CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type mfp)
 {
-    this->state().interaction_mfp = mfp;
+    states_.interaction_mfp[track_id_] = mfp;
 }
 
 //---------------------------------------------------------------------------//
@@ -150,7 +147,7 @@ CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type mfp)
  */
 CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
 {
-    return this->state().interaction_mfp;
+    return states_.interaction_mfp[track_id_];
 }
 
 //---------------------------------------------------------------------------//
@@ -159,7 +156,7 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
  */
 CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
 {
-    return this->state().interaction_mfp > 0;
+    return states_.interaction_mfp[track_id_] > 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -241,19 +238,6 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
     real_type result = calc(value_as<Energy>(energy));
     CELER_ENSURE(result > 0);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-//! Access the state associated with the track
-CELER_FUNCTION PhysicsTrackState& PhysicsTrackView::state()
-{
-    return states_.states[track_id_];
-}
-
-//! Access the state associated with the track
-CELER_FUNCTION PhysicsTrackState const& PhysicsTrackView::state() const
-{
-    return states_.states[track_id_];
 }
 
 //---------------------------------------------------------------------------//

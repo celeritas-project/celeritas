@@ -10,7 +10,6 @@
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "AbsorptionExecutor.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 
@@ -22,16 +21,9 @@ namespace optical
 /*!
  * Interact with device data.
  */
-void AbsorptionModel::step(CoreParams const& core_params,
-                           CoreStateDevice& core_state) const
+void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const
 {
-    auto execute
-        = make_action_thread_executor(core_params.ptr<MemSpace::native>(),
-                                      core_state.ptr(),
-                                      this->action_id(),
-                                      AbsorptionExecutor{});
-    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(core_state, execute);
+    // CELER_NOT_IMPLEMENTED("Optical absorption executor");
 }
 
 //---------------------------------------------------------------------------//

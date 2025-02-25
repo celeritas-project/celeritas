@@ -188,7 +188,7 @@ class OpticalPhysicsTest : public OpticalMockTestBase
                 num_tracks);
         physics_state_ = CollectionStateStore<PhysicsStateData, MemSpace::host>(
             this->optical_physics()->host_ref(), num_tracks);
-        CELER_ENSURE(physics_state_.ref().states.size() == num_tracks);
+        CELER_ENSURE(physics_state_.ref().size() == num_tracks);
     }
 
     /*!
