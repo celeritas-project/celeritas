@@ -5,6 +5,10 @@
 
 set(_celer_builtin_packages)
 
+# Print extra information about downloading: hash failures, for example, are
+# silent otherwise
+set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
+
 #-----------------------------------------------------------------------------#
 # GTest
 #-----------------------------------------------------------------------------#
@@ -13,6 +17,7 @@ if(CELERITAS_BUILTIN_GTest)
   FetchContent_Declare(
     GTest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+    DOWNLOAD_NO_PROGRESS TRUE
   )
   list(APPEND _celer_builtin_packages GTest)
 
@@ -61,6 +66,7 @@ if(CELERITAS_BUILTIN_G4VG)
     G4VG
     URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.3/g4vg-1.0.3.tar.gz
     URL_HASH SHA256=6f0920a9ad2e04a701bec636f117d4093be1e50761f091ec507efd078b659bcd
+    DOWNLOAD_NO_PROGRESS TRUE
   )
   list(APPEND _celer_builtin_packages G4VG)
   foreach(_var BUILD_TESTS DEBUG)
