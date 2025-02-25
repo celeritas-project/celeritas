@@ -107,8 +107,7 @@ jobs:
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          if ${{(matrix.geometry == 'vecgeom')
-                && (matrix.geant != '')}}; then
+          if ${{matrix.geometry == 'vecgeom' && matrix.geant}}; then
             spack -e . add g4vg@1.0.2:
           fi
           spack -vd -e . compiler find --mixed-toolchain

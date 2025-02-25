@@ -52,6 +52,7 @@ void CmseGeoTest::test_trace() const
             403.9, 650, 650, 403.9, 549.15, 1096.95, 11200, 9.9999999999992,
             180, 910, 24000, 6000};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
             // Surface vecgeom underestimates some safety near internal
