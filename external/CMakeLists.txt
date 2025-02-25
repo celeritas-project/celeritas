@@ -30,6 +30,7 @@ if(CELERITAS_BUILTIN_nlohmann_json)
   FetchContent_Declare(
     nlohmann_json
     URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    URL_HASH SHA256=0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
   )
   list(APPEND _celer_builtin_packages nlohmann_json)
 
@@ -59,6 +60,7 @@ if(CELERITAS_BUILTIN_G4VG)
   FetchContent_Declare(
     G4VG
     URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.3/g4vg-1.0.3.tar.gz
+    URL_HASH SHA256=6f0920a9ad2e04a701bec636f117d4093be1e50761f091ec507efd078b659bcd
   )
   list(APPEND _celer_builtin_packages G4VG)
   foreach(_var BUILD_TESTS DEBUG)
