@@ -38,6 +38,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/g4org/Converter.hh"
 
+#include "GeoParamsInterface.hh"
 #include "g4/VisitVolumes.hh"
 
 #include "detail/MakeLabelVector.hh"
@@ -312,11 +313,21 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
  * \note The stack should have the same semantics as \c LevelId, i.e. the
  * initial entry is the "most global" level.
  */
-void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
+void set_history(Span<GeantPhysicalInstance const> stack,
+                 G4NavigationHistory* nav)
 {
     CELER_EXPECT(!stack.empty());
     CELER_EXPECT(std::all_of(stack.begin(), stack.end(), LogicalTrue{}));
     CELER_EXPECT(nav);
+
+    if (std::any_of(
+            stack.begin(), stack.end(), [](GeantPhysicalInstance const& gpi) {
+                return static_cast<bool>(gpi.replica);
+            }))
+    {
+        CELER_NOT_IMPLEMENTED(
+            "sensitive detectors inside of replica/parameterized volumes");
+    }
 
     size_type level = 0;
     auto nav_stack_size
@@ -327,7 +338,7 @@ void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
          level != end_level;
          ++level)
     {
-        if (nav->GetVolume(level) != stack[level])
+        if (nav->GetVolume(level) != stack[level].pv)
         {
             break;
         }
@@ -338,7 +349,7 @@ void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
         // Top level disagrees (rare? should always be world):
         // reset to top level
         nav->Reset();
-        nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0]));
+        nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0].pv));
         ++level;
     }
     else if (level < nav_stack_size())
@@ -351,7 +362,7 @@ void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
     // Add all remaining levels
     for (auto end_level = stack.size(); level != end_level; ++level)
     {
-        G4VPhysicalVolume const* pv = stack[level];
+        G4VPhysicalVolume const* pv = stack[level].pv;
         constexpr auto volume_type = EVolume::kNormal;
         CELER_VALIDATE(pv->VolumeType() == volume_type,
                        << "sensitive detectors inside of "

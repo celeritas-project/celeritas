@@ -142,22 +142,28 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
         result.push_back([&] {
             using namespace std::literals;
 
-            G4VPhysicalVolume const* pv = geo.id_to_pv(VolumeInstanceId{vidx});
-            if (!pv)
+            auto phys_inst = geo.id_to_geant(VolumeInstanceId{vidx});
+            if (!phys_inst)
             {
                 return "<null>"s;
             }
-            auto id = static_cast<std::size_t>(pv->GetInstanceID());
+            auto id = static_cast<std::size_t>(phys_inst.pv->GetInstanceID());
             if (id >= pv_labels.size())
             {
-                return "<out of range: "s + pv->GetName() + ">"s;
+                return "<out of range: "s + phys_inst.pv->GetName() + ">"s;
             }
             auto const& label = pv_labels[id];
             if (label.empty())
             {
-                return "<not visited: "s + pv->GetName() + ">"s;
+                return "<not visited: "s + phys_inst.pv->GetName() + ">"s;
             }
-            return to_string(label);
+            auto result = to_string(label);
+            if (phys_inst.replica)
+            {
+                result += '@';
+                result += std::to_string(phys_inst.replica.get());
+            }
+            return result;
         }());
     }
     return result;

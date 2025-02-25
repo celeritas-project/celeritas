@@ -32,6 +32,7 @@ class G4VTouchable;
 
 namespace celeritas
 {
+struct GeantPhysicalInstance;
 //---------------------------------------------------------------------------//
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 //! Version-independent typedef to Geant4 touchable history
@@ -90,8 +91,8 @@ std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world);
 std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world);
 
 //---------------------------------------------------------------------------//
-// Update a nav history to match the given pv stack
-void set_history(Span<G4VPhysicalVolume const*> stack,
+// Update a nav history to match the given volume instance stack
+void set_history(Span<GeantPhysicalInstance const> stack,
                  G4NavigationHistory* nav);
 
 //---------------------------------------------------------------------------//

@@ -16,6 +16,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeoParamsInterface.hh"
 #include "geocel/g4/Convert.hh"
 
 #include "UnitUtils.hh"
@@ -60,7 +61,7 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
 {
   public:
     using IListSView = std::initializer_list<std::string_view>;
-    using VecPVConst = std::vector<G4VPhysicalVolume const*>;
+    using VecPhysInst = std::vector<GeantPhysicalInstance>;
 
     SPConstGeo build_geometry() final
     {
@@ -73,12 +74,12 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
         ASSERT_TRUE(this->geometry());
     }
 
-    VecPVConst find_pv_stack(IListSView names) const
+    VecPhysInst find_pv_stack(IListSView names) const
     {
         auto const& geo = *this->geometry();
         auto const& vol_inst = geo.volume_instances();
 
-        VecPVConst result;
+        VecPhysInst result;
         std::vector<std::string_view> missing;
         for (std::string_view sv : names)
         {
@@ -88,7 +89,7 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
                 missing.push_back(sv);
                 continue;
             }
-            result.push_back(geo.id_to_pv(vi));
+            result.push_back(geo.id_to_geant(vi));
             CELER_ASSERT(result.back());
         }
         CELER_VALIDATE(missing.empty(),
