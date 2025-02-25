@@ -364,8 +364,8 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
     auto radii = scale_.to<Real3>(solid.GetSemiAxisMax(to_int(Axis::x)),
                                   solid.GetSemiAxisMax(to_int(Axis::y)),
                                   solid.GetSemiAxisMax(to_int(Axis::z)));
-    auto bottom_cut = scale_.to<real_type>(solid.GetZBottomCut());
-    auto top_cut = scale_.to<real_type>(solid.GetZTopCut());
+    auto bottom_cut = scale_(solid.GetZBottomCut());
+    auto top_cut = scale_(solid.GetZTopCut());
 
     if (!(soft_equal(-radii[to_int(Axis::z)], bottom_cut)
           && soft_equal(radii[to_int(Axis::z)], top_cut)))
