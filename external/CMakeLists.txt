@@ -16,7 +16,8 @@ set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 if(CELERITAS_BUILTIN_GTest)
   FetchContent_Declare(
     GTest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+    URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
+    URL_HASH SHA256=7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
     DOWNLOAD_NO_PROGRESS TRUE
   )
   list(APPEND _celer_builtin_packages GTest)
