@@ -119,7 +119,7 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     }
     if (auto szs = obj.z_slab())
     {
-        j["z cut"] = szs;
+        j["z_slab"] = szs;
     }
 }
 
