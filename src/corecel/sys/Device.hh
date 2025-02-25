@@ -117,6 +117,9 @@ class Device
     // Allocate the given number of streams
     void create_streams(unsigned int num_streams) const;
 
+    // Destroy all streams before shutting down CUDA
+    void destroy_streams() const;
+
     // Access a stream
     Stream& stream(StreamId) const;
 

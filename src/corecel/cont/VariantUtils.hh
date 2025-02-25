@@ -32,9 +32,12 @@ struct Overload : Ts...
     using Ts::operator()...;
 };
 
-// Template deduction guide
+// Template deduction guides
 template<class... Ts>
 Overload(Ts&&...) -> Overload<Ts...>;
+
+template<class... Ts>
+Overload(Ts&...) -> Overload<Ts...>;
 
 //---------------------------------------------------------------------------//
 /*!

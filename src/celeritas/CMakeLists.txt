@@ -110,7 +110,10 @@ list(APPEND SOURCES
   random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
+  setup/Events.cc
   setup/Import.cc
+  setup/Problem.cc
+  setup/StandaloneInput.cc
   setup/System.cc
   track/SimParams.cc
   track/SortTracksAction.cc
@@ -144,6 +147,8 @@ if(CELERITAS_USE_Geant4)
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
     ext/GeantImporter.cc
+    ext/GeantSd.cc
+    ext/GeantSdOutput.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
     ext/detail/EmStandardPhysics.cc
@@ -153,13 +158,20 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeoOpticalIdMap.cc
+    ext/detail/HitProcessor.cc
+    ext/detail/LevelTouchableUpdater.cc
     ext/detail/MuHadEmStandardPhysics.cc
+    ext/detail/NaviTouchableUpdater.cc
     ext/detail/OpticalPhysics.cc
+    ext/detail/SensDetInserter.cc
+    ext/detail/TouchableUpdaterInterface.cc
   )
   celeritas_get_g4libs(_cg4_libs
     global geometry materials processes run physicslists tasking
   )
-  list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
+  list(APPEND _cg4_libs
+    Celeritas::corecel Celeritas::geocel XercesC::XercesC nlohmann_json::nlohmann_json
+  )
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
   celeritas_target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
@@ -226,6 +238,7 @@ if(CELERITAS_USE_ROOT)
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
+    io/RootCoreParamsOutput.cc
     io/RootEventReader.cc
     io/RootEventWriter.cc
     phys/RootEventSampler.cc

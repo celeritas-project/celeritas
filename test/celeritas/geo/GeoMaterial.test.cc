@@ -14,8 +14,8 @@
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "celeritas_test.hh"
+#include "../GeantTestBase.hh"
 #include "../RootTestBase.hh"
-#include "../TestEm3Base.hh"
 
 namespace celeritas
 {
@@ -70,30 +70,46 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm,
 
 //---------------------------------------------------------------------------//
 
-#define SimpleCmsRoot TEST_IF_CELERITAS_USE_ROOT(SimpleCmsRoot)
-class SimpleCmsRoot : public RootTestBase, public GeoMaterialTestBase
+#if CELERITAS_USE_ROOT
+#    define CMS_TEST_BASE RootTestBase
+#else
+#    define CMS_TEST_BASE GeantTestBase
+#endif
+
+class SimpleCmsTest : public CMS_TEST_BASE, public GeoMaterialTestBase
 {
   public:
     std::string_view geometry_basename() const override
     {
         return "simple-cms"sv;
     }
-    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 };
 
 //---------------------------------------------------------------------------//
 
-#define TestEm3 TEST_IF_CELERITAS_GEANT(TestEm3)
-class TestEm3 : public TestEm3Base, public GeoMaterialTestBase
+class Em3Test : public GeantTestBase, public GeoMaterialTestBase
 {
+    std::string_view geometry_basename() const override
+    {
+        return "testem3-flat";
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+class MultiLevelTest : public GeantTestBase, public GeoMaterialTestBase
+{
+    std::string_view geometry_basename() const final
+    {
+        return "multi-level"sv;
+    }
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(SimpleCmsRoot, plus_z)
+TEST_F(SimpleCmsTest, plus_z)
 {
     auto materials = this->trace_materials({0, 0, 0}, {1, 0, 0});
     static char const* const expected_materials[]
@@ -101,11 +117,52 @@ TEST_F(SimpleCmsRoot, plus_z)
     EXPECT_VEC_EQ(expected_materials, materials);
 }
 
-TEST_F(TestEm3, plus_x)
+TEST_F(Em3Test, plus_x)
 {
     auto materials = this->trace_materials({19.01, 0, 0}, {1, 0, 0});
     static char const* const expected_materials[]
         = {"lAr", "Pb", "lAr", "vacuum"};
+    EXPECT_VEC_EQ(expected_materials, materials);
+}
+
+TEST_F(MultiLevelTest, high)
+{
+    auto materials = this->trace_materials({-19.9, 7.5, 0}, {1, 0, 0});
+
+    static char const* const expected_materials[] = {
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+    };
+    EXPECT_VEC_EQ(expected_materials, materials);
+}
+
+TEST_F(MultiLevelTest, low)
+{
+    auto materials = this->trace_materials({-19.9, -7.5, 0}, {1, 0, 0});
+    static char const* const expected_materials[] = {
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+    };
     EXPECT_VEC_EQ(expected_materials, materials);
 }
 

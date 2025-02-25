@@ -186,7 +186,7 @@
       <materialref ref="G4_BONE_COMPACT_ICRU"/>
       <solidref ref="Shape2"/>
     </volume>
-    <volume name="Shape1">
+    <volume name="Shape10x1234">
       <materialref ref="G4_A-150_TISSUE"/>
       <solidref ref="Shape1"/>
       <physvol name="Shape2">
@@ -197,7 +197,7 @@
       <materialref ref="G4_WATER"/>
       <solidref ref="Envelope"/>
       <physvol name="Shape1">
-        <volumeref ref="Shape1"/>
+        <volumeref ref="Shape10x1234"/>
       </physvol>
     </volume>
     <volume name="World0xdeadbeef">

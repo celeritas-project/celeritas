@@ -62,6 +62,7 @@ inp::EnergyDistribution inp_from_energy(DistributionOptions const& options)
                            << to_cstring(options.distribution) << "' for "
                            << sampler_name);
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -84,6 +85,7 @@ inp::ShapeDistribution inp_from_position(DistributionOptions const& options)
                            << to_cstring(options.distribution) << "' for "
                            << sampler_name);
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -105,6 +107,7 @@ inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
                            << to_cstring(options.distribution) << "' for "
                            << sampler_name);
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,11 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "celeritas/global/Debug.hh"
+#endif
+
 #include "../StatusCheckData.hh"
 
 namespace celeritas
@@ -19,19 +24,29 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+#if !CELER_DEVICE_COMPILE
+// Print a track and why it failed.
+#    define CELER_PRINT_TRACK(MSG, TRACK) \
+        CELER_LOG_LOCAL(error)            \
+            << MSG << ": " << ::celeritas::StreamableTrack{TRACK};
+#else
+#    define CELER_PRINT_TRACK(MSG, TRACK)
+#endif
+
 /*!
  * Check that the condition is true, otherwise throw an error/assertion.
  *
  * \note This macro is defined so that the condition is still checked in
- * "release" mode.
+ * "release" mode, and so that checking will work on GPU.
  */
-#define CELER_FAIL_IF(COND, MSG)                                      \
-    do                                                                \
-    {                                                                 \
-        if (CELER_UNLIKELY(!(COND)))                                  \
-        {                                                             \
-            CELER_DEBUG_THROW_(MSG ": '" #COND "' failed", internal); \
-        }                                                             \
+#define CELER_FAIL_IF(COND, MSG)                               \
+    do                                                         \
+    {                                                          \
+        if (CELER_UNLIKELY((COND)))                            \
+        {                                                      \
+            CELER_PRINT_TRACK(MSG, track)                      \
+            CELER_DEBUG_THROW_(MSG ": '" #COND "'", internal); \
+        }                                                      \
     } while (0)
 
 //---------------------------------------------------------------------------//
@@ -68,7 +83,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         && state.order < StepActionOrder::end)
     {
         auto prev_status = state.status[tsid];
-        CELER_FAIL_IF(sim.status() >= prev_status,
+        CELER_FAIL_IF(sim.status() < prev_status,
                       "status was improperly reverted");
     }
     if (state.order >= StepActionOrder::pre
@@ -78,7 +93,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // stepping loop *or* at the very end (in the case where a track is
         // initialized in-place from a secondary). It should be cleared in
         // pre-step
-        CELER_FAIL_IF(sim.status() != TrackStatus::initializing,
+        CELER_FAIL_IF(sim.status() == TrackStatus::initializing,
                       "status cannot be 'initializing' after pre-step");
     }
     if (sim.status() == TrackStatus::inactive)
@@ -101,21 +116,25 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
          * \todo Change this behavior to be a *tracking cut* rather than lost
          * energy.
          */
-        CELER_FAIL_IF(sim.post_step_action(), "missing post-step action");
+        CELER_FAIL_IF(!sim.post_step_action(), "missing post-step action");
     }
 
     if (sim.status() == TrackStatus::alive)
     {
         // If the track fails during initialization, it won't get an
         // along-step action, so only check this if alive
-        CELER_FAIL_IF(sim.along_step_action(), "missing along-step action");
+        CELER_FAIL_IF(!sim.along_step_action(), "missing along-step action");
+
+        // All 'alive' tracks should be inside the geometry
+        CELER_FAIL_IF(track.make_geo_view().is_outside(),
+                      "track is outside the geometry but still 'alive'");
     }
 
     ActionId const prev_along_step = state.along_step_action[tsid];
     ActionId const next_along_step = sim.along_step_action();
     if (state.order > StepActionOrder::pre && next_along_step)
     {
-        CELER_FAIL_IF(prev_along_step == next_along_step,
+        CELER_FAIL_IF(prev_along_step != next_along_step,
                       "along-step action cannot yet change");
     }
 
@@ -127,10 +146,10 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // Check that order is increasing if not an "implicit" action
         auto prev_order = params.orders[prev_post_step];
         auto next_order = params.orders[next_post_step];
-        CELER_FAIL_IF((prev_order == params.implicit_order
-                       || next_order == params.implicit_order
-                       || OrderedAction{prev_order, prev_post_step}
-                              < OrderedAction{next_order, next_post_step}),
+        CELER_FAIL_IF(!(prev_order == params.implicit_order
+                        || next_order == params.implicit_order
+                        || OrderedAction{prev_order, prev_post_step}
+                               < OrderedAction{next_order, next_post_step}),
                       "new post-step action is out of order");
     }
 }

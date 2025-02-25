@@ -25,8 +25,14 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
+  CmsEeBackDeeGeoTest.cc
   LazyGeoManager.cc
-  GenericGeoTestBase.cc
+  GeantImportVolumeResult.cc
+  GenericGeoTestInterface.cc
+  FourLevelsGeoTest.cc
+  MultiLevelGeoTest.cc
+  SolidsGeoTest.cc
+  TransformedBoxGeoTest.cc
 )
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
@@ -38,7 +44,6 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vg/VecgeomTestBase.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
 endif()
 
 celeritas_add_test_library(testcel_geocel ${SOURCES})
@@ -47,7 +52,7 @@ celeritas_target_link_libraries(testcel_geocel
   PUBLIC
     testcel_harness Celeritas::geocel
   PRIVATE
-    testcel_core ${_g4_geo_libs} ${VecGeom_LIBRARIES}
+    testcel_core
 )
 
 #-----------------------------------------------------------------------------#
@@ -75,24 +80,21 @@ if(CELERITAS_USE_VecGeom)
   set(_vecgeom_tests)
   if(VecGeom_GDML_FOUND)
     list(APPEND _vecgeom_tests
-      "SimpleCmsTest.*"
+      "SimpleCmsVgdmlTest.*"
+      "FourLevelsVgdmlTest.*"
+      "MultiLevelVgdmlTest.*"
+      "SolidsVgdmlTest.*"
     )
-    if(NOT VecGeom_SURF_FOUND)
-      # TODO: vecgeom surface doesn't support some of these shapes
-      list(APPEND _vecgeom_tests
-        "FourLevelsTest.*"
-        "MultiLevelTest.*"
-        "SolidsTest.*"
-        "CmseTest.*"
-      )
-    endif()
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
-      "FourLevelsGeantTest.*"
-      "MultiLevelGeantTest.*"
-      "SolidsGeantTest.*"
-      "ZnenvGeantTest.*"
+      "CmseTest.*"
+      "CmsEeBackDeeTest.*"
+      "FourLevelsTest.*"
+      "MultiLevelTest.*"
+      "SolidsTest.*"
+      "TransformedBoxTest.*"
+      "ZnenvTest.*"
     )
   endif()
   if(NOT _vecgeom_tests)
@@ -108,6 +110,8 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Geant4
+
+celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4} LINK_LIBRARIES ${_g4_geo_libs})
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})

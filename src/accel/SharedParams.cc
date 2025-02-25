@@ -20,11 +20,13 @@
 #include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4VisExtent.hh>
 
 #include "corecel/Config.hh"
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
@@ -41,15 +43,19 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -68,8 +74,6 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 
-#include "detail/HitManager.hh"
-#include "detail/HitManagerOutput.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -320,6 +324,24 @@ SharedParams::SharedParams(SetupOptions const& options)
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
 
+    // Create bounding box from navigator geometry
+    bbox_ = [] {
+        G4VPhysicalVolume const* world = GeantImporter::get_world_volume();
+        CELER_ASSERT(world);
+        G4LogicalVolume const* world_lv = world->GetLogicalVolume();
+        CELER_ASSERT(world_lv);
+        G4VSolid const* solid = world_lv->GetSolid();
+        CELER_ASSERT(solid);
+        G4VisExtent const& extent = solid->GetExtent();
+
+        BBox result{{extent.GetXmin(), extent.GetYmin(), extent.GetZmin()},
+                    {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
+        CELER_VALIDATE(result,
+                       << "world bounding box {" << result.lower() << ", "
+                       << result.upper() << "} is invalid");
+        return result;
+    }();
+
     // Save output filename (possibly empty if disabling output)
     output_filename_ = options.output_file;
 
@@ -391,11 +413,8 @@ void SharedParams::Finalize()
     CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
     *this = {};
 
-    if (auto& d = celeritas::device())
-    {
-        // Reset streams before the static destructor does
-        d.create_streams(0);
-    }
+    // Reset streams before the static destructor does
+    celeritas::device().destroy_streams();
 
     CELER_ENSURE(!*this);
 }
@@ -499,8 +518,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
                           "when manually loading a geometry (the "
                           "'geometry_file' option is also set)");
 
-        write_geant_geometry(GeantImporter::get_world_volume(),
-                             options.geometry_output_file);
+        save_gdml(GeantImporter::get_world_volume(),
+                  options.geometry_output_file);
     }
 
     CoreParams::Input params;
@@ -677,15 +696,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Construct sensitive detector callback
     if (options.sd)
     {
-        hit_manager_
-            = std::make_shared<detail::HitManager>(params_->geometry(),
-                                                   *params_->particle(),
-                                                   options.sd,
-                                                   params_->max_streams());
+        hit_manager_ = std::make_shared<GeantSd>(params_->geometry(),
+                                                 *params_->particle(),
+                                                 to_inp(options.sd),
+                                                 params_->max_streams());
         step_collector_
             = StepCollector::make_and_insert(*params_, {hit_manager_});
-        output_reg_->insert(
-            std::make_shared<detail::HitManagerOutput>(hit_manager_));
+        output_reg_->insert(std::make_shared<GeantSdOutput>(hit_manager_));
     }
 
     // Add diagnostics

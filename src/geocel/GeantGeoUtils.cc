@@ -35,13 +35,9 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "orange/g4org/Converter.hh"
 
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
 #include "g4/VisitVolumes.hh"
 
 #include "detail/MakeLabelVector.hh"
@@ -59,47 +55,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Load a gdml input file, creating a pointer owned by Geant4.
- *
- * Geant4's constructors for physical/logical volumes register \c this pointers
- * in a vector which is cleaned up manually. Yuck.
- *
- * \return the world volume
- */
-G4VPhysicalVolume*
-load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
-{
-    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
-
-    if (!G4Threading::IsMasterThread())
-    {
-        // Always-on debug assertion (not a "runtime" error but a
-        // subtle programming logic error that always causes a crash)
-        CELER_DEBUG_FAIL(
-            "Geant4 geometry cannot be loaded from a worker thread", internal);
-    }
-
-    ScopedMem record_mem("load_geant_geometry");
-    ScopedTimeLog scoped_time;
-
-    ScopedGeantLogger scoped_logger;
-    ScopedGeantExceptionHandler scoped_exceptions;
-
-    G4GDMLParser gdml_parser;
-    // Note that material and element names (at least as
-    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
-    // their extension.
-    gdml_parser.SetStripFlag(strip_pointer_ext);
-
-    gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
-
-    G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
-    CELER_ENSURE(result);
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Free all pointers in a table.
@@ -168,60 +123,6 @@ std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
         os << "{null G4LogicalVolume}";
     }
     return os;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a Geant4 geometry, stripping suffixes like a typical Geant4 app.
- *
- * With this implementation, we let Geant4 strip the uniquifying pointers,
- * which allows our application to construct its own based on the actual
- * in-memory addresses.
- *
- * \return Geant4-owned world volume
- */
-G4VPhysicalVolume* load_geant_geometry_native(std::string const& filename)
-{
-    return load_geant_geometry_impl(filename, true);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write a GDML file to the given filename.
- */
-void write_geant_geometry(G4VPhysicalVolume const* world,
-                          std::string const& out_filename)
-{
-    CELER_EXPECT(world);
-
-    CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
-    ScopedMem record_mem("write_geant_geometry");
-    ScopedTimeLog scoped_time;
-
-    ScopedGeantLogger scoped_logger;
-    ScopedGeantExceptionHandler scoped_exceptions;
-
-    G4GDMLParser parser;
-    parser.SetOverlapCheck(false);
-
-    if (!world->GetLogicalVolume()->GetRegion())
-    {
-        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping "
-                              "export of energy cuts and regions";
-    }
-    else
-    {
-        parser.SetEnergyCutsExport(true);
-        parser.SetRegionExport(true);
-    }
-
-    parser.SetSDExport(true);
-    parser.SetStripFlag(false);
-#if G4VERSION_NUMBER >= 1070
-    parser.SetOutputFileOverwrite(true);
-#endif
-
-    parser.Write(out_filename, world, /* append_pointers = */ true);
 }
 
 //---------------------------------------------------------------------------//
@@ -332,7 +233,7 @@ find_geant_volumes(std::unordered_set<std::string> names)
         {
             CELER_LOG(warning)
                 << "Multiple Geant4 volumes are mapped to name '"
-                << lv->GetName();
+                << lv->GetName() << "'";
         }
     }
 

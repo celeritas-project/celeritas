@@ -36,7 +36,7 @@ git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
 - Install Celeritas with
 ```console
 spack install celeritas
-```console
+```
 - Add the Celeritas installation to your `PATH` with:
 ```console
 spack load celeritas

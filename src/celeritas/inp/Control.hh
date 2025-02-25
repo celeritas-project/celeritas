@@ -47,13 +47,6 @@ namespace inp
  * \note Previously, \c SetupOptions and \c celer-g4 treated these quantities
  * as "per stream" whereas \c celer-sim used "per process".
  *
- * Defaults:
- * - \c secondary: twice the number of track slots.
- *
- * \todo Split this into "core" state capacity and "optical" state capacity?
- * Core contains \c events and \c secondaries .
- * \todo Instead of a special value \c events=0, make a variant or something
- * more descriptive?
  * \todo Some of these parameters will be more automated in the future.
  */
 struct StateCapacity
@@ -64,11 +57,40 @@ struct StateCapacity
     size_type initializers{};
     //! Maximum number of track slots to be simultaneously stepped
     size_type tracks{};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up per-process state/buffer capacities for the main tracking loop.
+ *
+ * \note The \c primaries was previously named \c auto_flush .
+ * \note Previously, \c SetupOptions and \c celer-g4 treated these quantities
+ * as "per stream" whereas \c celer-sim used "per process".
+ *
+ * Defaults:
+ * - \c secondaries: twice the number of track slots
+ * - \c events: single event runs at a time
+ */
+struct CoreStateCapacity : StateCapacity
+{
     //! Maximum number of secondaries created per step
     std::optional<size_type> secondaries;
 
-    //! Maximum number of simultaneous events (zero for Geant4 integration)
-    size_type events{0};
+    //! Maximum number of simultaneous events (zero for doing one event at a
+    //! time)
+    std::optional<size_type> events;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up per-process state/buffer capacities for the optical tracking loop.
+ *
+ * \note \c generators was previously named \c buffer_capacity .
+ */
+struct OpticalStateCapacity : StateCapacity
+{
+    //! Maximum number of queued photon-generating steps
+    size_type generators{};
 };
 
 //---------------------------------------------------------------------------//
@@ -98,10 +120,10 @@ struct DeviceDebug
 struct Control
 {
     //! Per-process state sizes
-    StateCapacity capacity;
+    CoreStateCapacity capacity;
 
     //! Per-process state sizes for *optical* tracking loop
-    std::optional<StateCapacity> optical_capacity;
+    std::optional<OpticalStateCapacity> optical_capacity;
 
     //! Number of streams
     size_type num_streams{};

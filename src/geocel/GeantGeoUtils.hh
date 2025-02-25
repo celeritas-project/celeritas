@@ -63,12 +63,8 @@ std::ostream& operator<<(std::ostream&, PrintableLV const&);
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Load a GDML file, stripping pointers
-G4VPhysicalVolume* load_geant_geometry_native(std::string const& gdml_filename);
-
 // Write a GDML file to the given filename
-void write_geant_geometry(G4VPhysicalVolume const* world,
-                          std::string const& out_filename);
+void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename);
 
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
@@ -102,11 +98,6 @@ void set_history(Span<G4VPhysicalVolume const*> stack,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline G4VPhysicalVolume* load_geant_geometry_native(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
 inline void reset_geant_geometry()
 {
     CELER_NOT_CONFIGURED("Geant4");

@@ -40,10 +40,10 @@ struct GeoTraits<GeantGeoParams>
     using TrackView = GeantGeoTrackView;
 
     //! Descriptive name for the geometry
-    static constexpr char const* name = "Geant4";
+    static constexpr char const name[] = "Geant4";
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr char const* ext = ".gdml";
+    static constexpr char const ext[] = ".gdml";
 };
 #else
 //! Geant4 is unavailable

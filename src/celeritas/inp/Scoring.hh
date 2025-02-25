@@ -7,7 +7,7 @@
 #pragma once
 
 #include <optional>
-#include <set>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -21,7 +21,7 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 //! Options for saving attributes at each step point
-struct GeantSDStepPointAttributes
+struct GeantSdStepPointAttributes
 {
     //! Store the time since the start of the event
     bool global_time{true};
@@ -75,13 +75,19 @@ struct GeantSDStepPointAttributes
  * FindVolumes helper function can be used to determine LV pointers from
  * the volume names.
  *
- * \sa celeritas::HitManager
+ * \todo For improved granularity in models with duplicate names, we could add
+ * a vector of \c Label to \c VariantSetVolume .
+ * \todo change from \c unordered_set to \c set for better reproducibility in
+ * serialized output
+ *
+ * \sa celeritas::GeantSd
  */
-struct GeantSensitiveDetector
+struct GeantSd
 {
     //! Provide either a set of labels or a set of pointers to Geant4 objects
-    using VariantSetVolume
-        = std::variant<std::set<Label>, std::set<G4LogicalVolume const*>>;
+    using SetVolume = std::unordered_set<G4LogicalVolume const*>;
+    using SetString = std::unordered_set<std::string>;
+    using VariantSetVolume = std::variant<SetVolume, SetString>;
 
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
@@ -95,9 +101,9 @@ struct GeantSensitiveDetector
     bool track{true};
 
     //! Options for saving and converting beginning-of-step data
-    GeantSDStepPointAttributes pre;
+    GeantSdStepPointAttributes pre;
     //! Options for saving and converting end-of-step data
-    GeantSDStepPointAttributes post;
+    GeantSdStepPointAttributes post;
 
     //! Manually list LVs that don't have an SD on the master thread
     VariantSetVolume force_volumes;
@@ -127,7 +133,7 @@ struct SimpleCalo
 struct Scoring
 {
     //! Enable Geant4 sensitive detector integration
-    std::optional<GeantSensitiveDetector> sd;
+    std::optional<GeantSd> sd;
 
     //! Add simple on-device calorimeters integrated over events
     std::optional<SimpleCalo> simple_calo;

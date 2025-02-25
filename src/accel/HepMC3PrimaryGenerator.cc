@@ -19,7 +19,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/io/EventReader.hh"
 
 namespace celeritas
@@ -49,12 +51,26 @@ class PrimaryInserter
         }
         last_vtx_ = cur_vtx;
 
-        // Insert primary
+        // Get the four momentum
         auto p = par.momentum();
         HepMC3::Units::convert(p, momentum_unit_, HepMC3::Units::MEV);
+
+        // Create the primary particle and set the PDG mass. If the particle is
+        // not in the \c G4ParticleTable, the mass is set to -1.  Calling the
+        // constructor with the four momentum would set the mass based on the
+        // relativistic energy-momentum relation.
+        G4PrimaryParticle* primary = new G4PrimaryParticle(par.pid());
+
+        // Set the primary directlon
+        auto dir = make_unit_vector(Array<double, 3>{p.x(), p.y(), p.z()});
+        primary->SetMomentumDirection(convert_to_geant(dir, 1));
+
+        // Set the kinetic energy
+        primary->SetKineticEnergy(p.e() - p.m());
+
+        // Insert primary
         CELER_ASSERT(g4_vtx_);
-        g4_vtx_->SetPrimary(
-            new G4PrimaryParticle(par.pid(), p.x(), p.y(), p.z(), p.e()));
+        g4_vtx_->SetPrimary(primary);
     }
 
     void operator()() { this->insert_vertex(); }

@@ -91,18 +91,19 @@ jobs:
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
-          if [ "${{matrix.geometry}}" == "vecgeom" ]; then
+          if ${{matrix.geometry == 'vecgeom'}}; then
             spack -e . add vecgeom+gdml
           fi
-          if ${{(matrix.special != 'minimal'
-                 && matrix.special != 'asanlite'
-                 && env.CXXSTD == '20')
-                && 'true' || 'false'}}; then
+          if ${{(matrix.special != 'minimal')
+                && (matrix.special != 'asanlite')
+                && (env.CXXSTD == '20')}}; then
             spack -e . add root
           fi
-          if [ "${{matrix.geant}}" != "" ]; then
+          if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
-            spack -e . add g4vg@1.1:
+          fi
+          if ${{matrix.geometry == 'vecgeom' && matrix.geant}}; then
+            spack -e . add g4vg@1.0.2:
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
@@ -136,8 +137,8 @@ jobs:
           echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
           echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
           spack env activate . --sh > "${SPACK_VIEW}/rc"
-      - name: Cache ccache
-        uses: actions/cache@v4
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
@@ -152,7 +153,7 @@ jobs:
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
           git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          if [ "${{matrix.geant}}" == "11.0" ]; then
+          if ${{matrix.geant == '11.0'}}; then
             # Test overriding of Geant4 environment variables
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
@@ -164,7 +165,7 @@ jobs:
         env:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
-          if [ "${{github.event_name}}" == "schedule" ]; then
+          if ${{github.event_name == 'schedule'}}; then
             echo "Full clang-tidy check on scheduled run."
             ninja -Cbuild -k0
             exit $?
@@ -194,7 +195,13 @@ jobs:
         if: ${{matrix.special != 'clang-tidy'}}
         working-directory: build
         run: |
-            ninja -v -k0
+          ninja -v -k0
+      - name: Save ccache
+        if: ${{always() && steps.build.outcome == 'success'}}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
       - name: Regenerate ROOT test data
         if: ${{matrix.geant == '11.0'}}
         working-directory: build
@@ -205,7 +212,7 @@ jobs:
         if: ${{matrix.special != 'clang-tidy'}}
         continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
         run: |
-          if [ "${{matrix.geant}}" == "11.0" ]; then
+          if ${{matrix.geant == '11.0'}}; then
             # Note this is ignored for geant4, float, clhep
             export CELER_TEST_STRICT=1
           fi
