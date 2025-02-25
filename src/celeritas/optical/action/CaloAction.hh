@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/UserPostAction.hh
+//! \file celeritas/optical/action/CaloAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,12 +17,12 @@ namespace optical
  * Check track interaction with optical detector, deposit (print) energy and
  * kill track
  */
-class UserPostAction final : public OpticalStepActionInterface,
-                             public StaticConcreteAction
+class CaloAction final : public OpticalStepActionInterface,
+                         public StaticConcreteAction
 {
   public:
     // Construct with ID
-    explicit UserPostAction(ActionId);
+    explicit CaloAction(ActionId);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -31,7 +31,7 @@ class UserPostAction final : public OpticalStepActionInterface,
     void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::user_post; }
 };
 
 //---------------------------------------------------------------------------//

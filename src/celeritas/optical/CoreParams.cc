@@ -20,11 +20,11 @@
 #include "TrackInitParams.hh"
 #include "action/AlongStepAction.hh"
 #include "action/BoundaryAction.hh"
+#include "action/CaloAction.hh"
 #include "action/InitializeTracksAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
-#include "action/UserPostAction.hh"
 
 namespace celeritas
 {
@@ -90,7 +90,7 @@ CoreScalars build_actions(ActionRegistry* reg)
     scalars.tracking_cut_action = reg->next_id();
     reg->insert(make_shared<TrackingCutAction>(scalars.tracking_cut_action));
 
-    reg->insert(make_shared<UserPostAction>(reg->next_id()));
+    reg->insert(make_shared<CaloAction>(reg->next_id()));
 
     //// END ACTIONS ////
 

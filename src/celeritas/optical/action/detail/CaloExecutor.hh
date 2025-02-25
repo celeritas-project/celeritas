@@ -26,13 +26,13 @@ namespace detail
  * - Update number of steps
  * - Update remaining MFPs to interaction
  */
-struct UserPostExecutor
+struct CaloExecutor
 {
     inline CELER_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void UserPostExecutor::operator()(CoreTrackView& track)
+CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
 {
     auto sim = track.sim();
     // If track previously killed in step, don't contribute
