@@ -457,7 +457,8 @@ if(CELERITAS_USE_VecGeom)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
   if(CELERITAS_USE_Geant4)
-    celeritas_find_or_builtin_package(G4VG)
+    # Enforce minimum version
+    celeritas_find_or_builtin_package(G4VG 1.0.3)
   endif()
 endif()
 
