@@ -234,6 +234,7 @@ if(CELERITAS_USE_CUDA)
     "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists"
   )
 endif()
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 ### Linking flags ###
 celeritas_set_default(BUILD_SHARED_LIBS ON
