@@ -140,7 +140,7 @@ class SolidBase : public ObjectInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A shape that has ungone an intersection or combination of intersections.
+ * A shape that has undergone an intersection or combination of intersections.
  *
  * This shape may be:
  * A) hollow (exluded interior),
