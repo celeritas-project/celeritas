@@ -197,6 +197,16 @@ G4VPhysicalVolume const* geant_world_volume()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether a physical volume is parameterized or replicated.
+ */
+bool is_replica(G4VPhysicalVolume const& pv)
+{
+    auto vt = pv.VolumeType();
+    return (vt == EVolume::kReplica || vt == EVolume::kParameterised);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find Geant4 logical volumes corresponding to a list of names.
  *
  * If logical volumes with duplicate names are present, they will all show up

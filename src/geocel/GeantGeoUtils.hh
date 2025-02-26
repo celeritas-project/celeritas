@@ -80,6 +80,10 @@ Span<G4LogicalVolume*> geant_logical_volumes();
 G4VPhysicalVolume const* geant_world_volume();
 
 //---------------------------------------------------------------------------//
+// Whether the volume is a replica/parameterization
+bool is_replica(G4VPhysicalVolume const&);
+
+//---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);

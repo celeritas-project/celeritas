@@ -10,9 +10,9 @@
 #include <initializer_list>
 #include <string_view>
 #include <G4LogicalVolume.hh>
-#include <G4Navigator.hh>
 #include <G4ThreeVector.hh>
 #include <G4TouchableHistory.hh>
+#include <G4NavigationHistory.hh>
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
@@ -162,18 +162,11 @@ class MultiLevelTest : public GeantGeoUtilsTest
 
 TEST_F(MultiLevelTest, printable_nav)
 {
-    G4Navigator navi;
-    G4TouchableHistory touchable;
-    navi.SetWorldVolume(
-        const_cast<G4VPhysicalVolume*>(this->geometry()->world()));
-
-    auto get_nav_str = [&](Real3 const& pos) {
-        navi.LocateGlobalPointAndUpdateTouchable(
-            convert_to_geant(from_cm(pos), clhep_length),
-            G4ThreeVector(1, 0, 0),
-            &touchable);
+    auto geo = this->make_geo_track_view();
+    auto get_nav_str = [&geo](Real3 const& pos) {
+        geo = {pos, Real3{1, 0, 0}};
         std::ostringstream os;
-        os << PrintableNavHistory{touchable.GetHistory()};
+        os << PrintableNavHistory{geo.nav_history()};
         return std::move(os).str();
     };
 
@@ -268,6 +261,46 @@ TEST_F(MultiLevelTest, set_history)
 
     EXPECT_VEC_SOFT_EQ(expected_coords, coords);
     EXPECT_VEC_EQ(expected_replicas, replicas);
+}
+
+//---------------------------------------------------------------------------//
+class ReplicaTest : public GeantGeoUtilsTest
+{
+    std::string geometry_basename() const override { return "replica"; }
+
+};
+
+TEST_F(ReplicaTest, is_replica)
+{
+    auto track = this->make_geo_track_view();
+    auto get_replicas = [&track](Real3 const& pos) {
+        track = {pos, Real3{0, 0, 1}};
+
+        auto* hist = track.nav_history();
+        CELER_ASSERT(hist);
+
+        std::vector<std::string> replicas;
+        for (auto i : range(hist->GetDepth() + 1))
+        {
+            auto* pv = hist->GetVolume(i);
+            if (!pv)
+            {
+                replicas.push_back("<null>");
+                continue;
+            }
+            if (is_replica(*pv))
+            {
+                replicas.push_back(pv->GetName());
+            }
+        }
+        return replicas;
+    };
+
+    {
+        static char const* const expected[] = {"HadCalColumn_PV", "HadCalCell_PV", "HadCalLayer_PV"};
+        auto actual = get_replicas({-400, 0.1, 650});
+        EXPECT_VEC_EQ(expected, actual);
+    }
 }
 
 //---------------------------------------------------------------------------//
