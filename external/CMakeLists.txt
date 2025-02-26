@@ -3,24 +3,32 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-set(_celer_builtin_packages)
-
 # Print extra information about downloading: hash failures, for example, are
 # silent otherwise
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
+
+# Download the package and add to a list
+set(_celer_builtin_packages)
+macro(celer_fetch_external name url sha)
+  FetchContent_Declare(
+    "${name}"
+    URL "${url}"
+    URL_HASH SHA256=${sha}
+    DOWNLOAD_NO_PROGRESS TRUE
+  )
+  list(APPEND _celer_builtin_packages "${name}")
+endmacro()
 
 #-----------------------------------------------------------------------------#
 # GTest
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_GTest)
-  FetchContent_Declare(
+  celer_fetch_external(
     GTest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
-    URL_HASH SHA256=7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
-    DOWNLOAD_NO_PROGRESS TRUE
+    "https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz"
+    7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
   )
-  list(APPEND _celer_builtin_packages GTest)
 
   set(BUILD_GMOCK OFF) # For compatibility
   set(INSTALL_GTEST OFF)
@@ -33,13 +41,11 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_nlohmann_json)
-  FetchContent_Declare(
+  celer_fetch_external(
     nlohmann_json
-    URL https://github.com/nlohmann/json/archive/v3.11.3.tar.gz
-    URL_HASH SHA256=0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
-    DOWNLOAD_NO_PROGRESS TRUE
+    "https://github.com/nlohmann/json/archive/v3.11.3.tar.gz"
+    0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
   )
-  list(APPEND _celer_builtin_packages nlohmann_json)
 
   set(JSON_Install ON)
 endif()
@@ -50,15 +56,13 @@ endif()
 
 if(CELERITAS_BUILTIN_Perfetto)
   if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
-    set(FETCHCONTENT_SOURCE_DIR_PERFETTO ${PERFETTO_ROOT})
+    set(FETCHCONTENT_SOURCE_DIR_PERFETTO "${PERFETTO_ROOT}")
   endif()
-  FetchContent_Declare(
+  celer_fetch_external(
     Perfetto
-    URL https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz
-    URL_HASH SHA256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-    DOWNLOAD_NO_PROGRESS TRUE
+    "https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz"
+    0871a92a162ac5655b7d724f9359b15a75c4e92472716edbc4227a64a4680be4
   )
-  list(APPEND _celer_builtin_packages Perfetto)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -66,13 +70,11 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_G4VG)
-  FetchContent_Declare(
+  celer_fetch_external(
     G4VG
-    URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.3/g4vg-1.0.3.tar.gz
-    URL_HASH SHA256=6f0920a9ad2e04a701bec636f117d4093be1e50761f091ec507efd078b659bcd
-    DOWNLOAD_NO_PROGRESS TRUE
+    "https://github.com/celeritas-project/g4vg/releases/download/v1.0.3/g4vg-1.0.3.tar.gz"
+    6f0920a9ad2e04a701bec636f117d4093be1e50761f091ec507efd078b659bcd
   )
-  list(APPEND _celer_builtin_packages G4VG)
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} CELERITAS_${_var})
   endforeach()
