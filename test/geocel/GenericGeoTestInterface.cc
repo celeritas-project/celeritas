@@ -27,7 +27,7 @@ void GenericGeoTrackingResult::print_expected()
 {
     using std::cout;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "real_type const safety_tol = test_->safety_tol()\n;"
+            "real_type const safety_tol = test_->safety_tol();\n"
             "static char const* const expected_volumes[] = "
          << repr(this->volumes)
          << ";\n"
@@ -47,6 +47,55 @@ void GenericGeoTrackingResult::print_expected()
             "EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, "
             "safety_tol);\n"
             "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+void GenericGeoVolumeStackResult::print_expected()
+{
+    using std::cout;
+    // clang-format off
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "GenericGeoVolumeStackResult ref;\n"
+            "ref.volume_instances = " << repr(this->volume_instances) << ";\n"
+            "ref.replicas = " << repr(this->replicas) << ";\n"
+            "EXPECT_RESULT_EQ(ref, result);\n"
+            "/*** END CODE ***/\n";
+    // clang-format on
+}
+
+::testing::AssertionResult
+IsResultEqual(char const* expr1,
+              char const* expr2,
+              GenericGeoVolumeStackResult const& val1,
+              GenericGeoVolumeStackResult const& val2)
+{
+    // TODO: refine this and reuse in other cases
+    auto result = ::testing::AssertionSuccess();
+    auto fail = [&]() -> ::testing::AssertionResult& {
+        if (result)
+        {
+            result = ::testing::AssertionFailure();
+            result << "Expected: (" << expr1 << ") == (" << expr2 << "):\n";
+        }
+        else
+        {
+            result << '\n';
+        }
+        return result;
+    };
+
+#define IRE_COMPARE(ATTR)                                           \
+    if (val1.ATTR != val2.ATTR)                                     \
+    {                                                               \
+        fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
+               << repr(val2.ATTR);                                  \
+    }                                                               \
+    else                                                            \
+        (void)sizeof(char)
+    IRE_COMPARE(volume_instances);
+    IRE_COMPARE(replicas);
+#undef IRE_COMPARE
+    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -299,8 +299,8 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     for (auto lev : range(levels.size()))
     {
         G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev);
-        CELER_ASSERT(pv);
-        levels[lev] = id_cast<VolumeInstanceId>(pv->GetInstanceID());
+        levels[lev] = pv ? id_cast<VolumeInstanceId>(pv->GetInstanceID())
+                         : VolumeInstanceId{};
     }
 }
 

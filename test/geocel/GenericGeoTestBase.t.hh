@@ -305,6 +305,48 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the volume instance stack at a position.
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos) -> VolumeStackResult
+{
+    auto geo = this->make_geo_track_view(pos, Real3{0, 0, 1});
+    auto const& geo_params = *this->geometry();
+    auto const& vol_inst = geo_params.volume_instances();
+
+    auto level = geo.level();
+    if (!level)
+    {
+        return {};
+    }
+    std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+    geo.volume_instance_id(make_span(inst_ids));
+
+    VolumeStackResult result;
+    result.volume_instances.resize(inst_ids.size());
+    result.replicas.assign(inst_ids.size(), -1);
+    for (auto i : range(inst_ids.size()))
+    {
+        auto vi_id = inst_ids[i];
+        if (!vi_id)
+        {
+            result.volume_instances[i] = "<null>";
+            continue;
+        }
+        result.volume_instances[i] = to_string(vol_inst.at(vi_id));
+        if (auto phys_inst = geo_params.id_to_geant(vi_id))
+        {
+            if (phys_inst.replica)
+            {
+                result.replicas[i] = phys_inst.replica.get();
+            }
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the label for this geometry: Geant4, VecGeom, ORANGE.
  */
 template<class HP>

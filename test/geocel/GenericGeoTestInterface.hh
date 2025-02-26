@@ -9,12 +9,18 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <gtest/gtest.h>
 
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 
 class G4VPhysicalVolume;
+
+#ifndef EXPECT_RESULT_EQ
+#    define EXPECT_RESULT_EQ(expected, actual) \
+        EXPECT_PRED_FORMAT2(::celeritas::test::IsResultEqual, expected, actual)
+#endif
 
 namespace celeritas
 {
@@ -32,6 +38,22 @@ struct GenericGeoTrackingResult
 };
 
 //---------------------------------------------------------------------------//
+struct GenericGeoVolumeStackResult
+{
+    std::vector<std::string> volume_instances;
+    std::vector<int> replicas;
+
+    void print_expected();
+};
+
+//---------------------------------------------------------------------------//
+::testing::AssertionResult
+IsResultEqual(char const* expected_expr,
+              char const* actual_expr,
+              GenericGeoVolumeStackResult const& expected,
+              GenericGeoVolumeStackResult const& actual);
+
+//---------------------------------------------------------------------------//
 /*!
  * Access capabilities from any templated GenericGeo test.
  *
@@ -47,6 +69,7 @@ class GenericGeoTestInterface
     //!@{
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
+    using VolumeStackResult = GenericGeoVolumeStackResult;
     using SPConstGeoInterface = std::shared_ptr<GeoParamsInterface const>;
     //!@}
 
@@ -57,6 +80,11 @@ class GenericGeoTestInterface
     virtual TrackingResult
     track(Real3 const& pos_cm, Real3 const& dir, int max_step)
         = 0;
+    //!@}
+
+    //!@{
+    // Obtain the "touchable history" at a point
+    virtual VolumeStackResult volume_stack(Real3 const& pos_cm) = 0;
     //!@}
 
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE

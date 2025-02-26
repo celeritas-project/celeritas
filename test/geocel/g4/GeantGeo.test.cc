@@ -28,6 +28,7 @@
 #include "../FourLevelsGeoTest.hh"
 #include "../GenericGeoParameterizedTest.hh"
 #include "../MultiLevelGeoTest.hh"
+#include "../ReplicaGeoTest.hh"
 #include "../SolidsGeoTest.hh"
 #include "../TransformedBoxGeoTest.hh"
 #include "../ZnenvGeoTest.hh"
@@ -289,6 +290,19 @@ TEST_F(FourLevelsTest, levels)
     geo.cross_boundary();
 
     EXPECT_EQ("[OUTSIDE]", this->all_volume_instance_names(geo));
+}
+
+//---------------------------------------------------------------------------//
+using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
+
+TEST_F(ReplicaTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(ReplicaTest, volume_stack)
+{
+    this->impl().test_volume_stack();
 }
 
 //---------------------------------------------------------------------------//
