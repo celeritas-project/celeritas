@@ -35,8 +35,9 @@ endif()
 if(CELERITAS_BUILTIN_nlohmann_json)
   FetchContent_Declare(
     nlohmann_json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.gz
+    URL https://github.com/nlohmann/json/archive/v3.11.3.tar.gz
     URL_HASH SHA256=0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
+    DOWNLOAD_NO_PROGRESS TRUE
   )
   list(APPEND _celer_builtin_packages nlohmann_json)
 
@@ -54,6 +55,8 @@ if(CELERITAS_BUILTIN_Perfetto)
   FetchContent_Declare(
     Perfetto
     URL https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz
+    URL_HASH SHA256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    DOWNLOAD_NO_PROGRESS TRUE
   )
   list(APPEND _celer_builtin_packages Perfetto)
 endif()
