@@ -82,11 +82,9 @@ jobs:
       - name: Patch spack # To be deleted; see associated github pulls
         working-directory: spack-src
         run: |
-          curl -LfsS https://github.com/spack/spack/pull/48328.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/48332.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/48347.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/48844.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/49003.diff | patch -p1
+          for id in 48328 48332 48347 48844 49003 49110 49195; do
+            curl -LfsS "https://github.com/spack/spack/pull/${id}.diff" | patch -p1
+          done
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
