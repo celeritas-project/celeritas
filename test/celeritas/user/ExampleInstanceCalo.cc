@@ -154,7 +154,7 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
             {
                 break;
             }
-            os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id).label;
+            os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id);
 #if CELERITAS_USE_GEANT4
             if (auto phys_inst = geo_->id_to_geant(vi_id))
             {

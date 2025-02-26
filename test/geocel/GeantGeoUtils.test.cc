@@ -10,9 +10,9 @@
 #include <initializer_list>
 #include <string_view>
 #include <G4LogicalVolume.hh>
+#include <G4NavigationHistory.hh>
 #include <G4ThreeVector.hh>
 #include <G4TouchableHistory.hh>
-#include <G4NavigationHistory.hh>
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
@@ -267,7 +267,6 @@ TEST_F(MultiLevelTest, set_history)
 class ReplicaTest : public GeantGeoUtilsTest
 {
     std::string geometry_basename() const override { return "replica"; }
-
 };
 
 TEST_F(ReplicaTest, is_replica)
@@ -297,7 +296,8 @@ TEST_F(ReplicaTest, is_replica)
     };
 
     {
-        static char const* const expected[] = {"HadCalColumn_PV", "HadCalCell_PV", "HadCalLayer_PV"};
+        static char const* const expected[]
+            = {"HadCalColumn_PV", "HadCalCell_PV", "HadCalLayer_PV"};
         auto actual = get_replicas({-400, 0.1, 650});
         EXPECT_VEC_EQ(expected, actual);
     }

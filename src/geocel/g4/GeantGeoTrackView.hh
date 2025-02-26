@@ -322,7 +322,6 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
     return safety_radius_ == 0.0;
 }
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the navigation state.

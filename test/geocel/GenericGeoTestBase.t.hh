@@ -185,7 +185,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
-    auto const& vol_inst = this->geometry()->volume_instances();
+    auto const& geo_params = *this->geometry();
+    auto const& vol_inst = geo_params.volume_instances();
     real_type const inv_length = real_type{1} / this->unit_length();
 
     if (geo.is_outside())
@@ -211,6 +212,15 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             if (auto vi_id = geo.volume_instance_id())
             {
                 result.volume_instances.push_back(vol_inst.at(vi_id).name);
+                if (auto phys_inst = geo_params.id_to_geant(vi_id))
+                {
+                    if (phys_inst.replica)
+                    {
+                        result.volume_instances.back() += '@';
+                        result.volume_instances.back()
+                            += std::to_string(phys_inst.replica.get());
+                    }
+                }
             }
             else
             {
