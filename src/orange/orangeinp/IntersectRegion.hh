@@ -26,19 +26,20 @@ class IntersectSurfaceBuilder;
  *
  * This is a building block for constructing more complex objects out of
  * smaller spatial regions. A \c shape object will have a single intersect
- * region, and a \c solid object region may have multiple adjacent intersect
- * regions.
+ * region, and a \c solid object region may have multiple adjacent
+ * intersect regions.
  *
- * Convex regions should be as minimal as possible and rely on transformations
- * to change axes, displacement, etc. As a general rule, the exterior bounding
- * box of a intersect region should be <em>centered on the origin</em>, and
- * objects should be aligned along the \em z axis.
+ * Convex regions should be as minimal as possible and rely on
+ * transformations to change axes, displacement, etc. As a general rule,
+ * the exterior bounding box of a intersect region should be <em>centered
+ * on the origin</em>, and objects should be aligned along the \em z axis.
  *
  * When implementing this class, prefer to build simpler surfaces (planes)
  * before complex ones (cones) in case we implement short-circuiting logic,
  * since expressions are currently sorted.
  *
- * \note Additional methods such as volume calculation may be added here later.
+ * \note Additional methods such as volume calculation may be added here
+ * later.
  */
 class IntersectRegionInterface
 {
@@ -90,17 +91,17 @@ class Box final : public IntersectRegionInterface
 /*!
  * A closed truncated cone along the *z* axis centered on the origin.
  *
- * A quadric cone technically defines two opposing cones that touch at a single
- * vanishing point, but this cone is required to be truncated so that the
- * vanishing point is on our outside the cone.
+ * A quadric cone technically defines two opposing cones that touch at a
+ * single vanishing point, but this cone is required to be truncated so
+ * that the vanishing point is on our outside the cone.
  *
- * The midpoint along the \em z axis of the cone is the origin. A cone is \em
- * not allowed to have equal radii: for that, use a cylinder. However, it \em
- * may have a single radius of zero, which puts the vanishing point on one end
- * of the cone.
+ * The midpoint along the \em z axis of the cone is the origin. A cone is
+ * \em not allowed to have equal radii: for that, use a cylinder. However,
+ * it \em may have a single radius of zero, which puts the vanishing point
+ * on one end of the cone.
  *
- * This intersect region, along with the Cylinder, is a base component of the
- * G4Polycone (PCON).
+ * This intersect region, along with the Cylinder, is a base component of
+ * the G4Polycone (PCON).
  */
 class Cone final : public IntersectRegionInterface
 {
@@ -204,20 +205,107 @@ class Ellipsoid final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A *z*-aligned cylinder with an elliptical cross section.
+ *
+ * The elliptical cylinder is defined with a two radii and a half-height,
+ * such that the centroid of the bounding box is origin.
+ */
+class EllipticalCylinder final : public IntersectRegionInterface
+{
+  public:
+    // Construct with x- and y-radii and half-height in z
+    EllipticalCylinder(Real2 const& radii, real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another ellipsoid
+    bool encloses(EllipticalCylinder const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius along each axis
+    Real2 const& radii() const { return radii_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    Real2 radii_;
+    real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A finite *z*-aligned cone with an elliptical cross section.
+ *
+ * The elliptical cone is defined in an analogous fashion to the regular
+ * (i.e., circular) cone. A half-height (hh) defines the z-extents, such
+ * that the centroid of the outer bounding box is the origin. Lower radii
+ * define the x- and y-radii at z = -hh, and upper radii define the x- and
+ * y-radii at z = hh. The cone may open upwards or downards depending on the
+ * the choice of lower and upper radii. The vertex is permitted to be
+ * conincident with z=+/-hh, which is achieved by setting the lower/upper radii
+ * to (0, 0).
+ */
+class EllipticalCone final : public IntersectRegionInterface
+{
+  public:
+    // Construct with x- and y-radii and half-height in z
+    EllipticalCone(Real2 const& lower_radii,
+                   Real2 const& upper_radii,
+                   real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another elliptical cone
+    bool encloses(EllipticalCone const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radii along the x- and y-axes at z=-hh
+    Real2 const& lower_radii() const { return lower_radii_; }
+
+    //! Radii along the x- and y-axes at z=-hh
+    Real2 const& upper_radii() const { return upper_radii_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    Real2 lower_radii_;
+    Real2 upper_radii_;
+    real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A generalized polygon with parallel flat faces along the *z* axis.
  *
  * A GenPrism, like VecGeom's GenTrap, ROOT's Arb8, and Geant4's
- * G4GenericTrap, represents a generalized volume with polyhedral faces on two
- * parallel planes perpendicular to the \em z axis. Unlike those other codes,
- * the number of faces can be arbitrary in number.
+ * G4GenericTrap, represents a generalized volume with polyhedral faces on
+ * two parallel planes perpendicular to the \em z axis. Unlike those other
+ * codes, the number of faces can be arbitrary in number.
  *
- * The faces have an orientation and ordering so that \em twisted faces can be
- * constructed by joining corresponding points using straight-line "vertical"
- * edges, directly matching the G4GenericTrap definition, but directly
- * generating a hyperbolic paraboloid for each twisted face.
+ * The faces have an orientation and ordering so that \em twisted faces can
+ * be constructed by joining corresponding points using straight-line
+ * "vertical" edges, directly matching the G4GenericTrap definition, but
+ * directly generating a hyperbolic paraboloid for each twisted face.
  *
- * Trapezoids constructed from the helper functions will have sides that are
- * same ordering as a prism: the rightward face is first (normal is along the
+ * Trapezoids constructed from the helper functions will have sides that
+ * are same ordering as a prism: the rightward face is first (normal is
+ * along the
  * \em +x axis), then the others follow counterclockwise.
  */
 class GenPrism final : public IntersectRegionInterface
@@ -254,7 +342,8 @@ class GenPrism final : public IntersectRegionInterface
                               TrapFace const& lo,
                               TrapFace const& hi);
 
-    // Construct from half Z height and 4 vertices for top and bottom planes
+    // Construct from half Z height and 4 vertices for top and bottom
+    // planes
     GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
     // Build surfaces
@@ -328,9 +417,9 @@ class InfSlab final : public IntersectRegionInterface
  * An open wedge shape from the *z* axis.
  *
  * The wedge is defined by an interior angle that \em must be less than or
- * equal to 180 degrees (half a turn) and \em must be more than zero. It can be
- * subtracted, or its negation can be subtracted. The start angle is mapped
- * onto \f$[0, 1)\f$ on construction.
+ * equal to 180 degrees (half a turn) and \em must be more than zero. It
+ * can be subtracted, or its negation can be subtracted. The start angle is
+ * mapped onto \f$[0, 1)\f$ on construction.
  */
 class InfWedge final : public IntersectRegionInterface
 {
@@ -361,12 +450,12 @@ class InfWedge final : public IntersectRegionInterface
 /*!
  * An involute "blade" centered on the origin.
  *
- * This is the intersection of two parallel involutes with a cylindrical shell.
- * The three radii, which must be in ascending order, are that of the involute,
- * the inner cylinder, and the outer cylinder.
+ * This is the intersection of two parallel involutes with a cylindrical
+ * shell. The three radii, which must be in ascending order, are that of
+ * the involute, the inner cylinder, and the outer cylinder.
  *
- * The "chirality" of the involute is viewed from the \em +z axis looking down:
- * whether it spirals to the right or left.
+ * The "chirality" of the involute is viewed from the \em +z axis looking
+ * down: whether it spirals to the right or left.
  */
 class Involute final : public IntersectRegionInterface
 {
@@ -409,22 +498,23 @@ class Involute final : public IntersectRegionInterface
  * A general parallelepiped centered on the origin.
  *
  * A parallelepiped is a shape having 3 pairs of parallel faces out of
- * which one is parallel with the \em x-y plane (\em z faces). All faces are
- * parallelograms in the general case. The \em z faces have 2 edges parallel
- * with the \em x axis. Note that all angle parameters are expressed in terms
- * of fractions of a 360-degree turn.
+ * which one is parallel with the \em x-y plane (\em z faces). All faces
+ * are parallelograms in the general case. The \em z faces have 2 edges
+ * parallel with the \em x axis. Note that all angle parameters are
+ * expressed in terms of fractions of a 360-degree turn.
  *
  * The shape has the center in the origin and it is defined by:
  *
  *   - \c halfedges: a 3-vector (dY, dY, dZ) with half-lengths of the
- *     projections of the edges on X, Y, Z. The lower Z face is positioned at
+ *     projections of the edges on X, Y, Z. The lower Z face is positioned
+ * at
  *     `-dZ`, and the upper one at `+dZ`.
  *   - \c alpha angle between the segment defined by the centers of the
  *     X-parallel edges and Y axis. Validity range is `(-1/4, 1/4)`;
- *   - \c theta polar angle of the shape's main axis, e.g. the segment defined
- *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
- *   - \c phi azimuthal angle of the shape's main axis (as explained above).
- *     Validity range is `[0, 1)`.
+ *   - \c theta polar angle of the shape's main axis, e.g. the segment
+ * defined by the centers of the Z faces. Validity range is `[0, 1/4)`;
+ *   - \c phi azimuthal angle of the shape's main axis (as explained
+ * above).     Validity range is `[0, 1)`.
  */
 class Parallelepiped final : public IntersectRegionInterface
 {
@@ -464,17 +554,18 @@ class Parallelepiped final : public IntersectRegionInterface
 /*!
  * A regular, z-extruded polygon centered on the origin.
  *
- * This is the base component of a G4Polyhedra (PGON). The default rotation is
- * to put a y-aligned plane on the bottom of the shape, so looking at an x-y
- * slice given an apothem \em a, every shape has a surface at \f$ y = -a \f$:
+ * This is the base component of a G4Polyhedra (PGON). The default rotation
+ * is to put a y-aligned plane on the bottom of the shape, so looking at an
+ * x-y slice given an apothem \em a, every shape has a surface at \f$ y =
+ * -a \f$:
  * - n=3 is a triangle with a flat bottom, point up
  * - n=4 is a square with axis-aligned sides
  * - n=6 is a flat-top hexagon
  *
  * The "orientation" parameter is a scaled counterclockwise rotation on
  * \f$[0, 1)\f$, where zero preserves the orientation described above, and
- * unity replicates the original shape but with the "p0" face being where the
- * "p1" originally was. With a value of 0.5:
+ * unity replicates the original shape but with the "p0" face being where
+ * the "p1" originally was. With a value of 0.5:
  * - n=3 is a downward-pointing triangle
  * - n=4 is a diamond
  * - n=6 is a pointy-top hexagon
@@ -528,8 +619,8 @@ class Prism final : public IntersectRegionInterface
 /*!
  * A sphere centered on the origin.
  *
- * \note Be aware there's also a sphere *surface* at orange/surf/Sphere.hh in a
- * different namespace.
+ * \note Be aware there's also a sphere *surface* at orange/surf/Sphere.hh
+ * in a different namespace.
  */
 class Sphere final : public IntersectRegionInterface
 {

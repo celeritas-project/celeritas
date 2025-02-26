@@ -316,7 +316,7 @@ void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
     // Set exterior bbox
     insert_surface(Sense::inside, BBox{-radii_, radii_});
 
-    // Set an interior bbox with maximum volume: a scaled inscribed cube
+    // Set an interior bbox with maximum volume: a scaled inscribed cuboid
     Real3 inner_radii = radii_;
     for (real_type& r : inner_radii)
     {
@@ -330,6 +330,233 @@ void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void Ellipsoid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// ELLIPTICAL CYLINDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with x- and y-radii and half-height in z.
+ */
+EllipticalCylinder::EllipticalCylinder(Real2 const& radii, real_type halfheight)
+    : radii_{radii}, hh_{halfheight}
+{
+    for (auto i : range(2))
+    {
+        CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
+    }
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another elliptical cylinder.
+ */
+bool EllipticalCylinder::encloses(EllipticalCylinder const& other) const
+{
+    for (auto ax : range(2))
+    {
+        if (this->radii_[ax] < other.radii_[ax])
+        {
+            return false;
+        }
+    }
+    return hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    // Insert elliptical cylinder surface last, as a simple quadric with
+    // equation:
+    // r_y^2 x^2 + r_x^2 y^2 - r_x^2 r_y^2 = 0
+    real_type rx2 = ipow<2>(radii_[to_int(Axis::x)]);
+    real_type ry2 = ipow<2>(radii_[to_int(Axis::y)]);
+    real_type g = -rx2 * ry2;
+
+    Real3 abc{ry2, rx2, 0};
+    insert_surface(SimpleQuadric{abc, Real3{0, 0, 0}, g});
+
+    // Set exterior bbox
+    Real3 ex_halves{radii_[to_int(Axis::x)], radii_[to_int(Axis::y)], hh_};
+    insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
+
+    // Set an interior bbox (inscribed cuboid)
+    auto inv_sqrt_two = 1 / constants::sqrt_two;
+    Real3 in_halves{radii_[to_int(Axis::x)] * inv_sqrt_two,
+                    radii_[to_int(Axis::y)] * inv_sqrt_two,
+                    hh_};
+    insert_surface(Sense::outside, BBox{-in_halves, in_halves});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void EllipticalCylinder::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// ELLIPTICAL CONE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with lower/upper x- and y-radii and half-height in z.
+ *
+ * The lower radii are the x- and y-radii at the plane z = -hh. The
+ * upper radii are the x- and y-radii at the plane z = hh. There are several
+ * restrictions on these radii:
+ *
+ * 1) Either the lower or upper radii may be (0, 0); this is the only permitted
+ *    way for the elliptical cone to include the vertex.
+ * 2) The aspect ratio of the elliptical cross sections is constant. Thus, the
+ *    aspect ratio at z = -hh must equal the aspect ratio at z = hh.
+ * 3) Degenerate elliptical cones with lower_radii == upper_radii (i.e.,
+ *    elliptical cylinders) are not permitted.
+ * 4) Degenerate elliptical cones where lower or upper radii are equal to
+ *    (0, x) or (x, 0), where x is non-zero, are not permitted.
+ */
+EllipticalCone::EllipticalCone(Real2 const& lower_radii,
+                               Real2 const& upper_radii,
+                               real_type halfheight)
+    : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
+{
+    SoftZero soft_zero;
+    SoftEqual soft_equal;
+
+    auto X = to_int(Axis::x);
+    auto Y = to_int(Axis::y);
+
+    // True if either radius is negative
+    auto has_negative
+        = [&](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
+
+    // True if radii is (0, 0)
+    auto is_vertex = [&](Real2 const& radii) {
+        return soft_zero(radii[X]) && soft_zero(radii[Y]);
+    };
+
+    // True if radii is (0, x) || (x, 0), where x != 0
+    auto is_partial_zero = [&](Real2 const& radii) {
+        return (soft_zero(radii[X]) != soft_zero(radii[Y]));
+    };
+
+    // Check for negatives
+    CELER_VALIDATE(!has_negative(lower_radii_),
+                   << "Lower radii cannot have negative values: "
+                   << lower_radii_[X] << ", " << lower_radii_[Y]);
+    CELER_VALIDATE(!has_negative(upper_radii_),
+                   << "Upper radii cannot have negative values: "
+                   << upper_radii_[X] << ", " << upper_radii_[Y]);
+
+    // Check for partial zeros
+    CELER_VALIDATE(!is_partial_zero(lower_radii_),
+                   << "Mismatched zero lower radii: " << lower_radii_[X]
+                   << ", " << lower_radii_[Y]);
+    CELER_VALIDATE(!is_partial_zero(upper_radii_),
+                   << "Mismatched zero upper radii: " << upper_radii_[X]
+                   << ", " << upper_radii_[Y]);
+
+    // Check aspect ratios
+    if (!is_vertex(lower_radii_) && !is_vertex(upper_radii_))
+    {
+        CELER_VALIDATE(soft_equal(lower_radii_[X] / lower_radii_[Y],
+                                  upper_radii_[X] / upper_radii_[Y]),
+                       << "Upper and lower elliptical cross sections must "
+                          "have the same aspect ratio.");
+    }
+
+    // Check for elliptical cylinders. Since we have already validated the
+    // aspect ratio, we only need to test the x-values here.
+    CELER_VALIDATE(!soft_equal(lower_radii_[X], upper_radii_[X]),
+                   << "Upper and lower elliptical cross sections must "
+                      "not be equal");
+
+    // Check positivity of half-height
+    CELER_VALIDATE(hh_ > 0, << "Nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another elliptical cone.
+ */
+bool EllipticalCone::encloses(EllipticalCone const& other) const
+{
+    for (auto ax : range(2))
+    {
+        if (this->lower_radii_[ax] < other.lower_radii_[ax]
+            || this->upper_radii_[ax] < other.upper_radii_[ax])
+        {
+            return false;
+        }
+    }
+    return hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ *
+ * The elliptical surface can be expressed as [1]:
+ *
+ * (x/r_x)^2 + (y/r_y)^2 = (v-z)^2,
+ *
+ * which can be converted to SimpleQuadric form:
+ *
+ * (1/r_x)^2 x^2  + (1/r_y)^2 y^2 + (-1) z^2 + (2v) z + (-v^2) = 0.
+ *    |                |              |         |          |
+ *    a                b              c         d          e
+ *
+ * where v is the location of the vertex. The r_x, r_y, and v can be calculated
+ * from the lower and upper radii [1]:
+ *
+ * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
+ * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
+ * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
+ *
+ * [1] apc.u-paris.fr/~franco/g4doxy/html/G4EllipticalCone_8hh-source.html
+ */
+void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    auto X = to_int(Axis::x);
+    auto Y = to_int(Axis::y);
+
+    real_type a = ipow<2>((2 * hh_) / (lower_radii_[X] - upper_radii_[X]));
+
+    real_type b = ipow<2>((2 * hh_) / (lower_radii_[Y] - upper_radii_[Y]));
+
+    real_type v = hh_ * (lower_radii_[X] + upper_radii_[X])
+                  / (lower_radii_[X] - upper_radii_[X]);
+
+    insert_surface(
+        SimpleQuadric{Real3{a, b, -1}, Real3{0, 0, 2 * v}, -ipow<2>(v)});
+
+    // Set an exterior bbox
+    real_type x_max = std::fmax(lower_radii_[X], upper_radii_[X]);
+    real_type y_max = std::fmax(lower_radii_[Y], upper_radii_[Y]);
+    Real3 ex_halves{x_max, y_max, hh_};
+    insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
+
+    // TODO: interior bbox
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void EllipticalCone::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
