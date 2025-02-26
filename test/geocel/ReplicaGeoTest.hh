@@ -41,7 +41,7 @@ void ReplicaGeoTest::test_trace() const
 {
     {
         SCOPED_TRACE("Center +z");
-        auto result = test_->track({0, 0.1, -1000}, {0, 0, 1});
+        auto result = test_->track({0, 0.1, -990}, {0, 0, 1});
         real_type const safety_tol = test_->safety_tol();
         static char const* const expected_volumes[] = {
             "world",    "firstArm",   "hodoscope1", "firstArm",
@@ -68,7 +68,7 @@ void ReplicaGeoTest::test_trace() const
         };
         EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
         static real_type const expected_distances[] = {
-            200,
+            190,
             149.5,
             1,
             48.5,
@@ -102,9 +102,9 @@ void ReplicaGeoTest::test_trace() const
             110.17016486681,
             600,
         };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        EXPECT_VEC_NEAR(expected_distances, result.distances, 1e-11);
         static real_type const expected_hw_safety[] = {
-            100,
+            95,
             74.75,
             0.5,
             24.25,

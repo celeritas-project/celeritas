@@ -333,7 +333,7 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos) -> VolumeStackResult
             result.volume_instances[i] = "<null>";
             continue;
         }
-        result.volume_instances[i] = to_string(vol_inst.at(vi_id));
+        auto const& label = vol_inst.at(vi_id);
         if (auto phys_inst = geo_params.id_to_geant(vi_id))
         {
             if (phys_inst.replica)
@@ -341,6 +341,10 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos) -> VolumeStackResult
                 result.replicas[i] = phys_inst.replica.get();
             }
         }
+        // Only write extension if not a replica, because Geant4
+        // effectively gives multiple volume instances the same name+ext
+        result.volume_instances[i] = !result.replicas[i] ? to_string(label)
+                                                         : label.name;
     }
     return result;
 }

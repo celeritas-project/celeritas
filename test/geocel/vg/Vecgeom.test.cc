@@ -35,6 +35,7 @@
 #include "../GeantImportVolumeResult.hh"
 #include "../GenericGeoParameterizedTest.hh"
 #include "../MultiLevelGeoTest.hh"
+#include "../ReplicaGeoTest.hh"
 #include "../SolidsGeoTest.hh"
 #include "../TransformedBoxGeoTest.hh"
 #include "../ZnenvGeoTest.hh"
@@ -726,6 +727,23 @@ TEST_F(MultiLevelTest, accessors)
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+class ReplicaTest
+    : public GenericGeoParameterizedTest<VecgeomGeantTestBase, ReplicaGeoTest>
+{
+    real_type safety_tol() const final { return 1e-10; }
+};
+
+TEST_F(ReplicaTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(ReplicaTest, volume_stack)
+{
+    this->impl().test_volume_stack();
 }
 
 //---------------------------------------------------------------------------//
