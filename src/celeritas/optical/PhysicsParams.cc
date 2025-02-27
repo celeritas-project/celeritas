@@ -92,8 +92,6 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
  */
 void PhysicsParams::build_mfps(MaterialParams const& mats, HostValue& data) const
 {
-    auto build_table = make_builder(&data.mfp_tables);
-
     for (auto const& model : models_)
     {
         // Build all MFP tables for the model
@@ -104,13 +102,8 @@ void PhysicsParams::build_mfps(MaterialParams const& mats, HostValue& data) cons
         }
 
         // Build the MFP table from the grid IDs
-        ValueTable table = builder.grid_ids();
-        CELER_ASSERT(table.size() == mats.num_materials());
-
-        build_table.push_back(table);
+        CELER_ASSERT(builder.grid_ids().size() == mats.num_materials());
     }
-
-    CELER_EXPECT(data.mfp_tables.size() == models_.size());
 }
 
 //---------------------------------------------------------------------------//

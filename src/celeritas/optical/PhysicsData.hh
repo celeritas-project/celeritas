@@ -25,8 +25,6 @@ namespace optical
 
 using ValueGrid = GenericGridRecord;
 using ValueGridId = OpaqueId<ValueGrid>;
-using ValueTable = ItemRange<ValueGrid>;
-using ValueTableId = OpaqueId<ValueTable>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -74,7 +72,6 @@ struct PhysicsParamsData
 
     //! Optical model data
     Items<ValueGrid> grids;
-    ModelItems<ValueTable> mfp_tables;
 
     //! Backend storage
     Items<real_type> reals;
@@ -82,8 +79,7 @@ struct PhysicsParamsData
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return static_cast<bool>(scalars) && !grids.empty()
-               && !mfp_tables.empty() && !reals.empty();
+        return static_cast<bool>(scalars) && !grids.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -93,7 +89,6 @@ struct PhysicsParamsData
         CELER_EXPECT(other);
         this->scalars = other.scalars;
         this->grids = other.grids;
-        this->mfp_tables = other.mfp_tables;
         this->reals = other.reals;
         return *this;
     }
