@@ -57,10 +57,9 @@ CgvFindVersion
 
   but you can override the regex by setting the ``CGV_TAG_REGEX`` variable
   before calling ``cgv_find_version``. For example, Geant4 tags such as
-  `geant4-11-02-ref-09` can be matched with::
+  ``geant4-11-02-ref-09`` can be matched with::
 
-    geant4-([0-9-]+[0-9]+)(-[a-z]+-[0-9]+)?`
-
+    geant4-([0-9-]+[0-9]+)(-[a-z]+-[0-9]+)?
 
   Finally, this script records the time stamp of the file used to generate the
   metadata, and it will re-run cmake if that file changes, and re-run the
@@ -75,11 +74,22 @@ CgvFindVersion
     The install script included alongside this file (in the original
     repository) sets this property.
 
+This script can also be run from the command line to determine git repository
+data::
+
+  cmake -P cmake/CgvFindVersion.cmake
+
+To print only the version string (to stderr), and from a custom directory::
+
+  cmake -DSOURCE_DIR=. -DONLY=VERSION -P cmake/CgvFindVersion.cmake
+
 #]=======================================================================]
 
 if(CMAKE_SCRIPT_MODE_FILE)
   cmake_minimum_required(VERSION 3.8...3.30)
 endif()
+
+set(CGV_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
 #-----------------------------------------------------------------------------#
 # Get a reproducible timestamp
@@ -124,7 +134,7 @@ function(_cgv_git_path resultvar)
   if(GIT_EXECUTABLE)
     execute_process(
       COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--git-path" "HEAD"
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
       ERROR_VARIABLE _GIT_ERR
       OUTPUT_VARIABLE _TSFILE
       RESULT_VARIABLE _GIT_RESULT
@@ -138,7 +148,9 @@ function(_cgv_git_path resultvar)
     message(AUTHOR_WARNING "Failed to get path to git head: ${_GIT_ERR}")
     set(_TSFILE)
   else()
-    get_filename_component(_TSFILE "${_TSFILE}" ABSOLUTE)
+    get_filename_component(_TSFILE "${_TSFILE}" ABSOLUTE BASE_DIR
+      "${CGV_SOURCE_DIR}"
+    )
   endif()
 
   set(${resultvar} "${_TSFILE}" PARENT_SCOPE)
@@ -268,7 +280,7 @@ function(_cgv_try_git_describe)
   # Load git description
   execute_process(
     COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" ${_match}
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
     ERROR_VARIABLE _GIT_ERR
     OUTPUT_VARIABLE _VERSION_STRING
     RESULT_VARIABLE _GIT_RESULT
@@ -290,7 +302,7 @@ function(_cgv_try_git_describe)
   # Get git branch: may fail if detached
   execute_process(
     COMMAND "${GIT_EXECUTABLE}" "symbolic-ref" "--short" "HEAD"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
     ERROR_VARIABLE _GIT_ERR
     OUTPUT_VARIABLE _BRANCH_STRING
     RESULT_VARIABLE _GIT_RESULT
@@ -310,7 +322,7 @@ function(_cgv_try_git_hash)
   # Fall back to just getting the hash
   execute_process(
     COMMAND "${GIT_EXECUTABLE}" "log" "-1" "--format=%h" "HEAD"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
     OUTPUT_VARIABLE _VERSION_HASH
     RESULT_VARIABLE _GIT_RESULT
     OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -338,7 +350,7 @@ function(_cgv_try_all)
     endif()
     if(_tsfile)
       _cgv_timestamp("${_tsfile}" _curtimestamp)
-      if(_timestamp STREQUAL _curtimestamp)
+      if(_timestamp AND _timestamp STREQUAL _curtimestamp)
         message(VERBOSE "Equal time stamp from ${_tsfile}: ${_timestamp}")
         # Time stamp is equal; version doesn't need to be updated
         return()
@@ -422,6 +434,9 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 if(CMAKE_SCRIPT_MODE_FILE)
+  if(DEFINED SOURCE_DIR)
+    set(CGV_SOURCE_DIR ${SOURCE_DIR})
+  endif()
   cgv_find_version(TEMP)
   if(DEFINED ONLY)
     # Print only the given variable, presumably VERSION or VERSION_STRING
@@ -435,4 +450,4 @@ if(CMAKE_SCRIPT_MODE_FILE)
   endif()
 endif()
 
-# cmake-git-version 1.2.0
+# cmake-git-version 1.2.1
