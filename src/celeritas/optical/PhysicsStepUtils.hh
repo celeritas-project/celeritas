@@ -11,7 +11,6 @@
 #include "celeritas/random/Selector.hh"
 
 #include "ParticleTrackView.hh"
-#include "PhysicsStepView.hh"
 #include "PhysicsTrackView.hh"
 
 namespace celeritas
@@ -26,23 +25,19 @@ namespace optical
  * \c PhysicsStepView scratch space. The total cross section is also
  * calculated and cached.
  */
-inline CELER_FUNCTION StepLimit
-calc_physics_step_limit(ParticleTrackView const& particle,
-                        PhysicsTrackView const& physics,
-                        PhysicsStepView& pstep)
+inline CELER_FUNCTION StepLimit calc_physics_step_limit(
+    ParticleTrackView const& particle, PhysicsTrackView& physics)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
 
     real_type total_xs = 0;
     for (auto model : range(ModelId{physics.num_models()}))
     {
-        real_type model_xs = 1 / physics.calc_mfp(model, particle.energy());
-        total_xs += model_xs;
-        pstep.per_model_xs(model) = model_xs;
+        total_xs += 1 / physics.calc_mfp(model, particle.energy());
     }
-    pstep.macro_xs(total_xs);
+    physics.macro_xs(total_xs);
 
-    CELER_ASSERT(pstep.macro_xs() > 0);
+    CELER_ASSERT(physics.macro_xs() > 0);
 
     StepLimit limit;
     limit.action = physics.discrete_action();
@@ -59,16 +54,20 @@ calc_physics_step_limit(ParticleTrackView const& particle,
  * and the macroscopic cross sections have been built.
  */
 template<class Engine>
-CELER_FUNCTION ActionId select_discrete_interaction(
-    PhysicsTrackView const& physics, PhysicsStepView const& pstep, Engine& rng)
+CELER_FUNCTION ActionId
+select_discrete_interaction(ParticleTrackView const& particle,
+                            PhysicsTrackView const& physics,
+                            Engine& rng)
 {
     CELER_EXPECT(!physics.has_interaction_mfp());
-    CELER_EXPECT(pstep.macro_xs() > 0);
+    CELER_EXPECT(physics.macro_xs() > 0);
 
     ModelId mid = celeritas::make_selector(
-        [&pstep](ModelId m) { return pstep.per_model_xs(m); },
+        [&physics, energy = particle.energy()](ModelId m) {
+            return 1 / physics.calc_mfp(m, energy);
+        },
         ModelId{physics.num_models()},
-        pstep.macro_xs())(rng);
+        physics.macro_xs())(rng);
 
     return physics.model_to_action(mid);
 }

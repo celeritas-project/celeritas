@@ -12,7 +12,6 @@
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
 #include "ParticleTrackView.hh"
-#include "PhysicsStepView.hh"
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
@@ -64,9 +63,6 @@ class CoreTrackView
 
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
-
-    // Return a view to temporary physics data
-    inline CELER_FUNCTION PhysicsStepView physics_step() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -189,16 +185,6 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
     CELER_ASSERT(mat_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a view to temporary physics data.
- */
-CELER_FUNCTION auto CoreTrackView::physics_step() const -> PhysicsStepView
-{
-    return PhysicsStepView{
-        params_.physics, states_.physics, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

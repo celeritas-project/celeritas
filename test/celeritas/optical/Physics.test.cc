@@ -13,7 +13,6 @@
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/PhysicsStepUtils.hh"
-#include "celeritas/optical/PhysicsStepView.hh"
 #include "celeritas/optical/PhysicsTrackView.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -66,12 +65,6 @@ class OpticalPhysicsTest : public OpticalMockTestBase
                                 slot);
     }
 
-    PhysicsStepView make_step_view(TrackSlotId slot = TrackSlotId{0})
-    {
-        return PhysicsStepView(
-            this->optical_physics()->host_ref(), physics_state_.ref(), slot);
-    }
-
     ParticleTrackView make_particle_view(TrackSlotId slot = TrackSlotId{0})
     {
         return ParticleTrackView(particle_state_.ref(), slot);
@@ -83,7 +76,7 @@ class OpticalPhysicsTest : public OpticalMockTestBase
             = CollectionStateStore<ParticleStateData, MemSpace::host>(
                 num_tracks);
         physics_state_ = CollectionStateStore<PhysicsStateData, MemSpace::host>(
-            this->optical_physics()->host_ref(), num_tracks);
+            num_tracks);
         CELER_ENSURE(physics_state_.ref().size() == num_tracks);
     }
 
@@ -161,42 +154,36 @@ TEST_F(OpticalPhysicsTest, physics_params)
 TEST_F(OpticalPhysicsTest, select_discrete)
 {
     PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{3});
-    PhysicsStepView pstep = this->make_step_view();
     RngEngine rng_engine;
 
     // Populate XS scratch space used for each model
     physics = PhysicsTrackView::Initializer{};
     real_type total_xs = 0;
-    static real_type model_xs[] = {1.3, 4.7, 2.1, 3.2};
+    static real_type const expected_model_xs[] = {0.0059171597633136,
+                                                  0.001890359168242,
+                                                  0.00091827364554637,
+                                                  0.00054083288263926};
+    std::vector<real_type> model_xs(num_models, 0);
     for (auto model : range(ModelId{num_models}))
     {
-        pstep.per_model_xs(model) = model_xs[model.get()];
+        model_xs[model.get()]
+            = 1 / physics.calc_mfp(model, this->make_particle_view().energy());
         total_xs += model_xs[model.get()];
     }
-    pstep.macro_xs(total_xs);
+    physics.macro_xs(total_xs);
+
+    EXPECT_VEC_SOFT_EQ(expected_model_xs, model_xs);
 
     // Sample actions based on cross sections
     std::vector<ActionId::size_type> actions;
-
-    // Can generate expected action IDs from:
-    /*
-    auto select_expected = make_selector(
-        [&](ModelId i) { return model_xs[i.get()]; },
-        ModelId{num_models},
-        total_xs);
-    for ([[maybe_unused]] auto i : range(10))
-    {
-        actions.push_back(physics.model_to_action(select_expected(rng_engine)).get());
-    }
-    PRINT_EXPECTED(actions);
-     */
     static ActionId::size_type const expected_actions[]
-        = {2, 4, 4, 2, 2, 3, 2, 4, 4, 4};
+        = {1, 2, 4, 1, 1, 1, 1, 4, 4, 4};
 
     for ([[maybe_unused]] auto i : range(10))
     {
-        actions.push_back(
-            select_discrete_interaction(physics, pstep, rng_engine).get());
+        actions.push_back(select_discrete_interaction(
+                              this->make_particle_view(), physics, rng_engine)
+                              .get());
     }
 
     EXPECT_VEC_EQ(expected_actions, actions);
@@ -207,7 +194,6 @@ TEST_F(OpticalPhysicsTest, select_discrete)
 TEST_F(OpticalPhysicsTest, calc_step_limits)
 {
     PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{2});
-    PhysicsStepView pstep = this->make_step_view();
     ParticleTrackView particle = this->make_particle_view();
 
     static std::vector<real_type> energies{0.1, 1, 5, 10};
@@ -248,7 +234,7 @@ TEST_F(OpticalPhysicsTest, calc_step_limits)
         real_type expected_total_xs = std::accumulate(
             expected_model_xs.begin(), expected_model_xs.end(), real_type{0});
 
-        StepLimit limits = calc_physics_step_limit(particle, physics, pstep);
+        StepLimit limits = calc_physics_step_limit(particle, physics);
 
         // Verify step limits
         EXPECT_EQ(physics.discrete_action(), limits.action);
@@ -256,12 +242,7 @@ TEST_F(OpticalPhysicsTest, calc_step_limits)
                        limits.step * expected_total_xs);
 
         // Verify cross sections
-        for (auto mid : range(ModelId{physics.num_models()}))
-        {
-            EXPECT_SOFT_EQ(expected_model_xs[mid.get()],
-                           pstep.per_model_xs(mid));
-        }
-        EXPECT_SOFT_EQ(expected_total_xs, pstep.macro_xs());
+        EXPECT_SOFT_EQ(expected_total_xs, physics.macro_xs());
     }
 }
 
@@ -330,61 +311,6 @@ TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
             = this->make_track_view(cycle_material_id(track + 5), track);
         EXPECT_FALSE(physics.has_interaction_mfp());
     }
-}
-
-//---------------------------------------------------------------------------//
-// Test physics step view cross section scratch space
-TEST_F(OpticalPhysicsTest, step_view_xs_scratch)
-{
-    TrackSlotId::size_type num_tracks = 10;
-    this->initialize_states(num_tracks);
-
-    static real_type const expected_per_model_xs[][4] = {
-        {1, 2, 3, 4},
-        {5, 6, 7, 8},
-        {9, 10, 11, 12},
-        {13, 14, 15, 16},
-        {17, 18, 19, 20},
-        {21, 22, 23, 24},
-        {25, 26, 27, 28},
-        {29, 30, 31, 32},
-        {33, 34, 35, 36},
-        {37, 38, 39, 40},
-    };
-    static real_type const expected_macro_xs[]
-        = {1, 101, 201, 301, 401, 501, 601, 701, 801, 901};
-
-    // Set all of the data
-    for (auto track_id : range(TrackSlotId{num_tracks}))
-    {
-        PhysicsStepView pstep = this->make_step_view(track_id);
-
-        for (auto model : range(ModelId{num_models}))
-        {
-            pstep.per_model_xs(model)
-                = expected_per_model_xs[track_id.get()][model.get()];
-        }
-        pstep.macro_xs(expected_macro_xs[track_id.get()]);
-    }
-
-    // Check all of the data
-    std::vector<real_type> macro_xs;
-    for (auto track_id : range(TrackSlotId{num_tracks}))
-    {
-        PhysicsStepView const pstep = this->make_step_view(track_id);
-
-        std::vector<real_type> model_xs;
-        for (auto model : range(ModelId{num_models}))
-        {
-            model_xs.push_back(pstep.per_model_xs(model));
-            EXPECT_EQ(expected_per_model_xs[track_id.get()][model.get()],
-                      pstep.per_model_xs(model));
-        }
-        EXPECT_VEC_EQ(expected_per_model_xs[track_id.get()], model_xs);
-
-        macro_xs.push_back(pstep.macro_xs());
-    }
-    EXPECT_VEC_EQ(expected_macro_xs, macro_xs);
 }
 
 //---------------------------------------------------------------------------//

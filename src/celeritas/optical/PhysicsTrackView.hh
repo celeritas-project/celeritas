@@ -65,6 +65,14 @@ class PhysicsTrackView
     // Whether there's a currently calculated MFP
     inline CELER_FUNCTION bool has_interaction_mfp() const;
 
+    //// Step-Local (non-persistent) track data ////
+
+    // Set total cross section of the step
+    inline CELER_FUNCTION void macro_xs(real_type xs);
+
+    // Retrieve total cross section of the step
+    inline CELER_FUNCTION real_type macro_xs() const;
+
     //// Model-Action mappings ////
 
     // Number of optical models
@@ -240,6 +248,24 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
     real_type result = calc(value_as<Energy>(energy));
     CELER_ENSURE(result > 0);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve total cross section for this step.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::macro_xs() const
+{
+    return states_.macro_xs[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set total cross section for this step.
+ */
+CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type xs)
+{
+    states_.macro_xs[track_id_] = xs;
 }
 
 //---------------------------------------------------------------------------//

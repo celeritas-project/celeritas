@@ -116,7 +116,6 @@ struct PhysicsStateData
     //// Temporary State Data ////
 
     StateItems<real_type> macro_xs;  //! < Total macroscopic cross section
-    Items<real_type> per_model_xs;  //!< XS [track][model]
 
     //// Methods ////
 
@@ -136,7 +135,6 @@ struct PhysicsStateData
         CELER_EXPECT(other);
         interaction_mfp = other.interaction_mfp;
         macro_xs = other.macro_xs;
-        per_model_xs = other.per_model_xs;
         return *this;
     }
 };
@@ -146,16 +144,13 @@ struct PhysicsStateData
  * Resize the state in host code.
  */
 template<MemSpace M>
-inline void resize(PhysicsStateData<Ownership::value, M>* state,
-                   HostCRef<PhysicsParamsData> const& params,
-                   size_type size)
+inline void resize(PhysicsStateData<Ownership::value, M>* state, size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
 
     resize(&state->interaction_mfp, size);
     resize(&state->macro_xs, size);
-    resize(&state->per_model_xs, params.scalars.num_models * size);
 
     CELER_ENSURE(*state);
 }
