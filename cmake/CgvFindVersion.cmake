@@ -102,6 +102,16 @@ macro(_cgv_timestamp tsfile tsvar)
 endmacro()
 
 #-----------------------------------------------------------------------------#
+# Execute a command, logging to the screen
+macro(_cgv_execute_process)
+  message(VERBOSE "Executing ${ARGV} from ${CGV_SOURCE_DIR}")
+  execute_process(${ARGV}
+    WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+endmacro()
+
+#-----------------------------------------------------------------------------#
 # Save the version with a timestamp to a cache variable
 
 function(_cgv_store_version vstring vsuffix vhash tsfile)
@@ -132,9 +142,8 @@ endfunction()
 # Get the path to the git head used to describe the current repostiory
 function(_cgv_git_path resultvar)
   if(GIT_EXECUTABLE)
-    execute_process(
+    _cgv_execute_process(
       COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--git-path" "HEAD"
-      WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
       ERROR_VARIABLE _GIT_ERR
       OUTPUT_VARIABLE _TSFILE
       RESULT_VARIABLE _GIT_RESULT
@@ -278,13 +287,11 @@ function(_cgv_try_git_describe)
   endif()
 
   # Load git description
-  execute_process(
+  _cgv_execute_process(
     COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" ${_match}
-    WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
     ERROR_VARIABLE _GIT_ERR
     OUTPUT_VARIABLE _VERSION_STRING
     RESULT_VARIABLE _GIT_RESULT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
   )
   if(_GIT_RESULT)
     message(AUTHOR_WARNING "No suitable git tags found': ${_GIT_ERR}")
@@ -300,13 +307,11 @@ function(_cgv_try_git_describe)
   endif()
 
   # Get git branch: may fail if detached
-  execute_process(
+  _cgv_execute_process(
     COMMAND "${GIT_EXECUTABLE}" "symbolic-ref" "--short" "HEAD"
-    WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
     ERROR_VARIABLE _GIT_ERR
     OUTPUT_VARIABLE _BRANCH_STRING
     RESULT_VARIABLE _GIT_RESULT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
   _cgv_git_path(_TSFILE)
@@ -320,12 +325,10 @@ function(_cgv_try_git_hash)
     return()
   endif()
   # Fall back to just getting the hash
-  execute_process(
+  _cgv_execute_process(
     COMMAND "${GIT_EXECUTABLE}" "log" "-1" "--format=%h" "HEAD"
-    WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
     OUTPUT_VARIABLE _VERSION_HASH
     RESULT_VARIABLE _GIT_RESULT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
   )
   if(_GIT_RESULT)
     message(AUTHOR_WARNING "Failed to get current commit hash from git: "
