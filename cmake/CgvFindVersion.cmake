@@ -102,12 +102,16 @@ macro(_cgv_timestamp tsfile tsvar)
 endmacro()
 
 #-----------------------------------------------------------------------------#
-# Execute a command, logging to the screen
-macro(_cgv_execute_process)
-  message(VERBOSE "Executing ${ARGV} from ${CGV_SOURCE_DIR}")
-  execute_process(${ARGV}
+# Execute a command, logging verbosely, saving output
+macro(_cgv_git_call_output output_var)
+  message(VERBOSE "Executing ${GIT_EXECUTABLE} from ${CGV_SOURCE_DIR}: ${ARGV}")
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" ${ARGN}
     WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE GIT_ERR
+    RESULT_VARIABLE GIT_RESULT
+    OUTPUT_VARIABLE ${output_var}
   )
 endmacro()
 
@@ -144,19 +148,13 @@ endfunction()
 # Get the path to the git head used to describe the current repostiory
 function(_cgv_git_path resultvar)
   if(GIT_EXECUTABLE)
-    _cgv_execute_process(
-      COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--git-path" "HEAD"
-      ERROR_VARIABLE _GIT_ERR
-      OUTPUT_VARIABLE _TSFILE
-      RESULT_VARIABLE _GIT_RESULT
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
+    _cgv_git_call_output(_TSFILE "rev-parse" "--git-path" "HEAD")
   else()
-    set(_GIT_RESULT 1)
-    set(_GIT_ERR "GIT_EXECUTABLE is not defined")
+    set(GIT_RESULT 1)
+    set(GIT_ERR "GIT_EXECUTABLE is not defined")
   endif()
-  if(_GIT_RESULT)
-    message(AUTHOR_WARNING "Failed to get path to git head: ${_GIT_ERR}")
+  if(GIT_RESULT)
+    message(AUTHOR_WARNING "Failed to get path to git head: ${GIT_ERR}")
     set(_TSFILE)
   else()
     get_filename_component(_TSFILE "${_TSFILE}" ABSOLUTE BASE_DIR
@@ -289,18 +287,13 @@ function(_cgv_try_git_describe)
   endif()
 
   # Load git description
-  _cgv_execute_process(
-    COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" ${_match}
-    ERROR_VARIABLE _GIT_ERR
-    OUTPUT_VARIABLE _VERSION_STRING
-    RESULT_VARIABLE _GIT_RESULT
-  )
-  if(_GIT_RESULT)
-    message(AUTHOR_WARNING "No suitable git tags found': ${_GIT_ERR}")
+  _cgv_git_call_output(_VERSION_STRING "describe" "--tags" ${_match})
+  if(GIT_RESULT)
+    message(AUTHOR_WARNING "No suitable git tags found': ${GIT_ERR}")
     return()
   endif()
-  if(_GIT_ERR)
-    message(AUTHOR_WARNING "git describe warned: ${_GIT_ERR}")
+  if(GIT_ERR)
+    message(AUTHOR_WARNING "git describe warned: ${GIT_ERR}")
   endif()
   if(NOT _VERSION_STRING)
     message(AUTHOR_WARNING "Failed to get ${CGV_PROJECT} version from git: "
@@ -308,13 +301,9 @@ function(_cgv_try_git_describe)
     return()
   endif()
 
-  # Get git branch: may fail if detached
-  _cgv_execute_process(
-    COMMAND "${GIT_EXECUTABLE}" "symbolic-ref" "--short" "HEAD"
-    ERROR_VARIABLE _GIT_ERR
-    OUTPUT_VARIABLE _BRANCH_STRING
-    RESULT_VARIABLE _GIT_RESULT
-  )
+  # Get git branch: may fail if detached, leading to empty output, which is
+  # the desired behavior
+  _cgv_git_call_output(_BRANCH_STRING "symbolic-ref" "--short" "HEAD")
 
   _cgv_git_path(_TSFILE)
   _cgv_try_parse_git_describe("${_VERSION_STRING}" "${_BRANCH_STRING}" "${_TSFILE}")
@@ -327,14 +316,10 @@ function(_cgv_try_git_hash)
     return()
   endif()
   # Fall back to just getting the hash
-  _cgv_execute_process(
-    COMMAND "${GIT_EXECUTABLE}" "log" "-1" "--format=%h" "HEAD"
-    OUTPUT_VARIABLE _VERSION_HASH
-    RESULT_VARIABLE _GIT_RESULT
-  )
-  if(_GIT_RESULT)
+  _cgv_git_call_output(_VERSION_HASH "log" "-1" "--format=%h" "HEAD")
+  if(_VERSION_HASH_RESULT)
     message(AUTHOR_WARNING "Failed to get current commit hash from git: "
-      "${_GIT_ERR}")
+      "${_VERSION_HASH_ERR}")
     return()
   endif()
 
@@ -455,4 +440,4 @@ if(CMAKE_SCRIPT_MODE_FILE)
   endif()
 endif()
 
-# cmake-git-version 1.2.1-2+main.918c9a7
+# cmake-git-version 1.2.1-4+main.86aa5ba
