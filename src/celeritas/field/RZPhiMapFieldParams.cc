@@ -72,8 +72,43 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
             inp.min_r, inp.max_r, inp.num_grid_r);
         host.grids.data_z = UniformGridData::from_bounds(
             inp.min_z, inp.max_z, inp.num_grid_z);
-        host.grids.data_phi = UniformGridData::from_bounds(
-            inp.min_phi, inp.max_phi, inp.num_grid_phi);
+
+        // For phi, ensure we're creating a periodic grid
+        // If the input specifies a full circle, adjust the grid to handle
+        // periodicity
+        bool is_full_circle = std::abs((inp.max_phi - inp.min_phi) - 2 * M_PI)
+                              < 1e-6;
+        if (is_full_circle)
+        {
+            // For a full circle, we need one fewer phi point since phi=0 and
+            // phi=2π are the same Create a grid from [min_phi, max_phi) where
+            // the last point is just before max_phi
+            if (inp.num_grid_phi > 2)
+            {
+                // Adjust delta to ensure we don't include the duplicate point
+                // at max_phi
+                real_type delta_phi = (inp.max_phi - inp.min_phi)
+                                      / (inp.num_grid_phi - 1);
+                real_type adjusted_max_phi
+                    = inp.max_phi - delta_phi / 100;  // Slightly less than
+                                                      // max_phi
+
+                host.grids.data_phi = UniformGridData::from_bounds(
+                    inp.min_phi, adjusted_max_phi, inp.num_grid_phi - 1);
+            }
+            else
+            {
+                // If we have too few points, just use the regular grid
+                host.grids.data_phi = UniformGridData::from_bounds(
+                    inp.min_phi, inp.max_phi, inp.num_grid_phi);
+            }
+        }
+        else
+        {
+            // For partial circles, use the specified bounds as is
+            host.grids.data_phi = UniformGridData::from_bounds(
+                inp.min_phi, inp.max_phi, inp.num_grid_phi);
+        }
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field_z.size());

@@ -88,17 +88,60 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     if (phi < 0)
         phi += 2 * M_PI;
 
+    // Handle phi periodicity for field map
+    if (phi == grid_phi_.back())
+        phi = grid_phi_.front();
+
+    // Check if point is within field map bounds
     if (!params_.valid(pos[2], r, phi))
         return value;
 
     // Find interpolation points for given r, z, and phi
     FindInterp<real_type> interp_r = find_interp<UniformGrid>(grid_r_, r);
     FindInterp<real_type> interp_z = find_interp<UniformGrid>(grid_z_, pos[2]);
-    FindInterp<real_type> interp_phi = find_interp<UniformGrid>(grid_phi_, phi);
+
+    // Special handling for phi to account for periodicity
+    FindInterp<real_type> interp_phi;
+
+    // Check if we have a full circle (max_phi ~= min_phi + 2π)
+    bool is_full_circle
+        = std::abs((grid_phi_.back() - grid_phi_.front()) - 2 * M_PI) < 1e-6
+          || std::abs((grid_phi_.back() - grid_phi_.front())) < 1e-6;
+
+    if (is_full_circle)
+    {
+        // For a full circle, we need to handle wraparound specially
+        if (phi >= grid_phi_.back())
+        {
+            // If phi is at or beyond the last grid point, wrap to the first
+            // grid point
+            phi = grid_phi_.front()
+                  + std::fmod(phi - grid_phi_.front(), 2 * M_PI);
+        }
+    }
+
+    // Now find the interpolation point
+    interp_phi = find_interp<UniformGrid>(grid_phi_, phi);
 
     size_type ir = interp_r.index;
     size_type iz = interp_z.index;
     size_type iphi = interp_phi.index;
+
+    // Handle phi wrap-around for interpolation
+    size_type iphi_next = iphi + 1;
+    if (iphi_next >= grid_phi_.size())
+    {
+        if (is_full_circle)
+        {
+            // For a full circle, wrap around to first point
+            iphi_next = 0;
+        }
+        else
+        {
+            // For a partial circle, clamp to the last point
+            iphi_next = grid_phi_.size() - 1;
+        }
+    }
 
     // Perform trilinear interpolation for each field component
     // Define the interpolation weights
@@ -111,14 +154,16 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Get the eight corner values for Z component of the field
     real_type v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_z;
-    real_type v001 = params_.fieldmap[params_.id(iz, ir, iphi + 1)].value_z;
+    real_type v001 = params_.fieldmap[params_.id(iz, ir, iphi_next)].value_z;
     real_type v010 = params_.fieldmap[params_.id(iz, ir + 1, iphi)].value_z;
-    real_type v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi + 1)].value_z;
+    real_type v011
+        = params_.fieldmap[params_.id(iz, ir + 1, iphi_next)].value_z;
     real_type v100 = params_.fieldmap[params_.id(iz + 1, ir, iphi)].value_z;
-    real_type v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi + 1)].value_z;
+    real_type v101
+        = params_.fieldmap[params_.id(iz + 1, ir, iphi_next)].value_z;
     real_type v110 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi)].value_z;
     real_type v111
-        = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi + 1)].value_z;
+        = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi_next)].value_z;
 
     // Trilinear interpolation formula for Z component
     value[2] = wz0
@@ -130,13 +175,13 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Get the eight corner values for R component of the field
     v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_r;
-    v001 = params_.fieldmap[params_.id(iz, ir, iphi + 1)].value_r;
+    v001 = params_.fieldmap[params_.id(iz, ir, iphi_next)].value_r;
     v010 = params_.fieldmap[params_.id(iz, ir + 1, iphi)].value_r;
-    v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi + 1)].value_r;
+    v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi_next)].value_r;
     v100 = params_.fieldmap[params_.id(iz + 1, ir, iphi)].value_r;
-    v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi + 1)].value_r;
+    v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi_next)].value_r;
     v110 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi)].value_r;
-    v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi + 1)].value_r;
+    v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi_next)].value_r;
 
     // Interpolate for R component
     real_type field_r = wz0
@@ -148,13 +193,13 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Get the eight corner values for Phi component of the field
     v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_phi;
-    v001 = params_.fieldmap[params_.id(iz, ir, iphi + 1)].value_phi;
+    v001 = params_.fieldmap[params_.id(iz, ir, iphi_next)].value_phi;
     v010 = params_.fieldmap[params_.id(iz, ir + 1, iphi)].value_phi;
-    v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi + 1)].value_phi;
+    v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi_next)].value_phi;
     v100 = params_.fieldmap[params_.id(iz + 1, ir, iphi)].value_phi;
-    v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi + 1)].value_phi;
+    v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi_next)].value_phi;
     v110 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi)].value_phi;
-    v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi + 1)].value_phi;
+    v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi_next)].value_phi;
 
     // Interpolate for Phi component
     real_type field_phi = wz0
