@@ -123,6 +123,8 @@ function(_cgv_store_version vstring vsuffix vhash tsfile)
   string(REGEX REPLACE "-+0*" "." vstring "${vstring}")
   # Remove trailing periods
   string(REGEX REPLACE "\\.+$" "" vstring "${vstring}")
+  # Remove leading zeros from version components
+  string(REGEX REPLACE "0+([1-9]+[0-9]*)" "\\1" vstring "${vstring}")
 
   # Get timestamp
   _cgv_timestamp("${tsfile}" _vtimestamp)
