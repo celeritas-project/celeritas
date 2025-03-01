@@ -51,7 +51,7 @@ jobs:
             geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "100Mi"
+      CCACHE_MAXSIZE: "${{matrix.special == 'asanlite' && '400' || '200'}}Mi"
       CMAKE_PRESET: >-
         ${{format('reldeb-{0}{1}{2}',
                   matrix.geometry,
