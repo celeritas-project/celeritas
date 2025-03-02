@@ -23,15 +23,8 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
-#include "../CmsEeBackDeeGeoTest.hh"
-#include "../CmseGeoTest.hh"
-#include "../FourLevelsGeoTest.hh"
 #include "../GenericGeoParameterizedTest.hh"
-#include "../MultiLevelGeoTest.hh"
-#include "../ReplicaGeoTest.hh"
-#include "../SolidsGeoTest.hh"
-#include "../TransformedBoxGeoTest.hh"
-#include "../ZnenvGeoTest.hh"
+#include "../GeoTests.hh"
 
 namespace celeritas
 {

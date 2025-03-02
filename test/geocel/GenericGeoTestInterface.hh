@@ -18,14 +18,20 @@
 class G4VPhysicalVolume;
 
 #ifndef EXPECT_RESULT_EQ
-#    define EXPECT_RESULT_EQ(expected, actual) \
-        EXPECT_PRED_FORMAT2(::celeritas::test::IsResultEqual, expected, actual)
+#    define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) \
+        EXPECT_PRED_FORMAT2(::celeritas::test::IsResultEqual, EXPECTED, ACTUAL)
+#    define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
+        EXPECT_PRED_FORMAT3(                          \
+            ::celeritas::test::IsResultEqual, EXPECTED, ACTUAL, TOL)
 #endif
 
 namespace celeritas
 {
 namespace test
 {
+
+class GenericGeoTestInterface;
+
 //---------------------------------------------------------------------------//
 struct GenericGeoTrackingResult
 {
@@ -33,8 +39,19 @@ struct GenericGeoTrackingResult
     std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]
     std::vector<real_type> halfway_safeties;  //!< [cm]
+    // Locations the particle had a very tiny distance in a volume
+    std::vector<real_type> bumps;  //!< [cm * 3]
 
     void print_expected();
+};
+
+struct GenericGeoTrackingTolerance
+{
+    real_type distance{0};
+    real_type safety{0};
+
+    static GenericGeoTrackingTolerance
+    from_test(GenericGeoTestInterface const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -45,6 +62,26 @@ struct GenericGeoVolumeStackResult
 
     void print_expected();
 };
+
+//---------------------------------------------------------------------------//
+::testing::AssertionResult
+IsResultEqual(char const* expected_expr,
+              char const* actual_expr,
+              char const* tol_expr,
+              GenericGeoTrackingResult const& expected,
+              GenericGeoTrackingResult const& actual,
+              GenericGeoTrackingTolerance const& tol);
+
+//---------------------------------------------------------------------------//
+inline ::testing::AssertionResult
+IsResultEqual(char const* expected_expr,
+              char const* actual_expr,
+              GenericGeoTrackingResult const& expected,
+              GenericGeoTrackingResult const& actual)
+{
+    return IsResultEqual(
+        expected_expr, actual_expr, "default", expected, actual, {});
+}
 
 //---------------------------------------------------------------------------//
 ::testing::AssertionResult
@@ -98,6 +135,9 @@ class GenericGeoTestInterface
 
     // Get the safety tolerance (defaults to SoftEq tol)
     virtual real_type safety_tol() const;
+
+    // Get the threshold in "unit lengths" for a movement being a "bump"
+    virtual real_type bump_tol() const;
 
     //! Ignore the first N VolumeId
     virtual VolumeId::size_type volume_offset() const { return 0; }

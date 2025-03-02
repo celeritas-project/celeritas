@@ -188,6 +188,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     auto const& geo_params = *this->geometry();
     auto const& vol_inst = geo_params.volume_instances();
     real_type const inv_length = real_type{1} / this->unit_length();
+    real_type const bump_tol = this->bump_tol() * this->unit_length();
 
     if (geo.is_outside())
     {
@@ -209,23 +210,23 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         result.volumes.push_back(this->volume_name(geo));
         if (vol_inst)
         {
-            if (auto vi_id = geo.volume_instance_id())
-            {
-                result.volume_instances.push_back(vol_inst.at(vi_id).name);
+            result.volume_instances.push_back([&] {
+                auto vi_id = geo.volume_instance_id();
+                if (!vi_id)
+                {
+                    return std::string{"---"};
+                }
+                std::string s = vol_inst.at(vi_id).name;
                 if (auto phys_inst = geo_params.id_to_geant(vi_id))
                 {
                     if (phys_inst.replica)
                     {
-                        result.volume_instances.back() += '@';
-                        result.volume_instances.back()
-                            += std::to_string(phys_inst.replica.get());
+                        s += '@';
+                        s += std::to_string(phys_inst.replica.get());
                     }
                 }
-            }
-            else
-            {
-                result.volume_instances.push_back("---");
-            }
+                return s;
+            }());
         }
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance * inv_length);
@@ -236,7 +237,22 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
-        if (next.distance > real_type(from_cm(1e-7)))
+        if (next.distance < bump_tol)
+        {
+            // Don't add epsilon distances
+            result.distances.pop_back();
+            result.volumes.pop_back();
+            if (vol_inst)
+            {
+                result.volume_instances.pop_back();
+            }
+            // Instead add the point to the bump list
+            for (auto p : geo.pos())
+            {
+                result.bumps.push_back(p * inv_length);
+            }
+        }
+        else
         {
             geo.move_internal(next.distance / 2);
             try

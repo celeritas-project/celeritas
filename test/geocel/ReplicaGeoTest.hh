@@ -154,13 +154,12 @@ void ReplicaGeoTest::test_trace() const
             "wirePlane2",  "chamber2",    "secondArm",   "chamber2",
             "wirePlane2",  "chamber2",    "secondArm",   "chamber2",
             "wirePlane2",  "chamber2",    "secondArm",   "hodoscope2",
-            "secondArm",   "cell",        "secondArm",   "cell",
-            "cell",        "secondArm",   "HadCalLayer", "HadCalLayer",
+            "secondArm",   "cell",        "secondArm",   "HadCalLayer",
             "HadCalLayer", "HadCalLayer", "HadCalLayer", "HadCalLayer",
             "HadCalLayer", "HadCalLayer", "HadCalLayer", "HadCalLayer",
             "HadCalLayer", "HadCalLayer", "HadCalLayer", "HadCalLayer",
             "HadCalLayer", "HadCalLayer", "HadCalLayer", "HadCalLayer",
-            "HadCalLayer", "HadCalLayer", "world",
+            "HadCalLayer", "HadCalLayer", "HadCalLayer", "world",
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static char const* const expected_volume_instances[] = {
@@ -173,7 +172,6 @@ void ReplicaGeoTest::test_trace() const
             "fSecondArmPhys",    "chamber2",          "wirePlane2",
             "chamber2",          "fSecondArmPhys",    "hodoscope2",
             "fSecondArmPhys",    "cell_param@42",     "fSecondArmPhys",
-            "cell_param@42",     "cell_param@38",     "fSecondArmPhys",
             "HadCalLayer_PV@0",  "HadCalLayer_PV@1",  "HadCalLayer_PV@2",
             "HadCalLayer_PV@3",  "HadCalLayer_PV@4",  "HadCalLayer_PV@5",
             "HadCalLayer_PV@6",  "HadCalLayer_PV@7",  "HadCalLayer_PV@8",
@@ -187,53 +185,50 @@ void ReplicaGeoTest::test_trace() const
             100,
             50,
             99,
-            0.99,
-            0.020000000000036,
             0.99000000000001,
+            0.019999999999995,
+            0.99000000000002,
             48,
             0.99,
-            0.019999999999991,
-            0.99000000000001,
+            0.01999999999998,
+            0.99,
             48,
             0.99,
-            0.019999999999991,
-            0.99000000000001,
+            0.01999999999998,
+            0.99,
             48,
             0.99,
-            0.019999999999991,
-            0.99000000000001,
+            0.01999999999998,
+            0.99,
             48,
             0.99,
-            0.020000000000036,
-            0.99000000000005,
+            0.01999999999998,
+            0.99,
             48.5,
-            1.0000000000001,
+            0.99999999999999,
             184.5,
-            1e-13,
-            1e-13,
-            1e-13,
             30,
             35,
             5,
-            5,
-            5,
-            5,
             4.9999999999999,
-            5,
+            5.0000000000001,
             5,
             5,
             5,
             5,
             4.9999999999999,
+            5.0000000000001,
             5,
             5,
             5,
             5,
+            4.9999999999999,
+            5.0000000000001,
             5,
             5,
-            4.9999999999998,
             5,
             5,
+            4.9999999999999,
             304.70053837925,
         };
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -265,6 +260,10 @@ void ReplicaGeoTest::test_trace() const
         };
         EXPECT_VEC_NEAR(
             expected_hw_safety, result.halfway_safeties, safety_tol);
+        if (true)  // if (gest_->geometry_type() == "geant4")
+        {
+            EXPECT_EQ(0, result.bumps.size()) << repr(result.bumps);
+        }
     }
 }
 
@@ -292,9 +291,8 @@ void ReplicaGeoTest::test_volume_stack() const
             "world_PV",
             "fSecondArmPhys",
             "EMcalorimeter",
-            "cell_param",
         };
-        ref.replicas = {-1, -1, -1, 42};
+        ref.replicas = {-1, -1, -1};
         EXPECT_RESULT_EQ(ref, result);
     }
 }
