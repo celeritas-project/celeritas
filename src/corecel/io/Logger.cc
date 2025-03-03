@@ -119,7 +119,11 @@ LogLevel log_level_from_env(std::string const& level_env, LogLevel default_lev)
 /*!
  * Create a default logger using the world communicator.
  *
- * The result prints only on one processor in the world communicator group.
+ * The result prints to stderr (buffered through \c std::clog ) only on one
+ * processor in the world communicator group.
+ * Since it's for messages that should be printed once across all processes,
+ * and usually during setup when no local threads are printing, it is not
+ * mutexed.
  * This function can be useful when resetting a test harness.
  */
 Logger make_default_world_logger()
@@ -136,6 +140,9 @@ Logger make_default_world_logger()
  * Create a default logger using the local communicator.
  *
  * If MPI is enabled, this will prepend the local process index to the message.
+ * Because multiple threads and processes can print log messages at the same
+ * time, this log output uses a mutex to synchronize output, and prints to
+ * buffered stderr through \c std::clog .
  */
 Logger make_default_self_logger()
 {
