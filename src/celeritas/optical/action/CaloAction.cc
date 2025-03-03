@@ -23,7 +23,7 @@ namespace optical
  * Construct with action ID.
  */
 CaloAction::CaloAction(ActionId aid)
-    : StaticConcreteAction(aid, "along-step", "move to interaction or boundary")
+    : StaticConcreteAction(aid, "track-calo", "contribute to detector")
 {
 }
 
