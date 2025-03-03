@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "StatusChecker.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -36,6 +37,23 @@ void copy_in_memspace(Collection<T, W, M, I> const& src,
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct and add to core params.
+ */
+std::shared_ptr<StatusChecker>
+StatusChecker::make_and_insert(CoreParams const& core)
+{
+    ActionRegistry& actions = *core.action_reg();
+    AuxParamsRegistry& aux = *core.aux_reg();
+    auto result
+        = std::make_shared<StatusChecker>(actions.next_id(), aux.next_id());
+
+    actions.insert(result);
+    aux.insert(result);
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!

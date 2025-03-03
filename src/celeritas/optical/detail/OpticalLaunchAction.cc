@@ -18,7 +18,6 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/TrackInitParams.hh"
 #include "celeritas/optical/action/ActionGroups.hh"
-#include "celeritas/optical/action/BoundaryAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
