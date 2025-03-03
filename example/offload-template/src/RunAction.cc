@@ -6,8 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
-#include "Celeritas.hh"
-#include "G4Threading.hh"
+#include <accel/TrackingManagerIntegration.hh>
 
 //---------------------------------------------------------------------------//
 /*!
@@ -21,7 +20,7 @@ RunAction::RunAction() : G4UserRunAction() {}
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
-    CelerSimpleOffload().BeginOfRunAction(run);
+    celeritas::TrackingManagerIntegration::Instance().BeginOfRunAction(run);
 }
 
 //---------------------------------------------------------------------------//
@@ -30,5 +29,5 @@ void RunAction::BeginOfRunAction(G4Run const* run)
  */
 void RunAction::EndOfRunAction(G4Run const* run)
 {
-    CelerSimpleOffload().EndOfRunAction(run);
+    celeritas::TrackingManagerIntegration::Instance().EndOfRunAction(run);
 }

@@ -57,6 +57,8 @@ void ClipResult::print_expected() const
 
 TEST_F(SurfaceClipperTest, inside)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
+
     ClipResult cr;
     cr = this->test_clip(PlaneX{4});
     EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -inf}), cr.i.lower());

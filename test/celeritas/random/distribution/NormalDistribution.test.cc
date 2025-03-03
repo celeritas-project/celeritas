@@ -84,6 +84,19 @@ TEST(NormalDistributionTest, move)
     EXPECT_DOUBLE_EQ(4 * samples[1], sample_normal(rng));
 }
 
+TEST(NormalDistributionTest, copy)
+{
+    DiagnosticRngEngine<std::mt19937> rng;
+    NormalDistribution<double> sample{4, 0.5};
+
+    // Initialize with parameters but not spare values
+    NormalDistribution<double> sample_copy{sample};
+
+    auto orig = sample(rng);
+    rng = {};
+    EXPECT_DOUBLE_EQ(orig, sample_copy(rng));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

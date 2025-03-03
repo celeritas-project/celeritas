@@ -249,9 +249,30 @@ void Device::create_streams(unsigned int num_streams) const
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(streams_);
+    CELER_EXPECT(num_streams > 0);
 
     CELER_LOG(info) << "Creating " << num_streams << " device streams";
     *streams_ = detail::StreamStorage(num_streams);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Deallocate all streams before shutting down CUDA.
+ *
+ * Depending on initialization order, CUDA may be shut down (or shutting down)
+ * by the time the destructor for the global Device fires.
+ *
+ * \todo Const correctness for create_ and destroy_ streams is wrong; we should
+ * probably make the global device non-const (and thread-local?) and then
+ * activate it on "move".
+ */
+void Device::destroy_streams() const
+{
+    if (streams_)
+    {
+        CELER_LOG(debug) << "Destroying streams";
+        *streams_ = {};
+    }
 }
 
 //---------------------------------------------------------------------------//

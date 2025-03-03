@@ -117,6 +117,10 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     {
         j["enclosed_angle"] = sea;
     }
+    if (auto szs = obj.z_slab())
+    {
+        j["z_slab"] = szs;
+    }
 }
 
 void to_json(nlohmann::json& j, Transformed const& obj)
@@ -143,6 +147,11 @@ void to_json(nlohmann::json& j, PolySegments const& ps)
 void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea)
 {
     j = {{"start", sea.start().value()}, {"interior", sea.interior().value()}};
+}
+
+void to_json(nlohmann::json& j, SolidZSlab const& szs)
+{
+    j = {{"lower", szs.lower()}, {"upper", szs.upper()}};
 }
 
 //---------------------------------------------------------------------------//
@@ -181,6 +190,10 @@ void to_json(nlohmann::json& j, GenPrism const& cr)
          SIO_ATTR_PAIR(cr, halfheight),
          SIO_ATTR_PAIR(cr, lower),
          SIO_ATTR_PAIR(cr, upper)};
+}
+void to_json(nlohmann::json& j, InfSlab const& cr)
+{
+    j = {{"_type", "infslab"}, {"lower", cr.lower()}, {"upper", cr.upper()}};
 }
 void to_json(nlohmann::json& j, InfWedge const& cr)
 {

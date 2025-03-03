@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGenerator.hh"
 
-#include <random>
+#include <utility>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
@@ -74,6 +74,22 @@ auto make_direction_sampler(inp::AngleDistribution const& i)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a vector of particle IDs from PDG number.
+ */
+std::vector<ParticleId> make_particle_ids(std::vector<PDGNumber> const& pdgs,
+                                          ParticleParams const& particles)
+{
+    std::vector<ParticleId> result;
+    result.reserve(pdgs.size());
+    for (auto const& pdg : pdgs)
+    {
+        result.push_back(particles.find(pdg));
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -95,28 +111,34 @@ PrimaryGenerator::from_options(SPConstParticles particles,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with options and shared particle data.
+ * Construct with options and particle IDs.
  */
 PrimaryGenerator::PrimaryGenerator(Input const& i,
-                                   ParticleParams const& particles)
+                                   std::vector<ParticleId> particle_id)
     : num_events_{i.num_events}
     , primaries_per_event_{i.primaries_per_event}
     , seed_{i.seed}
     , sample_energy_{make_energy_sampler(i.energy)}
     , sample_pos_{make_position_sampler(i.shape)}
     , sample_dir_{make_direction_sampler(i.angle)}
+    , particle_id_(std::move(particle_id))
 {
     // TODO: seed based on event
     this->seed(UniqueEventId{0});
 
-    particle_id_.reserve(i.pdg.size());
-    for (auto const& pdg : i.pdg)
-    {
-        particle_id_.push_back(particles.find(pdg));
-    }
     CELER_VALIDATE(
         std::all_of(particle_id_.begin(), particle_id_.end(), LogicalTrue{}),
         << R"(invalid or missing particle types specified for primary generator)");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with options and shared particle data.
+ */
+PrimaryGenerator::PrimaryGenerator(Input const& i,
+                                   ParticleParams const& particles)
+    : PrimaryGenerator(i, make_particle_ids(i.pdg, particles))
+{
 }
 
 //---------------------------------------------------------------------------//

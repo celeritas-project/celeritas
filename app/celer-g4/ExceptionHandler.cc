@@ -24,10 +24,12 @@ namespace app
 /*!
  * Construct with an exception handler that can catch exceptions.
  */
-ExceptionHandler::ExceptionHandler(StdExceptionHandler handle_exception)
-    : handle_{std::move(handle_exception)}
+ExceptionHandler::ExceptionHandler(StdExceptionHandler handle_exception,
+                                   SPConstParams params)
+    : handle_{std::move(handle_exception)}, params_{std::move(params)}
 {
     CELER_EXPECT(handle_);
+    CELER_EXPECT(params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -66,12 +68,12 @@ G4bool ExceptionHandler::Notify(char const* origin_of_exception,
             if (auto* run_man = G4RunManager::GetRunManager())
             {
                 if (severity == EventMustBeAborted
-                    && SharedParams::CeleritasDisabled())
+                    && (params_->mode() != SharedParams::Mode::enabled))
                 {
                     // Event can only be aborted if Celeritas is disabled
-                    // because we can't clear the local state
-                    CELER_LOG_LOCAL(error) << "Aborting event due to "
-                                              "exception";
+                    // because we can't clear the track buffer
+                    CELER_LOG_LOCAL(error)
+                        << R"(Aborting event due to exception)";
                     run_man->AbortEvent();
                 }
                 else

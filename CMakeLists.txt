@@ -5,8 +5,6 @@
 
 cmake_minimum_required(VERSION 3.18...3.31)
 
-# Set Celeritas_VERSION using git tags using the following format
-set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
@@ -234,6 +232,7 @@ if(CELERITAS_USE_CUDA)
     "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists"
   )
 endif()
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 ### Linking flags ###
 celeritas_set_default(BUILD_SHARED_LIBS ON
@@ -336,7 +335,7 @@ if(CELERITAS_USE_HepMC3)
   set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
-celeritas_find_or_external_package(nlohmann_json 3.7.0)
+celeritas_find_or_builtin_package(nlohmann_json 3.7.0)
 
 if(CELERITAS_USE_MPI)
   find_package(MPI REQUIRED)
@@ -361,7 +360,7 @@ if(CELERITAS_USE_Perfetto)
       OFF
     )
   else()
-    celeritas_find_or_external_package(Perfetto)
+    celeritas_find_or_builtin_package(Perfetto)
   endif()
 endif()
 
@@ -392,7 +391,15 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  set(_min_vecgeom_version 1.2.4)
+  if(CELERITAS_USE_CUDA)
+    # 1.2.10 is needed due to the `no-as-needed` link feature
+    # requiring VecGeom to be build with a distinct object
+    # and final libraries
+    set(_min_vecgeom_version 1.2.10)
+  else()
+    # 1.2.8 is needed due to G4VG, which needs the logger.
+    set(_min_vecgeom_version 1.2.8)
+  endif()
   if(NOT VecGeom_FOUND)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
@@ -447,6 +454,10 @@ if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_LIBRARIES)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
+  if(CELERITAS_USE_Geant4)
+    # Enforce minimum version
+    celeritas_find_or_builtin_package(G4VG 1.0.3)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -481,14 +492,16 @@ if(CELERITAS_BUILD_DOCS)
 endif()
 
 if(CELERITAS_BUILD_TESTS)
-  celeritas_find_or_external_package(GTest 1.10)
+  celeritas_find_or_builtin_package(GTest 1.10)
 endif()
 
 #----------------------------------------------------------------------------#
-# EXTERNALS
+# BUILTINS
 #----------------------------------------------------------------------------#
 
-if(CELERITAS_EXTERNAL)
+include(CudaRdcUtils)
+
+if(CELERITAS_BUILTIN)
   include(FetchContent)
   add_subdirectory(external)
 endif()
@@ -674,6 +687,7 @@ foreach(_key
   VecCore_DIR VecGeom_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
+  VDT_INCLUDE_DIR VDT_LIBRARY
   XercesC_LIBRARY XercesC_INCLUDE_DIR
 )
   set(_val "${${_key}}")
@@ -702,7 +716,6 @@ configure_file(
 )
 
 # Export version info
-# TODO for version 1.0.0: change COMPATIBILITY to MajorVersion
 write_basic_package_version_file(
   "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
   COMPATIBILITY AnyNewerVersion

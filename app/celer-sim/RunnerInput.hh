@@ -6,10 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
@@ -18,6 +22,7 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
+#include "celeritas/user/RootStepWriterInput.hh"
 
 #ifdef _WIN32
 #    include <cstdlib>
@@ -104,7 +109,7 @@ struct RunnerInput
     // Control
     unsigned int seed{};
     size_type num_track_slots{};  //!< Divided among streams
-    size_type max_steps = static_cast<size_type>(-1);
+    size_type max_steps = static_cast<size_type>(-1);  //!< Step *iterations*
     size_type initializer_capacity{};  //!< Divided among streams
     size_type spline_eloss_order = 1;
     real_type secondary_stack_factor{};

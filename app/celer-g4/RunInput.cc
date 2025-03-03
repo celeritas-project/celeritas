@@ -51,7 +51,7 @@ inp::Problem load_problem(RunInput const& ri)
 
     // Control
     p.control.capacity = [&ri] {
-        inp::StateCapacity capacity;
+        inp::CoreStateCapacity capacity;
         capacity.tracks = ri.num_track_slots;
         capacity.initializers = ri.initializer_capacity;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
@@ -209,10 +209,9 @@ RunInput::operator bool() const
     return !geometry_file.empty() && (primary_options || !event_file.empty())
            && physics_list < PhysicsListSelection::size_
            && (field == no_field() || field_options)
-           && ((num_track_slots > 0 && max_steps > 0
-                && initializer_capacity > 0 && secondary_stack_factor > 0
-                && auto_flush > 0 && auto_flush <= initializer_capacity)
-               || SharedParams::CeleritasDisabled())
+           && (num_track_slots > 0 && max_steps > 0 && initializer_capacity > 0
+               && secondary_stack_factor > 0 && auto_flush > 0
+               && auto_flush <= initializer_capacity)
            && (step_diagnostic_bins > 0 || !step_diagnostic);
 }
 
@@ -244,13 +243,6 @@ inp::StandaloneInput to_input(RunInput const& ri)
 
     inp::GeantImport geant_import;
     geant_import.ignore_processes.push_back("CoulombScat");
-    if (CELERITAS_GEANT4_VERSION >= 0x0b0100)
-    {
-        CELER_LOG(warning) << "Default Rayleigh scattering 'MinKinEnergyPrim' "
-                              "is not compatible between Celeritas and "
-                              "Geant4@11.1: disabling Rayleigh scattering";
-        geant_import.ignore_processes.push_back("Rayl");
-    }
     si.physics_import = std::move(geant_import);
 
     si.geant_data = inp::GeantDataImport{};

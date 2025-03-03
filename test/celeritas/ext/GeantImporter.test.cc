@@ -695,6 +695,7 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
                                                    ImportProcessClass::e_ioni);
     EXPECT_EQ(ImportProcessType::electromagnetic, proc.process_type);
     EXPECT_EQ(celeritas::pdg::electron().get(), proc.secondary_pdg);
+    EXPECT_FALSE(proc.applies_at_rest);
 
     // Test model
     ASSERT_EQ(1, proc.models.size());
@@ -770,6 +771,7 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
     ImportProcess const& proc = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
     EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
+    EXPECT_FALSE(proc.applies_at_rest);
     ASSERT_EQ(2, proc.models.size());
     if (geant4_version < Version{11})
     {
@@ -819,11 +821,13 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
     }
 }
 
+//---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, conv)
 {
     ImportProcess const& proc = this->find_process(
         celeritas::pdg::gamma(), ImportProcessClass::conversion);
     EXPECT_EQ(celeritas::pdg::electron().get(), proc.secondary_pdg);
+    EXPECT_FALSE(proc.applies_at_rest);
     ASSERT_EQ(1, proc.models.size());
 
     {
@@ -851,6 +855,28 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, anni)
+{
+    ImportProcess const& proc = this->find_process(
+        celeritas::pdg::positron(), ImportProcessClass::annihilation);
+    EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
+    EXPECT_TRUE(proc.applies_at_rest);
+    ASSERT_EQ(1, proc.models.size());
+
+    auto const& model = proc.models[0];
+    EXPECT_EQ(ImportModelClass::e_plus_to_gg, model.model_class);
+
+    EXPECT_EQ(2, model.materials.size());
+    auto result = summarize(model.materials);
+    static unsigned int const expected_size[] = {2u, 2u};
+    static double const expected_energy[]
+        = {0.0001, 100000000, 0.0001, 100000000};
+    EXPECT_VEC_EQ(expected_size, result.size);
+    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    EXPECT_TRUE(result.xs.empty());
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, muioni)
 {
     real_type const tol = this->comparison_tolerance();
@@ -859,6 +885,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         celeritas::pdg::mu_minus(), ImportProcessClass::mu_ioni);
     EXPECT_EQ(ImportProcessType::electromagnetic, mu_minus.process_type);
     EXPECT_EQ(celeritas::pdg::electron().get(), mu_minus.secondary_pdg);
+    EXPECT_FALSE(mu_minus.applies_at_rest);
 
     // Test model
     ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2,
@@ -968,6 +995,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         celeritas::pdg::mu_plus(), ImportProcessClass::mu_ioni);
     EXPECT_EQ(ImportProcessType::electromagnetic, mu_plus.process_type);
     EXPECT_EQ(celeritas::pdg::electron().get(), mu_plus.secondary_pdg);
+    EXPECT_FALSE(mu_plus.applies_at_rest);
 
     auto const& models = mu_plus.models;
     ASSERT_EQ(geant4_version < Version(11, 1, 0) ? 3 : 2, models.size());
@@ -994,18 +1022,20 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
     }
 
     unsigned int const expected_material_ids[] = {1, 1, 1, 1, 0};
-
-    static char const* expected_names[] = {"box0x125555be0",
-                                           "box0x125556d20",
-                                           "box0x125557160",
-                                           "box0x1255575a0",
-                                           "World0x125555f10"};
-
-    static char const* expected_solids[] = {"box0x125555b70",
-                                            "box0x125556c70",
-                                            "box0x1255570a0",
-                                            "box0x125557500",
-                                            "World0x125555ea0"};
+    static char const* expected_names[] = {
+        "box@0",
+        "box@1",
+        "box@2",
+        "box@3",
+        "World",
+    };
+    static char const* expected_solids[] = {
+        "box",
+        "box",
+        "box",
+        "box",
+        "World",
+    };
 
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);
@@ -1399,11 +1429,11 @@ TEST_F(TestEm3, volume_names)
     std::vector<std::string> names;
     for (auto const& volume : volumes)
     {
-        names.push_back(this->genericize_pointers(volume.name));
+        names.push_back(volume.name);
     }
 
     // clang-format off
-    static std::string const expected_names[] = {"gap_00x0", "absorber_00x0", "gap_10x0", "absorber_10x0", "gap_20x0", "absorber_20x0", "gap_30x0", "absorber_30x0", "gap_40x0", "absorber_40x0", "gap_50x0", "absorber_50x0", "gap_60x0", "absorber_60x0", "gap_70x0", "absorber_70x0", "gap_80x0", "absorber_80x0", "gap_90x0", "absorber_90x0", "gap_100x0", "absorber_100x0", "gap_110x0", "absorber_110x0", "gap_120x0", "absorber_120x0", "gap_130x0", "absorber_130x0", "gap_140x0", "absorber_140x0", "gap_150x0", "absorber_150x0", "gap_160x0", "absorber_160x0", "gap_170x0", "absorber_170x0", "gap_180x0", "absorber_180x0", "gap_190x0", "absorber_190x0", "gap_200x0", "absorber_200x0", "gap_210x0", "absorber_210x0", "gap_220x0", "absorber_220x0", "gap_230x0", "absorber_230x0", "gap_240x0", "absorber_240x0", "gap_250x0", "absorber_250x0", "gap_260x0", "absorber_260x0", "gap_270x0", "absorber_270x0", "gap_280x0", "absorber_280x0", "gap_290x0", "absorber_290x0", "gap_300x0", "absorber_300x0", "gap_310x0", "absorber_310x0", "gap_320x0", "absorber_320x0", "gap_330x0", "absorber_330x0", "gap_340x0", "absorber_340x0", "gap_350x0", "absorber_350x0", "gap_360x0", "absorber_360x0", "gap_370x0", "absorber_370x0", "gap_380x0", "absorber_380x0", "gap_390x0", "absorber_390x0", "gap_400x0", "absorber_400x0", "gap_410x0", "absorber_410x0", "gap_420x0", "absorber_420x0", "gap_430x0", "absorber_430x0", "gap_440x0", "absorber_440x0", "gap_450x0", "absorber_450x0", "gap_460x0", "absorber_460x0", "gap_470x0", "absorber_470x0", "gap_480x0", "absorber_480x0", "gap_490x0", "absorber_490x0", "world0x0"};
+    static std::string const expected_names[] = {"gap_0", "absorber_0", "gap_1", "absorber_1", "gap_2", "absorber_2", "gap_3", "absorber_3", "gap_4", "absorber_4", "gap_5", "absorber_5", "gap_6", "absorber_6", "gap_7", "absorber_7", "gap_8", "absorber_8", "gap_9", "absorber_9", "gap_10", "absorber_10", "gap_11", "absorber_11", "gap_12", "absorber_12", "gap_13", "absorber_13", "gap_14", "absorber_14", "gap_15", "absorber_15", "gap_16", "absorber_16", "gap_17", "absorber_17", "gap_18", "absorber_18", "gap_19", "absorber_19", "gap_20", "absorber_20", "gap_21", "absorber_21", "gap_22", "absorber_22", "gap_23", "absorber_23", "gap_24", "absorber_24", "gap_25", "absorber_25", "gap_26", "absorber_26", "gap_27", "absorber_27", "gap_28", "absorber_28", "gap_29", "absorber_29", "gap_30", "absorber_30", "gap_31", "absorber_31", "gap_32", "absorber_32", "gap_33", "absorber_33", "gap_34", "absorber_34", "gap_35", "absorber_35", "gap_36", "absorber_36", "gap_37", "absorber_37", "gap_38", "absorber_38", "gap_39", "absorber_39", "gap_40", "absorber_40", "gap_41", "absorber_41", "gap_42", "absorber_42", "gap_43", "absorber_43", "gap_44", "absorber_44", "gap_45", "absorber_45", "gap_46", "absorber_46", "gap_47", "absorber_47", "gap_48", "absorber_48", "gap_49", "absorber_49", "world"};
     // clang-format on
     EXPECT_VEC_EQ(expected_names, names);
 }
@@ -1418,9 +1448,7 @@ TEST_F(TestEm3, unique_volumes)
     auto const& volumes = this->imported_data().volumes;
 
     EXPECT_EQ(101, volumes.size());
-    EXPECT_EQ("gap_00x0x0",
-              this->genericize_pointers(
-                  this->genericize_pointers(volumes.front().name)))
+    EXPECT_EQ("gap_0", volumes.front().name)
         << "Front name: '" << volumes.front().name << "'";
 }
 
@@ -1467,6 +1495,7 @@ TEST_F(OneSteelSphere, physics)
     // Check the bremsstrahlung cross sections
     ImportProcess const& brems = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
+    EXPECT_FALSE(brems.applies_at_rest);
     ASSERT_EQ(1, brems.tables.size());
     ASSERT_EQ(2, brems.models.size());
     {
@@ -1874,12 +1903,12 @@ TEST_F(Solids, volumes_only)
     }
 
     static char const* const expected_names[]
-        = {"box500",   "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",    "trd1",     "trd2",      "",           "trd3_refl",
-           "tube100",  "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",  "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1", "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl"};
+        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
+           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
+           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
+           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
+           "trd3_refl@0"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1897,18 +1926,15 @@ TEST_F(Solids, volumes_unique)
     std::vector<std::string> names;
     for (auto const& volume : imported.volumes)
     {
-        names.push_back(this->genericize_pointers(volume.name));
+        names.push_back(volume.name);
     }
     static char const* const expected_names[]
-        = {"box5000x0",    "cone10x0",      "para10x0",
-           "sphere10x0",   "parabol10x0",   "trap10x0",
-           "trd10x0",      "trd20x0",       "",
-           "trd3_refl0x0", "tube1000x0",    "boolean10x0",
-           "polycone10x0", "genPocone10x0", "ellipsoid10x0",
-           "tetrah10x0",   "orb10x0",       "polyhedr10x0",
-           "hype10x0",     "elltube10x0",   "ellcone10x0",
-           "arb8b0x0",     "arb8a0x0",      "xtru10x0",
-           "World0x0",     "trd30x0_refl"};
+        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
+           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
+           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
+           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
+           "trd3_refl@0"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 

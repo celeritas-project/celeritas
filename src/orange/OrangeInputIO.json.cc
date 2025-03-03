@@ -30,6 +30,7 @@
 #include "OrangeTypes.hh"
 #include "surf/SurfaceTypeTraits.hh"
 
+#include "detail/LogicUtils.hh"
 #include "detail/OrangeInputIOImpl.json.hh"
 
 namespace celeritas

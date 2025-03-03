@@ -9,8 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
 
 #include "Types.hh"
 
@@ -34,7 +34,7 @@ struct MaterialParamsData
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridRecord> refractive_index;
+    OpticalMaterialItems<NonuniformGridRecord> refractive_index;
     VolumeItems<OpticalMaterialId> optical_id;
     OpticalMaterialItems<CoreMaterialId> core_material_id;
 

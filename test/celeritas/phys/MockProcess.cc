@@ -83,12 +83,6 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
                 applic.lower.value(),
                 applic.upper.value(),
                 VecDbl(3, eloss_rate.value()));
-
-        builders[ValueGridType::range] = std::make_unique<ValueGridLogBuilder>(
-            applic.lower.value(),
-            applic.upper.value(),
-            VecDbl{applic.lower.value() / eloss_rate.value(),
-                   applic.upper.value() / eloss_rate.value()});
     }
 
     return builders;
@@ -98,6 +92,12 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
 bool MockProcess::use_integral_xs() const
 {
     return data_.use_integral_xs;
+}
+
+//---------------------------------------------------------------------------//
+bool MockProcess::applies_at_rest() const
+{
+    return data_.applies_at_rest;
 }
 
 //---------------------------------------------------------------------------//

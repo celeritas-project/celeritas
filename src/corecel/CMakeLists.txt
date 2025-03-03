@@ -139,6 +139,7 @@ list(APPEND SOURCES
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
   data/detail/PinnedAllocatorImpl.cc
+  grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
@@ -146,6 +147,7 @@ list(APPEND SOURCES
   io/JsonUtils.json.cc
   io/Label.cc
   io/LogContextException.cc
+  io/LogHandlers.cc
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
@@ -156,6 +158,7 @@ list(APPEND SOURCES
   io/detail/EnumStringMapperImpl.cc
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
+  math/TridiagonalSolver.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc

@@ -33,8 +33,6 @@ EventReader::EventReader(std::string const& filename,
                          SPConstParticles particles)
     : particles_(std::move(particles))
 {
-    CELER_EXPECT(particles_);
-
     // Fetch total number of events by opening a temporary reader
     num_events_ = [&filename] {
         SPReader temp_reader = open_hepmc3(filename);
@@ -87,6 +85,8 @@ EventReader::EventReader(std::string const& filename,
  */
 auto EventReader::operator()() -> result_type
 {
+    CELER_EXPECT(particles_);
+
     // Parse the next event from the record
     HepMC3::GenEvent evt;
     {
@@ -157,8 +157,9 @@ auto EventReader::operator()() -> result_type
                                      static_cast<real_type>(mom.py()),
                                      static_cast<real_type>(mom.pz())});
 
-        // Get the energy of the primary
-        primary.energy = units::MevEnergy{static_cast<real_type>(mom.e())};
+        // Get the kinetic energy of the primary
+        primary.energy = units::MevEnergy{static_cast<real_type>(mom.e())
+                                          - static_cast<real_type>(mom.m())};
 
         result.push_back(primary);
     }

@@ -2,15 +2,18 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/main.cc
+//! \file offload-template/main.cc
 //! \brief Minimal Geant4 application with Celeritas offloading
 //---------------------------------------------------------------------------//
 #include <memory>
 #include <FTFP_BERT.hh>
 #include <G4RunManagerFactory.hh>
+#include <accel/TrackingManagerConstructor.hh>
+#include <accel/TrackingManagerIntegration.hh>
 
-#include "src/ActionInitialization.hh"
-#include "src/DetectorConstruction.hh"
+#include "ActionInitialization.hh"
+#include "DetectorConstruction.hh"
+#include "MakeCelerOptions.hh"
 
 //---------------------------------------------------------------------------//
 /*!
@@ -31,8 +34,17 @@ int main(int argc, char* argv[])
     run_manager.reset(
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default));
 
-    // Initialize physics, geometry, and actions
-    run_manager->SetUserInitialization(new FTFP_BERT(/* verbosity = */ 0));
+    // Initialize Celeritas
+    auto& tmi = celeritas::TrackingManagerIntegration::Instance();
+
+    // Initialize physics with celeritas offload
+    auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
+    physics_list->RegisterPhysics(
+        new celeritas::TrackingManagerConstructor(&tmi));
+    run_manager->SetUserInitialization(physics_list);
+    tmi.SetOptions(MakeCelerOptions());
+
+    // Initialize geometry and actions
     run_manager->SetUserInitialization(new DetectorConstruction());
     run_manager->SetUserInitialization(new ActionInitialization());
 

@@ -25,6 +25,7 @@
 #    include <G4PVPlacement.hh>
 #    include <G4SubtractionSolid.hh>
 #    include <G4ThreeVector.hh>
+#    include <G4TransportationManager.hh>
 #    include <G4VPhysicalVolume.hh>
 #    include <G4VSolid.hh>
 #endif
@@ -79,6 +80,13 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         this->build_orange();
 
         CELER_ENSURE(geo_params_);
+    }
+
+    G4VPhysicalVolume const& world() const
+    {
+        CELER_VALIDATE(!physical_.empty() && physical_.back(),
+                       << "Geant4 world was not set up");
+        return *physical_.front();
     }
 
   private:
@@ -144,7 +152,10 @@ void NestedTest::build_g4()
     CELER_NOT_CONFIGURED("Geant4");
 #endif
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-    geo_params_ = std::make_shared<GeantGeoParams>(physical_.front());
+    // Suppress consistency warning from GeoParams constructor
+    G4TransportationManager::GetTransportationManager()->SetWorldForTracking(
+        const_cast<G4VPhysicalVolume*>(&this->world()));
+    geo_params_ = std::make_shared<GeantGeoParams>(&this->world());
 #endif
 }
 
@@ -236,38 +247,31 @@ TEST_F(NestedTest, unique)
     this->build();
     CELER_ASSERT(logical_.size() == names_.size());
 
-    GeantVolumeMapper find_vol{*geo_params_};
+    GeantVolumeMapper find_vol{this->world(), *geo_params_};
     for (auto i : range(names_.size()))
     {
         VolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(VolumeId{}, vol_id);
+        ASSERT_NE(VolumeId{}, vol_id)
+            << "searching for " << PrintableLV{logical_[i]};
         EXPECT_EQ(names_[i], geo_params_->volumes().at(vol_id).name);
     }
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
-        static char const* const expected_messages[]
-            = {"Failed to exactly match ORANGE volume from Geant4 volume "
-               "'world'@0x0; found 'world@global' by omitting the extension",
-               "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'outer'@0x0; found 'outer@global' by omitting the extension",
-               "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'middle'@0x0; found 'middle@global' by omitting the extension",
-               "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'inner'@0x0; found 'inner@global' by omitting the extension"};
-        EXPECT_VEC_EQ(expected_messages, store_log_.messages());
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        static char const* const expected_messages[] = {
-            "Geant4 geometry was initialized with inconsistent world volume: "
-            "given 'world_pv'@' 0x0; navigation world is unset"};
-        EXPECT_VEC_EQ(expected_messages, store_log_.messages());
+        static char const* const expected_log_messages[] = {
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'world'; found 'world@global' by omitting the extension)",
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'outer'; found 'outer@global' by omitting the extension)",
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'middle'; found 'middle@global' by omitting the extension)",
+            R"(Failed to exactly match ORANGE volume from Geant4 volume 'inner'; found 'inner@global' by omitting the extension)",
+        };
+        EXPECT_VEC_EQ(expected_log_messages, store_log_.messages());
+        static char const* const expected_log_levels[]
+            = {"warning", "warning", "warning", "warning"};
+        EXPECT_VEC_EQ(expected_log_levels, store_log_.levels());
     }
     else
     {
-        store_log_.print_expected();
-        EXPECT_EQ(0, store_log_.messages().size());
+        EXPECT_EQ(0, store_log_.messages().size()) << store_log_;
     }
 }
 
@@ -278,7 +282,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
     this->build();
     CELER_ASSERT(logical_.size() == names_.size());
 
-    GeantVolumeMapper find_vol{*geo_params_};
+    GeantVolumeMapper find_vol{this->world(), *geo_params_};
     for (auto i : range(names_.size()))
     {
         VolumeId vol_id = find_vol(*logical_[i]);
@@ -292,72 +296,6 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
     {
         EXPECT_EQ(0, store_log_.messages().size());
-    }
-}
-
-// Geant4 constructed from celeritas::LoadGdml (no stripping)
-TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(suffixed))
-{
-    names_ = {"world0xabc123", "outer0x123", "inner0xabc"};
-    this->build();
-    CELER_ASSERT(logical_.size() == names_.size());
-
-    GeantVolumeMapper find_vol{*geo_params_};
-    for (auto i : range(names_.size()))
-    {
-        VolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(VolumeId{}, vol_id);
-        EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->volumes().at(vol_id));
-    }
-}
-
-// Loaded GDML through demo app without stripping, then not stripped again
-TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated_suffixed))
-{
-    names_ = {"world0x1", "dup0x2", "dup0x3", "bob0x4"};
-    this->build();
-    CELER_ASSERT(logical_.size() == names_.size());
-
-    GeantVolumeMapper find_vol{*geo_params_};
-    for (auto i : range(names_.size()))
-    {
-        VolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(VolumeId{}, vol_id);
-        EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->volumes().at(vol_id));
-    }
-}
-
-TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(double_prefixed))
-{
-    names_ = {"world0x10xa", "outer0x20xb", "inner0x30xc"};
-    this->build();
-    CELER_ASSERT(logical_.size() == names_.size());
-
-    GeantVolumeMapper find_vol{*geo_params_};
-    for (auto i : range(names_.size()))
-    {
-        VolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(VolumeId{}, vol_id);
-        EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->volumes().at(vol_id));
-    }
-}
-
-TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated_double_prefixed))
-{
-    names_ = {"world0x10xa", "dup0x20xb", "dup0x30xc", "bob0x40xd"};
-    this->build();
-    CELER_ASSERT(logical_.size() == names_.size());
-
-    GeantVolumeMapper find_vol{*geo_params_};
-    for (auto i : range(names_.size()))
-    {
-        VolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(VolumeId{}, vol_id);
-        EXPECT_EQ(Label::from_geant(names_[i]),
-                  geo_params_->volumes().at(vol_id));
     }
 }
 

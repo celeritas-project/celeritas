@@ -36,37 +36,32 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
-  celeritas_add_object_library(geocel_g4vg
-    g4vg/Converter.cc
-    g4vg/LogicalVolumeConverter.cc
-    g4vg/SolidConverter.cc
-  )
-
-  celeritas_get_g4libs(_cg4vg_libs geometry)
-  list(APPEND _cg4vg_libs Celeritas::corecel VecGeom::vecgeom)
-  celeritas_target_link_libraries(geocel_g4vg PRIVATE ${_cg4vg_libs})
-
-  list(APPEND SOURCES $<TARGET_OBJECTS:geocel_g4vg>)
-  list(APPEND PRIVATE_DEPS geocel_g4vg)
+  list(APPEND PRIVATE_DEPS G4VG::g4vg)
 endif()
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_object_library(geocel_geant4
     GeantUtils.cc
     GeantGeoUtils.cc
+    GeantGdmlLoader.cc
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     g4/GeantGeoParams.cc
     g4/RaytraceImager.cc
+    g4/SafetyImager.cc
     g4/detail/GeantGeoNavCollection.cc
   )
 
-  celeritas_get_g4libs(_cg4_libs global geometry materials persistency intercoms)
-  list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
-  celeritas_target_link_libraries(geocel_geant4 PRIVATE ${_cg4_libs})
+  celeritas_get_g4libs(_cg4_geo_libs geometry)
+  celeritas_get_g4libs(_cg4_libs global geometry materials particles
+    persistency intercoms)
+  list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC nlohmann_json::nlohmann_json)
+  celeritas_target_link_libraries(geocel_geant4
+    PRIVATE ${_cg4_libs} ${_cg4_geo_libs})
 
   list(APPEND SOURCES $<TARGET_OBJECTS:geocel_geant4>)
   list(APPEND PRIVATE_DEPS geocel_geant4)
+  list(APPEND PUBLIC_DEPS ${_cg4_geo_libs})
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -75,6 +70,7 @@ if(CELERITAS_USE_VecGeom)
     vg/VecgeomParamsOutput.cc
     vg/detail/VecgeomNavCollection.cc
     vg/RaytraceImager.cc
+    vg/SafetyImager.cc
   )
   if(VecGeom_GDML_FOUND)
     list(APPEND PRIVATE_DEPS VecGeom::vgdml)
@@ -83,7 +79,6 @@ if(CELERITAS_USE_VecGeom)
     # This needs to be public because its might be needed
     # to resolve the symbols generate by the `nvcc -dlink` of
     # one of the executable.
-    list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
     list(APPEND SOURCES
       vg/RaytraceImager.cu
       vg/detail/VecgeomSetup.cu
@@ -92,6 +87,7 @@ if(CELERITAS_USE_VecGeom)
     # VecGeom is built with CUDA but Celeritas is not
     list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
   endif()
+  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 endif()
 
 #-----------------------------------------------------------------------------#

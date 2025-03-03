@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "geocel/BoundingBox.hh"
 
 class G4ParticleDefinition;
 
@@ -19,7 +20,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 namespace detail
 {
-class HitManager;
 class OffloadWriter;
 }  // namespace detail
 
@@ -30,6 +30,7 @@ struct SetupOptions;
 class StepCollector;
 class GeantGeoParams;
 class OutputRegistry;
+class GeantSd;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -57,18 +58,39 @@ class SharedParams
     //!@{
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<CoreParams const>;
-    using VecG4ParticleDef = std::vector<G4ParticleDefinition const*>;
+    using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
     //!@}
+
+    //! Setup for Celeritas usage
+    enum class Mode
+    {
+        uninitialized,
+        disabled,
+        kill_offload,
+        enabled,
+        size_
+    };
 
   public:
     //!@{
-    //! \name Construction
+    //! \name Status
+
+    // Whether celeritas is disabled, set to kill, or to be enabled
+    static Mode GetMode();
 
     // True if Celeritas is globally disabled using the CELER_DISABLE env
+    // Remove in 0.7
+    [[deprecated]]
     static bool CeleritasDisabled();
 
     // Whether to kill tracks that would have been offloaded
+    // Remove in 0.7
+    [[deprecated]]
     static bool KillOffloadTracks();
+
+    //!@}
+    //!@{
+    //! \name Construction
 
     // Construct in an uninitialized state
     SharedParams() = default;
@@ -76,17 +98,11 @@ class SharedParams
     // Construct Celeritas using Geant4 data on the master thread.
     explicit SharedParams(SetupOptions const& options);
 
-    // Construct for output only
-    explicit SharedParams(std::string output_filename);
-
     // Initialize shared data on the "master" thread
     inline void Initialize(SetupOptions const& options);
 
-    // Initialize shared data on the "master" thread
-    inline void Initialize(std::string output_filename);
-
     // On worker threads, set up data with thread storage duration
-    static void InitializeWorker(SetupOptions const& options);
+    void InitializeWorker(SetupOptions const& options);
 
     // Write (shared) diagnostic output and clear shared data on master
     void Finalize();
@@ -99,23 +115,27 @@ class SharedParams
     inline SPConstParams Params() const;
 
     // Get a vector of particles supported by Celeritas offloading
-    VecG4ParticleDef const& OffloadParticles() const;
+    inline VecG4ParticleDef const& OffloadParticles() const;
 
-    //! Whether Celeritas core params have been created
-    explicit operator bool() const { return static_cast<bool>(params_); }
+    //! Whether the class has been constructed
+    explicit operator bool() const { return mode_ != Mode::uninitialized; }
 
     //!@}
     //!@{
     //! \name Internal use only
 
-    using SPHitManager = std::shared_ptr<detail::HitManager>;
+    using SPGeantSd = std::shared_ptr<GeantSd>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPState = std::shared_ptr<CoreStateInterface>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
+    using BBox = BoundingBox<double>;
+
+    //! Initialization status and integration mode
+    Mode mode() const { return mode_; }
 
     // Hit manager, to be used only by LocalTransporter
-    inline SPHitManager const& hit_manager() const;
+    inline SPGeantSd const& hit_manager() const;
 
     // Optional offload writer, only for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
@@ -131,14 +151,18 @@ class SharedParams
 
     // Geant geometry wrapper, lazily created
     SPConstGeantGeoParams const& geant_geo_params() const;
+
+    // Geometry bounding box (CLHEP units)
+    BBox const& bbox() const { return bbox_; }
     //!@}
 
   private:
     //// DATA ////
 
     // Created during initialization
+    Mode mode_{Mode::uninitialized};
     std::shared_ptr<CoreParams> params_;
-    std::shared_ptr<detail::HitManager> hit_manager_;
+    std::shared_ptr<GeantSd> hit_manager_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
@@ -148,6 +172,7 @@ class SharedParams
     // Lazily created
     SPOutputRegistry output_reg_;
     SPConstGeantGeoParams geant_geo_;
+    BBox bbox_;
 
     //// HELPER FUNCTIONS ////
 
@@ -167,23 +192,25 @@ void SharedParams::Initialize(SetupOptions const& options)
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper for making initialization more obvious from user code.
- */
-void SharedParams::Initialize(std::string output_filename)
-{
-    *this = SharedParams(std::move(output_filename));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Access Celeritas data.
  *
  * This can only be called after \c Initialize.
  */
 auto SharedParams::Params() const -> SPConstParams
 {
-    CELER_EXPECT(*this);
+    CELER_EXPECT(mode_ == Mode::enabled);
+    CELER_ENSURE(params_);
     return params_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vector of particles supported by Celeritas offloading.
+ */
+auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
+{
+    CELER_EXPECT(*this);
+    return particles_;
 }
 
 //---------------------------------------------------------------------------//
@@ -192,7 +219,7 @@ auto SharedParams::Params() const -> SPConstParams
  *
  * If sensitive detector callback is disabled, the hit manager will be null.
  */
-auto SharedParams::hit_manager() const -> SPHitManager const&
+auto SharedParams::hit_manager() const -> SPGeantSd const&
 {
     CELER_EXPECT(*this);
     return hit_manager_;
@@ -214,7 +241,7 @@ auto SharedParams::offload_writer() const -> SPOffloadWriter const&
  */
 auto SharedParams::output_reg() const -> SPOutputRegistry const&
 {
-    CELER_ENSURE(output_reg_);
+    CELER_EXPECT(*this);
     return output_reg_;
 }
 

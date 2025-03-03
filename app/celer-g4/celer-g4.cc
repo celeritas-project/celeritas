@@ -49,10 +49,10 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
+#include "celeritas/ext/EmPhysicsList.hh"
+#include "celeritas/ext/FtfpBertPhysicsList.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/ext/detail/CelerEmPhysicsList.hh"
-#include "celeritas/ext/detail/CelerFTFPBert.hh"
 #include "accel/SharedParams.hh"
 
 #include "ActionInitialization.hh"
@@ -160,13 +160,6 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     }
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        CELER_LOG(warning) << "Default Rayleigh scattering 'MinKinEnergyPrim' "
-                              "is not compatible between Celeritas and "
-                              "Geant4@11.1: disabling Rayleigh scattering";
-        ignore_processes.push_back("Rayl");
-    }
     setup.SetIgnoreProcesses(ignore_processes);
 
     // Construct geometry and SD factory
@@ -181,21 +174,16 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     else
     {
         auto opts = setup.GetPhysicsOptions();
-        if (std::find(ignore_processes.begin(), ignore_processes.end(), "Rayl")
-            != ignore_processes.end())
-        {
-            opts.rayleigh_scattering = false;
-        }
         if (setup.input().physics_list == PhysicsListSelection::celer_ftfp_bert)
         {
             // FTFP BERT with Celeritas EM standard physics
-            auto pl = std::make_unique<detail::CelerFTFPBert>(opts);
+            auto pl = std::make_unique<celeritas::FtfpBertPhysicsList>(opts);
             run_manager->SetUserInitialization(pl.release());
         }
         else
         {
             // Celeritas EM standard physics only
-            auto pl = std::make_unique<detail::CelerEmPhysicsList>(opts);
+            auto pl = std::make_unique<celeritas::EmPhysicsList>(opts);
             run_manager->SetUserInitialization(pl.release());
         }
     }
@@ -276,7 +264,7 @@ int main(int argc, char* argv[])
     }
 
     // Create params, which need to be shared with detectors as well as
-    // initialization, and can be written for output
+    // initialization, and can be written for output (default to stdout)
     auto params = std::make_shared<celeritas::SharedParams>();
 
     try
@@ -286,10 +274,19 @@ int main(int argc, char* argv[])
     catch (std::exception const& e)
     {
         CELER_LOG(critical) << "While running " << argv[1] << ": " << e.what();
-        params->output_reg()->insert(
-            std::make_shared<celeritas::ExceptionOutput>(
-                std::current_exception()));
-        params->Finalize();
+        auto e_output = std::make_shared<celeritas::ExceptionOutput>(
+            std::current_exception());
+        if (*params)
+        {
+            params->output_reg()->insert(e_output);
+            params->Finalize();
+        }
+        else
+        {
+            celeritas::OutputRegistry reg;
+            reg.insert(e_output);
+            reg.output(&std::cout);
+        }
         return EXIT_FAILURE;
     }
 

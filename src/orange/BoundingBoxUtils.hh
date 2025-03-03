@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/BoundingBoxUtils.hh
-//! \brief Host-only utilities for bounding boxes
+//! \brief Utilities for bounding boxes
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -228,27 +228,28 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * intersection, the result will be inf.
  */
 template<class T, class U>
-inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
-                             Array<U, 3> const& pos,
-                             Array<U, 3> const& dir)
+inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
+                                            Array<U, 3> const& pos,
+                                            Array<U, 3> const& dir)
 {
     CELER_EXPECT(!is_inside(bbox, pos));
 
     // Test if an intersection is outside the bbox for a given axis
-    auto out_of_bounds = [&bbox](U intersect, int ax) {
+    auto out_of_bounds = [&bbox](T intersect, int ax) {
         return !(intersect >= bbox.lower()[ax]
                  && intersect <= bbox.upper()[ax]);
     };
 
     // Check that the intersection point occurs within the region
     // bounded by the planes of the other two axes
-    auto in_bounds = [&](int ax, U dist) {
+    auto in_bounds = [&](int ax, T dist) {
         for (auto other_ax : range(to_int(Axis::size_)))
         {
             if (other_ax == ax)
                 continue;
 
-            auto intersect = pos[other_ax] + dist * dir[other_ax];
+            auto intersect
+                = celeritas::fma<T>(dist, dir[other_ax], pos[other_ax]);
             if (out_of_bounds(intersect, other_ax))
                 return false;
         }
@@ -256,8 +257,8 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
     };
 
     // Loop over all 6 planes to find the minimum intersection
-    U min_dist = numeric_limits<U>::infinity();
-    for (auto bound : range(to_int(Bound::size_)))
+    T min_dist = numeric_limits<T>::infinity();
+    for (auto bound : range(Bound::size_))
     {
         for (auto ax : range(to_int(Axis::size_)))
         {
@@ -267,10 +268,9 @@ inline U calc_dist_to_inside(BoundingBox<T> const& bbox,
                 continue;
             }
 
-            U dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
+            T dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
                      / dir[ax];
-
-            if (dist < 0)
+            if (dist <= 0)
             {
                 // Short circut if the plane is behind us
                 continue;

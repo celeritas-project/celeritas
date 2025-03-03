@@ -10,8 +10,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
 
 #include "Types.hh"
 
@@ -23,7 +23,7 @@ namespace optical
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-using ValueGrid = GenericGridRecord;
+using ValueGrid = NonuniformGridRecord;
 using ValueGridId = OpaqueId<ValueGrid>;
 
 //---------------------------------------------------------------------------//

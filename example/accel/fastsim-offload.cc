@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/accel/fastsim-offload.cc
+//! \file accel/fastsim-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
@@ -35,34 +35,23 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
-#if G4VERSION_NUMBER >= 1100
+#if G4VERSION_NUMBER >= 1200
 #    include <G4RunManagerFactory.hh>
 #else
 #    include <G4MTRunManager.hh>
 #endif
 
 #include <accel/AlongStepFactory.hh>
-#include <accel/FastSimulationOffload.hh>
-#include <accel/LocalTransporter.hh>
+#include <accel/FastSimulationIntegration.hh>
+#include <accel/FastSimulationModel.hh>
 #include <accel/SetupOptions.hh>
-#include <accel/SharedParams.hh>
-#include <accel/SimpleOffload.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
+using celeritas::FastSimulationIntegration;
+
 namespace
 {
-//---------------------------------------------------------------------------//
-// Global shared setup options
-celeritas::SetupOptions setup_options;
-// Shared data and GPU setup
-celeritas::SharedParams shared_params;
-// Thread-local transporter
-G4ThreadLocal celeritas::LocalTransporter local_transporter;
-
-// Simple interface to running celeritas
-G4ThreadLocal celeritas::SimpleOffload simple_offload;
-
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
@@ -71,17 +60,12 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
         : aluminum_{new G4Material{
               "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
-        setup_options.make_along_step = celeritas::UniformAlongStepFactory();
-
-        // NOTE: since no SD is enabled, we must manually disable Celeritas hit
-        // processing
-        setup_options.sd.enabled = false;
     }
 
     G4VPhysicalVolume* Construct() final
     {
-        CELER_LOG_LOCAL(status) << "Setting up detector";
-        auto* box = new G4Box("world", 1000 * cm, 1000 * cm, 1000 * cm);
+        CELER_LOG_LOCAL(status) << "Setting up geometry";
+        auto* box = new G4Box("world", 100 * cm, 100 * cm, 100 * cm);
         auto* lv = new G4LogicalVolume(box, aluminum_, "world");
         auto* pv = new G4PVPlacement(
             0, G4ThreeVector{}, lv, "world", nullptr, false, 0);
@@ -90,16 +74,13 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 
     void ConstructSDandField() final
     {
-        CELER_LOG_LOCAL(status) << "Creating FastSimulationOffload for "
-                                   "default region";
+        CELER_LOG_LOCAL(status)
+            << R"(Creating FastSimulationModel for default region)";
         G4Region* default_region = G4RegionStore::GetInstance()->GetRegion(
             "DefaultRegionForTheWorld");
         // Underlying GVFastSimulationModel constructor handles ownership, so
-        // we can ignore the returned pointer...
-        new celeritas::FastSimulationOffload("accel::FastSimulationOffload",
-                                             default_region,
-                                             &shared_params,
-                                             &local_transporter);
+        // we must ignore the returned pointer...
+        new celeritas::FastSimulationModel(default_region);
     }
 
   private:
@@ -107,20 +88,20 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
+// Generate 200 MeV pi+
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction()
     {
         auto g4particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(2112);
+            = G4ParticleTable::GetParticleTable()->FindParticle(211);
         gun_.SetParticleDefinition(g4particle_def);
-        gun_.SetParticleEnergy(100 * GeV);
+        gun_.SetParticleEnergy(200 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
         gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0});  // +x
     }
 
-    // Generate 100 GeV neutrons
     void GeneratePrimaries(G4Event* event) final
     {
         CELER_LOG_LOCAL(status) << "Generating primaries";
@@ -137,21 +118,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        simple_offload.BeginOfRunAction(run);
+        FastSimulationIntegration::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        simple_offload.EndOfRunAction(run);
-    }
-};
-
-//---------------------------------------------------------------------------//
-class EventAction final : public G4UserEventAction
-{
-  public:
-    void BeginOfEventAction(G4Event const* event) final
-    {
-        simple_offload.BeginOfEventAction(event);
+        FastSimulationIntegration::Instance().EndOfRunAction(run);
     }
 };
 
@@ -161,7 +132,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        simple_offload.BuildForMaster(&setup_options, &shared_params);
+        FastSimulationIntegration::Instance().BuildForMaster();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -169,16 +140,41 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
     void Build() const final
     {
-        simple_offload.Build(
-            &setup_options, &shared_params, &local_transporter);
+        FastSimulationIntegration::Instance().Build();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
-        this->SetUserAction(new EventAction{});
     }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct options for Celeritas.
+ */
+celeritas::SetupOptions MakeOptions()
+{
+    celeritas::SetupOptions opts;
+    // NOTE: these numbers are appropriate for CPU execution
+    opts.max_num_tracks = 2024;
+    opts.initializer_capacity = 2024 * 128;
+    // Celeritas does not support EmStandard MSC physics above 200 MeV
+    opts.ignore_processes = {"CoulombScat"};
+
+    // NOTE: since no SD is enabled, we must manually disable Celeritas hit
+    // processing
+    opts.sd.enabled = false;
+
+    // Use a uniform (zero) magnetic field
+    opts.make_along_step = celeritas::UniformAlongStepFactory();
+
+    // Export a GDML file with the problem setup and SDs
+    opts.geometry_output_file = "simple-example.gdml";
+    // Save diagnostic file to a unique name
+    opts.output_file = "fastsim-offload.out.json";
+    return opts;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -186,7 +182,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 int main()
 {
     auto run_manager = [] {
-#if G4VERSION_NUMBER >= 1100
+#if G4VERSION_NUMBER >= 1200
         return std::unique_ptr<G4RunManager>{
             G4RunManagerFactory::CreateRunManager()};
 #else
@@ -209,20 +205,10 @@ int main()
 
     run_manager->SetUserInitialization(new ActionInitialization());
 
-    // NOTE: these numbers are appropriate for CPU execution
-    setup_options.max_num_tracks = 1024;
-    setup_options.initializer_capacity = 1024 * 128;
-    // Celeritas does not support EmStandard MSC physics above 100 MeV
-    setup_options.ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
-        // consistent
-        setup_options.ignore_processes.push_back("Rayl");
-    }
+    FastSimulationIntegration::Instance().SetOptions(MakeOptions());
 
     run_manager->Initialize();
-    run_manager->BeamOn(1);
+    run_manager->BeamOn(2);
 
     return 0;
 }

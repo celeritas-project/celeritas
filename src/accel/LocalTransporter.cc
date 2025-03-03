@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
@@ -22,16 +23,22 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "corecel/sys/TraceCounter.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/ActionSequence.hh"
+#include "celeritas/global/Stepper.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -40,7 +47,6 @@
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 
-#include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -54,6 +60,45 @@ bool nonfatal_flush()
         return result.value;
     }();
     return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Trace the number of active, alive, dead, and queued tracks
+class TrackCounters
+{
+  public:
+    TrackCounters()
+    {
+        if (use_profiling())
+        {
+            std::string stream_id = std::to_string(get_geant_thread_id());
+            active_counter_ = std::string("active-" + stream_id);
+            alive_counter_ = std::string("alive-" + stream_id);
+            dead_counter_ = std::string("dead-" + stream_id);
+            queued_counter_ = std::string("queued-" + stream_id);
+        }
+    };
+
+    void operator()(StepperResult const& track_counts) const
+    {
+        trace_counter(active_counter_.c_str(), track_counts.active);
+        trace_counter(alive_counter_.c_str(), track_counts.alive);
+        trace_counter(dead_counter_.c_str(),
+                      track_counts.active - track_counts.alive);
+        trace_counter(queued_counter_.c_str(), track_counts.queued);
+    }
+
+  private:
+    std::string active_counter_;
+    std::string alive_counter_;
+    std::string dead_counter_;
+    std::string queued_counter_;
+};
+
+void trace(StepperResult const& track_counts)
+{
+    static thread_local TrackCounters const trace_;
+    trace_(track_counts);
 }
 
 #define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
@@ -90,11 +135,12 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
-    CELER_VALIDATE(params,
-                   << "Celeritas SharedParams was not initialized before "
-                      "constructing LocalTransporter (perhaps the master "
-                      "thread did not call BeginOfRunAction?");
+    CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
+                   << "cannot create local transporter when Celeritas "
+                      "offloading is disabled");
     particles_ = params.Params()->particle();
+    CELER_ASSERT(particles_);
+    bbox_ = params.bbox();
 
     auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
@@ -170,7 +216,7 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
-    ++accum_num_events_;
+    ++run_accum_.events;
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -189,6 +235,23 @@ void LocalTransporter::InitializeEvent(int id)
 void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
+
+    if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
+        !is_inside(bbox_, pos))
+    {
+        // Primary may have been created by a particle generator outside the
+        // geometry
+        double energy = g4track.GetKineticEnergy() / CLHEP::MeV;
+        CELER_LOG(debug)
+            << "Discarding track outside world: " << energy << " MeV from "
+            << g4track.GetDefinition()->GetParticleName() << " at " << pos
+            << " along "
+            << convert_from_geant(g4track.GetMomentumDirection(), 1);
+
+        buffer_accum_.lost_energy += energy;
+        ++buffer_accum_.lost_primaries;
+        return;
+    }
 
     Primary track;
 
@@ -220,7 +283,7 @@ void LocalTransporter::Push(G4Track const& g4track)
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
-    buffer_energy_ += track.energy.value();
+    buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
         /*!
@@ -242,12 +305,43 @@ void LocalTransporter::Flush()
     {
         return;
     }
+
+    if (event_manager_ || !event_id_)
+    {
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Save the event manager pointer, thereby marking that
+            // *subsequent* events need to have their IDs checked as well
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
+
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
+        {
+            // The event ID has changed: reseed it
+            this->InitializeEvent(event->GetEventID());
+        }
+    }
+    CELER_ASSERT(event_id_);
+
     if (celeritas::device())
     {
         CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
-            << buffer_energy_ << " MeV cumulative kinetic energy) from event "
+            << buffer_accum_.energy
+            << " MeV cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
+    }
+    if (buffer_accum_.lost_primaries > 0)
+    {
+        CELER_LOG_LOCAL(info)
+            << "Lost " << buffer_accum_.lost_energy
+            << " MeV cumulative kinetic energy from "
+            << buffer_accum_.lost_primaries
+            << " primaries that started outside the geometry in event "
+            << event_id_.unchecked_get();
     }
 
     if (dump_primaries_)
@@ -267,11 +361,13 @@ void LocalTransporter::Flush()
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
-    accum_num_steps_ += track_counts.active;
-    accum_num_primaries_ += buffer_.size();
+    run_accum_.steps += track_counts.active;
+    run_accum_.primaries += buffer_.size();
+    run_accum_.lost_primaries += buffer_accum_.lost_primaries;
+    trace(track_counts);
 
     buffer_.clear();
-    buffer_energy_ = 0;
+    buffer_accum_ = {};
 
     size_type step_iters = 1;
 
@@ -284,9 +380,9 @@ void LocalTransporter::Flush()
                                       *step_);
 
         track_counts = (*step_)();
-        accum_num_steps_ += track_counts.active;
+        run_accum_.steps += track_counts.active;
         ++step_iters;
-
+        trace(track_counts);
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
@@ -306,10 +402,16 @@ void LocalTransporter::Finalize()
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
 
-    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum_num_steps_
-                          << " from " << accum_num_primaries_
-                          << " offloaded tracks over " << accum_num_events_
+    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << run_accum_.steps
+                          << " steps from " << run_accum_.primaries
+                          << " offloaded tracks over " << run_accum_.events
                           << " events";
+    if (run_accum_.lost_primaries > 0)
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Lost a total of " << run_accum_.lost_primaries
+            << " primaries that started outside the world";
+    }
 
     if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
     {
@@ -323,6 +425,9 @@ void LocalTransporter::Finalize()
         state->ref().geometry.reset();
 #endif
     }
+
+    // Flush any remaining track counters on the worker thread
+    flush_tracing();
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";

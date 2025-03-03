@@ -15,7 +15,7 @@
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/SplineXsCalculator.hh"
+#include "celeritas/grid/SplineCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -141,7 +141,7 @@ TEST_F(PhysicsParamsTest, output)
         GTEST_SKIP() << "Test results are based on CGS units";
     }
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":269,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
         to_string(out));
 }
 
@@ -376,7 +376,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         ParticleProcessId const abs_ppid{1};
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{1}, phys.process(abs_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 
     // Celeriton
@@ -391,7 +391,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{2}, phys.process(purr_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 
     // Anti-celeriton
@@ -404,7 +404,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         ParticleProcessId const meow_ppid{1};
         EXPECT_EQ(ProcessId{3}, phys.process(hiss_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
-        EXPECT_TRUE(phys.has_at_rest());
+        EXPECT_EQ(hiss_ppid, phys.at_rest_process());
     }
 
     // Electron
@@ -412,7 +412,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         // No at-rest interaction
         PhysicsTrackView const phys
             = this->make_track_view("electron", MaterialId{1});
-        EXPECT_FALSE(phys.has_at_rest());
+        EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 }
 
@@ -510,25 +510,32 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 
     static double const expected_eloss[]
         = {0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
-    static double const expected_range[] = {5.2704627669473e-05,
-                                            0.016666666666667,
-                                            1.6666666666667,
-                                            166.66666666667,
-                                            4.5175395145263e-05,
-                                            0.014285714285714,
-                                            1.4285714285714,
-                                            142.85714285714};
-    static double const expected_step[] = {5.2704627669473e-05,
-                                           0.016666666666667,
-                                           0.48853333333333,
-                                           33.493285333333,
-                                           4.5175395145263e-05,
-                                           0.014285714285714,
-                                           0.44011428571429,
-                                           28.731372571429};
+    static double const expected_range[] = {
+        0.00010540925533895,
+        0.018333333333333,
+        1.6683333333333,
+        166.66833333333,
+        9.0350790290525e-05,
+        0.015714285714286,
+        1.43,
+        142.85857142857,
+    };
+    static double const expected_step[] = {
+        0.00010540925533895,
+        0.018333333333333,
+        0.48887146187146,
+        33.493618667147,
+        9.0350790290525e-05,
+        0.015714285714286,
+        0.44040559440559,
+        28.731658286274,
+    };
     EXPECT_VEC_SOFT_EQ(expected_eloss, eloss);
-    EXPECT_VEC_SOFT_EQ(expected_range, range);
-    EXPECT_VEC_SOFT_EQ(expected_step, step);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_range, range);
+        EXPECT_VEC_SOFT_EQ(expected_step, step);
+    }
 }
 
 TEST_F(PhysicsTrackViewHostTest, use_integral)
@@ -642,41 +649,19 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
         }
     }
 
-    double const expected_step[] = {166.6666666667,
-                                    166.6666666667,
-                                    166.6666666667,
-                                    166.6666666667,
-                                    inf,
-                                    1.428571428571e-05,
-                                    0.0001428571428571,
-                                    0.1325714285714,
-                                    3.016582857143,
-                                    3.016582857143};
+    static double const expected_step[] = {
+        166.66666666667,
+        166.66666666667,
+        166.66666666667,
+        166.66666666667,
+        inf,
+        2.8571428571429e-05,
+        0.00028571428571429,
+        0.13265594405594,
+        3.0166114341714,
+        3.0166114341714,
+    };
     EXPECT_VEC_SOFT_EQ(expected_step, step);
-}
-
-TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
-{
-    // Cross sections: same across particle types, constant in energy, scale
-    // according to material number density
-    std::vector<real_type> xs;
-    for (char const* particle : {"gamma", "celeriton"})
-    {
-        for (auto mat_id : range(MaterialId{this->material()->size()}))
-        {
-            PhysicsTrackView const phys
-                = this->make_track_view(particle, mat_id);
-            auto scat_ppid = this->find_ppid(phys, "scattering");
-            auto id = phys.macro_xs_grid(scat_ppid);
-            ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator<SplineXsCalculator>(id, 2);
-            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
-        }
-    }
-
-    double const expected_xs[]
-        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
-    EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -748,18 +733,42 @@ TEST_F(PHYS_DEVICE_TEST, all)
     phys_cuda_test(inp);
     std::vector<real_type> step_host(step.size());
     step.copy_to_host(make_span(step_host));
-    // clang-format off
-    const double expected_step_host[] = {
-        1666.666666667, 0.0001666666666667, 0.0001428571428571, 1666.666666667,
-        0.001666666666667, 0.001428571428571, 1666.666666667, 0.4885333333333,
-        0.4401142857143, 1666.666666667, 33.49328533333, 28.73137257143, inf,
-        33.49328533333, 28.73137257143, 1.666666666667, 1.666666666667e-07,
-        1.428571428571e-07, 1.666666666667, 1.666666666667e-06,
-        1.428571428571e-06, 1.666666666667, 0.001666666666667,
-        0.001428571428571, 1.666666666667, 0.1453333333333, 0.1325714285714,
-        inf, 0.1453333333333, 0.1325714285714};
-    // clang-format on
-    EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
+    static double const expected_step_host[] = {
+        1666.6666666667,
+        0.00033333333333333,
+        0.00028571428571429,
+        1666.6666666667,
+        0.0033333333333333,
+        0.0028571428571429,
+        1666.6666666667,
+        0.48887146187146,
+        0.44040559440559,
+        1666.6666666667,
+        33.493618667147,
+        28.731658286274,
+        inf,
+        33.493618667147,
+        28.731658286274,
+        1.6666666666667,
+        3.3333333333333e-07,
+        2.8571428571429e-07,
+        1.6666666666667,
+        3.3333333333333e-06,
+        2.8571428571429e-06,
+        1.6666666666667,
+        0.0016683333333333,
+        0.00143,
+        1.6666666666667,
+        0.14533414666187,
+        0.13257227428011,
+        inf,
+        0.14533414666187,
+        0.13257227428011,
+    };
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -769,9 +778,16 @@ TEST_F(PHYS_DEVICE_TEST, all)
 class EPlusAnnihilationTest : public PhysicsParamsTest
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    //!@}
+
+  public:
     SPConstMaterial build_material() override;
     SPConstParticle build_particle() override;
     SPConstPhysics build_physics() override;
+    SPConstImported build_imported();
 };
 
 //---------------------------------------------------------------------------//
@@ -809,6 +825,20 @@ auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 }
 
 //---------------------------------------------------------------------------//
+auto EPlusAnnihilationTest::build_imported() -> SPConstImported
+{
+    ImportProcess ip;
+    ip.particle_pdg = pdg::positron().get();
+    ip.secondary_pdg = pdg::gamma().get();
+    ip.process_type = ImportProcessType::electromagnetic;
+    ip.process_class = ImportProcessClass::annihilation;
+    ip.applies_at_rest = true;
+
+    return std::make_shared<ImportedProcesses const>(
+        std::vector<ImportProcess>{std::move(ip)});
+}
+
+//---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input physics_inp;
@@ -821,7 +851,7 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     epgg_options.use_integral_xs = true;
 
     physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        physics_inp.particles, epgg_options));
+        physics_inp.particles, this->build_imported(), epgg_options));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 

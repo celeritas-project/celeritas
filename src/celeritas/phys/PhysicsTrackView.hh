@@ -131,8 +131,8 @@ class PhysicsTrackView
         TabulatedElementSelector make_element_selector(ValueTableId,
                                                        Energy) const;
 
-    // Whether the particle can have a discrete interaction at rest
-    inline CELER_FUNCTION bool has_at_rest() const;
+    // ID of the particle's at-rest process
+    inline CELER_FUNCTION ParticleProcessId at_rest_process() const;
 
     //// PARAMETER DATA ////
 
@@ -160,11 +160,6 @@ class PhysicsTrackView
     // Construct a grid calculator from a physics table
     template<class T>
     inline CELER_FUNCTION T make_calculator(ValueGridId) const;
-
-    // Construct a grid calculator from a physics table
-    template<class T>
-    inline CELER_FUNCTION T make_calculator(ValueGridId,
-                                            size_type order) const;
 
     //// HACKS ////
 
@@ -563,11 +558,14 @@ PhysicsTrackView::make_element_selector(ValueTableId table_id,
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the particle can have a discrete interaction at rest.
+ * ID of the particle's at-rest process.
+ *
+ * If the partcle can have a discrete interaction at rest, this returns the \c
+ * ParticleProcessId of that process. Otherwise, it returns an invalid ID.
  */
-CELER_FUNCTION bool PhysicsTrackView::has_at_rest() const
+CELER_FUNCTION ParticleProcessId PhysicsTrackView::at_rest_process() const
 {
-    return this->process_group().has_at_rest;
+    return this->process_group().at_rest;
 }
 
 //---------------------------------------------------------------------------//
@@ -688,21 +686,6 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 {
     CELER_EXPECT(id < params_.value_grids.size());
     return T{params_.value_grids[id], params_.reals};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a Spline grid calculator of the given type
- *
- * The calculator must take three arguments: a reference to XsGridRef, a
- * reference to the Values data structure, and an interpolation order.
- */
-template<class T>
-CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id,
-                                                   size_type order) const
-{
-    CELER_EXPECT(id < params_.value_grids.size());
-    return T{params_.value_grids[id], params_.reals, order};
 }
 
 //---------------------------------------------------------------------------//

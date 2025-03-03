@@ -9,8 +9,8 @@
 #include <memory>
 #include <vector>
 
-#include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/grid/XsGridInserter.hh"
 
 #include "celeritas_test.hh"
 
@@ -30,9 +30,9 @@ class ValueGridBuilderTest : public Test
   public:
     using SPConstBuilder = std::shared_ptr<ValueGridBuilder const>;
     using VecBuilder = std::vector<SPConstBuilder>;
-    using VeDbl = std::vector<double>;
+    using VecDbl = std::vector<double>;
     using Energy = XsCalculator::Energy;
-    using XsIndex = ValueGridInserter::XsIndex;
+    using GridId = XsGridInserter::GridId;
 
   protected:
     void build(VecBuilder const& entries)
@@ -40,7 +40,7 @@ class ValueGridBuilderTest : public Test
         CELER_EXPECT(!entries.empty());
 
         // Insert
-        ValueGridInserter insert(&real_storage, &grid_storage);
+        XsGridInserter insert(&real_storage, &grid_storage);
         for (SPConstBuilder const& b : entries)
         {
             b->build(insert);
@@ -50,7 +50,7 @@ class ValueGridBuilderTest : public Test
 
     Collection<real_type, Ownership::value, MemSpace::host> real_storage;
     Collection<real_type, Ownership::const_reference, MemSpace::host> real_ref;
-    Collection<XsGridData, Ownership::value, MemSpace::host> grid_storage;
+    Collection<XsGridRecord, Ownership::value, MemSpace::host> grid_storage;
 };
 
 //---------------------------------------------------------------------------//
@@ -60,11 +60,13 @@ class ValueGridBuilderTest : public Test
 TEST_F(ValueGridBuilderTest, xs_grid)
 {
     using Builder_t = ValueGridXsBuilder;
+    using GridInput = ValueGridXsBuilder::GridInput;
 
     VecBuilder entries;
     {
         entries.push_back(make_shared<Builder_t>(
-            1e1, 1e2, 1e3, VeDbl{.1, .2 * 1e2, .3 * 1e3}));
+            GridInput{1e1, 1e2, {0.1, 0.2 * 1e2}},
+            GridInput{1e2, 1e3, {0.2 * 1e2, 0.3 * 1e3}}));
     }
     {
         double const lambda_energy[] = {1e-3, 1e-2, 1e-1};
@@ -76,7 +78,8 @@ TEST_F(ValueGridBuilderTest, xs_grid)
             lambda_energy, lambda, lambda_prim_energy, lambda_prim));
     }
     {
-        entries.push_back(make_shared<Builder_t>(1e-4, 1, 1e8, VeDbl(55)));
+        entries.push_back(make_shared<Builder_t>(
+            GridInput{1e-4, 1, VecDbl(18)}, GridInput{1, 1e8, VecDbl(38)}));
     }
 
     // Build
@@ -85,13 +88,13 @@ TEST_F(ValueGridBuilderTest, xs_grid)
     // Test results using the physics calculator
     ASSERT_EQ(3, grid_storage.size());
     {
-        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_ref);
+        XsCalculator calc_xs(grid_storage[GridId{0}], real_ref);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
     }
     {
-        XsCalculator calc_xs(grid_storage[XsIndex{1}], real_ref);
+        XsCalculator calc_xs(grid_storage[GridId{1}], real_ref);
         EXPECT_SOFT_EQ(10., calc_xs(Energy{1e-3}));
         EXPECT_SOFT_EQ(1., calc_xs(Energy{1e-2}));
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e-1}));
@@ -106,7 +109,7 @@ TEST_F(ValueGridBuilderTest, log_grid)
 
     VecBuilder entries;
     {
-        entries.push_back(make_shared<Builder_t>(1e1, 1e3, VeDbl{.1, .2, .3}));
+        entries.push_back(make_shared<Builder_t>(1e1, 1e3, VecDbl{.1, .2, .3}));
     }
 
     // Build
@@ -115,7 +118,7 @@ TEST_F(ValueGridBuilderTest, log_grid)
     // Test results using the physics calculator
     ASSERT_EQ(1, grid_storage.size());
     {
-        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_ref);
+        XsCalculator calc_xs(grid_storage[GridId{0}], real_ref);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));

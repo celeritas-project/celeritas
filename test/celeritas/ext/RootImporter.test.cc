@@ -187,18 +187,20 @@ TEST_F(RootImporterTest, volumes)
     }
 
     unsigned int const expected_material_ids[] = {1, 1, 1, 1, 0};
-
-    static char const* expected_names[] = {"box0x125555be0",
-                                           "box0x125556d20",
-                                           "box0x125557160",
-                                           "box0x1255575a0",
-                                           "World0x125555f10"};
-
-    static char const* expected_solids[] = {"box0x125555b70",
-                                            "box0x125556c70",
-                                            "box0x1255570a0",
-                                            "box0x125557500",
-                                            "World0x125555ea0"};
+    static char const* expected_names[] = {
+        "box@0",
+        "box@1",
+        "box@2",
+        "box@3",
+        "World",
+    };
+    static char const* expected_solids[] = {
+        "box",
+        "box",
+        "box",
+        "box",
+        "World",
+    };
 
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);

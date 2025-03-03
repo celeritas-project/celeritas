@@ -23,6 +23,7 @@ namespace celeritas
 namespace inp
 {
 struct FrameworkInput;
+struct GeantSd;
 }
 
 struct AlongStepFactoryInput;
@@ -67,7 +68,7 @@ struct AlongStepFactoryInput;
  * FindVolumes helper function can be used to determine LV pointers from
  * the volume names.
  *
- * \note These setup options affect only the \c HitManager construction that is
+ * \note These setup options affect only the \c GeantSd construction that is
  * responsible for reconstructing CPU hits and sending directly to the Geant4
  * detectors. It does not change the underlying physics.
  *
@@ -145,7 +146,7 @@ struct SetupOptions
 
     //! GDML filename (optional: defaults to exporting existing Geant4)
     std::string geometry_file;
-    //! Filename for JSON diagnostic output
+    //! Filename for JSON diagnostic output, empty to disable
     std::string output_file{"celeritas.out.json"};
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
@@ -223,6 +224,11 @@ struct SetupOptions
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
     //!@}
+
+    explicit inline operator bool() const
+    {
+        return max_num_tracks > 0 && static_cast<bool>(make_along_step);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -232,6 +238,9 @@ struct SetupOptions
 // Find volumes by name for SDSetupOptions
 std::unordered_set<G4LogicalVolume const*>
     FindVolumes(std::unordered_set<std::string>);
+
+// Convert SD options for forward compatibility
+inp::GeantSd to_inp(SDSetupOptions const& so);
 
 // Construct a framework input
 inp::FrameworkInput to_inp(SetupOptions const& so);

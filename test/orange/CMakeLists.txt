@@ -6,6 +6,7 @@
 celeritas_add_test_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
+  g4org/GeantLoadTestBase.cc
   orangeinp/CsgTestUtils.cc
   orangeinp/ObjectTestBase.cc
 )
@@ -51,7 +52,8 @@ celeritas_add_test(RaytraceImager.test.cc GPU)
 
 # High level
 celeritas_add_test(Orange.test.cc)
-celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org})
+celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(OrangeJson.test.cc)
 celeritas_add_device_test(OrangeShift)
 
@@ -65,6 +67,9 @@ celeritas_add_test(detail/BIHUtils.test.cc)
 
 # Oriented Bounding Zone
 celeritas_add_test(detail/OrientedBoundingZone.test.cc)
+
+# Logic utilities
+celeritas_add_test(detail/LogicUtils.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Input construction
@@ -137,7 +142,6 @@ celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
-
 
 #-----------------------------------------------------------------------------#
 # Geant4 construction

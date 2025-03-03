@@ -35,11 +35,12 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/grid/RangeGridCalculator.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/grid/XsGridInserter.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -59,6 +60,10 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+using Values
+    = Collection<real_type, Ownership::const_reference, MemSpace::native>;
+
+//---------------------------------------------------------------------------//
 class ImplicitPhysicsAction final : public StaticConcreteAction
 {
   public:
@@ -71,6 +76,47 @@ class ImplicitPhysicsAction final : public StaticConcreteAction
 bool is_fake_particle(PDGNumber pdg)
 {
     return pdg.get() >= 81 && pdg.get() <= 100;
+}
+
+//---------------------------------------------------------------------------//
+//! Calculate the energy of the maximum cross section.
+real_type calc_energy_max_xs(UniformGridRecord const& data, Values const& reals)
+{
+    UniformGrid loge_grid(data.grid);
+    UniformLogGridCalculator calc_xs(data, reals);
+
+    real_type xs_max = 0;
+    real_type result = 0;
+    for (auto i : range(loge_grid.size()))
+    {
+        real_type xs = calc_xs[i];
+        if (xs > xs_max)
+        {
+            xs_max = xs;
+            result = std::exp(loge_grid[i]);
+        }
+    }
+    CELER_ENSURE(result > 0);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Calculate the energy of the maximum cross section.
+real_type calc_energy_max_xs(XsGridRecord const& data, Values const& reals)
+{
+    CELER_EXPECT(data);
+
+    real_type result{0};
+    if (data.lower)
+    {
+        result = calc_energy_max_xs(data.lower, reals);
+    }
+    if (data.upper)
+    {
+        result = max(result, calc_energy_max_xs(data.upper, reals));
+    }
+    CELER_ENSURE(result > 0);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -467,7 +513,7 @@ void PhysicsParams::build_xs(Options const& opts,
     using Energy = Applicability::Energy;
     using VGT = ValueGridType;
 
-    ValueGridInserter insert_grid(&data->reals, &data->value_grids);
+    XsGridInserter insert_grid(&data->reals, &data->value_grids);
     auto value_tables = make_builder(&data->value_tables);
     auto integral_xs = make_builder(&data->integral_xs);
     auto value_grid_ids = make_builder(&data->value_grid_ids);
@@ -514,7 +560,7 @@ void PhysicsParams::build_xs(Options const& opts,
             // Grid IDs for each grid type, each material
             std::vector<ValueGridId> xs_grid_ids(mats.size());
             std::vector<ValueGridId> eloss_grid_ids(mats.size());
-            std::vector<ValueGridId> range_grid_ids(mats.size());
+            std::vector<ValueGridId> range_grid_ids(mats.size(), ValueGridId{});
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
@@ -523,6 +569,22 @@ void PhysicsParams::build_xs(Options const& opts,
             if (use_integral_xs)
             {
                 energy_max_xs.resize(mats.size());
+            }
+
+            if (proc.applies_at_rest())
+            {
+                /* \todo For now assume only one process per particle applies
+                 * at rest. If a particle has multiple at-rest processes, we
+                 * will need to check which process has the shortest time to
+                 * interaction and choose that process in \c
+                 * select_discrete_interaction.
+                 */
+                CELER_VALIDATE(!process_groups.at_rest,
+                               << "particle ID " << particle_id.get()
+                               << " has multiple at-rest processes");
+
+                // Discrete interaction can occur at rest
+                process_groups.at_rest = ParticleProcessId(pp_idx);
             }
 
             // Loop over materials
@@ -544,49 +606,47 @@ void PhysicsParams::build_xs(Options const& opts,
                 xs_grid_ids[mat_idx] = build_grid(builders[VGT::macro_xs]);
                 eloss_grid_ids[mat_idx]
                     = build_grid(builders[VGT::energy_loss]);
-                range_grid_ids[mat_idx] = build_grid(builders[VGT::range]);
-
-                if (processes[pp_idx] == data->hardwired.positron_annihilation)
+                if (auto grid_id = eloss_grid_ids[mat_idx])
                 {
-                    // Discrete interaction can occur at rest
-                    process_groups.has_at_rest = true;
+                    //! \todo make the interpolation method configurable?
 
-                    if (use_integral_xs)
+                    // Build the range grid from the energy loss
+                    auto const& grid = data->value_grids[grid_id];
+                    auto const range = RangeGridCalculator(BC::geant)(
+                        grid.lower, make_const_ref(*data).reals);
+                    range_grid_ids[mat_idx]
+                        = insert_grid(grid.lower.grid, make_span(range));
+                }
+
+                if (auto grid_id = eloss_grid_ids[mat_idx])
+                {
+                    /*
+                     * \todo Possibly set the spline order for other grid
+                     * types. Store in the import data which physics vectors
+                     * use spline interpolation. Update the physics options to
+                     * support cubic spline interpolation as well.
+                     */
+                    data->value_grids[grid_id].lower.spline_order
+                        = data->scalars.spline_eloss_order;
+                }
+
+                if (use_integral_xs)
+                {
+                    // Find and store the energy of the largest cross section
+                    // for this material if the integral approach is used
+
+                    if (processes[pp_idx]
+                        == data->hardwired.positron_annihilation)
                     {
                         // Annihilation cross section is maximum at zero and
                         // decreases with increasing energy
                         energy_max_xs[mat_idx] = 0;
                     }
-                }
-                else if (auto grid_id = xs_grid_ids[mat_idx])
-                {
-                    auto const& grid_data = data->value_grids[grid_id];
-                    auto data_ref = make_const_ref(*data);
-                    UniformGrid const loge_grid(grid_data.log_energy);
-                    XsCalculator const calc_xs(grid_data, data_ref.reals);
-
-                    // Check if the particle can have a discrete interaction at
-                    // rest
-                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
-
-                    // Find and store the energy of the largest cross section
-                    // for this material if the integral approach is used
-                    if (use_integral_xs)
+                    else if (auto grid_id = xs_grid_ids[mat_idx])
                     {
-                        // Find the energy of the largest cross section
-                        real_type xs_max = 0;
-                        real_type e_max = 0;
-                        for (auto i : range(loge_grid.size()))
-                        {
-                            real_type xs = calc_xs[i];
-                            if (xs > xs_max)
-                            {
-                                xs_max = xs;
-                                e_max = std::exp(loge_grid[i]);
-                            }
-                        }
-                        CELER_ASSERT(e_max > 0);
-                        energy_max_xs[mat_idx] = e_max;
+                        energy_max_xs[mat_idx]
+                            = calc_energy_max_xs(data->value_grids[grid_id],
+                                                 make_const_ref(*data).reals);
                     }
                 }
             }
@@ -652,7 +712,7 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
 {
     CELER_EXPECT(*data);
 
-    ValueGridInserter insert_grid(&data->reals, &data->value_grids);
+    XsGridInserter insert_grid(&data->reals, &data->value_grids);
 
     // Micro xs grid IDs for each model and applicable particle, each material,
     // and each element in the material
@@ -733,14 +793,18 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
 
             // Get the xs value for the given element and bin
             auto get_value = [&](size_type elcomp, size_type bin) -> real_type& {
-                XsGridData& grid = data->value_grids[grid_ids[elcomp]];
+                XsGridRecord& xs_grid = data->value_grids[grid_ids[elcomp]];
+                CELER_ASSERT(!xs_grid.upper);
+                UniformGridRecord& grid = xs_grid.lower;
                 CELER_ASSERT(bin < grid.value.size());
                 return data->reals[grid.value[bin]];
             };
 
             // Get the number of grid points: the energy grids are the
             // same for each element in the material
-            size_type num_bins = data->value_grids[grid_ids[0]].value.size();
+            CELER_ASSERT(!data->value_grids[grid_ids[0]].upper);
+            size_type num_bins
+                = data->value_grids[grid_ids[0]].lower.value.size();
 
             // Calculate the cross section CDF
             auto const&& elements = mats.get(MaterialId{mat_idx}).elements();

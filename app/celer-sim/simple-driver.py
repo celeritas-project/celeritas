@@ -17,17 +17,9 @@ except ValueError:
     print("usage: {} inp.gdml inp.hepmc3 mctruth.root (use '' for no ROOT output)".format(argv[0]))
     exit(1)
 
-def strtobool(text):
-    text = text.lower()
-    if text in {"true", "on", "yes", "1"}:
-        return True
-    if text in {"false", "off", "no", "0"}:
-        return False
-    raise ValueError(text)
-
 # We reuse the "disable device" environment variable, which prevents the GPU
-# from being initialized at runtime.
-use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
+# from being initialized at runtime if non-empty.
+use_device = not environ.get('CELER_DISABLE_DEVICE')
 core_geo = environ.get('CELER_CORE_GEO', 'ORANGE').lower()
 geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
 
@@ -53,6 +45,7 @@ physics_options = {
     }
 }
 
+physics_filename = None
 if geant_exp_exe:
     physics_filename = run_name + ".root"
     inp_file = f'{run_name}.geant.json'
@@ -69,13 +62,10 @@ if geant_exp_exe:
     if result_ge.returncode:
         print(f"fatal: {geant_exp_exe} failed with error {result_ge.returncode}")
         exit(result_ge.returncode)
-else:
-    # Load directly from Geant4 rather than ROOT file
-    physics_filename = geometry_filename
 
 if core_geo == "orange-json":
-    print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
-    geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
+    print("Replacing .gdml extension since VecGeom and Geant4 conversion are disabled", file=stderr)
+    env['ORANGE_FORCE_INPUT'] = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
 simple_calo = []
 if not rootout_filename and "cms" in geometry_filename:
@@ -91,25 +81,16 @@ if not use_device:
     # shorten to an unreasonably small number to reduce test time.
     max_steps = 256
 
-# TODO: Update once tracking loop is implemented
-optical_options = {
-    'num_track_slots': num_tracks,
-    'buffer_capacity': 3 * max_steps * num_tracks,
-    'initializer_capacity': num_tracks,
-    'auto_flush': 2**31, # Large enough to never launch optical loop
-}
-
 inp = {
     'use_device': use_device,
     'geometry_file': geometry_filename,
-    'physics_file': physics_filename,
     'event_file': event_filename,
     'mctruth_file': rootout_filename,
     'seed': 12345,
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
     'spline_eloss_order': spline_eloss_order,
-    'initializer_capacity': 100 * max([num_tracks, num_primaries]),
+    'initializer_capacity': 100 * num_tracks,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
     'step_diagnostic': True,
@@ -122,9 +103,22 @@ inp = {
     'brem_combined': True,
     'physics_options': physics_options,
     'field': None,
-    'optical': optical_options,
     'slot_diagnostic_prefix': f"slot-diag-{run_name}-",
 }
+
+if "lar" in geometry_filename:
+    inp['optical'] = {
+        'num_track_slots': num_tracks,
+        'buffer_capacity': 3 * max_steps * num_tracks,
+        'initializer_capacity': num_tracks,
+        'auto_flush': 2**31, # Large enough to never launch optical loop
+    }
+
+if "simple-cms" in geometry_filename:
+    inp['merge_events'] = True
+
+if physics_filename:
+    inp['physics_file'] = physics_filename
 
 inp_file = f'{run_name}.inp.json'
 with open(inp_file, 'w') as f:
@@ -166,14 +160,47 @@ with open(out_file, 'w') as f:
     json.dump(j, f, indent=1)
 print("Results written to", out_file, file=stderr)
 
-run_output =j['result']['runner']
+run_output = j['result']['runner']
 time = run_output['time'].copy()
 steps = time.pop('steps')
 if use_device:
     assert steps
-    assert len(steps[0]) == run_output['num_step_iterations'][0]
+    assert len(steps[0]) == run_output['num_step_iterations'][0], steps[0]
 else:
     # Step times disabled on CPU from input
-    assert steps is None
+    assert steps is None, steps
+
+internal = j["internal"]
+core_sizes = internal["core-sizes"].copy()
+num_streams = core_sizes.pop("streams")
+if "openmp" not in j["system"]["build"]["config"]["use"]:
+    assert num_streams == 1
+if inp["merge_events"]:
+    assert num_streams == 1
+
+expected_core_sizes = None
+expected_opt_sizes = None
+if not use_device:
+    expected_core_sizes =  {
+       "events": 4,
+       "initializers": 3200,
+       "processes": 1,
+       "secondaries": 96,
+       "tracks": 32
+      }
+if not use_device and "lar" in geometry_filename:
+    expected_opt_sizes = {
+       "generators": 24576,
+       "initializers": 32,
+       "tracks": 32
+    }
+
+
+if expected_core_sizes: 
+    assert core_sizes == expected_core_sizes, core_sizes
+if expected_opt_sizes:
+    opt_sizes = internal["optical-sizes"].copy()
+    assert num_streams == opt_sizes.pop("streams")
+    assert opt_sizes == expected_opt_sizes, opt_sizes
 
 print(json.dumps(time, indent=1))

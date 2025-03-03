@@ -13,6 +13,8 @@
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
+#include <VecGeom/management/ReflFactory.h>
+#include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "corecel/Config.hh"
@@ -27,12 +29,17 @@
 #    include <VecGeom/gdml/Frontend.h>
 #endif
 
+#if CELERITAS_USE_GEANT4
+#    include <G4VG.hh>
+#endif
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -41,9 +48,10 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/detail/LengthUnits.hh"
-#include "geocel/g4vg/Converter.hh"
+#include "geocel/detail/MakeLabelVector.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
+#include "VisitVolumes.hh"
 
 #include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
@@ -95,6 +103,92 @@ int vecgeom_verbosity()
         return std::stoi(var);
     }();
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible vector of LV instance ID -> label from the given world.
+ */
+std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
+{
+    using VolT = vecgeom::LogicalVolume;
+    std::unordered_map<std::string, std::vector<VolT const*>> names;
+    visit_volumes(
+        [&](VolT const& lv) {
+            std::string name{lv.GetLabel()};
+            if (starts_with(name, "[TEMP]"))
+            {
+                // Temporary volume not directly used in transport, generated
+                // by g4vg
+                return;
+            }
+
+            // In case it's loaded by vgdml, strip the pointer
+            if (auto pos = name.find("0x"); pos != std::string::npos)
+            {
+                // Copy pointer as 'extension' and delete from name
+                name.erase(name.begin() + pos, name.end());
+            }
+
+            // Add to name map
+            names[name].push_back(&lv);
+        },
+        world);
+
+    return detail::make_label_vector<VolT>(
+        std::move(names), [](VolT const& vol) { return vol.id(); });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible vector of PV instance ID -> label from the given world.
+ */
+std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
+{
+    using VolT = vecgeom::VPlacedVolume;
+    std::unordered_map<VolT const*, int> max_depth;
+    std::unordered_map<std::string, std::vector<VolT const*>> names;
+
+    // Visit PVs, mapping names to instances, skipping those that have already
+    // been visited at a deeper level
+    visit_volume_instances(
+        [&](VolT const& pv, int depth) {
+            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+            if (!inserted)
+            {
+                if (iter->second >= depth)
+                {
+                    // Already visited PV at this depth or more
+                    return false;
+                }
+                // Update the max depth
+                iter->second = depth;
+            }
+
+            std::string name = pv.GetLabel();
+            if (starts_with(name, "[TEMP]"))
+            {
+                // Temporary volume not directly used in tracking
+                return false;
+            }
+
+            if (ends_with(name, "_refl")
+                && vecgeom::ReflFactory::Instance().IsReflected(
+                    pv.GetLogicalVolume()))
+            {
+                // Strip suffix for consistency with Geant4
+                name.erase(name.end() - 5, name.end());
+            }
+
+            // Add to name map
+            names[std::move(name)].push_back(&pv);
+            // Visit daughters
+            return true;
+        },
+        world);
+
+    return detail::make_label_vector<VolT>(
+        std::move(names), [](VolT const& vol) { return vol.id(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -271,10 +365,16 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
 {
     // Convert the geometry to VecGeom
     ScopedProfiling profile_this{"load-vecgeom"};
-    g4vg::Converter::Options opts;
+    ScopedMem record_mem("Converter.convert");
+    ScopedTimeLog scoped_time;
+#if CELERITAS_USE_GEANT4
+    g4vg::Options opts;
     opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
-    g4vg::Converter convert{opts};
-    auto result = convert(world);
+    opts.scale = static_cast<double>(lengthunits::millimeter);
+    opts.append_pointers = false;
+    opts.verbose = static_cast<bool>(vecgeom_verbosity());
+    opts.reflection_factory = false;
+    auto result = g4vg::convert(world, opts);
     CELER_ASSERT(result.world != nullptr);
     g4log_volid_map_.reserve(result.logical_volumes.size());
     for (auto vol_idx : range(result.logical_volumes.size()))
@@ -305,6 +405,10 @@ void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
 
     // NOTE: setting and closing changes the world
     CELER_ASSERT(vg_manager.GetWorld() != nullptr);
+#else
+    CELER_DISCARD(world);
+    CELER_NOT_CONFIGURED("Geant4");
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -545,84 +649,23 @@ void VecgeomParams::build_metadata()
 {
     ScopedMem record_mem("VecgeomParams.build_metadata");
 
+    using namespace vecgeom;
+
+    auto& vg_manager = GeoManager::Instance();
+    CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
+    VPlacedVolume const* world = vg_manager.GetWorld();
+    CELER_ASSERT(world);
+
     // Construct volume labels
-    volumes_ = VolumeMap{
-        "volume", [] {
-            auto& vg_manager = vecgeom::GeoManager::Instance();
-            CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
-
-            std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
-
-            for (auto vol_idx : range<VolumeId::size_type>(result.size()))
-            {
-                // Get label
-                vecgeom::LogicalVolume const* vol
-                    = vg_manager.FindLogicalVolume(vol_idx);
-                CELER_ASSERT(vol);
-
-                auto label = [vol] {
-                    std::string const& label = vol->GetLabel();
-                    if (starts_with(label, "[TEMP]"))
-                    {
-                        // Temporary volume not directly used in transport
-                        return Label{};
-                    }
-                    return Label::from_geant(label);
-                }();
-
-                result[vol_idx] = std::move(label);
-            }
-            return result;
-        }()};
-
-    // Construct volume instance labels
-    vol_instances_ = VolInstanceMap{
-        "volume instance", [] {
-            auto& vg_manager = vecgeom::GeoManager::Instance();
-            CELER_EXPECT(vg_manager.GetPlacedVolumesCount() > 0);
-
-            std::vector<Label> result(vg_manager.GetPlacedVolumesCount());
-
-            for (auto vol_idx : range<VolumeId::size_type>(result.size()))
-            {
-                // Get label
-                vecgeom::VPlacedVolume const* vol
-                    = vg_manager.FindPlacedVolume(vol_idx);
-                CELER_ASSERT(vol);
-                result[vol_idx] = Label::from_geant(vol->GetLabel());
-            }
-            return result;
-        }()};
-
-    // Check for duplicates
-    {
-        auto vol_dupes = volumes_.duplicates();
-        if (!vol_dupes.empty())
-        {
-            auto streamed_label = [this](std::ostream& os, VolumeId v) {
-                os << '"' << this->volumes_.at(v) << "\" ("
-                   << v.unchecked_get() << ')';
-            };
-
-            CELER_LOG(warning) << "Geometry contains duplicate volume names: "
-                               << join_stream(vol_dupes.begin(),
-                                              vol_dupes.end(),
-                                              ", ",
-                                              streamed_label);
-        }
-    }
+    volumes_ = VolumeMap{"volume", make_logical_vol_labels(*world)};
+    vol_instances_
+        = VolInstanceMap{"volume instance", make_physical_vol_labels(*world)};
 
     // Save world bbox
-    bbox_ = [] {
-        using namespace vecgeom;
-
-        // Get world logical volume
-        VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
-
+    bbox_ = [world] {
         // Calculate bounding box
         Vector3D<real_type> lower, upper;
-        ABBoxManager::Instance().ComputeABBox(pv, &lower, &upper);
-
+        ABBoxManager::Instance().ComputeABBox(world, &lower, &upper);
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }

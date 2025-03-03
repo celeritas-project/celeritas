@@ -14,7 +14,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
@@ -67,7 +67,7 @@ class CherenkovGenerator
     //// DATA ////
 
     GeneratorDistributionData const& dist_;
-    GenericCalculator calc_refractive_index_;
+    NonuniformGridCalculator calc_refractive_index_;
     UniformRealDist sample_phi_;
     UniformRealDist sample_num_photons_;
     UniformRealDist sample_energy_;

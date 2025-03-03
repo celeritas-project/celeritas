@@ -34,8 +34,11 @@ struct EmPhysics
     //!@{
     //! \name Energy loss and slowing down
 
-    //! Use cubic spline interpolation for energy loss
-    bool eloss_spline{false};
+    //! Use spline interpolation for energy loss
+    size_type eloss_spline_order{1};
+
+    // TODO: currently eloss fluctuations are set up via geant importer, then
+    // read into ImportEmParams
 #if 0
      //! Energy loss fluctuations
      bool eloss_fluct{true};

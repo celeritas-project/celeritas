@@ -7,12 +7,12 @@
 #include "orange/g4org/ProtoConstructor.hh"
 
 #include "corecel/io/Repr.hh"
-#include "geocel/GeantGeoUtils.hh"
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/orangeinp/detail/ProtoMap.hh"
 
+#include "GeantLoadTestBase.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas::orangeinp::test;
@@ -26,16 +26,16 @@ namespace g4org
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ProtoConstructorTest : public ::celeritas::test::Test
+class ProtoConstructorTest : public GeantLoadTestBase
 {
   protected:
     using Unit = orangeinp::detail::CsgUnit;
     using Tol = Tolerance<>;
 
-    LogicalVolume load_impl(std::string const& path)
+    LogicalVolume load(std::string const& filename)
     {
         G4VPhysicalVolume const* g4world
-            = ::celeritas::load_geant_geometry_native(path);
+            = this->load_gdml(this->test_data_path("geocel", filename));
         CELER_ASSERT(g4world);
         PhysicalVolumeConverter::Options opts;
         opts.verbose = false;
@@ -46,11 +46,6 @@ class ProtoConstructorTest : public ::celeritas::test::Test
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
         return *world.lv;
-    }
-
-    LogicalVolume load(std::string const& filename)
-    {
-        return this->load_impl(this->test_data_path("geocel", filename));
     }
 
     auto get_proto_names(ProtoMap const& protos) const
@@ -74,8 +69,6 @@ class ProtoConstructorTest : public ::celeritas::test::Test
                                                 : BBox{{-1000, -1000, -1000},
                                                        {1000, 1000, 1000}});
     }
-
-    void TearDown() final { ::celeritas::reset_geant_geometry(); }
 
     Tolerance<> tol_ = Tol::from_relative(1e-5);
 };
@@ -235,7 +228,7 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
             "second",
             "isect",
             "",
-            "world0x0",
+            "world",
         };
         static char const* const expected_bound_strings[] = {
             "11: {{{-50,-50,-50}, {50,50,50}}, {{-50,-50,-50}, {50,50,50}}}",
@@ -263,7 +256,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
     auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
-    static std::string const expected_proto_names[] = {"world0x0"};
+    static std::string const expected_proto_names[] = {"world"};
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(1, protos.size());
@@ -316,7 +309,7 @@ TEST_F(ProtoConstructorTest, testem3)
     auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
-    static std::string const expected_proto_names[] = {"world0x0", "layer0x0"};
+    static std::string const expected_proto_names[] = {"world", "layer"};
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(2, protos.size());
@@ -376,9 +369,9 @@ TEST_F(ProtoConstructorTest, testem3)
             "",
             "Absorber1",
             "Absorber2",
-            "layer0x0.children",
+            "layer.children",
             "",
-            "layer0x0",
+            "layer",
         };
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -396,7 +389,7 @@ TEST_F(ProtoConstructorTest, tilecal_plug)
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
-        "Tile_ITCModule0x0",
+        "Tile_ITCModule",
     };
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
@@ -441,15 +434,15 @@ TEST_F(ProtoConstructorTest, znenv)
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
-        "World0x0",
-        "ZNTX0x0",
-        "ZN10x0",
-        "ZNSL0x0",
-        "ZNST0x0",
-        "ZNG10x0",
-        "ZNG20x0",
-        "ZNG30x0",
-        "ZNG40x0",
+        "World",
+        "ZNTX",
+        "ZN1",
+        "ZNSL",
+        "ZNST",
+        "ZNG1",
+        "ZNG2",
+        "ZNG3",
+        "ZNG4",
     };
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 

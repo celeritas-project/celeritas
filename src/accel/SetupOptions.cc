@@ -9,6 +9,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
@@ -21,37 +22,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-
-auto to_input(SDSetupOptions::StepPoint const& sp)
-{
-    inp::GeantSDStepPointAttributes result;
-    result.global_time = sp.global_time;
-    result.position = sp.position;
-    result.direction = sp.direction;
-    result.kinetic_energy = sp.kinetic_energy;
-    return result;
-}
-
-auto to_input(SDSetupOptions const& sd)
-{
-    inp::GeantSensitiveDetector result;
-
-    result.ignore_zero_deposition = sd.ignore_zero_deposition;
-    result.energy_deposition = sd.energy_deposition;
-    result.step_length = sd.step_length;
-    result.locate_touchable = sd.locate_touchable;
-    result.track = sd.track;
-    result.pre = to_input(sd.pre);
-    result.post = to_input(sd.post);
-    result.force_volumes = std::set<G4LogicalVolume const*>(
-        sd.force_volumes.begin(), sd.force_volumes.end());
-    result.skip_volumes = std::set<G4LogicalVolume const*>(
-        sd.skip_volumes.begin(), sd.skip_volumes.end());
-
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct system attributes from setup options.
@@ -68,6 +38,17 @@ inp::System load_system(SetupOptions const& so)
         s.device = d;
     }
     return s;
+}
+
+//---------------------------------------------------------------------------//
+auto to_inp(SDSetupOptions::StepPoint const& sp)
+{
+    inp::GeantSdStepPointAttributes result;
+    result.global_time = sp.global_time;
+    result.position = sp.position;
+    result.direction = sp.direction;
+    result.kinetic_energy = sp.kinetic_energy;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -96,7 +77,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
     p.control.num_streams = so.get_num_streams();
 
     p.control.capacity = [this, num_streams = p.control.num_streams] {
-        inp::StateCapacity c;
+        inp::CoreStateCapacity c;
         c.tracks = so.max_num_tracks * num_streams;
         c.initializers = so.initializer_capacity * num_streams;
         c.secondaries
@@ -129,7 +110,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
 
     if (so.sd.enabled)
     {
-        p.scoring.sd = to_input(so.sd);
+        p.scoring.sd = to_inp(so.sd);
     }
 
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
@@ -191,10 +172,31 @@ void ProblemSetup::operator()(inp::Problem& p) const
 std::unordered_set<G4LogicalVolume const*>
 FindVolumes(std::unordered_set<std::string> names)
 {
-    ExceptionConverter call_g4exception{"celer0006"};
     std::unordered_set<G4LogicalVolume const*> result;
     CELER_TRY_HANDLE(result = find_geant_volumes(std::move(names)),
-                     call_g4exception);
+                     ExceptionConverter{"celer.setup.find_volumes"});
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert SD options for forward compatibility.
+ */
+inp::GeantSd to_inp(SDSetupOptions const& sd)
+{
+    CELER_EXPECT(sd.enabled);
+    inp::GeantSd result;
+
+    result.ignore_zero_deposition = sd.ignore_zero_deposition;
+    result.energy_deposition = sd.energy_deposition;
+    result.step_length = sd.step_length;
+    result.locate_touchable = sd.locate_touchable;
+    result.track = sd.track;
+    result.pre = to_inp(sd.pre);
+    result.post = to_inp(sd.post);
+    result.force_volumes = sd.force_volumes;
+    result.skip_volumes = sd.skip_volumes;
+
     return result;
 }
 

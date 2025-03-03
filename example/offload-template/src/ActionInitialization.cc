@@ -6,13 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include <accel/TrackingManagerOffload.hh>
+#include <accel/TrackingManagerIntegration.hh>
 
-#include "Celeritas.hh"
-#include "EventAction.hh"
-#include "G4Electron.hh"
-#include "G4Gamma.hh"
-#include "G4Positron.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
@@ -29,9 +24,8 @@ ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
  */
 void ActionInitialization::BuildForMaster() const
 {
-    // Construct Celeritas offloading interface on master thread
-    CelerSimpleOffload().BuildForMaster(&CelerSetupOptions(),
-                                        &CelerSharedParams());
+    // Set up Celeritas integration
+    celeritas::TrackingManagerIntegration::Instance().BuildForMaster();
 
     // RunAction is responsible for initializing Celeritas
     this->SetUserAction(new RunAction());
@@ -43,23 +37,10 @@ void ActionInitialization::BuildForMaster() const
  */
 void ActionInitialization::Build() const
 {
-    // Construct Celeritas offloading interface on worker thread
-    CelerSimpleOffload().Build(
-        &CelerSetupOptions(), &CelerSharedParams(), &CelerLocalTransporter());
-
-    // Add Celeritas tracking manager to electrons, positrons, and gammas.
-    // celeritas::TrackingManagerOffload automatically assigns available
-    // physics processes to the selected particles and offloads them to
-    // Celeritas by updating their G4TrackStatus to fStopAndKill in Geant4 and
-    // creating a new track in Celeritas.
-    auto* celer_tracking = new celeritas::TrackingManagerOffload(
-        &CelerSharedParams(), &CelerLocalTransporter());
-    G4Electron::Definition()->SetTrackingManager(celer_tracking);
-    G4Positron::Definition()->SetTrackingManager(celer_tracking);
-    G4Gamma::Definition()->SetTrackingManager(celer_tracking);
+    // Set up Celeritas integration
+    celeritas::TrackingManagerIntegration::Instance().Build();
 
     // Initialize Geant4 user actions
     this->SetUserAction(new RunAction());
-    this->SetUserAction(new EventAction());
     this->SetUserAction(new PrimaryGeneratorAction());
 }

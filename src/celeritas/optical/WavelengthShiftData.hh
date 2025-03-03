@@ -9,8 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
 
 namespace celeritas
 {
@@ -49,7 +49,7 @@ struct WavelengthShiftData
     OpticalMaterialItems<WlsMaterialRecord> wls_record;
 
     // Cumulative probability of emission as a function of energy
-    OpticalMaterialItems<GenericGridRecord> energy_cdf;
+    OpticalMaterialItems<NonuniformGridRecord> energy_cdf;
 
     // Backend data
     Items<real_type> reals;

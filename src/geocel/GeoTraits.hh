@@ -29,23 +29,6 @@ struct GeoTraits
     static_assert(std::is_base_of_v<GeoParamsInterface, G>,
                   "G must be a geometry params, not params data");
     static_assert(std::is_void_v<G>, "Geo traits must be specialized");
-
-    //! Params data used during runtime
-    template<Ownership W, MemSpace M>
-    using ParamsData = void;
-
-    //! State data used during runtime
-    template<Ownership W, MemSpace M>
-    using StateData = void;
-
-    //! Geometry track view
-    using TrackView = void;
-
-    //! Descriptive name for the geometry
-    static constexpr char const* name = nullptr;
-
-    //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr char const* ext = nullptr;
 };
 
 //---------------------------------------------------------------------------//
@@ -68,8 +51,8 @@ struct NotConfiguredGeoTraits
     template<Ownership W, MemSpace M>
     using StateData = void;
     using TrackView = void;
-    static constexpr char const* name = nullptr;
-    static constexpr char const* ext = nullptr;
+    static constexpr char const name[] = "";
+    static constexpr char const ext[] = "";
 };
 
 //---------------------------------------------------------------------------//

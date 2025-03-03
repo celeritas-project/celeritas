@@ -11,7 +11,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -53,7 +53,7 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
 
     // Load neutron elastic cross section data
     CollectionBuilder micro_xs{&data.micro_xs};
-    GenericGridBuilder build_grid{&data.reals};
+    NonuniformGridBuilder build_grid{&data.reals};
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();

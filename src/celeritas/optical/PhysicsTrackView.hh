@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 #include "PhysicsData.hh"
 #include "Types.hh"
@@ -238,13 +238,13 @@ CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 /*!
  * Calculate the MFP for the given model and energy.
  *
- * Energy is interpolated using \c GenericGridCalculator for the model's
+ * Energy is interpolated using \c NonuniformGridCalculator for the model's
  * MFP grid.
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
                                                     Energy energy) const
 {
-    GenericCalculator calc{params_.grids[this->mfp_grid(model)], params_.reals};
+    NonuniformGridCalculator calc{params_.grids[this->mfp_grid(model)], params_.reals};
     real_type result = calc(value_as<Energy>(energy));
     CELER_ENSURE(result > 0);
     return result;

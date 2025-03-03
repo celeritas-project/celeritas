@@ -340,7 +340,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.output_reg->insert(
         OutputInterfaceAdapter<detail::CoreSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,
-            "core_sizes",
+            "core-sizes",
             get_core_sizes(*this)));
 
     // Save core diagnostic information

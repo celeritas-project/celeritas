@@ -237,6 +237,19 @@ TEST_F(SolidConverterTest, displaced)
         {{1, 2, 3}, {2, 2, 3}, {3, 0, 0}});
 }
 
+TEST_F(SolidConverterTest, ellipsoid)
+{
+    this->build_and_test(
+        G4Ellipsoid(
+            "testEllipsoid", 10 * cm, 20 * cm, 30 * cm, -1 * cm, 29 * cm),
+        R"json({"_type":"solid","interior":{"_type":"ellipsoid","radii":[10.0,20.0,30.0]},"label":"testEllipsoid","z_slab":{"lower":-1.0,"upper":29.0}})json",
+        {{0., 0., 0.},
+         {0., 0., -1.1},
+         {0., 0, 29.1},
+         {9.95, 19.95, 29.95},
+         {10.05, 20.05, 30.05}});
+}
+
 TEST_F(SolidConverterTest, generictrap)
 {
     this->build_and_test(G4GenericTrap("boxGenTrap",

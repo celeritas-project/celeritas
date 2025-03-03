@@ -100,6 +100,7 @@ inline constexpr bool operator<(PDGNumber lhs, PDGNumber rhs)
 namespace pdg
 {
 //---------------------------------------------------------------------------//
+//! \todo replace with inline constexpr value.
 #define CELER_DEFINE_PDGNUMBER(NAME, VALUE) \
     inline constexpr PDGNumber NAME()       \
     {                                       \
@@ -107,30 +108,44 @@ namespace pdg
     }
 
 //!@{
-//! Particle Data Group Monte Carlo number codes.
-// Sorted by (abs(val), val < 0)
+//! \name Particle Data Group Monte Carlo number codes
+//! Sorted by `(abs(val), val < 0)`.
+//! See https://pdg.lbl.gov/2007/reviews/montecarlorpp.pdf
+
+// Leptons
 CELER_DEFINE_PDGNUMBER(electron, 11)
 CELER_DEFINE_PDGNUMBER(positron, -11)
 CELER_DEFINE_PDGNUMBER(mu_minus, 13)
 CELER_DEFINE_PDGNUMBER(mu_plus, -13)
+CELER_DEFINE_PDGNUMBER(tau_minus, 15)
+CELER_DEFINE_PDGNUMBER(tau_plus, -15)
+
+// Gauge bosons
 CELER_DEFINE_PDGNUMBER(gamma, 22)
+
+// Codes 81–100 are reserved for generator-specific pseudoparticles
 CELER_DEFINE_PDGNUMBER(ion, 90)
+
+// Light mesons
 CELER_DEFINE_PDGNUMBER(pi_plus, 211)
 CELER_DEFINE_PDGNUMBER(pi_minus, -211)
 CELER_DEFINE_PDGNUMBER(kaon_plus, 321)
 CELER_DEFINE_PDGNUMBER(kaon_minus, -321)
-CELER_DEFINE_PDGNUMBER(proton, 2212)
-CELER_DEFINE_PDGNUMBER(anti_proton, -2212)
 CELER_DEFINE_PDGNUMBER(neutron, 2112)
 CELER_DEFINE_PDGNUMBER(anti_neutron, -2112)
-CELER_DEFINE_PDGNUMBER(he3, 1000020030)
-CELER_DEFINE_PDGNUMBER(anti_he3, -1000020030)
-CELER_DEFINE_PDGNUMBER(alpha, 1000020040)
-CELER_DEFINE_PDGNUMBER(anti_alpha, -1000020040)
+CELER_DEFINE_PDGNUMBER(proton, 2212)
+CELER_DEFINE_PDGNUMBER(anti_proton, -2212)
+
+// Ions
 CELER_DEFINE_PDGNUMBER(deuteron, 1000010020)
 CELER_DEFINE_PDGNUMBER(anti_deuteron, -1000010020)
 CELER_DEFINE_PDGNUMBER(triton, 1000010030)
 CELER_DEFINE_PDGNUMBER(anti_triton, -1000010030)
+CELER_DEFINE_PDGNUMBER(he3, 1000020030)
+CELER_DEFINE_PDGNUMBER(anti_he3, -1000020030)
+CELER_DEFINE_PDGNUMBER(alpha, 1000020040)
+CELER_DEFINE_PDGNUMBER(anti_alpha, -1000020040)
+
 //!@}
 
 #undef CELER_DEFINE_PDGNUMBER

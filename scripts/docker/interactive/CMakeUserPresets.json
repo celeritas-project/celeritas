@@ -19,7 +19,7 @@
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Perfetto": {"type": "BOOL", "value": "ON"},
-        "PERFETTO_ROOT": {"type": "PATH", "value": "$env{PERFETTO_ROOT}/sdk"},
+        "PERFETTO_ROOT": {"type": "PATH", "value": "$env{PERFETTO_ROOT}"},
         "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
         "CMAKE_CXX_COMPILER": {"type": "PATH", "value": "$env{CXX}" },
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",

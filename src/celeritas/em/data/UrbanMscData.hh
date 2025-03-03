@@ -166,7 +166,7 @@ struct UrbanMscData
     //! Particle and material-dependent data
     Items<UrbanMscParMatData> par_mat_data;  //!< [mat][particle]
     //! Scaled xs data
-    Items<XsGridData> xs;  //!< [mat][particle]
+    Items<UniformGridRecord> xs;  //!< [mat][particle]
 
     // Backend storage
     Items<real_type> reals;

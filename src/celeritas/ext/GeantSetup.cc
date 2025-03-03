@@ -25,12 +25,12 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 
-#include "detail/CelerEmPhysicsList.hh"
+#include "EmPhysicsList.hh"
 
 namespace celeritas
 {
@@ -102,10 +102,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     ScopedGeantExceptionHandler scoped_exceptions;
 
     {
-        CELER_LOG(status) << "Initializing Geant4 geometry";
+        CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
-        // Load GDML and save a copy of the pointer
-        world_ = load_geant_geometry(gdml_filename);
+        // Load GDML and reference the world pointer
+        // TODO: pass GdmlLoader options through SetupOptions
+        world_ = load_gdml(gdml_filename);
         CELER_ASSERT(world_);
 
         // Construct the geometry
@@ -113,8 +114,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
-        auto physics_list
-            = std::make_unique<detail::CelerEmPhysicsList>(options);
+        auto physics_list = std::make_unique<EmPhysicsList>(options);
         run_manager_->SetUserInitialization(physics_list.release());
     }
 
