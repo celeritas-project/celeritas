@@ -216,7 +216,7 @@ if(CELERITAS_USE_Geant4)
   if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
     # Geant4 doesn't yet have independent volume instance IDs for replicas
     list(APPEND _ltu_tests
-      "Replica.*"
+      "ReplicaTest.*"
     )
   elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
     set(_ltu_tests DISABLE)
