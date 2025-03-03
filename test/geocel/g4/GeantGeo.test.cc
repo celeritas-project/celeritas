@@ -58,41 +58,6 @@ class GeantGeoTest : public GeantGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-using CmseTest = GenericGeoParameterizedTest<GeantGeoTest, CmseGeoTest>;
-
-TEST_F(CmseTest, trace)
-{
-    this->impl().test_trace();
-}
-
-TEST_F(CmseTest, imager)
-{
-    SafetyImager write_image{this->geometry()};
-
-    ImageInput inp;
-    inp.lower_left = from_cm({0, 0, 0});
-    inp.upper_right = from_cm({350, 0, 1700});
-    inp.rightward = {0.0, 0.0, 1.0};
-    inp.vertical_pixels = 8;
-
-    write_image(ImageParams{inp}, "g4-cmse-xz-mid.jsonl");
-}
-
-//---------------------------------------------------------------------------//
-using CmsEeBackDeeTest
-    = GenericGeoParameterizedTest<GeantGeoTest, CmsEeBackDeeGeoTest>;
-
-TEST_F(CmsEeBackDeeTest, accessors)
-{
-    this->impl().test_accessors();
-}
-
-TEST_F(CmsEeBackDeeTest, trace)
-{
-    this->impl().test_trace();
-}
-
-//---------------------------------------------------------------------------//
 using FourLevelsTest
     = GenericGeoParameterizedTest<GeantGeoTest, FourLevelsGeoTest>;
 
@@ -321,71 +286,6 @@ TEST_F(FourLevelsTest, levels)
 }
 
 //---------------------------------------------------------------------------//
-using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
-
-TEST_F(ReplicaTest, trace)
-{
-    this->impl().test_trace();
-}
-
-TEST_F(ReplicaTest, volume_stack)
-{
-    this->impl().test_volume_stack();
-}
-
-TEST_F(ReplicaTest, level_strings)
-{
-    using R2 = Array<double, 2>;
-
-    auto const& geo_params = *this->geometry();
-    auto const& vol_inst = geo_params.volume_instances();
-
-    static R2 const points[] = {
-        {-435, 550},
-        {-460, 550},
-        {-400, 650},
-        {-450, 650},
-        {-450, 700},
-    };
-
-    std::vector<std::string> all_vol_inst;
-    for (R2 xz : points)
-    {
-        auto geo = this->make_geo_track_view({xz[0], 0.0, xz[1]}, {1, 0, 0});
-
-        auto level = geo.level();
-        CELER_ASSERT(level && level >= LevelId{0});
-        std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
-        geo.volume_instance_id(make_span(inst_ids));
-        std::vector<std::string> names(inst_ids.size());
-        for (auto i : range(inst_ids.size()))
-        {
-            Label lab = vol_inst.at(inst_ids[i]);
-            if (auto phys_inst = geo_params.id_to_geant(inst_ids[i]))
-            {
-                if (phys_inst.replica)
-                {
-                    lab.ext += '+';
-                    lab.ext += std::to_string(phys_inst.replica.get());
-                }
-            }
-            names[i] = to_string(lab);
-        }
-        all_vol_inst.push_back(to_string(repr(names)));
-    }
-
-    static char const* const expected_all_vol_inst[] = {
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+14"})",
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+6"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+4", "HadCalCell_PV@+1", "HadCalLayer_PV@+2"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+2", "HadCalCell_PV@+1", "HadCalLayer_PV@+7"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+3", "HadCalCell_PV@+1", "HadCalLayer_PV@+16"})",
-    };
-
-    EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
-}
-
-//---------------------------------------------------------------------------//
 class SolidsTest
     : public GenericGeoParameterizedTest<GeantGeoTest, SolidsGeoTest>
 {
@@ -454,6 +354,73 @@ TEST_F(SolidsTest, DISABLED_imager)
 }
 
 //---------------------------------------------------------------------------//
+// TODO: reorder or independently run tests; for now this has to go after the
+// Solids test
+using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
+
+TEST_F(ReplicaTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(ReplicaTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+TEST_F(ReplicaTest, level_strings)
+{
+    using R2 = Array<double, 2>;
+
+    auto const& geo_params = *this->geometry();
+    auto const& vol_inst = geo_params.volume_instances();
+
+    static R2 const points[] = {
+        {-435, 550},
+        {-460, 550},
+        {-400, 650},
+        {-450, 650},
+        {-450, 700},
+    };
+
+    std::vector<std::string> all_vol_inst;
+    for (R2 xz : points)
+    {
+        auto geo = this->make_geo_track_view({xz[0], 0.0, xz[1]}, {1, 0, 0});
+
+        auto level = geo.level();
+        CELER_ASSERT(level && level >= LevelId{0});
+        std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+        geo.volume_instance_id(make_span(inst_ids));
+        std::vector<std::string> names(inst_ids.size());
+        for (auto i : range(inst_ids.size()))
+        {
+            Label lab = vol_inst.at(inst_ids[i]);
+            if (auto phys_inst = geo_params.id_to_geant(inst_ids[i]))
+            {
+                if (phys_inst.replica)
+                {
+                    lab.ext += '+';
+                    lab.ext += std::to_string(phys_inst.replica.get());
+                }
+            }
+            names[i] = to_string(lab);
+        }
+        all_vol_inst.push_back(to_string(repr(names)));
+    }
+
+    static char const* const expected_all_vol_inst[] = {
+        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+14"})",
+        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+6"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+4", "HadCalCell_PV@+1", "HadCalLayer_PV@+2"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+2", "HadCalCell_PV@+1", "HadCalLayer_PV@+7"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+3", "HadCalCell_PV@+1", "HadCalLayer_PV@+16"})",
+    };
+
+    EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
+}
+
+//---------------------------------------------------------------------------//
 class TilecalPlugTest : public GeantGeoTest
 {
     std::string geometry_basename() const final { return "tilecal-plug"; }
@@ -464,12 +431,10 @@ TEST_F(TilecalPlugTest, trace)
     {
         SCOPED_TRACE("+z");
         auto result = this->track({5.75, 0.01, -40}, {0, 0, 1});
-        static char const* const expected_volumes[] = {
-            "Tile_ITCModule",
-            "Tile_Plug1Module",
-            "Tile_Absorber",
-            "Tile_Plug1Module",
-        };
+        static char const* const expected_volumes[] = {"Tile_ITCModule",
+                                                       "Tile_Plug1Module",
+                                                       "Tile_Absorber",
+                                                       "Tile_Plug1Module"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {22.9425, 0.115, 42, 37};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -495,6 +460,41 @@ TEST_F(TransformedBoxTest, accessors)
 }
 
 TEST_F(TransformedBoxTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+using CmseTest = GenericGeoParameterizedTest<GeantGeoTest, CmseGeoTest>;
+
+TEST_F(CmseTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({0, 0, 0});
+    inp.upper_right = from_cm({350, 0, 1700});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "g4-cmse-xz-mid.jsonl");
+}
+
+//---------------------------------------------------------------------------//
+using CmsEeBackDeeTest
+    = GenericGeoParameterizedTest<GeantGeoTest, CmsEeBackDeeGeoTest>;
+
+TEST_F(CmsEeBackDeeTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(CmsEeBackDeeTest, trace)
 {
     this->impl().test_trace();
 }

@@ -191,7 +191,7 @@ TEST_F(MultiLevelTest, printable_nav)
 {
     auto geo = this->make_geo_track_view();
     auto get_nav_str = [&geo](Real3 const& pos) {
-        geo = {to_cm(pos), Real3{1, 0, 0}};
+        geo = {from_cm(pos), Real3{1, 0, 0}};
         std::ostringstream os;
         os << PrintableNavHistory{geo.nav_history()};
         return std::move(os).str();
@@ -300,7 +300,7 @@ TEST_F(ReplicaTest, is_replica)
 {
     auto track = this->make_geo_track_view();
     auto get_replicas = [&track](Real3 const& pos) {
-        track = {to_cm(pos), Real3{0, 0, 1}};
+        track = {from_cm(pos), Real3{0, 0, 1}};
 
         auto* hist = track.nav_history();
         CELER_ASSERT(hist);
