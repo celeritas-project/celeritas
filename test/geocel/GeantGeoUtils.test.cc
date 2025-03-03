@@ -191,7 +191,7 @@ TEST_F(MultiLevelTest, printable_nav)
 {
     auto geo = this->make_geo_track_view();
     auto get_nav_str = [&geo](Real3 const& pos) {
-        geo = {pos, Real3{1, 0, 0}};
+        geo = {to_cm(pos), Real3{1, 0, 0}};
         std::ostringstream os;
         os << PrintableNavHistory{geo.nav_history()};
         return std::move(os).str();
@@ -300,7 +300,7 @@ TEST_F(ReplicaTest, is_replica)
 {
     auto track = this->make_geo_track_view();
     auto get_replicas = [&track](Real3 const& pos) {
-        track = {pos, Real3{0, 0, 1}};
+        track = {to_cm(pos), Real3{0, 0, 1}};
 
         auto* hist = track.nav_history();
         CELER_ASSERT(hist);
@@ -365,6 +365,12 @@ TEST_F(ReplicaTest, set_history)
         {"world_PV",
          "fSecondArmPhys",
          "HadCalorimeter",
+         "HadCalColumn_PV@+2",
+         "HadCalCell_PV@+0",
+         "HadCalLayer_PV@+7"},
+        {"world_PV",
+         "fSecondArmPhys",
+         "HadCalorimeter",
          "HadCalColumn_PV@+3",
          "HadCalCell_PV@+1",
          "HadCalLayer_PV@+16"},
@@ -386,7 +392,7 @@ TEST_F(ReplicaTest, set_history)
 
         // Get the local-to-global x/y translation coordinates
         auto const& trans = touch.GetTranslation(0);
-        coords.insert(coords.end(), {trans.x(), trans.y()});
+        coords.insert(coords.end(), {trans.x(), trans.y(), trans.z()});
 
         // Get the replica/copy numbers
         replicas.push_back([&touch] {
@@ -401,28 +407,32 @@ TEST_F(ReplicaTest, set_history)
     }
 
     static double const expected_coords[] = {
-        -0,  -0,   -0,  -0,   -0,   -0,   100, 100, 125,  125, -75, 125,
-        125, -125, 100, -100, -100, -100, 75,  75,  -125, 75,  125, 75,
-        -75, 75,   -75, -125, -125, -75,  75,  -75, 125,  -75,
+        -4344.3747686898,
+        75,
+        5574.6778264911,
+        -4604.1823898252,
+        75,
+        5424.6778264911,
+        -3942.4038105677,
+        150,
+        6528.4437038563,
+        -4587.0190528383,
+        150,
+        6444.9500548025,
+        -4587.0190528383,
+        -150,
+        6444.9500548025,
+        -4552.211431703,
+        150,
+        6984.6614865054,
     };
     static char const* const expected_replicas[] = {
-        "0",
-        "0,0",
-        "0",
-        "21,0",
-        "31,21,0",
-        "31,22,0",
-        "31,24,0",
-        "24,0",
-        "23,0",
-        "32,21,0",
-        "32,22,0",
-        "1,21,0",
-        "1,22,0",
-        "31,23,0",
-        "32,23,0",
-        "32,24,0",
-        "1,24,0",
+        "14,0,0,0",
+        "6,0,0,0",
+        "2,1,4,0,0,0",
+        "7,1,2,0,0,0",
+        "7,0,2,0,0,0",
+        "16,1,3,0,0,0",
     };
 
     EXPECT_VEC_SOFT_EQ(expected_coords, coords);

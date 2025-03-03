@@ -338,7 +338,7 @@ void ReplicaGeoTest::test_volume_stack() const
         EXPECT_RESULT_EQ(ref, result);
     }
     {
-        // Geant4 gets stuck here
+        // Geant4 gets stuck here (it's close to a boundary)
         auto result = test_->volume_stack({-342.5, 0.1, 593.22740159234});
         GenericGeoVolumeStackResult ref;
         ref.volume_instances = {

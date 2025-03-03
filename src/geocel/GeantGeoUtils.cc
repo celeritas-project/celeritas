@@ -22,10 +22,12 @@
 #include <G4PhysicalVolumeStore.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4RegionStore.hh>
+#include <G4ReplicaNavigation.hh>
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
 #include <G4TransportationManager.hh>
+#include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4Version.hh>
 #include <G4ios.hh>
@@ -52,6 +54,8 @@ static_assert(G4VERSION_NUMBER
               "CMake-reported Geant4 version does not match installed "
               "<G4Version.hh>: compare to 'corecel/Config.hh'");
 
+using ReplicaId = celeritas::GeantPhysicalInstance::ReplicaId;
+
 namespace celeritas
 {
 namespace
@@ -73,6 +77,25 @@ void free_and_clear(std::vector<T*>* table)
     CELER_ASSERT(std::all_of(
         table->begin(), table->end(), [](T* ptr) { return ptr == nullptr; }));
     table->clear();
+}
+
+void update_replica(G4VPhysicalVolume* pv, ReplicaId replica)
+{
+    CELER_EXPECT(pv);
+    CELER_EXPECT(replica);
+    static G4ThreadLocal G4ReplicaNavigation nav_;
+    nav_.ComputeTransformation(replica.get(), pv);
+    pv->SetCopyNo(replica.get());
+}
+
+void update_parameterised(G4VPhysicalVolume* pv, ReplicaId replica)
+{
+    CELER_EXPECT(pv);
+    CELER_EXPECT(replica);
+    auto* param = pv->GetParameterisation();
+    CELER_ASSERT(param);
+    param->ComputeTransformation(replica.get(), pv);
+    pv->SetCopyNo(replica.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -318,8 +341,6 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
 /*!
  * Update a nav history to match the given pv stack.
  *
- * \warning The stack cannot have a parameterized/replicated volume.
- *
  * \note The stack should have the same semantics as \c LevelId, i.e. the
  * initial entry is the "most global" level.
  */
@@ -330,15 +351,6 @@ void set_history(Span<GeantPhysicalInstance const> stack,
     CELER_EXPECT(std::all_of(stack.begin(), stack.end(), LogicalTrue{}));
     CELER_EXPECT(nav);
 
-    if (std::any_of(
-            stack.begin(), stack.end(), [](GeantPhysicalInstance const& gpi) {
-                return static_cast<bool>(gpi.replica);
-            }))
-    {
-        CELER_NOT_IMPLEMENTED(
-            "sensitive detectors inside of replica/parameterized volumes");
-    }
-
     size_type level = 0;
     auto nav_stack_size
         = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
@@ -348,7 +360,8 @@ void set_history(Span<GeantPhysicalInstance const> stack,
          level != end_level;
          ++level)
     {
-        if (nav->GetVolume(level) != stack[level].pv)
+        auto* nav_pv = nav->GetVolume(level);
+        if (nav_pv != stack[level].pv || stack[level].replica)
         {
             break;
         }
@@ -369,18 +382,32 @@ void set_history(Span<GeantPhysicalInstance const> stack,
         CELER_ASSERT(nav_stack_size() == level);
     }
 
-    // Add all remaining levels
+    // Add all remaining levels: see G4Navigator::LocateGLobalPoint
     for (auto end_level = stack.size(); level != end_level; ++level)
     {
-        G4VPhysicalVolume const* pv = stack[level].pv;
-        constexpr auto volume_type = EVolume::kNormal;
-        CELER_VALIDATE(pv->VolumeType() == volume_type,
-                       << "sensitive detectors inside of "
-                          "replica/parameterized volumes are not supported: '"
-                       << pv->GetName() << "' inside "
-                       << PrintableNavHistory{nav});
-        nav->NewLevel(
-            const_cast<G4VPhysicalVolume*>(pv), volume_type, pv->GetCopyNo());
+        auto* pv = const_cast<G4VPhysicalVolume*>(stack[level].pv);
+        auto vol_type = pv->VolumeType();
+        auto replica = stack[level].replica;
+        switch (vol_type)
+        {
+            case EVolume::kNormal:
+                CELER_ASSERT(!replica);
+                replica = id_cast<ReplicaId>(pv->GetCopyNo());
+                break;
+            case EVolume::kReplica:
+                update_replica(pv, replica);
+                break;
+            case EVolume::kParameterised:
+                update_parameterised(pv, replica);
+                break;
+            default:
+                CELER_LOG_LOCAL(error)
+                    << R"(Encountered abnormal Geant4 volume inside navigation history: )"
+                    << pv->GetName() << "' inside "
+                    << PrintableNavHistory{nav};
+                break;
+        }
+        nav->NewLevel(pv, vol_type, replica.get());
     }
 
     CELER_ENSURE(nav_stack_size() == stack.size());
