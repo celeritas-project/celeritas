@@ -123,8 +123,8 @@ SolidEnclosedAngle make_wedge_polar(S const& solid)
  * vector
  * \f$ (\mu \tan(\theta)\cos(\phi), \mu \tan(\theta)\sin(\phi), \mu) \f$.
  */
-[[maybe_unused]] auto
-to_polar(G4ThreeVector const& axis) -> std::pair<Turn, Turn>
+[[maybe_unused]] auto to_polar(G4ThreeVector const& axis)
+    -> std::pair<Turn, Turn>
 {
     CELER_EXPECT(axis.z() > 0);
     CELER_EXPECT(
@@ -361,18 +361,23 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Ellipsoid const&>(solid_base);
 
-    auto rad_z = solid.GetSemiAxisMax(to_int(Axis::z));
-
-    if (!(soft_equal(-rad_z, solid.GetZBottomCut())
-          && soft_equal(rad_z, solid.GetZTopCut())))
-    {
-        CELER_NOT_IMPLEMENTED("ellipsoids with bottom/top cuts");
-    }
-
     auto radii = scale_.to<Real3>(solid.GetSemiAxisMax(to_int(Axis::x)),
                                   solid.GetSemiAxisMax(to_int(Axis::y)),
-                                  rad_z);
+                                  solid.GetSemiAxisMax(to_int(Axis::z)));
+    auto bottom_cut = scale_(solid.GetZBottomCut());
+    auto top_cut = scale_(solid.GetZTopCut());
 
+    if (!(soft_equal(-radii[to_int(Axis::z)], bottom_cut)
+          && soft_equal(radii[to_int(Axis::z)], top_cut)))
+    {
+        // Non-default z-cuts, make a solid instead of a shape
+        return std::make_shared<Solid<Ellipsoid>>(
+            std::string{solid.GetName()},
+            Ellipsoid(radii),
+            SolidZSlab{bottom_cut, top_cut});
+    }
+
+    // No Z cuts, make an ellipsoid shape
     return make_shape<Ellipsoid>(solid, radii);
 }
 

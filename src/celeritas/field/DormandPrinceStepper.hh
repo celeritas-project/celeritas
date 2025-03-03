@@ -21,9 +21,8 @@ namespace celeritas
  * The algorithm, RK5(4)7M and the coefficients have been adapted from
  * J. R. Dormand and P. J. Prince, "A family of embedded Runge-Kutta formulae"
  * Journal Computational and Applied Mathematics, volume 6, no 1 (1980) and
- * the coefficients to locate the mid point are taken from L. F. Shampine,
- * "Some Practical Runge-Kutta Formulas", Mathematics of * Computation,
- * volume 46, number 17, pp 147 (1986).
+ * the coefficients to locate the mid point are taken from
+ * \citet{shampine-rungekutta-1986, https://doi.org/10.2307/2008219}.
  *
  * For a given ordinary differential equation, \f$dy/dx = f(x, y)\f$, the
  * fifth order solution, \f$ y_{n+1} \f$, an embedded fourth order solution,

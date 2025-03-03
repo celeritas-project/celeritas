@@ -166,7 +166,7 @@ TEST_F(SimpleCmsVgdmlTest, track)
     EXPECT_SOFT_EQ(100, to_cm(next.distance));
     EXPECT_FALSE(next.boundary);
     geo.move_internal(from_cm(20));
-    EXPECT_SOFT_EQ(30, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol());
 
     geo.set_dir({1, 0, 0});
     next = geo.find_next_step(from_cm(50));
@@ -185,7 +185,8 @@ TEST_F(SimpleCmsVgdmlTest, track)
     EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     geo.move_internal(from_cm(10));
-    EXPECT_SOFT_EQ(1.6227766016837926, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(
+        1.6227766016837926, to_cm(geo.find_safety()), safety_tol());
 
     // Move to boundary and scatter back inside
     next = geo.find_next_step(from_cm(1000));
@@ -316,15 +317,15 @@ TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 
     auto next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 
     // Find safety from a freshly initialized state
     geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 }
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
@@ -476,22 +477,24 @@ TEST_F(FourLevelsVgdmlTest, safety)
         }
     }
 
-    static double const expected_safeties[] = {2.9,
-                                               0.9,
-                                               0.1,
-                                               1.7549981495186,
-                                               1.7091034656191,
-                                               4.8267949192431,
-                                               1.3626933041054,
-                                               1.9,
-                                               0.1,
-                                               1.1,
-                                               3.1};
-    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
+    static double const expected_safeties[] = {
+        2.9,
+        0.9,
+        0.1,
+        1.7549981495186,
+        1.7091034656191,
+        4.8267949192431,
+        1.3626933041054,
+        1.9,
+        0.1,
+        1.1,
+        3.1,
+    };
+    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol());
 
     static double const expected_lim_safeties[]
         = {1.5, 0.9, 0.1, 1.5, 1.5, 1.5, 1.3626933041054, 1.5, 0.1, 1.1, 1.5};
-    EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
+    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol());
 }
 
 TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))

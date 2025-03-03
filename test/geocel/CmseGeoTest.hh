@@ -37,6 +37,9 @@ class CmseGeoTest
 //---------------------------------------------------------------------------//
 void CmseGeoTest::test_trace() const
 {
+    // Surface VecGeom needs lower safety tolerance
+    real_type const safety_tol = test_->safety_tol();
+
     // clang-format off
     {
         SCOPED_TRACE("Center +z");
@@ -52,7 +55,7 @@ void CmseGeoTest::test_trace() const
         static real_type const expected_hw_safety[] = {100, 2.1499999999997,
             10.3027302206744, 13.023518051922, 6.95, 6.95, 13.023518051922,
             10.3027302206745, 2.15, 100, 5, 8, 100, 100, 100};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("Offset +z");
@@ -73,7 +76,7 @@ void CmseGeoTest::test_trace() const
             34.260814069425, 32.665765921596, 29.363145173005, 28.702447147997,
             18, 14.475, 29.931406871193, 40.276406871193, 57.573593128807,
             57.573593128807, 57.573593128807, 57.573593128807};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("Across muon");
@@ -89,7 +92,7 @@ void CmseGeoTest::test_trace() const
         static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
             60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
             60.4, 85.85, 267.5, 460};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("Differs between G4/VG");
@@ -101,7 +104,7 @@ void CmseGeoTest::test_trace() const
             920};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     // clang-format on
 }

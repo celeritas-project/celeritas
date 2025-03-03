@@ -77,6 +77,9 @@ void CmsEeBackDeeGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void CmsEeBackDeeGeoTest::test_trace() const
 {
+    // Surface VecGeom needs lower safety tolerance
+    real_type const safety_tol = test_->safety_tol();
+
     {
         SCOPED_TRACE("+z top");
         auto result = test_->track({50, 0.1, 360.1}, {0, 0, 1});
@@ -89,7 +92,8 @@ void CmsEeBackDeeGeoTest::test_trace() const
         static real_type const expected_distances[] = {5.4, 34.1};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {0.1, 0.1};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("+z bottom");
@@ -104,7 +108,8 @@ void CmsEeBackDeeGeoTest::test_trace() const
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[]
             = {0.099999999999956, 0.099999999999953};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
 }
 

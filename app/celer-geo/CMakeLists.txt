@@ -15,13 +15,6 @@ set(LIBRARIES
   Celeritas::orange
   nlohmann_json::nlohmann_json
 )
-if(CELERITAS_USE_VecGeom)
-  list(APPEND LIBRARIES VecGeom::vecgeom)
-endif()
-if(CELERITAS_USE_Geant4)
-  celeritas_get_g4libs(_g4_geo_libs geometry)
-  list(APPEND LIBRARIES ${_g4_geo_libs})
-endif()
 
 celeritas_add_executable(celer-geo ${SOURCES})
 celeritas_target_link_libraries(celer-geo ${LIBRARIES})

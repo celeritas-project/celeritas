@@ -68,6 +68,9 @@ class GenericGeoTestInterface
     // Get the basename or unique geometry key (defaults to suite name)
     virtual std::string geometry_basename() const;
 
+    // Get the safety tolerance (defaults to SoftEq tol)
+    virtual real_type safety_tol() const;
+
     //! Ignore the first N VolumeId
     virtual VolumeId::size_type volume_offset() const { return 0; }
 

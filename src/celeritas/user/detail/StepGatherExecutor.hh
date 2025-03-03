@@ -46,7 +46,8 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
 
     {
         auto const sim = track.make_sim_view();
-        bool inactive = (sim.status() == TrackStatus::inactive);
+        bool inactive = (sim.status() == TrackStatus::inactive
+                         || sim.status() == TrackStatus::errored);
 
         if (P == StepPoint::post)
         {

@@ -426,6 +426,15 @@ TEST_F(EllipsoidTest, errors)
     EXPECT_THROW(Ellipsoid({1, 0, 2}), RuntimeError);
 }
 
+TEST_F(EllipsoidTest, encloses)
+{
+    Ellipsoid ellisoid({1, 2, 3});
+    EXPECT_TRUE(ellisoid.encloses(Ellipsoid({0.5, 1.5, 2.5})));
+    EXPECT_FALSE(ellisoid.encloses(Ellipsoid({0.5, 1.5, 3.5})));
+    EXPECT_FALSE(ellisoid.encloses(Ellipsoid({0.5, 2.5, 2.5})));
+    EXPECT_FALSE(ellisoid.encloses(Ellipsoid({5.5, 1.5, 2.5})));
+}
+
 TEST_F(EllipsoidTest, standard)
 {
     auto result = this->test(Ellipsoid({3, 2, 1}));
@@ -1200,6 +1209,33 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+//---------------------------------------------------------------------------//
+// INFSLAB
+//---------------------------------------------------------------------------//
+using InfSlabTest = IntersectRegionTest;
+
+TEST_F(InfSlabTest, errors)
+{
+    EXPECT_THROW(InfSlab(1.0, 1.0), RuntimeError);
+    EXPECT_THROW(InfSlab(2.0, 1.0), RuntimeError);
+}
+
+TEST_F(InfSlabTest, basic)
+{
+    auto inf = std::numeric_limits<real_type>::infinity();
+    auto result = this->test(InfSlab(-5.5, 6.6));
+    static char const expected_node[] = "all(+0, -1)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-5.5", "Plane: z=6.6"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
