@@ -44,10 +44,22 @@ CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
     // If track is alive, check for detection
     if (sim.status() == TrackStatus::alive)
     {
-        // Extract track geometry
-        // auto geo = track.geometry();
+        // Extract track geometry and current volume ID
+        auto geo = track.geometry();
+        auto v_id = geo.volume_id();
 
         // check for track geometry in optical detector list
+        // TODO:: fix below pseudo-code
+        // for(auto det_id : range(volume_ids_.size())
+        // {
+        //     if (v_id == volume_ids[det_id])
+        //     {
+        //         auto energy = track.energy();
+        //         std::cout << "Killing track in Volume " << v_id
+        //                   << " with energy " << energy << std::endl;
+        //         sim.status(TrackStatus::Killed);
+        //     }
+        // }
 
         // If found, print energy, print volume, and kill track
     }
