@@ -5,8 +5,6 @@
 
 cmake_minimum_required(VERSION 3.18...3.31)
 
-# Set Celeritas_VERSION using git tags using the following format
-set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc\\.[0-9]+)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
@@ -234,6 +232,7 @@ if(CELERITAS_USE_CUDA)
     "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists"
   )
 endif()
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 ### Linking flags ###
 celeritas_set_default(BUILD_SHARED_LIBS ON
@@ -456,7 +455,8 @@ if(CELERITAS_USE_VecGeom)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
   if(CELERITAS_USE_Geant4)
-    celeritas_find_or_builtin_package(G4VG)
+    # Enforce minimum version
+    celeritas_find_or_builtin_package(G4VG 1.0.3)
   endif()
 endif()
 

@@ -10,6 +10,7 @@
 #include <G4Threading.hh>
 
 #include "corecel/io/ColorUtils.hh"
+#include "corecel/io/LogHandlers.hh"
 
 namespace celeritas
 {
@@ -36,22 +37,13 @@ void LocalLogger::operator()(LogProvenance prov, LogLevel lev, std::string msg)
     }
     os << '/' << num_threads_ << "] " << color_code(' ');
 
-    if (lev == LogLevel::debug || lev >= LogLevel::warning)
-    {
-        // Output problem line/file for debugging or high level
-        os << color_code('x') << prov.file;
-        if (prov.line)
-            os << ':' << prov.line;
-        os << color_code(' ') << ": ";
-    }
-    os << to_color_code(lev) << to_cstring(lev) << ": " << color_code(' ');
+    // Write main message
+    StreamLogHandler{os}(prov, lev, msg);
 
-    {
-        // Write buffered content and message with a mutex, then flush
-        static std::mutex clog_mutex;
-        std::lock_guard scoped_lock{clog_mutex};
-        std::clog << os.str() << msg << std::endl;
-    }
+    // Lock after building the message
+    static std::mutex log_mutex;
+    std::lock_guard<std::mutex> scoped_lock{log_mutex};
+    std::clog << std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//

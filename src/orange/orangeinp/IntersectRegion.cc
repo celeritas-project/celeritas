@@ -269,6 +269,22 @@ Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether this encloses another ellipsoid.
+ */
+bool Ellipsoid::encloses(Ellipsoid const& other) const
+{
+    for (auto ax : range(Axis::size_))
+    {
+        if (this->radii_[to_int(ax)] < other.radii_[to_int(ax)])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build surfaces.
  */
 void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
@@ -599,6 +615,39 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void GenPrism::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// INFSLAB
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from lower and upper z-planes.
+ */
+InfSlab::InfSlab(real_type lower, real_type upper)
+    : lower_{lower}, upper_{upper}
+{
+    CELER_VALIDATE(lower_ < upper_,
+                   << "invalid z planes, lower plane z value " << lower_
+                   << " must be less than upper plane z value" << upper_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void InfSlab::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::outside, PlaneZ{lower_});
+    insert_surface(Sense::inside, PlaneZ{upper_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void InfSlab::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

@@ -54,7 +54,7 @@ jobs:
             geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "100Mi"
+      CCACHE_MAXSIZE: "${{matrix.special == 'asanlite' && '400' || '200'}}Mi"
       CMAKE_PRESET: >-
         ${{format('reldeb-{0}{1}{2}',
                   matrix.geometry,
@@ -85,11 +85,9 @@ jobs:
       - name: Patch spack # To be deleted; see associated github pulls
         working-directory: spack-src
         run: |
-          curl -LfsS https://github.com/spack/spack/pull/48328.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/48332.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/48347.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/48844.diff | patch -p1
-          curl -LfsS https://github.com/spack/spack/pull/49003.diff | patch -p1
+          for id in 48328 48332 48347 48844 49003 49110 49195; do
+            curl -LfsS "https://github.com/spack/spack/pull/${id}.diff" | patch -p1
+          done
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
@@ -235,7 +233,6 @@ jobs:
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-            ninja -v -k0
       - name: Regenerate ROOT test data
         if: ${{
           matrix.geant == '11.0'
@@ -251,7 +248,7 @@ jobs:
         continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
         run: |
           if ${{matrix.geant == '11.0' && matrix.special != 'vgsurf'}}; then
-            # Note this is ignored for geant4, float, clhep
+            # Note this is ignored for geant4, float, clhep, vgsurf
             export CELER_TEST_STRICT=1
           fi
           ctest -LE app --preset=spack-unit

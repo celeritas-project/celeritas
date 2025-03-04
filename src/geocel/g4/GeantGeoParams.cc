@@ -165,20 +165,39 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
  *
- * If the input ID is false, a null pointer will be returned.
+ * \warning For Geant4 parameterised/replicated volumes, external state (e.g.
+ * the local navigation) \em must be used in concert with this method: i.e.,
+ * navigation on the current thread needs to have just "visited" the instance.
+ *
+ * \todo Create our own volume instance mapping for Geant4, where
+ * VolumeInstanceId corresponds to a (G4PV*, int) pair rather than just G4PV*
+ * (which in Geant4 is not sufficiently unique).
  */
-G4VPhysicalVolume const* GeantGeoParams::id_to_pv(VolumeInstanceId id) const
+GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
 {
     CELER_EXPECT(!id || id < vol_instances_.size());
     if (!id)
     {
-        return nullptr;
+        return {};
     }
 
     G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
     auto index = id.unchecked_get() - pv_offset_;
     CELER_ASSERT(index < pv_store->size());
-    return (*pv_store)[index];
+
+    GeantPhysicalInstance result;
+    result.pv = (*pv_store)[index];
+    CELER_ASSERT(result.pv);
+    if (result.pv->VolumeType() != EVolume::kNormal)
+    {
+        auto copy_no = result.pv->GetCopyNo();
+        // NOTE: if this line fails, Geant4 may be returning uninitialized
+        // memory on the local thread.
+        CELER_ASSERT(copy_no >= 0 && copy_no < result.pv->GetMultiplicity());
+        result.replica = id_cast<GeantPhysicalInstance::ReplicaId>(copy_no);
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -187,7 +206,7 @@ G4VPhysicalVolume const* GeantGeoParams::id_to_pv(VolumeInstanceId id) const
  *
  * If the input volume ID is unassigned, a null pointer will be returned.
  */
-G4LogicalVolume const* GeantGeoParams::id_to_lv(VolumeId id) const
+G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 {
     CELER_EXPECT(!id || id < volumes_.size());
     if (!id)

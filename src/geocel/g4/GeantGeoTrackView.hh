@@ -95,7 +95,7 @@ class GeantGeoTrackView
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
     //!@{
-    //! VecGeom states are never "on" a surface
+    //! Geant4 states are never "on" a surface
     SurfaceId surface_id() const { return {}; }
     SurfaceId next_surface_id() const { return {}; }
     //!@}
@@ -106,6 +106,9 @@ class GeantGeoTrackView
     inline bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
+
+    // Get the Geant4 navigation state
+    inline G4NavigationHistory const* nav_history() const;
 
     //// OPERATIONS ////
 
@@ -296,8 +299,8 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     for (auto lev : range(levels.size()))
     {
         G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev);
-        CELER_ASSERT(pv);
-        levels[lev] = id_cast<VolumeInstanceId>(pv->GetInstanceID());
+        levels[lev] = pv ? id_cast<VolumeInstanceId>(pv->GetInstanceID())
+                         : VolumeInstanceId{};
     }
 }
 
@@ -317,6 +320,17 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_outside() const
 CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 {
     return safety_radius_ == 0.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the navigation state.
+ */
+G4NavigationHistory const* GeantGeoTrackView::nav_history() const
+{
+    auto* touch = touch_handle_();
+    CELER_ASSERT(touch);
+    return touch->GetHistory();
 }
 
 //---------------------------------------------------------------------------//

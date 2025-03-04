@@ -23,14 +23,8 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
-#include "../CmsEeBackDeeGeoTest.hh"
-#include "../CmseGeoTest.hh"
-#include "../FourLevelsGeoTest.hh"
 #include "../GenericGeoParameterizedTest.hh"
-#include "../MultiLevelGeoTest.hh"
-#include "../SolidsGeoTest.hh"
-#include "../TransformedBoxGeoTest.hh"
-#include "../ZnenvGeoTest.hh"
+#include "../GeoTests.hh"
 
 namespace celeritas
 {
@@ -357,6 +351,73 @@ TEST_F(SolidsTest, DISABLED_imager)
 
     inp.lower_left[2] = inp.upper_right[2] = from_cm(-5);
     write_image(ImageParams{inp}, "g4-solids-xy-lo.jsonl");
+}
+
+//---------------------------------------------------------------------------//
+// TODO: reorder or independently run tests; for now this has to go after the
+// Solids test
+using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
+
+TEST_F(ReplicaTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(ReplicaTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+TEST_F(ReplicaTest, level_strings)
+{
+    using R2 = Array<double, 2>;
+
+    auto const& geo_params = *this->geometry();
+    auto const& vol_inst = geo_params.volume_instances();
+
+    static R2 const points[] = {
+        {-435, 550},
+        {-460, 550},
+        {-400, 650},
+        {-450, 650},
+        {-450, 700},
+    };
+
+    std::vector<std::string> all_vol_inst;
+    for (R2 xz : points)
+    {
+        auto geo = this->make_geo_track_view({xz[0], 0.0, xz[1]}, {1, 0, 0});
+
+        auto level = geo.level();
+        CELER_ASSERT(level && level >= LevelId{0});
+        std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+        geo.volume_instance_id(make_span(inst_ids));
+        std::vector<std::string> names(inst_ids.size());
+        for (auto i : range(inst_ids.size()))
+        {
+            Label lab = vol_inst.at(inst_ids[i]);
+            if (auto phys_inst = geo_params.id_to_geant(inst_ids[i]))
+            {
+                if (phys_inst.replica)
+                {
+                    lab.ext += '+';
+                    lab.ext += std::to_string(phys_inst.replica.get());
+                }
+            }
+            names[i] = to_string(lab);
+        }
+        all_vol_inst.push_back(to_string(repr(names)));
+    }
+
+    static char const* const expected_all_vol_inst[] = {
+        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+14"})",
+        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+6"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+4", "HadCalCell_PV@+1", "HadCalLayer_PV@+2"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+2", "HadCalCell_PV@+1", "HadCalLayer_PV@+7"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+3", "HadCalCell_PV@+1", "HadCalLayer_PV@+16"})",
+    };
+
+    EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
 }
 
 //---------------------------------------------------------------------------//

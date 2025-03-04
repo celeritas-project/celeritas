@@ -249,8 +249,7 @@ TEST_F(TestEm3Test, host)
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    real_type tol = using_orange_geo         ? 1e-3
-                    : !using_vecgeom_surface ? 0.35 : 0.95;
+    real_type tol = using_orange_geo ? 1e-3 : 0.25;
     this->run_device(512, tol);
 }
 
@@ -268,8 +267,7 @@ TEST_F(SimpleCmsTest, host)
 TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
-    real_type tol = using_orange_geo         ? 1e-3
-                    : !using_vecgeom_surface ? 0.025 : 0.0253;
+    real_type tol = using_orange_geo ? 1e-3 : 0.025;
     this->run_device(512, tol);
 }
 
@@ -318,9 +316,8 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
     // TODO: investigate differences w.r.t. surface model on GPU
-    real_type tol = using_orange_geo         ? 1e-3
-                    : !using_vecgeom_surface ? 0.02 : 0.80;
-this->run_device(512, tol);
+    real_type tol = using_orange_geo ? 1e-3 : 0.025;
+    this->run_device(512, tol);
 }
 
 //---------------------------------------------------------------------------//

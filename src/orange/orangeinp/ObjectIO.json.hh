@@ -31,6 +31,7 @@ class Transformed;
 
 class PolySegments;
 class SolidEnclosedAngle;
+class SolidZSlab;
 
 class IntersectRegionInterface;
 class Box;
@@ -38,6 +39,7 @@ class Cone;
 class Cylinder;
 class Ellipsoid;
 class GenPrism;
+class InfSlab;
 class InfWedge;
 class Parallelepiped;
 class Prism;
@@ -62,6 +64,7 @@ void to_json(nlohmann::json& j, Transformed const&);
 // Write helper classes to JSON
 void to_json(nlohmann::json& j, PolySegments const&);
 void to_json(nlohmann::json& j, SolidEnclosedAngle const&);
+void to_json(nlohmann::json& j, SolidZSlab const&);
 
 // Write intersect regions to JSON
 void to_json(nlohmann::json& j, IntersectRegionInterface const& cr);
@@ -70,6 +73,7 @@ void to_json(nlohmann::json& j, Cone const& cr);
 void to_json(nlohmann::json& j, Cylinder const& cr);
 void to_json(nlohmann::json& j, Ellipsoid const& cr);
 void to_json(nlohmann::json& j, GenPrism const& cr);
+void to_json(nlohmann::json& j, InfSlab const& cr);
 void to_json(nlohmann::json& j, InfWedge const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
