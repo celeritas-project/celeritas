@@ -11,12 +11,15 @@
 
 namespace celeritas
 {
+namespace
+{
 //---------------------------------------------------------------------------//
-// Static data
-Array<cudaLimit, 2> const ScopedLimitSaver::cuda_attrs_{
+Array<cudaLimit, 2> const g_attrs{
     {cudaLimitStackSize, cudaLimitMallocHeapSize}};
-Array<char const*, 2> const ScopedLimitSaver::cuda_attr_labels_{
-    {"stack size", "heap size"}};
+Array<char const*, 2> const g_labels{{"stack size", "heap size"}};
+
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -24,9 +27,11 @@ Array<char const*, 2> const ScopedLimitSaver::cuda_attr_labels_{
  */
 ScopedLimitSaver::ScopedLimitSaver()
 {
+    static_assert(g_attrs.size() == orig_limits_.size()
+                  && g_labels.size() == orig_limits_.size());
     for (auto i : range(orig_limits_.size()))
     {
-        CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits_[i], cuda_attrs_[i]));
+        CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits_[i], g_attrs[i]));
     }
 }
 
@@ -41,15 +46,15 @@ ScopedLimitSaver::~ScopedLimitSaver()
         for (auto i : range(orig_limits_.size()))
         {
             std::size_t temp;
-            CELER_CUDA_CALL(cudaDeviceGetLimit(&temp, cuda_attrs_[i]));
+            CELER_CUDA_CALL(cudaDeviceGetLimit(&temp, g_attrs[i]));
             if (temp != orig_limits_[i])
             {
                 CELER_LOG(info)
-                    << "CUDA " << cuda_attr_labels_[i] << " was changed from "
+                    << "CUDA " << g_labels[i] << " was changed from "
                     << orig_limits_[i] << " to " << temp
                     << "; restoring to original values";
                 CELER_CUDA_CALL(
-                    cudaDeviceSetLimit(cuda_attrs_[i], orig_limits_[i]));
+                    cudaDeviceSetLimit(g_attrs[i], orig_limits_[i]));
             }
         }
     }
