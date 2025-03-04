@@ -46,7 +46,7 @@ void LoggerMessage::destroy_impl() noexcept
     try
     {
         // Write to the handler
-        (*handle_)(prov_, lev_, os_->str());
+        (*handle_)(prov_, lev_, std::move(*os_).str());
     }
     catch (std::exception const& e)
     {

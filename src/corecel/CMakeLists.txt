@@ -147,6 +147,7 @@ list(APPEND SOURCES
   io/JsonUtils.json.cc
   io/Label.cc
   io/LogContextException.cc
+  io/LogHandlers.cc
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
