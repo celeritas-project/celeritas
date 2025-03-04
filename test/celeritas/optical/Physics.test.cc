@@ -151,7 +151,7 @@ TEST_F(OpticalPhysicsTest, physics_params)
 
 //---------------------------------------------------------------------------//
 // Test sampling discrete interactions by per model cross sections
-TEST_F(OpticalPhysicsTest, select_discrete)
+TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
 {
     PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{3});
     RngEngine rng_engine;
@@ -167,7 +167,8 @@ TEST_F(OpticalPhysicsTest, select_discrete)
     for (auto model : range(ModelId{num_models}))
     {
         model_xs[model.get()]
-            = 1 / physics.calc_mfp(model, this->make_particle_view().energy());
+            = real_type{1}
+              / physics.calc_mfp(model, this->make_particle_view().energy());
         total_xs += model_xs[model.get()];
     }
     physics.macro_xs(total_xs);
