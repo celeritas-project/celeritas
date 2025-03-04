@@ -853,16 +853,19 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         {
             if (dynamic_cast<G4OpAbsorption const*>(&process))
             {
+                CELER_LOG(debug) << "Attempting to load G4OpAbsorption";
                 optical_models.push_back(import_optical_model(
                     optical::ImportModelClass::absorption));
             }
             else if (dynamic_cast<G4OpRayleigh const*>(&process))
             {
+                CELER_LOG(debug) << "Attempting to load G4OpRayleigh";
                 optical_models.push_back(
                     import_optical_model(optical::ImportModelClass::rayleigh));
             }
             else if (dynamic_cast<G4OpWLS const*>(&process))
             {
+                CELER_LOG(debug) << "Attempting to load G4OpWLS";
                 optical_models.push_back(
                     import_optical_model(optical::ImportModelClass::wls));
             }
