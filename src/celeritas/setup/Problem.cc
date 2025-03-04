@@ -449,7 +449,6 @@ problem(inp::Problem const& p, ImportData const& imported)
     if (p.diagnostics.status_checker)
     {
         // Add detailed debugging of track states
-        // TODO: this environment variable will be replaced by celer::inp soon!
         StatusChecker::make_and_insert(*core_params);
     }
 
