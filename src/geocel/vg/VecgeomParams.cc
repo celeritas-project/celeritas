@@ -279,22 +279,40 @@ VecgeomParams::~VecgeomParams()
 {
     if (device_ref_)
     {
-        if (VecgeomParams::use_surface_tracking())
+        CELER_LOG(debug)
+            << "Clearing VecGeom "
+            << (VecgeomParams::use_surface_tracking() ? "surface" : "volume")
+            << "GPU data";
+        try
         {
-            CELER_LOG(debug) << "Clearing VecGeom surface GPU data";
-            VG_SURF_CALL(detail::teardown_surface_tracking_device());
+            if (VecgeomParams::use_surface_tracking())
+            {
+                VG_SURF_CALL(detail::teardown_surface_tracking_device());
+            }
+            else
+            {
+                VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+            }
         }
-        else
+        catch (std::exception const& e)
         {
-            CELER_LOG(debug) << "Clearing VecGeom GPU data";
-            VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+            CELER_LOG(critical)
+                << "Failed during VecGeom device cleanup: " << e.what();
         }
     }
 
     if (VecgeomParams::use_surface_tracking())
     {
         CELER_LOG(debug) << "Clearing SurfModel CPU data";
+    }
+    try
+    {
         VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(critical)
+            << "Failed during VecGeom surface model cleanup: " << e.what();
     }
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
