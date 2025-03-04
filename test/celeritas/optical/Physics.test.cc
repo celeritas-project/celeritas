@@ -167,8 +167,7 @@ TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
     for (auto model : range(ModelId{num_models}))
     {
         model_xs[model.get()]
-            = real_type{1}
-              / physics.calc_mfp(model, this->make_particle_view().energy());
+            = 1 / physics.calc_mfp(model, this->make_particle_view().energy());
         total_xs += model_xs[model.get()];
     }
     physics.macro_xs(total_xs);
