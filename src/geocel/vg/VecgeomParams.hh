@@ -69,7 +69,7 @@ class VecgeomParams final : public GeoParamsInterface,
     VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get the Geant4 physical volume corresponding to a volume instance ID
-    G4VPhysicalVolume const* id_to_pv(VolumeInstanceId vol_id) const final;
+    GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
 
     // DEPRECATED
     using GeoParamsInterface::find_volume;

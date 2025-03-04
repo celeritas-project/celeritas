@@ -10,12 +10,14 @@
 #include <initializer_list>
 #include <string_view>
 #include <G4LogicalVolume.hh>
-#include <G4Navigator.hh>
+#include <G4NavigationHistory.hh>
+#include <G4PhysicalVolumeStore.hh>
 #include <G4ThreeVector.hh>
 #include <G4TouchableHistory.hh>
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeoParamsInterface.hh"
 #include "geocel/g4/Convert.hh"
 
 #include "UnitUtils.hh"
@@ -60,7 +62,8 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
 {
   public:
     using IListSView = std::initializer_list<std::string_view>;
-    using VecPVConst = std::vector<G4VPhysicalVolume const*>;
+    using VecPhysInst = std::vector<GeantPhysicalInstance>;
+    using ReplicaId = GeantPhysicalInstance::ReplicaId;
 
     SPConstGeo build_geometry() final
     {
@@ -71,24 +74,49 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
     {
         // Build geometry during setup
         ASSERT_TRUE(this->geometry());
+
+        // Clear all copy numbers
+        for (auto* pv : *G4PhysicalVolumeStore::GetInstance())
+        {
+            if (pv && pv->VolumeType() != EVolume::kNormal)
+            {
+                pv->SetCopyNo(0);
+            }
+        }
     }
 
-    VecPVConst find_pv_stack(IListSView names) const
+    VecPhysInst find_pv_stack(IListSView names) const
     {
         auto const& geo = *this->geometry();
         auto const& vol_inst = geo.volume_instances();
 
-        VecPVConst result;
+        VecPhysInst result;
         std::vector<std::string_view> missing;
         for (std::string_view sv : names)
         {
-            auto vi = vol_inst.find_exact(Label::from_separator(sv));
+            auto lab = Label::from_separator(sv);
+            ReplicaId replica;
+            if (auto pos = lab.ext.find('+'); pos != std::string::npos)
+            {
+                // Convert replica ID and erase remainder
+                replica
+                    = id_cast<ReplicaId>(std::stoi(lab.ext.substr(pos + 1)));
+                lab.ext.erase(pos, std::string::npos);
+            }
+
+            auto vi = vol_inst.find_exact(lab);
             if (!vi)
             {
                 missing.push_back(sv);
                 continue;
             }
-            result.push_back(geo.id_to_pv(vi));
+
+            auto phys_inst = geo.id_to_geant(vi);
+            if (replica)
+            {
+                phys_inst.replica = replica;
+            }
+            result.push_back(phys_inst);
             CELER_ASSERT(result.back());
         }
         CELER_VALIDATE(missing.empty(),
@@ -161,18 +189,11 @@ class MultiLevelTest : public GeantGeoUtilsTest
 
 TEST_F(MultiLevelTest, printable_nav)
 {
-    G4Navigator navi;
-    G4TouchableHistory touchable;
-    navi.SetWorldVolume(
-        const_cast<G4VPhysicalVolume*>(this->geometry()->world()));
-
-    auto get_nav_str = [&](Real3 const& pos) {
-        navi.LocateGlobalPointAndUpdateTouchable(
-            convert_to_geant(from_cm(pos), clhep_length),
-            G4ThreeVector(1, 0, 0),
-            &touchable);
+    auto geo = this->make_geo_track_view();
+    auto get_nav_str = [&geo](Real3 const& pos) {
+        geo = {from_cm(pos), Real3{1, 0, 0}};
         std::ostringstream os;
-        os << PrintableNavHistory{touchable.GetHistory()};
+        os << PrintableNavHistory{geo.nav_history()};
         return std::move(os).str();
     };
 
@@ -263,6 +284,155 @@ TEST_F(MultiLevelTest, set_history)
         "32,23,0",
         "32,24,0",
         "1,24,0",
+    };
+
+    EXPECT_VEC_SOFT_EQ(expected_coords, coords);
+    EXPECT_VEC_EQ(expected_replicas, replicas);
+}
+
+//---------------------------------------------------------------------------//
+class ReplicaTest : public GeantGeoUtilsTest
+{
+    std::string geometry_basename() const override { return "replica"; }
+};
+
+TEST_F(ReplicaTest, is_replica)
+{
+    auto track = this->make_geo_track_view();
+    auto get_replicas = [&track](Real3 const& pos) {
+        track = {from_cm(pos), Real3{0, 0, 1}};
+
+        auto* hist = track.nav_history();
+        CELER_ASSERT(hist);
+
+        std::vector<std::string> replicas;
+        for (auto i : range(hist->GetDepth() + 1))
+        {
+            auto* pv = hist->GetVolume(i);
+            if (!pv)
+            {
+                replicas.push_back("<null>");
+                continue;
+            }
+            if (is_replica(*pv))
+            {
+                replicas.push_back(pv->GetName());
+            }
+        }
+        return replicas;
+    };
+
+    {
+        static char const* const expected[]
+            = {"HadCalColumn_PV", "HadCalCell_PV", "HadCalLayer_PV"};
+        auto actual = get_replicas({-400, 0.1, 650});
+        EXPECT_VEC_EQ(expected, actual);
+    }
+    {
+        static char const* const expected[]
+            = {"HadCalColumn_PV", "HadCalCell_PV", "HadCalLayer_PV"};
+        auto actual = get_replicas({-450, 0.1, 650});
+        EXPECT_VEC_EQ(expected, actual);
+    }
+    {
+        static char const* const expected[]
+            = {"HadCalColumn_PV", "HadCalCell_PV", "HadCalLayer_PV"};
+        auto actual = get_replicas({-450, 0.1, 700});
+        EXPECT_VEC_EQ(expected, actual);
+    }
+}
+
+//! Test set_history using some of the same properties that CMS HGcal needs
+TEST_F(ReplicaTest, set_history)
+{
+    // Note: the shuffled order is to check that we correctly update parent
+    // levels even if we're in the same LV/PV
+    static IListSView const all_level_names[] = {
+        {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+14"},
+        {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+6"},
+        {"world_PV",
+         "fSecondArmPhys",
+         "HadCalorimeter",
+         "HadCalColumn_PV@+4",
+         "HadCalCell_PV@+1",
+         "HadCalLayer_PV@+2"},
+        {"world_PV",
+         "fSecondArmPhys",
+         "HadCalorimeter",
+         "HadCalColumn_PV@+2",
+         "HadCalCell_PV@+1",
+         "HadCalLayer_PV@+7"},
+        {"world_PV",
+         "fSecondArmPhys",
+         "HadCalorimeter",
+         "HadCalColumn_PV@+2",
+         "HadCalCell_PV@+0",
+         "HadCalLayer_PV@+7"},
+        {"world_PV",
+         "fSecondArmPhys",
+         "HadCalorimeter",
+         "HadCalColumn_PV@+3",
+         "HadCalCell_PV@+1",
+         "HadCalLayer_PV@+16"},
+    };
+
+    G4TouchableHistory touch;
+    G4NavigationHistory hist;
+    std::vector<double> coords;
+    std::vector<std::string> replicas;
+
+    for (IListSView level_names : all_level_names)
+    {
+        auto phys_vols = this->find_pv_stack(level_names);
+        CELER_ASSERT(phys_vols.size() == level_names.size());
+
+        // Set the navigation history
+        set_history(make_span(phys_vols), &hist);
+        touch.UpdateYourself(hist.GetTopVolume(), &hist);
+
+        // Get the local-to-global x/y translation coordinates
+        auto const& trans = touch.GetTranslation(0);
+        coords.insert(coords.end(), {trans.x(), trans.y(), trans.z()});
+
+        // Get the replica/copy numbers
+        replicas.push_back([&touch] {
+            std::ostringstream os;
+            os << touch.GetReplicaNumber(0);
+            for (auto i : range(1, touch.GetHistoryDepth() + 1))
+            {
+                os << ',' << touch.GetReplicaNumber(i);
+            }
+            return std::move(os).str();
+        }());
+    }
+
+    static double const expected_coords[] = {
+        -4344.3747686898,
+        75,
+        5574.6778264911,
+        -4604.1823898252,
+        75,
+        5424.6778264911,
+        -3942.4038105677,
+        150,
+        6528.4437038563,
+        -4587.0190528383,
+        150,
+        6444.9500548025,
+        -4587.0190528383,
+        -150,
+        6444.9500548025,
+        -4552.211431703,
+        150,
+        6984.6614865054,
+    };
+    static char const* const expected_replicas[] = {
+        "14,0,0,0",
+        "6,0,0,0",
+        "2,1,4,0,0,0",
+        "7,1,2,0,0,0",
+        "7,0,2,0,0,0",
+        "16,1,3,0,0,0",
     };
 
     EXPECT_VEC_SOFT_EQ(expected_coords, coords);

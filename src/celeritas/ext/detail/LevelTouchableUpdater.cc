@@ -11,6 +11,7 @@
 #include <G4VTouchable.hh>
 
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeoParamsInterface.hh"
 #include "geocel/GeoTraits.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/user/DetectorSteps.hh"
@@ -60,23 +61,23 @@ bool LevelTouchableUpdater::operator()(SpanVolInst ids,
     CELER_EXPECT(touchable);
     CELER_EXPECT(!ids.empty() && ids.front());
 
-    // Update phys_vol_ from geometry and volume instance id
-    phys_vol_.clear();
+    // Update phys_inst_ from geometry and volume instance id
+    phys_inst_.clear();
     for (auto vi_id : ids)
     {
         if (!vi_id)
             break;
-        auto pv = geo_->id_to_pv(vi_id);
+        auto phys_inst = geo_->id_to_geant(vi_id);
         CELER_VALIDATE(
-            pv,
+            phys_inst,
             << "no Geant4 physical volume is attached to volume instance "
             << vi_id.get() << "='" << geo_->volume_instances().at(vi_id)
             << "' (geometry type: " << GeoTraits<GeoParams>::name << ')');
-        phys_vol_.push_back(pv);
+        phys_inst_.push_back(phys_inst);
     }
-    CELER_ASSERT(!phys_vol_.empty());
+    CELER_ASSERT(!phys_inst_.empty());
 
-    set_history(make_span(phys_vol_), nav_hist_.get());
+    set_history(make_span(phys_inst_), nav_hist_.get());
     touchable->UpdateYourself(nav_hist_->GetTopVolume(), nav_hist_.get());
     return true;
 }

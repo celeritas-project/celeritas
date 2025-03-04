@@ -29,15 +29,9 @@
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
-#include "../CmsEeBackDeeGeoTest.hh"
-#include "../CmseGeoTest.hh"
-#include "../FourLevelsGeoTest.hh"
 #include "../GeantImportVolumeResult.hh"
 #include "../GenericGeoParameterizedTest.hh"
-#include "../MultiLevelGeoTest.hh"
-#include "../SolidsGeoTest.hh"
-#include "../TransformedBoxGeoTest.hh"
-#include "../ZnenvGeoTest.hh"
+#include "../GeoTests.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
@@ -726,6 +720,23 @@ TEST_F(MultiLevelTest, accessors)
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+class ReplicaTest
+    : public GenericGeoParameterizedTest<VecgeomGeantTestBase, ReplicaGeoTest>
+{
+    real_type safety_tol() const final { return 1e-10; }
+};
+
+TEST_F(ReplicaTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(ReplicaTest, volume_stack)
+{
+    this->impl().test_volume_stack();
 }
 
 //---------------------------------------------------------------------------//

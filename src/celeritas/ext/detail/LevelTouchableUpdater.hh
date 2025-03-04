@@ -60,7 +60,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
     // Geometry for doing G4PV translation
     SPConstGeo geo_;
     // Temporary storage for physical volumes
-    std::vector<G4VPhysicalVolume const*> phys_vol_;
+    std::vector<GeantPhysicalInstance> phys_inst_;
     // Temporary history
     std::unique_ptr<G4NavigationHistory> nav_hist_;
 };

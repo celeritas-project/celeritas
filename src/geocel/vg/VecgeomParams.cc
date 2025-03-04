@@ -135,8 +135,8 @@ std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<VolT>(
-        std::move(names), [](VolT const& vol) { return vol.id(); });
+    return detail::make_label_vector<VolT const*>(
+        std::move(names), [](VolT const* vol) { return vol->id(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -187,8 +187,8 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<VolT>(
-        std::move(names), [](VolT const& vol) { return vol.id(); });
+    return detail::make_label_vector<VolT const*>(
+        std::move(names), [](VolT const* vol) { return vol->id(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -309,14 +309,34 @@ VecgeomParams::~VecgeomParams()
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
  */
-G4VPhysicalVolume const* VecgeomParams::id_to_pv(VolumeInstanceId viid) const
+GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
 {
-    CELER_EXPECT(viid);
-    if (viid < g4_pv_map_.size())
+    CELER_EXPECT(id < g4_pv_map_.size() || g4_pv_map_.empty());
+    if (g4_pv_map_.empty())
     {
-        return g4_pv_map_[viid.unchecked_get()];
+        // Model was loaded with VGDML
+        return {};
     }
-    return nullptr;
+
+    GeantPhysicalInstance result;
+    result.pv = g4_pv_map_[id.unchecked_get()];
+    if (result.pv && is_replica(*result.pv))
+    {
+        // VecGeom volume is a specific instance of a G4PV: get the replica
+        // number it corresponds to
+        auto& geo_manager = vecgeom::GeoManager::Instance();
+#if VECGEOM_USE_SURF
+        // TODO: this should use VECGEOM_VERSION >= 0x020000 once the
+        // changes get merged into master
+        auto* vgpv = geo_manager.GetPlacedVolume(id.get());
+#else
+        auto* vgpv = geo_manager.FindPlacedVolume(id.get());
+#endif
+        CELER_ASSERT(vgpv);
+        result.replica
+            = id_cast<GeantPhysicalInstance::ReplicaId>(vgpv->GetCopyNo());
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

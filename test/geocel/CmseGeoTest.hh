@@ -17,7 +17,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test the transformed box geometry.
+ * Test the CMS polycone geometry.
  */
 class CmseGeoTest
 {
@@ -27,7 +27,6 @@ class CmseGeoTest
     //! Construct with a reference to the GoogleTest
     CmseGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_accessors() const;
     inline void test_trace() const;
 
   private:

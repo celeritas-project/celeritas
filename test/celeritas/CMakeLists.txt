@@ -209,9 +209,22 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(ext/detail/HitProcessor.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
+
+  set(_ltu_tests
+    "MultiLevelTest.*"
+  )
+  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+    # Geant4 doesn't yet have independent volume instance IDs for replicas
+    list(APPEND _ltu_tests
+      "ReplicaTest.*"
+    )
+  elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    set(_ltu_tests DISABLE)
+  endif()
+
   celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
-    ${_needs_not_orange})
+    FILTER ${_ltu_tests})
   if(CELERITAS_REAL_TYPE STREQUAL "double")
     # This test requires Geant4 *geometry* which is incompatible
     # with single-precision

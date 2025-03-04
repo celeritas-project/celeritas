@@ -154,13 +154,17 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
             {
                 break;
             }
-            os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id).name;
+            os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id);
 #if CELERITAS_USE_GEANT4
-            if (G4VPhysicalVolume const* pv = geo_->id_to_pv(vi_id))
+            if (auto phys_inst = geo_->id_to_geant(vi_id))
             {
-                if (auto copy_num = pv->GetCopyNo())
+                if (phys_inst.replica)
                 {
-                    os << '@' << std::setw(2) << std::setfill('0') << copy_num;
+                    os << '@' << phys_inst.replica.get();
+                }
+                else if (auto copy_num = phys_inst.pv->GetCopyNo())
+                {
+                    os << '.' << std::setw(2) << std::setfill('0') << copy_num;
                 }
             }
 #endif
