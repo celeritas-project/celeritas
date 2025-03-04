@@ -132,8 +132,9 @@ std::string_view OpticalLaunchAction::description() const
 /*!
  * Build state data for a stream.
  */
-auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) const
-    -> UPState
+auto OpticalLaunchAction::create_state(MemSpace m,
+                                       StreamId sid,
+                                       size_type) const -> UPState
 {
     if (m == MemSpace::host)
     {
