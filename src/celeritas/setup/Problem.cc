@@ -15,11 +15,9 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/cont/detail/VariantUtilsImpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/Constant.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -64,6 +62,7 @@
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
+#include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
@@ -445,6 +444,12 @@ problem(inp::Problem const& p, ImportData const& imported)
     if (p.diagnostics.action)
     {
         ActionDiagnostic::make_and_insert(*core_params);
+    }
+
+    if (p.diagnostics.status_checker)
+    {
+        // Add detailed debugging of track states
+        StatusChecker::make_and_insert(*core_params);
     }
 
     if (p.diagnostics.step)
