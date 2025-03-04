@@ -97,6 +97,25 @@
       "inherits": [".reldeb", "single"]
     },
     {
+      "name": "reldeb-vecgeom-surface",
+      "displayName": "Everything in release mode with debug symbols and assertions",
+      "inherits": [".reldeb", "vecgeom"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "/projects/spack/opt/spack/gcc-8.5.0/nlohmann-json/fjroq3t:/home/s3j/Code/vecgeom/install:/projects/spack/opt/spack/gcc-8.5.0/geant4/ubcgmbs:/projects/spack/opt/spack/gcc-8.5.0/googletest/fx37xa6"
+      },
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_G4VG":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "reldeb-vecgeom",
       "displayName": "Everything in release mode with debug symbols and assertions",
       "inherits": [".reldeb", "vecgeom"]
