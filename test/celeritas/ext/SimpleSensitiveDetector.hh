@@ -24,6 +24,7 @@ struct SimpleHitsResult
     std::vector<double> pre_pos;  // [cm]
     std::vector<std::string> pre_physvol;
     std::vector<double> post_time;  // [ns]
+    std::vector<std::string> post_physvol;  // [ns]
 
     void print_expected() const;
 };

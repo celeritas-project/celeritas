@@ -11,6 +11,7 @@
 #include <variant>
 #include <vector>
 
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/io/Label.hh"
 
 class G4LogicalVolume;
@@ -31,6 +32,8 @@ struct GeantSdStepPointAttributes
     bool direction{true};
     //! Store the step point energy
     bool kinetic_energy{true};
+    //! Reconstruct the complete volume hierarchy
+    bool touchable{true};
 };
 
 //---------------------------------------------------------------------------//
@@ -44,9 +47,9 @@ struct GeantSdStepPointAttributes
  * - To improve performance and memory usage, determine what quantities (time,
  *   position, direction, touchable, ...) are required by your setup's
  *   sensitive detectors and set all other attributes to \c false.
- * - Reconstructing the full geometry status using \c locate_touchable is the
- *   most expensive detector option. Disable it unless your SDs require (e.g.)
- *   the volume's copy number to locate a detector submodule.
+ * - Reconstructing the full geometry status using \c touchable step option is
+ *   the most expensive detector option. Disable it unless your SDs require
+ *   (e.g.) the volume's copy number to locate a detector submodule.
  * - Some reconstructed track attributes (such as post-step material) are
  *   currently never set because they are rarely used in practice. Contact the
  *   Celeritas team or submit a pull request to add this functionality.
@@ -80,6 +83,11 @@ struct GeantSdStepPointAttributes
  * \todo change from \c unordered_set to \c set for better reproducibility in
  * serialized output
  *
+ * The pre- and post-step attributes can be set with: \code
+  sd.points[StepPoint::pre].global_time = true;
+  sd.points[StepPoint::post].touchable = false;
+  \endcode
+ *
  * \sa celeritas::GeantSd
  */
 struct GeantSd
@@ -88,6 +96,7 @@ struct GeantSd
     using SetVolume = std::unordered_set<G4LogicalVolume const*>;
     using SetString = std::unordered_set<std::string>;
     using VariantSetVolume = std::variant<SetVolume, SetString>;
+    using PointAttrs = EnumArray<StepPoint, GeantSdStepPointAttributes>;
 
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
@@ -95,15 +104,11 @@ struct GeantSd
     bool energy_deposition{true};
     //! Save physical step length
     bool step_length{true};
-    //! Set TouchableHandle for PreStepPoint
-    bool locate_touchable{true};
     //! Create a track with the dynamic particle type and post-step data
     bool track{true};
 
-    //! Options for saving and converting beginning-of-step data
-    GeantSdStepPointAttributes pre;
-    //! Options for saving and converting end-of-step data
-    GeantSdStepPointAttributes post;
+    //! Options for saving and converting beginning- and end-of-step data
+    PointAttrs points;
 
     //! Manually list LVs that don't have an SD on the master thread
     VariantSetVolume force_volumes;

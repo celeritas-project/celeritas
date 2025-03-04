@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/cont/EnumArray.hh"
 #include "geocel/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -59,6 +60,7 @@ class GeantSd final : public StepInterface
     using SPConstGeo = std::shared_ptr<GeoParams const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
+    using StepPointBool = EnumArray<StepPoint, bool>;
     using Input = inp::GeantSd;
     //!@}
 
@@ -101,7 +103,7 @@ class GeantSd final : public StepInterface
     VecParticle const& geant_particles() const { return particles_; }
 
     //! Whether detailed volume information is reconstructed
-    bool locate_touchable() const { return locate_touchable_; }
+    StepPointBool const& locate_touchable() const { return locate_touchable_; }
 
   private:
     using VecLV = std::vector<G4LogicalVolume const*>;
@@ -114,7 +116,7 @@ class GeantSd final : public StepInterface
     SPConstVecLV geant_vols_;
     VecParticle particles_;
     StepSelection selection_;
-    bool locate_touchable_{};
+    StepPointBool locate_touchable_{};
 
     std::vector<std::weak_ptr<HitProcessor>> processor_weakptrs_;
     std::vector<HitProcessor*> processors_;
