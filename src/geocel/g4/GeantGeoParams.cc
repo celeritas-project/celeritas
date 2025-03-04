@@ -165,8 +165,8 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
  *
- * \warning For Geant4 paramterised/replicated volumes, external state (e.g.
- * the local navigation) *must* be used in concert with this method: i.e.,
+ * \warning For Geant4 parameterised/replicated volumes, external state (e.g.
+ * the local navigation) \em must be used in concert with this method: i.e.,
  * navigation on the current thread needs to have just "visited" the instance.
  *
  * \todo Create our own volume instance mapping for Geant4, where
