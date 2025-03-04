@@ -33,7 +33,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/alongstep/AlongStepNeutralAction.hh"
-#include "celeritas/em/params/WentzelOKVIParams.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh" // IWYU pragma: keep
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/detail/BoundaryAction.hh"
@@ -58,10 +58,10 @@
 #include "detail/CoreSizes.json.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-#    include "orange/OrangeParams.hh"
+#    include "orange/OrangeParams.hh" // IWYU pragma: keep
 #    include "orange/OrangeParamsOutput.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-#    include "geocel/vg/VecgeomParams.hh"
+#    include "geocel/vg/VecgeomParams.hh" // IWYU pragma: keep
 #    include "geocel/vg/VecgeomParamsOutput.hh"
 #endif
 
@@ -363,7 +363,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         std::make_shared<VecgeomParamsOutput>(input_.geometry));
 #endif
 
-    // TODO: add output from auxiliary params/data
+        // TODO: add output from auxiliary params/data
 
     CELER_LOG(status) << "Celeritas core setup complete";
 

@@ -79,6 +79,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(write_track_counts);
     LDIO_LOAD_OPTION(write_step_times);
     LDIO_LOAD_OPTION(transporter_result);
+    LDIO_LOAD_OPTION(status_checker);
     LDIO_LOAD_OPTION(log_progress);
 
     LDIO_LOAD_DEPRECATED(max_num_tracks, num_track_slots);
@@ -174,6 +175,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(write_track_counts);
     LDIO_SAVE(write_step_times);
     LDIO_SAVE(transporter_result);
+    LDIO_SAVE(status_checker);
     LDIO_SAVE(log_progress);
 
     LDIO_SAVE(seed);
