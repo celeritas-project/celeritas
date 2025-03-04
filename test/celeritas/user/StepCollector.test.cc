@@ -399,7 +399,7 @@ TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
 
     auto iter = std::find(result.instance.begin(),
                           result.instance.end(),
-                          "lar:world_PV/Calorimeter/Layer@01/lar_pv");
+                          "lar:world_PV/Calorimeter/Layer@0.01/lar_pv");
     EXPECT_TRUE(iter != result.instance.end()) << repr(result.instance);
 }
 
