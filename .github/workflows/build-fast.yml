@@ -14,12 +14,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: focal
-            compiler: gcc
-            version: 8
-          - runner: focal
-            compiler: clang
-            version: 10
           - runner: jammy
             compiler: gcc
             version: 12
@@ -52,8 +46,7 @@ jobs:
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     runs-on: >-
-      ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
-        || matrix.runner == 'jammy' && 'ubuntu-22.04'
+      ${{  matrix.runner == 'jammy' && 'ubuntu-22.04'
         || matrix.runner == 'noble' && 'ubuntu-24.04'
         || matrix.runner == 'noble-arm' && 'ubuntu-24.04-arm'
       }}
