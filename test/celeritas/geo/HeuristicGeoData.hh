@@ -11,11 +11,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/Atomics.hh"
+#include "geocel/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/random/RngData.hh"
 
@@ -33,6 +32,9 @@ struct HeuristicGeoScalars
     Real3 upper{0, 0, 0};
     real_type log_min_step{-16.11809565095832};  // 1 nm
     real_type log_max_step{2.302585092994046};  // 10 cm
+
+    static constexpr real_type safety_tol = 0.01;
+    static constexpr real_type geom_limit = 5e-8 * units::millimeter;
 
     // Set from geometry
     VolumeId::size_type num_volumes{};
