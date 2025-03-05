@@ -43,13 +43,8 @@ bool LevelTouchableUpdater::operator()(DetectorStepOutput const& out,
                                        StepPoint step_point,
                                        GeantTouchableBase* touchable)
 {
-    CELER_EXPECT(i < out.size());
-    CELER_EXPECT(out.volume_instance_depth > 0);
-    auto ids = make_span(out.points[step_point].volume_instance_ids);
-    auto const depth = out.volume_instance_depth;
-    CELER_EXPECT(ids.size() >= (i + 1) * depth);
-
-    return (*this)(ids.subspan(i * depth, depth), touchable);
+    return (*this)(LevelTouchableUpdater::volume_instances(out, i, step_point),
+                   touchable);
 }
 
 //---------------------------------------------------------------------------//

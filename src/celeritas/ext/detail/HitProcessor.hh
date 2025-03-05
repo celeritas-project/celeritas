@@ -123,9 +123,8 @@ class HitProcessor
     EnumArray<StepPoint, G4TouchableHandle> touch_handle_;
     //! Navigator for finding points
     std::unique_ptr<TouchableUpdaterInterface> update_touchable_;
-
-    //! Post-step selection for copying to track
-    StepPointSelection post_step_selection_;
+    //! Whether geometry-related step status can be updated
+    bool step_post_status_{false};
 
     void update_track(ParticleId id) const;
 };

@@ -39,6 +39,50 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Get the geometry step status when volume instance IDs are present.
+ *
+ * Note that this isn't entirely accurate if crossing from one
+ * replica/parameterised region to another. For that we will need to map
+ * distinct (instance id, replica number) to unique volume instances. Perhaps
+ * that would be better done by using "touchables" globally and reconstructing
+ * volume instances in post.
+ */
+G4StepStatus
+get_step_status(DetectorStepOutput const& out, size_type step_index)
+{
+    auto pre = LevelTouchableUpdater::volume_instances(
+        out, step_index, StepPoint::pre);
+    auto post = LevelTouchableUpdater::volume_instances(
+        out, step_index, StepPoint::post);
+    for (auto i : range(out.volume_instance_depth))
+    {
+        if (pre[i] != post[i])
+        {
+            // Volume instance changed
+            if (i == 0 && post[i] == VolumeInstanceId{})
+            {
+                // Exited the geometry
+                return G4StepStatus::fWorldBoundary;
+            }
+            // Changed volumes
+            return G4StepStatus::fGeomBoundary;
+        }
+        if (!pre[i])
+        {
+            // Empty volume sentinel encountered: exit
+            break;
+        }
+    }
+    return G4StepStatus::fUserDefinedLimit;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct local navigator and step data.
@@ -49,6 +93,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
+    , step_post_status_{
+          selection.points[StepPoint::pre].volume_instance_ids
+          && selection.points[StepPoint::post].volume_instance_ids}
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
     CELER_EXPECT(geo);
@@ -233,7 +280,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 {
     CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(i < out.size());
-    CELER_EXPECT(tracks_.empty() || !out.particle.empty());
 #define HP_SET(SETTER, OUT, UNITS)                   \
     do                                               \
     {                                                \
@@ -311,7 +357,17 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     if (!tracks_.empty())
     {
+        // Set the track particle type
+        CELER_ASSERT(!out.particle.empty());
         this->update_track(out.particle[i]);
+    }
+
+    if (step_post_status_)
+    {
+        // Update the post-step status based on the geometry instances
+        auto* g4sp = step_->GetPostStepPoint();
+        CELER_ASSERT(g4sp);
+        g4sp->SetStepStatus(get_step_status(out, i));
     }
 
     // Hit sensitive detector

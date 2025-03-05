@@ -373,46 +373,49 @@ TEST_F(SimpleCmsTest, touchable_exiting)
 
     HitProcessor process_hits = this->make_hit_processor();
     DetectorStepOutput dso;
-    dso.detector = {DetectorId{3}};
-    dso.energy_deposition = {MevEnergy{1.0}};
+    dso.detector = {DetectorId{3}, DetectorId{2}};
+    dso.energy_deposition = {MevEnergy{1.0}, MevEnergy{10.0}};
     dso.step_length = {
         from_cm(1000),
+        from_cm(10),
     };
     dso.points[StepPoint::pre].pos = {
         from_cm(Real3{0, 0, 3000}),
+        from_cm(Real3{50.0, 0, 695}),
     };
     dso.points[StepPoint::post].pos = {
         from_cm(Real3{0, 0, 4000}),
+        from_cm(Real3{50.0, 0, 705}),
     };
     dso.points[StepPoint::pre].dir = dso.points[StepPoint::post].dir
-        = {Real3{0, 0, 1}};
+        = {Real3{0, 0, 1}, Real3{0, 0, 1}};
 
     dso.volume_instance_depth = 2;
-    auto wovi = this->geometry()->volume_instances().find_unique("world_PV");
-    dso.points[StepPoint::pre].volume_instance_ids = {wovi, {}};
-    dso.points[StepPoint::post].volume_instance_ids = {{}, {}};
+    auto const& vol_inst = this->geometry()->volume_instances();
+    auto wovi = vol_inst.find_unique("world_PV");
+    auto sivi = vol_inst.find_unique("si_tracker_pv");
+    dso.points[StepPoint::pre].volume_instance_ids = {wovi, {}, wovi, sivi};
+    dso.points[StepPoint::post].volume_instance_ids = {{}, {}, wovi, {}};
     process_hits(dso);
 
     {
+        auto& result = this->get_hits("si_tracker");
+        static char const* const expected_pre_physvol[] = {"si_tracker_pv"};
+        EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
+        static char const* const expected_post_physvol[] = {"world_PV"};
+        EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+        static char const* const expected_post_status[] = {"geo"};
+        EXPECT_VEC_EQ(expected_post_status, result.post_status);
+    }
+    {
         auto& result = this->get_hits("world");
 
-        static double const expected_energy_deposition[] = {1};
-        EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
-                           result.energy_deposition);
-        static double const expected_step_length[] = {1000};
-        EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);
-        static char const* const expected_particle[] = {};
-        EXPECT_VEC_EQ(expected_particle, result.particle);
-        static double const expected_pre_energy[] = {0};
-        EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
-        static double const expected_pre_pos[] = {0, 0, 3000};
-        EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
         static char const* const expected_pre_physvol[] = {"world_PV"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
-        static double const expected_post_time[] = {0};
-        EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
         static char const* const expected_post_physvol[] = {"<nullptr>"};
         EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+        static char const* const expected_post_status[] = {"world"};
+        EXPECT_VEC_EQ(expected_post_status, result.post_status);
     }
 }
 
