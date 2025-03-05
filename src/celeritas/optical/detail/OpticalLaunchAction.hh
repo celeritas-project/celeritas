@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas
@@ -51,6 +52,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //! \name Type aliases
     using SPOffloadParams = std::shared_ptr<detail::OffloadParams>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
+    using VecLabel = std::vector<Label>;
     //!@}
 
     struct Input
@@ -59,6 +61,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
         SPOffloadParams offload;
         size_type num_track_slots{};
         size_type initializer_capacity{};
+
+        VecLabel detector_labels{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const

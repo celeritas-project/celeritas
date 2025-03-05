@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 
 #include "OffloadData.hh"
@@ -86,6 +87,9 @@ class OpticalCollector
 
         //! Threshold number of initializers for launching optical loop
         size_type auto_flush{};
+
+        //! Labels of volumes corresponding to optical detectors
+        std::vector<Label> detector_labels{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const

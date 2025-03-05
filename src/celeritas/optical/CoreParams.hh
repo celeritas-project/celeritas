@@ -10,6 +10,7 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
@@ -41,6 +42,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using VecLabel = std::vector<Label>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -57,6 +59,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstTrackInit init;
 
         SPActionRegistry action_reg;
+
+        VecLabel detector_labels;
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -89,6 +93,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstRng const& rng() const { return input_.rng; }
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
+    VecLabel const& detector_labels() const  {return input_.detector_labels;}
     //!@}
 
     // Access host pointers to core data
