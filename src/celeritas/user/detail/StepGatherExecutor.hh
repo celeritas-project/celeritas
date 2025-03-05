@@ -160,9 +160,13 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
             }();
 
             // Fill every level from the geometry
-            size_type depth = geo.level().unchecked_get() + 1;
+            size_type depth
+                = geo.is_outside() ? 0 : geo.level().unchecked_get() + 1;
             CELER_ASSERT(depth <= dst.size());
-            geo.volume_instance_id(dst.first(depth));
+            if (depth != 0)
+            {
+                geo.volume_instance_id(dst.first(depth));
+            }
             if constexpr (CELERITAS_DEBUG)
             {
                 for (auto level : range(depth))
