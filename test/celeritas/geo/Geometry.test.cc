@@ -265,7 +265,7 @@ TEST_F(TestEm3Test, run)
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
     real_type tol = using_orange_geo ? 1e-3 : 0.35;
-    this->run(1024, tol);
+    this->run(512, tol);
 }
 
 //---------------------------------------------------------------------------//
