@@ -22,6 +22,10 @@ namespace celeritas
  * \note \c CUDART_NAN and \c CUDART_INF are not \c constexpr in CUDA 10 at
  *   least, so we have replaced those with compiler built-ins that work in GCC,
  *   Clang, and MSVC.
+ *
+ * \deprecated The name of this class will change to NumericLimits to conform
+ * to the Celeritas naming system, since it is not a complete replacement for
+ * the \c std implementation.
  */
 template<class Numeric>
 struct numeric_limits;
@@ -103,4 +107,9 @@ struct numeric_limits<unsigned long long>
 };
 
 #undef SCCEF_
+
+//! Forward-compatible alias for v1.0
+template<class T>
+using NumericLimits = numeric_limits<T>;
+
 }  // namespace celeritas

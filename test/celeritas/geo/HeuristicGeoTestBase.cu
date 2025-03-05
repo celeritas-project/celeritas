@@ -9,7 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/Filler.device.t.hh"
-#include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
 #include "HeuristicGeoExecutor.hh"
@@ -18,24 +18,6 @@ namespace celeritas
 {
 namespace test
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-__global__ void
-heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
-                      DeviceRef<HeuristicGeoStateData> const state)
-{
-    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
-    if (tid.get() >= state.size())
-        return;
-
-    HeuristicGeoExecutor execute{params, state};
-    execute(tid);
-}
-}  // namespace
-
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
@@ -43,7 +25,10 @@ heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
 void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const& params,
                             DeviceRef<HeuristicGeoStateData> const& state)
 {
-    CELER_LAUNCH_KERNEL(heuristic_test, state.size(), 0, params, state);
+    HeuristicGeoExecutor execute_thread{params, state};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "heuristic-geo");
+    launch_kernel(state.size(), StreamId{}, execute_thread);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
