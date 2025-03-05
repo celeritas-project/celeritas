@@ -93,7 +93,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstRng const& rng() const { return input_.rng; }
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
-    VecLabel const& detector_labels() const  {return input_.detector_labels;}
+    VecLabel const& detector_labels() const { return input_.detector_labels; }
     //!@}
 
     // Access host pointers to core data
@@ -110,6 +110,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     Input input_;
     HostRef host_ref_;
     DeviceRef device_ref_;
+
+    // detector volume ids
+    std::vector<VolumeId> detector_ids_;
 
     // Copy of DeviceRef in device memory
     DeviceVector<DeviceRef> device_ref_vec_;

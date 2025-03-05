@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/GeoVolumeFinder.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/random/RngParams.hh"
@@ -131,6 +133,27 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
+
+    // Map detector labels to volume IDs
+    VecLabel const& labels = detector_labels();
+    std::vector<std::reference_wrapper<Label const>> missing;
+    detector_ids_.resize(labels.size());
+
+    auto geo = this->geometry();
+    GeoVolumeFinder find_volume(*geo);
+    for (auto i : range(labels.size()))
+    {
+        detector_ids_[i] = find_volume(labels[i]);
+        if (!detector_ids_[i])
+        {
+            missing.emplace_back(labels[i]);
+        }
+    }
+
+    CELER_VALIDATE(missing.empty(),
+                   << "failed to find " << celeritas_core_geo
+                   << " volume(s) for labels '"
+                   << join(missing.begin(), missing.end(), "', '"));
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
