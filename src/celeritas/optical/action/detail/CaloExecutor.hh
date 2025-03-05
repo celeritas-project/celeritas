@@ -28,11 +28,14 @@ namespace detail
  */
 struct CaloExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView& track);
+    inline CELER_FUNCTION void
+    operator()(CoreTrackView& track, std::vector<VolumeId>& detector_ids);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
+CELER_FUNCTION void
+CaloExecutor::operator()(CoreTrackView& track,
+                         std::vector<VolumeId>& detector_ids)
 {
     auto sim = track.sim();
     // If track previously killed in step, don't contribute
@@ -50,16 +53,16 @@ CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
 
         // check for track geometry in optical detector list
         // TODO:: fix below pseudo-code
-        // for(auto det_id : range(volume_ids_.size())
-        // {
-        //     if (v_id == volume_ids[det_id])
-        //     {
-        //         auto energy = track.energy();
-        //         std::cout << "Killing track in Volume " << v_id
-        //                   << " with energy " << energy << std::endl;
-        //         sim.status(TrackStatus::Killed);
-        //     }
-        // }
+        for (auto det_id : range(detector_ids.size()))
+        {
+            if (v_id == detector_ids[det_id])
+            {
+                auto energy = track.particle().energy().value();
+                std::cout << "Killing track in Volume " << v_id.get()
+                          << " with energy " << energy << std::endl;
+                sim.status(TrackStatus::killed);
+            }
+        }
 
         // If found, print energy, print volume, and kill track
     }

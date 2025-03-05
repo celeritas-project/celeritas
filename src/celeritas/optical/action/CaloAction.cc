@@ -33,8 +33,11 @@ CaloAction::CaloAction(ActionId aid)
  */
 void CaloAction::step(CoreParams const& params, CoreStateHost& state) const
 {
+    auto detector_ids = params.detector_ids();
     auto detect_and_update
-        = [](CoreTrackView& track) { detail::CaloExecutor{}(track); };
+        = [](CoreTrackView& track, std::vector<VolumeId>& detector_ids) {
+              detail::CaloExecutor{}(track, detector_ids);
+          };
     auto execute = make_active_thread_executor(
         params.ptr<MemSpace::native>(), state.ptr(), detect_and_update);
     return launch_action(state, execute);

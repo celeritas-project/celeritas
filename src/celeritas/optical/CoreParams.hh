@@ -94,6 +94,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     VecLabel const& detector_labels() const { return input_.detector_labels; }
+    std::vector<VolumeId> const& detector_ids() const { return detector_ids_; }
     //!@}
 
     // Access host pointers to core data
