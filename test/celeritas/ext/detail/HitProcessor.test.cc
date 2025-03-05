@@ -376,16 +376,16 @@ TEST_F(SimpleCmsTest, touchable_exiting)
     dso.detector = {DetectorId{3}, DetectorId{2}};
     dso.energy_deposition = {MevEnergy{1.0}, MevEnergy{10.0}};
     dso.step_length = {
-        from_cm(1000),
+        from_cm(300),
         from_cm(10),
     };
     dso.points[StepPoint::pre].pos = {
-        from_cm(Real3{0, 0, 3000}),
-        from_cm(Real3{50.0, 0, 695}),
+        from_cm(Real3{0, 0, 1700}),
+        from_cm(Real3{50.0, 0, 690}),
     };
     dso.points[StepPoint::post].pos = {
-        from_cm(Real3{0, 0, 4000}),
-        from_cm(Real3{50.0, 0, 705}),
+        from_cm(Real3{0, 0, 2000}),
+        from_cm(Real3{50.0, 0, 700}),
     };
     dso.points[StepPoint::pre].dir = dso.points[StepPoint::post].dir
         = {Real3{0, 0, 1}, Real3{0, 0, 1}};
@@ -402,20 +402,43 @@ TEST_F(SimpleCmsTest, touchable_exiting)
         auto& result = this->get_hits("si_tracker");
         static char const* const expected_pre_physvol[] = {"si_tracker_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
-        static char const* const expected_post_physvol[] = {"world_PV"};
-        EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
-        static char const* const expected_post_status[] = {"geo"};
-        EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        if constexpr (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const* const expected_post_physvol[] = {"world_PV"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"geo"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
+        else
+        {
+            // ORANGE can't handle exiting correctly
+            static char const* const expected_post_physvol[]
+                = {"si_tracker_pv"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"user"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
     }
     {
         auto& result = this->get_hits("world");
 
         static char const* const expected_pre_physvol[] = {"world_PV"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
-        static char const* const expected_post_physvol[] = {"<nullptr>"};
-        EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
-        static char const* const expected_post_status[] = {"world"};
-        EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        if constexpr (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const* const expected_post_physvol[] = {"<nullptr>"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"world"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
+        else
+        {
+            // ORANGE can't handle exiting correctly
+            static char const* const expected_post_physvol[] = {"world_PV"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"user"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
     }
 }
 

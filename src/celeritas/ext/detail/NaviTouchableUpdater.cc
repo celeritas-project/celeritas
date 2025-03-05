@@ -104,7 +104,11 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
 
     // Check whether physical and logical volumes are consistent
     G4VPhysicalVolume* pv = touchable->GetVolume(0);
-    CELER_ASSERT(pv);
+    if (!pv)
+    {
+        // Exiting the world
+        return true;
+    }
     if (pv->GetLogicalVolume() == lv)
     {
         return true;
