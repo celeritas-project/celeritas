@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "ScopedLimitSaver.hh"
 
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 
@@ -27,8 +29,8 @@ Array<char const*, 2> const g_labels{{"stack size", "heap size"}};
  */
 ScopedLimitSaver::ScopedLimitSaver()
 {
-    static_assert(g_attrs.size() == orig_limits_.size()
-                  && g_labels.size() == orig_limits_.size());
+    static_assert(g_attrs.size() == decltype(orig_limits_){}.size()
+                  && g_labels.size() == g_attrs.size());
     for (auto i : range(orig_limits_.size()))
     {
         CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits_[i], g_attrs[i]));

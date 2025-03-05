@@ -422,7 +422,7 @@ TEST_F(FourLevelsVgdmlTest, reentrant_boundary)
 
     // Move to the sphere boundary then scatter still into the sphere
     next = geo.find_next_step(from_cm(10.0));
-    auto expected_distance = to_cm(CELERITAS_VECGEOM_SURFACE ? 1e-13 : 1e-8);
+    auto expected_distance = to_cm(1e-8);
     EXPECT_SOFT_EQ(expected_distance, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
@@ -435,11 +435,8 @@ TEST_F(FourLevelsVgdmlTest, reentrant_boundary)
 
     // Travel nearly tangent to the right edge of the sphere, then scatter to
     // still outside
-    // TODO: understand difference in distance for surface implementation
     next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(CELERITAS_VECGEOM_SURFACE ? 9.9737647358664937e-07
-                                             : 0.00031622777925735285,
-                   to_cm(next.distance));
+    EXPECT_SOFT_EQ(0.00031622777925735285, to_cm(next.distance));
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     geo.set_dir({1, 0, 0});
