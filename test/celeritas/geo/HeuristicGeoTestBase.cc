@@ -29,7 +29,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Run tracks on host and compare the resulting path length.
+ * Run tracks on host and device, and compare the resulting path length.
  */
 void HeuristicGeoTestBase::run(size_type num_states, real_type tolerance)
 {
@@ -77,7 +77,7 @@ void HeuristicGeoTestBase::run(size_type num_states, real_type tolerance)
 
 //---------------------------------------------------------------------------//
 /*!
- * Run tracks on device and compare the resulting path length.
+ * Run tracks on host *or* device and return the resulting path lengths.
  */
 template<MemSpace M>
 auto HeuristicGeoTestBase::run_impl(size_type num_states) -> VecReal
