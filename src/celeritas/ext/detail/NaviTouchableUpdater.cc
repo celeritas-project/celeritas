@@ -59,6 +59,7 @@ NaviTouchableUpdater::~NaviTouchableUpdater() = default;
  */
 bool NaviTouchableUpdater::operator()(DetectorStepOutput const& out,
                                       size_type i,
+                                      StepPoint step_point,
                                       GeantTouchableBase* touchable)
 {
     CELER_EXPECT(i < out.size());
@@ -71,7 +72,7 @@ bool NaviTouchableUpdater::operator()(DetectorStepOutput const& out,
     G4LogicalVolume const* lv
         = (*detector_volumes_)[out.detector[i].unchecked_get()];
 
-    auto const& point = out.points[StepPoint::pre];
+    auto const& point = out.points[step_point];
     return (*this)(point.pos[i], point.dir[i], lv, touchable);
 }
 

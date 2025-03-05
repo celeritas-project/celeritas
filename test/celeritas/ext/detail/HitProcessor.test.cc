@@ -395,7 +395,24 @@ TEST_F(SimpleCmsTest, touchable_exiting)
 
     {
         auto& result = this->get_hits("world");
-        result.print_expected();
+
+        static double const expected_energy_deposition[] = {1};
+        EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
+                           result.energy_deposition);
+        static double const expected_step_length[] = {1000};
+        EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);
+        static char const* const expected_particle[] = {};
+        EXPECT_VEC_EQ(expected_particle, result.particle);
+        static double const expected_pre_energy[] = {0};
+        EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
+        static double const expected_pre_pos[] = {0, 0, 3000};
+        EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
+        static char const* const expected_pre_physvol[] = {"world_PV"};
+        EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
+        static double const expected_post_time[] = {0};
+        EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
+        static char const* const expected_post_physvol[] = {"<nullptr>"};
+        EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
     }
 }
 

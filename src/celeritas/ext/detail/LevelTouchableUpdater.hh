@@ -51,6 +51,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
     // Update from a particular detector step
     bool operator()(DetectorStepOutput const& out,
                     size_type step_index,
+                    StepPoint step_point,
                     GeantTouchableBase* touchable) final;
 
     // Initialize from a span of volume instances

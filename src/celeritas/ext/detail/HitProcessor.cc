@@ -135,6 +135,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         // Safety distance
         p->SetSafety(std::numeric_limits<double>::infinity());
         // Polarization (default to zero)
+        p->SetPolarization(G4ThreeVector());
     }
 
     // Create track if user requested particle types
@@ -213,9 +214,6 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
  */
 void HitProcessor::operator()(DetectorStepOutput const& out) const
 {
-    CELER_EXPECT(!out.detector.empty());
-    CELER_ASSERT(tracks_.empty() || !out.particle.empty());
-
     ScopedProfiling profile_this{"process-hits"};
     trace_counter("process-hits", out.size());
 
@@ -233,7 +231,9 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
  */
 void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 {
+    CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(i < out.size());
+    CELER_EXPECT(tracks_.empty() || !out.particle.empty());
 #define HP_SET(SETTER, OUT, UNITS)                   \
     do                                               \
     {                                                \
@@ -260,7 +260,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         {
             CELER_ASSERT(update_touchable_);
             // Update navigation state
-            bool success = (*update_touchable_)(out, i, touch_handle());
+            bool success = (*update_touchable_)(out, i, sp, touch_handle());
 
             if (CELER_UNLIKELY(!success))
             {
@@ -285,18 +285,26 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
             if (sp == StepPoint::pre)
                 return lv;
-            auto* pv = g4sp->GetPhysicalVolume();
-            if (pv)
-                return pv->GetLogicalVolume();
+
+            // NOTE: post-step volume is only fetched if we're locating the
+            // touchable
+            if (auto* touch = g4sp->GetTouchable())
+            {
+                // The physical volume could be null if post-step is outside
+                if (auto* pv = touch->GetVolume())
+                {
+                    return pv->GetLogicalVolume();
+                }
+            }
             return nullptr;
         }();
 
         if (point_lv)
         {
             // Copy attributes from logical volume
-            g4sp->SetMaterial(lv->GetMaterial());
-            g4sp->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
-            g4sp->SetSensitiveDetector(lv->GetSensitiveDetector());
+            g4sp->SetMaterial(point_lv->GetMaterial());
+            g4sp->SetMaterialCutsCouple(point_lv->GetMaterialCutsCouple());
+            g4sp->SetSensitiveDetector(point_lv->GetSensitiveDetector());
         }
     }
 #undef HP_SET
