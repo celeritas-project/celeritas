@@ -10,15 +10,43 @@
 #include "celeritas/geo/GeoParams.hh"
 
 #include "HeuristicGeoTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
 namespace test
 {
-constexpr bool not_orange_geo
-    = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE);
+constexpr bool using_orange_geo
+    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
+
 //---------------------------------------------------------------------------//
+class GeometryTest : public HeuristicGeoTestBase
+{
+  public:
+    using VecReal = std::vector<real_type>;
+    static void TearDownTestSuite() { last_path() = {}; }
+
+    static void compare_against_previous(SpanConstReal values)
+    {
+        auto& lp = GeometryTest::last_path();
+        if (lp.empty())
+        {
+            lp.assign(values.begin(), values.end());
+        }
+        else
+        {
+            EXPECT_VEC_SOFT_EQ(lp, values);
+        }
+    }
+
+  private:
+    static VecReal& last_path()
+    {
+        static VecReal p;
+        return p;
+    }
+};
 
 class TestEm3Test : public HeuristicGeoTestBase
 {
@@ -225,7 +253,7 @@ auto CmseTest::reference_avg_path() const -> SpanConstReal
 // TESTEM3
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm3Test, host)
+TEST_F(TestEm3Test, run)
 {
     if (CELERITAS_USE_GEANT4 || CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
     {
@@ -236,32 +264,19 @@ TEST_F(TestEm3Test, host)
         // ORANGE from JSON file doesn't support safety
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
-    real_type tol = not_orange_geo ? 0.35 : 1e-3;
-    this->run_host(512, tol);
-}
-
-TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
-{
-    real_type tol = not_orange_geo ? 0.25 : 1e-3;
-    this->run_device(512, tol);
+    real_type tol = using_orange_geo ? 1e-3 : 0.35;
+    this->run(512, tol);
 }
 
 //---------------------------------------------------------------------------//
 // SIMPLECMS
 //---------------------------------------------------------------------------//
 
-TEST_F(SimpleCmsTest, host)
+TEST_F(SimpleCmsTest, avg_path)
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
-    this->run_host(512, tol);
-}
-
-TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
-{
-    // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.025 : 1e-3;
-    this->run_device(512, tol);
+    real_type tol = using_orange_geo ? 1e-3 : 0.05;
+    this->run(512, tol);
 }
 
 TEST_F(SimpleCmsTest, output)
@@ -294,26 +309,19 @@ TEST_F(SimpleCmsTest, output)
 // THREE_SPHERES
 //---------------------------------------------------------------------------//
 
-TEST_F(ThreeSpheresTest, host)
+TEST_F(ThreeSpheresTest, avg_path)
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
+    real_type tol = using_orange_geo ? 1e-3 : 0.05;
     EXPECT_TRUE(this->geometry()->supports_safety());
-    this->run_host(512, tol);
-}
-
-TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
-{
-    // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.025 : 1e-3;
-    this->run_device(512, tol);
+    this->run(512, tol);
 }
 
 //---------------------------------------------------------------------------//
 // CMSE
 //---------------------------------------------------------------------------//
 // TODO: ensure reference values are the same for all CI platforms (see #1570)
-TEST_F(CmseTest, DISABLED_host)
+TEST_F(CmseTest, DISABLED_avg_path)
 {
     auto const& bbox = this->geometry()->bbox();
     real_type const geo_eps
@@ -326,12 +334,7 @@ TEST_F(CmseTest, DISABLED_host)
 
     real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.005
                                                                      : 0.35;
-    this->run_host(512, tol);
-}
-
-TEST_F(CmseTest, TEST_IF_CELER_DEVICE(device))
-{
-    this->run_device(512, 0.005);
+    this->run(512, tol);
 }
 
 //---------------------------------------------------------------------------//

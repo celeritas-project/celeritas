@@ -9,10 +9,12 @@
 #include <iomanip>
 #include <iostream>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/ScopedStreamFormat.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -27,26 +29,13 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Run tracks on host and compare the resulting path length.
+ * Run tracks on host and device, and compare the resulting path length.
  */
-void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
+void HeuristicGeoTestBase::run(size_type num_states, real_type tolerance)
 {
-    size_type const num_steps = this->num_steps();
-    auto params = this->build_test_params<MemSpace::host>();
-    StateStore<MemSpace::host> state{params, num_states};
+    auto host_path = this->run_impl<MemSpace::host>(num_states);
 
-    HeuristicGeoExecutor execute{params, state.ref()};
-    for (auto tid : range(TrackSlotId{num_states}))
-    {
-        for ([[maybe_unused]] auto step : range(num_steps))
-        {
-            execute(tid);
-        }
-    }
-
-    auto avg_path = this->get_avg_path(state.ref().accum_path, num_states);
     auto ref_path = this->reference_avg_path();
-
     if (ref_path.empty())
     {
         ScopedStreamFormat save_fmt(&std::cout);
@@ -60,41 +49,69 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
         std::cout << "/* REFERENCE PATH LENGTHS */\n"
                      "static real_type const paths[] = {"
                   << std::setprecision(precision_digits)
-                  << join(avg_path.begin(), avg_path.end(), ", ")
+                  << join(host_path.begin(), host_path.end(), ", ")
                   << "};\n"
                      "/* END REFERENCE PATH LENGTHS */\n";
-
-        return;
+    }
+    else if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    {
+        EXPECT_VEC_NEAR(ref_path, host_path, tolerance)
+            << "Host results differ from reference";
+    }
+    else
+    {
+        std::cout << "Skipping reference comparison: non-default RNG\n";
     }
 
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (celeritas::device())
     {
-        EXPECT_VEC_NEAR(ref_path, avg_path, tolerance);
+        auto dvc_path = this->run_impl<MemSpace::device>(num_states);
+        EXPECT_VEC_SOFT_EQ(host_path, dvc_path)
+            << R"(GPU and CPU produced different results)";
+    }
+    else
+    {
+        std::cout << "Skipping device comparison: device not active\n";
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Run tracks on device and compare the resulting path length.
+ * Run tracks on host *or* device and return the resulting path lengths.
  */
-void HeuristicGeoTestBase::run_device(size_type num_states, real_type tolerance)
+template<MemSpace M>
+auto HeuristicGeoTestBase::run_impl(size_type num_states) -> VecReal
 {
     size_type const num_steps = this->num_steps();
 
-    auto params = this->build_test_params<MemSpace::device>();
-    StateStore<MemSpace::device> state{
-        this->build_test_params<MemSpace::host>(), num_states};
+    StateStore<M> state{this->build_test_params<MemSpace::host>(), num_states};
 
-    for ([[maybe_unused]] auto step : range(num_steps))
+    auto params = this->build_test_params<M>();
+
+    CELER_LOG(status) << "Running heuristic test on " << to_cstring(M);
+
+    if constexpr (M == MemSpace::host)
     {
-        heuristic_test_execute(params, state.ref());
+        HeuristicGeoExecutor execute{params, state.ref()};
+        for (auto tid : range(TrackSlotId{num_states}))
+        {
+            for ([[maybe_unused]] auto step : range(num_steps))
+            {
+                execute(tid);
+            }
+        }
+    }
+    else
+    {
+        for ([[maybe_unused]] auto step : range(num_steps))
+        {
+            heuristic_test_execute(params, state.ref());
+        }
     }
 
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
-    {
-        auto avg_path = this->get_avg_path(state.ref().accum_path, num_states);
-        EXPECT_VEC_NEAR(this->reference_avg_path(), avg_path, tolerance);
-    }
+    VecReal host_accum_path(state.ref().accum_path.size());
+    copy_to_host(state.ref().accum_path, make_span(host_accum_path));
+    return this->get_avg_path_impl(host_accum_path, num_states);
 }
 
 //---------------------------------------------------------------------------//
@@ -118,21 +135,8 @@ auto HeuristicGeoTestBase::build_test_params()
 
 //---------------------------------------------------------------------------//
 
-template<MemSpace M>
-auto HeuristicGeoTestBase::get_avg_path(
-    PathLengthRef<M> path, size_type num_states) const -> std::vector<real_type>
-{
-    std::vector<real_type> result(path.size());
-    copy_to_host(path, make_span(result));
-
-    return this->get_avg_path_impl(result, num_states);
-}
-
-//---------------------------------------------------------------------------//
-
 auto HeuristicGeoTestBase::get_avg_path_impl(
-    std::vector<real_type> const& path,
-    size_type num_states) const -> std::vector<real_type>
+    VecReal const& path, size_type num_states) const -> VecReal
 {
     CELER_EXPECT(path.size() == this->geometry()->volumes().size());
 
@@ -162,7 +166,7 @@ auto HeuristicGeoTestBase::get_avg_path_impl(
         ref_vol_labels = make_span(temp_labels);
     }
 
-    std::vector<real_type> result(ref_vol_labels.size());
+    VecReal result(ref_vol_labels.size());
 
     real_type const norm = 1 / real_type(num_states);
     for (auto i : range(ref_vol_labels.size()))
