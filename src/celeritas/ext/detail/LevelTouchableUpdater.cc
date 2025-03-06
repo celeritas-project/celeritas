@@ -52,7 +52,7 @@ bool LevelTouchableUpdater::operator()(DetectorStepOutput const& out,
  * Initialize from a span of volume instances.
  *
  * Since the volume instances are allowed to be padded to better support GPU, a
- * null ID terminates the sequence. An empty input or one thst starts with a
+ * null ID terminates the sequence. An empty input or one that starts with a
  * null ID indicates "outside".
  */
 bool LevelTouchableUpdater::operator()(SpanVolInst ids,
