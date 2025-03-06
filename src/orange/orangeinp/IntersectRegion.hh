@@ -258,6 +258,28 @@ class EllipticalCylinder final : public IntersectRegionInterface
  *    elliptical cylinders) are not permitted.
  * 4) Degenerate elliptical cones where lower or upper radii are equal to
  *    (0, x) or (x, 0), where x is non-zero, are not permitted.
+ *
+ * The elliptical surface can be expressed as:
+ *
+ * \f[
+   (x/r_x)^2 + (y/r_y)^2 = (v-z)^2,
+ * \f]
+ *
+ * which can be converted to SimpleQuadric form:
+ * \verbatim
+   (1/r_x)^2 x^2  + (1/r_y)^2 y^2 + (-1) z^2 + (2v) z + (-v^2) = 0.
+      |                |              |         |          |
+      a                b              c         d          e
+ * \endverbatim
+ *
+ * where v is the location of the vertex. The r_x, r_y, and v can be calculated
+ * from the lower and upper radii as given by \c G4EllipticalCone:
+ * \verbatim
+   r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
+   r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
+     v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] -
+ upper_radii[X]).
+ * \endverbatim
  */
 class EllipticalCone final : public IntersectRegionInterface
 {
