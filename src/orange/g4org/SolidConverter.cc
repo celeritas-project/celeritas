@@ -386,14 +386,12 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
  * Convert an elliptical cone
  *
  * Expressions for lower/upper radii were found by solving the system of
- * equations given by [1]:
+ * equations given by \c G4EllipticalCone:
  *
  * lower_radii[X]/lower_radii[y] = upper_radii[X]/upper_radii[y],
  * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
  * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
  * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
- *
- * [1] apc.u-paris.fr/~franco/g4doxy/html/G4EllipticalCone_8hh-source.html
  */
 auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 {

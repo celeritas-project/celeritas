@@ -506,7 +506,7 @@ bool EllipticalCone::encloses(EllipticalCone const& other) const
 /*!
  * Build surfaces.
  *
- * The elliptical surface can be expressed as [1]:
+ * The elliptical surface can be expressed as:
  *
  * (x/r_x)^2 + (y/r_y)^2 = (v-z)^2,
  *
@@ -517,13 +517,11 @@ bool EllipticalCone::encloses(EllipticalCone const& other) const
  *    a                b              c         d          e
  *
  * where v is the location of the vertex. The r_x, r_y, and v can be calculated
- * from the lower and upper radii [1]:
+ * from the lower and upper radii as given by \c G4EllipticalCone:
  *
  * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
  * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
  * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
- *
- * [1] apc.u-paris.fr/~franco/g4doxy/html/G4EllipticalCone_8hh-source.html
  */
 void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
 {
