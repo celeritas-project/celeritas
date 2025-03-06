@@ -45,6 +45,14 @@ BBox make_xyradial_bbox(real_type r)
     return BBox::from_unchecked({-r, -r, -inf}, {r, r, inf});
 }
 
+//! Convenience enumeration for implementations in this file
+enum
+{
+    X = 0,
+    Y = 1,
+    Z = 2
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -70,10 +78,6 @@ Box::Box(Real3 const& halfwidths) : hw_{halfwidths}
  */
 void Box::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
-    constexpr auto Z = to_int(Axis::z);
-
     insert_surface(Sense::outside, PlaneX{-hw_[X]});
     insert_surface(Sense::inside, PlaneX{hw_[X]});
     insert_surface(Sense::outside, PlaneY{-hw_[Y]});
@@ -378,11 +382,11 @@ void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
     // Insert elliptical cylinder surface last, as a simple quadric with
     // equation:
     // r_y^2 x^2 + r_x^2 y^2 - r_x^2 r_y^2 = 0
-    real_type rx2 = ipow<2>(radii_[to_int(Axis::x)]);
-    real_type ry2 = ipow<2>(radii_[to_int(Axis::y)]);
-    real_type g = -rx2 * ry2;
+    real_type rx_sq = ipow<2>(radii_[to_int(Axis::x)]);
+    real_type ry_sq = ipow<2>(radii_[to_int(Axis::y)]);
+    real_type g = -rx_sq * ry_sq;
 
-    Real3 abc{ry2, rx2, 0};
+    Real3 abc{ry_sq, rx_sq, 0};
     insert_surface(SimpleQuadric{abc, Real3{0, 0, 0}, g});
 
     // Set exterior bbox
@@ -417,19 +421,13 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
                                real_type halfheight)
     : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
 {
-    using celeritas::soft_equal;
-    using celeritas::soft_zero;
-
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
-
     // True if either radius is negative
     auto has_negative
         = [](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
 
     // True if radii is (0, 0)
     auto is_vertex = [](Real2 const& radii) {
-        return celeritas::soft_zero(radii[X]) && soft_zero(radii[Y]);
+        return soft_zero(radii[X]) && soft_zero(radii[Y]);
     };
 
     // True if radii is (0, x) || (x, 0), where x != 0
@@ -710,9 +708,6 @@ real_type GenPrism::calc_twist_cosine(size_type i) const
  */
 void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    constexpr int X = 0;
-    constexpr int Y = 1;
-
     // Build the bottom and top planes
     if (degen_ != Degenerate::lo)
     {
@@ -1003,10 +998,6 @@ Parallelepiped::Parallelepiped(Real3 const& half_projs,
  */
 void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
-    constexpr auto Z = to_int(Axis::z);
-
     // Cache trigonometric values
     real_type sinth, costh, sinphi, cosphi, sinal, cosal;
     sincos(theta_, &sinth, &costh);
