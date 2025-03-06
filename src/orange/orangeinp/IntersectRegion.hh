@@ -538,7 +538,7 @@ class Involute final : public IntersectRegionInterface
  *   - \c theta polar angle of the shape's main axis, e.g. the segment defined
  *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
  *   - \c phi azimuthal angle of the shape's main axis (as explained above).
- *    Validity range is `[0, 1)`.
+ *   Validity range is `[0, 1)`.
  */
 class Parallelepiped final : public IntersectRegionInterface
 {
