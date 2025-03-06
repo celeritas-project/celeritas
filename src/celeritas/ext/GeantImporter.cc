@@ -849,26 +849,25 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
-        else if (import_optical_model)
+        else if (import_optical_model
+                 && dynamic_cast<G4OpAbsorption const*>(&process))
         {
-            if (dynamic_cast<G4OpAbsorption const*>(&process))
-            {
-                CELER_LOG(debug) << "Attempting to load G4OpAbsorption";
-                optical_models.push_back(import_optical_model(
-                    optical::ImportModelClass::absorption));
-            }
-            else if (dynamic_cast<G4OpRayleigh const*>(&process))
-            {
-                CELER_LOG(debug) << "Attempting to load G4OpRayleigh";
-                optical_models.push_back(
-                    import_optical_model(optical::ImportModelClass::rayleigh));
-            }
-            else if (dynamic_cast<G4OpWLS const*>(&process))
-            {
-                CELER_LOG(debug) << "Attempting to load G4OpWLS";
-                optical_models.push_back(
-                    import_optical_model(optical::ImportModelClass::wls));
-            }
+            CELER_LOG(debug) << "Attempting to load G4OpAbsorption";
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::absorption));
+        }
+        else if (import_optical_model
+                 && dynamic_cast<G4OpRayleigh const*>(&process))
+        {
+            CELER_LOG(debug) << "Attempting to load G4OpRayleigh";
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::rayleigh));
+        }
+        else if (import_optical_model && dynamic_cast<G4OpWLS const*>(&process))
+        {
+            CELER_LOG(debug) << "Attempting to load G4OpWLS";
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::wls));
         }
         else
         {
