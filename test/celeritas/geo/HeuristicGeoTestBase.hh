@@ -50,8 +50,6 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase,
 
     //! Construct problem-specific attributes (sampling box etc)
     virtual HeuristicGeoScalars build_scalars() const = 0;
-    //! Get the number of steps to execute
-    virtual size_type num_steps() const = 0;
     //! Build a list of volumes to compare average paths
     virtual SpanConstStr reference_volumes() const = 0;
     //! Return the vector of path lengths mapped by sorted volume name
@@ -62,14 +60,14 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase,
 
     //!@{
     //! Run tracks on device and host and compare the resulting path length
-    void run(size_type num_states, real_type tolerance);
+    void run(size_type num_states, size_type num_steps, real_type tolerance);
     //!@}
 
   private:
     using VecReal = std::vector<real_type>;
     //// HELPER FUNCTIONS ////
     template<MemSpace M>
-    VecReal run_impl(size_type num_states);
+    VecReal run_impl(size_type num_states, size_type num_steps);
 
     template<MemSpace M>
     HeuristicGeoParamsData<Ownership::const_reference, M> build_test_params();

@@ -68,7 +68,6 @@ class TestEm3Test : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -145,7 +144,6 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -187,7 +185,6 @@ class ThreeSpheresTest : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -224,7 +221,6 @@ class CmseTest : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -271,7 +267,8 @@ TEST_F(TestEm3Test, run)
     real_type tol = using_orange_geo         ? 1e-3
                     : !using_vecgeom_surface ? 0.35
                                              : 0.5;
-    this->run(512, tol);
+
+    this->run(512, /* num_steps = */ 183, tol);
 }
 
 //---------------------------------------------------------------------------//
@@ -282,7 +279,7 @@ TEST_F(SimpleCmsTest, avg_path)
 {
     // Results were generated with ORANGE
     real_type tol = using_orange_geo ? 1e-3 : 0.05;
-    this->run(512, tol);
+    this->run(512, /* num_steps = */ 1024, tol);
 }
 
 TEST_F(SimpleCmsTest, output)
@@ -323,7 +320,7 @@ TEST_F(ThreeSpheresTest, avg_path)
                     : !using_vecgeom_surface ? 0.05
                                              : 0.80;
     EXPECT_TRUE(this->geometry()->supports_safety());
-    this->run(512, tol);
+    this->run(512, /* num_steps = */ 1024, tol);
 }
 
 //---------------------------------------------------------------------------//
@@ -343,7 +340,7 @@ TEST_F(CmseTest, DISABLED_avg_path)
 
     real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.005
                                                                      : 0.35;
-    this->run(512, tol);
+    this->run(512, /* num_steps = */ 1024, tol);
 }
 
 //---------------------------------------------------------------------------//
