@@ -417,8 +417,8 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
                                real_type halfheight)
     : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
 {
-    SoftZero soft_zero;
-    SoftEqual soft_equal;
+    using celeritas::soft_equal;
+    using celeritas::soft_zero;
 
     constexpr auto X = to_int(Axis::x);
     constexpr auto Y = to_int(Axis::y);
@@ -428,12 +428,12 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
         = [](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
 
     // True if radii is (0, 0)
-    auto is_vertex = [&soft_zero](Real2 const& radii) {
-        return soft_zero(radii[X]) && soft_zero(radii[Y]);
+    auto is_vertex = [](Real2 const& radii) {
+        return celeritas::soft_zero(radii[X]) && soft_zero(radii[Y]);
     };
 
     // True if radii is (0, x) || (x, 0), where x != 0
-    auto is_partial_zero = [&soft_zero](Real2 const& radii) {
+    auto is_partial_zero = [](Real2 const& radii) {
         return (soft_zero(radii[X]) != soft_zero(radii[Y]));
     };
 
