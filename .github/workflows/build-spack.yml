@@ -89,7 +89,7 @@ jobs:
           if ${{matrix.geometry == 'vecgeom'}}; then
             spack -e . add vecgeom@1.2.10:1+gdml
           elif ${{matrix.geometry == 'vgsurf'}}; then
-            spack -e . add veccore xerces-c
+            spack -e . add vecgeom+surface
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
@@ -99,7 +99,9 @@ jobs:
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          if ${{matrix.geometry == 'vecgeom' && matrix.geant}}; then
+          if ${{(matrix.geometry == 'vecgeom'
+                 || matrix.geometry == 'vgsurf')
+                && matrix.geant}}; then
             spack -e . add g4vg@1.0.2:
           fi
           spack -vd -e . compiler find --mixed-toolchain
@@ -145,33 +147,6 @@ jobs:
       - name: Zero ccache stats
         run: |
           ccache -z
-      - name: Install VecGeom surface
-        if: ${{matrix.geometry == 'vgsurf'}}
-        run: |
-          . ${SPACK_VIEW}/rc
-          git clone -b surface_model --depth=368 \
-            https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom
-          cd vecgeom
-          mkdir build
-          cd build
-          export VECGEOM_PREFIX_PATH=$GITHUB_WORKSPACE/vecgeom/install
-          cmake \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_STANDARD:STRING=${{env.CXXSTD}} \
-            -DVECGEOM_BACKEND:STRING=Scalar -DVECGEOM_VECTOR:STRING=empty \
-            -DVECGEOM_BUILTIN_VECCORE:BOOL=OFF \
-            -DVECGEOM_NO_SPECIALIZATION:BOOL=ON \
-            -DVECGEOM_USE_SURF:BOOL=ON -DVECGEOM_USE_NAVTUPLE:BOOL=OFF -DVECGEOM_USE_NAVINDEX:BOOL=ON \
-            -DBUILD_SHARED_LIBS:BOOL=ON \
-            -DVECGEOM_GDML:BOOL=ON -DVECGEOM_ENABLE_CUDA:BOOL=OFF -DVECGEOM_GEANT4:BOOL=OFF -DVECGEOM_ROOT:BOOL=OFF \
-            -DBUILD_TESTING:BOOL=OFF \
-            -DCMAKE_INSTALL_PREFIX:STRING=$VECGEOM_PREFIX_PATH \
-            -G Ninja \
-            ..
-          ninja install
-          echo "CMAKE_PREFIX_PATH=${VECGEOM_PREFIX_PATH}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${VECGEOM_PREFIX_PATH}/lib" >> $GITHUB_ENV
       - name: Configure Celeritas
         run: |
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
