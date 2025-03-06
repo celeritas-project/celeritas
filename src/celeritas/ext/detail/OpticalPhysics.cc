@@ -218,9 +218,11 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
  */
 void OpticalPhysics::ConstructParticle()
 {
+    CELER_LOG(debug) << "Constructing optical photons...";
     // Eventually nothing to do here as Celeritas OpPhys won't generate
     // G4OpticalPhotons
     G4OpticalPhoton::OpticalPhotonDefinition();
+    CELER_ASSERT(G4ParticleTable::GetParticleTable()->FindParticle(-22));
 }
 
 //---------------------------------------------------------------------------//
