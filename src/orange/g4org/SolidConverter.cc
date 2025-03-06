@@ -397,16 +397,17 @@ auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4EllipticalCone const&>(solid_base);
 
+    // Read and scale parameters. Do not scale r_x and r_y because they are
+    // unitless slopes within the context of this calculation.
     auto r_x = solid.GetSemiAxisX();
     auto r_y = solid.GetSemiAxisY();
-    auto v = solid.GetZMax();
-    auto hh = solid.GetZTopCut();
+    auto v = scale_(solid.GetZMax());
+    auto hh = scale_(solid.GetZTopCut());
 
-    auto lower_radii = scale_.to<Real2>(r_x * (v + hh), r_y * (v + hh));
-    auto upper_radii = scale_.to<Real2>(r_x * (v - hh), r_y * (v - hh));
+    Real2 lower_radii{r_x * (v + hh), r_y * (v + hh)};
+    Real2 upper_radii{r_x * (v - hh), r_y * (v - hh)};
 
-    return make_shape<EllipticalCone>(
-        solid, lower_radii, upper_radii, scale_(hh));
+    return make_shape<EllipticalCone>(solid, lower_radii, upper_radii, hh);
 }
 
 //---------------------------------------------------------------------------//
