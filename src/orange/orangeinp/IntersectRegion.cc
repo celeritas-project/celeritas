@@ -411,19 +411,6 @@ void EllipticalCylinder::output(JsonPimpl* j) const
 //---------------------------------------------------------------------------//
 /*!
  * Construct with lower/upper x- and y-radii and half-height in z.
- *
- * The lower radii are the x- and y-radii at the plane z = -hh. The
- * upper radii are the x- and y-radii at the plane z = hh. There are several
- * restrictions on these radii:
- *
- * 1) Either the lower or upper radii may be (0, 0); this is the only permitted
- *    way for the elliptical cone to include the vertex.
- * 2) The aspect ratio of the elliptical cross sections is constant. Thus, the
- *    aspect ratio at z = -hh must equal the aspect ratio at z = hh.
- * 3) Degenerate elliptical cones with lower_radii == upper_radii (i.e.,
- *    elliptical cylinders) are not permitted.
- * 4) Degenerate elliptical cones where lower or upper radii are equal to
- *    (0, x) or (x, 0), where x is non-zero, are not permitted.
  */
 EllipticalCone::EllipticalCone(Real2 const& lower_radii,
                                Real2 const& upper_radii,

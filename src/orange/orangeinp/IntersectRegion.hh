@@ -246,12 +246,18 @@ class EllipticalCylinder final : public IntersectRegionInterface
  *
  * The elliptical cone is defined in an analogous fashion to the regular
  * (i.e., circular) cone. A half-height (hh) defines the z-extents, such
- * that the centroid of the outer bounding box is the origin. Lower radii
- * define the x- and y-radii at z = -hh, and upper radii define the x- and
- * y-radii at z = hh. The cone may open upwards or downards depending on the
- * the choice of lower and upper radii. The vertex is permitted to be
- * conincident with z=+/-hh, which is achieved by setting the lower/upper radii
- * to (0, 0).
+ * that the centroid of the outer bounding box is the origin. The lower radii
+ * are the x- and y-radii at the plane z = -hh. The upper radii are the x- and
+ * y-radii at the plane z = hh. There are several restrictions on these radii:
+ *
+ * 1) Either the lower or upper radii may be (0, 0); this is the only permitted
+ *    way for the elliptical cone to include the vertex.
+ * 2) The aspect ratio of the elliptical cross sections is constant. Thus, the
+ *    aspect ratio at z = -hh must equal the aspect ratio at z = hh.
+ * 3) Degenerate elliptical cones with lower_radii == upper_radii (i.e.,
+ *    elliptical cylinders) are not permitted.
+ * 4) Degenerate elliptical cones where lower or upper radii are equal to
+ *    (0, x) or (x, 0), where x is non-zero, are not permitted.
  */
 class EllipticalCone final : public IntersectRegionInterface
 {
