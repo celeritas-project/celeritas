@@ -61,23 +61,24 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase,
     //// TEST EXECUTION ////
 
     //!@{
-    //! Run tracks on device or host and compare the resulting path length
-    void run_host(size_type num_states, real_type tolerance);
-    void run_device(size_type num_states, real_type tolerance);
+    //! Run tracks on device and host and compare the resulting path length
+    void run(size_type num_states, real_type tolerance);
     //!@}
 
   private:
+    using VecReal = std::vector<real_type>;
     //// HELPER FUNCTIONS ////
+    template<MemSpace M>
+    VecReal run_impl(size_type num_states);
 
     template<MemSpace M>
     HeuristicGeoParamsData<Ownership::const_reference, M> build_test_params();
 
     template<MemSpace M>
-    std::vector<real_type>
-    get_avg_path(PathLengthRef<M> path, size_type num_states) const;
+    VecReal get_avg_path(PathLengthRef<M> path, size_type num_states) const;
 
-    std::vector<real_type> get_avg_path_impl(std::vector<real_type> const& path,
-                                             size_type num_states) const;
+    VecReal get_avg_path_impl(std::vector<real_type> const& path,
+                              size_type num_states) const;
 };
 
 //---------------------------------------------------------------------------//

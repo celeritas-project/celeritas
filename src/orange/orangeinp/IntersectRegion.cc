@@ -45,6 +45,14 @@ BBox make_xyradial_bbox(real_type r)
     return BBox::from_unchecked({-r, -r, -inf}, {r, r, inf});
 }
 
+//! Convenience enumeration for implementations in this file
+enum
+{
+    X = 0,
+    Y = 1,
+    Z = 2
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -70,10 +78,6 @@ Box::Box(Real3 const& halfwidths) : hw_{halfwidths}
  */
 void Box::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
-    constexpr auto Z = to_int(Axis::z);
-
     insert_surface(Sense::outside, PlaneX{-hw_[X]});
     insert_surface(Sense::inside, PlaneX{hw_[X]});
     insert_surface(Sense::outside, PlaneY{-hw_[Y]});
@@ -316,7 +320,7 @@ void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
     // Set exterior bbox
     insert_surface(Sense::inside, BBox{-radii_, radii_});
 
-    // Set an interior bbox with maximum volume: a scaled inscribed cube
+    // Set an interior bbox with maximum volume: a scaled inscribed cuboid
     Real3 inner_radii = radii_;
     for (real_type& r : inner_radii)
     {
@@ -330,6 +334,194 @@ void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void Ellipsoid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// ELLIPTICAL CYLINDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with x- and y-radii and half-height in z.
+ */
+EllipticalCylinder::EllipticalCylinder(Real2 const& radii, real_type halfheight)
+    : radii_{radii}, hh_{halfheight}
+{
+    for (auto i : range(2))
+    {
+        CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
+    }
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another elliptical cylinder.
+ */
+bool EllipticalCylinder::encloses(EllipticalCylinder const& other) const
+{
+    for (auto ax : range(2))
+    {
+        if (this->radii_[ax] < other.radii_[ax])
+        {
+            return false;
+        }
+    }
+    return hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    // Insert elliptical cylinder surface last, as a simple quadric with
+    // equation:
+    // r_y^2 x^2 + r_x^2 y^2 - r_x^2 r_y^2 = 0
+    real_type rx_sq = ipow<2>(radii_[to_int(Axis::x)]);
+    real_type ry_sq = ipow<2>(radii_[to_int(Axis::y)]);
+    real_type g = -rx_sq * ry_sq;
+
+    Real3 abc{ry_sq, rx_sq, 0};
+    insert_surface(SimpleQuadric{abc, Real3{0, 0, 0}, g});
+
+    // Set exterior bbox
+    Real3 ex_halves{radii_[to_int(Axis::x)], radii_[to_int(Axis::y)], hh_};
+    insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
+
+    // Set an interior bbox (inscribed cuboid)
+    auto inv_sqrt_two = 1 / constants::sqrt_two;
+    Real3 in_halves{radii_[to_int(Axis::x)] * inv_sqrt_two,
+                    radii_[to_int(Axis::y)] * inv_sqrt_two,
+                    hh_};
+    insert_surface(Sense::outside, BBox{-in_halves, in_halves});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void EllipticalCylinder::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// ELLIPTICAL CONE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with lower/upper x- and y-radii and half-height in z.
+ */
+EllipticalCone::EllipticalCone(Real2 const& lower_radii,
+                               Real2 const& upper_radii,
+                               real_type halfheight)
+    : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
+{
+    // True if either radius is negative
+    auto has_negative
+        = [](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
+
+    // True if radii is (0, 0)
+    auto is_vertex = [](Real2 const& radii) {
+        return soft_zero(radii[X]) && soft_zero(radii[Y]);
+    };
+
+    // True if radii is (0, x) || (x, 0), where x != 0
+    auto is_partial_zero = [](Real2 const& radii) {
+        return (soft_zero(radii[X]) != soft_zero(radii[Y]));
+    };
+
+    // Check for negatives
+    CELER_VALIDATE(!has_negative(lower_radii_),
+                   << "negative lower radii: " << lower_radii_[X] << ", "
+                   << lower_radii_[Y]);
+    CELER_VALIDATE(!has_negative(upper_radii_),
+                   << "negative upper radii: " << upper_radii_[X] << ", "
+                   << upper_radii_[Y]);
+
+    // Check for partial zeros
+    CELER_VALIDATE(!is_partial_zero(lower_radii_),
+                   << "mismatched zero lower radii: " << lower_radii_[X]
+                   << ", " << lower_radii_[Y]);
+    CELER_VALIDATE(!is_partial_zero(upper_radii_),
+                   << "mismatched zero upper radii: " << upper_radii_[X]
+                   << ", " << upper_radii_[Y]);
+
+    // Check aspect ratios
+    if (!is_vertex(lower_radii_) && !is_vertex(upper_radii_))
+    {
+        CELER_VALIDATE(soft_equal(lower_radii_[X] / lower_radii_[Y],
+                                  upper_radii_[X] / upper_radii_[Y]),
+                       << "differing aspect ratios for upper and lower radii");
+    }
+
+    // Check for elliptical cylinders. Since we have already validated the
+    // aspect ratio, we only need to test the x-values here.
+    CELER_VALIDATE(!soft_equal(lower_radii_[X], upper_radii_[X]),
+                   << "equal and lower and upper radii (use cylinder "
+                      "instead)");
+
+    // Check positivity of half-height
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another elliptical cone.
+ */
+bool EllipticalCone::encloses(EllipticalCone const& other) const
+{
+    for (auto ax : range(2))
+    {
+        if (this->lower_radii_[ax] < other.lower_radii_[ax]
+            || this->upper_radii_[ax] < other.upper_radii_[ax])
+        {
+            return false;
+        }
+    }
+    return hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    constexpr auto X = to_int(Axis::x);
+    constexpr auto Y = to_int(Axis::y);
+
+    real_type a = ipow<2>((2 * hh_) / (lower_radii_[X] - upper_radii_[X]));
+
+    real_type b = ipow<2>((2 * hh_) / (lower_radii_[Y] - upper_radii_[Y]));
+
+    real_type v = hh_ * (lower_radii_[X] + upper_radii_[X])
+                  / (lower_radii_[X] - upper_radii_[X]);
+
+    insert_surface(
+        SimpleQuadric{Real3{a, b, -1}, Real3{0, 0, 2 * v}, -ipow<2>(v)});
+
+    // Set an exterior bbox
+    real_type x_max = std::fmax(lower_radii_[X], upper_radii_[X]);
+    real_type y_max = std::fmax(lower_radii_[Y], upper_radii_[Y]);
+    Real3 ex_halves{x_max, y_max, hh_};
+    insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
+
+    // TODO: interior bbox
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void EllipticalCone::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
@@ -516,9 +708,6 @@ real_type GenPrism::calc_twist_cosine(size_type i) const
  */
 void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    constexpr int X = 0;
-    constexpr int Y = 1;
-
     // Build the bottom and top planes
     if (degen_ != Degenerate::lo)
     {
@@ -809,10 +998,6 @@ Parallelepiped::Parallelepiped(Real3 const& half_projs,
  */
 void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
-    constexpr auto Z = to_int(Axis::z);
-
     // Cache trigonometric values
     real_type sinth, costh, sinphi, cosphi, sinal, cosal;
     sincos(theta_, &sinth, &costh);

@@ -10,12 +10,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Atomics.hh"
-#include "corecel/math/NumericLimits.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
@@ -36,9 +35,13 @@ struct HeuristicGeoExecutor
     using ParamsRef = NativeCRef<HeuristicGeoParamsData>;
     using StateRef = NativeRef<HeuristicGeoStateData>;
 
-    ParamsRef const& params;
-    StateRef const& state;
+    ParamsRef params;
+    StateRef state;
 
+    CELER_FUNCTION void operator()(ThreadId tid) const
+    {
+        return (*this)(TrackSlotId{tid.unchecked_get()});
+    }
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 };
 
@@ -92,16 +95,14 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
     if (!geo.is_on_boundary() && geo.volume_id() != params.s.world_volume)
     {
         real_type safety = geo.find_safety();
-        constexpr real_type safety_tol = 0.01;
-        constexpr real_type geom_limit = 5e-8 * units::millimeter;
         CELER_ASSERT(safety >= 0);
-        if (safety > geom_limit)
+        if (safety > params.s.geom_limit)
         {
             BernoulliDistribution truncate_to_safety(0.5);
             if (truncate_to_safety(rng))
             {
                 // Safety scaling factor is like "safety_tol" in MSC
-                step = min(step, safety * (1 - safety_tol));
+                step = min(step, safety * (1 - params.s.safety_tol));
             }
         }
     }

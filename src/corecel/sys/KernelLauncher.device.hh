@@ -46,12 +46,11 @@ namespace celeritas
  *
  * Example:
  * \code
- void FooAction::launch_kernel(size_type count) const
+ void launch_kernel(DeviceParams const& params, size_type count) const
  {
-    auto execute_thread = make_blah_executor(blah);
-    static KernelLauncher<decltype(execute_thread)> const
- launch_kernel("blah");
-    launch_kernel(state, execute_thread);
+    auto execute_thread = BlahExecutor{params};
+    static KernelLauncher<decltype(execute_thread)> const launch("blah");
+    launch_kernel(count, StreamId{}, execute_thread);
  }
  * \endcode
  */
