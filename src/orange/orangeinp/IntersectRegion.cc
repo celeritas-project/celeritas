@@ -439,18 +439,18 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
 
     // Check for negatives
     CELER_VALIDATE(!has_negative(lower_radii_),
-                   << "Lower radii cannot have negative values: "
-                   << lower_radii_[X] << ", " << lower_radii_[Y]);
+                   << "negative lower radii: " << lower_radii_[X] << ", "
+                   << lower_radii_[Y]);
     CELER_VALIDATE(!has_negative(upper_radii_),
-                   << "Upper radii cannot have negative values: "
-                   << upper_radii_[X] << ", " << upper_radii_[Y]);
+                   << "negative upper radii: " << upper_radii_[X] << ", "
+                   << upper_radii_[Y]);
 
     // Check for partial zeros
     CELER_VALIDATE(!is_partial_zero(lower_radii_),
-                   << "Mismatched zero lower radii: " << lower_radii_[X]
+                   << "mismatched zero lower radii: " << lower_radii_[X]
                    << ", " << lower_radii_[Y]);
     CELER_VALIDATE(!is_partial_zero(upper_radii_),
-                   << "Mismatched zero upper radii: " << upper_radii_[X]
+                   << "mismatched zero upper radii: " << upper_radii_[X]
                    << ", " << upper_radii_[Y]);
 
     // Check aspect ratios
@@ -458,18 +458,17 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
     {
         CELER_VALIDATE(soft_equal(lower_radii_[X] / lower_radii_[Y],
                                   upper_radii_[X] / upper_radii_[Y]),
-                       << "Upper and lower elliptical cross sections must "
-                          "have the same aspect ratio.");
+                       << "differing aspect ratios for upper and lower radii");
     }
 
     // Check for elliptical cylinders. Since we have already validated the
     // aspect ratio, we only need to test the x-values here.
     CELER_VALIDATE(!soft_equal(lower_radii_[X], upper_radii_[X]),
-                   << "Upper and lower elliptical cross sections must "
-                      "not be equal");
+                   << "equal and lower and upper radii (use cylinder "
+                      "instead)");
 
     // Check positivity of half-height
-    CELER_VALIDATE(hh_ > 0, << "Nonpositive halfheight: " << hh_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
 }
 
 //---------------------------------------------------------------------------//
