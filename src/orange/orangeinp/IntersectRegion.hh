@@ -321,18 +321,17 @@ class EllipticalCone final : public IntersectRegionInterface
  * A generalized polygon with parallel flat faces along the *z* axis.
  *
  * A GenPrism, like VecGeom's GenTrap, ROOT's Arb8, and Geant4's
- * G4GenericTrap, represents a generalized volume with polyhedral faces on
- * two parallel planes perpendicular to the \em z axis. Unlike those other
- * codes, the number of faces can be arbitrary in number.
+ * G4GenericTrap, represents a generalized volume with polyhedral faces on two
+ * parallel planes perpendicular to the \em z axis. Unlike those other codes,
+ * the number of faces can be arbitrary in number.
  *
- * The faces have an orientation and ordering so that \em twisted faces can
- * be constructed by joining corresponding points using straight-line
- * "vertical" edges, directly matching the G4GenericTrap definition, but
- * directly generating a hyperbolic paraboloid for each twisted face.
+ * The faces have an orientation and ordering so that \em twisted faces can be
+ * constructed by joining corresponding points using straight-line "vertical"
+ * edges, directly matching the G4GenericTrap definition, but directly
+ * generating a hyperbolic paraboloid for each twisted face.
  *
- * Trapezoids constructed from the helper functions will have sides that
- * are same ordering as a prism: the rightward face is first (normal is
- * along the
+ * Trapezoids constructed from the helper functions will have sides that are
+ * same ordering as a prism: the rightward face is first (normal is along the
  * \em +x axis), then the others follow counterclockwise.
  */
 class GenPrism final : public IntersectRegionInterface
@@ -369,8 +368,7 @@ class GenPrism final : public IntersectRegionInterface
                               TrapFace const& lo,
                               TrapFace const& hi);
 
-    // Construct from half Z height and 4 vertices for top and bottom
-    // planes
+    // Construct from half Z height and 4 vertices for top and bottom planes
     GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
     // Build surfaces
@@ -444,9 +442,9 @@ class InfSlab final : public IntersectRegionInterface
  * An open wedge shape from the *z* axis.
  *
  * The wedge is defined by an interior angle that \em must be less than or
- * equal to 180 degrees (half a turn) and \em must be more than zero. It
- * can be subtracted, or its negation can be subtracted. The start angle is
- * mapped onto \f$[0, 1)\f$ on construction.
+ * equal to 180 degrees (half a turn) and \em must be more than zero. It can be
+ * subtracted, or its negation can be subtracted. The start angle is mapped
+ * onto \f$[0, 1)\f$ on construction.
  */
 class InfWedge final : public IntersectRegionInterface
 {
@@ -540,7 +538,7 @@ class Involute final : public IntersectRegionInterface
  *   - \c theta polar angle of the shape's main axis, e.g. the segment defined
  *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
  *   - \c phi azimuthal angle of the shape's main axis (as explained above).
- *     Validity range is `[0, 1)`.
+ *    Validity range is `[0, 1)`.
  */
 class Parallelepiped final : public IntersectRegionInterface
 {
@@ -580,8 +578,8 @@ class Parallelepiped final : public IntersectRegionInterface
 /*!
  * A regular, z-extruded polygon centered on the origin.
  *
- * This is the base component of a G4Polyhedra (PGON). The default rotation
- * is to put a y-aligned plane on the bottom of the shape, so looking at an x-y
+ * This is the base component of a G4Polyhedra (PGON). The default rotation is
+ * to put a y-aligned plane on the bottom of the shape, so looking at an x-y
  * slice given an apothem \em a, every shape has a surface at \f$ y = -a \f$:
  * - n=3 is a triangle with a flat bottom, point up
  * - n=4 is a square with axis-aligned sides
