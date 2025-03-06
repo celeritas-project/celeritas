@@ -420,20 +420,20 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
     SoftZero soft_zero;
     SoftEqual soft_equal;
 
-    auto X = to_int(Axis::x);
-    auto Y = to_int(Axis::y);
+    constexpr auto X = to_int(Axis::x);
+    constexpr auto Y = to_int(Axis::y);
 
     // True if either radius is negative
     auto has_negative
-        = [&](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
+        = [](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
 
     // True if radii is (0, 0)
-    auto is_vertex = [&](Real2 const& radii) {
+    auto is_vertex = [&soft_zero](Real2 const& radii) {
         return soft_zero(radii[X]) && soft_zero(radii[Y]);
     };
 
     // True if radii is (0, x) || (x, 0), where x != 0
-    auto is_partial_zero = [&](Real2 const& radii) {
+    auto is_partial_zero = [&soft_zero](Real2 const& radii) {
         return (soft_zero(radii[X]) != soft_zero(radii[Y]));
     };
 
