@@ -61,7 +61,7 @@ class VecgeomTrackView
 #if CELERITAS_VECGEOM_SURFACE
     using Navigator = celeritas::detail::SurfNavigator;
 #elif VECGEOM_VERSION >= 0x020000
-    using BVHNavigator = vecgeom::BVHNavigator;
+    using Navigator = vecgeom::BVHNavigator;
 #else
     using Navigator = celeritas::detail::BVHNavigator;
 #endif
