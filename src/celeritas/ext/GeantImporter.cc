@@ -884,6 +884,9 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg);
         CELER_ASSERT(g4_particle_def);
 
+        CELER_LOG(debug) << "Loading processes for particle '"
+                         << g4_particle_def->GetParticleName() << "'";
+
         if (!include_particle(PDGNumber{g4_particle_def->GetPDGEncoding()}))
         {
             CELER_LOG(debug) << "Filtered all processes from particle '"
@@ -907,6 +910,29 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             append_process(*g4_particle_def, process);
         }
     }
+
+    if (include_particle(g4_photon_pdg)
+        && G4ParticleTable::GetParticleTable()->FindParticle(
+            g4_photon_pdg.get()))
+    {
+        CELER_LOG(debug) << "Loading process for optical photons";
+
+        auto* photon_def = G4OpticalPhoton::OpticalPhoton();
+        CELER_ASSERT(photon_def);
+        CELER_ASSERT(photon_def->GetProcessManager());
+        CELER_ASSERT(photon_def->GetProcessManager()->GetProcessList());
+
+        G4ProcessVector const& process_list
+            = *photon_def->GetProcessManager()->GetProcessList();
+        CELER_LOG(debug) << "Loading " << process_list.size()
+                         << " optical processes";
+        for (auto j : range(process_list.size()))
+        {
+            G4VProcess const& process = *process_list[j];
+            append_process(*photon_def, process);
+        }
+    }
+
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
     CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";
     return {
