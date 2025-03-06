@@ -514,8 +514,8 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
 
-    auto X = to_int(Axis::x);
-    auto Y = to_int(Axis::y);
+    constexpr auto X = to_int(Axis::x);
+    constexpr auto Y = to_int(Axis::y);
 
     real_type a = ipow<2>((2 * hh_) / (lower_radii_[X] - upper_radii_[X]));
 
