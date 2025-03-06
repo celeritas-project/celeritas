@@ -428,12 +428,12 @@ TEST_F(EllipsoidTest, errors)
 
 TEST_F(EllipsoidTest, encloses)
 {
-    Ellipsoid ellisoid({1, 2, 3});
-    EXPECT_TRUE(ellisoid.encloses(Ellipsoid({1, 2, 3})));
-    EXPECT_TRUE(ellisoid.encloses(Ellipsoid({0.5, 1.5, 2.5})));
-    EXPECT_FALSE(ellisoid.encloses(Ellipsoid({0.5, 1.5, 3.5})));
-    EXPECT_FALSE(ellisoid.encloses(Ellipsoid({0.5, 2.5, 2.5})));
-    EXPECT_FALSE(ellisoid.encloses(Ellipsoid({5.5, 1.5, 2.5})));
+    Ellipsoid ellipsoid({1, 2, 3});
+    EXPECT_TRUE(ellipsoid.encloses(Ellipsoid({1, 2, 3})));
+    EXPECT_TRUE(ellipsoid.encloses(Ellipsoid({0.5, 1.5, 2.5})));
+    EXPECT_FALSE(ellipsoid.encloses(Ellipsoid({0.5, 1.5, 3.5})));
+    EXPECT_FALSE(ellipsoid.encloses(Ellipsoid({0.5, 2.5, 2.5})));
+    EXPECT_FALSE(ellipsoid.encloses(Ellipsoid({5.5, 1.5, 2.5})));
 }
 
 TEST_F(EllipsoidTest, standard)
