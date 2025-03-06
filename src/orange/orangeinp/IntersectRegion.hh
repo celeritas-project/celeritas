@@ -26,20 +26,19 @@ class IntersectSurfaceBuilder;
  *
  * This is a building block for constructing more complex objects out of
  * smaller spatial regions. A \c shape object will have a single intersect
- * region, and a \c solid object region may have multiple adjacent
- * intersect regions.
+ * region, and a \c solid object region may have multiple adjacent intersect
+ * regions.
  *
- * Convex regions should be as minimal as possible and rely on
- * transformations to change axes, displacement, etc. As a general rule,
- * the exterior bounding box of a intersect region should be <em>centered
- * on the origin</em>, and objects should be aligned along the \em z axis.
+ * Convex regions should be as minimal as possible and rely on transformations
+ * to change axes, displacement, etc. As a general rule, the exterior bounding
+ * box of a intersect region should be <em>centered on the origin</em>, and
+ * objects should be aligned along the \em z axis.
  *
  * When implementing this class, prefer to build simpler surfaces (planes)
  * before complex ones (cones) in case we implement short-circuiting logic,
  * since expressions are currently sorted.
  *
- * \note Additional methods such as volume calculation may be added here
- * later.
+ * \note Additional methods such as volume calculation may be added here later.
  */
 class IntersectRegionInterface
 {
@@ -91,17 +90,17 @@ class Box final : public IntersectRegionInterface
 /*!
  * A closed truncated cone along the *z* axis centered on the origin.
  *
- * A quadric cone technically defines two opposing cones that touch at a
- * single vanishing point, but this cone is required to be truncated so
- * that the vanishing point is on our outside the cone.
+ * A quadric cone technically defines two opposing cones that touch at a single
+ * vanishing point, but this cone is required to be truncated so that the
+ * vanishing point is on our outside the cone.
  *
- * The midpoint along the \em z axis of the cone is the origin. A cone is
- * \em not allowed to have equal radii: for that, use a cylinder. However,
- * it \em may have a single radius of zero, which puts the vanishing point
- * on one end of the cone.
+ * The midpoint along the \em z axis of the cone is the origin. A cone is \em
+ * not allowed to have equal radii: for that, use a cylinder. However, it \em
+ * may have a single radius of zero, which puts the vanishing point on one end
+ * of the cone.
  *
- * This intersect region, along with the Cylinder, is a base component of
- * the G4Polycone (PCON).
+ * This intersect region, along with the Cylinder, is a base component of the
+ * G4Polycone (PCON).
  */
 class Cone final : public IntersectRegionInterface
 {
@@ -478,12 +477,12 @@ class InfWedge final : public IntersectRegionInterface
 /*!
  * An involute "blade" centered on the origin.
  *
- * This is the intersection of two parallel involutes with a cylindrical
- * shell. The three radii, which must be in ascending order, are that of
- * the involute, the inner cylinder, and the outer cylinder.
+ * This is the intersection of two parallel involutes with a cylindrical shell.
+ * The three radii, which must be in ascending order, are that of the involute,
+ * the inner cylinder, and the outer cylinder.
  *
- * The "chirality" of the involute is viewed from the \em +z axis looking
- * down: whether it spirals to the right or left.
+ * The "chirality" of the involute is viewed from the \em +z axis looking down:
+ * whether it spirals to the right or left.
  */
 class Involute final : public IntersectRegionInterface
 {
@@ -526,23 +525,22 @@ class Involute final : public IntersectRegionInterface
  * A general parallelepiped centered on the origin.
  *
  * A parallelepiped is a shape having 3 pairs of parallel faces out of
- * which one is parallel with the \em x-y plane (\em z faces). All faces
- * are parallelograms in the general case. The \em z faces have 2 edges
- * parallel with the \em x axis. Note that all angle parameters are
- * expressed in terms of fractions of a 360-degree turn.
+ * which one is parallel with the \em x-y plane (\em z faces). All faces are
+ * parallelograms in the general case. The \em z faces have 2 edges parallel
+ * with the \em x axis. Note that all angle parameters are expressed in terms
+ * of fractions of a 360-degree turn.
  *
  * The shape has the center in the origin and it is defined by:
  *
  *   - \c halfedges: a 3-vector (dY, dY, dZ) with half-lengths of the
- *     projections of the edges on X, Y, Z. The lower Z face is positioned
- * at
+ *     projections of the edges on X, Y, Z. The lower Z face is positioned at
  *     `-dZ`, and the upper one at `+dZ`.
  *   - \c alpha angle between the segment defined by the centers of the
  *     X-parallel edges and Y axis. Validity range is `(-1/4, 1/4)`;
- *   - \c theta polar angle of the shape's main axis, e.g. the segment
- * defined by the centers of the Z faces. Validity range is `[0, 1/4)`;
- *   - \c phi azimuthal angle of the shape's main axis (as explained
- * above).     Validity range is `[0, 1)`.
+ *   - \c theta polar angle of the shape's main axis, e.g. the segment defined
+ *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
+ *   - \c phi azimuthal angle of the shape's main axis (as explained above).
+ *     Validity range is `[0, 1)`.
  */
 class Parallelepiped final : public IntersectRegionInterface
 {
@@ -583,17 +581,16 @@ class Parallelepiped final : public IntersectRegionInterface
  * A regular, z-extruded polygon centered on the origin.
  *
  * This is the base component of a G4Polyhedra (PGON). The default rotation
- * is to put a y-aligned plane on the bottom of the shape, so looking at an
- * x-y slice given an apothem \em a, every shape has a surface at \f$ y =
- * -a \f$:
+ * is to put a y-aligned plane on the bottom of the shape, so looking at an x-y
+ * slice given an apothem \em a, every shape has a surface at \f$ y = -a \f$:
  * - n=3 is a triangle with a flat bottom, point up
  * - n=4 is a square with axis-aligned sides
  * - n=6 is a flat-top hexagon
  *
  * The "orientation" parameter is a scaled counterclockwise rotation on
  * \f$[0, 1)\f$, where zero preserves the orientation described above, and
- * unity replicates the original shape but with the "p0" face being where
- * the "p1" originally was. With a value of 0.5:
+ * unity replicates the original shape but with the "p0" face being where the
+ * "p1" originally was. With a value of 0.5:
  * - n=3 is a downward-pointing triangle
  * - n=4 is a diamond
  * - n=6 is a pointy-top hexagon
@@ -647,8 +644,8 @@ class Prism final : public IntersectRegionInterface
 /*!
  * A sphere centered on the origin.
  *
- * \note Be aware there's also a sphere *surface* at orange/surf/Sphere.hh
- * in a different namespace.
+ * \note Be aware there's also a sphere *surface* at orange/surf/Sphere.hh in a
+ * different namespace.
  */
 class Sphere final : public IntersectRegionInterface
 {
