@@ -73,24 +73,18 @@ jobs:
           fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
       - name: Setup Spack
-        uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
+        uses: spack/setup-spack@a91f96292c5d999463818365a3dfdabacdd3a31b # develop@2025-03-06
         with:
           ref: ${{env.SPACK_REF}}
           buildcache: true
           color: true
           path: spack-src
-      - name: Patch spack # To be deleted; see associated github pulls
-        working-directory: spack-src
-        run: |
-          for id in 48328 48332 48347 48844 49003 49110 49195; do
-            curl -LfsS "https://github.com/spack/spack/pull/${id}.diff" | patch -p1
-          done
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
-            spack -e . add vecgeom+gdml
+            spack -e . add vecgeom~surface+gdml
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
