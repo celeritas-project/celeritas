@@ -667,8 +667,7 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
     auto rmax = scale_(solid.GetRmax());
     auto rtor = scale_(solid.GetRtor());
 
-    std::optional<Cylinder> inner;
-    inner = Cylinder{rtor - rmax, rmax};
+    std::optional<Cylinder> inner{std::in_place, rtor - rmax, rmax};
 
     return make_solid(solid,
                       Cylinder{rtor + rmax, rmax},
