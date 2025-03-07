@@ -204,6 +204,120 @@ class Ellipsoid final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A *z*-aligned cylinder with an elliptical cross section.
+ *
+ * The elliptical cylinder is defined with a two radii and a half-height,
+ * such that the centroid of the bounding box is origin.
+ */
+class EllipticalCylinder final : public IntersectRegionInterface
+{
+  public:
+    // Construct with x- and y-radii and half-height in z
+    EllipticalCylinder(Real2 const& radii, real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another ellipsoid
+    bool encloses(EllipticalCylinder const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius along each axis
+    Real2 const& radii() const { return radii_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    Real2 radii_;
+    real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A finite *z*-aligned cone with an elliptical cross section.
+ *
+ * The elliptical cone is defined in an analogous fashion to the regular
+ * (i.e., circular) cone. A half-height (hh) defines the z-extents, such
+ * that the centroid of the outer bounding box is the origin. The lower radii
+ * are the x- and y-radii at the plane z = -hh. The upper radii are the x- and
+ * y-radii at the plane z = hh. There are several restrictions on these radii:
+ *
+ * 1) Either the lower or upper radii may be (0, 0); this is the only permitted
+ *    way for the elliptical cone to include the vertex.
+ * 2) The aspect ratio of the elliptical cross sections is constant. Thus, the
+ *    aspect ratio at z = -hh must equal the aspect ratio at z = hh.
+ * 3) Degenerate elliptical cones with lower_radii == upper_radii (i.e.,
+ *    elliptical cylinders) are not permitted.
+ * 4) Degenerate elliptical cones where lower or upper radii are equal to
+ *    (0, x) or (x, 0), where x is non-zero, are not permitted.
+ *
+ * The elliptical surface can be expressed as:
+ *
+ * \f[
+   (x/r_x)^2 + (y/r_y)^2 = (v-z)^2,
+ * \f]
+ *
+ * which can be converted to SimpleQuadric form:
+ * \verbatim
+   (1/r_x)^2 x^2  + (1/r_y)^2 y^2 + (-1) z^2 + (2v) z + (-v^2) = 0.
+      |                |              |         |          |
+      a                b              c         d          e
+ * \endverbatim
+ *
+ * where v is the location of the vertex. The r_x, r_y, and v can be calculated
+ * from the lower and upper radii as given by \c G4EllipticalCone:
+ * \verbatim
+   r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
+   r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
+     v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] -
+ upper_radii[X]).
+ * \endverbatim
+ */
+class EllipticalCone final : public IntersectRegionInterface
+{
+  public:
+    // Construct with x- and y-radii and half-height in z
+    EllipticalCone(Real2 const& lower_radii,
+                   Real2 const& upper_radii,
+                   real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another elliptical cone
+    bool encloses(EllipticalCone const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radii along the x- and y-axes at z=-hh
+    Real2 const& lower_radii() const { return lower_radii_; }
+
+    //! Radii along the x- and y-axes at z=-hh
+    Real2 const& upper_radii() const { return upper_radii_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    Real2 lower_radii_;
+    Real2 upper_radii_;
+    real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A generalized polygon with parallel flat faces along the *z* axis.
  *
  * A GenPrism, like VecGeom's GenTrap, ROOT's Arb8, and Geant4's
@@ -424,7 +538,7 @@ class Involute final : public IntersectRegionInterface
  *   - \c theta polar angle of the shape's main axis, e.g. the segment defined
  *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
  *   - \c phi azimuthal angle of the shape's main axis (as explained above).
- *     Validity range is `[0, 1)`.
+ *     Validity range is `[0, 1)`.
  */
 class Parallelepiped final : public IntersectRegionInterface
 {

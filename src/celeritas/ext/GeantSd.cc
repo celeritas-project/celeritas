@@ -45,6 +45,20 @@ void update_selection(StepPointSelection* selection,
     selection->pos = options.position;
     selection->dir = options.direction;
     selection->energy = options.kinetic_energy;
+    if (options.touchable)
+    {
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            CELER_LOG(warning) << "Using less accurate navigator-based "
+                                  "reconstruction for ORANGE geometry";
+            selection->pos = true;
+            selection->dir = true;
+        }
+        else
+        {
+            selection->volume_instance_ids = true;
+        }
+    }
 }
 
 // Convert volume sets to the correct type for SensDetInserter
@@ -75,7 +89,6 @@ GeantSd::GeantSd(SPConstGeo geo,
                  StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
     , geo_{std::move(geo)}
-    , locate_touchable_(setup.locate_touchable)
 {
     CELER_EXPECT(num_streams > 0);
 
@@ -83,23 +96,14 @@ GeantSd::GeantSd(SPConstGeo geo,
     selection_.particle = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
     selection_.step_length = setup.step_length;
-    update_selection(&selection_.points[StepPoint::pre], setup.pre);
-    update_selection(&selection_.points[StepPoint::post], setup.post);
-    if (locate_touchable_)
+    for (auto p : range(StepPoint::size_))
     {
-        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        update_selection(&selection_.points[p], setup.points[p]);
+        if (setup.points[p].touchable)
         {
-            CELER_LOG(warning) << "Using less accurate navigator-based "
-                                  "reconstruction for ORANGE geometry";
-            selection_.points[StepPoint::pre].pos = true;
-            selection_.points[StepPoint::pre].dir = true;
-        }
-        else
-        {
-            selection_.points[StepPoint::pre].volume_instance_ids = true;
+            locate_touchable_[p] = true;
         }
     }
-
     // Hit processors MUST be allocated on the thread they're used because of
     // geant4 thread-local SDs. They MUST also be DEallocated on the same
     // thread they're created due to Geant4 thread-local allocators.

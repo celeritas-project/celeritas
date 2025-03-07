@@ -382,12 +382,32 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-//! Convert an elliptical cone
+/*!
+ * Convert an elliptical cone
+ *
+ * Expressions for lower/upper radii were found by solving the system of
+ * equations given by \c G4EllipticalCone:
+ *
+ * lower_radii[X]/lower_radii[y] = upper_radii[X]/upper_radii[y],
+ * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
+ * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
+ * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
+ */
 auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4EllipticalCone const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("ellipticalcone");
+
+    // Read and scale parameters. Do not scale r_x and r_y because they are
+    // unitless slopes within the context of this calculation.
+    auto r_x = solid.GetSemiAxisX();
+    auto r_y = solid.GetSemiAxisY();
+    auto v = scale_(solid.GetZMax());
+    auto hh = scale_(solid.GetZTopCut());
+
+    Real2 lower_radii{r_x * (v + hh), r_y * (v + hh)};
+    Real2 upper_radii{r_x * (v - hh), r_y * (v - hh)};
+
+    return make_shape<EllipticalCone>(solid, lower_radii, upper_radii, hh);
 }
 
 //---------------------------------------------------------------------------//
@@ -395,8 +415,12 @@ auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 auto SolidConverter::ellipticaltube(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4EllipticalTube const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("ellipticaltube");
+
+    auto rx = scale_(solid.GetDx());
+    auto ry = scale_(solid.GetDy());
+    auto halfheight = scale_(solid.GetDz());
+
+    return make_shape<EllipticalCylinder>(solid, Real2({rx, ry}), halfheight);
 }
 
 //---------------------------------------------------------------------------//

@@ -40,26 +40,25 @@ LevelTouchableUpdater::~LevelTouchableUpdater() = default;
  */
 bool LevelTouchableUpdater::operator()(DetectorStepOutput const& out,
                                        size_type i,
+                                       StepPoint step_point,
                                        GeantTouchableBase* touchable)
 {
-    CELER_EXPECT(i < out.size());
-    CELER_EXPECT(out.volume_instance_depth > 0);
-    auto ids = make_span(out.points[StepPoint::pre].volume_instance_ids);
-    auto const depth = out.volume_instance_depth;
-    CELER_EXPECT(ids.size() >= (i + 1) * depth);
-
-    return (*this)(ids.subspan(i * depth, depth), touchable);
+    return (*this)(LevelTouchableUpdater::volume_instances(out, i, step_point),
+                   touchable);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Initialize from a span of volume instances.
+ *
+ * Since the volume instances are allowed to be padded to better support GPU, a
+ * null ID terminates the sequence. An empty input or one that starts with a
+ * null ID indicates "outside".
  */
 bool LevelTouchableUpdater::operator()(SpanVolInst ids,
                                        GeantTouchableBase* touchable)
 {
     CELER_EXPECT(touchable);
-    CELER_EXPECT(!ids.empty() && ids.front());
 
     // Update phys_inst_ from geometry and volume instance id
     phys_inst_.clear();
@@ -75,8 +74,6 @@ bool LevelTouchableUpdater::operator()(SpanVolInst ids,
             << "' (geometry type: " << GeoTraits<GeoParams>::name << ')');
         phys_inst_.push_back(phys_inst);
     }
-    CELER_ASSERT(!phys_inst_.empty());
-
     set_history(make_span(phys_inst_), nav_hist_.get());
     touchable->UpdateYourself(nav_hist_->GetTopVolume(), nav_hist_.get());
     return true;

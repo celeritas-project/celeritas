@@ -117,6 +117,7 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
     G4TouchableHandle touch_handle_;
 };
 
+// NOTE: see GeantGeoUtils
 TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
 {
     TestResult result;
@@ -142,12 +143,24 @@ TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
 
         // Get the local-to-global x/y translation coordinates
         auto const& trans = touch->GetTranslation(0);
-        result.coords.insert(result.coords.end(),
-                             {trans.x(), trans.y(), trans.z()});
+        if (touch->GetHistoryDepth() == 0 && touch->GetVolume() == nullptr)
+        {
+            // Special case: outside world
+            result.coords.insert(result.coords.end(), {0, 0, 0});
+        }
+        else
+        {
+            result.coords.insert(result.coords.end(),
+                                 {trans.x(), trans.y(), trans.z()});
+        }
 
         // Get the replica/copy numbers
         result.replicas.push_back([touch] {
             std::ostringstream os;
+            if (touch->GetHistoryDepth() == 0 && touch->GetVolume() == nullptr)
+            {
+                return std::string{};
+            }
             os << touch->GetReplicaNumber(0);
             for (auto i : range(1, touch->GetHistoryDepth() + 1))
             {
@@ -246,38 +259,24 @@ TEST_F(MultiLevelTest, all_points)
         {"world_PV", "topbox3", "boxsph2@0"},
         {"world_PV", "topbox3", "boxsph1@0"},
         {"world_PV", "topbox3", "boxtri@0"},
+        {"world_PV"},
+        {},
     };
 
     auto result = run(all_level_names);
 
-    static double const expected_coords[] = {
-        -0,  -0,   -0,  -0,  -0,   -0,   125, 125,  0,    100,  100,
-        0,   125,  75,  0,   75,   75,   0,   -75,  125,  0,    -100,
-        100, 0,    -75, 75,  0,    -125, 75,  0,    125,  -75,  0,
-        75,  -75,  0,   125, -125, 0,    100, -100, 0,    -100, -100,
-        0,   -125, -75, 0,   -75,  -125, 0,   -125, -125, 0,
-    };
+    static double const expected_coords[]
+        = {-0,  -0,   -0, -0,   -0,   -0, 125,  125,  0, 100,  100, 0,
+           125, 75,   0,  75,   75,   0,  -75,  125,  0, -100, 100, 0,
+           -75, 75,   0,  -125, 75,   0,  125,  -75,  0, 75,   -75, 0,
+           125, -125, 0,  100,  -100, 0,  -100, -100, 0, -125, -75, 0,
+           -75, -125, 0,  -125, -125, 0,  0,    0,    0, 0,    0,   0};
     EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);
-    static char const* const expected_replicas[] = {
-        "0",
-        "0,0",
-        "31,21,0",
-        "21,0",
-        "1,21,0",
-        "32,21,0",
-        "31,22,0",
-        "22,0",
-        "1,22,0",
-        "32,22,0",
-        "1,24,0",
-        "32,24,0",
-        "31,24,0",
-        "24,0",
-        "23,0",
-        "32,23,0",
-        "31,23,0",
-        "1,23,0",
-    };
+    static char const* const expected_replicas[]
+        = {"0",       "0,0",     "31,21,0", "21,0",   "1,21,0",
+           "32,21,0", "31,22,0", "22,0",    "1,22,0", "32,22,0",
+           "1,24,0",  "32,24,0", "31,24,0", "24,0",   "23,0",
+           "32,23,0", "31,23,0", "1,23,0",  "0",      ""};
     EXPECT_VEC_EQ(expected_replicas, result.replicas);
 }
 
