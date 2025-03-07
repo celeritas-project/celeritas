@@ -5,7 +5,7 @@ spack:
     - "googletest@1.10:"
     - hepmc3
     - nlohmann-json
-    - "vecgeom@1.2.10: +gdml"
+    - "vecgeom@1.2.10:1 +gdml"
   view: true
   concretizer:
     unify: true
