@@ -87,11 +87,7 @@
 #include "detail/GeantProcessImporter.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
-#if G4VERSION_NUMBER < 1060
-inline constexpr celeritas::PDGNumber g4_photon_pdg{0};
-#else
 inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
-#endif
 
 namespace celeritas
 {
@@ -915,9 +911,14 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
     }
 
+#if G4VERSION_NUMBER <= 1060
+    CELER_LOG(debug) << "Attempting fallback for loading optical photons";
+    CELER_LOG(debug) << "include_particle: " << include_particle(g4_photon_pdg);
+    CELER_LOG(debug)
+        << "find particle: "
+        << G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton");
     if (include_particle(g4_photon_pdg)
-        && G4ParticleTable::GetParticleTable()->FindParticle(
-            g4_photon_pdg.get()))
+        && G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
     {
         CELER_LOG(debug) << "Loading process for optical photons";
 
@@ -936,6 +937,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             append_process(*photon_def, process);
         }
     }
+#endif
 
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
     CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";
