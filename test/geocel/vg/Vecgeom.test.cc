@@ -63,7 +63,7 @@ auto const vecgeom_version
 //---------------------------------------------------------------------------//
 class VecgeomTestBaseImpl : public VecgeomTestBase
 {
-  protected:
+  public:
     using SpanStringView = Span<std::string_view const>;
 
     virtual SpanStringView expected_log_levels() const { return {}; }
@@ -77,7 +77,6 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
     }
 };
 
-//---------------------------------------------------------------------------//
 //! Load a geometry using VecGeom's GDML reader
 class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 {
@@ -94,7 +93,6 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
     }
 };
 
-//---------------------------------------------------------------------------//
 //! Load a geometry using G4VG
 class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 {
@@ -144,212 +142,6 @@ G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 
 //---------------------------------------------------------------------------//
 // VGDML TESTS
-//---------------------------------------------------------------------------//
-
-class TwoBoxesVgdmlTest : public VecgeomVgdmlTestBase
-{
-  public:
-    std::string geometry_basename() const final { return "two-boxes"; }
-};
-
-TEST_F(TwoBoxesVgdmlTest, accessors)
-{
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(2, geom.volumes().size());
-
-    auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-500.001, -500.001, -500.001}),
-                       to_cm(bbox.lower()));
-    EXPECT_VEC_SOFT_EQ((Real3{500.001, 500.001, 500.001}),
-                       to_cm(bbox.upper()));
-}
-
-TEST_F(TwoBoxesVgdmlTest, track)
-{
-    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
-    EXPECT_FALSE(geo.is_outside());
-    EXPECT_EQ("inner", this->volume_name(geo));
-
-    // Shouldn't hit boundary
-    auto next = geo.find_next_step(from_cm(1.25));
-    EXPECT_SOFT_EQ(1.25, to_cm(next.distance));
-    EXPECT_FALSE(next.boundary);
-
-    geo.move_internal(from_cm(1.25));
-    real_type expected_safety = 5 - 1.25;
-    EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol());
-
-    // Change direction and try again (hit)
-    geo.set_dir({1, 0, 0});
-    next = geo.find_next_step(from_cm(50));
-    EXPECT_SOFT_EQ(5, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_FALSE(geo.is_outside());
-    geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_EQ("world", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
-    if (geo.is_on_boundary() && CELERITAS_DEBUG)
-    {
-        // Don't check the safety distance on the boundary; we know by
-        // definition it's zero
-        EXPECT_THROW(geo.find_safety(), DebugError);
-    }
-
-    // Scatter to tangent along boundary
-    geo.set_dir({1e-8, 1, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(500, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_internal(from_cm(2));
-
-    // Scatter back inside
-    geo.set_dir({-1, 0, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_TRUE(next.boundary);
-    EXPECT_SOFT_NEAR(2e-8, to_cm(next.distance), 1e-4);
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.cross_boundary();
-    EXPECT_FALSE(geo.is_outside());
-    EXPECT_EQ("inner", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
-}
-
-//---------------------------------------------------------------------------//
-
-class SimpleCmsVgdmlTest : public VecgeomVgdmlTestBase
-{
-  public:
-    std::string geometry_basename() const final { return "simple-cms"; }
-};
-
-TEST_F(SimpleCmsVgdmlTest, accessors)
-{
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(7, geom.volumes().size());
-}
-
-TEST_F(SimpleCmsVgdmlTest, track)
-{
-    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
-    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
-
-    auto next = geo.find_next_step(from_cm(100));
-    EXPECT_SOFT_EQ(100, to_cm(next.distance));
-    EXPECT_FALSE(next.boundary);
-    geo.move_internal(from_cm(20));
-    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol());
-
-    geo.set_dir({1, 0, 0});
-    next = geo.find_next_step(from_cm(50));
-    EXPECT_SOFT_EQ(30, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-
-    geo.move_to_boundary();
-    EXPECT_FALSE(geo.is_outside());
-    geo.cross_boundary();
-    EXPECT_EQ("si_tracker", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
-
-    // Scatter to tangent
-    geo.set_dir({0, 1, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_internal(from_cm(10));
-    EXPECT_SOFT_NEAR(
-        1.6227766016837926, to_cm(geo.find_safety()), safety_tol());
-
-    // Move to boundary and scatter back inside
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(111.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    geo.set_dir({-1, 0, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(60., to_cm(next.distance));
-}
-
-TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
-{
-    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
-
-    // Set up test input
-    VGGTestInput input;
-    input.init = {{{10, 0, 0}, {1, 0, 0}},
-                  {{29.99, 0, 0}, {1, 0, 0}},
-                  {{150, 0, 0}, {0, 1, 0}},
-                  {{174, 0, 0}, {0, 1, 0}},
-                  {{0, -250, 100}, {-1, 0, 0}},
-                  {{250, -250, 100}, {-1, 0, 0}},
-                  {{250, 0, 100}, {0, -1, 0}},
-                  {{-250, 0, 100}, {0, -1, 0}}};
-    StateStore device_states(this->geometry()->host_ref(), input.init.size());
-    input.max_segments = 5;
-    input.params = this->geometry()->device_ref();
-    input.state = device_states.ref();
-
-    // Run kernel
-    auto output = vgg_test(input);
-
-    static int const expected_ids[] = {
-        1, 2, 3, 4,  5,  1, 2, 3, 4, 5,  3, 4, 5, 6,  -2, 3, 4, 5, 6,  -2,
-        4, 5, 6, -2, -3, 3, 4, 5, 6, -2, 4, 5, 6, -2, -3, 4, 5, 6, -2, -3,
-    };
-    static double const expected_distances[] = {
-        20,
-        95,
-        50,
-        100,
-        100,
-        0.010,
-        95,
-        50,
-        100,
-        100,
-        90.1387818866,
-        140.34982954572,
-        113.20456568937,
-        340.04653943718,
-        316.26028344113,
-        18.681541692269,
-        194.27150477573,
-        119.23515320201,
-        345.84129821338,
-        321.97050211661,
-        114.5643923739,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        -3,
-        135.4356076261,
-        229.12878474779,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        114.5643923739,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        -3,
-        114.5643923739,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        -3,
-    };
-
-    // Check results
-    EXPECT_VEC_EQ(expected_ids, output.ids);
-    EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
-}
-
 //---------------------------------------------------------------------------//
 
 using FourLevelsVgdmlTest
@@ -631,6 +423,136 @@ TEST_F(MultiLevelVgdmlTest, trace)
 
 //---------------------------------------------------------------------------//
 
+class SimpleCmsVgdmlTest : public VecgeomVgdmlTestBase
+{
+  public:
+    std::string geometry_basename() const final { return "simple-cms"; }
+};
+
+TEST_F(SimpleCmsVgdmlTest, accessors)
+{
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(7, geom.volumes().size());
+}
+
+TEST_F(SimpleCmsVgdmlTest, track)
+{
+    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
+    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+
+    auto next = geo.find_next_step(from_cm(100));
+    EXPECT_SOFT_EQ(100, to_cm(next.distance));
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(from_cm(20));
+    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol());
+
+    geo.set_dir({1, 0, 0});
+    next = geo.find_next_step(from_cm(50));
+    EXPECT_SOFT_EQ(30, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    geo.move_to_boundary();
+    EXPECT_FALSE(geo.is_outside());
+    geo.cross_boundary();
+    EXPECT_EQ("si_tracker", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
+
+    // Scatter to tangent
+    geo.set_dir({0, 1, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    geo.move_internal(from_cm(10));
+    EXPECT_SOFT_NEAR(
+        1.6227766016837926, to_cm(geo.find_safety()), safety_tol());
+
+    // Move to boundary and scatter back inside
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(111.34661099511597, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    geo.move_to_boundary();
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(60., to_cm(next.distance));
+}
+
+TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
+{
+    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
+
+    // Set up test input
+    VGGTestInput input;
+    input.init = {{{10, 0, 0}, {1, 0, 0}},
+                  {{29.99, 0, 0}, {1, 0, 0}},
+                  {{150, 0, 0}, {0, 1, 0}},
+                  {{174, 0, 0}, {0, 1, 0}},
+                  {{0, -250, 100}, {-1, 0, 0}},
+                  {{250, -250, 100}, {-1, 0, 0}},
+                  {{250, 0, 100}, {0, -1, 0}},
+                  {{-250, 0, 100}, {0, -1, 0}}};
+    StateStore device_states(this->geometry()->host_ref(), input.init.size());
+    input.max_segments = 5;
+    input.params = this->geometry()->device_ref();
+    input.state = device_states.ref();
+
+    // Run kernel
+    auto output = vgg_test(input);
+
+    static int const expected_ids[] = {
+        1, 2, 3, 4,  5,  1, 2, 3, 4, 5,  3, 4, 5, 6,  -2, 3, 4, 5, 6,  -2,
+        4, 5, 6, -2, -3, 3, 4, 5, 6, -2, 4, 5, 6, -2, -3, 4, 5, 6, -2, -3,
+    };
+    static double const expected_distances[] = {
+        20,
+        95,
+        50,
+        100,
+        100,
+        0.010,
+        95,
+        50,
+        100,
+        100,
+        90.1387818866,
+        140.34982954572,
+        113.20456568937,
+        340.04653943718,
+        316.26028344113,
+        18.681541692269,
+        194.27150477573,
+        119.23515320201,
+        345.84129821338,
+        321.97050211661,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+        135.4356076261,
+        229.12878474779,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+    };
+
+    // Check results
+    EXPECT_VEC_EQ(expected_ids, output.ids);
+    EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
+}
+
+//---------------------------------------------------------------------------//
+
 class SolidsVgdmlTest : public VecgeomVgdmlTestBase
 {
   public:
@@ -702,6 +624,24 @@ TEST_F(SolidsVgdmlTest, reflected_vol)
     // Note: through GDML there is only one trd3_refl
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
+}
+
+//---------------------------------------------------------------------------//
+
+class TwoBoxesVgdmlTest
+    : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, TwoBoxesGeoTest>
+{
+};
+
+TEST_F(TwoBoxesVgdmlTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(TwoBoxesVgdmlTest, track)
+{
+    // Templated test
+    TwoBoxesGeoTest::test_detailed_tracking(this);
 }
 
 //---------------------------------------------------------------------------//

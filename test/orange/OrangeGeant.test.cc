@@ -10,9 +10,9 @@
 
 #include "corecel/Types.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
+#include "geocel/GeoTests.hh"
 #include "geocel/TransformedBoxGeoTest.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/ZnenvGeoTest.hh"
 #include "geocel/detail/LengthUnits.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 

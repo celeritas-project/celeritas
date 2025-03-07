@@ -25,14 +25,9 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
-  CmsEeBackDeeGeoTest.cc
   LazyGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoTestInterface.cc
-  FourLevelsGeoTest.cc
-  MultiLevelGeoTest.cc
-  SolidsGeoTest.cc
-  TransformedBoxGeoTest.cc
   GeoTests.cc
 )
 
