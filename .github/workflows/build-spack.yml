@@ -13,7 +13,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 866785bd74964142e4b47bf71bee68d7426c84ee # develop@2024-12-31
+  SPACK_REF: a91f96292c5d999463818365a3dfdabacdd3a31b # develop@2025-03-06
 
 jobs:
   spack:
@@ -79,18 +79,12 @@ jobs:
           buildcache: true
           color: true
           path: spack-src
-      - name: Patch spack # To be deleted; see associated github pulls
-        working-directory: spack-src
-        run: |
-          for id in 48328 48332 48347 48844 49003 49110 49195; do
-            curl -LfsS "https://github.com/spack/spack/pull/${id}.diff" | patch -p1
-          done
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
-            spack -e . add vecgeom+gdml
+            spack -e . add vecgeom@1.2.10:1+gdml
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
