@@ -10,6 +10,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Atomics.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -117,13 +118,15 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         // NOTE: this can be set to true to enable debugging
         if constexpr (false)
         {
-            if (tid == TrackSlotId{358})
+            if (state.step >= 22)
             {
                 using std::printf;
                 auto const& pos = geo.pos();
                 auto const& dir = geo.dir();
                 printf(
-                    R"(%03d.%03d: at %.17g,%.17g,%.17g along %.17g,%.17g,%.17g in %d: step=%.17g -> %.17g%s\n)",
+                    R"(%c%03d.%03d: at %.17g,%.17g,%.17g along %.17g,%.17g,%.17g in %d: step=%.17g -> %.17g%s)"
+                    "\n",
+                    MemSpace::native == MemSpace::device ? 'G' : 'C',
                     static_cast<int>(tid.get()),
                     static_cast<int>(state.step),
                     pos[0],
