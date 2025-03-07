@@ -47,6 +47,10 @@ constexpr real_type sqrt_three{constants::sqrt_three};
 template<class E>
 using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 
+constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
+                                       && CELERITAS_CORE_GEO
+                                              == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -205,7 +209,7 @@ TEST_F(TwoBoxesTest, electron_interior)
     EXPECT_EQ(1, geo.intersect_count());
     EXPECT_EQ(0, geo.safety_count());
 
-    // Test the remaining quarter-turn divided into 20 steps
+    // Test the remaining quarter-turn divided into 25 steps
     {
         geo.reset_count();
         stepper.reset_count();
@@ -388,16 +392,39 @@ TEST_F(TwoBoxesTest, gamma_exit)
     {
         SCOPED_TRACE("Exact boundary");
         auto geo = this->make_geo_track_view({2, 4.75, 0}, {0, 1, 0});
+        real_type const exact_distance = [&geo] {
+            // Note: exact distance may be slightly off for VecGeom surface,
+            // which applies rotation matrices to planar surfaces
+            auto result = geo.find_next_step();
+            EXPECT_TRUE(result.boundary);
+            EXPECT_SOFT_EQ(result.distance, 0.25);
+            return result.distance;
+        }();
+
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(0.25);
+        auto result = propagate(exact_distance);
 
-        EXPECT_SOFT_EQ(0.25, result.distance);
-        EXPECT_TRUE(result.boundary);
+        EXPECT_SOFT_EQ(exact_distance, result.distance);
+        if (using_vecgeom_surface)
+        {
+            // Numerical integration over the non-power-of-2 distance results
+            // in being a little closer than the boundary
+            EXPECT_FALSE(result.boundary);
+        }
+        else
+        {
+            EXPECT_TRUE(result.boundary);
+        }
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
         EXPECT_EQ(1, stepper.count());
+        if (using_vecgeom_surface)
+        {
+            result = propagate(1e-3);
+            EXPECT_TRUE(result.boundary);
+        }
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -1217,22 +1244,40 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     auto calc_radius
         = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
+    // NOTE: vecgeom surface puts this position slightly *inside* the beam tube
+    // rather than *outside*
+    EXPECT_EQ(using_vecgeom_surface ? "vacuum_tube" : "si_tracker",
+              this->volume_name(geo));
 
     {
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, geo);
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_EQ("si_tracker", this->volume_name(geo));
-        ASSERT_TRUE(geo.is_on_boundary());
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (using_vecgeom_surface)
         {
-            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+            // Surface geometry does not intersect the cylinder boundary, so
+            // the track keeps going until the "looping" counter is hit
+            EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+            EXPECT_SOFT_EQ(2.3659210728880966, result.distance);
+            EXPECT_TRUE(result.looping);
+            EXPECT_FALSE(geo.is_on_boundary());
         }
-        EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
-        geo.cross_boundary();
-        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+        else
+        {
+            EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
+            EXPECT_EQ("si_tracker", this->volume_name(geo));
+            ASSERT_TRUE(geo.is_on_boundary());
+            if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+            {
+                EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+            }
+            geo.cross_boundary();
+        }
     }
+    if (!using_vecgeom_surface)
     {
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
@@ -1459,6 +1504,14 @@ TEST_F(CmseTest, coarse)
         expected_num_step = {10001, 179, 3236, 1303};
         expected_num_intercept = {30419, 615, 16170, 9956};
         expected_num_integration = {80659, 1670, 41914, 26114};
+    }
+    else if (using_vecgeom_surface)
+    {
+        expected_num_boundary = {134, 37, 43, 16};
+        expected_num_step = {10001, 179, 160, 63};
+        expected_num_intercept = {30419, 615, 790, 414};
+        expected_num_integration = {80659, 1670, 1956, 1092};
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
     else if (!scoped_log_.empty())
     {

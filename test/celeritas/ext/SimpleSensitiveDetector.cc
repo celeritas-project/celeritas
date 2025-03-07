@@ -63,6 +63,17 @@ void SimpleHitsResult::print_expected() const
          << repr(this->post_time)
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);\n"
+
+            "static char const* const expected_post_physvol[] = "
+         << repr(this->post_physvol)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);\n"
+
+            "static char const* const expected_post_status[] = "
+         << repr(this->post_status)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_post_status, result.post_status);\n"
+
             "/*** END CODE ***/\n";
 }
 
@@ -102,6 +113,29 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     }
     hits_.post_time.push_back(step->GetPostStepPoint()->GetGlobalTime()
                               / CLHEP::ns);
+
+    if (auto* post_step = step->GetPostStepPoint())
+    {
+        if (auto* touchable = post_step->GetTouchable())
+        {
+            auto* vol = touchable->GetVolume();
+            hits_.post_physvol.push_back(vol ? vol->GetName() : "<nullptr>");
+        }
+        hits_.post_status.push_back([status = post_step->GetStepStatus()] {
+            switch (status)
+            {
+                case G4StepStatus::fWorldBoundary:
+                    return "world";
+                case G4StepStatus::fGeomBoundary:
+                    return "geo";
+                case G4StepStatus::fUserDefinedLimit:
+                    return "user";
+                default:
+                    break;
+            }
+            return "error";
+        }());
+    }
     return true;
 }
 

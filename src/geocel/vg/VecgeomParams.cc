@@ -9,7 +9,12 @@
 #include <cstddef>
 #include <vector>
 #include <VecGeom/base/Config.h>
+#
+#ifndef VECGEOM_VERSION
+#    include <VecGeom/base/Version.h>
+#endif
 #include <VecGeom/base/Cuda.h>
+#include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
@@ -77,7 +82,7 @@ namespace
 #    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
 #endif
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    define VG_SURF_CALL(CODE) CODE
 #else
 #    define VG_SURF_CALL(CODE) \
@@ -200,11 +205,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
  */
 bool VecgeomParams::use_surface_tracking()
 {
-#ifdef VECGEOM_USE_SURF
-    return true;
-#else
-    return false;
-#endif
+    return CELERITAS_VECGEOM_SURFACE;
 }
 
 //---------------------------------------------------------------------------//
@@ -278,22 +279,40 @@ VecgeomParams::~VecgeomParams()
 {
     if (device_ref_)
     {
-        if (VecgeomParams::use_surface_tracking())
+        CELER_LOG(debug)
+            << "Clearing VecGeom "
+            << (VecgeomParams::use_surface_tracking() ? "surface" : "volume")
+            << "GPU data";
+        try
         {
-            CELER_LOG(debug) << "Clearing VecGeom surface GPU data";
-            VG_SURF_CALL(detail::teardown_surface_tracking_device());
+            if (VecgeomParams::use_surface_tracking())
+            {
+                VG_SURF_CALL(detail::teardown_surface_tracking_device());
+            }
+            else
+            {
+                VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+            }
         }
-        else
+        catch (std::exception const& e)
         {
-            CELER_LOG(debug) << "Clearing VecGeom GPU data";
-            VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+            CELER_LOG(critical)
+                << "Failed during VecGeom device cleanup: " << e.what();
         }
     }
 
     if (VecgeomParams::use_surface_tracking())
     {
         CELER_LOG(debug) << "Clearing SurfModel CPU data";
+    }
+    try
+    {
         VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(critical)
+            << "Failed during VecGeom surface model cleanup: " << e.what();
     }
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
@@ -325,7 +344,7 @@ GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
         // VecGeom volume is a specific instance of a G4PV: get the replica
         // number it corresponds to
         auto& geo_manager = vecgeom::GeoManager::Instance();
-#if VECGEOM_USE_SURF
+#ifdef VECGEOM_USE_SURF
         // TODO: this should use VECGEOM_VERSION >= 0x020000 once the
         // changes get merged into master
         auto* vgpv = geo_manager.GetPlacedVolume(id.get());
@@ -512,7 +531,11 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
+#if VECGEOM_VERSION < 0x020000
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+#else
+        vecgeom::ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
+#endif
     }
 
     // Init the bounding volume hierarchy structure
@@ -683,9 +706,14 @@ void VecgeomParams::build_metadata()
 
     // Save world bbox
     bbox_ = [world] {
-        // Calculate bounding box
+    // Calculate bounding box
+#if VECGEOM_VERSION < 0x020000
+        auto bbox_mgr = ABBoxManager::Instance();
+#else
+        auto bbox_mgr = ABBoxManager_t::Instance();
+#endif
         Vector3D<real_type> lower, upper;
-        ABBoxManager::Instance().ComputeABBox(world, &lower, &upper);
+        bbox_mgr.ComputeABBox(world, &lower, &upper);
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }

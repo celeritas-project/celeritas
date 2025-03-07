@@ -229,6 +229,8 @@ TEST_F(MultiLevelTest, set_history)
         {"world_PV", "topbox3", "boxsph2@0"},
         {"world_PV", "topbox4", "boxsph2@1"},
         {"world_PV", "topbox4", "boxtri@1"},
+        {"world_PV"},
+        {},
     };
 
     G4TouchableHistory touch;
@@ -246,44 +248,45 @@ TEST_F(MultiLevelTest, set_history)
         touch.UpdateYourself(hist.GetTopVolume(), &hist);
 
         // Get the local-to-global x/y translation coordinates
-        auto const& trans = touch.GetTranslation(0);
-        coords.insert(coords.end(), {trans.x(), trans.y()});
+        if (touch.GetHistoryDepth() == 0 && touch.GetVolume() == nullptr)
+        {
+            // Special case: outside world
+            coords.insert(coords.end(), {0, 0});
+        }
+        else
+        {
+            auto const& trans = touch.GetTranslation(0);
+            coords.insert(coords.end(), {trans.x(), trans.y()});
+        }
 
         // Get the replica/copy numbers
         replicas.push_back([&touch] {
-            std::ostringstream os;
-            os << touch.GetReplicaNumber(0);
-            for (auto i : range(1, touch.GetHistoryDepth() + 1))
+            if (touch.GetHistoryDepth() == 0 && touch.GetVolume() == nullptr)
             {
-                os << ',' << touch.GetReplicaNumber(i);
+                return std::string{};
+            }
+            std::ostringstream os;
+            for (auto i : range(touch.GetHistoryDepth() + 1))
+            {
+                if (i != 0)
+                {
+                    os << ',';
+                }
+                os << touch.GetReplicaNumber(i);
             }
             return std::move(os).str();
         }());
     }
 
     static double const expected_coords[] = {
-        -0,  -0,   -0,  -0,   -0,   -0,   100, 100, 125,  125, -75, 125,
-        125, -125, 100, -100, -100, -100, 75,  75,  -125, 75,  125, 75,
-        -75, 75,   -75, -125, -125, -75,  75,  -75, 125,  -75,
-    };
+        -0,   -0,   -0,   -0,   -0,   -0,  100, 100,  125, 125, -75, 125, 125,
+        -125, 100,  -100, -100, -100, 75,  75,  -125, 75,  125, 75,  -75, 75,
+        -75,  -125, -125, -75,  75,   -75, 125, -75,  0,   0,   0,   0};
     static char const* const expected_replicas[] = {
-        "0",
-        "0,0",
-        "0",
-        "21,0",
-        "31,21,0",
-        "31,22,0",
-        "31,24,0",
-        "24,0",
-        "23,0",
-        "32,21,0",
-        "32,22,0",
-        "1,21,0",
-        "1,22,0",
-        "31,23,0",
-        "32,23,0",
-        "32,24,0",
-        "1,24,0",
+        "0",       "0,0",     "0",      "21,0",    "31,21,0",
+        "31,22,0", "31,24,0", "24,0",   "23,0",    "32,21,0",
+        "32,22,0", "1,21,0",  "1,22,0", "31,23,0", "32,23,0",
+        "32,24,0", "1,24,0",  "0",      "",
     };
 
     EXPECT_VEC_SOFT_EQ(expected_coords, coords);

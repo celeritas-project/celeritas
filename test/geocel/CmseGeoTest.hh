@@ -51,10 +51,24 @@ void CmseGeoTest::test_trace() const
             403.9, 650, 650, 403.9, 549.15, 1096.95, 11200, 9.9999999999992,
             180, 910, 24000, 6000};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {100, 2.1499999999997,
-            10.3027302206744, 13.023518051922, 6.95, 6.95, 13.023518051922,
-            10.3027302206745, 2.15, 100, 5, 8, 100, 100, 100};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
+        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        {
+            // Surface vecgeom underestimates some safety near internal
+            // boundaries
+            static real_type const expected_hw_safety[] = {100, 2.1499999999997,
+                9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
+                9.62498950958252, 2.15, 100, 5, 8, 100, 100, 100};
+            EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
+                            safety_tol);
+        }
+        else
+        {
+            static real_type const expected_hw_safety[] = {100, 2.1499999999997,
+                10.3027302206744, 13.023518051922, 6.95, 6.95, 13.023518051922,
+                10.3027302206745, 2.15, 100, 5, 8, 100, 100, 100};
+            EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
+                            safety_tol);
+        }
     }
     {
         SCOPED_TRACE("Offset +z");

@@ -6,11 +6,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdio>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Atomics.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/UnitUtils.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
@@ -87,7 +92,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
     {
         UniformRealDistribution<> sample_logstep{params.s.log_min_step,
                                                  params.s.log_max_step};
-        step = std::exp(sample_logstep(rng));
+        step = from_cm(std::exp(sample_logstep(rng)));
     }
 
     // Calculate latest safety and truncate estimated step length (MSC-like)
@@ -110,6 +115,36 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
     // Move to boundary and accumulate step
     {
         Propagation prop = geo.find_next_step(step);
+        // NOTE: this can be set to true to enable debugging
+        if constexpr (false)
+        {
+            if (state.step >= 22)
+            {
+#ifndef CELER_DEVICE_SOURCE
+                // ROCm's printf is in global namespace; C++ is in std;
+                // and CUDA is in both.
+                using std::printf;
+#endif
+                auto const& pos = geo.pos();
+                auto const& dir = geo.dir();
+                printf(
+                    R"(%c%03d.%03d: at %.17g,%.17g,%.17g along %.17g,%.17g,%.17g in %d: step=%.17g -> %.17g%s)"
+                    "\n",
+                    MemSpace::native == MemSpace::device ? 'G' : 'C',
+                    static_cast<int>(tid.get()),
+                    static_cast<int>(state.step),
+                    pos[0],
+                    pos[1],
+                    pos[2],
+                    dir[0],
+                    dir[1],
+                    dir[2],
+                    static_cast<int>(geo.volume_id().get()),
+                    step,
+                    prop.distance,
+                    prop.boundary ? " (boundary)" : "");
+            }
+        }
 
         if (prop.boundary)
         {
@@ -146,8 +181,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         real_type phi
             = UniformRealDistribution<>{0, real_type(2 * constants::pi)}(rng);
 
-        Real3 dir = geo.dir();
-        dir = rotate(from_spherical(mu, phi), dir);
+        Real3 dir = rotate(from_spherical(mu, phi), geo.dir());
         geo.set_dir(dir);
     }
 

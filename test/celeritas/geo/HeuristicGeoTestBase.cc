@@ -31,9 +31,11 @@ namespace test
 /*!
  * Run tracks on host and device, and compare the resulting path length.
  */
-void HeuristicGeoTestBase::run(size_type num_states, real_type tolerance)
+void HeuristicGeoTestBase::run(size_type num_states,
+                               size_type num_steps,
+                               real_type tolerance)
 {
-    auto host_path = this->run_impl<MemSpace::host>(num_states);
+    auto host_path = this->run_impl<MemSpace::host>(num_states, num_steps);
 
     auto ref_path = this->reference_avg_path();
     if (ref_path.empty())
@@ -65,7 +67,7 @@ void HeuristicGeoTestBase::run(size_type num_states, real_type tolerance)
 
     if (celeritas::device())
     {
-        auto dvc_path = this->run_impl<MemSpace::device>(num_states);
+        auto dvc_path = this->run_impl<MemSpace::device>(num_states, num_steps);
         EXPECT_VEC_SOFT_EQ(host_path, dvc_path)
             << R"(GPU and CPU produced different results)";
     }
@@ -80,16 +82,15 @@ void HeuristicGeoTestBase::run(size_type num_states, real_type tolerance)
  * Run tracks on host *or* device and return the resulting path lengths.
  */
 template<MemSpace M>
-auto HeuristicGeoTestBase::run_impl(size_type num_states) -> VecReal
+auto HeuristicGeoTestBase::run_impl(size_type num_states,
+                                    size_type num_steps) -> VecReal
 {
-    size_type const num_steps = this->num_steps();
-
-    StateStore<M> state{this->build_test_params<MemSpace::host>(), num_states};
+    auto host_params = this->build_test_params<MemSpace::host>();
+    StateStore<M> state{host_params, num_states};
 
     auto params = this->build_test_params<M>();
 
     CELER_LOG(status) << "Running heuristic test on " << to_cstring(M);
-
     if constexpr (M == MemSpace::host)
     {
         HeuristicGeoExecutor execute{params, state.ref()};
@@ -97,15 +98,18 @@ auto HeuristicGeoTestBase::run_impl(size_type num_states) -> VecReal
         {
             for ([[maybe_unused]] auto step : range(num_steps))
             {
+                execute.state.step = step;
                 execute(tid);
             }
         }
     }
     else
     {
+        auto state_ref = state.ref();
         for ([[maybe_unused]] auto step : range(num_steps))
         {
-            heuristic_test_execute(params, state.ref());
+            state_ref.step = step;
+            heuristic_test_execute(params, state_ref);
         }
     }
 
@@ -178,7 +182,7 @@ auto HeuristicGeoTestBase::get_avg_path_impl(
         }
         else
         {
-            ADD_FAILURE() << "reference volme '" << ref_vol_labels[i]
+            ADD_FAILURE() << "reference volume '" << ref_vol_labels[i]
                           << "' is not in the geometry";
         }
     }

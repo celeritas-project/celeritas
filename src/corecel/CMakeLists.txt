@@ -120,6 +120,9 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 list(JOIN CELERITAS_DEPENDENCY_VERSIONS "\n" CELERITAS_DEPENDENCY_VERSIONS)
 
+# Save VecGeom surface macro
+set(CELERITAS_VECGEOM_SURFACE ${VecGeom_USE_SURF})
+
 #-----------------------------------------------------------------------------#
 
 celeritas_configure_file("Version.hh.in" "corecel/Version.hh" @ONLY)

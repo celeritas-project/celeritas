@@ -12,6 +12,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <limits>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Vector3D.h>
 #include <VecGeom/management/BVHManager.h>
@@ -21,7 +22,10 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
-#include <limits>
+
+#if VECGEOM_VERSION >= 0x020000
+#    error "Use the built-in VecGeom BVH navigator since it is available"
+#endif
 
 #include "corecel/Macros.hh"
 
@@ -458,7 +462,6 @@ class BVHNavigator
         }
     }
 };
-
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

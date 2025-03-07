@@ -341,13 +341,16 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
 /*!
  * Update a nav history to match the given pv stack.
  *
+ * The resulting nav history always has at least one level (i.e. GetDepth is
+ * zero). An empty input stack, corresponding to "outside" the world, results
+ * in a nav history with one level but a \c nullptr physical volume as the top.
+ *
  * \note The stack should have the same semantics as \c LevelId, i.e. the
  * initial entry is the "most global" level.
  */
 void set_history(Span<GeantPhysicalInstance const> stack,
                  G4NavigationHistory* nav)
 {
-    CELER_EXPECT(!stack.empty());
     CELER_EXPECT(std::all_of(stack.begin(), stack.end(), LogicalTrue{}));
     CELER_EXPECT(nav);
 
@@ -369,11 +372,18 @@ void set_history(Span<GeantPhysicalInstance const> stack,
 
     if (CELER_UNLIKELY(level == 0))
     {
-        // Top level disagrees (rare? should always be world):
-        // reset to top level
+        // Top level disagrees: this should likely only happen when we're
+        // outside (i.e. stack is empty)
         nav->Reset();
-        nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0].pv));
-        ++level;
+        if (!stack.empty())
+        {
+            nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0].pv));
+            ++level;
+        }
+        else
+        {
+            nav->SetFirstEntry(nullptr);
+        }
     }
     else if (level < nav_stack_size())
     {
@@ -410,7 +420,8 @@ void set_history(Span<GeantPhysicalInstance const> stack,
         nav->NewLevel(pv, vol_type, replica.get());
     }
 
-    CELER_ENSURE(nav_stack_size() == stack.size());
+    CELER_ENSURE(nav_stack_size() == stack.size()
+                 || (stack.empty() && nav->GetDepth() == 0));
 }
 
 //---------------------------------------------------------------------------//

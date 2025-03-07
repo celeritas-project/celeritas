@@ -43,6 +43,9 @@ jobs:
           - geometry: "vecgeom"
             special: "clhep"
             geant: "11.0"
+          - geometry: "vgsurf"
+            special: null
+            geant: "11.0"
           - geometry: "geant4"
             special: null
             geant: "11.0"
@@ -85,6 +88,8 @@ jobs:
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
             spack -e . add vecgeom@1.2.10:1+gdml
+          elif ${{matrix.geometry == 'vgsurf'}}; then
+            spack -e . add vecgeom+surface
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
@@ -94,7 +99,9 @@ jobs:
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          if ${{matrix.geometry == 'vecgeom' && matrix.geant}}; then
+          if ${{(matrix.geometry == 'vecgeom'
+                 || matrix.geometry == 'vgsurf')
+                && matrix.geant}}; then
             spack -e . add g4vg@1.0.2:
           fi
           spack -vd -e . compiler find --mixed-toolchain
@@ -145,7 +152,8 @@ jobs:
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
           git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          if ${{matrix.geant == '11.0'}}; then
+          # NOTE: since we update the environment for vgsurf, DO NOT reload it
+          if ${{matrix.geant == '11.0' && matrix.geometry != 'vgsurf'}}; then
             # Test overriding of Geant4 environment variables
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
@@ -195,7 +203,11 @@ jobs:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
       - name: Regenerate ROOT test data
-        if: ${{matrix.geant == '11.0'}}
+        if: ${{
+          matrix.geant == '11.0'
+          && matrix.special != 'minimal'
+          && matrix.special != 'vgsurf'
+         }}
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
@@ -204,8 +216,8 @@ jobs:
         if: ${{matrix.special != 'clang-tidy'}}
         continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
         run: |
-          if ${{matrix.geant == '11.0'}}; then
-            # Note this is ignored for geant4, float, clhep
+          if ${{matrix.geant == '11.0' && matrix.special != 'vgsurf'}}; then
+            # Note this is ignored for geant4, float, clhep, vgsurf
             export CELER_TEST_STRICT=1
           fi
           ctest -LE app --preset=spack-unit

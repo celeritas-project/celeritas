@@ -235,12 +235,29 @@ endif()
 #-----------------------------------------------------------------------------#
 # Field
 
+if(CELERITAS_USE_VecGeom)
+  # VecGeom surface cannot rebuild the geometry
+  set(_fieldprop_filter
+    FILTER
+    "-Layers*:SimpleCms*:Cmse*"
+    "Layers*"
+    "SimpleCms*"
+    "Cmse*"
+  )
+else()
+  # Other geometries should run everything (and some tests e.g. CMSE are
+  # disabled)
+  set(_fieldprop_filter)
+endif()
+
 celeritas_add_test(field/Fields.test.cc)
 celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
- ${_fixme_cgs}
-  LINK_LIBRARIES ${_core_geo_libs})
+  LINK_LIBRARIES ${_core_geo_libs}
+  ${_fieldprop_filter}
+  ${_fixme_cgs}
+)
 celeritas_add_test(field/LinearPropagator.test.cc
   LINK_LIBRARIES ${_all_geo_libs})
 celeritas_add_test(field/MagFieldEquation.test.cc)
@@ -255,7 +272,8 @@ set(_geo_args GPU ${_needs_double} ${_fixme_cgs}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
 endif()
-celeritas_add_test(geo/Geometry.test.cc ${_geo_args})
+celeritas_add_test(geo/Geometry.test.cc ${_geo_args}
+  FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)
@@ -290,7 +308,8 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 # Global
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
+    "-Em3*:SimpleCms*:LeadBox*:Mock*"
+    "Mock*"
     "Em3AlongStepTest.nofluct_nomsc"
     "Em3AlongStepTest.msc_nofluct"
     "Em3AlongStepTest.msc_nofluct_finegrid"

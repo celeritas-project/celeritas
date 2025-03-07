@@ -48,6 +48,10 @@ using celeritas::test::from_cm;
 using celeritas::test::to_cm;
 using units::MevEnergy;
 
+constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
+                                       && CELERITAS_CORE_GEO
+                                              == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 TEST(UrbanPositronCorrectorTest, all)
 {
@@ -671,7 +675,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
     EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
     EXPECT_VEC_SOFT_EQ(expected_msc_range_limit, msc_range_limit);
     EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
-    EXPECT_VEC_NEAR(expected_displace, displace, 1e-11);
+    EXPECT_VEC_NEAR(
+        expected_displace, displace, using_vecgeom_surface ? 1e-4 : 1e-12);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
