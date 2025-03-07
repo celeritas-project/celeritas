@@ -80,13 +80,13 @@ class TestEm3CollectorTestBase : public TestEm3Base,
     SPConstAction build_along_step() override
     {
         auto& action_reg = *this->action_reg();
-        UniformFieldParams field_params;
-        field_params.field = {0, 0, real_type(1 * units::tesla)};
+        UniformFieldParams::Input field_inp;
+        field_inp.strength = {0, 0, 1};
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr, msc);
+            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
         CELER_ASSERT(result);
         CELER_ASSERT(result->has_msc());
         action_reg.insert(result);

@@ -280,26 +280,12 @@ auto build_along_step(inp::Field const& var_field,
                     next_id, *params.material, *params.particle, msc, eloss);
             },
             [&](inp::UniformField const& field) {
-                UniformFieldParams field_params;
-
-                if (field.units != UnitSystem::si)
-                {
-                    CELER_NOT_IMPLEMENTED("field units in other unit systems");
-                }
-                field_params.field = field.strength;
-                field_params.options = field.driver_options;
-
-                // Interpret input in units of Tesla
-                for (real_type& v : field_params.field)
-                {
-                    v = native_value_from(units::FieldTesla{v});
-                }
-
                 return AlongStepUniformMscAction::from_params(
                     params.action_reg->next_id(),
+                    *params.geometry,
                     *params.material,
                     *params.particle,
-                    field_params,
+                    field,
                     msc,
                     eloss);
             },

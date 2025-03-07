@@ -9,10 +9,12 @@
 
 #include <functional>
 #include <memory>
+#include <G4LogicalVolume.hh>
 #include <G4ThreeVector.hh>
 
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/inp/Field.hh"
 
 namespace celeritas
 {
@@ -108,7 +110,9 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
   public:
     //!@{
     //! \name Type aliases
-    using FieldFunction = std::function<UniformFieldParams()>;
+    using FieldInput = inp::UniformField;
+    using FieldFunction = std::function<FieldInput()>;
+    using VecVolume = std::vector<G4LogicalVolume const*>;
     //!@}
 
   public:
@@ -118,14 +122,18 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     // Construct with a function to return the field strength
     explicit UniformAlongStepFactory(FieldFunction f);
 
+    // Construct with field strength and volumes where field is present
+    UniformAlongStepFactory(FieldFunction f, VecVolume volumes);
+
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
 
     // Get the field params (used for converting to celeritas::inp)
-    UniformFieldParams get_field() const;
+    FieldInput get_field() const;
 
   private:
     FieldFunction get_field_;
+    VecVolume volumes_;
 };
 
 //---------------------------------------------------------------------------//

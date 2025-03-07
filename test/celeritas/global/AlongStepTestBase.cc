@@ -134,10 +134,11 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
                   actions.end(),
                   ", ",
                   [&action_id_label, norm](std::ostream& os, auto const& kv) {
-                      os << '"' << action_id_label(kv.first)
-                         << "\": " << kv.second * norm;
+                      os << action_id_label(kv.first) << ": "
+                         << kv.second * norm;
                   })
            << '}';
+        result.action = os.str();
     }
 
     return result;

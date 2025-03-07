@@ -39,7 +39,7 @@ struct UniformFieldPropagatorFactory
 
     //// DATA ////
 
-    UniformFieldParams field;
+    NativeCRef<UniformFieldParamsData> field;
 };
 
 //---------------------------------------------------------------------------//
