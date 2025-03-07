@@ -118,7 +118,7 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
  */
 void RayleighModel::step(CoreParams const&, CoreStateHost&) const
 {
-    // CELER_NOT_IMPLEMENTED("Optical Rayleigh executor");
+    CELER_LOG(warning) << "Optical Rayleigh executor not implemented";
 }
 
 //---------------------------------------------------------------------------//

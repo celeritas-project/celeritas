@@ -56,7 +56,7 @@ void AbsorptionModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
  */
 void AbsorptionModel::step(CoreParams const&, CoreStateHost&) const
 {
-    // CELER_NOT_IMPLEMENTED("Optical absorption executor");
+    CELER_LOG(warning) << "Optical absorption executor not implemented";
 }
 
 //---------------------------------------------------------------------------//

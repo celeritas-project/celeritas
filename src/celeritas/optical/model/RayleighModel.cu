@@ -21,10 +21,7 @@ namespace optical
 /*!
  * Interact with device data.
  */
-void RayleighModel::step(CoreParams const&, CoreStateDevice&) const
-{
-    // CELER_NOT_IMPLEMENTED("Optical Rayleigh executor");
-}
+void RayleighModel::step(CoreParams const&, CoreStateDevice&) const {}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

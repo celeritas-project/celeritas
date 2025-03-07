@@ -21,10 +21,7 @@ namespace optical
 /*!
  * Interact with device data.
  */
-void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const
-{
-    // CELER_NOT_IMPLEMENTED("Optical absorption executor");
-}
+void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const {}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
