@@ -2,36 +2,24 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*!
- * \file corecel/Version.hh
- * \brief Celeritas version macro and declaration.
- * 
- * This file should be the primary means of interrogating Celeritas
- * capabilities/APIs from downstream software.
- */
+//! \file corecel/Version.cc
+//! \brief Celeritas version definitinos.
 //---------------------------------------------------------------------------//
-#pragma once
-
-/*!
-* Celeritas version as a compile-time constant.
-*
-* Encoded as a big-endian hexadecimal with one byte per component:
-* (major * 256 + minor) * 256 + patch.
-*/
-#define CELERITAS_VERSION @CELERITAS_VERSION@
+#include "corecel/Version.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
 //! Celeritas version string with git metadata
-extern char const version_string[];
+char const version_string[] = "@Celeritas_VERSION_STRING@";
 //! Celeritas major version
-extern unsigned int const version_major;
+unsigned int const version_major = @PROJECT_VERSION_MAJOR@;
 //! Celeritas minor version
-extern unsigned int const version_minor;
+unsigned int const version_minor = @PROJECT_VERSION_MINOR@;
 //! Celeritas patch version
-extern unsigned int const version_patch;
+unsigned int const version_patch = @PROJECT_VERSION_PATCH@;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+

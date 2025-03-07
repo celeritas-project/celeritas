@@ -116,7 +116,7 @@ int test_main(int argc, char** argv)
 
     if (comm.rank() == 0)
     {
-        cout << color_code('x') << "Celeritas version " << celeritas_version
+        cout << color_code('x') << "Celeritas version " << version_string
              << color_code(' ') << endl;
     }
 

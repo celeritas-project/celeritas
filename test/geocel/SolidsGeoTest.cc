@@ -22,9 +22,9 @@ namespace
 {
 //---------------------------------------------------------------------------//
 auto const vecgeom_version = celeritas::Version::from_string(
-    CELERITAS_USE_VECGEOM ? celeritas_vecgeom_version : "0.0.0");
+    CELERITAS_USE_VECGEOM ? cmake::vecgeom_version : "0.0.0");
 auto const geant4_version = celeritas::Version::from_string(
-    CELERITAS_USE_GEANT4 ? celeritas_geant4_version : "0.0.0");
+    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
 
 //---------------------------------------------------------------------------//
 }  // namespace

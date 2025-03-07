@@ -54,7 +54,7 @@ real_type to_sec(real_type v)
     return native_value_to<RealQuantity<Second>>(v).value();
 }
 
-auto const geant4_version = Version::from_string(celeritas_geant4_version);
+auto const geant4_version = Version::from_string(cmake::geant4_version);
 }  // namespace
 
 //---------------------------------------------------------------------------//

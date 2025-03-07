@@ -54,7 +54,7 @@ namespace test
 namespace
 {
 auto const vecgeom_version
-    = celeritas::Version::from_string(celeritas_vecgeom_version);
+    = celeritas::Version::from_string(cmake::vecgeom_version);
 
 }  // namespace
 
