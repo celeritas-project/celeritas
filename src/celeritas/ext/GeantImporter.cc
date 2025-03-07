@@ -87,7 +87,11 @@
 #include "detail/GeantProcessImporter.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
+#if G4VERSION_NUMBER <= 1050
+inline constexpr celeritas::PDGNumber g4_photon_pdg{0};
+#else
 inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
+#endif
 
 namespace celeritas
 {
