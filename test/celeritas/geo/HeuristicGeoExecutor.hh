@@ -120,7 +120,11 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         {
             if (state.step >= 22)
             {
+#ifndef CELER_DEVICE_SOURCE
+                // ROCm's printf is in global namespace; C++ is in std;
+                // and CUDA is in both.
                 using std::printf;
+#endif
                 auto const& pos = geo.pos();
                 auto const& dir = geo.dir();
                 printf(
