@@ -1232,6 +1232,187 @@ void SolidsGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+// SIMPLE CMS
+//---------------------------------------------------------------------------//
+void SimpleCmsGeoTest::test_trace() const
+{
+    bool const is_orange = test_->geometry_type() == "ORANGE";
+    {
+        auto result = test_->track({-75, 0, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "si_tracker",
+            "vacuum_tube",
+            "si_tracker",
+            "em_calorimeter",
+            "had_calorimeter",
+            "sc_solenoid",
+            "fe_muon_chambers",
+            "world",
+        };
+        ref.volume_instances = {
+            "si_tracker_pv",
+            "vacuum_tube_pv",
+            "si_tracker_pv",
+            "em_calorimeter_pv",
+            "had_calorimeter_pv",
+            "sc_solenoid_pv",
+            "iron_muon_chambers_pv",
+            "world_PV",
+        };
+        ref.distances = {45, 60, 95, 50, 100, 100, 325, 300};
+        ref.halfway_safeties = {22.5, 30, 47.5, 25, 50, 50, 162.5, 150};
+        ref.bumps = {};
+
+        if (is_orange)
+        {
+            ref.volume_instances.clear();
+            // TODO: at this exact point it ignores the cylindrical distance
+            ref.halfway_safeties[1] = 700;
+        }
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+    {
+        auto result = test_->track({25, 0, 701}, {0, 0, -1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "vacuum_tube", "world"};
+        ref.volume_instances = {"world_PV", "vacuum_tube_pv", "world_PV"};
+        ref.distances = {1, 1400, 1300};
+        ref.halfway_safeties = {0.5, 5, 650};
+        ref.bumps = {};
+
+        if (is_orange)
+        {
+            ref.volume_instances.clear();
+            ref.halfway_safeties[2] = 5;
+        }
+
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM3 NESTED
+//---------------------------------------------------------------------------//
+void TestEm3GeoTest::test_trace() const
+{
+    {
+        auto result = test_->track({-20.1}, {1, 0, 0});
+
+        static char const* const expected_volumes[] = {
+            "world", "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
+            "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
+            "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
+            "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
+            "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
+            "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
+            "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
+            "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
+            "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
+            "pb",    "lar", "pb",   "lar", "pb",  "lar", "pb",  "lar", "pb",
+            "lar",   "pb",  "lar",  "pb",  "lar", "pb",  "lar", "pb",  "lar",
+            "pb",    "lar", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            0.1,  0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 4};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.050, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 2};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM3 FLAT
+//---------------------------------------------------------------------------//
+void TestEm3FlatGeoTest::test_trace() const
+{
+    {
+        auto result = test_->track({-20.1}, {1, 0, 0});
+
+        static char const* const expected_volumes[] = {
+            "world",       "gap_0",  "absorber_0",  "gap_1",
+            "absorber_1",  "gap_2",  "absorber_2",  "gap_3",
+            "absorber_3",  "gap_4",  "absorber_4",  "gap_5",
+            "absorber_5",  "gap_6",  "absorber_6",  "gap_7",
+            "absorber_7",  "gap_8",  "absorber_8",  "gap_9",
+            "absorber_9",  "gap_10", "absorber_10", "gap_11",
+            "absorber_11", "gap_12", "absorber_12", "gap_13",
+            "absorber_13", "gap_14", "absorber_14", "gap_15",
+            "absorber_15", "gap_16", "absorber_16", "gap_17",
+            "absorber_17", "gap_18", "absorber_18", "gap_19",
+            "absorber_19", "gap_20", "absorber_20", "gap_21",
+            "absorber_21", "gap_22", "absorber_22", "gap_23",
+            "absorber_23", "gap_24", "absorber_24", "gap_25",
+            "absorber_25", "gap_26", "absorber_26", "gap_27",
+            "absorber_27", "gap_28", "absorber_28", "gap_29",
+            "absorber_29", "gap_30", "absorber_30", "gap_31",
+            "absorber_31", "gap_32", "absorber_32", "gap_33",
+            "absorber_33", "gap_34", "absorber_34", "gap_35",
+            "absorber_35", "gap_36", "absorber_36", "gap_37",
+            "absorber_37", "gap_38", "absorber_38", "gap_39",
+            "absorber_39", "gap_40", "absorber_40", "gap_41",
+            "absorber_41", "gap_42", "absorber_42", "gap_43",
+            "absorber_43", "gap_44", "absorber_44", "gap_45",
+            "absorber_45", "gap_46", "absorber_46", "gap_47",
+            "absorber_47", "gap_48", "absorber_48", "gap_49",
+            "absorber_49", "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            0.1,  0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 4,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            0.05,  0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+            0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+            0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+            0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+            0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+            0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+            0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+            0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+            0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+            0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+            0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+            0.115, 0.285, 2,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
 //! Test geometry accessors
@@ -1415,7 +1596,10 @@ void TwoBoxesGeoTest::test_accessors() const
     {
         EXPECT_EQ(2, geo.max_depth());
     }
-    EXPECT_EQ(2, geo.volumes().size());
+    else
+    {
+        EXPECT_EQ(3, geo.volumes().size());
+    }
 
     auto expected_bbox = calc_expected_bbox(
         test_->geometry_type(), {-500., -500., -500.}, {500., 500., 500.});

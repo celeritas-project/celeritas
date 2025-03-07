@@ -508,6 +508,22 @@ TEST_F(ReplicaTest, level_strings)
 }
 
 //---------------------------------------------------------------------------//
+
+using SimpleCmsTest
+    = GenericGeoParameterizedTest<GeantGeoTest, SimpleCmsGeoTest>;
+
+TEST_F(SimpleCmsTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(SimpleCmsTest, detailed_track)
+{
+    // Templated test
+    SimpleCmsGeoTest::test_detailed_tracking(this);
+}
+
+//---------------------------------------------------------------------------//
 class SolidsTest
     : public GenericGeoParameterizedTest<GeantGeoTest, SolidsGeoTest>
 {
@@ -620,6 +636,24 @@ TEST_F(TransformedBoxTest, accessors)
 TEST_F(TransformedBoxTest, trace)
 {
     this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+
+class TwoBoxesTest
+    : public GenericGeoParameterizedTest<GeantGeoTest, TwoBoxesGeoTest>
+{
+};
+
+TEST_F(TwoBoxesTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(TwoBoxesTest, track)
+{
+    // Templated test
+    TwoBoxesGeoTest::test_detailed_tracking(this);
 }
 
 //---------------------------------------------------------------------------//

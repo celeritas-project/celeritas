@@ -200,131 +200,8 @@ TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
 {
-    {
-        SCOPED_TRACE("rightward along corner");
-        auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
-        ASSERT_FALSE(geo.is_outside());
-        EXPECT_EQ("Shape2", this->volume_name(geo));
-        EXPECT_FALSE(geo.is_on_boundary());
-
-        // Check for surfaces up to a distance of 4 units away
-        auto next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-        next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-        geo.move_internal(from_cm(3.5));
-        EXPECT_FALSE(geo.is_on_boundary());
-
-        // Find one a bit further, then cross it
-        next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
-        EXPECT_EQ("Shape2", this->volume_name(geo));
-        geo.cross_boundary();
-        EXPECT_EQ("Shape1", this->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
-
-        // Find the next boundary and make sure that nearer distances aren't
-        // accepted
-        next = geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-        EXPECT_TRUE(geo.is_on_boundary());
-        next = geo.find_next_step(from_cm(0.5));
-        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-    }
-    {
-        SCOPED_TRACE("outside in");
-        auto geo = this->make_geo_track_view({-25, 6.5, 6.5}, {1, 0, 0});
-        EXPECT_TRUE(geo.is_outside());
-
-        auto next = geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-
-        geo.move_to_boundary();
-        EXPECT_TRUE(geo.is_outside());
-        geo.cross_boundary();
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ("World", this->volume_name(geo));
-    }
-    {
-        SCOPED_TRACE("inside out");
-        auto geo = this->make_geo_track_view({-23.5, 6.5, 6.5}, {-1, 0, 0});
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ("World", this->volume_name(geo));
-
-        auto next = geo.find_next_step(from_cm(2));
-        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-
-        geo.move_to_boundary();
-        EXPECT_FALSE(geo.is_outside());
-        geo.cross_boundary();
-        EXPECT_TRUE(geo.is_outside());
-
-        next = geo.find_next_step();
-        EXPECT_GT(next.distance, 1e10);
-        EXPECT_FALSE(next.boundary);
-    }
-}
-
-TEST_F(FourLevelsVgdmlTest, reentrant_boundary)
-{
-    auto geo = this->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    // Check for surfaces: we should hit the outside of the sphere Shape2
-    auto next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-    // Move to the boundary but scatter perpendicularly, away from the sphere
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({0, 1, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    // Move a bit internally, then scatter back toward the sphere
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(6, to_cm(next.distance));
-    geo.set_dir({-1, 0, 0});
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    // Move to the sphere boundary then scatter still into the sphere
-    next = geo.find_next_step(from_cm(10.0));
-    auto expected_distance = to_cm(CELERITAS_VECGEOM_SURFACE ? 1e-13 : 1e-8);
-    EXPECT_SOFT_EQ(expected_distance, next.distance);
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({0, -1, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.cross_boundary();
-    EXPECT_EQ("Shape2", this->volume_name(geo));
-    EXPECT_TRUE(geo.is_on_boundary());
-
-    // Travel nearly tangent to the right edge of the sphere, then scatter to
-    // still outside
-    // TODO: understand difference in distance for surface implementation
-    next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(CELERITAS_VECGEOM_SURFACE ? 9.9737647358664937e-07
-                                             : 0.00031622777925735285,
-                   to_cm(next.distance));
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({1, 0, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.cross_boundary();
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    EXPECT_TRUE(geo.is_on_boundary());
-    next = geo.find_next_step(from_cm(10.0));
+    // Templated test
+    FourLevelsGeoTest::test_detailed_tracking(this);
 }
 
 TEST_F(FourLevelsVgdmlTest, trace)
@@ -423,11 +300,8 @@ TEST_F(MultiLevelVgdmlTest, trace)
 
 //---------------------------------------------------------------------------//
 
-class SimpleCmsVgdmlTest : public VecgeomVgdmlTestBase
-{
-  public:
-    std::string geometry_basename() const final { return "simple-cms"; }
-};
+using SimpleCmsVgdmlTest
+    = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SimpleCmsGeoTest>;
 
 TEST_F(SimpleCmsVgdmlTest, accessors)
 {
@@ -436,45 +310,15 @@ TEST_F(SimpleCmsVgdmlTest, accessors)
     EXPECT_EQ(7, geom.volumes().size());
 }
 
-TEST_F(SimpleCmsVgdmlTest, track)
+TEST_F(SimpleCmsVgdmlTest, trace)
 {
-    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
-    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+    this->impl().test_trace();
+}
 
-    auto next = geo.find_next_step(from_cm(100));
-    EXPECT_SOFT_EQ(100, to_cm(next.distance));
-    EXPECT_FALSE(next.boundary);
-    geo.move_internal(from_cm(20));
-    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol());
-
-    geo.set_dir({1, 0, 0});
-    next = geo.find_next_step(from_cm(50));
-    EXPECT_SOFT_EQ(30, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-
-    geo.move_to_boundary();
-    EXPECT_FALSE(geo.is_outside());
-    geo.cross_boundary();
-    EXPECT_EQ("si_tracker", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
-
-    // Scatter to tangent
-    geo.set_dir({0, 1, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_internal(from_cm(10));
-    EXPECT_SOFT_NEAR(
-        1.6227766016837926, to_cm(geo.find_safety()), safety_tol());
-
-    // Move to boundary and scatter back inside
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(111.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    geo.set_dir({-1, 0, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(60., to_cm(next.distance));
+TEST_F(SimpleCmsVgdmlTest, detailed_track)
+{
+    // Templated test
+    SimpleCmsGeoTest::test_detailed_tracking(this);
 }
 
 TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
@@ -553,11 +397,9 @@ TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 
 //---------------------------------------------------------------------------//
 
-class SolidsVgdmlTest : public VecgeomVgdmlTestBase
+class SolidsVgdmlTest
+    : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SolidsGeoTest>
 {
-  public:
-    std::string geometry_basename() const final { return "solids"; }
-
     SpanStringView expected_log_levels() const final
     {
         if (vecgeom_version >= Version{2})
