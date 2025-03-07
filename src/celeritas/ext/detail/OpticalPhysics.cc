@@ -221,6 +221,9 @@ void OpticalPhysics::ConstructParticle()
     // Eventually nothing to do here as Celeritas OpPhys won't generate
     // G4OpticalPhotons
     G4OpticalPhoton::OpticalPhotonDefinition();
+    CELER_LOG(debug)
+        << "Optical photon pdg id: "
+        << G4OpticalPhoton::OpticalPhotonDefinition()->GetPDGEncoding();
 }
 
 //---------------------------------------------------------------------------//
