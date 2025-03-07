@@ -852,20 +852,17 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         else if (import_optical_model
                  && dynamic_cast<G4OpAbsorption const*>(&process))
         {
-            CELER_LOG(debug) << "Attempting to load G4OpAbsorption";
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::absorption));
         }
         else if (import_optical_model
                  && dynamic_cast<G4OpRayleigh const*>(&process))
         {
-            CELER_LOG(debug) << "Attempting to load G4OpRayleigh";
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::rayleigh));
         }
         else if (import_optical_model && dynamic_cast<G4OpWLS const*>(&process))
         {
-            CELER_LOG(debug) << "Attempting to load G4OpWLS";
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
@@ -883,9 +880,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         G4ParticleDefinition const* g4_particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg);
         CELER_ASSERT(g4_particle_def);
-
-        CELER_LOG(debug) << "Loading processes for particle '"
-                         << g4_particle_def->GetParticleName() << "'";
 
         if (!include_particle(PDGNumber{g4_particle_def->GetPDGEncoding()}))
         {
@@ -911,29 +905,33 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
     }
 
-#if G4VERSION_NUMBER <= 1060
-    CELER_LOG(debug) << "Attempting fallback for loading optical photons";
-    CELER_LOG(debug) << "include_particle: " << include_particle(g4_photon_pdg);
-    CELER_LOG(debug)
-        << "find particle: "
-        << G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton");
-    if (include_particle(g4_photon_pdg)
-        && G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
+// Optical photon PDG in Geant4 is 0 before version 10.7
+#if G4VERSION_NUMBER < 1070
+    if (G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
     {
-        CELER_LOG(debug) << "Loading process for optical photons";
-
         auto* photon_def = G4OpticalPhoton::OpticalPhoton();
         CELER_ASSERT(photon_def);
-        CELER_ASSERT(photon_def->GetProcessManager());
-        CELER_ASSERT(photon_def->GetProcessManager()->GetProcessList());
+
+        if (!include_particle(g4_photon_pdg))
+        {
+            CELER_LOG(debug) << "Filtered all processes from particle '"
+                             << g4_particle_def->GetParticleName() << "'";
+            continue;
+        }
 
         G4ProcessVector const& process_list
             = *photon_def->GetProcessManager()->GetProcessList();
-        CELER_LOG(debug) << "Loading " << process_list.size()
-                         << " optical processes";
+
         for (auto j : range(process_list.size()))
         {
             G4VProcess const& process = *process_list[j];
+            if (!include_process(process.GetProcessType()))
+            {
+                CELER_LOG(debug)
+                    << "Filtered process '" << process.GetProcessName() << "'";
+                continue;
+            }
+
             append_process(*photon_def, process);
         }
     }
