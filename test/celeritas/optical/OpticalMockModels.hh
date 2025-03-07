@@ -77,7 +77,7 @@ expected_mfp_energy_grid(OpticalMaterialId mat, ModelId model)
 
 //---------------------------------------------------------------------------//
 /*!
- * Mock MFP grid values (the path lenghts) for given material and model.
+ * Mock MFP grid values (the path lengths) for given material and model.
  */
 Span<real_type const>
 expected_mfp_value_grid(OpticalMaterialId mat, ModelId model)

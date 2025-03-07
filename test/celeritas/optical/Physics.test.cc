@@ -75,6 +75,10 @@ class OpticalPhysicsTest : public OpticalMockTestBase
         particle_state_
             = CollectionStateStore<ParticleStateData, MemSpace::host>(
                 num_tracks);
+        for (auto i : range(TrackSlotId{num_tracks}))
+        {
+            particle_state_.ref().energy[i] = 3;
+        }
         physics_state_ = CollectionStateStore<PhysicsStateData, MemSpace::host>(
             num_tracks);
         CELER_ENSURE(physics_state_.ref().size() == num_tracks);
@@ -159,10 +163,10 @@ TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
     // Populate XS scratch space used for each model
     physics = PhysicsTrackView::Initializer{};
     real_type total_xs = 0;
-    static real_type const expected_model_xs[] = {0.0059171597633136,
-                                                  0.001890359168242,
-                                                  0.00091827364554637,
-                                                  0.00054083288263926};
+    static double const expected_model_xs[] = {0.11893216075412,
+                                               0.038415414940508,
+                                               0.018644945136445,
+                                               0.010997324744179};
     std::vector<real_type> model_xs(num_models, 0);
     for (auto model : range(ModelId{num_models}))
     {
