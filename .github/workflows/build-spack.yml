@@ -13,7 +13,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 866785bd74964142e4b47bf71bee68d7426c84ee # develop@2024-12-31
+  SPACK_REF: a91f96292c5d999463818365a3dfdabacdd3a31b # develop@2025-03-06
 
 jobs:
   spack:
@@ -73,7 +73,7 @@ jobs:
           fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
       - name: Setup Spack
-        uses: spack/setup-spack@a91f96292c5d999463818365a3dfdabacdd3a31b # develop@2025-03-06
+        uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
         with:
           ref: ${{env.SPACK_REF}}
           buildcache: true
