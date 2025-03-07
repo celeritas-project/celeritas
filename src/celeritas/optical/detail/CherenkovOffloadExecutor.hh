@@ -55,7 +55,7 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     // Clear distribution data
     cherenkov_dist = {};
 
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     auto const& step = state.step[tsid];
 
     if (!step || sim.status() == TrackStatus::inactive)
@@ -65,14 +65,14 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
         return;
     }
 
-    auto particle = track.make_particle_view();
+    auto particle = track.particle();
 
     // Get the distribution data used to generate Cherenkov optical photons
     if (particle.charge() != zero_quantity())
     {
-        Real3 const& pos = track.make_geo_view().pos();
+        Real3 const& pos = track.geometry().pos();
         optical::MaterialView opt_mat{material, step.material};
-        auto rng = track.make_rng_engine();
+        auto rng = track.rng();
 
         CherenkovOffload generate(particle, sim, opt_mat, pos, cherenkov, step);
         cherenkov_dist = generate(rng);

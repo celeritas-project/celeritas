@@ -93,16 +93,16 @@ template<class MP>
 CELER_FUNCTION void
 PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
 {
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     if (sim.step_length() == 0)
     {
         // Track is stopped: no movement or energy loss will happen
         // (could be a stopped positron waiting for annihilation, or a
         // particle waiting to decay?)
-        CELER_ASSERT(track.make_particle_view().is_stopped());
+        CELER_ASSERT(track.particle().is_stopped());
         CELER_ASSERT(sim.post_step_action()
-                     == track.make_physics_view().scalars().discrete_action());
-        CELER_ASSERT(track.make_physics_view().at_rest_process());
+                     == track.physics().scalars().discrete_action());
+        CELER_ASSERT(track.physics().at_rest_process());
         return;
     }
 
@@ -110,14 +110,14 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
     Propagation p;
     {
 #if CELERITAS_DEBUG
-        Real3 const orig_pos = track.make_geo_view().pos();
+        Real3 const orig_pos = track.geometry().pos();
 #endif
         auto propagate = make_propagator(track);
         p = propagate(sim.step_length());
         tracks_can_loop = propagate.tracks_can_loop();
         CELER_ASSERT(p.distance > 0);
 #if CELERITAS_DEBUG
-        if (CELER_UNLIKELY(track.make_geo_view().pos() == orig_pos))
+        if (CELER_UNLIKELY(track.geometry().pos() == orig_pos))
         {
             // This unusual case happens when the step length is less than
             // machine epsilon compared to the actual position. This case seems
@@ -155,7 +155,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
         // Kill the track if it's stable and below the threshold energy or
         // above the threshold number of steps allowed while looping.
         sim.post_step_action([&track, &sim] {
-            auto particle = track.make_particle_view();
+            auto particle = track.particle();
             if (particle.is_stable()
                 && sim.is_looping(particle.particle_id(), particle.energy()))
             {

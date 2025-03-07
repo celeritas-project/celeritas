@@ -49,11 +49,11 @@ CELER_FUNCTION bool MeanELoss::is_applicable(CoreTrackView const& track) const
 {
     // The track can be marked as `errored` *within* the along-step kernel,
     // during propagation
-    if (track.make_sim_view().status() == TrackStatus::errored)
+    if (track.sim().status() == TrackStatus::errored)
         return false;
 
     // Energy loss grid ID is 'false'
-    return static_cast<bool>(track.make_physics_view().energy_loss_grid());
+    return static_cast<bool>(track.physics().energy_loss_grid());
 }
 
 //---------------------------------------------------------------------------//
@@ -66,8 +66,8 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
 {
     CELER_EXPECT(step > 0);
 
-    auto particle = track.make_particle_view();
-    auto phys = track.make_physics_view();
+    auto particle = track.particle();
+    auto phys = track.physics();
 
     if (apply_cut && particle.energy() < phys.particle_scalars().lowest_energy)
     {
@@ -87,7 +87,7 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
 
     CELER_ENSURE(eloss <= particle.energy());
     CELER_ENSURE(eloss != particle.energy()
-                 || track.make_sim_view().post_step_action()
+                 || track.sim().post_step_action()
                         == phys.scalars().range_action());
     return eloss;
 }
