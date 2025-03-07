@@ -915,24 +915,25 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         if (!include_particle(g4_photon_pdg))
         {
             CELER_LOG(debug) << "Filtered all processes from particle '"
-                             << g4_particle_def->GetParticleName() << "'";
-            continue;
+                             << photon_def->GetParticleName() << "'";
         }
-
-        G4ProcessVector const& process_list
-            = *photon_def->GetProcessManager()->GetProcessList();
-
-        for (auto j : range(process_list.size()))
+        else
         {
-            G4VProcess const& process = *process_list[j];
-            if (!include_process(process.GetProcessType()))
-            {
-                CELER_LOG(debug)
-                    << "Filtered process '" << process.GetProcessName() << "'";
-                continue;
-            }
+            G4ProcessVector const& process_list
+                = *photon_def->GetProcessManager()->GetProcessList();
 
-            append_process(*photon_def, process);
+            for (auto j : range(process_list.size()))
+            {
+                G4VProcess const& process = *process_list[j];
+                if (!include_process(process.GetProcessType()))
+                {
+                    CELER_LOG(debug) << "Filtered process '"
+                                     << process.GetProcessName() << "'";
+                    continue;
+                }
+
+                append_process(*photon_def, process);
+            }
         }
     }
 #endif
