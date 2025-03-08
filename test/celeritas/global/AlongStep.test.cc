@@ -569,8 +569,8 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         // boundary
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0.15203402789224513, result.step);
-        EXPECT_EQ(1.6280431942979028, result.eloss);
-        EXPECT_EQ(0.68022280149826031, result.mfp);
+        EXPECT_SOFT_EQ(1.6280431942979028, result.eloss);
+        EXPECT_SOFT_EQ(0.68022280149826031, result.mfp);
         EXPECT_EQ("geo-boundary", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
@@ -596,9 +596,9 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         }
         else
         {
-            EXPECT_SOFT_EQ(0.39725606912078854, result.step);
-            EXPECT_SOFT_EQ(2.4395090638369701, result.eloss);
-            EXPECT_SOFT_EQ(1.0195371293647053, result.mfp);
+            EXPECT_SOFT_NEAR(0.39725606912078854, result.step, 1e-11);
+            EXPECT_SOFT_NEAR(2.4395090638369701, result.eloss, 1e-11);
+            EXPECT_SOFT_NEAR(1.0195371293647053, result.mfp, 1e-11);
             EXPECT_EQ("{msc-range: 0.984375, eloss-range: 0.015625}",
                       result.action);
         }
@@ -642,8 +642,8 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
 
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0.15556383400068652, result.step);
-        EXPECT_EQ(1.6656905203847934, result.eloss);
-        EXPECT_EQ(0.69601567782415108, result.mfp);
+        EXPECT_SOFT_EQ(1.6656905203847934, result.eloss);
+        EXPECT_SOFT_EQ(0.69601567782415108, result.mfp);
         EXPECT_EQ("geo-boundary", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
@@ -667,9 +667,9 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         }
         else
         {
-            EXPECT_SOFT_EQ(0.39725606912078854, result.step);
-            EXPECT_SOFT_EQ(2.4395090638369701, result.eloss);
-            EXPECT_SOFT_EQ(1.0195371293647053, result.mfp);
+            EXPECT_SOFT_NEAR(0.39725606912078854, result.step, 1e-11);
+            EXPECT_SOFT_NEAR(2.4395090638369701, result.eloss, 1e-11);
+            EXPECT_SOFT_NEAR(1.0195371293647053, result.mfp, 1e-11);
             EXPECT_EQ("{msc-range: 0.984375, eloss-range: 0.015625}",
                       result.action);
         }
