@@ -237,7 +237,7 @@ class TwoBoxesGeoTest
 
 //---------------------------------------------------------------------------//
 /*!
- * Test the transformed box geometry.
+ * Test the ALICE ZDC (parameterised) geometry.
  */
 class ZnenvGeoTest
 {
@@ -361,6 +361,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 
         // Move to the sphere boundary then scatter still into the sphere
         next = geo.find_next_step(from_cm(10.0));
+        // TODO: investigate near-zero movement
         auto expected_distance = to_cm(is_surface_vg ? 1e-13 : 1e-8);
         EXPECT_SOFT_EQ(expected_distance, next.distance);
         EXPECT_TRUE(next.boundary);
