@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Read in and write back an ORANGE JSON file"};
-    cli.failure_message(detail::failure_message);
+    detail::setup_app(cli);
 
     std::string input_file;
     std::string output_file;
@@ -103,5 +103,5 @@ int main(int argc, char* argv[])
         instream = &infile;
     }
 
-    return detail::run_safely(run, instream, output_file);
+    return detail::run_safely(cli, run, instream, output_file);
 }

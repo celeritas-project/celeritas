@@ -1034,7 +1034,7 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
     }
 
     CLI::App cli{"Celeritas ROOT Data Dumper"};
-    cli.failure_message(detail::failure_message);
+    detail::setup_app(cli);
 
     std::string filename;
     cli.add_option("filename", filename, "ROOT file to process")
@@ -1043,5 +1043,5 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 
     CLI11_PARSE(cli, argc, argv);
 
-    return detail::run_safely(run, filename);
+    return detail::run_safely(cli, run, filename);
 }

@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Export Geant4 data to ROOT or JSON"};
-    cli.failure_message(detail::failure_message);
+    detail::setup_app(cli);
 
     std::string gdml_filename;
     std::string opts_filename;
@@ -185,9 +185,9 @@ int main(int argc, char* argv[])
 
     if (dump_default)
     {
-        return detail::run_safely(run_dump_default);
+        return detail::run_safely(cli, run_dump_default);
     }
 
     return detail::run_safely(
-        run, gdml_filename, opts_filename, out_filename, gen_test);
+        cli, run, gdml_filename, opts_filename, out_filename, gen_test);
 }
