@@ -122,7 +122,7 @@ class ConditionalTrackExecutor
     {
         CELER_EXPECT(thread < state_->size());
         CoreTrackView track(*params_, *state_, thread);
-        if (!applies_(track.make_sim_view()))
+        if (!applies_(track.sim()))
         {
             return;
         }

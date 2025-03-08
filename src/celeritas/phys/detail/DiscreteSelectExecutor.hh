@@ -36,25 +36,25 @@ struct DiscreteSelectExecutor
 CELER_FUNCTION void
 DiscreteSelectExecutor::operator()(celeritas::CoreTrackView const& track)
 {
-    CELER_EXPECT(track.make_sim_view().status() == TrackStatus::alive);
-    CELER_EXPECT(track.make_sim_view().post_step_action()
-                 == track.make_physics_view().scalars().discrete_action());
+    CELER_EXPECT(track.sim().status() == TrackStatus::alive);
+    CELER_EXPECT(track.sim().post_step_action()
+                 == track.physics().scalars().discrete_action());
     // Reset the MFP counter, to be resampled if the track survives the
     // interaction
-    auto phys = track.make_physics_view();
+    auto phys = track.physics();
     phys.reset_interaction_mfp();
 
-    auto particle = track.make_particle_view();
+    auto particle = track.particle();
     {
         // Select the action to take
-        auto mat = track.make_material_view().make_material_view();
-        auto rng = track.make_rng_engine();
-        auto step = track.make_physics_step_view();
+        auto mat = track.material().material_record();
+        auto rng = track.rng();
+        auto step = track.physics_step();
         auto action
             = select_discrete_interaction(mat, particle, phys, step, rng);
         CELER_ASSERT(action);
         // Save it as the next kernel
-        auto sim = track.make_sim_view();
+        auto sim = track.sim();
         sim.post_step_action(action);
     }
 

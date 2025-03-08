@@ -106,10 +106,10 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     if (CELER_UNLIKELY(result.action == Interaction::Action::failed))
     {
-        auto phys = track.make_physics_view();
+        auto phys = track.physics();
         // Particle already moved to the collision site, but an out-of-memory
         // (allocation failure) occurred. Someday we can add error handling,
         // but for now use the "failure" action in the physics and set the step
@@ -125,14 +125,14 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
     // Scattered or absorbed
     {
         // Update post-step energy
-        auto particle = track.make_particle_view();
+        auto particle = track.particle();
         particle.energy(result.energy);
     }
 
     if (result.action != Interaction::Action::absorbed)
     {
         // Update direction
-        auto geo = track.make_geo_view();
+        auto geo = track.geometry();
         geo.set_dir(result.direction);
     }
     else
@@ -142,7 +142,7 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
     }
 
     real_type deposition = result.energy_deposition.value();
-    auto cutoff = track.make_cutoff_view();
+    auto cutoff = track.cutoff();
     if (cutoff.apply_post_interaction())
     {
         // Kill secondaries with energies below the production cut
@@ -154,7 +154,7 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
                 // below the production cut -- deposit the energy locally
                 // and clear the secondary
                 deposition += secondary.energy.value();
-                auto sec_par = track.make_particle_view(secondary.particle_id);
+                auto sec_par = track.particle_record(secondary.particle_id);
                 if (sec_par.is_antiparticle())
                 {
                     // Conservation of energy for positrons
@@ -164,7 +164,7 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
             }
         }
     }
-    auto phys = track.make_physics_step_view();
+    auto phys = track.physics_step();
     phys.deposit_energy(units::MevEnergy{deposition});
     phys.secondaries(result.secondaries);
 }

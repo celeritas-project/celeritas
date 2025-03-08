@@ -49,8 +49,8 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
 {
     using Energy = ParticleTrackView::Energy;
 
-    auto particle = track.make_particle_view();
-    auto sim = track.make_sim_view();
+    auto particle = track.particle();
+    auto sim = track.sim();
 
     // Deposit the remaining energy locally
     auto deposited = particle.energy().value();
@@ -64,7 +64,7 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
     {
         // Print a debug message if track is just being cut; error message if
         // an error occurred
-        auto const geo = track.make_geo_view();
+        auto const geo = track.geometry();
         auto msg = self_logger()(CELER_CODE_PROVENANCE,
                                  sim.status() == TrackStatus::errored
                                      ? LogLevel::error
@@ -75,7 +75,7 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
     }
 #endif
 
-    track.make_physics_step_view().deposit_energy(Energy{deposited});
+    track.physics_step().deposit_energy(Energy{deposited});
     particle.subtract_energy(particle.energy());
 
     sim.status(TrackStatus::killed);

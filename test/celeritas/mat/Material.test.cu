@@ -49,7 +49,7 @@ __global__ void m_test_kernel(unsigned int const size,
     CELER_ASSERT(mat_track.material_id() == init[tid.get()].material_id);
 
     // Get material properties
-    auto const& mat = mat_track.make_material_view();
+    auto const& mat = mat_track.material_record();
     temperatures[tid.get()] = mat.temperature();
     rad_len[tid.get()]
         = native_value_to<units::CmLength>(mat.radiation_length()).value();
@@ -60,7 +60,7 @@ __global__ void m_test_kernel(unsigned int const size,
     for (auto ec : range(mat.num_elements()))
     {
         // Pretend to calculate cross section for the ec'th element
-        auto const& element = mat.make_element_view(ElementComponentId{ec});
+        auto const& element = mat.element_record(ElementComponentId{ec});
         scratch[ec]
             = static_cast<real_type>(element.atomic_number().unchecked_get());
     }

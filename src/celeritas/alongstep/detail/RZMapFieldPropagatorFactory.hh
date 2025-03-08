@@ -26,8 +26,8 @@ struct RZMapFieldPropagatorFactory
         return make_mag_field_propagator<DormandPrinceStepper>(
             RZMapField{field},
             field.options,
-            track.make_particle_view(),
-            track.make_geo_view());
+            track.particle(),
+            track.geometry());
     }
 
     static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }

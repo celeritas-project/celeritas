@@ -481,7 +481,7 @@ TEST_F(LivermorePETest, distributions_radiative)
 
 TEST_F(LivermorePETest, macro_xs)
 {
-    auto material = this->material_track().make_material_view();
+    auto material = this->material_track().material_record();
     auto calc_macro_xs = MacroXsCalculator<LivermorePEMicroXsCalculator>(
         model_->host_ref(), material);
 

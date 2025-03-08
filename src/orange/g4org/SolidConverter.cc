@@ -84,6 +84,21 @@ SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the enclosed azimuthal angle by a G4Torus.
+ *
+ * This internally converts from native Geant4 radians. This specialization is
+ * necessary because Geant4 does not use a consistent API across solids for
+ * accessing the start- and delta-phi member variables.
+ */
+template<>
+SolidEnclosedAngle make_wedge_azimuthal<G4Torus>(G4Torus const& solid)
+{
+    return SolidEnclosedAngle{native_value_to<Turn>(solid.GetSPhi()),
+                              native_value_to<Turn>(solid.GetDPhi())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the enclosed azimuthal angle by a "poly" solid.
  *
  * Geant4 uses different function names for polycone, generic polycone, and
@@ -646,9 +661,18 @@ auto SolidConverter::tet(arg_type solid_base) -> result_type
 //! Convert a torus
 auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
+    CELER_LOG(warning) << "G4Torus is not fully supported; approximating with "
+                          "bounding cylinders";
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("torus");
+    auto rmax = scale_(solid.GetRmax());
+    auto rtor = scale_(solid.GetRtor());
+
+    std::optional<Cylinder> inner{std::in_place, rtor - rmax, rmax};
+
+    return make_solid(solid,
+                      Cylinder{rtor + rmax, rmax},
+                      std::move(inner),
+                      make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//

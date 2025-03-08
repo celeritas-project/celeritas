@@ -26,8 +26,6 @@ namespace celeritas
  * Helper class to create views from core track data.
  *
  * TODO: const correctness? (Maybe have to wait till C++23's "deducing this"?)
- *
- * \todo Rename make_sim_view -> sim, etc.
  */
 class CoreTrackView
 {
@@ -50,34 +48,34 @@ class CoreTrackView
                                         TrackSlotId slot);
 
     // Return a simulation management view
-    inline CELER_FUNCTION SimTrackView make_sim_view() const;
+    inline CELER_FUNCTION SimTrackView sim() const;
 
     // Return a geometry view
-    inline CELER_FUNCTION GeoTrackView make_geo_view() const;
+    inline CELER_FUNCTION GeoTrackView geometry() const;
 
     // Return a geometry-material view
-    inline CELER_FUNCTION GeoMaterialView make_geo_material_view() const;
+    inline CELER_FUNCTION GeoMaterialView geo_material() const;
 
     // Return a material view
-    inline CELER_FUNCTION MaterialTrackView make_material_view() const;
+    inline CELER_FUNCTION MaterialTrackView material() const;
 
     // Return a particle view
-    inline CELER_FUNCTION ParticleTrackView make_particle_view() const;
+    inline CELER_FUNCTION ParticleTrackView particle() const;
 
     // Return a particle view of another particle type
-    inline CELER_FUNCTION ParticleView make_particle_view(ParticleId) const;
+    inline CELER_FUNCTION ParticleView particle_record(ParticleId) const;
 
     // Return a cutoff view
-    inline CELER_FUNCTION CutoffView make_cutoff_view() const;
+    inline CELER_FUNCTION CutoffView cutoff() const;
 
     // Return a physics view
-    inline CELER_FUNCTION PhysicsTrackView make_physics_view() const;
+    inline CELER_FUNCTION PhysicsTrackView physics() const;
 
     // Return a view to temporary physics data
-    inline CELER_FUNCTION PhysicsStepView make_physics_step_view() const;
+    inline CELER_FUNCTION PhysicsStepView physics_step() const;
 
     // Return an RNG engine
-    inline CELER_FUNCTION RngEngine make_rng_engine() const;
+    inline CELER_FUNCTION RngEngine rng() const;
 
     // Get the index of the current thread in the current kernel
     inline CELER_FUNCTION ThreadId thread_id() const;
@@ -96,6 +94,20 @@ class CoreTrackView
 
     // HACK: return scalars (maybe have a struct for all actions?)
     inline CELER_FUNCTION CoreScalars const& core_scalars() const;
+
+    // clang-format off
+    // DEPRECATED: remove in v0.7
+    [[deprecated]] CELER_FUNCTION SimTrackView make_sim_view() const { return this->sim(); }
+    [[deprecated]] CELER_FUNCTION GeoTrackView make_geo_view() const { return this->geometry(); }
+    [[deprecated]] CELER_FUNCTION GeoMaterialView make_geo_material_view() const { return this->geo_material(); }
+    [[deprecated]] CELER_FUNCTION MaterialTrackView make_material_view() const { return this->material(); }
+    [[deprecated]] CELER_FUNCTION ParticleTrackView make_particle_view() const { return this->particle(); }
+    [[deprecated]] CELER_FUNCTION ParticleView make_particle_view(ParticleId pid) const { return this->particle_record(pid); }
+    [[deprecated]] CELER_FUNCTION CutoffView make_cutoff_view() const { return this->cutoff(); }
+    [[deprecated]] CELER_FUNCTION PhysicsTrackView make_physics_view() const { return this->physics(); }
+    [[deprecated]] CELER_FUNCTION PhysicsStepView make_physics_step_view() const { return this->physics_step(); }
+    [[deprecated]] CELER_FUNCTION RngEngine make_rng_engine() const { return this->rng(); }
+    // clang-format on
 
     //// MUTATORS ////
 
@@ -149,7 +161,7 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 /*!
  * Return a simulation management view.
  */
-CELER_FUNCTION SimTrackView CoreTrackView::make_sim_view() const
+CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 {
     return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
 }
@@ -158,7 +170,7 @@ CELER_FUNCTION SimTrackView CoreTrackView::make_sim_view() const
 /*!
  * Return a geometry view.
  */
-CELER_FUNCTION auto CoreTrackView::make_geo_view() const -> GeoTrackView
+CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
 {
     return GeoTrackView{
         params_.geometry, states_.geometry, this->track_slot_id()};
@@ -168,8 +180,7 @@ CELER_FUNCTION auto CoreTrackView::make_geo_view() const -> GeoTrackView
 /*!
  * Return a geometry-material view.
  */
-CELER_FUNCTION auto
-CoreTrackView::make_geo_material_view() const -> GeoMaterialView
+CELER_FUNCTION auto CoreTrackView::geo_material() const -> GeoMaterialView
 {
     return GeoMaterialView{params_.geo_mats};
 }
@@ -178,8 +189,7 @@ CoreTrackView::make_geo_material_view() const -> GeoMaterialView
 /*!
  * Return a material view.
  */
-CELER_FUNCTION auto
-CoreTrackView::make_material_view() const -> MaterialTrackView
+CELER_FUNCTION auto CoreTrackView::material() const -> MaterialTrackView
 {
     return MaterialTrackView{
         params_.materials, states_.materials, this->track_slot_id()};
@@ -189,8 +199,7 @@ CoreTrackView::make_material_view() const -> MaterialTrackView
 /*!
  * Return a particle view.
  */
-CELER_FUNCTION auto
-CoreTrackView::make_particle_view() const -> ParticleTrackView
+CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 {
     return ParticleTrackView{
         params_.particles, states_.particles, this->track_slot_id()};
@@ -200,8 +209,8 @@ CoreTrackView::make_particle_view() const -> ParticleTrackView
 /*!
  * Return a particle view of another particle type.
  */
-CELER_FUNCTION auto
-CoreTrackView::make_particle_view(ParticleId pid) const -> ParticleView
+CELER_FUNCTION auto CoreTrackView::particle_record(ParticleId pid) const
+    -> ParticleView
 {
     return ParticleView{params_.particles, pid};
 }
@@ -210,9 +219,9 @@ CoreTrackView::make_particle_view(ParticleId pid) const -> ParticleView
 /*!
  * Return a cutoff view.
  */
-CELER_FUNCTION auto CoreTrackView::make_cutoff_view() const -> CutoffView
+CELER_FUNCTION auto CoreTrackView::cutoff() const -> CutoffView
 {
-    MaterialId mat_id = this->make_material_view().material_id();
+    MaterialId mat_id = this->material().material_id();
     CELER_ASSERT(mat_id);
     return CutoffView{params_.cutoffs, mat_id};
 }
@@ -221,11 +230,11 @@ CELER_FUNCTION auto CoreTrackView::make_cutoff_view() const -> CutoffView
 /*!
  * Return a physics view.
  */
-CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
+CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
 {
-    MaterialId mat_id = this->make_material_view().material_id();
+    MaterialId mat_id = this->material().material_id();
     CELER_ASSERT(mat_id);
-    auto par = this->make_particle_view();
+    auto par = this->particle();
     return PhysicsTrackView{
         params_.physics, states_.physics, par, mat_id, this->track_slot_id()};
 }
@@ -234,8 +243,7 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
 /*!
  * Return a physics view.
  */
-CELER_FUNCTION auto
-CoreTrackView::make_physics_step_view() const -> PhysicsStepView
+CELER_FUNCTION auto CoreTrackView::physics_step() const -> PhysicsStepView
 {
     return PhysicsStepView{
         params_.physics, states_.physics, this->track_slot_id()};
@@ -245,7 +253,7 @@ CoreTrackView::make_physics_step_view() const -> PhysicsStepView
 /*!
  * Return the RNG engine.
  */
-CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
+CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
 {
     return RngEngine{params_.rng, states_.rng, this->track_slot_id()};
 }
@@ -337,7 +345,7 @@ CELER_FUNCTION CoreScalars const& CoreTrackView::core_scalars() const
  */
 CELER_FUNCTION void CoreTrackView::apply_errored()
 {
-    auto sim = this->make_sim_view();
+    auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.along_step_action({});

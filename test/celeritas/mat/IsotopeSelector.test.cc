@@ -53,7 +53,7 @@ class IsotopeSelectorTest : public MaterialTestBase, public Test
 TEST_F(IsotopeSelectorTest, single_isotope)
 {
     MaterialView material(host_mats, mats->find_material("NaI"));
-    auto const& element_na = material.make_element_view(ElementComponentId{0});
+    auto const& element_na = material.element_record(ElementComponentId{0});
     IsotopeSelector select_iso(element_na);
 
     // Must always return the same isotope
@@ -69,7 +69,7 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
 
     // Diatomic hydrogen: two isotopes (fractions 0.9 and 0.1)
     MaterialView mat_h2(host_mats, MaterialId{2});
-    auto const& element_h = mat_h2.make_element_view(ElementComponentId{0});
+    auto const& element_h = mat_h2.element_record(ElementComponentId{0});
     IsotopeSelector select_iso_h(element_h);
 
     double sampled_frac_1h = 0;
@@ -94,7 +94,7 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
 
     // Sodium iodide: Iodide has 3 isotopes (fractions 0.05, 0.15, and 0.8)
     MaterialView mat_nai(host_mats, mats->find_material("NaI"));
-    auto const& element_i = mat_nai.make_element_view(ElementComponentId{1});
+    auto const& element_i = mat_nai.element_record(ElementComponentId{1});
     IsotopeSelector select_iso_i(element_i);
 
     double sampled_frac_125i = 0;
