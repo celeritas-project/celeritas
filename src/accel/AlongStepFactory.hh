@@ -20,7 +20,6 @@ namespace celeritas
 {
 struct ImportData;
 struct RZMapFieldInput;
-struct UniformFieldParams;
 class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
