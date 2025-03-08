@@ -10,8 +10,10 @@
 #include <fstream>
 #include <initializer_list>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
+#include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
@@ -27,23 +29,14 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportDataTrimmer.hh"
 
+#include "detail/CliCommon.hh"
+
 namespace celeritas
 {
 namespace app
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-void print_usage(char const* exec_name)
-{
-    // clang-format off
-    std::cerr
-        << "usage: " << exec_name << " {input}.gdml "
-                                     "[{options}.json, -, ''] {output}.[root, json]\n"
-           "       " << exec_name << " {input}.gdml [{options.json, -, ''] {output}.[root, json] --gen-test\n"
-           "       " << exec_name << " --dump-default\n";
-    // clang-format on
-}
 
 //---------------------------------------------------------------------------//
 
@@ -164,44 +157,37 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::vector<std::string> args(argv + 1, argv + argc);
-    if (args.size() == 1 && (args.front() == "--help" || args.front() == "-h"))
-    {
-        print_usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
-    if (args.size() == 1 && args.front() == "--dump-default")
+    CLI::App cli{"Export Geant4 data to ROOT or JSON"};
+    cli.failure_message(app::detail::failure_message);
+
+    std::string gdml_filename;
+    std::string opts_filename;
+    std::string out_filename;
+    bool gen_test = false;
+    bool dump_default = false;
+
+    cli.add_option("gdml", gdml_filename, "Input GDML file")->required();
+    cli.add_option(
+           "options", opts_filename, "Options JSON file (use '-' for stdin)")
+        ->default_val("");
+    cli.add_option("output", out_filename, "Output file (ROOT or JSON)")
+        ->required();
+    cli.add_flag("--gen-test", gen_test, "Generate test data");
+    cli.add_flag("--dump-default", dump_default, "Dump default options");
+
+    CLI11_PARSE(cli, argc, argv);
+
+    if (dump_default)
     {
         GeantPhysicsOptions options;
         constexpr int indent = 1;
         std::cout << nlohmann::json{options}.dump(indent) << std::endl;
         return EXIT_SUCCESS;
     }
-    if (args.size() != 3 && args.size() != 4)
-    {
-        // Incorrect number of arguments: print help and exit
-        print_usage(argv[0]);
-        return 2;
-    }
-
-    bool gen_test{false};
-    if (args.size() == 4)
-    {
-        if (args.back() == "--gen-test")
-        {
-            gen_test = true;
-        }
-        else
-        {
-            // Incorrect option for reader_data
-            print_usage(argv[0]);
-            return 2;
-        }
-    }
 
     try
     {
-        run(args[0], args[1], args[2], gen_test);
+        run(gdml_filename, opts_filename, out_filename, gen_test);
     }
     catch (RuntimeError const& e)
     {

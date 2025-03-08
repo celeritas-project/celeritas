@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
@@ -19,19 +20,14 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "orange/OrangeInputIO.json.hh"
 
+#include "detail/CliCommon.hh"
+
 namespace celeritas
 {
 namespace app
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-void print_usage(char const* exec_name)
-{
-    std::cerr << "usage: " << exec_name
-              << " {input}.org.json {output}.org.json\n";
-}
-
 //---------------------------------------------------------------------------//
 std::string run(std::istream* is)
 {
@@ -62,33 +58,30 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::vector<std::string> args(argv + 1, argv + argc);
-    if (args.size() == 1 && (args.front() == "--help" || args.front() == "-h"))
-    {
-        print_usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
-    if (args.size() != 2)
-    {
-        // Incorrect number of arguments: print help and exit
-        print_usage(argv[0]);
-        return 2;
-    }
+    CLI::App cli{"Read in and write back an ORANGE JSON file"};
+    cli.failure_message(app::detail::failure_message);
+
+    std::string input_file;
+    std::string output_file;
+    cli.add_option("input", input_file, "Input ORANGE JSON file")->required();
+    cli.add_option("output", output_file, "Output ORANGE JSON file")->required();
+
+    CLI11_PARSE(cli, argc, argv);
 
     // Set up input/output files
     std::ifstream infile;
     std::istream* instream = nullptr;
-    if (args[0] == "-")
+    if (input_file == "-")
     {
         instream = &std::cin;
     }
     else
     {
         // Open the specified file
-        infile.open(args[0]);
+        infile.open(input_file);
         if (!infile)
         {
-            CELER_LOG(critical) << "Failed to open '" << args[0] << "'";
+            CELER_LOG(critical) << "Failed to open '" << input_file << "'";
             return EXIT_FAILURE;
         }
         instream = &infile;
@@ -110,18 +103,18 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (args[1] == "-")
+    if (output_file == "-")
     {
         std::cout << result;
     }
     else
     {
         // Open the specified file
-        std::ofstream outfile{args[1]};
+        std::ofstream outfile{output_file};
         if (!outfile)
         {
             CELER_LOG(critical)
-                << "Failed to open '" << args[1] << "' for writing";
+                << "Failed to open '" << output_file << "' for writing";
             return EXIT_FAILURE;
         }
         outfile << result;
