@@ -38,11 +38,8 @@ Propagation
 Field data input and options
 ----------------------------
 
-These classes correspond to JSON input files to the field setup.
-
-.. doxygenstruct:: celeritas::UniformFieldParams
-   :members:
-   :no-link:
+JSON input for the field setup corresponds to the uniform field input
+:cpp:struct:`celeritas::inp::UniformField` and the rz-map field input:
 
 .. doxygenstruct:: celeritas::RZMapFieldInput
    :members:
