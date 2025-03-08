@@ -29,12 +29,25 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
-std::string run(std::istream* is)
+void run(std::istream* is, std::string output_file)
 {
     OrangeInput inp;
     nlohmann::json::parse(*is).get_to(inp);
 
-    return nlohmann::json(inp).dump(/* indent = */ 0);
+    auto result = nlohmann::json(inp).dump(/* indent = */ 0);
+
+    if (output_file == "-")
+    {
+        std::cout << result;
+    }
+    else
+    {
+        // Open the specified file
+        std::ofstream outfile{output_file};
+        CELER_VALIDATE(
+            outfile, << "failed to open '" << output_file << "' for writing");
+        outfile << result;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -48,10 +61,9 @@ std::string run(std::istream* is)
  */
 int main(int argc, char* argv[])
 {
-    using namespace celeritas;
     using namespace celeritas::app;
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
@@ -59,12 +71,16 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Read in and write back an ORANGE JSON file"};
-    cli.failure_message(app::detail::failure_message);
+    cli.failure_message(detail::failure_message);
 
     std::string input_file;
     std::string output_file;
-    cli.add_option("input", input_file, "Input ORANGE JSON file")->required();
-    cli.add_option("output", output_file, "Output ORANGE JSON file")->required();
+    cli.add_option("input", input_file, "Input ORANGE JSON file")
+        ->required()
+        ->check(CLI::ExistingFile | detail::dash_validator());
+    cli.add_option("output", output_file, "Output ORANGE JSON file")
+        ->required()
+        ->check(CLI::ExistingFile | detail::dash_validator());
 
     CLI11_PARSE(cli, argc, argv);
 
@@ -87,38 +103,5 @@ int main(int argc, char* argv[])
         instream = &infile;
     }
 
-    std::string result;
-    try
-    {
-        result = celeritas::app::run(instream);
-    }
-    catch (RuntimeError const& e)
-    {
-        CELER_LOG(critical) << "Runtime error: " << e.what();
-        return EXIT_FAILURE;
-    }
-    catch (DebugError const& e)
-    {
-        CELER_LOG(critical) << "Assertion failure: " << e.what();
-        return EXIT_FAILURE;
-    }
-
-    if (output_file == "-")
-    {
-        std::cout << result;
-    }
-    else
-    {
-        // Open the specified file
-        std::ofstream outfile{output_file};
-        if (!outfile)
-        {
-            CELER_LOG(critical)
-                << "Failed to open '" << output_file << "' for writing";
-            return EXIT_FAILURE;
-        }
-        outfile << result;
-    }
-
-    return EXIT_SUCCESS;
+    return detail::run_safely(run, instream, output_file);
 }

@@ -1024,10 +1024,9 @@ void run(std::string const& filename)
  */
 int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 {
-    using namespace celeritas;
     using namespace celeritas::app;
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
@@ -1035,7 +1034,7 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
     }
 
     CLI::App cli{"Celeritas ROOT Data Dumper"};
-    cli.failure_message(app::detail::failure_message);
+    cli.failure_message(detail::failure_message);
 
     std::string filename;
     cli.add_option("filename", filename, "ROOT file to process")
@@ -1044,17 +1043,5 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 
     CLI11_PARSE(cli, argc, argv);
 
-    try
-    {
-        run(filename);
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(critical) << "While processing ROOT data at " << filename
-                            << ": " << e.what();
-
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    return detail::run_safely(run, filename);
 }

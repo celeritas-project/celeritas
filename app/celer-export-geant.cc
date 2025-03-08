@@ -136,6 +136,13 @@ void run(std::string const& gdml_filename,
     scoped_root_error.throw_if_errors();
 }
 
+void run_dump_default()
+{
+    GeantPhysicsOptions options;
+    constexpr int indent = 1;
+    std::cout << nlohmann::json{options}.dump(indent) << std::endl;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 }  // namespace app
@@ -147,10 +154,9 @@ void run(std::string const& gdml_filename,
  */
 int main(int argc, char* argv[])
 {
-    using namespace celeritas;
     using namespace celeritas::app;
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
@@ -158,7 +164,7 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Export Geant4 data to ROOT or JSON"};
-    cli.failure_message(app::detail::failure_message);
+    cli.failure_message(detail::failure_message);
 
     std::string gdml_filename;
     std::string opts_filename;
@@ -167,9 +173,9 @@ int main(int argc, char* argv[])
     bool dump_default = false;
 
     cli.add_option("gdml", gdml_filename, "Input GDML file")->required();
-    cli.add_option(
-           "options", opts_filename, "Options JSON file (use '-' for stdin)")
-        ->default_val("");
+    cli.add_option("options", opts_filename, "Options JSON file")
+        ->check(CLI::ExistingFile | detail::dash_validator()
+                | detail::empty_string_validator());
     cli.add_option("output", out_filename, "Output file (ROOT or JSON)")
         ->required();
     cli.add_flag("--gen-test", gen_test, "Generate test data");
@@ -179,26 +185,9 @@ int main(int argc, char* argv[])
 
     if (dump_default)
     {
-        GeantPhysicsOptions options;
-        constexpr int indent = 1;
-        std::cout << nlohmann::json{options}.dump(indent) << std::endl;
-        return EXIT_SUCCESS;
+        return detail::run_safely(run_dump_default);
     }
 
-    try
-    {
-        run(gdml_filename, opts_filename, out_filename, gen_test);
-    }
-    catch (RuntimeError const& e)
-    {
-        CELER_LOG(critical) << "Runtime error: " << e.what();
-        return EXIT_FAILURE;
-    }
-    catch (DebugError const& e)
-    {
-        CELER_LOG(critical) << "Assertion failure: " << e.what();
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    return detail::run_safely(
+        run, gdml_filename, opts_filename, out_filename, gen_test);
 }
