@@ -279,6 +279,8 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 include(CeleritasUtils)
 
+celeritas_find_or_builtin_package(CLI11 2.4)
+
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
   include(CTest)
