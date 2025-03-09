@@ -565,8 +565,11 @@ template<class ContainerE, class ContainerA, class T>
     using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with given tolerance
-    return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp{rel});
+    return IsVecSoftEquivImpl(expected,
+                              expected_expr,
+                              actual,
+                              actual_expr,
+                              BinaryOp{static_cast<ValueT>(rel)});
 }
 
 //-------------------------------------------------------------------------//
@@ -597,7 +600,11 @@ template<class ContainerE, class ContainerA, class T>
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp{rel, abs});
+        expected,
+        expected_expr,
+        actual,
+        actual_expr,
+        BinaryOp{static_cast<ValueT>(rel), static_cast<ValueT>(abs)});
 }
 
 //---------------------------------------------------------------------------//

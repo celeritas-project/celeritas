@@ -45,7 +45,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
     CELER_EXPECT(params && state);
 
     {
-        auto const sim = track.make_sim_view();
+        auto const sim = track.sim();
         bool inactive = (sim.status() == TrackStatus::inactive
                          || sim.status() == TrackStatus::errored);
 
@@ -75,7 +75,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         // stepping)
         if (P == StepPoint::pre)
         {
-            auto const geo = track.make_geo_view();
+            auto const geo = track.geometry();
             CELER_ASSERT(!geo.is_outside());
             VolumeId vol = geo.volume_id();
             CELER_ASSERT(vol);
@@ -94,7 +94,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         if (P == StepPoint::post && this->params.nonzero_energy_deposition)
         {
             // Filter out tracks that didn't deposit energy over the step
-            auto const pstep = track.make_physics_step_view();
+            auto const pstep = track.physics_step();
             if (pstep.energy_deposition() == zero_quantity())
             {
                 // Clear detector ID and stop recording
@@ -125,7 +125,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
     } while (0)
 
     {
-        auto const sim = track.make_sim_view();
+        auto const sim = track.sim();
 
         SGL_SET_IF_SELECTED(points[P].time, sim.time());
         if constexpr (P == StepPoint::post)
@@ -140,7 +140,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
     }
 
     {
-        auto const geo = track.make_geo_view();
+        auto const geo = track.geometry();
 
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
@@ -184,11 +184,11 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
     }
 
     {
-        auto const par = track.make_particle_view();
+        auto const par = track.particle();
 
         if constexpr (P == StepPoint::post)
         {
-            auto const pstep = track.make_physics_step_view();
+            auto const pstep = track.physics_step();
             SGL_SET_IF_SELECTED(energy_deposition, pstep.energy_deposition());
             SGL_SET_IF_SELECTED(particle, par.particle_id());
         }

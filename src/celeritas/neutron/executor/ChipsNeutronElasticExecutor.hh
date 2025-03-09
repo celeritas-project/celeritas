@@ -35,29 +35,29 @@ struct ChipsNeutronElasticExecutor
 CELER_FUNCTION Interaction
 ChipsNeutronElasticExecutor::operator()(CoreTrackView const& track)
 {
-    auto particle = track.make_particle_view();
-    auto const& dir = track.make_geo_view().dir();
-    auto rng = track.make_rng_engine();
+    auto particle = track.particle();
+    auto const& dir = track.geometry().dir();
+    auto rng = track.rng();
 
     // Select a target element
-    auto material = track.make_material_view().make_material_view();
-    auto elcomp_id = track.make_physics_step_view().element();
+    auto material = track.material().material_record();
+    auto elcomp_id = track.physics_step().element();
     if (!elcomp_id)
     {
         // Sample an element (based on element cross sections on the fly)
         ElementSelector select_el(
             material,
             NeutronElasticMicroXsCalculator{params, particle.energy()},
-            track.make_material_view().element_scratch());
+            track.material().element_scratch());
         elcomp_id = select_el(rng);
         CELER_ASSERT(elcomp_id);
-        track.make_physics_step_view().element(elcomp_id);
+        track.physics_step().element(elcomp_id);
     }
-    ElementView element = material.make_element_view(elcomp_id);
+    ElementView element = material.element_record(elcomp_id);
 
     // Select a target nucleus
     IsotopeSelector iso_select(element);
-    IsotopeView target = element.make_isotope_view(iso_select(rng));
+    IsotopeView target = element.isotope_record(iso_select(rng));
 
     // Construct the interactor
     ChipsNeutronElasticInteractor interact(params, particle, dir, target);

@@ -266,6 +266,18 @@ TEST_F(SolidConverterTest, ellipticalcone)
         {{0, 0, 0}, {0, 0, 24.9}, {0., 0, -24.9}});
 }
 
+TEST_F(SolidConverterTest, torus)
+{
+    G4Torus torus("testTorus", 0 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
+    auto json_str
+        = R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":20.0,"radius":30.0},"interior":{"_type":"cylinder","halfheight":20.0,"radius":70.0},"label":"testTorus"})json";
+
+    SolidConverter convert{scale_, transform_};
+    auto obj = convert(torus);
+    CELER_ASSERT(obj);
+    EXPECT_JSON_EQ(json_str, to_string(*obj));
+}
+
 TEST_F(SolidConverterTest, generictrap)
 {
     this->build_and_test(G4GenericTrap("boxGenTrap",

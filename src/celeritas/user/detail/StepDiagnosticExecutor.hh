@@ -41,7 +41,7 @@ StepDiagnosticExecutor::operator()(CoreTrackView const& track)
     using BinId = ItemId<size_type>;
 
     // Tally the number of steps if the track was killed
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     if (sim.status() == TrackStatus::killed)
     {
         // TODO: Add an ndarray-type class?
@@ -53,7 +53,7 @@ StepDiagnosticExecutor::operator()(CoreTrackView const& track)
 
         size_type num_steps
             = celeritas::min(sim.num_steps(), params.num_bins - 1);
-        auto particle = track.make_particle_view().particle_id();
+        auto particle = track.particle().particle_id();
 
         // Increment the bin corresponding to the given particle and step count
         auto& bin = get(particle.get(), num_steps);

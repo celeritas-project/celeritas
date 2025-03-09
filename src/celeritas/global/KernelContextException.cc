@@ -112,7 +112,7 @@ void KernelContextException::output(JsonPimpl* json) const
 void KernelContextException::initialize(CoreTrackView const& core)
 {
     track_slot_ = core.track_slot_id();
-    auto const&& sim = core.make_sim_view();
+    auto const&& sim = core.sim();
     if (sim.status() != TrackStatus::inactive)
     {
         event_ = sim.event_id();
@@ -120,12 +120,12 @@ void KernelContextException::initialize(CoreTrackView const& core)
         parent_ = sim.parent_id();
         num_steps_ = sim.num_steps();
         {
-            auto const&& par = core.make_particle_view();
+            auto const&& par = core.particle();
             particle_ = par.particle_id();
             energy_ = par.energy();
         }
         {
-            auto const&& geo = core.make_geo_view();
+            auto const&& geo = core.geometry();
             pos_ = geo.pos();
             dir_ = geo.dir();
             if (!geo.is_outside())

@@ -87,7 +87,7 @@ WentzelMacroXsCalculator::operator()(real_type cos_theta) const
 
     for (auto elcomp_id : range(ElementComponentId(material_.num_elements())))
     {
-        AtomicNumber z = material_.make_element_view(elcomp_id).atomic_number();
+        AtomicNumber z = material_.element_record(elcomp_id).atomic_number();
         WentzelHelper helper(particle_, material_, z, wentzel_, ids_, cutoff_);
 
         real_type cos_thetamax = helper.cos_thetamax_nuclear();

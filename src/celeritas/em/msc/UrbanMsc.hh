@@ -77,10 +77,10 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
     if (step <= shared_.params.geom_limit)
         return false;
 
-    if (track.make_sim_view().status() != TrackStatus::alive)
+    if (track.sim().status() != TrackStatus::alive)
         return false;
 
-    auto par = track.make_particle_view();
+    auto par = track.particle();
     if (!shared_.pid_to_xs[par.particle_id()])
         return false;
 
@@ -94,9 +94,9 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
  */
 CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
 {
-    auto phys = track.make_physics_view();
-    auto par = track.make_particle_view();
-    auto sim = track.make_sim_view();
+    auto phys = track.physics();
+    auto par = track.particle();
+    auto sim = track.sim();
     detail::UrbanMscHelper msc_helper(shared_, par, phys);
 
     bool displaced = false;
@@ -109,7 +109,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
             return sim.step_length();
         }
 
-        auto geo = track.make_geo_view();
+        auto geo = track.geometry();
 
         real_type safety = 0;
         if (!geo.is_on_boundary())
@@ -128,7 +128,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
             }
         }
 
-        auto rng = track.make_rng_engine();
+        auto rng = track.rng();
 
         auto const& scalars = phys.particle_scalars();
         displaced = scalars.displaced;
@@ -184,7 +184,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
     CELER_ASSERT(0 < gp.step && gp.step <= true_path);
 
     // Save MSC step for later
-    track.make_physics_step_view().msc_step([&] {
+    track.physics_step().msc_step([&] {
         MscStep result;
         result.is_displaced = displaced;
         result.true_path = true_path;
@@ -207,14 +207,14 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
  */
 CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track)
 {
-    auto par = track.make_particle_view();
-    auto geo = track.make_geo_view();
-    auto phys = track.make_physics_view();
-    auto sim = track.make_sim_view();
+    auto par = track.particle();
+    auto geo = track.geometry();
+    auto phys = track.physics();
+    auto sim = track.sim();
 
     // Replace step with actual geometry distance traveled
     detail::UrbanMscHelper msc_helper(shared_, par, phys);
-    auto msc_step = track.make_physics_step_view().msc_step();
+    auto msc_step = track.physics_step().msc_step();
     if (this->is_geo_limited(track))
     {
         // Convert geometrical distance to equivalent physical distance, which
@@ -259,11 +259,11 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track)
             }
         }
 
-        auto mat = track.make_material_view().make_material_view();
+        auto mat = track.material().material_record();
         detail::UrbanMscScatter sample_scatter(
             shared_, msc_helper, par, phys, mat, geo.dir(), safety, msc_step);
 
-        auto rng = track.make_rng_engine();
+        auto rng = track.rng();
         return sample_scatter(rng);
     }();
 
@@ -291,7 +291,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track)
  */
 CELER_FUNCTION bool UrbanMsc::is_geo_limited(CoreTrackView const& track)
 {
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     return (sim.post_step_action() == track.boundary_action()
             || sim.post_step_action() == track.propagation_limit_action());
 }
