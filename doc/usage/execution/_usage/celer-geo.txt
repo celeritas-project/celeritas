@@ -1,0 +1,3 @@
+usage: ./celer-geo {input}.json
+       ./celer-geo -
+       ./celer-geo [--help|-h]

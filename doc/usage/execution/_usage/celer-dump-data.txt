@@ -1,0 +1,12 @@
+Celeritas ROOT Data Dumper 
+
+
+./celer-dump-data [OPTIONS] filename
+
+
+POSITIONALS:
+  filename TEXT:FILE REQUIRED ROOT file to process 
+
+OPTIONS:
+  -h,     --help              Print this help message and exit 
+  -v,     --version           Display program version information and exit 
