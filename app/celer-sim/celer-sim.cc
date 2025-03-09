@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Run standalone Celeritas"};
-    cli.set_version_flag("--version,-v", celeritas::version_string);
+    detail::setup_app(cli);
 
     std::string filename;
     cli.add_option("filename", filename, "Input JSON file")
