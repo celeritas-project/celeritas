@@ -210,7 +210,8 @@ int main(int argc, char* argv[])
 
     std::function<std::string()> diagnostic;
     auto set_diagnostic = [&diagnostic](auto func) {
-        return [&diagnostic, func = std::move(func)](int) {
+        return [&diagnostic, func = std::move(func)](auto count) {
+            CELER_DISCARD(count);
             diagnostic = std::move(func);
         };
     };
