@@ -23,7 +23,7 @@ struct LinearPropagatorFactory
 {
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
-        return LinearPropagator{track.make_geo_view()};
+        return LinearPropagator{track.geometry()};
     }
 
     static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return false; }

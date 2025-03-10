@@ -104,6 +104,7 @@ struct RunnerInput
     bool write_track_counts{true};  //!< Output track counts for each step
     bool write_step_times{true};  //!< Output elapsed times for each step
     bool transporter_result{true};  //!< Output transporter result event data
+    bool status_checker{false};  //!< Detailed debug checking of track states
     size_type log_progress{1};  //!< CELER_LOG progress every N events
 
     // Control

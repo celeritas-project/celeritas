@@ -6,9 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -72,6 +73,9 @@ struct VecgeomStateData
     // Collections
     Items<Real3> pos;
     Items<Real3> dir;
+#if CELERITAS_VECGEOM_SURFACE
+    Items<long> next_surface;
+#endif
 
     // Wrapper for NavStatePool, vector, or void*
     detail::VecgeomNavCollection<W, M> vgstate;
@@ -82,8 +86,11 @@ struct VecgeomStateData
     //! True if sizes are consistent and states are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->size() > 0 && dir.size() == this->size() && vgstate
-               && vgnext;
+        return this->size() > 0 && dir.size() == this->size()
+#if CELERITAS_VECGEOM_SURFACE
+               && next_surface.size() == this->size()
+#endif
+               && vgstate && vgnext;
     }
 
     //! State size
@@ -99,6 +106,9 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
+#if CELERITAS_VECGEOM_SURFACE
+        next_surface = other.next_surface;
+#endif
         vgstate = other.vgstate;
         vgnext = other.vgnext;
         return *this;
@@ -120,6 +130,9 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
+#if CELERITAS_VECGEOM_SURFACE
+    resize(&data->next_surface, size);
+#endif
     data->vgstate.resize(params.max_depth, size);
     data->vgnext.resize(params.max_depth, size);
 

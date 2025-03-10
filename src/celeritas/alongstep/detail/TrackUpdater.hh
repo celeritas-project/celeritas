@@ -34,7 +34,7 @@ struct TrackUpdater
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView& track)
 {
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
 
     // The track errored within the along-step kernel
     if (sim.status() == TrackStatus::errored)
@@ -45,10 +45,9 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView& track)
 
     if (sim.status() == TrackStatus::alive)
     {
-        CELER_ASSERT(sim.step_length() > 0
-                     || track.make_particle_view().is_stopped());
+        CELER_ASSERT(sim.step_length() > 0 || track.particle().is_stopped());
         CELER_ASSERT(sim.post_step_action());
-        auto phys = track.make_physics_view();
+        auto phys = track.physics();
 
         if (sim.num_steps() == sim.max_steps()
             && sim.post_step_action() != track.tracking_cut_action())
@@ -70,7 +69,7 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView& track)
             // collision point but has undergone too many steps), it's OK to
             // set the interaction MFP to zero (but avoid during debug mode due
             // to the additional error checking).
-            auto step = track.make_physics_step_view();
+            auto step = track.physics_step();
             real_type mfp = phys.interaction_mfp()
                             - sim.step_length() * step.macro_xs();
             CELER_ASSERT(mfp > 0);

@@ -117,6 +117,10 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     {
         j["enclosed_angle"] = sea;
     }
+    if (auto szs = obj.z_slab())
+    {
+        j["z_slab"] = szs;
+    }
 }
 
 void to_json(nlohmann::json& j, Transformed const& obj)
@@ -143,6 +147,11 @@ void to_json(nlohmann::json& j, PolySegments const& ps)
 void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea)
 {
     j = {{"start", sea.start().value()}, {"interior", sea.interior().value()}};
+}
+
+void to_json(nlohmann::json& j, SolidZSlab const& szs)
+{
+    j = {{"lower", szs.lower()}, {"upper", szs.upper()}};
 }
 
 //---------------------------------------------------------------------------//
@@ -175,12 +184,29 @@ void to_json(nlohmann::json& j, Ellipsoid const& cr)
 {
     j = {{"_type", "ellipsoid"}, SIO_ATTR_PAIR(cr, radii)};
 }
+void to_json(nlohmann::json& j, EllipticalCylinder const& cr)
+{
+    j = {{"_type", "ellipticalcylinder"},
+         SIO_ATTR_PAIR(cr, radii),
+         SIO_ATTR_PAIR(cr, halfheight)};
+}
+void to_json(nlohmann::json& j, EllipticalCone const& cr)
+{
+    j = {{"_type", "ellipticalcone"},
+         SIO_ATTR_PAIR(cr, lower_radii),
+         SIO_ATTR_PAIR(cr, upper_radii),
+         SIO_ATTR_PAIR(cr, halfheight)};
+}
 void to_json(nlohmann::json& j, GenPrism const& cr)
 {
     j = {{"_type", "genprism"},
          SIO_ATTR_PAIR(cr, halfheight),
          SIO_ATTR_PAIR(cr, lower),
          SIO_ATTR_PAIR(cr, upper)};
+}
+void to_json(nlohmann::json& j, InfSlab const& cr)
+{
+    j = {{"_type", "infslab"}, {"lower", cr.lower()}, {"upper", cr.upper()}};
 }
 void to_json(nlohmann::json& j, InfWedge const& cr)
 {

@@ -84,6 +84,21 @@ SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the enclosed azimuthal angle by a G4Torus.
+ *
+ * This internally converts from native Geant4 radians. This specialization is
+ * necessary because Geant4 does not use a consistent API across solids for
+ * accessing the start- and delta-phi member variables.
+ */
+template<>
+SolidEnclosedAngle make_wedge_azimuthal<G4Torus>(G4Torus const& solid)
+{
+    return SolidEnclosedAngle{native_value_to<Turn>(solid.GetSPhi()),
+                              native_value_to<Turn>(solid.GetDPhi())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the enclosed azimuthal angle by a "poly" solid.
  *
  * Geant4 uses different function names for polycone, generic polycone, and
@@ -361,28 +376,53 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Ellipsoid const&>(solid_base);
 
-    auto rad_z = solid.GetSemiAxisMax(to_int(Axis::z));
-
-    if (!(soft_equal(-rad_z, solid.GetZBottomCut())
-          && soft_equal(rad_z, solid.GetZTopCut())))
-    {
-        CELER_NOT_IMPLEMENTED("ellipsoids with bottom/top cuts");
-    }
-
     auto radii = scale_.to<Real3>(solid.GetSemiAxisMax(to_int(Axis::x)),
                                   solid.GetSemiAxisMax(to_int(Axis::y)),
-                                  rad_z);
+                                  solid.GetSemiAxisMax(to_int(Axis::z)));
+    auto bottom_cut = scale_(solid.GetZBottomCut());
+    auto top_cut = scale_(solid.GetZTopCut());
 
+    if (!(soft_equal(-radii[to_int(Axis::z)], bottom_cut)
+          && soft_equal(radii[to_int(Axis::z)], top_cut)))
+    {
+        // Non-default z-cuts, make a solid instead of a shape
+        return std::make_shared<Solid<Ellipsoid>>(
+            std::string{solid.GetName()},
+            Ellipsoid(radii),
+            SolidZSlab{bottom_cut, top_cut});
+    }
+
+    // No Z cuts, make an ellipsoid shape
     return make_shape<Ellipsoid>(solid, radii);
 }
 
 //---------------------------------------------------------------------------//
-//! Convert an elliptical cone
+/*!
+ * Convert an elliptical cone
+ *
+ * Expressions for lower/upper radii were found by solving the system of
+ * equations given by \c G4EllipticalCone:
+ *
+ * lower_radii[X]/lower_radii[y] = upper_radii[X]/upper_radii[y],
+ * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
+ * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
+ * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
+ */
 auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4EllipticalCone const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("ellipticalcone");
+
+    // Read and scale parameters. Do not scale r_x and r_y because they are
+    // unitless slopes within the context of this calculation.
+    auto r_x = solid.GetSemiAxisX();
+    auto r_y = solid.GetSemiAxisY();
+    auto v = scale_(solid.GetZMax());
+    auto hh = scale_(solid.GetZTopCut());
+
+    Real2 lower_radii{r_x * (v + hh), r_y * (v + hh)};
+    Real2 upper_radii{r_x * (v - hh), r_y * (v - hh)};
+
+    return make_shape<EllipticalCone>(solid, lower_radii, upper_radii, hh);
 }
 
 //---------------------------------------------------------------------------//
@@ -390,8 +430,12 @@ auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 auto SolidConverter::ellipticaltube(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4EllipticalTube const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("ellipticaltube");
+
+    auto rx = scale_(solid.GetDx());
+    auto ry = scale_(solid.GetDy());
+    auto halfheight = scale_(solid.GetDz());
+
+    return make_shape<EllipticalCylinder>(solid, Real2({rx, ry}), halfheight);
 }
 
 //---------------------------------------------------------------------------//
@@ -617,9 +661,18 @@ auto SolidConverter::tet(arg_type solid_base) -> result_type
 //! Convert a torus
 auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
+    CELER_LOG(warning) << "G4Torus is not fully supported; approximating with "
+                          "bounding cylinders";
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("torus");
+    auto rmax = scale_(solid.GetRmax());
+    auto rtor = scale_(solid.GetRtor());
+
+    std::optional<Cylinder> inner{std::in_place, rtor - rmax, rmax};
+
+    return make_solid(solid,
+                      Cylinder{rtor + rmax, rmax},
+                      std::move(inner),
+                      make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//

@@ -33,22 +33,22 @@ struct NeutronInelasticExecutor
 CELER_FUNCTION Interaction
 NeutronInelasticExecutor::operator()(CoreTrackView const& track)
 {
-    auto particle = track.make_particle_view();
-    auto rng = track.make_rng_engine();
+    auto particle = track.particle();
+    auto rng = track.rng();
 
     // Select a target element
-    auto material = track.make_material_view().make_material_view();
-    auto elcomp_id = track.make_physics_step_view().element();
+    auto material = track.material().material_record();
+    auto elcomp_id = track.physics_step().element();
     if (!elcomp_id)
     {
         // Sample an element (based on element cross sections on the fly)
         ElementSelector select_el(
             material,
             NeutronInelasticMicroXsCalculator{params, particle.energy()},
-            track.make_material_view().element_scratch());
+            track.material().element_scratch());
         elcomp_id = select_el(rng);
         CELER_ASSERT(elcomp_id);
-        track.make_physics_step_view().element(elcomp_id);
+        track.physics_step().element(elcomp_id);
     }
 
     // Construct the interactor

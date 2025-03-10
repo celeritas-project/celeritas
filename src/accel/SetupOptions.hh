@@ -95,6 +95,8 @@ struct SDSetupOptions
     bool step_length{true};
     //! Set TouchableHandle for PreStepPoint
     bool locate_touchable{true};
+    //! Set TouchableHandle for PostStepPoint
+    bool locate_touchable_post{true};
     //! Create a track with the dynamic particle type and post-step data
     bool track{true};
     //! Options for saving and converting beginning-of-step data

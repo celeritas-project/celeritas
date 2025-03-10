@@ -91,6 +91,7 @@ class GenericGeoTestBase : virtual public Test,
     // Find linear segments until outside or max_step count is reached
     TrackingResult
     track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
+    VolumeStackResult volume_stack(Real3 const& pos_cm) final;
 
   private:
     template<Ownership W, MemSpace M>

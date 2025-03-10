@@ -131,7 +131,7 @@ CELER_FUNCTION auto SBEnergySampler::operator()(Engine& rng) -> Energy
         SBEnergyDistribution<SBPositronXsCorrector> sample_gamma_energy(
             sb_helper,
             {inc_mass_,
-             material_.make_element_view(elcomp_id_),
+             material_.element_record(elcomp_id_),
              gamma_cutoff_,
              inc_energy_});
         gamma_exit_energy = sample_gamma_energy(rng);

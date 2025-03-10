@@ -10,7 +10,7 @@
 #include <VecGeom/base/Config.h>
 
 #include "corecel/Assert.hh"
-#ifdef VECGEOM_USE_SURF
+#if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 
@@ -38,7 +38,7 @@ struct CudaPointers
 CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
-#ifdef VECGEOM_USE_SURF
+#if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
 // Set up surface tracking
 void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
 
@@ -55,7 +55,7 @@ inline CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
     CELER_ASSERT_UNREACHABLE();
 }
 
-#    ifdef VECGEOM_USE_SURF
+#    if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
 inline void
 setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&)
 {

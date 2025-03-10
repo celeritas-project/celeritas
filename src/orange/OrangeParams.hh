@@ -86,8 +86,8 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     inline VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get the Geant4 physical volume corresponding to a volume instance ID
-    inline G4VPhysicalVolume const*
-    id_to_pv(VolumeInstanceId vol_id) const final;
+    inline GeantPhysicalInstance
+    id_to_geant(VolumeInstanceId vol_id) const final;
 
     //// DEPRECATED ////
 
@@ -205,9 +205,9 @@ VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
  *
  * \todo Implement using \c g4org::Converter
  */
-G4VPhysicalVolume const* OrangeParams::id_to_pv(VolumeInstanceId) const
+GeantPhysicalInstance OrangeParams::id_to_geant(VolumeInstanceId) const
 {
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//

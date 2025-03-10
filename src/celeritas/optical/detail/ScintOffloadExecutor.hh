@@ -56,7 +56,7 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
     // Clear distribution data
     scintillation_dist = {};
 
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     auto const& step = state.step[tsid];
 
     if (!step || sim.status() == TrackStatus::inactive)
@@ -66,10 +66,10 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
         return;
     }
 
-    Real3 const& pos = track.make_geo_view().pos();
-    auto edep = track.make_physics_step_view().energy_deposition();
-    auto particle = track.make_particle_view();
-    auto rng = track.make_rng_engine();
+    Real3 const& pos = track.geometry().pos();
+    auto edep = track.physics_step().energy_deposition();
+    auto particle = track.particle();
+    auto rng = track.rng();
 
     // Get the distribution data used to generate scintillation optical photons
     ScintillationOffload generate(

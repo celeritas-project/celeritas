@@ -52,7 +52,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
 
   protected:
     StepSelection selection_;
-    bool locate_touchable_{false};
+    HitProcessor::StepPointBool locate_touchable_{{false, false}};
 };
 
 //---------------------------------------------------------------------------//
@@ -73,6 +73,7 @@ auto SimpleCmsTest::detector_volumes() const -> SetStr
         "em_calorimeter",
         "had_calorimeter",
         "si_tracker",
+        "world",
     };
 }
 
@@ -110,16 +111,19 @@ auto SimpleCmsTest::make_particles() -> VecParticle
 
 auto SimpleCmsTest::make_hit_processor() -> HitProcessor
 {
-    if (locate_touchable_)
+    for (auto sp : range(StepPoint::size_))
     {
-        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (locate_touchable_[sp])
         {
-            selection_.points[StepPoint::pre].dir = true;
-            selection_.points[StepPoint::pre].pos = true;
-        }
-        else
-        {
-            selection_.points[StepPoint::pre].volume_instance_ids = true;
+            if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+            {
+                selection_.points[sp].dir = true;
+                selection_.points[sp].pos = true;
+            }
+            else
+            {
+                selection_.points[sp].volume_instance_ids = true;
+            }
         }
     }
     return HitProcessor{this->make_detector_volumes(),
@@ -286,7 +290,7 @@ TEST_F(SimpleCmsTest, no_touchable)
 TEST_F(SimpleCmsTest, touchable_midvol)
 {
     selection_.particle = false;
-    locate_touchable_ = true;
+    locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
@@ -315,7 +319,7 @@ TEST_F(SimpleCmsTest, touchable_midvol)
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_edgecase)
 {
-    locate_touchable_ = true;
+    locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
     auto& pos = dso_hits.points[StepPoint::pre].pos;
@@ -358,6 +362,83 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
         static char const* const expected_pre_physvol[]
             = {"had_calorimeter_pv", "had_calorimeter_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, touchable_exiting)
+{
+    locate_touchable_ = {true, true};
+    selection_.particle = false;
+
+    HitProcessor process_hits = this->make_hit_processor();
+    DetectorStepOutput dso;
+    dso.detector = {DetectorId{3}, DetectorId{2}};
+    dso.energy_deposition = {MevEnergy{1.0}, MevEnergy{10.0}};
+    dso.step_length = {
+        from_cm(300),
+        from_cm(10),
+    };
+    dso.points[StepPoint::pre].pos = {
+        from_cm(Real3{0, 0, 1700}),
+        from_cm(Real3{50.0, 0, 690}),
+    };
+    dso.points[StepPoint::post].pos = {
+        from_cm(Real3{0, 0, 2000}),
+        from_cm(Real3{50.0, 0, 700}),
+    };
+    dso.points[StepPoint::pre].dir = dso.points[StepPoint::post].dir
+        = {Real3{0, 0, 1}, Real3{0, 0, 1}};
+
+    dso.volume_instance_depth = 2;
+    auto const& vol_inst = this->geometry()->volume_instances();
+    auto wovi = vol_inst.find_unique("world_PV");
+    auto sivi = vol_inst.find_unique("si_tracker_pv");
+    dso.points[StepPoint::pre].volume_instance_ids = {wovi, {}, wovi, sivi};
+    dso.points[StepPoint::post].volume_instance_ids = {{}, {}, wovi, {}};
+    process_hits(dso);
+
+    {
+        auto& result = this->get_hits("si_tracker");
+        static char const* const expected_pre_physvol[] = {"si_tracker_pv"};
+        EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
+        if constexpr (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const* const expected_post_physvol[] = {"world_PV"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"geo"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
+        else
+        {
+            // ORANGE can't handle exiting correctly
+            static char const* const expected_post_physvol[]
+                = {"si_tracker_pv"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"user"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
+    }
+    {
+        auto& result = this->get_hits("world");
+
+        static char const* const expected_pre_physvol[] = {"world_PV"};
+        EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
+        if constexpr (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+        {
+            static char const* const expected_post_physvol[] = {"<nullptr>"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"world"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
+        else
+        {
+            // ORANGE can't handle exiting correctly
+            static char const* const expected_post_physvol[] = {"world_PV"};
+            EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
+            static char const* const expected_post_status[] = {"user"};
+            EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        }
     }
 }
 

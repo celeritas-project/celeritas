@@ -2,35 +2,19 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/TransformedBoxGeoTest.hh
+//! \file corecel/Config.cc
+//! \brief Celeritas config definition.
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include <string_view>
+#include "corecel/Config.hh"
 
 namespace celeritas
 {
-namespace test
+namespace cmake
 {
-class GenericGeoTestInterface;
+//---------------------------------------------------------------------------//
+
+@CELERITAS_CMAKE_STRINGS_DEF@
 
 //---------------------------------------------------------------------------//
-/*!
- * Test the transformed box geometry.
- */
-class TransformedBoxGeoTest
-{
-  public:
-    static std::string_view geometry_basename() { return "transformed-box"; }
-
-    TransformedBoxGeoTest(GenericGeoTestInterface* geo_test);
-    void test_accessors() const;
-    void test_trace() const;
-
-  private:
-    GenericGeoTestInterface* test_;
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace test
+}
 }  // namespace celeritas

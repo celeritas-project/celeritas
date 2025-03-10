@@ -18,7 +18,7 @@
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations -fdiagnostics-color=always",
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer -mfma",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512",
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings  -Wno-deprecated-gpu-targets",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
@@ -97,6 +97,15 @@
       "inherits": [".reldeb", "single"]
     },
     {
+      "name": "reldeb-vgsurf",
+      "displayName": "Everything in release mode with debug symbols and assertions",
+      "inherits": [".reldeb", "vecgeom"],
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view"
+      }
+    },
+    {
       "name": "reldeb-vecgeom",
       "displayName": "Everything in release mode with debug symbols and assertions",
       "inherits": [".reldeb", "vecgeom"]
@@ -104,7 +113,16 @@
     {
       "name": "ndebug-vecgeom",
       "displayName": "Everything in release mode",
-      "inherits": [".ndebug", "vecgeom"]
+      "inherits": [".ndebug", "reldeb-vgsurf"]
+    },
+    {
+      "name": "ndebug-vgsurf",
+      "displayName": "Everything in release mode with debug symbols and assertions",
+      "inherits": [".ndebug", "vecgeom"],
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view"
+      }
     },
     {
       "name": "reldeb-serial",

@@ -2,35 +2,24 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/SolidsGeoTest.hh
+//! \file corecel/Version.cc
+//! \brief Celeritas version definitinos.
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include <string_view>
-
-#include "GenericGeoTestInterface.hh"
+#include "corecel/Version.hh"
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
-/*!
- * Test the solids geometry.
- */
-class SolidsGeoTest
-{
-  public:
-    static std::string_view geometry_basename() { return "solids"; }
 
-    SolidsGeoTest(GenericGeoTestInterface* geo_test);
-    void test_accessors() const;
-    void test_trace() const;
-
-  private:
-    GenericGeoTestInterface* test_;
-};
+//! Celeritas version string with git metadata
+char const version_string[] = "@Celeritas_VERSION_STRING@";
+//! Celeritas major version
+unsigned int const version_major = @PROJECT_VERSION_MAJOR@;
+//! Celeritas minor version
+unsigned int const version_minor = @PROJECT_VERSION_MINOR@;
+//! Celeritas patch version
+unsigned int const version_patch = @PROJECT_VERSION_PATCH@;
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas
+

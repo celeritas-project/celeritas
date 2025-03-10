@@ -52,13 +52,16 @@ if(CELERITAS_USE_Geant4)
     g4/detail/GeantGeoNavCollection.cc
   )
 
+  celeritas_get_g4libs(_cg4_geo_libs geometry)
   celeritas_get_g4libs(_cg4_libs global geometry materials particles
     persistency intercoms)
   list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC nlohmann_json::nlohmann_json)
-  celeritas_target_link_libraries(geocel_geant4 PRIVATE ${_cg4_libs})
+  celeritas_target_link_libraries(geocel_geant4
+    PRIVATE ${_cg4_libs} ${_cg4_geo_libs})
 
   list(APPEND SOURCES $<TARGET_OBJECTS:geocel_geant4>)
   list(APPEND PRIVATE_DEPS geocel_geant4)
+  list(APPEND PUBLIC_DEPS ${_cg4_geo_libs})
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -76,7 +79,6 @@ if(CELERITAS_USE_VecGeom)
     # This needs to be public because its might be needed
     # to resolve the symbols generate by the `nvcc -dlink` of
     # one of the executable.
-    list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
     list(APPEND SOURCES
       vg/RaytraceImager.cu
       vg/detail/VecgeomSetup.cu
@@ -85,6 +87,7 @@ if(CELERITAS_USE_VecGeom)
     # VecGeom is built with CUDA but Celeritas is not
     list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
   endif()
+  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 endif()
 
 #-----------------------------------------------------------------------------#

@@ -110,13 +110,13 @@ calc_physics_step_limit(MaterialTrackView const& material,
             // If the integral approach is used and this particle has an energy
             // loss process, estimate the maximum cross section over the step
             process_xs = physics.calc_max_xs(
-                process, ppid, material.make_material_view(), particle.energy());
+                process, ppid, material.material_record(), particle.energy());
         }
         else
         {
             // Calculate the macroscopic cross section for this process
             process_xs = physics.calc_xs(
-                ppid, material.make_material_view(), particle.energy());
+                ppid, material.material_record(), particle.energy());
         }
         // Accumulate process cross section into the total cross section and
         // save it for later
