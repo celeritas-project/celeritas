@@ -556,52 +556,40 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         EXPECT_REAL_EQ(1, result.alive);
     }
     {
-        // Electron just inside muon chambers
-        SCOPED_TRACE("electron in muon chambers");
+        // Electron inside muon chambers
+        SCOPED_TRACE("electron in muon chambers without field");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{10};
-        inp.phys_mfp = 10;
-        inp.position = {265.16505, 265.16505, 0};
-        inp.direction = make_unit_vector(Real3{0, -1e-4, 1});
-        inp.msc_range = {10, 0.04, 0.1};
+        inp.phys_mfp = 2;
+        inp.position = {350, 350, 0};
+        inp.direction = {0, -1, 0};
 
-        // Withou field in muon chambers electron takes a shorter step to
-        // boundary
+        // Without a field the electron has the same step length but a larger
+        // displacement
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.15203402789224513, result.step);
-        EXPECT_SOFT_EQ(1.6280431942979028, result.eloss);
-        EXPECT_SOFT_EQ(0.68022280149826031, result.mfp);
-        EXPECT_EQ("geo-boundary", result.action);
+        EXPECT_SOFT_EQ(0.28064807889290933, result.displacement);
+        EXPECT_SOFT_EQ(0.68629076604678063, result.angle);
+        EXPECT_SOFT_EQ(0.33775753626703175, result.step);
+        EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
     {
-        // Electron just inside solenoid
+        // Electron inside solenoid
         SCOPED_TRACE("electron in solenoid");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{10};
-        inp.phys_mfp = 10;
-        inp.position = {194.454366, 194.454366, 0};
-        inp.direction = make_unit_vector(Real3{0, -1e-5, 1});
-        inp.msc_range = {10, 0.04, 0.1};
+        inp.phys_mfp = 2;
+        inp.position = {250, 250, 0};
+        inp.direction = {0, -1, 0};
 
-        // This volume has a field, so results match global field test.
+        // This volume has a field, so results match global field test. Without
+        // a field the displacement = 0.42381079389420506 and angle =
+        // 0.76833209617735942
         auto result = this->run(inp, num_tracks);
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-        {
-            // Without field the step length is 0.2488408200725655
-            EXPECT_SOFT_EQ(0.25865799463959244, result.step);
-            EXPECT_SOFT_EQ(1.5907513043177572, result.eloss);
-            EXPECT_SOFT_EQ(0.6638323485547506, result.mfp);
-            EXPECT_EQ("geo-boundary", result.action);
-        }
-        else
-        {
-            EXPECT_SOFT_NEAR(0.39725606912078854, result.step, 1e-11);
-            EXPECT_SOFT_NEAR(2.4395090638369701, result.eloss, 1e-11);
-            EXPECT_SOFT_NEAR(1.0195371293647053, result.mfp, 1e-11);
-            EXPECT_EQ("{msc-range: 0.984375, eloss-range: 0.015625}",
-                      result.action);
-        }
+        EXPECT_SOFT_EQ(0.42355220700686919, result.displacement);
+        EXPECT_SOFT_EQ(0.76821077630949963, result.angle);
+        EXPECT_SOFT_EQ(0.47856565916792532, result.step);
+        EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
 }
@@ -631,48 +619,35 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         EXPECT_REAL_EQ(1, result.alive);
     }
     {
-        // Electron just inside muon chambers
+        // Electron inside muon chambers
         SCOPED_TRACE("electron in muon chambers");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{10};
-        inp.phys_mfp = 10;
-        inp.position = {265.16505, 265.16505, 0};
-        inp.direction = make_unit_vector(Real3{0, -1e-4, 1});
-        inp.msc_range = {10, 0.04, 0.1};
+        inp.phys_mfp = 2;
+        inp.position = {350, 350, 0};
+        inp.direction = {0, -1, 0};
 
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.15556383400068652, result.step);
-        EXPECT_SOFT_EQ(1.6656905203847934, result.eloss);
-        EXPECT_SOFT_EQ(0.69601567782415108, result.mfp);
-        EXPECT_EQ("geo-boundary", result.action);
+        EXPECT_SOFT_EQ(0.28057298212898418, result.displacement);
+        EXPECT_SOFT_EQ(0.6882027184831665, result.angle);
+        EXPECT_SOFT_EQ(0.33775753626703175, result.step);
+        EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
     {
-        // Electron just inside solenoid
+        // Electron inside solenoid
         SCOPED_TRACE("electron in solenoid");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{10};
-        inp.phys_mfp = 10;
-        inp.position = {194.454366, 194.454366, 0};
-        inp.direction = make_unit_vector(Real3{0, -1e-5, 1});
-        inp.msc_range = {10, 0.04, 0.1};
+        inp.phys_mfp = 2;
+        inp.position = {250, 250, 0};
+        inp.direction = {0, -1, 0};
 
         auto result = this->run(inp, num_tracks);
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-        {
-            EXPECT_SOFT_EQ(0.25865799463959244, result.step);
-            EXPECT_SOFT_EQ(1.5907513043177572, result.eloss);
-            EXPECT_SOFT_EQ(0.6638323485547506, result.mfp);
-            EXPECT_EQ("geo-boundary", result.action);
-        }
-        else
-        {
-            EXPECT_SOFT_NEAR(0.39725606912078854, result.step, 1e-11);
-            EXPECT_SOFT_NEAR(2.4395090638369701, result.eloss, 1e-11);
-            EXPECT_SOFT_NEAR(1.0195371293647053, result.mfp, 1e-11);
-            EXPECT_EQ("{msc-range: 0.984375, eloss-range: 0.015625}",
-                      result.action);
-        }
+        EXPECT_SOFT_EQ(0.42355220700686919, result.displacement);
+        EXPECT_SOFT_EQ(0.76821077630949963, result.angle);
+        EXPECT_SOFT_EQ(0.47856565916792532, result.step);
+        EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
 }
