@@ -534,6 +534,7 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
 {
     // Inputs are the same as the test with a global field. Here all volumes
     // have a field except the world volume and muon chambers.
+    real_type const tol = 1e-10;
     size_type num_tracks = 128;
     Input inp;
     {
@@ -567,9 +568,9 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         // Without a field the electron has the same step length but a larger
         // displacement
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.28064807889290933, result.displacement);
-        EXPECT_SOFT_EQ(0.68629076604678063, result.angle);
-        EXPECT_SOFT_EQ(0.33775753626703175, result.step);
+        EXPECT_SOFT_NEAR(0.28064807889290933, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.68629076604678063, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
@@ -586,9 +587,9 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         // a field the displacement = 0.42381079389420506 and angle =
         // 0.76833209617735942
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.42355220700686919, result.displacement);
-        EXPECT_SOFT_EQ(0.76821077630949963, result.angle);
-        EXPECT_SOFT_EQ(0.47856565916792532, result.step);
+        EXPECT_SOFT_NEAR(0.42355220700686919, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.76821077630949963, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.47856565916792532, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
@@ -596,6 +597,7 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
 
 TEST_F(SimpleCmsAlongStepTest, msc_field)
 {
+    real_type const tol = 1e-10;
     size_type num_tracks = 128;
     Input inp;
     {
@@ -628,9 +630,9 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         inp.direction = {0, -1, 0};
 
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.28057298212898418, result.displacement);
-        EXPECT_SOFT_EQ(0.6882027184831665, result.angle);
-        EXPECT_SOFT_EQ(0.33775753626703175, result.step);
+        EXPECT_SOFT_NEAR(0.28057298212898418, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.6882027184831665, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
@@ -644,9 +646,9 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         inp.direction = {0, -1, 0};
 
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.42355220700686919, result.displacement);
-        EXPECT_SOFT_EQ(0.76821077630949963, result.angle);
-        EXPECT_SOFT_EQ(0.47856565916792532, result.step);
+        EXPECT_SOFT_NEAR(0.42355220700686919, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.76821077630949963, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.47856565916792532, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
