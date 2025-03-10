@@ -5,6 +5,7 @@ spack:
   view: /opt/spack-view
   specs:
   - ccache
+  - cli11
   - cmake
   - googletest
   - hepmc3

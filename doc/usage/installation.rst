@@ -33,7 +33,7 @@ The code requires external dependencies to build with full functionality, but
 none of them need to be installed externally for the code to work.
 Most can be omitted entirely to enable limited development on experimental HPC
 systems or personal machines with fewer available components. Items with an
-asterisk in the category below will be fetched from the
+asterisk ``*`` in the category below will be fetched from the
 internet if required but not available on the user's system.
 
 .. tabularcolumns:: lll
@@ -42,6 +42,7 @@ internet if required but not available on the user's system.
    :header: Component, Category, Description
    :widths: 10, 10, 20
 
+   CLI11_, Runtime*, "Command line parsing"
    CUDA_, Runtime, "GPU computation"
    Geant4_, Runtime, "Preprocessing physics data for a problem input"
    G4EMLOW_, Runtime, "EM physics model data"
@@ -62,6 +63,7 @@ internet if required but not available on the user's system.
    GoogleTest_, Development*, "Test harness"
    Perfetto_, Development*, "CPU profiling"
 
+.. _CLI11: https://cliutils.github.io/CLI11/book/
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit
 .. _Doxygen: https://www.doxygen.nl
@@ -108,6 +110,10 @@ easy way to toggle through all the valid options.
   Enable features of the given dependency. The configuration will fail if the
   dependent package is not found.
 
+``CELERITAS_BUILTIN_{package}``
+  Force a package to be built from an internally downloaded copy (when true/on)
+  or externally installed code (when false/off).
+
 ``CELERITAS_BUILD_{DOCS|TESTS}``
   Build optional documentation and/or tests.
 
@@ -123,7 +129,10 @@ easy way to toggle through all the valid options.
 
 ``CELERITAS_DEBUG``
   Enable detailed runtime assertions. These *will* slow down the code
-  considerably, especially on GPU builds.
+  considerably. A separate ``CELERITAS_DEBUG_DEVICE`` option allows debug
+  checking inside device code to be enabled/disabled since the generated code
+  substantially increases kernel size and build time in addition to affecting
+  performance more substantially.
 
 ``CELERITAS_OPENMP``
   Choose between no multithreaded OpenMP parallelism (``disabled``),
