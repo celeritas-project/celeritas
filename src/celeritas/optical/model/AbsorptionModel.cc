@@ -10,8 +10,10 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
+#include "AbsorptionExecutor.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
+#include "../InteractionApplier.hh"
 #include "../MfpBuilder.hh"
 
 namespace celeritas
@@ -54,9 +56,14 @@ void AbsorptionModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
 /*!
  * Execute the model on the host.
  */
-void AbsorptionModel::step(CoreParams const&, CoreStateHost&) const
+void AbsorptionModel::step(CoreParams const& params, CoreStateHost& state) const
 {
-    CELER_LOG(warning) << "Optical absorption executor not implemented";
+    launch_action(
+        state,
+        make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                    state.ptr(),
+                                    this->action_id(),
+                                    InteractionApplier{AbsorptionExecutor{}}));
 }
 
 //---------------------------------------------------------------------------//

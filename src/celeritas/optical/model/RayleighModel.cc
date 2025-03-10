@@ -13,10 +13,12 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
+#include "RayleighExecutor.hh"
 #include "RayleighMfpCalculator.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 #include "../ImportedMaterials.hh"
+#include "../InteractionApplier.hh"
 #include "../MaterialParams.hh"
 #include "../MfpBuilder.hh"
 
@@ -116,9 +118,14 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
 /*!
  * Execute the model on the host.
  */
-void RayleighModel::step(CoreParams const&, CoreStateHost&) const
+void RayleighModel::step(CoreParams const& params, CoreStateHost& state) const
 {
-    CELER_LOG(warning) << "Optical Rayleigh executor not implemented";
+    launch_action(
+        state,
+        make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                    state.ptr(),
+                                    this->action_id(),
+                                    InteractionApplier{RayleighExecutor{}}));
 }
 
 //---------------------------------------------------------------------------//

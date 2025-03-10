@@ -10,8 +10,10 @@
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
+#include "RayleighExecutor.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
+#include "../InteractionApplier.hh"
 
 namespace celeritas
 {
@@ -21,7 +23,15 @@ namespace optical
 /*!
  * Interact with device data.
  */
-void RayleighModel::step(CoreParams const&, CoreStateDevice&) const {}
+void RayleighModel::step(CoreParams const& params, CoreStateDevice& state) const
+{
+    launch_action(
+        state,
+        make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                    state.ptr(),
+                                    this->action_id(),
+                                    InteractionApplier{RayleighExecutor{}}));
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

@@ -21,7 +21,15 @@ namespace optical
 /*!
  * Launch the discrete-select action on device.
  */
-void DiscreteSelectAction::step(CoreParams const&, CoreStateDevice&) const {}
+void DiscreteSelectAction::step(CoreParams const& params,
+                                CoreStateDevice& state) const
+{
+    launch_action(state,
+                  make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              this->action_id(),
+                                              DiscreteSelectExecutor{}));
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

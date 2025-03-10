@@ -12,6 +12,7 @@
 #include "celeritas/optical/CoreState.hh"
 
 #include "ActionLauncher.hh"
+#include "DiscreteSelectExecutor.hh"
 #include "TrackSlotExecutor.hh"
 
 namespace celeritas
@@ -33,9 +34,14 @@ DiscreteSelectAction::DiscreteSelectAction(ActionId id)
 /*!
  * Launch the discrete-select action on host.
  */
-void DiscreteSelectAction::step(CoreParams const&, CoreStateHost&) const
+void DiscreteSelectAction::step(CoreParams const& params,
+                                CoreStateHost& state) const
 {
-    CELER_LOG(warning) << "Optical discrete select executor not implemented";
+    launch_action(state,
+                  make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              this->action_id(),
+                                              DiscreteSelectExecutor{}));
 }
 
 //---------------------------------------------------------------------------//
