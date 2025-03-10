@@ -82,6 +82,12 @@ jobs:
           buildcache: true
           color: true
           path: spack-src
+      - name: Patch spack # To be deleted; see associated github pulls
+        working-directory: spack-src
+        run: |
+          for id in 49397; do
+            curl -LfsS "https://github.com/spack/spack/pull/${id}.diff" | patch -p1
+          done
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
