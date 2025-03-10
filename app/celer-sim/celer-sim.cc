@@ -16,10 +16,6 @@
 #include <vector>
 #include <CLI/CLI.hpp>
 
-#include "corecel/Assert.hh"
-
-#include "detail/CliCommon.hh"
-
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
@@ -30,7 +26,9 @@
 #include "corecel/DeviceRuntimeApi.hh"
 #include "corecel/Version.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
@@ -50,6 +48,8 @@
 #include "RunnerInput.hh"
 #include "RunnerInputIO.json.hh"
 #include "RunnerOutput.hh"
+
+#include "detail/CliCommon.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -76,14 +76,17 @@ int get_openmp_thread()
 /*!
  * Run, launch, and get output.
  */
-void run(std::shared_ptr<OutputRegistry>& output, std::istream* is)
+void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 {
-    CELER_EXPECT(is);
     ScopedMem record_mem("celer-sim.run");
 
-    // Read input options and save a copy for output
-    auto run_input = std::make_shared<RunnerInput>();
-    nlohmann::json::parse(*is).get_to(*run_input);
+    // Read input options
+    auto run_input = [&filename] {
+        celeritas::FileOrStdin instream{filename};
+        auto result = std::make_shared<RunnerInput>();
+        nlohmann::json::parse(instream).get_to(*result);
+        return result;
+    }();
 
     // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
@@ -190,6 +193,7 @@ int main(int argc, char* argv[])
     using std::cout;
     using std::endl;
 
+    // Set up MPI
     celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
@@ -197,11 +201,12 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    // Set up app
     CLI::App cli{"Run standalone Celeritas"};
     detail::setup_app(cli);
 
     std::string filename;
-    cli.add_option("filename", filename, "Input JSON file")
+    cli.add_option("filename", filename, "Input JSON")
         ->check(CLI::ExistingFile | detail::dash_validator());
 
     std::function<std::string()> diagnostic;
@@ -221,7 +226,8 @@ int main(int argc, char* argv[])
                  set_diagnostic(get_device_string),
                  "Show device information");
 
-    CLI11_PARSE(cli, argc, argv);
+    // Parse and run
+    CELER_CLI11_PARSE(cli, argc, argv);
 
     if (diagnostic)
     {
@@ -229,27 +235,7 @@ int main(int argc, char* argv[])
             cli, [&diagnostic] { std::cout << diagnostic() << std::endl; });
     }
 
-    std::ifstream infile;
-    std::istream* instream = nullptr;
-    if (filename == "-")
-    {
-        instream = &std::cin;
-        filename = "<stdin>";  // For nicer output on failure
-    }
-    else
-    {
-        // Open the specified file
-        infile.open(std::string{filename});
-        if (!infile)
-        {
-            CELER_LOG(critical) << "Failed to open '" << filename << "'";
-            return EXIT_FAILURE;
-        }
-        instream = &infile;
-    }
-
-    // Set up output
-    int return_code = detail::run_safely_with_output(cli, run, instream);
+    int return_code = detail::run_safely_with_output(cli, run, filename);
 
     // Delete streams before end of program (TODO: this is because of a static
     // initialization order issue; CUDA can be deactivated before the global

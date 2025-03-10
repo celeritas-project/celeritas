@@ -17,6 +17,7 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -112,25 +113,14 @@ void run(std::string const& gdml_filename,
         RootExporter export_root(out_filename.c_str());
         export_root(imported);
     }
-    else if (ends_with(out_filename, ".json"))
-    {
-        // Write JSON to file
-        CELER_LOG(info) << "Opening JSON output at " << out_filename;
-        std::ofstream os(out_filename);
-        RootJsonDumper dump_json(&os);
-        dump_json(imported);
-    }
-    else if (out_filename == "-")
-    {
-        // Write JSON to stdout
-        CELER_LOG(info) << "Writing JSON to stdout";
-        RootJsonDumper dump_json(&std::cout);
-        dump_json(imported);
-    }
     else
     {
-        CELER_VALIDATE(false,
-                       << "invalid output filename '" << out_filename << "'");
+        celeritas::FileOrStdout outstream{out_filename};
+
+        // Write JSON to file
+        CELER_LOG(info) << "Opening JSON output at " << outstream.filename();
+        RootJsonDumper dump_json(outstream);
+        dump_json(imported);
     }
 
     scoped_root_error.throw_if_errors();
@@ -176,12 +166,14 @@ int main(int argc, char* argv[])
     cli.add_option("options", opts_filename, "Options JSON file")
         ->check(CLI::ExistingFile | detail::dash_validator()
                 | detail::empty_string_validator());
-    cli.add_option("output", out_filename, "Output file (ROOT or JSON)")
-        ->required();
+    auto* output_opt
+        = cli.add_option("output", out_filename, "Output file (ROOT or JSON)")
+              ->check(CLI::ExistingFile | detail::dash_validator());
     cli.add_flag("--gen-test", gen_test, "Generate test data");
-    cli.add_flag("--dump-default", dump_default, "Dump default options");
+    cli.add_flag("--dump-default", dump_default, "Dump default options")
+        ->excludes(output_opt);
 
-    CLI11_PARSE(cli, argc, argv);
+    CELER_CLI11_PARSE(cli, argc, argv);
 
     if (dump_default)
     {

@@ -1026,6 +1026,7 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 {
     using namespace celeritas::app;
 
+    // Set up MPI
     celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
@@ -1033,15 +1034,15 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
         return EXIT_FAILURE;
     }
 
+    // Set up app
     CLI::App cli{"Celeritas ROOT Data Dumper"};
     detail::setup_app(cli);
 
     std::string filename;
-    cli.add_option("filename", filename, "ROOT file to process")
-        ->required()
+    cli.add_option("filename", filename, "Input ROOT file")
         ->check(CLI::ExistingFile);
 
-    CLI11_PARSE(cli, argc, argv);
-
+    // Parse and run
+    CELER_CLI11_PARSE(cli, argc, argv);
     return detail::run_safely(cli, run, filename);
 }

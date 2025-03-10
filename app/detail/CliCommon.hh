@@ -18,6 +18,26 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+
+//! Parse but only print on one processor on failure/help
+#define CELER_CLI11_PARSE(CLI_APP, ...)               \
+    try                                               \
+    {                                                 \
+        (CLI_APP).parse(__VA_ARGS__);                 \
+    }                                                 \
+    catch (const CLI::ParseError& e)                  \
+    {                                                 \
+        if (e.get_exit_code() != EXIT_SUCCESS)        \
+        {                                             \
+            CELER_LOG(error) << e.what();             \
+        }                                             \
+        else if (celeritas::comm_world().rank() == 0) \
+        {                                             \
+            return (CLI_APP).exit(e);                 \
+        }                                             \
+        return e.get_exit_code();                     \
+    }
 
 namespace celeritas
 {
@@ -32,12 +52,29 @@ namespace
 std::string failure_message(CLI::App const* cli, const CLI::Error& e)
 {
     std::ostringstream os;
-    os << cli->get_name() << ": " << CLI::FailureMessage::simple(cli, e);
+    os << cli->get_name() << ": ";
+    if (auto base_formatter
+        = std::dynamic_pointer_cast<CLI::Formatter>(cli->get_formatter()))
+    {
+        // Print just the usage; CLI error includes newline
+        os << e.what();
+        auto usage = base_formatter->make_usage(cli, std::string{});
+        if (!usage.empty() && usage.back() == '\n')
+        {
+            usage.pop_back();
+        }
+        os << usage;
+    }
+    else
+    {
+        os << "No base formater found:\n";
+        os << CLI::FailureMessage::simple(cli, e);
+    }
+
     return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//
-//
 char const* failure_type(std::exception const& e)
 {
     if (dynamic_cast<std::runtime_error const*>(&e))
@@ -60,7 +97,7 @@ char const* failure_type(std::exception const& e)
 //! Set up common options
 inline void setup_app(CLI::App& cli)
 {
-    cli.failure_message(detail::failure_message);
+    cli.failure_message(failure_message);
     cli.set_version_flag("--version,-v", celeritas::version_string);
 }
 
@@ -91,11 +128,15 @@ inline CLI::Validator empty_string_validator()
 }
 
 //---------------------------------------------------------------------------//
+//! Validator for the empty string
+
+//---------------------------------------------------------------------------//
 // EXECUTION
 //---------------------------------------------------------------------------//
 //! Run, checking for errors and printing on failure
 template<typename RunFunc, typename... Args>
-[[nodiscard]] int run_safely(CLI::App const& cli, RunFunc&& run, Args&&... args)
+[[nodiscard]] inline int
+run_safely(CLI::App const& cli, RunFunc&& run, Args&&... args)
 {
     try
     {
@@ -114,7 +155,7 @@ template<typename RunFunc, typename... Args>
 //---------------------------------------------------------------------------//
 //! Run, printing output with exceptions if available
 template<typename RunFunc, typename... Args>
-[[nodiscard]] int
+[[nodiscard]] inline int
 run_safely_with_output(CLI::App const& cli, RunFunc&& run, Args&&... args)
 {
     std::shared_ptr<celeritas::OutputRegistry> output;

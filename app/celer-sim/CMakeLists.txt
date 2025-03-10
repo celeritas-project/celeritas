@@ -28,7 +28,7 @@ endif()
 # Add the executable
 celeritas_add_executable(celer-sim ${SOURCES})
 celeritas_target_link_libraries(celer-sim PRIVATE ${LIBRARIES})
-target_include_directories(celer-sim PRIVATE ${PROJECT_SOURCE_DIR}/app)
+target_include_directories(celer-sim PRIVATE "${PROJECT_SOURCE_DIR}/app")
 
 #-----------------------------------------------------------------------------#
 # TESTS

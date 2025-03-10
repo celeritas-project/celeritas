@@ -138,4 +138,15 @@ if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
 endif()
 
+if(CELERITAS_BUILTIN_CLI11)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # __cplusplus: use standard-compliant C++ version macro
+    # preprocessor: use standard-compliant preprocessor
+    # EHsc: enable standard C++ exception handling
+    target_compile_options(CLI11::CLI11 PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
+    )
+  endif()
+endif()
+
 #-----------------------------------------------------------------------------#

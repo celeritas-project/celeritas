@@ -14,10 +14,12 @@ set(LIBRARIES
   Celeritas::geocel
   Celeritas::orange
   nlohmann_json::nlohmann_json
+  CLI11::CLI11
 )
 
 celeritas_add_executable(celer-geo ${SOURCES})
 celeritas_target_link_libraries(celer-geo ${LIBRARIES})
+target_include_directories(celer-geo PRIVATE "${PROJECT_SOURCE_DIR}/app")
 
 #-----------------------------------------------------------------------------#
 # TESTS
