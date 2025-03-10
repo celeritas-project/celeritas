@@ -30,7 +30,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportDataTrimmer.hh"
 
-#include "detail/CliCommon.hh"
+#include "CliUtils.hh"
 
 namespace celeritas
 {
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Export Geant4 data to ROOT or JSON"};
-    detail::setup_app(cli);
+    setup_app(cli);
 
     std::string gdml_filename;
     std::string opts_filename;
@@ -164,11 +164,11 @@ int main(int argc, char* argv[])
 
     cli.add_option("gdml", gdml_filename, "Input GDML file")->required();
     cli.add_option("options", opts_filename, "Options JSON file")
-        ->check(CLI::ExistingFile | detail::dash_validator()
-                | detail::empty_string_validator());
+        ->check(CLI::ExistingFile | dash_validator()
+                | empty_string_validator());
     auto* output_opt
         = cli.add_option("output", out_filename, "Output file (ROOT or JSON)")
-              ->check(CLI::ExistingFile | detail::dash_validator());
+              ->check(CLI::ExistingFile | dash_validator());
     cli.add_flag("--gen-test", gen_test, "Generate test data");
     cli.add_flag("--dump-default", dump_default, "Dump default options")
         ->excludes(output_opt);
@@ -177,9 +177,9 @@ int main(int argc, char* argv[])
 
     if (dump_default)
     {
-        return detail::run_safely(cli, run_dump_default);
+        return run_safely(cli, run_dump_default);
     }
 
-    return detail::run_safely(
+    return run_safely(
         cli, run, gdml_filename, opts_filename, out_filename, gen_test);
 }

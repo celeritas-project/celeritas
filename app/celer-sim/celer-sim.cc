@@ -15,12 +15,11 @@
 #include <utility>
 #include <vector>
 #include <CLI/CLI.hpp>
+#include <nlohmann/json.hpp>
 
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
-
-#include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
 #include "corecel/DeviceRuntimeApi.hh"
@@ -28,6 +27,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
+#include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
@@ -44,12 +44,11 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 
+#include "CliUtils.hh"
 #include "Runner.hh"
 #include "RunnerInput.hh"
 #include "RunnerInputIO.json.hh"
 #include "RunnerOutput.hh"
-
-#include "detail/CliCommon.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -203,11 +202,11 @@ int main(int argc, char* argv[])
 
     // Set up app
     CLI::App cli{"Run standalone Celeritas"};
-    detail::setup_app(cli);
+    setup_app(cli);
 
     std::string filename;
     cli.add_option("filename", filename, "Input JSON")
-        ->check(CLI::ExistingFile | detail::dash_validator());
+        ->check(CLI::ExistingFile | dash_validator());
 
     std::function<std::string()> diagnostic;
     auto set_diagnostic = [&diagnostic](auto func) {
@@ -231,11 +230,42 @@ int main(int argc, char* argv[])
 
     if (diagnostic)
     {
-        return detail::run_safely(
+        // Print diagnostic and immediately exit
+        return run_safely(
             cli, [&diagnostic] { std::cout << diagnostic() << std::endl; });
     }
 
-    int return_code = detail::run_safely_with_output(cli, run, filename);
+    // Run and save output
+    std::shared_ptr<celeritas::OutputRegistry> output;
+    int return_code = EXIT_SUCCESS;
+    try
+    {
+        run(output, filename);
+    }
+    catch (std::exception const& e)
+    {
+        return_code = process_runtime_error(cli, e);
+
+        if (!output)
+        {
+            output = std::make_shared<celeritas::OutputRegistry>();
+        }
+        output->insert(std::make_shared<celeritas::ExceptionOutput>(
+            std::current_exception()));
+    }
+
+    if (!output)
+    {
+        CELER_LOG(warning) << "No output available";
+        std::cout << "null\n";
+        return_code = EXIT_FAILURE;
+    }
+    else
+    {
+        CELER_LOG(status) << "Saving output";
+        output->output(&std::cout);
+        std::cout << std::endl;
+    }
 
     // Delete streams before end of program (TODO: this is because of a static
     // initialization order issue; CUDA can be deactivated before the global

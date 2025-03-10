@@ -31,10 +31,9 @@
 #include "geocel/rasterize/Image.hh"
 #include "geocel/rasterize/ImageIO.json.hh"
 
+#include "CliUtils.hh"
 #include "GeoInput.hh"
 #include "Runner.hh"
-
-#include "detail/CliCommon.hh"
 
 using namespace std::literals::string_view_literals;
 using nlohmann::json;
@@ -265,14 +264,14 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Celeritas interactive geometry"};
-    detail::setup_app(cli);
+    setup_app(cli);
 
     std::string filename;
     cli.add_option("filename", filename, "Input JSON lines")
         ->required()
-        ->check(CLI::ExistingFile | detail::dash_validator());
+        ->check(CLI::ExistingFile | dash_validator());
 
     // Parse and run
     CELER_CLI11_PARSE(cli, argc, argv);
-    return detail::run_safely(cli, run, filename);
+    return run_safely(cli, run, filename);
 }

@@ -28,7 +28,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
-#include "detail/CliCommon.hh"
+#include "CliUtils.hh"
 
 using std::cout;
 using std::endl;
@@ -1036,7 +1036,7 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 
     // Set up app
     CLI::App cli{"Celeritas ROOT Data Dumper"};
-    detail::setup_app(cli);
+    setup_app(cli);
 
     std::string filename;
     cli.add_option("filename", filename, "Input ROOT file")
@@ -1044,5 +1044,5 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 
     // Parse and run
     CELER_CLI11_PARSE(cli, argc, argv);
-    return detail::run_safely(cli, run, filename);
+    return run_safely(cli, run, filename);
 }

@@ -16,6 +16,7 @@ set(LIBRARIES
   Celeritas::DeviceToolkit
   nlohmann_json::nlohmann_json
   CLI11::CLI11
+  celer_app_utils
 )
 
 if(CELERITAS_USE_CUDA AND CELERITAS_CORE_GEO STREQUAL "VecGeom")
@@ -28,7 +29,6 @@ endif()
 # Add the executable
 celeritas_add_executable(celer-sim ${SOURCES})
 celeritas_target_link_libraries(celer-sim PRIVATE ${LIBRARIES})
-target_include_directories(celer-sim PRIVATE "${PROJECT_SOURCE_DIR}/app")
 
 #-----------------------------------------------------------------------------#
 # TESTS

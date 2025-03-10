@@ -5,9 +5,9 @@ Read in and write back an ORANGE JSON file
 
 
 POSITIONALS:
-  input TEXT:(FILE) OR (Special value '-' for stdin/stdout) REQUIRED
+  input TEXT:(FILE) OR ('-' for stdin/stdout) REQUIRED
                               Input ORANGE JSON file 
-  output TEXT:(FILE) OR (Special value '-' for stdin/stdout) REQUIRED
+  output TEXT:(FILE) OR ('-' for stdin/stdout) REQUIRED
                               Output ORANGE JSON file 
 
 OPTIONS:

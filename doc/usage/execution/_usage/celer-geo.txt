@@ -1,3 +1,13 @@
-usage: ./celer-geo {input}.json
-       ./celer-geo -
-       ./celer-geo [--help|-h]
+Celeritas interactive geometry 
+
+
+./celer-geo [OPTIONS] filename
+
+
+POSITIONALS:
+  filename TEXT:(FILE) OR ('-' for stdin/stdout) REQUIRED
+                              Input JSON lines 
+
+OPTIONS:
+  -h,     --help              Print this help message and exit 
+  -v,     --version           Display program version information and exit 

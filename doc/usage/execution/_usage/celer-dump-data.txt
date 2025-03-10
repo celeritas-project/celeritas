@@ -1,11 +1,11 @@
 Celeritas ROOT Data Dumper 
 
 
-./celer-dump-data [OPTIONS] filename
+./celer-dump-data [OPTIONS] [filename]
 
 
 POSITIONALS:
-  filename TEXT:FILE REQUIRED ROOT file to process 
+  filename TEXT:FILE          Input ROOT file 
 
 OPTIONS:
   -h,     --help              Print this help message and exit 

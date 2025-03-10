@@ -21,7 +21,7 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "orange/OrangeInputIO.json.hh"
 
-#include "detail/CliCommon.hh"
+#include "CliUtils.hh"
 
 namespace celeritas
 {
@@ -63,17 +63,17 @@ int main(int argc, char* argv[])
     }
 
     CLI::App cli{"Read in and write back an ORANGE JSON file"};
-    detail::setup_app(cli);
+    setup_app(cli);
 
     std::string input_file;
     std::string output_file;
     cli.add_option("input", input_file, "Input ORANGE JSON file")
         ->required()
-        ->check(CLI::ExistingFile | detail::dash_validator());
+        ->check(CLI::ExistingFile | dash_validator());
     cli.add_option("output", output_file, "Output ORANGE JSON file")
         ->required()
-        ->check(CLI::ExistingFile | detail::dash_validator());
+        ->check(CLI::ExistingFile | dash_validator());
 
     CELER_CLI11_PARSE(cli, argc, argv);
-    return detail::run_safely(cli, run, input_file, output_file);
+    return run_safely(cli, run, input_file, output_file);
 }

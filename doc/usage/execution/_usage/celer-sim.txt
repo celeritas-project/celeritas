@@ -5,8 +5,8 @@ Run standalone Celeritas
 
 
 POSITIONALS:
-  filename TEXT:(FILE) OR (Special value '-' for stdin/stdout)
-                              Input JSON file 
+  filename TEXT:(FILE) OR ('-' for stdin/stdout)
+                              Input JSON 
 
 OPTIONS:
   -h,     --help              Print this help message and exit 
