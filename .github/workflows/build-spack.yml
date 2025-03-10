@@ -164,7 +164,7 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCMAKE_CXX_STANDARD=${{env.cxxstd}}
       - name: Run incremental clang-tidy
         id: clang-tidy
         if: ${{matrix.special == 'clang-tidy'}}
