@@ -162,13 +162,16 @@ int main(int argc, char* argv[])
     bool gen_test = false;
     bool dump_default = false;
 
-    cli.add_option("gdml", gdml_filename, "Input GDML file")->required();
+    cli.add_option("gdml", gdml_filename, "Input GDML file")
+        ->required()
+        ->check(CLI::ExistingFile);
     cli.add_option("options", opts_filename, "Options JSON file")
         ->check(CLI::ExistingFile | dash_validator()
                 | empty_string_validator());
-    auto* output_opt
-        = cli.add_option("output", out_filename, "Output file (ROOT or JSON)")
-              ->check(CLI::ExistingFile | dash_validator());
+    auto* output_opt = cli.add_option(
+        "output",
+        out_filename,
+        R"(Output file (ROOT or JSON or '-' for stdout JSON)");
     cli.add_flag("--gen-test", gen_test, "Generate test data");
     cli.add_flag("--dump-default", dump_default, "Dump default options")
         ->excludes(output_opt);
