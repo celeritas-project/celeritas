@@ -30,7 +30,9 @@ struct NoField
  *
  * \todo Field driver options will be separate from the magnetic field. They,
  * plus the field type, will be specified in a FieldParams that maps
- * region/particle/energy to field setup. NOTE ALSO that \c driver_options.max_substeps is redundant with \c p.tracking.limits.field_substeps .
+ * region/particle/energy to field setup. NOTE ALSO that \c
+ * driver_options.max_substeps is redundant with \c
+ * p.tracking.limits.field_substeps .
  */
 struct UniformField
 {

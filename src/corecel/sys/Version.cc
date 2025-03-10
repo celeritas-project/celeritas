@@ -70,9 +70,9 @@ std::string to_string(Version const& v)
  */
 Version celer_version()
 {
-    return {celeritas_version_major,
-            celeritas_version_minor,
-            celeritas_version_patch};
+    return {celeritas::version_major,
+            celeritas::version_minor,
+            celeritas::version_patch};
 }
 
 //---------------------------------------------------------------------------//

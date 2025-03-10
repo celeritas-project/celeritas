@@ -50,10 +50,10 @@ class CoreTrackView
     inline CELER_FUNCTION GeoTrackView geometry() const;
 
     // Return a material view
-    inline CELER_FUNCTION MaterialView material() const;
+    inline CELER_FUNCTION MaterialView material_record() const;
 
-    // Return a material view (using an existing geo view)
-    inline CELER_FUNCTION MaterialView material(GeoTrackView const&) const;
+    // Return a material view (using an existing geo view
+    inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
@@ -150,9 +150,10 @@ CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
 /*!
  * Return a material view.
  */
-CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material() const -> MaterialView
+CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
+    -> MaterialView
 {
-    return this->material(this->geometry());
+    return this->material_record(this->geometry());
 }
 
 //---------------------------------------------------------------------------//
@@ -160,7 +161,7 @@ CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material() const -> MaterialView
  * Return a material view using an existing geo track view.
  */
 CELER_FUNCTION auto
-CoreTrackView::material(GeoTrackView const& geo) const -> MaterialView
+CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
     return MaterialView{params_.material, geo.volume_id()};
@@ -181,7 +182,7 @@ CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
  */
 CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
 {
-    OpticalMaterialId mat_id = this->material().material_id();
+    OpticalMaterialId mat_id = this->material_record().material_id();
     CELER_ASSERT(mat_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, mat_id, this->track_slot_id()};

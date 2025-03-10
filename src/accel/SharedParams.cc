@@ -296,7 +296,7 @@ SharedParams::SharedParams(SetupOptions const& options)
         return;
     }
 
-    CELER_LOG(info) << "Activating Celeritas version " << celeritas_version
+    CELER_LOG(info) << "Activating Celeritas version " << version_string
                     << " on " << (Device::num_devices() > 0 ? "GPU" : "CPU");
 
     // Initialize CUDA (CUDA environment variables control the preferred

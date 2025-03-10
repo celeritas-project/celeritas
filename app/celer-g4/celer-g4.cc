@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
     }
     if (filename == "--version"sv || filename == "-v"sv)
     {
-        std::cout << celeritas_version << std::endl;
+        std::cout << celeritas::version_string << std::endl;
         return EXIT_SUCCESS;
     }
     if (filename == "--dump-default"sv)

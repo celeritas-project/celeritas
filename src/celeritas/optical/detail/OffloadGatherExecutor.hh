@@ -44,11 +44,10 @@ OffloadGatherExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(track.track_slot_id() < state.step.size());
 
     OffloadPreStepData& step = state.step[track.track_slot_id()];
-    step.speed = track.make_particle_view().speed();
-    step.pos = track.make_geo_view().pos();
-    step.time = track.make_sim_view().time();
-    step.material
-        = track.make_material_view().make_material_view().optical_material_id();
+    step.speed = track.particle().speed();
+    step.pos = track.geometry().pos();
+    step.time = track.sim().time();
+    step.material = track.material().material_record().optical_material_id();
 }
 
 //---------------------------------------------------------------------------//

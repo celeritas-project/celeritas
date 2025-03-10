@@ -172,9 +172,9 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
 
-        // Do a detailed check boundary check from the start position toward
-        // the substep end point. Travel to the end of the chord, plus a little
-        // extra.
+        // Do a detailed boundary check from the start position toward
+        // the substep end point.
+        // Travel to the end of the chord, plus a little extra.
         if (chord.length >= this->minimum_substep())
         {
             // Only update the direction if the chord length is nontrivial.

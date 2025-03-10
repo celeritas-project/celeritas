@@ -176,7 +176,7 @@ TEST_F(CoulombScatteringTest, helper)
 
     auto wentzel = this->make_wentzel_params();
 
-    auto const material = this->material_track().make_material_view();
+    auto const material = this->material_track().material_record();
     AtomicNumber const target_z
         = this->material_params()->get(el_id_).atomic_number();
 
@@ -322,7 +322,7 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
 {
     auto wentzel = this->make_wentzel_params();
 
-    auto const material = this->material_track().make_material_view();
+    auto const material = this->material_track().material_record();
     AtomicNumber const z = this->material_params()->get(el_id_).atomic_number();
 
     // Incident particle energy cutoff
@@ -393,9 +393,9 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 {
     int const num_samples = 1024;
 
-    auto const material = this->material_track().make_material_view();
+    auto const material = this->material_track().material_record();
     IsotopeView const isotope
-        = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
+        = material.element_record(elcomp_id_).isotope_record(isocomp_id_);
     auto cutoffs = this->cutoff_params()->get(mat_id_);
 
     auto& rng_engine = this->rng();
@@ -502,9 +502,9 @@ TEST_F(CoulombScatteringTest, distribution)
 {
     auto wentzel = this->make_wentzel_params();
 
-    auto const material = this->material_track().make_material_view();
+    auto const material = this->material_track().material_record();
     IsotopeView const isotope
-        = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
+        = material.element_record(elcomp_id_).isotope_record(isocomp_id_);
 
     // TODO: Use proton ParticleId{2}
     MevEnergy const cutoff

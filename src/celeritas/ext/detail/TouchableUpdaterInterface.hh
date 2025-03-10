@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -30,6 +31,7 @@ class TouchableUpdaterInterface
     // Update from a particular detector step
     virtual bool operator()(DetectorStepOutput const& out,
                             size_type step_index,
+                            StepPoint step_point,
                             GeantTouchableBase* touchable)
         = 0;
 

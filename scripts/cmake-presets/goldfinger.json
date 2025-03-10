@@ -3,6 +3,13 @@
   "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
   "configurePresets": [
     {
+      "name": ".ccache",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always -ffile-prefix-map=${sourceDir}/=./"
+      }
+    },
+    {
       "name": ".base",
       "generator": "Ninja",
       "inherits": [".spack-base"],
@@ -28,7 +35,7 @@
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer",
-        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always -ffile-prefix-map=${sourceDir}/=./"
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always"
       }
     },
     {
@@ -43,11 +50,10 @@
     {
       "name": "base",
       "displayName": "Goldfinger default options",
-      "inherits": [".base", ".debug", "default"],
+      "inherits": [".ccache", ".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "OFF"},
-        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },
@@ -81,9 +87,21 @@
     {
       "name": "vecgeom",
       "displayName": "With vecgeom",
-      "inherits": [".base", ".debug", "default"],
+      "inherits": [".ccache", ".base", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      }
+    },
+    {
+      "name": "vgsurf",
+      "displayName": "With vecgeom surface",
+      "inherits": ["vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      },
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view"
       }
     },
     {

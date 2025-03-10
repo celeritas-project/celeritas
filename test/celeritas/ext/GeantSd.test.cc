@@ -132,7 +132,7 @@ TEST_F(SimpleCmsTest, no_change)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
             this->get_diagnostics(man));
     }
 }
@@ -165,7 +165,7 @@ TEST_F(SimpleCmsTest, delete_one)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[3]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[3]})json",
             this->get_diagnostics(man));
     }
 }
@@ -202,7 +202,7 @@ TEST_F(SimpleCmsTest, add_duplicate)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
             this->get_diagnostics(man));
     }
 }
@@ -227,7 +227,7 @@ TEST_F(SimpleCmsTest, add_one)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3,4]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3,4]})json",
             this->get_diagnostics(man));
     }
 }

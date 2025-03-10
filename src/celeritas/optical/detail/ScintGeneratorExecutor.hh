@@ -74,7 +74,7 @@ ScintGeneratorExecutor::operator()(CoreTrackView const& track) const
     size_type local_work = LocalWorkCalculator<size_type>{
         total_work, state->size()}(track.thread_id().get());
 
-    auto rng = track.make_rng_engine();
+    auto rng = track.rng();
 
     for (auto i : range(local_work))
     {

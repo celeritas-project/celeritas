@@ -14,10 +14,12 @@ Configuration
 
 The :file:`corecel/Config.hh` configure file contains all-caps definitions of the
 CMake configuration options as 0/1 defines so they can be used with ``if
-constexpr`` and other C++ expressions. In addition, it defines static C strings
+constexpr`` and other C++ expressions. In addition, it defines external C strings
 with configuration options such as key dependent library versions.
 Finally, :file:`corecel/Version.hh` defines version numbers as preprocessor
-definition, a set of integers, and a descriptive string.
+definition, a set of integers, and a descriptive string. The external API of
+Celeritas should depend almost exclusively on the version, not the configured
+options.
 
 The files :file:`celeritas_{config,version,cmake_strings,sys_config}.h` and
 :file:`corecel/device_runtime_api.h` are deprecated aliases for
@@ -27,7 +29,6 @@ backward-compatibility.
    These will be removed in v0.6.
 
 .. doxygendefine:: CELERITAS_VERSION
-.. doxygenvariable:: celeritas_version
 
 
 Fundamentals

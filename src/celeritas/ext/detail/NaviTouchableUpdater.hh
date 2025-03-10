@@ -60,6 +60,7 @@ class NaviTouchableUpdater final : public TouchableUpdaterInterface
     // Update from a particular detector step
     bool operator()(DetectorStepOutput const& out,
                     size_type step_index,
+                    StepPoint step_point,
                     GeantTouchableBase* touchable) final;
 
     // Try to find the given point in the given logical volume

@@ -243,11 +243,39 @@ TEST_F(SolidConverterTest, ellipsoid)
         G4Ellipsoid(
             "testEllipsoid", 10 * cm, 20 * cm, 30 * cm, -1 * cm, 29 * cm),
         R"json({"_type":"solid","interior":{"_type":"ellipsoid","radii":[10.0,20.0,30.0]},"label":"testEllipsoid","z_slab":{"lower":-1.0,"upper":29.0}})json",
-        {{0., 0., 0.},
-         {0., 0., -1.1},
-         {0., 0, 29.1},
+        {{0, 0, 0},
+         {0, 0, -1.1},
+         {0, 0, 29.1},
          {9.95, 19.95, 29.95},
          {10.05, 20.05, 30.05}});
+}
+
+TEST_F(SolidConverterTest, ellipticalcylinder)
+{
+    this->build_and_test(
+        G4EllipticalTube("testEllipticalCylinder", 10 * cm, 20 * cm, 30 * cm),
+        R"json({"_type":"shape","interior":{"_type":"ellipticalcylinder","halfheight":30.0,"radii":[10.0,20.0]},"label":"testEllipticalCylinder"})json",
+        {{0, 0, 0}, {0, 21, 0}, {0., 0, 31}, {1., 0, 0}});
+}
+
+TEST_F(SolidConverterTest, ellipticalcone)
+{
+    this->build_and_test(
+        G4EllipticalCone("testEllipticalCone", 0.4, 0.8, 50, 25),
+        R"json({"_type":"shape","interior":{"_type":"ellipticalcone","halfheight":2.5,"lower_radii":[3.0,6.0],"upper_radii":[1.0,2.0]},"label":"testEllipticalCone"})json",
+        {{0, 0, 0}, {0, 0, 24.9}, {0., 0, -24.9}});
+}
+
+TEST_F(SolidConverterTest, torus)
+{
+    G4Torus torus("testTorus", 0 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
+    auto json_str
+        = R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":20.0,"radius":30.0},"interior":{"_type":"cylinder","halfheight":20.0,"radius":70.0},"label":"testTorus"})json";
+
+    SolidConverter convert{scale_, transform_};
+    auto obj = convert(torus);
+    CELER_ASSERT(obj);
+    EXPECT_JSON_EQ(json_str, to_string(*obj));
 }
 
 TEST_F(SolidConverterTest, generictrap)

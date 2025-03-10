@@ -42,13 +42,13 @@ CELER_FUNCTION MscApplier(MH&&) -> MscApplier<MH>;
 template<class MH>
 CELER_FUNCTION void MscApplier<MH>::operator()(CoreTrackView const& track)
 {
-    if (track.make_sim_view().status() != TrackStatus::alive)
+    if (track.sim().status() != TrackStatus::alive)
     {
         // Active track killed during propagation or erroneous: don't apply MSC
         return;
     }
 
-    if (track.make_physics_step_view().msc_step().geom_path > 0)
+    if (track.physics_step().msc_step().geom_path > 0)
     {
         // Scatter the track and transform the "geometrical" step back to
         // "physical" step

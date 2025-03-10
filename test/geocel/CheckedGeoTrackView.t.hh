@@ -153,8 +153,9 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
                        << "internal move ends up 'outside' at " << this->pos());
         CELER_VALIDATE(this->volume_id() == expected,
                        << std::setprecision(16)
-                       << "volume ID changed during internal move at "
-                       << this->pos() << ": was " << expected.get() << ", now "
+                       << "volume ID changed during internal move from"
+                       << repr(orig_pos) << " to " << repr(this->pos())
+                       << ": was " << expected.get() << ", now "
                        << this->volume_id().get());
         checked_internal_ = true;
     }

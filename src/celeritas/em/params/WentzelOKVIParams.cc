@@ -147,8 +147,7 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
             for (auto elcomp_id : range(ElementComponentId(mat.num_elements())))
             {
                 auto const& el_comp = mat.elements()[elcomp_id.get()];
-                auto atomic_mass
-                    = mat.make_element_view(elcomp_id).atomic_mass();
+                auto atomic_mass = mat.element_record(elcomp_id).atomic_mass();
                 inv_mass_cbrt_sq[mat_id.get()]
                     += el_comp.fraction
                        / std::pow(atomic_mass.value(), real_type(2) / 3);

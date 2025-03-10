@@ -109,7 +109,7 @@ TEST_F(NeutronInelasticTest, micro_xs)
 TEST_F(NeutronInelasticTest, macro_xs)
 {
     // Calculate the inelastic neutron-nucleus macroscopic cross section
-    auto material = this->material_track().make_material_view();
+    auto material = this->material_track().material_record();
     auto calc_xs = MacroXsCalculator<NeutronInelasticMicroXsCalculator>(
         model_->host_ref(), material);
 

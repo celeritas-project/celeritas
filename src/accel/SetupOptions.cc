@@ -190,10 +190,11 @@ inp::GeantSd to_inp(SDSetupOptions const& sd)
     result.ignore_zero_deposition = sd.ignore_zero_deposition;
     result.energy_deposition = sd.energy_deposition;
     result.step_length = sd.step_length;
-    result.locate_touchable = sd.locate_touchable;
     result.track = sd.track;
-    result.pre = to_inp(sd.pre);
-    result.post = to_inp(sd.post);
+    result.points[StepPoint::pre] = to_inp(sd.pre);
+    result.points[StepPoint::pre].touchable = sd.locate_touchable;
+    result.points[StepPoint::post] = to_inp(sd.post);
+    result.points[StepPoint::post].touchable = sd.locate_touchable_post;
     result.force_volumes = sd.force_volumes;
     result.skip_volumes = sd.skip_volumes;
 

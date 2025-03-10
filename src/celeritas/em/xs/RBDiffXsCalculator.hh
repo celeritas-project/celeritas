@@ -120,7 +120,7 @@ RBDiffXsCalculator::RBDiffXsCalculator(RelativisticBremRef const& shared,
                                        ElementComponentId elcomp_id)
     : elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , material_(material)
-    , element_(material.make_element_view(elcomp_id))
+    , element_(material.element_record(elcomp_id))
     , total_energy_(value_as<Energy>(particle.total_energy()))
     , dielectric_suppression_(shared.dielectric_suppression())
 {

@@ -104,7 +104,7 @@ endmacro()
 #-----------------------------------------------------------------------------#
 # Execute a command, logging verbosely, saving output
 macro(_cgv_git_call_output output_var)
-  message(VERBOSE "Executing ${GIT_EXECUTABLE} from ${CGV_SOURCE_DIR}: ${ARGV}")
+  message(VERBOSE "Executing ${GIT_EXECUTABLE} from ${CGV_SOURCE_DIR}: ${ARGN}")
   execute_process(
     COMMAND "${GIT_EXECUTABLE}" ${ARGN}
     WORKING_DIRECTORY "${CGV_SOURCE_DIR}"
@@ -440,4 +440,4 @@ if(CMAKE_SCRIPT_MODE_FILE)
   endif()
 endif()
 
-# cmake-git-version 1.2.1-4+main.86aa5ba
+# cmake-git-version 1.2.1-5+main.bdcc7d7

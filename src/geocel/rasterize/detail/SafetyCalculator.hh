@@ -8,6 +8,7 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/NumericLimits.hh"
 
 #include "../ImageData.hh"
 
@@ -82,17 +83,24 @@ template<class GTV>
 CELER_FUNCTION real_type SafetyCalculator<GTV>::operator()(size_type x,
                                                            size_type y)
 {
-    auto calc_offset = [pw = scalars_.pixel_width](size_type i) {
-        return pw * (static_cast<real_type>(i) + real_type(0.5));
-    };
+    geo_ = [&] {
+        auto calc_offset = [pw = scalars_.pixel_width](size_type i) {
+            return pw * (static_cast<real_type>(i) + real_type(0.5));
+        };
 
-    GeoTrackInitializer init;
-    init.pos = scalars_.origin;
-    axpy(calc_offset(y), scalars_.down, &init.pos);
-    axpy(calc_offset(x), scalars_.right, &init.pos);
-    init.dir = dir_;
+        GeoTrackInitializer init;
+        init.pos = scalars_.origin;
+        axpy(calc_offset(y), scalars_.down, &init.pos);
+        axpy(calc_offset(x), scalars_.right, &init.pos);
+        init.dir = dir_;
+        return init;
+    }();
 
-    geo_ = init;
+    if (geo_.is_outside())
+    {
+        return numeric_limits<real_type>::quiet_NaN();
+    }
+
     return geo_.find_safety(max_distance_);
 }
 

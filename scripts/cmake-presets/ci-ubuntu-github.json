@@ -118,6 +118,11 @@
       }
     },
     {
+      "name": "reldeb-vgsurf",
+      "description": "Build with release, assertions, VecGeom",
+      "inherits": [".vecgeom", "spack"]
+    },
+    {
       "name": "ndebug-vecgeom",
       "description": "Build release with vecgeom for testing *only* demos",
       "inherits": [".ndebug", ".vecgeom", "spack"],
