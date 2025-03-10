@@ -213,8 +213,6 @@ if(CELERITAS_USE_CUDA)
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
-  # NVTX requires `-ldl`
-  list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
 endif()
 
 if(CELERITAS_USE_HIP)

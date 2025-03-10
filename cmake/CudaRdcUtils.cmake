@@ -925,6 +925,9 @@ function(cuda_rdc_target_link_libraries target)
         set_target_properties(${_target_final} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
         set_target_properties(${_target_object} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
       endif()
+      get_target_property(_link_libraries_final ${_target_final} INTERFACE_LINK_LIBRARIES)
+      list(APPEND _link_libraries_final ${CMAKE_DL_LIBS})
+      set_target_properties(${_target_final} PROPERTIES LINK_LIBRARIES "${_link_libraries_final}")
     endif()
   else() # We could restrict to the case where the dependent is a static library ... maybe
     set_target_properties(${target} PROPERTIES
