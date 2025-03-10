@@ -14,7 +14,7 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/field/UniformFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -172,15 +172,15 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
     SPConstAction build_along_step() override
     {
         auto& action_reg = *this->action_reg();
-        UniformFieldParams field_params;
-        field_params.field = {0, 0, 1e-3 * units::tesla};
+        UniformFieldParams::Input field_inp;
+        field_inp.strength = {0, 0, 1e-3};
 
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr, msc);
+            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
         action_reg.insert(result);
         return result;
     }

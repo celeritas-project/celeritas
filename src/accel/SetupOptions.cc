@@ -116,14 +116,11 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
         // Check if magnitude is zero
-        UniformFieldParams params = u->get_field();
-        auto field_val = norm(params.field);
+        auto field = u->get_field();
+        auto field_val = norm(field.strength);
         if (field_val > 0)
         {
             CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
-            inp::UniformField field;
-            field.strength = params.field;
-            field.driver_options = params.options;
             p.field = std::move(field);
         }
         else
