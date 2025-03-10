@@ -25,12 +25,13 @@ namespace optical
  */
 void RayleighModel::step(CoreParams const& params, CoreStateDevice& state) const
 {
-    launch_action(
-        state,
-        make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                    state.ptr(),
-                                    this->action_id(),
-                                    InteractionApplier{RayleighExecutor{}}));
+    auto execute
+        = make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                      state.ptr(),
+                                      this->action_id(),
+                                      InteractionApplier{RayleighExecutor{}});
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//

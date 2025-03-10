@@ -24,11 +24,12 @@ namespace optical
 void DiscreteSelectAction::step(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    launch_action(state,
-                  make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                              state.ptr(),
-                                              this->action_id(),
-                                              DiscreteSelectExecutor{}));
+    auto execute = make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                               state.ptr(),
+                                               this->action_id(),
+                                               DiscreteSelectExecutor{});
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//
