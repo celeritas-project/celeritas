@@ -11,6 +11,7 @@
 #include "celeritas/optical/CoreState.hh"
 
 #include "ActionLauncher.device.hh"
+#include "DiscreteSelectExecutor.hh"
 #include "TrackSlotExecutor.hh"
 
 namespace celeritas
