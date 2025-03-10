@@ -24,6 +24,7 @@
 
 #include "AlongStep.hh"
 
+#include "detail/FieldFunctors.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/LinearPropagatorFactory.hh"
 #include "detail/MeanELoss.hh"

@@ -9,12 +9,13 @@
 
 #include <functional>
 #include <memory>
-#include <G4LogicalVolume.hh>
 #include <G4ThreeVector.hh>
 
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/inp/Field.hh"
+
+class G4LogicalVolume;
 
 namespace celeritas
 {

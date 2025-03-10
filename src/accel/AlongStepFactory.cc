@@ -7,6 +7,7 @@
 #include "AlongStepFactory.hh"
 
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4LogicalVolume.hh>
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"

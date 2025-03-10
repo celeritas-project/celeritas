@@ -20,6 +20,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepKernels.hh"
+#include "detail/FieldFunctors.hh"
 #include "detail/LinearPropagatorFactory.hh"
 #include "detail/PropagationApplier.hh"
 #include "detail/UniformFieldPropagatorFactory.hh"
@@ -44,7 +45,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         auto execute_thread = ConditionalTrackExecutor{
             params.ptr<MemSpace::native>(),
             state.ptr(),
-            IsAlongStepUniformField{this->action_id(), field},
+            detail::IsAlongStepUniformField{this->action_id(), field},
             detail::PropagationApplier{
                 detail::UniformFieldPropagatorFactory{field}}};
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
@@ -58,7 +59,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         auto execute_thread = ConditionalTrackExecutor{
             params.ptr<MemSpace::native>(),
             state.ptr(),
-            IsAlongStepLinear{this->action_id(), field},
+            detail::IsAlongStepLinear{this->action_id(), field},
             detail::PropagationApplier{detail::LinearPropagatorFactory{}}};
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate-linear");
