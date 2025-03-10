@@ -220,7 +220,7 @@ void GeantSd::setup_volumes(GeoParams const& geo, inp::GeantSd const& setup)
 
     CELER_VALIDATE(
         missing_lv.empty(),
-        << "failed to find unique " << celeritas_core_geo
+        << "failed to find unique " << cmake::core_geo
         << " volume(s) corresponding to Geant4 volume(s) "
         << join_stream(missing_lv.begin(),
                        missing_lv.end(),

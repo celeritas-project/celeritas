@@ -149,8 +149,7 @@ TEST_F(TestEm3DiagnosticTest, host)
                         "stuck on some builds but not others";
     }
 
-    if (this->is_ci_build()
-        && std::string(celeritas_geant4_version) == "11.0.4")
+    if (this->is_ci_build() && std::string(cmake::geant4_version) == "11.0.4")
     {
         static char const* const expected_nonzero_action_keys[] = {
             "annihil-2-gamma e+",

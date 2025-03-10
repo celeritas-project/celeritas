@@ -51,7 +51,7 @@ SimpleCalo::SimpleCalo(std::string output_label,
         }
     }
     CELER_VALIDATE(missing.empty(),
-                   << "failed to find " << celeritas_core_geo
+                   << "failed to find " << cmake::core_geo
                    << " volume(s) for labels '"
                    << join(missing.begin(), missing.end(), "', '"));
 

@@ -50,9 +50,14 @@ endif()
 
 # Save CMake variables as strings
 set(CELERITAS_CMAKE_STRINGS)
+set(CELERITAS_CMAKE_STRINGS_DECL)
+set(CELERITAS_CMAKE_STRINGS_DEF)
 macro(celeritas_append_cmake_string key value)
-  list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${key}[] = R\"(${value})\"\;"
+  list(APPEND CELERITAS_CMAKE_STRINGS_DECL
+    "extern char const ${key}[]\;"
+  )
+  list(APPEND CELERITAS_CMAKE_STRINGS_DEF
+    "char const ${key}[] = R\"(${value})\"\;"
   )
 endmacro()
 
@@ -66,7 +71,7 @@ else()
   endif()
 endif()
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
-  string(TOLOWER "celeritas_${_var}" _lower)
+  string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
 
@@ -78,7 +83,7 @@ elseif(CELERITAS_USE_HIP)
 endif()
 # Arch variable may be ;-separated list, so we need to escape the ;
 string(REPLACE ";" "\;" _gpu_arch "${_gpu_arch}")
-celeritas_append_cmake_string("celeritas_gpu_architectures" "${_gpu_arch}")
+celeritas_append_cmake_string("gpu_architectures" "${_gpu_arch}")
 
 list(APPEND CELERITAS_CMAKE_STRINGS "")
 
@@ -94,10 +99,12 @@ foreach(_pkg CLHEP CUDA HepMC3 HIP Geant4 ROOT Thrust VecGeom)
   else()
     set(_value "")
   endif()
-  celeritas_append_cmake_string("celeritas_${_lower}_version" "${_value}")
+  celeritas_append_cmake_string("${_lower}_version" "${_value}")
 endforeach()
 
-list(JOIN CELERITAS_CMAKE_STRINGS "\n" CELERITAS_CMAKE_STRINGS)
+foreach(_ext DECL DEF)
+  list(JOIN CELERITAS_CMAKE_STRINGS_${_ext} "\n" CELERITAS_CMAKE_STRINGS_${_ext})
+endforeach()
 
 # NOTE: some values are defined in top-level CMakeLists
 # - CELERITAS_HAVE_ROCTX
@@ -125,8 +132,13 @@ set(CELERITAS_VECGEOM_SURFACE ${VecGeom_USE_SURF})
 
 #-----------------------------------------------------------------------------#
 
-celeritas_configure_file("Version.hh.in" "corecel/Version.hh" @ONLY)
 celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
+
+foreach(_file Version Config)
+  celeritas_configure_file("${_file}.hh.in" "corecel/${_file}.hh" @ONLY)
+  configure_file("${_file}.cc.in" "${_file}.cc" @ONLY)
+  list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/${_file}.cc")
+endforeach()
 
 #-----------------------------------------------------------------------------#
 # Main code

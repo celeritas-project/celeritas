@@ -34,7 +34,7 @@ namespace test
 namespace
 {
 auto const geant4_version = celeritas::Version::from_string(
-    CELERITAS_USE_GEANT4 ? celeritas_geant4_version : "0.0.0");
+    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
 
 }  // namespace
 

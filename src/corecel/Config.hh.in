@@ -7,6 +7,9 @@
  * \file corecel/Config.hh
  * \brief Configuration-specific options for Celeritas.
  *
+ * These should be viewed as implementation details for Celeritas. By and
+ * large, they should not change the APIs exposed by the code.
+ *
  * Note that the nonzero values for \c CELERITAS_CORE_RNG and \c
  * CELERITAS_CORE_GEO values *must not* be used directly: only compare between
  * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
@@ -20,6 +23,7 @@
 // User-configurable options for Celeritas
 //---------------------------------------------------------------------------//
 
+// Dependencies
 #cmakedefine01 CELERITAS_USE_CUDA
 #cmakedefine01 CELERITAS_USE_GEANT4
 #cmakedefine01 CELERITAS_USE_HEPMC3
@@ -31,8 +35,17 @@
 #cmakedefine01 CELERITAS_USE_ROOT
 #cmakedefine01 CELERITAS_USE_VECGEOM
 
+// Debugging
 #cmakedefine01 CELERITAS_DEBUG
 #cmakedefine01 CELERITAS_DEVICE_DEBUG
+
+// Device-only options
+#cmakedefine01 CELERITAS_HAVE_ROCTX
+#cmakedefine CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
+
+//---------------------------------------------------------------------------//
+// Core configuration
+//---------------------------------------------------------------------------//
 
 @CELERITAS_REAL_TYPE_CONFIG@
 
@@ -44,21 +57,27 @@
 
 @CELERITAS_CORE_RNG_CONFIG@
 
-#define CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
+//---------------------------------------------------------------------------//
+// System-specific properties for Celeritas
+//---------------------------------------------------------------------------//
+
+// External system properties
+@CELERITAS_SINCOSPI_PREFIX_DEF@
+
+// Versions of software dependencies
+@CELERITAS_DEPENDENCY_VERSIONS@
+
+// Configurations of software dependencies
+#cmakedefine01 CELERITAS_VECGEOM_SURFACE
 
 //---------------------------------------------------------------------------//
 // Detailed CMake configuration information
 //---------------------------------------------------------------------------//
 
-@CELERITAS_CMAKE_STRINGS@
-
-//---------------------------------------------------------------------------//
-// System-specific properties for Celeritas
-//---------------------------------------------------------------------------//
-
-#cmakedefine01 CELERITAS_HAVE_ROCTX
-@CELERITAS_SINCOSPI_PREFIX_DEF@
-
-@CELERITAS_DEPENDENCY_VERSIONS@
-
-#cmakedefine01 CELERITAS_VECGEOM_SURFACE
+namespace celeritas
+{
+namespace cmake
+{
+@CELERITAS_CMAKE_STRINGS_DECL@
+}
+}

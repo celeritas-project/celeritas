@@ -27,7 +27,7 @@ namespace celeritas
 void BuildOutput::output(JsonPimpl* j) const
 {
     auto obj = nlohmann::json::object({
-        {"version", std::string(celeritas_version)},
+        {"version", std::string(version_string)},
     });
 
     obj["config"] = [] {
@@ -52,7 +52,7 @@ void BuildOutput::output(JsonPimpl* j) const
             return options;
         }();
 
-#define CO_ADD_CFG(NAME) cfg[#NAME] = celeritas_##NAME;
+#define CO_ADD_CFG(NAME) cfg[#NAME] = std::string(cmake::NAME);
         CO_ADD_CFG(build_type);
         CO_ADD_CFG(hostname);
         CO_ADD_CFG(real_type);
@@ -67,78 +67,25 @@ void BuildOutput::output(JsonPimpl* j) const
         cfg["versions"] = [] {
             auto deps = nlohmann::json::object();
 
-            if constexpr (CELERITAS_USE_GEANT4)
-            {
-                deps["CLHEP"] = celeritas_clhep_version;
-                deps["Geant4"] = celeritas_geant4_version;
-            }
-            if constexpr (CELERITAS_USE_CUDA)
-            {
-                deps["CUDA"] = celeritas_cuda_version;
-                deps["Thrust"] = celeritas_thrust_version;
-            }
-            if constexpr (CELERITAS_USE_HEPMC3)
-            {
-                deps["HepMC3"] = celeritas_hepmc3_version;
-            }
-            if constexpr (CELERITAS_USE_HIP)
-            {
-                deps["HIP"] = celeritas_hip_version;
-            }
-            if constexpr (CELERITAS_USE_ROOT)
-            {
-                deps["ROOT"] = celeritas_root_version;
-            }
-            if constexpr (CELERITAS_USE_VECGEOM)
-            {
-                deps["VecGeom"] = celeritas_vecgeom_version;
-            }
+#define CO_ADD_COND_VERS(USE, NAME, LOWER)                 \
+    if constexpr (CELERITAS_USE_##USE)                     \
+    {                                                      \
+        deps[#NAME] = std::string(cmake::LOWER##_version); \
+    }
+            CO_ADD_COND_VERS(GEANT4, CLHEP, clhep);
+            CO_ADD_COND_VERS(GEANT4, Geant4, geant4);
+            CO_ADD_COND_VERS(CUDA, CUDA, cuda);
+            CO_ADD_COND_VERS(CUDA, Thrust, thrust);
+            CO_ADD_COND_VERS(HEPMC3, HepMC3, hepmc3);
+            CO_ADD_COND_VERS(HIP, HIP, hip);
+            CO_ADD_COND_VERS(ROOT, ROOT, root);
+            CO_ADD_COND_VERS(VECGEOM, VecGeom, vecgeom);
+#undef CO_ADD_COND_VERS
             return deps;
         }();
 
         return cfg;
     }();
-
-    // DEPRECATED: remove in v0.6
-    {
-        auto& cfg = obj["config"];
-
-#define CO_SAVE_CFG(NAME) cfg[#NAME] = bool(NAME)
-        CO_SAVE_CFG(CELERITAS_USE_CUDA);
-        CO_SAVE_CFG(CELERITAS_USE_GEANT4);
-        CO_SAVE_CFG(CELERITAS_USE_HEPMC3);
-        CO_SAVE_CFG(CELERITAS_USE_HIP);
-        CO_SAVE_CFG(CELERITAS_USE_MPI);
-        CO_SAVE_CFG(CELERITAS_USE_OPENMP);
-        CO_SAVE_CFG(CELERITAS_USE_ROOT);
-        CO_SAVE_CFG(CELERITAS_USE_VECGEOM);
-        CO_SAVE_CFG(CELERITAS_DEBUG);
-#undef CO_SAVE_CFG
-        cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
-        cfg["CELERITAS_HOSTNAME"] = celeritas_hostname;
-        cfg["CELERITAS_REAL_TYPE"] = celeritas_real_type;
-        cfg["CELERITAS_CORE_GEO"] = celeritas_core_geo;
-        cfg["CELERITAS_CORE_RNG"] = celeritas_core_rng;
-        cfg["CELERITAS_UNITS"] = celeritas_units;
-        if constexpr (CELERITAS_USE_GEANT4)
-        {
-            cfg["CLHEP_VERSION"] = celeritas_clhep_version;
-            cfg["Geant4_VERSION"] = celeritas_geant4_version;
-        }
-        if constexpr (CELERITAS_USE_CUDA)
-        {
-            cfg["CUDA_VERSION"] = celeritas_cuda_version;
-            cfg["Thrust_VERSION"] = celeritas_thrust_version;
-        }
-        if constexpr (CELERITAS_USE_HIP)
-        {
-            cfg["HIP_VERSION"] = celeritas_hip_version;
-        }
-        if constexpr (CELERITAS_USE_VECGEOM)
-        {
-            cfg["VecGeom_VERSION"] = celeritas_vecgeom_version;
-        }
-    }
 
     j->obj = std::move(obj);
 }

@@ -1355,7 +1355,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         else if (!successful_reentry)
         {
             // This happens in Geant4 and *sometimes* in vecgeom
-            CELER_LOG(warning) << "Reentry failed for " << celeritas_core_geo
+            CELER_LOG(warning) << "Reentry failed for " << cmake::core_geo
                                << " geometry: post-propagation volume is "
                                << this->volume_name(geo);
         }

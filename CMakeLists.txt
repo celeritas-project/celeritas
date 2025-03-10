@@ -91,7 +91,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
   )
 else()
-  set(CELERITAS_MAX_BLOCK_SIZE 0)
+  set(CELERITAS_MAX_BLOCK_SIZE)
 endif()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

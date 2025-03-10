@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GeoVolumeFinder.hh"
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 
@@ -31,7 +33,7 @@ VolumeId GeoVolumeFinder::operator()(Label const& label) const
         if (!label.ext.empty())
         {
             CELER_LOG(warning)
-                << "Failed to exactly match " << celeritas_core_geo
+                << "Failed to exactly match " << cmake::core_geo
                 << " volume from volume '" << label << "'; found '"
                 << vols_.at(all_ids.front()) << "' by omitting the extension";
         }
