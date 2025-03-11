@@ -213,6 +213,10 @@ if(CELERITAS_USE_CUDA)
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
+  # NVTX requires `-ldl`
+  # This does not appears to be needed anymore with
+  # CMake 3.26.5 and CUDA sdk 12.6.
+  list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
 endif()
 
 if(CELERITAS_USE_HIP)
