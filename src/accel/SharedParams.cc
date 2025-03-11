@@ -711,6 +711,12 @@ void SharedParams::initialize_core(SetupOptions const& options)
         SlotDiagnostic::make_and_insert(*params_,
                                         options.slot_diagnostic_prefix);
     }
+
+    // Add user diagnostics
+    if (options.add_user_actions)
+    {
+        options.add_user_actions(*params_);
+    }
 }
 
 //---------------------------------------------------------------------------//
