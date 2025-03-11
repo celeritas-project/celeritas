@@ -32,14 +32,21 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Add executable
-add_executable(run-offload
-  main.cc
+
+set(SOURCES
   src/ActionInitialization.cc
   src/DetectorConstruction.cc
   src/MakeCelerOptions.cc
   src/PrimaryGeneratorAction.cc
   src/RunAction.cc
   src/SensitiveDetector.cc
+)
+# Add .cc and also, if using CUDA/HIP, .cu
+celeritas_polysource_append(SOURCES src/StepDiagnostic)
+
+add_executable(run-offload
+  main.cc
+  ${SOURCES}
 )
 
 target_include_directories(run-offload PRIVATE
