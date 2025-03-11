@@ -10,10 +10,12 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Units.hh"
 
 #include "RZPhiMapFieldData.hh"
@@ -76,8 +78,9 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         // For phi, ensure we're creating a periodic grid
         // If the input specifies a full circle, adjust the grid to handle
         // periodicity
-        bool is_full_circle = std::abs((inp.max_phi - inp.min_phi) - 2 * M_PI)
-                              < 1e-6;
+
+        bool is_full_circle = soft_zero(
+            std::abs((inp.max_phi - inp.min_phi) - 2. * constants::pi));
         if (is_full_circle)
         {
             // For a full circle, we need one fewer phi point since phi=0 and

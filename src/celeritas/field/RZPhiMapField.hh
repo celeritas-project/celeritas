@@ -8,11 +8,13 @@
 
 #include <cmath>
 
+#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/grid/FindInterp.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
@@ -86,7 +88,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Ensure phi is in [0, 2π)
     if (phi < 0)
-        phi += 2 * M_PI;
+        phi += 2. * constants::pi;
 
     // Handle phi periodicity for field map
     if (phi == grid_phi_.back())
@@ -105,8 +107,9 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Check if we have a full circle (max_phi ~= min_phi + 2π)
     bool is_full_circle
-        = std::abs((grid_phi_.back() - grid_phi_.front()) - 2 * M_PI) < 1e-6
-          || std::abs((grid_phi_.back() - grid_phi_.front())) < 1e-6;
+        = soft_zero(std::abs((grid_phi_.back() - grid_phi_.front())
+                             - 2. * constants::pi))
+          || soft_zero(std::abs((grid_phi_.back() - grid_phi_.front())));
 
     if (is_full_circle)
     {
@@ -116,7 +119,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
             // If phi is at or beyond the last grid point, wrap to the first
             // grid point
             phi = grid_phi_.front()
-                  + std::fmod(phi - grid_phi_.front(), 2 * M_PI);
+                  + std::fmod(phi - grid_phi_.front(), 2. * constants::pi);
         }
     }
 
