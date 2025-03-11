@@ -57,6 +57,7 @@ class SharedParams
   public:
     //!@{
     //! \name Type aliases
+    using SPParams = std::shared_ptr<CoreParams>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
     //!@}
@@ -110,6 +111,9 @@ class SharedParams
     //!@}
     //!@{
     //! \name Accessors
+
+    // Access constructed Celeritas data
+    inline SPParams const& Params();
 
     // Access constructed Celeritas data
     inline SPConstParams Params() const;
@@ -188,6 +192,19 @@ class SharedParams
 void SharedParams::Initialize(SetupOptions const& options)
 {
     *this = SharedParams(options);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access Celeritas data.
+ *
+ * This can only be called after \c Initialize.
+ */
+auto SharedParams::Params() -> SPParams const&
+{
+    CELER_EXPECT(mode_ == Mode::enabled);
+    CELER_ENSURE(params_);
+    return params_;
 }
 
 //---------------------------------------------------------------------------//
