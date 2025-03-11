@@ -122,7 +122,6 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Now find the interpolation point
     interp_phi = find_interp<UniformGrid>(grid_phi_, phi);
-
     size_type ir = interp_r.index;
     size_type iz = interp_z.index;
     size_type iphi = interp_phi.index;
@@ -210,22 +209,17 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
                                    + wr1 * (wphi0 * v110 + wphi1 * v111));
 
     // Project cylindrical components to Cartesian coordinates
-    real_type cos_phi = cos(phi);
-    real_type sin_phi = sin(phi);
+    // default for r == 0
+    real_type cos_phi = 1.;
+    real_type sin_phi = 0.;
 
-    // If r is zero, we can't normalize the radial component
     if (r != 0)
     {
-        value[0] = field_r * cos_phi - field_phi * sin_phi;
-        value[1] = field_r * sin_phi + field_phi * cos_phi;
+        cos_phi = pos[0] / r;
+        sin_phi = pos[1] / r;
     }
-    else
-    {
-        // At r=0, the phi direction is undefined, so we just use the first
-        // value
-        value[0] = field_r;
-        value[1] = field_phi;
-    }
+    value[0] = field_r * cos_phi - field_phi * sin_phi;
+    value[1] = field_r * sin_phi + field_phi * cos_phi;
 
     return value;
 }
