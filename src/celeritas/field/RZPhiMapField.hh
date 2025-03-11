@@ -107,9 +107,9 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Check if we have a full circle (max_phi ~= min_phi + 2π)
     bool is_full_circle
-        = soft_zero(std::abs((grid_phi_.back() - grid_phi_.front())
-                             - 2. * constants::pi))
-          || soft_zero(std::abs((grid_phi_.back() - grid_phi_.front())));
+        = soft_zero(std::fabs((grid_phi_.back() - grid_phi_.front())
+                              - 2. * constants::pi))
+          || soft_zero(std::fabs((grid_phi_.back() - grid_phi_.front())));
 
     if (is_full_circle)
     {

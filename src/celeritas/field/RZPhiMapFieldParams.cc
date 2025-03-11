@@ -80,7 +80,7 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         // periodicity
 
         bool is_full_circle = soft_zero(
-            std::abs((inp.max_phi - inp.min_phi) - 2. * constants::pi));
+            std::fabs((inp.max_phi - inp.min_phi) - 2. * constants::pi));
         if (is_full_circle)
         {
             // For a full circle, we need one fewer phi point since phi=0 and
