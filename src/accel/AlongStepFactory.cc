@@ -7,6 +7,7 @@
 #include "AlongStepFactory.hh"
 
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4LogicalVolume.hh>
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -17,6 +18,7 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/ext/GeantVolumeMapper.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/io/ImportData.hh"
@@ -38,6 +40,18 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with field strength and the volumes where field is present.
+ */
+UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f,
+                                                 VecVolume volumes)
+    : get_field_(std::move(f)), volumes_(std::move(volumes))
+{
+    CELER_EXPECT(get_field_);
+    CELER_EXPECT(!volumes_.empty());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Emit an along-step action.
  *
  * The action will embed the linear propagator if the magnetic field strength
@@ -47,20 +61,41 @@ auto UniformAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
-    auto field_params = this->get_field();
-    auto magnitude
-        = native_value_to<units::FieldTesla>(norm(field_params.field));
+    auto field = this->get_field();
+    auto magnitude = norm(field.strength);
 
-    if (magnitude > zero_quantity())
+    if (magnitude > 0)
     {
+        // Get the IDs of the volumes with field
+        if (!volumes_.empty())
+        {
+            field.volumes.reserve(volumes_.size());
+            GeantVolumeMapper find_volume(*input.geometry);
+            for (auto const* lv : volumes_)
+            {
+                CELER_ASSERT(lv);
+                auto vol = find_volume(*lv);
+                CELER_VALIDATE(
+                    vol,
+                    << "failed to find volume corresponding to Geant4 volume "
+                    << lv->GetName() << " while setting up uniform field");
+                field.volumes.push_back(vol);
+            }
+        }
+
         // Create a uniform field
-        CELER_LOG(info) << "Creating along-step action with field strength "
-                        << magnitude;
+        CELER_LOG(info)
+            << "Creating along-step action with field strength " << magnitude
+            << " T in "
+            << (field.volumes.empty() ? "all" : std::to_string(volumes_.size()))
+            << " volumes";
+
         return celeritas::AlongStepUniformMscAction::from_params(
             input.action_id,
+            *input.geometry,
             *input.material,
             *input.particle,
-            field_params,
+            field,
             celeritas::UrbanMscParams::from_import(
                 *input.particle, *input.material, *input.imported),
             input.imported->em_params.energy_loss_fluct);
@@ -82,9 +117,9 @@ auto UniformAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-UniformFieldParams UniformAlongStepFactory::get_field() const
+auto UniformAlongStepFactory::get_field() const -> FieldInput
 {
-    return get_field_ ? get_field_() : UniformFieldParams{};
+    return get_field_ ? get_field_() : FieldInput{};
 }
 
 //---------------------------------------------------------------------------//

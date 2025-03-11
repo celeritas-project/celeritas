@@ -20,10 +20,13 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/track/TrackFunctors.hh"
 
 #include "AlongStep.hh"
 
+#include "detail/FieldFunctors.hh"
 #include "detail/FluctELoss.hh"
+#include "detail/LinearPropagatorFactory.hh"
 #include "detail/MeanELoss.hh"
 #include "detail/UniformFieldPropagatorFactory.hh"
 
@@ -35,9 +38,10 @@ namespace celeritas
  */
 std::shared_ptr<AlongStepUniformMscAction>
 AlongStepUniformMscAction::from_params(ActionId id,
+                                       GeoParams const& geometry,
                                        MaterialParams const& materials,
                                        ParticleParams const& particles,
-                                       UniformFieldParams const& field_params,
+                                       Input const& field_input,
                                        SPConstMsc msc,
                                        bool eloss_fluctuation)
 {
@@ -48,34 +52,25 @@ AlongStepUniformMscAction::from_params(ActionId id,
     }
 
     return std::make_shared<AlongStepUniformMscAction>(
-        id, field_params, std::move(fluct), msc);
+        id, geometry, field_input, std::move(fluct), msc);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with MSC data and field driver options.
  */
-AlongStepUniformMscAction::AlongStepUniformMscAction(
-    ActionId id,
-    UniformFieldParams const& field_params,
-    SPConstFluctuations fluct,
-    SPConstMsc msc)
+AlongStepUniformMscAction::AlongStepUniformMscAction(ActionId id,
+                                                     GeoParams const& geometry,
+                                                     Input const& input,
+                                                     SPConstFluctuations fluct,
+                                                     SPConstMsc msc)
     : id_(id)
+    , field_{std::make_shared<UniformFieldParams>(geometry, input)}
     , fluct_(std::move(fluct))
     , msc_(std::move(msc))
-    , field_params_(field_params)
 {
     CELER_EXPECT(id_);
-
-    if (norm(field_params_.field) == 0)
-    {
-        CELER_LOG(warning) << "along-step uniform field has zero field "
-                              "strength";
-    }
-    else
-    {
-        validate_input(field_params_.options);
-    }
+    CELER_EXPECT(field_);
 }
 
 //---------------------------------------------------------------------------//
@@ -108,7 +103,15 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{UniformFieldPropagatorFactory{field_params_}}(track);
+        if (IsInUniformField{field_->ref<MemSpace::native>()}(track))
+        {
+            PropagationApplier{UniformFieldPropagatorFactory{
+                field_->ref<MemSpace::native>()}}(track);
+        }
+        else
+        {
+            PropagationApplier{LinearPropagatorFactory{}}(track);
+        }
         if (this->has_msc())
         {
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

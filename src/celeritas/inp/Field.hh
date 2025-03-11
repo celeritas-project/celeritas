@@ -7,6 +7,7 @@
 #pragma once
 
 #include <variant>
+#include <vector>
 
 #include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
@@ -28,6 +29,8 @@ struct NoField
 /*!
  * Create a uniform nonzero field.
  *
+ * If volumes are specified, the field will only be present in those volumes.
+ *
  * \todo Field driver options will be separate from the magnetic field. They,
  * plus the field type, will be specified in a FieldParams that maps
  * region/particle/energy to field setup. NOTE ALSO that \c
@@ -44,6 +47,9 @@ struct UniformField
 
     //! Field driver options
     FieldDriverOptions driver_options;
+
+    //! Volumes where the field is present (optional)
+    std::vector<VolumeId> volumes;
 };
 
 //---------------------------------------------------------------------------//
