@@ -42,10 +42,11 @@ struct RZPhiMapFieldInput
     double min_r{};  //!< Lower r coordinate [len]
     double max_r{};  //!< Last r coordinate [len]
     double min_phi{};  //!< Lower phi coordinate [rad]
-    double max_phi{};  //!< Last phi coordinate [rad], typically 2π for full
-                       //!< coverage Note: For a full circle (max_phi - min_phi
-                       //!< = 2π), the field is treated as periodic, with
-                       //!< points at max_phi equivalent to points at min_phi.
+    double max_phi{};  //!< Last phi coordinate [rad], typically 2\f$\pi\f$ for
+                       //!< full coverage Note: For a full circle (max_phi -
+                       //!< min_phi = 2\f$\pi\f$), the field is treated as
+                       //!< periodic, with points at max_phi equivalent to
+                       //!< points at min_phi.
     std::vector<double> field_z;  //!< Flattened Z field component [bfield]
     std::vector<double> field_r;  //!< Flattened R field component [bfield]
     std::vector<double> field_phi;  //!< Flattened Phi field component [bfield]

@@ -86,7 +86,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     real_type r = hypot(pos[0], pos[1]);
     real_type phi = atan2(pos[1], pos[0]);
 
-    // Ensure phi is in [0, 2π)
+    // Ensure phi is in [0, 2\f$\pi\f$)
     if (phi < 0)
         phi += 2. * constants::pi;
 
@@ -105,7 +105,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     // Special handling for phi to account for periodicity
     FindInterp<real_type> interp_phi;
 
-    // Check if we have a full circle (max_phi ~= min_phi + 2π)
+    // Check if we have a full circle (max_phi ~= min_phi + 2\f$\pi\f$)
     bool is_full_circle
         = soft_zero(std::fabs((grid_phi_.back() - grid_phi_.front())
                               - 2. * constants::pi))
@@ -147,11 +147,8 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
 
     // Perform trilinear interpolation for each field component
     // Define the interpolation weights
-    real_type wr0 = 1.0 - interp_r.fraction;
     real_type wr1 = interp_r.fraction;
-    real_type wz0 = 1.0 - interp_z.fraction;
     real_type wz1 = interp_z.fraction;
-    real_type wphi0 = 1.0 - interp_phi.fraction;
     real_type wphi1 = interp_phi.fraction;
 
     // Get the eight corner values for Z component of the field
@@ -168,12 +165,12 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
         = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi_next)].value_z;
 
     // Trilinear interpolation formula for Z component
-    value[2] = wz0
-                   * (wr0 * (wphi0 * v000 + wphi1 * v001)
-                      + wr1 * (wphi0 * v010 + wphi1 * v011))
+    value[2] = (1 - wz1)
+                   * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
+                      + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
                + wz1
-                     * (wr0 * (wphi0 * v100 + wphi1 * v101)
-                        + wr1 * (wphi0 * v110 + wphi1 * v111));
+                     * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
+                        + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
 
     // Get the eight corner values for R component of the field
     v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_r;
@@ -186,12 +183,12 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi_next)].value_r;
 
     // Interpolate for R component
-    real_type field_r = wz0
-                            * (wr0 * (wphi0 * v000 + wphi1 * v001)
-                               + wr1 * (wphi0 * v010 + wphi1 * v011))
+    real_type field_r = (1 - wz1)
+                            * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
+                               + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
                         + wz1
-                              * (wr0 * (wphi0 * v100 + wphi1 * v101)
-                                 + wr1 * (wphi0 * v110 + wphi1 * v111));
+                              * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
+                                 + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
 
     // Get the eight corner values for Phi component of the field
     v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_phi;
@@ -204,12 +201,13 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi_next)].value_phi;
 
     // Interpolate for Phi component
-    real_type field_phi = wz0
-                              * (wr0 * (wphi0 * v000 + wphi1 * v001)
-                                 + wr1 * (wphi0 * v010 + wphi1 * v011))
-                          + wz1
-                                * (wr0 * (wphi0 * v100 + wphi1 * v101)
-                                   + wr1 * (wphi0 * v110 + wphi1 * v111));
+    real_type field_phi
+        = (1 - wz1)
+              * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
+                 + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
+          + wz1
+                * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
+                   + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
 
     // Project cylindrical components to Cartesian coordinates
     // default for r == 0

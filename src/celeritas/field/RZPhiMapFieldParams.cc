@@ -81,30 +81,20 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
 
         bool is_full_circle = soft_zero(
             std::fabs((inp.max_phi - inp.min_phi) - 2. * constants::pi));
-        if (is_full_circle)
+        if (is_full_circle && inp.num_grid_phi > 2)
         {
             // For a full circle, we need one fewer phi point since phi=0 and
-            // phi=2π are the same Create a grid from [min_phi, max_phi) where
-            // the last point is just before max_phi
-            if (inp.num_grid_phi > 2)
-            {
-                // Adjust delta to ensure we don't include the duplicate point
-                // at max_phi
-                real_type delta_phi = (inp.max_phi - inp.min_phi)
-                                      / (inp.num_grid_phi - 1);
-                real_type adjusted_max_phi
-                    = inp.max_phi - delta_phi / 100;  // Slightly less than
-                                                      // max_phi
+            // phi=2\f$\pi\f$ are the same Create a grid from [min_phi,
+            // max_phi) where the last point is just before max_phi Adjust
+            // delta to ensure we don't include the duplicate point at max_phi
+            real_type delta_phi = (inp.max_phi - inp.min_phi)
+                                  / (inp.num_grid_phi - 1);
+            real_type adjusted_max_phi = inp.max_phi
+                                         - delta_phi / 100;  // Slightly less
+                                                             // than max_phi
 
-                host.grids.data_phi = UniformGridData::from_bounds(
-                    inp.min_phi, adjusted_max_phi, inp.num_grid_phi - 1);
-            }
-            else
-            {
-                // If we have too few points, just use the regular grid
-                host.grids.data_phi = UniformGridData::from_bounds(
-                    inp.min_phi, inp.max_phi, inp.num_grid_phi);
-            }
+            host.grids.data_phi = UniformGridData::from_bounds(
+                inp.min_phi, adjusted_max_phi, inp.num_grid_phi - 1);
         }
         else
         {
