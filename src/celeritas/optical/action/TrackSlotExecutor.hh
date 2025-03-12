@@ -12,7 +12,7 @@
 #include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
-#include "celeritas/track/SimFunctors.hh"
+#include "celeritas/track/TrackFunctors.hh"
 
 namespace celeritas
 {
@@ -74,7 +74,7 @@ class TrackSlotExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the track only when a certain condition applies to the sim state.
+ * Launch the track only when a certain condition applies.
  *
  * The condition \c C must have the signature \code
  * (SimTrackView const&) -> bool
@@ -113,7 +113,7 @@ class ConditionalTrackSlotExecutor
     {
         CELER_EXPECT(ts < state_->size());
         CoreTrackView track(*params_, *state_, ts);
-        if (!applies_(track.sim()))
+        if (!applies_(track))
         {
             return;
         }
