@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/src/ActionInitialization.cc
+//! \file offload-template/src/ActionInitialization.cc
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
@@ -11,6 +11,10 @@
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
+namespace celeritas
+{
+namespace example
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct empty.
@@ -44,3 +48,6 @@ void ActionInitialization::Build() const
     this->SetUserAction(new RunAction());
     this->SetUserAction(new PrimaryGeneratorAction());
 }
+
+}  // namespace example
+}  // namespace celeritas

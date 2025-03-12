@@ -14,19 +14,21 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <CLI/CLI.hpp>
+#include <nlohmann/json.hpp>
 
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
 
-#include <nlohmann/json.hpp>
-
 #include "corecel/Config.hh"
 #include "corecel/DeviceRuntimeApi.hh"
 #include "corecel/Version.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
@@ -42,6 +44,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 
+#include "CliUtils.hh"
 #include "Runner.hh"
 #include "RunnerInput.hh"
 #include "RunnerInputIO.json.hh"
@@ -72,14 +75,17 @@ int get_openmp_thread()
 /*!
  * Run, launch, and get output.
  */
-std::shared_ptr<OutputRegistry> run(std::istream* is)
+void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 {
-    CELER_EXPECT(is);
     ScopedMem record_mem("celer-sim.run");
 
-    // Read input options and save a copy for output
-    auto run_input = std::make_shared<RunnerInput>();
-    nlohmann::json::parse(*is).get_to(*run_input);
+    // Read input options
+    auto run_input = [&filename] {
+        celeritas::FileOrStdin instream{filename};
+        auto result = std::make_shared<RunnerInput>();
+        nlohmann::json::parse(instream).get_to(*result);
+        return result;
+    }();
 
     // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
@@ -95,7 +101,7 @@ std::shared_ptr<OutputRegistry> run(std::istream* is)
         run_input->transporter_result ? run_stream.num_events() : 1);
 
     // Add processed input to resulting output
-    auto output = run_stream.core_params().output_reg();
+    output = run_stream.core_params().output_reg();
     CELER_ASSERT(output);
     output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
         OutputInterface::Category::input, "*", run_input));
@@ -159,20 +165,20 @@ std::shared_ptr<OutputRegistry> run(std::istream* is)
     result.total_time = get_transport_time();
     record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
-
-    return output;
 }
 
-//---------------------------------------------------------------------------//
-void print_usage(std::string_view exec_name)
+std::string get_device_string()
 {
-    // clang-format off
-    std::cerr << "usage: " << exec_name << " {input}.json\n"
-                 "       " << exec_name << " [--help|-h]\n"
-                 "       " << exec_name << " --version\n"
-                 "       " << exec_name << " --config\n"
-                 "       " << exec_name << " --dump-default\n";
-    // clang-format on
+    celeritas::activate_device();
+
+    CELER_VALIDATE(celeritas::Device::num_devices() != 0,
+                   << "No GPUs were detected");
+    return nlohmann::json(celeritas::device()).dump(1);
+}
+
+std::string get_default_string()
+{
+    return nlohmann::json(celeritas::app::RunnerInput{}).dump(1);
 }
 
 //---------------------------------------------------------------------------//
@@ -180,100 +186,80 @@ void print_usage(std::string_view exec_name)
 }  // namespace app
 }  // namespace celeritas
 
-//---------------------------------------------------------------------------//
-/*!
- * Execute and run.
- */
 int main(int argc, char* argv[])
 {
-    using celeritas::ScopedMpiInit;
-    using celeritas::to_string;
+    using namespace celeritas::app;
     using std::cout;
     using std::endl;
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    // Set up MPI
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "TODO: this app cannot run in parallel";
         return EXIT_FAILURE;
     }
 
-    // Process input arguments
-    if (argc != 2)
+    // Set up app
+    auto& cli = cli_app();
+    cli.description("Run standalone Celeritas");
+
+    // TODO for 1.0: instead of separate flags, make these subcommands
+    std::string filename;
+    cli.add_option("filename", filename, "Input JSON")
+        ->check(CLI::ExistingFile | dash_validator());
+
+    std::function<std::string()> diagnostic;
+    auto set_diagnostic = [&diagnostic](auto func) {
+        return [&diagnostic, func = std::move(func)](auto count) {
+            CELER_DISCARD(count);
+            if (diagnostic)
+            {
+                throw ConflictingArguments{
+                    R"(only a single diagnostic is allowed)"};
+            }
+            diagnostic = std::move(func);
+        };
+    };
+    cli.add_flag(
+        "--config",
+        set_diagnostic([] { return to_string(celeritas::BuildOutput{}); }),
+        "Show configuration");
+    cli.add_flag("--dump-default",
+                 set_diagnostic(get_default_string),
+                 "Dump default input");
+    cli.add_flag("--device",
+                 set_diagnostic(get_device_string),
+                 "Show device information");
+
+    // Parse and run
+    CELER_CLI11_PARSE(argc, argv);
+
+    if ((!filename.empty() + (diagnostic ? 1 : 0)) != 1)
     {
-        celeritas::app::print_usage(argv[0]);
-        return EXIT_FAILURE;
-    }
-    std::string_view filename{argv[1]};
-    if (filename == "--help"sv || filename == "-h"sv)
-    {
-        celeritas::app::print_usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
-    if (filename == "--version"sv || filename == "-v"sv)
-    {
-        std::cout << celeritas::version_string << std::endl;
-        return EXIT_SUCCESS;
-    }
-    if (filename == "--config"sv)
-    {
-        std::cout << to_string(celeritas::BuildOutput{}) << std::endl;
-        return EXIT_SUCCESS;
-    }
-    if (filename == "--dump-default"sv)
-    {
-        std::cout << nlohmann::json(celeritas::app::RunnerInput{}).dump(1)
-                  << std::endl;
-        return EXIT_SUCCESS;
+        return process_parse_error(ConflictingArguments{
+            R"(provide an input file or a diagnostic flag)"});
     }
 
-    // Initialize GPU
-    if (filename == "--device"sv)
+    if (diagnostic)
     {
-        celeritas::activate_device();
-
-        if (celeritas::Device::num_devices() == 0)
-        {
-            CELER_LOG(critical) << "No GPUs were detected";
-            return EXIT_FAILURE;
-        }
-        std::cout << nlohmann::json(celeritas::device()).dump(1) << std::endl;
-        return EXIT_SUCCESS;
+        // Print diagnostic and immediately exit
+        auto print_diagnostic
+            = [&diagnostic] { std::cout << diagnostic() << std::endl; };
+        return run_safely(print_diagnostic);
     }
 
-    std::ifstream infile;
-    std::istream* instream = nullptr;
-    if (filename == "-")
-    {
-        instream = &std::cin;
-        filename = "<stdin>";  // For nicer output on failure
-    }
-    else
-    {
-        // Open the specified file
-        infile.open(std::string{filename});
-        if (!infile)
-        {
-            CELER_LOG(critical) << "Failed to open '" << filename << "'";
-            return EXIT_FAILURE;
-        }
-        instream = &infile;
-    }
-
-    // Set up output
+    // Run and save output
     std::shared_ptr<celeritas::OutputRegistry> output;
-
     int return_code = EXIT_SUCCESS;
     try
     {
-        output = celeritas::app::run(instream);
-        CELER_ASSERT(output);
+        run(output, filename);
     }
     catch (std::exception const& e)
     {
-        CELER_LOG(critical)
-            << "While running input at " << filename << ": " << e.what();
-        return_code = EXIT_FAILURE;
+        return_code = process_runtime_error(e);
+
         if (!output)
         {
             output = std::make_shared<celeritas::OutputRegistry>();
@@ -282,11 +268,18 @@ int main(int argc, char* argv[])
             std::current_exception()));
     }
 
-    // Write system properties and (if available) results
-    CELER_LOG(status) << "Saving output";
-    CELER_ASSERT(output);
-    output->output(&cout);
-    cout << endl;
+    if (!output)
+    {
+        CELER_LOG(warning) << "No output available";
+        std::cout << "null\n";
+        return_code = EXIT_FAILURE;
+    }
+    else
+    {
+        CELER_LOG(status) << "Saving output";
+        output->output(&std::cout);
+        std::cout << std::endl;
+    }
 
     // Delete streams before end of program (TODO: this is because of a static
     // initialization order issue; CUDA can be deactivated before the global

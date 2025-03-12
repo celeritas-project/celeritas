@@ -2,12 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/src/RunAction.cc
+//! \file offload-template/src/RunAction.cc
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
 #include <accel/TrackingManagerIntegration.hh>
 
+namespace celeritas
+{
+namespace example
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct empty.
@@ -31,3 +35,6 @@ void RunAction::EndOfRunAction(G4Run const* run)
 {
     celeritas::TrackingManagerIntegration::Instance().EndOfRunAction(run);
 }
+
+}  // namespace example
+}  // namespace celeritas

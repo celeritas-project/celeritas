@@ -275,7 +275,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
   )
 endif()
 
-
 celeritas_target_include_directories(corecel
   PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
@@ -286,5 +285,15 @@ celeritas_target_link_libraries(corecel
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
+
+#-----------------------------------------------------------------------------#
+# Create library
+#-----------------------------------------------------------------------------#
+
+celeritas_add_src_library(corecel_mpi INTERFACE)
+
+if(CELERITAS_USE_MPI)
+  target_link_libraries(corecel_mpi INTERFACE MPI::MPI_CXX)
+endif()
 
 #-----------------------------------------------------------------------------#

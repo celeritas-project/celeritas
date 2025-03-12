@@ -10,11 +10,14 @@
 #include <fstream>
 #include <initializer_list>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
+#include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -27,23 +30,15 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportDataTrimmer.hh"
 
+#include "CliUtils.hh"
+#include "CLI/CLI.hpp"
+
 namespace celeritas
 {
 namespace app
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-void print_usage(char const* exec_name)
-{
-    // clang-format off
-    std::cerr
-        << "usage: " << exec_name << " {input}.gdml "
-                                     "[{options}.json, -, ''] {output}.[root, json]\n"
-           "       " << exec_name << " {input}.gdml [{options.json, -, ''] {output}.[root, json] --gen-test\n"
-           "       " << exec_name << " --dump-default\n";
-    // clang-format on
-}
 
 //---------------------------------------------------------------------------//
 
@@ -56,21 +51,12 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
         // ... but add verbosity
         options.verbose = true;
     }
-    else if (option_filename == "-")
-    {
-        auto inp = nlohmann::json::parse(std::cin);
-        inp.get_to(options);
-        CELER_LOG(info) << "Loaded Geant4 setup options: "
-                        << nlohmann::json{options}.dump();
-    }
     else
     {
-        std::ifstream infile(option_filename);
-        CELER_VALIDATE(infile, << "failed to open '" << option_filename << "'");
-        auto inp = nlohmann::json::parse(infile);
-        inp.get_to(options);
+        FileOrStdin infile(option_filename);
+        nlohmann::json::parse(infile).get_to(options);
         CELER_LOG(info) << "Loaded Geant4 setup options from "
-                        << option_filename << ": "
+                        << infile.filename() << ": "
                         << nlohmann::json{options}.dump();
     }
     return options;
@@ -119,28 +105,24 @@ void run(std::string const& gdml_filename,
         RootExporter export_root(out_filename.c_str());
         export_root(imported);
     }
-    else if (ends_with(out_filename, ".json"))
-    {
-        // Write JSON to file
-        CELER_LOG(info) << "Opening JSON output at " << out_filename;
-        std::ofstream os(out_filename);
-        RootJsonDumper dump_json(&os);
-        dump_json(imported);
-    }
-    else if (out_filename == "-")
-    {
-        // Write JSON to stdout
-        CELER_LOG(info) << "Writing JSON to stdout";
-        RootJsonDumper dump_json(&std::cout);
-        dump_json(imported);
-    }
     else
     {
-        CELER_VALIDATE(false,
-                       << "invalid output filename '" << out_filename << "'");
+        celeritas::FileOrStdout outstream{out_filename};
+
+        // Write JSON to file
+        CELER_LOG(info) << "Opening JSON output at " << outstream.filename();
+        RootJsonDumper dump_json(outstream);
+        dump_json(imported);
     }
 
     scoped_root_error.throw_if_errors();
+}
+
+void run_dump_default()
+{
+    GeantPhysicsOptions options;
+    constexpr int indent = 1;
+    std::cout << nlohmann::json{options}.dump(indent) << std::endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -154,65 +136,53 @@ void run(std::string const& gdml_filename,
  */
 int main(int argc, char* argv[])
 {
-    using namespace celeritas;
     using namespace celeritas::app;
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
     }
 
-    std::vector<std::string> args(argv + 1, argv + argc);
-    if (args.size() == 1 && (args.front() == "--help" || args.front() == "-h"))
+    auto& cli = cli_app();
+    cli.description("Export Geant4 data to ROOT or JSON");
+
+    bool dump_default = false;
+    bool gen_test = false;
+    std::string gdml_filename;
+    std::string opts_filename;
+    std::string out_filename;
+
+    cli.add_flag("--dump-default", dump_default, "Dump default options");
+    cli.add_flag("--gen-test", gen_test, "Generate test data");
+    cli.add_option("gdml", gdml_filename, "Input GDML file")
+        ->check(CLI::ExistingFile);
+    cli.add_option("physopt", opts_filename, "Geant physics options JSON")
+        ->check(CLI::ExistingFile | dash_validator()
+                | empty_string_validator());
+    cli.add_option("output",
+                   out_filename,
+                   R"(Output file (ROOT or JSON or '-' for stdout JSON)");
+
+    CELER_CLI11_PARSE(argc, argv);
+
+    if ((!gdml_filename.empty() + dump_default) != 1)
     {
-        print_usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
-    if (args.size() == 1 && args.front() == "--dump-default")
-    {
-        GeantPhysicsOptions options;
-        constexpr int indent = 1;
-        std::cout << nlohmann::json{options}.dump(indent) << std::endl;
-        return EXIT_SUCCESS;
-    }
-    if (args.size() != 3 && args.size() != 4)
-    {
-        // Incorrect number of arguments: print help and exit
-        print_usage(argv[0]);
-        return 2;
+        return process_parse_error(ConflictingArguments{
+            R"(provide a GDML file, or the gen/dump options)"});
     }
 
-    bool gen_test{false};
-    if (args.size() == 4)
+    if (dump_default)
     {
-        if (args.back() == "--gen-test")
-        {
-            gen_test = true;
-        }
-        else
-        {
-            // Incorrect option for reader_data
-            print_usage(argv[0]);
-            return 2;
-        }
+        return run_safely(run_dump_default);
     }
 
-    try
+    if (out_filename.empty())
     {
-        run(args[0], args[1], args[2], gen_test);
-    }
-    catch (RuntimeError const& e)
-    {
-        CELER_LOG(critical) << "Runtime error: " << e.what();
-        return EXIT_FAILURE;
-    }
-    catch (DebugError const& e)
-    {
-        CELER_LOG(critical) << "Assertion failure: " << e.what();
-        return EXIT_FAILURE;
+        return process_parse_error(CLI::RequiredError("output"));
     }
 
-    return EXIT_SUCCESS;
+    return run_safely(
+        run, gdml_filename, opts_filename, out_filename, gen_test);
 }

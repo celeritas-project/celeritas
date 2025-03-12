@@ -5,19 +5,20 @@
 //! \file celer-geo/celer-geo.cc
 //---------------------------------------------------------------------------//
 #include <csignal>
-#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
 
-#include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/BuildOutput.hh"
-#include "corecel/io/Logger.hh"
+#include "corecel/io/ExceptionOutput.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
@@ -29,6 +30,7 @@
 #include "geocel/rasterize/Image.hh"
 #include "geocel/rasterize/ImageIO.json.hh"
 
+#include "CliUtils.hh"
 #include "GeoInput.hh"
 #include "Runner.hh"
 
@@ -87,8 +89,8 @@ Runner make_runner(json const& input)
     }
     catch (std::exception const& e)
     {
-        CELER_LOG(error) << "Invalid model setup; expected structure written "
-                            "to stdout";
+        CELER_LOG(error)
+            << R"(Invalid model setup; expected structure written to stdout)";
         std::cout << json(ModelSetup{}).dump() << std::endl;
         throw;
     }
@@ -161,13 +163,16 @@ void run_trace(Runner& run_trace,
  * output \em must be flushed after doing so. (Recall that \em endl sends a
  * newline and flushes the output buffer.)
  */
-void run(std::istream& is)
+void run(std::string const& filename)
 {
+    celeritas::FileOrStdin infile{filename};
+    CELER_LOG(info) << "Reading JSON line input from " << infile.filename();
+
     ScopedSignalHandler interrupted{SIGINT};
 
     // Load the model
     CELER_LOG(diagnostic) << "Waiting for model setup";
-    auto json_input = get_json_line(is);
+    auto json_input = get_json_line(infile);
     CELER_VALIDATE(json_input.is_object(),
                    << "missing or invalid JSON-formatted run input");
 
@@ -175,7 +180,7 @@ void run(std::istream& is)
 
     while (true)
     {
-        json_input = get_json_line(is);
+        json_input = get_json_line(infile);
         if (interrupted())
         {
             CELER_LOG(diagnostic) << "Exiting raytrace loop: caught interrupt";
@@ -204,8 +209,7 @@ void run(std::istream& is)
         catch (std::exception const& e)
         {
             CELER_LOG(error)
-                << "Invalid trace setup; expected structure written "
-                   "to stdout ("
+                << R"(Invalid trace setup; expected structure written to stdout ()"
                 << e.what() << ")";
             json temp = TraceSetup{};
             temp["image"] = ImageInput{};
@@ -238,16 +242,6 @@ void run(std::istream& is)
 }
 
 //---------------------------------------------------------------------------//
-void print_usage(std::string_view exec_name)
-{
-    // clang-format off
-    std::cerr << "usage: " << exec_name << " {input}.json\n"
-                 "       " << exec_name << " -\n"
-                 "       " << exec_name << " [--help|-h]\n";
-    // clang-format on
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 }  // namespace app
 }  // namespace celeritas
@@ -258,64 +252,24 @@ void print_usage(std::string_view exec_name)
  */
 int main(int argc, char* argv[])
 {
-    using namespace celeritas;
+    using namespace celeritas::app;
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
     }
 
-    // Process input arguments
-    if (argc != 2)
-    {
-        celeritas::app::print_usage(argv[0]);
-        return EXIT_FAILURE;
-    }
-    std::string_view filename{argv[1]};
-    if (filename == "--help"sv || filename == "-h"sv)
-    {
-        celeritas::app::print_usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
+    auto& cli = cli_app();
+    cli.description("Geometry visualization server");
 
-    /*!
-     * \todo Make a helper class that implicitly casts to std::istream&, has
-     * operator bool, and retains a file or creates with '-'. We reuse this
-     * paradigm in multiple classes.
-     */
-    std::ifstream infile;
-    std::istream* instream = nullptr;
-    if (filename == "-")
-    {
-        instream = &std::cin;
-        filename = "<stdin>";  // For nicer output on failure
-    }
-    else
-    {
-        // Open the specified file
-        infile.open(std::string{filename});
-        if (!infile)
-        {
-            CELER_LOG(critical) << "Failed to open '" << filename << "'";
-            return EXIT_FAILURE;
-        }
-        instream = &infile;
-    }
-    CELER_LOG(info) << "Reading JSON line input from " << filename;
+    std::string filename;
+    cli.add_option("filename", filename, "Input JSON lines")
+        ->required()
+        ->check(CLI::ExistingFile | dash_validator());
 
-    try
-    {
-        celeritas::app::run(*instream);
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(critical)
-            << "While running input at " << filename << ": " << e.what();
-        std::cout << ExceptionOutput{std::current_exception()} << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    // Parse and run
+    CELER_CLI11_PARSE(argc, argv);
+    return run_safely(run, filename);
 }

@@ -20,6 +20,23 @@ macro(celer_fetch_external name url sha)
 endmacro()
 
 #-----------------------------------------------------------------------------#
+# CLI11
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILTIN_CLI11)
+  celer_fetch_external(
+    CLI11
+    "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.5.0.tar.gz"
+    17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55
+  )
+
+  set(CLI11_BUILD_EXAMPLES OFF)
+  set(CLI11_BUILD_DOCS OFF)
+  set(CLI11_BUILD_TESTS OFF)
+  set(CLI11_PRECOMPILED ON)
+endif()
+
+#-----------------------------------------------------------------------------#
 # GTest
 #-----------------------------------------------------------------------------#
 
@@ -79,7 +96,6 @@ if(CELERITAS_BUILTIN_G4VG)
     set(G4VG_${_var} CELERITAS_${_var})
   endforeach()
 endif()
-
 #-----------------------------------------------------------------------------#
 # BUILD
 #-----------------------------------------------------------------------------#
@@ -120,6 +136,17 @@ if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
   add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
   target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
+endif()
+
+if(CELERITAS_BUILTIN_CLI11)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # __cplusplus: use standard-compliant C++ version macro
+    # preprocessor: use standard-compliant preprocessor
+    # EHsc: enable standard C++ exception handling
+    target_compile_options(CLI11 PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
+    )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

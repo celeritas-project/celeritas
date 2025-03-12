@@ -29,7 +29,7 @@
         "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILTIN_GTest": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
-        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "14"},
+        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "15"},
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},
