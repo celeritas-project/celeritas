@@ -489,7 +489,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
                    << "along-step action factory 'make_along_step' was not "
                       "defined in the celeritas::SetupOptions");
 
-    auto const imported = [&options] {
+    auto const imported = [] {
         celeritas::GeantImporter load_geant_data(
             GeantImporter::get_world_volume());
         // Convert ImportVolume names to GDML versions if we're exporting
