@@ -35,8 +35,7 @@ namespace example
  * Construct and add to core params.
  */
 std::shared_ptr<StepDiagnostic>
-StepDiagnostic::make_and_insert(CoreParams const& core,
-                                std::string filename_base)
+StepDiagnostic::make_and_insert(CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
@@ -105,7 +104,7 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
     result.step_length = convert_to_geant(data.step_length, clhep_length);
     result.energy_deposition = data.energy_deposition;
     result.num_steps = host_data.steps;
-    result.num_primaries = host_data.generated - host_data.secondaries;
+    result.num_primaries = host_data.generated;
     result.num_secondaries = host_data.secondaries;
     return result;
 }

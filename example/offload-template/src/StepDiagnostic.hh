@@ -52,7 +52,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
   public:
     // Construct and add to core params
     static std::shared_ptr<StepDiagnostic>
-    make_and_insert(CoreParams const& core, std::string filename_base);
+    make_and_insert(CoreParams const& core);
 
     // Construct with IDs and filename base
     StepDiagnostic(ActionId action_id, AuxId aux_id);

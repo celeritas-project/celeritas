@@ -6,6 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <celeritas/Quantities.hh>
+#include <celeritas/global/CoreTrackView.hh>
+#include <corecel/Macros.hh>
+#include <corecel/Types.hh>
+
 #include "StepDiagnosticData.hh"
 
 namespace celeritas

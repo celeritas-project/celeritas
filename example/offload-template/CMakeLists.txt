@@ -44,6 +44,7 @@ endmacro()
 set(SOURCES
   src/ActionInitialization.cc
   src/DetectorConstruction.cc
+  src/EventAction.cc
   src/MakeCelerOptions.cc
   src/PrimaryGeneratorAction.cc
   src/RunAction.cc
