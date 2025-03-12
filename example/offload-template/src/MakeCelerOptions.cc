@@ -17,9 +17,9 @@ namespace example
 /*!
  * Build options to set up Celeritas.
  */
-celeritas::SetupOptions MakeCelerOptions()
+SetupOptions MakeCelerOptions()
 {
-    celeritas::SetupOptions opts;
+    SetupOptions opts;
 
     opts.max_num_tracks = 1024 * 16;
     opts.initializer_capacity = 1024 * 128 * 4;
@@ -27,7 +27,7 @@ celeritas::SetupOptions MakeCelerOptions()
     opts.ignore_processes = {"CoulombScat"};
 
     // Set along-step factory with zero field
-    opts.make_along_step = celeritas::UniformAlongStepFactory();
+    opts.make_along_step = UniformAlongStepFactory();
 
     // Save diagnostic information
     opts.output_file = "celeritas-offload-diagnostic.json";

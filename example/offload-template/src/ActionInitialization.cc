@@ -29,7 +29,7 @@ ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 void ActionInitialization::BuildForMaster() const
 {
     // Set up Celeritas integration
-    celeritas::TrackingManagerIntegration::Instance().BuildForMaster();
+    TrackingManagerIntegration::Instance().BuildForMaster();
 
     // RunAction is responsible for initializing Celeritas
     this->SetUserAction(new RunAction());
@@ -42,7 +42,7 @@ void ActionInitialization::BuildForMaster() const
 void ActionInitialization::Build() const
 {
     // Set up Celeritas integration
-    celeritas::TrackingManagerIntegration::Instance().Build();
+    TrackingManagerIntegration::Instance().Build();
 
     // Initialize Geant4 user actions
     this->SetUserAction(new RunAction());

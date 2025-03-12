@@ -24,7 +24,7 @@ RunAction::RunAction() : G4UserRunAction() {}
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
-    celeritas::TrackingManagerIntegration::Instance().BeginOfRunAction(run);
+    TrackingManagerIntegration::Instance().BeginOfRunAction(run);
 }
 
 //---------------------------------------------------------------------------//
@@ -33,7 +33,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
  */
 void RunAction::EndOfRunAction(G4Run const* run)
 {
-    celeritas::TrackingManagerIntegration::Instance().EndOfRunAction(run);
+    TrackingManagerIntegration::Instance().EndOfRunAction(run);
 }
 
 }  // namespace example

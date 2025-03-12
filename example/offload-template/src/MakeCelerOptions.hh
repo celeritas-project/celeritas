@@ -13,7 +13,7 @@ namespace celeritas
 namespace example
 {
 // Build options to set up Celeritas
-celeritas::SetupOptions MakeCelerOptions();
+SetupOptions MakeCelerOptions();
 
 }  // namespace example
 }  // namespace celeritas
