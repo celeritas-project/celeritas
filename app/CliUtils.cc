@@ -84,7 +84,7 @@ char const* failure_type(std::exception const& e)
 {
     if (e.get_exit_code() != EXIT_SUCCESS)
     {
-        world_logger()({cli_app().get_name(), 0}, LogLevel::error)
+        world_logger()({cli_app().get_name(), 0}, LogLevel::critical)
             << e.get_name() << ": " << e.what();
         if (celeritas::comm_world().rank() == 0)
         {
