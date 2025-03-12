@@ -46,8 +46,11 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
   build_local
   ctest -V --no-tests=error
 
-  if [ "$(echo $CELER_GEANT4_VERSION | awk -F. '{print $1*100 + $2}')" \
-      -ge 1100 ]; then
+  test -n "${G4VERSION_NUMBER}" || (
+    echo "G4VERSION_NUMBER is undefined"
+    exit 1
+  )
+  if [ "${G4VERSION_NUMBER}" -ge 1100 ]; then
     # Run offload-template only on Geant4 v11
     cd "${CELER_SOURCE_DIR}/example/offload-template"
     build_local
