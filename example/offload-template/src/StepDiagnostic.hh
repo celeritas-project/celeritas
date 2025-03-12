@@ -9,7 +9,6 @@
 #include <memory>
 #include <string>
 
-#include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -17,6 +16,9 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class CoreStateInterface;
+
 namespace example
 {
 //---------------------------------------------------------------------------//
@@ -26,8 +28,8 @@ struct StepStatistics
     using real_type = double;
     using size_type = unsigned long long;
 
-    double step_length {}
-    double energy_deposited {}
+    double step_length{};  // [mm]
+    double energy_deposition{};  // [MeV]
     size_type num_steps{};
     size_type num_primaries{};
     size_type num_secondaries{};
@@ -100,12 +102,8 @@ class StepDiagnostic final : public CoreStepActionInterface,
     //// HELPERS ////
 
     template<MemSpace M>
-    StepStatistics
-    copy(StreamId, StepStateData<M, Ownership::reference>& step_state) const;
-
-    template<MemSpace M>
     void
-    reset(StreamId, StepStateData<M, Ownership::reference>& step_state) const;
+    reset(StreamId, StepStateData<Ownership::reference, M>& step_state) const;
 };
 
 //---------------------------------------------------------------------------//

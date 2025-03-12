@@ -186,6 +186,22 @@ class Span
 };
 
 //---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+// Deduction guide for pointer and size
+template<class T>
+Span(T*, std::size_t) -> Span<T>;
+
+// Deduction guide for two iterators
+template<class Iter>
+Span(Iter, Iter) -> Span<typename std::iterator_traits<Iter>::value_type>;
+
+// Deduction guide for C array
+template<class T, std::size_t N>
+Span(T (&)[N]) -> Span<T, N>;
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to an array

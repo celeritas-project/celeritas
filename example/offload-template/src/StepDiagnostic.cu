@@ -28,9 +28,9 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) cons
 
     // Accumulate counters
     CoreStateCounters const& counters = state.counters();
-    step_state.num_steps += counters.num_active;
-    step_state.num_generated += counters.num_generated;
-    step_state.num_secondaries += counters.num_secondaries;
+    step_state.host_data.steps += counters.num_active;
+    step_state.host_data.generated += counters.num_generated;
+    step_state.host_data.secondaries += counters.num_secondaries;
 
     // Create a functor that gathers data from a single track slot
     auto execute

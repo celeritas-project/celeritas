@@ -33,6 +33,14 @@ endif()
 #-----------------------------------------------------------------------------#
 # Add executable
 
+macro(polysource_append var filename_we)
+  list(APPEND ${var} "${filename_we}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND ${var} "${filename_we}.cu")
+  endif()
+endmacro()
+
+
 set(SOURCES
   src/ActionInitialization.cc
   src/DetectorConstruction.cc
@@ -41,8 +49,7 @@ set(SOURCES
   src/RunAction.cc
   src/SensitiveDetector.cc
 )
-# Add .cc and also, if using CUDA/HIP, .cu
-celeritas_polysource_append(SOURCES src/StepDiagnostic)
+polysource_append(SOURCES src/StepDiagnostic)
 
 add_executable(run-offload
   main.cc

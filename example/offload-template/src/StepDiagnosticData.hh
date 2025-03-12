@@ -24,7 +24,7 @@ struct NativeStepStatistics
     using real_type = double;
 
     real_type step_length{};
-    real_type energy_deposited{};
+    real_type energy_deposition{};  // MeV
 };
 
 //---------------------------------------------------------------------------//
@@ -55,12 +55,12 @@ struct StepStateData
 
     using size_type = unsigned long long;
     template<class T>
-    using Items = celeritas::Collection<T, W, M>;
+    using EventItems = celeritas::Collection<T, W, M, EventId>;
 
     //// DATA ////
 
     //! Accumulated data (one per simultaneous event, currently fixed at 1)
-    Items<NativeStepStatistics> data;
+    EventItems<NativeStepStatistics> data;
 
     //! Accumulated data on host
     HostStepStatistics host_data;
