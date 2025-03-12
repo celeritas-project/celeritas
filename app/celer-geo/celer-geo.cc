@@ -5,7 +5,6 @@
 //! \file celer-geo/celer-geo.cc
 //---------------------------------------------------------------------------//
 #include <csignal>
-#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -90,8 +89,8 @@ Runner make_runner(json const& input)
     }
     catch (std::exception const& e)
     {
-        CELER_LOG(error) << "Invalid model setup; expected structure written "
-                            "to stdout";
+        CELER_LOG(error)
+            << R"(Invalid model setup; expected structure written to stdout)";
         std::cout << json(ModelSetup{}).dump() << std::endl;
         throw;
     }
@@ -210,8 +209,7 @@ void run(std::string const& filename)
         catch (std::exception const& e)
         {
             CELER_LOG(error)
-                << "Invalid trace setup; expected structure written "
-                   "to stdout ("
+                << R"(Invalid trace setup; expected structure written to stdout ()"
                 << e.what() << ")";
             json temp = TraceSetup{};
             temp["image"] = ImageInput{};

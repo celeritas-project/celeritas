@@ -11,6 +11,7 @@
 #include <string>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -25,15 +26,14 @@ class FileOrStdin
     explicit inline FileOrStdin(std::string filename);
 
     //! Implicitly cast to the opened stream
-    operator std::istream&() const { return *instream_; }
+    operator std::istream&() { return inf_.is_open() ? inf_ : std::cin; }
 
     //! Get the filename or renamed placeholder
     std::string const& filename() const { return filename_; }
 
   private:
     std::string filename_;
-    std::ifstream infile_;
-    std::istream* instream_{nullptr};
+    std::ifstream inf_;
 };
 
 //---------------------------------------------------------------------------//
@@ -47,15 +47,14 @@ class FileOrStdout
     explicit inline FileOrStdout(std::string filename);
 
     //! Implicitly cast to the opened stream
-    operator std::ostream&() const { return *outstream_; }
+    operator std::ostream&() { return outf_.is_open() ? outf_ : std::cout; }
 
     //! Get the filename or renamed placeholder
     std::string const& filename() const { return filename_; }
 
   private:
     std::string filename_;
-    std::ofstream outfile_;
-    std::ostream* outstream_{nullptr};
+    std::ofstream outf_;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,14 +69,12 @@ FileOrStdin::FileOrStdin(std::string filename) : filename_{std::move(filename)}
                    << "empty filename is not valid for input");
     if (filename_ == "-")
     {
-        instream_ = &std::cin;
         filename_ = "<stdin>";
         return;
     }
     // Open the specified file
-    infile_.open(filename_);
-    CELER_VALIDATE(infile_, << "failed to open '" << filename_ << "'");
-    instream_ = &infile_;
+    inf_.open(filename_);
+    CELER_VALIDATE(inf_, << "failed to open '" << filename_ << "'");
 }
 
 //---------------------------------------------------------------------------//
@@ -91,15 +88,13 @@ FileOrStdout::FileOrStdout(std::string filename)
                    << "empty filename is not valid for output");
     if (filename_ == "-")
     {
-        outstream_ = &std::cout;
         filename_ = "<stdout>";
         return;
     }
 
     // Open the specified file
-    outfile_.open(filename_);
-    CELER_VALIDATE(outfile_, << "failed to open '" << filename_ << "'");
-    outstream_ = &outfile_;
+    outf_.open(filename_);
+    CELER_VALIDATE(outf_, << "failed to open '" << filename_ << "'");
 }
 
 //---------------------------------------------------------------------------//
