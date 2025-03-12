@@ -497,7 +497,6 @@ void SharedParams::initialize_core(SetupOptions const& options)
         GeantImportDataSelection import_opts;
         import_opts.particles = GeantImportDataSelection::em_basic;
         import_opts.processes = import_opts.particles;
-        import_opts.unique_volumes = options.geometry_file.empty();
         return std::make_shared<ImportData>(load_geant_data(import_opts));
     }();
     CELER_ASSERT(imported && !imported->particles.empty()
