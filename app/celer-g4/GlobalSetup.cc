@@ -6,24 +6,19 @@
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
-#include <fstream>
 #include <utility>
 #include <G4GenericMessenger.hh>
 #include <G4UImanager.hh>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/RootFileManager.hh"
-#include "celeritas/field/RZMapFieldInput.hh"
-#include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
-#include "HepMC3PrimaryGeneratorAction.hh"
-#include "RootIO.hh"
 #include "RunInputIO.json.hh"
 
 namespace celeritas
@@ -111,25 +106,12 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
  */
 void GlobalSetup::ReadInput(std::string const& filename)
 {
-    bool is_json_file = ends_with(filename, ".json");
-    if (is_json_file || filename == "-")
+    if (!ends_with(filename, ".mac"))
     {
-        CELER_LOG(status) << "Reading JSON input from '"
-                          << (is_json_file ? filename : "<stdin>") << "'";
-        std::istream* instream{nullptr};
-        std::ifstream infile;
-        if (is_json_file)
-        {
-            instream = &infile;
-            infile.open(filename);
-            CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
-        }
-        else
-        {
-            instream = &std::cin;
-        }
-        CELER_ASSERT(instream);
-        nlohmann::json::parse(*instream).get_to(input_);
+        FileOrStdin instream(filename);
+        CELER_LOG(status) << "Reading JSON input from '" << instream.filename()
+                          << "'";
+        nlohmann::json::parse(instream).get_to(input_);
 
         if (input_.cuda_stack_size != RunInput::unspecified)
         {
@@ -179,7 +161,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->default_stream = input_.default_stream;
         options_->track_order = input_.track_order;
     }
-    else if (ends_with(filename, ".mac"))
+    else
     {
         input_.macro_file = filename;
     }
