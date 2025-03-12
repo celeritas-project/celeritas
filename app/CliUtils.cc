@@ -64,13 +64,13 @@ char const* failure_type(std::exception const& e)
 {
     if (dynamic_cast<std::runtime_error const*>(&e))
     {
-        return "Runtime error";
+        return "runtime error";
     }
     else if (dynamic_cast<std::logic_error const*>(&e))
     {
-        return "Assertion failure";
+        return "assertion failure";
     }
-    return "Unknown exception";
+    return "unknown exception";
 }
 
 //---------------------------------------------------------------------------//
@@ -84,7 +84,8 @@ char const* failure_type(std::exception const& e)
 {
     if (e.get_exit_code() != EXIT_SUCCESS)
     {
-        CELER_LOG(error) << e.get_name() << ": " << e.what();
+        world_logger()({cli_app().get_name(), 0}, LogLevel::error)
+            << e.get_name() << ": " << e.what();
         if (celeritas::comm_world().rank() == 0)
         {
             print_usage(cli_app(), std::clog);
@@ -103,8 +104,14 @@ char const* failure_type(std::exception const& e)
  */
 [[nodiscard]] int process_runtime_error(std::exception const& e)
 {
-    world_logger()({cli_app().get_name(), 0}, LogLevel::critical)
-        << failure_type(e) << ": " << e.what();
+    auto msg = world_logger()({cli_app().get_name(), 0}, LogLevel::critical);
+
+    if (!dynamic_cast<RuntimeError const*>(&e))
+    {
+        // Not a Celeritas runtime error: print exception type
+        msg << failure_type(e) << ": ";
+    }
+    msg << e.what();
 
     return EXIT_FAILURE;
 }
