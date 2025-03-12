@@ -1,4 +1,4 @@
-Celeritas ROOT Data Dumper 
+Dump Geant4 data to ROOT 
 
 
 ./celer-dump-data [OPTIONS] [filename]

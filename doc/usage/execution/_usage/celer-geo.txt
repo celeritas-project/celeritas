@@ -1,4 +1,4 @@
-Celeritas interactive geometry 
+Geometry visualization server 
 
 
 ./celer-geo [OPTIONS] filename

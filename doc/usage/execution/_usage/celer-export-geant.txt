@@ -1,19 +1,17 @@
 Export Geant4 data to ROOT or JSON 
 
 
-./celer-export-geant [OPTIONS] gdml [options] [output]
+./celer-export-geant [OPTIONS] [gdml] [options] [output]
 
 
 POSITIONALS:
-  gdml TEXT REQUIRED          Input GDML file 
+  gdml TEXT:FILE              Input GDML file 
   options TEXT:((FILE) OR ('-' for stdin/stdout)) OR (Empty string)
                               Options JSON file 
-  output TEXT:(FILE) OR ('-' for stdin/stdout) Excludes: --dump-default
-                              Output file (ROOT or JSON) 
+  output TEXT                 Output file (ROOT or JSON or '-' for stdout JSON 
 
 OPTIONS:
   -h,     --help              Print this help message and exit 
   -v,     --version           Display program version information and exit 
           --gen-test          Generate test data 
-          --dump-default Excludes: output 
-                              Dump default options 
+          --dump-default      Dump default options 
