@@ -905,9 +905,9 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         }
     }
 
-// Optical photon PDG in Geant4 is 0 before version 10.7
-#if G4VERSION_NUMBER < 1070
-    if (G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
+    // Optical photon PDG in Geant4 is 0 before version 10.7
+    if (G4VERSION_NUMBER < 1070
+        && G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
     {
         auto* photon_def = G4OpticalPhoton::OpticalPhoton();
         CELER_ASSERT(photon_def);
@@ -936,7 +936,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             }
         }
     }
-#endif
 
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
     CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";

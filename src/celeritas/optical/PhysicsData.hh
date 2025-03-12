@@ -35,13 +35,16 @@ struct PhysicsParamsScalars
     //! Number of optical models
     ModelId::size_type num_models{};
 
+    //! Number of optical materials
+    OpticalMaterialId::size_type num_materials{};
+
     //! Offset to create an ActionId from a ModelId
     ActionId::size_type model_to_action{};
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_models > 0 && model_to_action >= 1;
+        return num_models > 0 && num_materials > 0 && model_to_action >= 1;
     }
 
     //! Undergo a discrete interaction

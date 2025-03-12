@@ -51,6 +51,7 @@ PhysicsParams::PhysicsParams(Input input)
     // Construct data
     HostValue data;
     data.scalars.num_models = models_.size();
+    data.scalars.num_materials = input.materials->num_materials();
     data.scalars.model_to_action = 1;
 
     this->build_mfps(*input.materials, data);

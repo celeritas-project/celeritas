@@ -32,7 +32,7 @@ CELER_FUNCTION Interaction
 RayleighExecutor::operator()(CoreTrackView const& track)
 {
     auto particle = track.particle();
-    auto direction = track.geometry().dir();
+    auto const& direction = track.geometry().dir();
     auto rng = track.rng();
 
     RayleighInteractor interact{particle, direction};

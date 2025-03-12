@@ -21,7 +21,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Wrap an interation executor and apply it to a track.
+ * Wrap an interaction executor and apply it to a track.
  *
  * The function F must take a \c CoreTrackView and return a \c Interaction
  */
@@ -95,12 +95,7 @@ InteractionApplierBaseImpl<F>::operator()(CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 
-    if (!result.changed())
-    {
-        // Currently we have no optical actions capable of failing. Can add a
-        // failure case in the future as necessary.
-        return;
-    }
+    CELER_ASSERT(result.action != Interaction::Action::failed);
 
     if (result.action == Interaction::Action::absorbed)
     {

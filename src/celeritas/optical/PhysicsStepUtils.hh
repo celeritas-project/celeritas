@@ -21,9 +21,7 @@ namespace optical
 /*!
  * Calculate the discrete physics step limit for the given track.
  *
- * Cross sections for each model are calculated and cached in the
- * \c PhysicsStepView scratch space. The total cross section is also
- * calculated and cached.
+ * The total cross section is cached in the \c PhysicsTrackView.
  */
 inline CELER_FUNCTION StepLimit calc_physics_step_limit(
     ParticleTrackView const& particle, PhysicsTrackView& physics)

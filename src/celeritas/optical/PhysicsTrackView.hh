@@ -223,12 +223,8 @@ CELER_FUNCTION ActionId PhysicsTrackView::discrete_action() const
  */
 CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 {
-    size_type num_materials = params_.grids.size() / this->num_models();
-
-    CELER_EXPECT(model < this->num_models());
-    CELER_EXPECT(opt_material_ < num_materials);
-
-    ValueGridId grid_id{opt_material_.get() + model.get() * num_materials};
+    ValueGridId grid_id{opt_material_.get()
+                        + model.get() * params_.scalars.num_materials};
 
     CELER_ENSURE(grid_id < params_.grids.size());
     return grid_id;
