@@ -11,7 +11,7 @@
 #include <celeritas/global/CoreParams.hh>
 #include <celeritas/global/CoreState.hh>
 #include <celeritas/global/TrackExecutor.hh>
-#include <corecel/data/Filler.t.hh>
+#include <corecel/data/Filler.device.t.hh>
 
 #include "StepDiagnosticData.hh"
 #include "StepDiagnosticExecutor.hh"
@@ -25,7 +25,7 @@ namespace example
 void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) const
 {
     auto const& step_params = this->ref<MemSpace::native>();
-    auto& step_state = state.aux_data<MemSpace::native>(aux_id_);
+    auto& step_state = state.aux_data<StepStateData>(aux_id_);
 
     // Accumulate counters
     CoreStateCounters const& counters = state.counters();
