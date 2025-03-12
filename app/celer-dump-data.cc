@@ -1040,6 +1040,7 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 
     std::string filename;
     cli.add_option("filename", filename, "Input ROOT file")
+        ->required()
         ->check(CLI::ExistingFile);
 
     // Parse and run
