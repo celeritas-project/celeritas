@@ -157,12 +157,14 @@ int main(int argc, char* argv[])
     auto& cli = cli_app();
     cli.description("Export Geant4 data to ROOT or JSON");
 
+    bool dump_default = false;
+    bool gen_test = false;
     std::string gdml_filename;
     std::string opts_filename;
     std::string out_filename;
-    bool gen_test = false;
-    bool dump_default = false;
 
+    cli.add_flag("--dump-default", dump_default, "Dump default options");
+    cli.add_flag("--gen-test", gen_test, "Generate test data");
     cli.add_option("gdml", gdml_filename, "Input GDML file")
         ->check(CLI::ExistingFile);
     cli.add_option("options", opts_filename, "Options JSON file")
@@ -171,12 +173,10 @@ int main(int argc, char* argv[])
     cli.add_option("output",
                    out_filename,
                    R"(Output file (ROOT or JSON or '-' for stdout JSON)");
-    cli.add_flag("--gen-test", gen_test, "Generate test data");
-    cli.add_flag("--dump-default", dump_default, "Dump default options");
 
     CELER_CLI11_PARSE(argc, argv);
 
-    if ((!gdml_filename.empty() + gen_test + dump_default) != 1)
+    if ((!gdml_filename.empty() + dump_default) != 1)
     {
         return process_parse_error(ConflictingArguments{
             R"(provide a GDML file, or the gen/dump options)"});
