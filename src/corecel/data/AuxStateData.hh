@@ -43,9 +43,6 @@ class AuxStateData final : public AuxStateInterface
                         StreamId stream_id,
                         size_type size);
 
-    // Construct by resizing
-    inline AuxStateData(StreamId stream_id, size_type size);
-
     //! Whether any data is being stored
     explicit operator bool() const { return static_cast<bool>(store_); }
 
@@ -93,32 +90,6 @@ make_aux_state(ParamsDataInterface<P> const& params,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Create an auxiliary state given a runtime memory space.
- *
- * Example:
- * \code
-    return make_aux_state<FooStateData>(memspace, stream, size);
- * \endcode
- */
-template<template<Ownership, MemSpace> class S>
-std::unique_ptr<AuxStateInterface>
-make_aux_state(MemSpace m, StreamId stream_id, size_type size)
-{
-    if (m == MemSpace::host)
-    {
-        using ASD = AuxStateData<S, MemSpace::host>;
-        return std::make_unique<ASD>(stream_id, size);
-    }
-    else if (m == MemSpace::device)
-    {
-        using ASD = AuxStateData<S, MemSpace::device>;
-        return std::make_unique<ASD>(stream_id, size);
-    }
-    CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -133,14 +104,5 @@ AuxStateData<S, M>::AuxStateData(HostCRef<P> const& p,
 {
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Construct by resizing and passing host params.
- */
-template<template<Ownership, MemSpace> class S, MemSpace M>
-AuxStateData<S, M>::AuxStateData(StreamId stream_id, size_type size)
-    : store_{stream_id, size}
-{
-}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

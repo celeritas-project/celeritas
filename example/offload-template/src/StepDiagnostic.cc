@@ -58,6 +58,9 @@ StepDiagnostic::StepDiagnostic(ActionId action_id, AuxId aux_id)
     , aux_id_{aux_id}
 {
     CELER_EXPECT(aux_id_);
+
+    // Set up shared data on host and device
+    mirror_ = CollectionMirror{HostVal<StepParamsData>{}};
 }
 
 //---------------------------------------------------------------------------//
@@ -86,7 +89,7 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
         copy_to_host(step_state.data, Span{&data, 1}, core_state->stream_id());
         host_data = step_state.host_data;
         // Zero for the next event
-        this->reset(core_state->stream_id(), step_state);
+        reset(&step_state, core_state->stream_id());
         return true;
     };
 
@@ -111,15 +114,15 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
 /*!
  * Build state data for a stream.
  *
- * This creates "thread-local" data for the given stream on host or device.
+ * This creates and initializes "thread-local" data for the given stream on
+ * host or device.
  */
 auto StepDiagnostic::create_state(MemSpace m,
                                   StreamId id,
                                   size_type size) const -> UPState
 {
-    auto result = make_aux_state<StepStateData>(m, id, size);
+    auto result = make_aux_state<StepStateData>(*this, m, id, size);
     CELER_ASSERT(result);
-    this->reset(id, result->ref());
     return result;
 }
 
@@ -129,6 +132,7 @@ auto StepDiagnostic::create_state(MemSpace m,
  */
 void StepDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
 {
+    auto const& step_params = this->ref<MemSpace::native>();
     auto& step_state = state.aux_data<StepStateData>(aux_id_);
 
     CoreStateCounters const& counters = state.counters();
@@ -137,10 +141,10 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
     step_state.host_data.secondaries += counters.num_secondaries;
 
     // Create a functor that gathers data from a single track slot
-    auto execute
-        = make_active_track_executor(params.ptr<MemSpace::native>(),
-                                     state.ptr(),
-                                     StepDiagnosticExecutor{step_state});
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        StepDiagnosticExecutor{step_params, step_state});
     // Run on all track slots
     launch_action(*this, params, state, execute);
 }
@@ -151,24 +155,7 @@ void StepDiagnostic::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
-#else
-extern template class celeritas::Filler<NativeStepStatistics, MemSpace::device>;
 #endif
-
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Reset the accumulated state.
- */
-template<MemSpace M>
-void StepDiagnostic::reset(
-    StreamId sid, StepStateData<Ownership::reference, M>& step_state) const
-{
-    Filler<NativeStepStatistics, M> fill_empty({0.0, 0.0}, sid);
-    fill_empty(step_state.data[AllItems<NativeStepStatistics, M>{}]]);
-    step_state.host_data = {};
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace example

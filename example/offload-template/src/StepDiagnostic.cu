@@ -24,6 +24,7 @@ namespace example
 // Launch a kernel from inside the .cu file
 void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) const
 {
+    auto const& step_params = this->ref<MemSpace::native>();
     auto& step_state = state.aux_data<MemSpace::native>(aux_id_);
 
     // Accumulate counters
@@ -33,10 +34,10 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) cons
     step_state.host_data.secondaries += counters.num_secondaries;
 
     // Create a functor that gathers data from a single track slot
-    auto execute
-        = make_active_track_executor(params.ptr<MemSpace::native>(),
-                                     state.ptr(),
-                                     StepDiagnosticExecutor{step_state});
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        StepDiagnosticExecutor{step_params, step_state});
 
     // Gather kernel stats and run on all track slots
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
@@ -44,9 +45,10 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) cons
 }
 
 //---------------------------------------------------------------------------//
-// Explicitly instantiate filler kernel from inside the .cu file
-template class celeritas::Filler<NativeStepStatistics, MemSpace::device>;
+}  // namespace example
 
 //---------------------------------------------------------------------------//
-}  // namespace example
+// Explicitly instantiate filler kernel from inside the .cu file
+template class Filler<example::NativeStepStatistics, MemSpace::device>;
+
 }  // namespace celeritas

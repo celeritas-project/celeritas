@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "StepDiagnosticData.hh"
+
 namespace celeritas
 {
 namespace example
@@ -14,9 +16,11 @@ namespace example
 struct StepDiagnosticExecutor
 {
     // Note: this is shorthand for
-    // StepStateData<Ownership::reference, MemSpace::native>
+    // StepParamsData<Ownership::const_reference, MemSpace::native>
     // where native is "host" when running from a .cc file and "device" when
     // running from a .cu file.
+    NativeCRef<StepParamsData> const params;
+    // Same here but non-const (state data can change)
     NativeRef<StepStateData> const state;
 
     inline CELER_FUNCTION void

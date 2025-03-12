@@ -8,9 +8,10 @@
 
 #include <memory>
 #include <string>
-
-#include "corecel/data/AuxInterface.hh"
-#include "celeritas/global/ActionInterface.hh"
+#include <celeritas/global/ActionInterface.hh>
+#include <corecel/data/AuxInterface.hh>
+#include <corecel/data/CollectionMirror.hh>
+#include <corecel/data/ParamsDataInterface.hh>
 
 #include "StepDiagnosticData.hh"
 
@@ -45,7 +46,8 @@ struct StepStatistics
  * the user regardless of where the accumulated data lives.
  */
 class StepDiagnostic final : public CoreStepActionInterface,
-                             public AuxParamsInterface
+                             public AuxParamsInterface,
+                             public ParamsDataInterface<StepParamsData>
 {
   public:
     // Construct and add to core params
@@ -93,17 +95,21 @@ class StepDiagnostic final : public CoreStepActionInterface,
     UPState create_state(MemSpace m, StreamId id, size_type size) const final;
     //!@}
 
+    //!@{
+    //! \name Data interface
+
+    //! Access physics properties on the host
+    HostRef const& host_ref() const final { return mirror_.host_ref(); }
+    //! Access physics properties on the device
+    DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
+    //!@}
+
   private:
     //// DATA ////
 
     StaticActionData sad_;
     AuxId aux_id_;
-
-    //// HELPERS ////
-
-    template<MemSpace M>
-    void
-    reset(StreamId, StepStateData<Ownership::reference, M>& step_state) const;
+    CollectionMirror<StepParamsData> mirror_;
 };
 
 //---------------------------------------------------------------------------//
