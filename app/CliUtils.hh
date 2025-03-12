@@ -48,8 +48,9 @@ class ConflictingArguments : public CLI::ArgumentMismatch
 {
   public:
     explicit ConflictingArguments(std::string const& msg)
-        : CLI::ArgumentMismatch(
-              "conflicting arguments", msg, CLI::ExitCodes::ArgumentMismatch)
+        : CLI::ArgumentMismatch("conflicting or missing arguments",
+                                msg,
+                                CLI::ExitCodes::ArgumentMismatch)
     {
     }
 };

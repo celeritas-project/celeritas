@@ -51,21 +51,12 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
         // ... but add verbosity
         options.verbose = true;
     }
-    else if (option_filename == "-")
-    {
-        auto inp = nlohmann::json::parse(std::cin);
-        inp.get_to(options);
-        CELER_LOG(info) << "Loaded Geant4 setup options: "
-                        << nlohmann::json{options}.dump();
-    }
     else
     {
-        std::ifstream infile(option_filename);
-        CELER_VALIDATE(infile, << "failed to open '" << option_filename << "'");
-        auto inp = nlohmann::json::parse(infile);
-        inp.get_to(options);
+        FileOrStdin infile(option_filename);
+        nlohmann::json::parse(infile).get_to(options);
         CELER_LOG(info) << "Loaded Geant4 setup options from "
-                        << option_filename << ": "
+                        << infile.filename() << ": "
                         << nlohmann::json{options}.dump();
     }
     return options;
@@ -167,7 +158,7 @@ int main(int argc, char* argv[])
     cli.add_flag("--gen-test", gen_test, "Generate test data");
     cli.add_option("gdml", gdml_filename, "Input GDML file")
         ->check(CLI::ExistingFile);
-    cli.add_option("options", opts_filename, "Options JSON file")
+    cli.add_option("physopt", opts_filename, "Geant physics options JSON")
         ->check(CLI::ExistingFile | dash_validator()
                 | empty_string_validator());
     cli.add_option("output",
@@ -185,6 +176,11 @@ int main(int argc, char* argv[])
     if (dump_default)
     {
         return run_safely(run_dump_default);
+    }
+
+    if (out_filename.empty())
+    {
+        return process_parse_error(CLI::RequiredError("output"));
     }
 
     return run_safely(
