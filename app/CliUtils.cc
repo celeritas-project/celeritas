@@ -65,7 +65,7 @@ process_parse_error(CLI::App const& cli, CLI::ParseError const& e)
 {
     if (e.get_exit_code() != EXIT_SUCCESS)
     {
-        CELER_LOG(error) << e.what();
+        CELER_LOG(error) << e.get_name() << ": " << e.what();
         if (celeritas::comm_world().rank() == 0)
         {
             print_usage(cli, std::clog);

@@ -31,6 +31,7 @@
 #include "celeritas/io/ImportDataTrimmer.hh"
 
 #include "CliUtils.hh"
+#include "CLI/CLI.hpp"
 
 namespace celeritas
 {
@@ -163,20 +164,25 @@ int main(int argc, char* argv[])
     bool dump_default = false;
 
     cli.add_option("gdml", gdml_filename, "Input GDML file")
-        ->required()
         ->check(CLI::ExistingFile);
     cli.add_option("options", opts_filename, "Options JSON file")
         ->check(CLI::ExistingFile | dash_validator()
                 | empty_string_validator());
-    auto* output_opt = cli.add_option(
-        "output",
-        out_filename,
-        R"(Output file (ROOT or JSON or '-' for stdout JSON)");
+    cli.add_option("output",
+                   out_filename,
+                   R"(Output file (ROOT or JSON or '-' for stdout JSON)");
     cli.add_flag("--gen-test", gen_test, "Generate test data");
-    cli.add_flag("--dump-default", dump_default, "Dump default options")
-        ->excludes(output_opt);
+    cli.add_flag("--dump-default", dump_default, "Dump default options");
 
     CELER_CLI11_PARSE(cli, argc, argv);
+
+    if ((!gdml_filename.empty() + gen_test + dump_default) != 1)
+    {
+        return process_parse_error(
+            cli,
+            ConflictingArguments{
+                R"(provide a GDML file, or the gen/dump options)"});
+    }
 
     if (dump_default)
     {

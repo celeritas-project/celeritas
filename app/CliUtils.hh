@@ -45,6 +45,17 @@ CLI::Validator empty_string_validator();
 // Print the usage of the app if possible, returning success
 bool print_usage(CLI::App const& cli, std::ostream& os);
 
+//! Raise an error about
+class ConflictingArguments : public CLI::ArgumentMismatch
+{
+  public:
+    explicit ConflictingArguments(std::string const& msg)
+        : CLI::ArgumentMismatch(
+              "conflicting arguments", msg, CLI::ExitCodes::ArgumentMismatch)
+    {
+    }
+};
+
 //---------------------------------------------------------------------------//
 // INLINE FUNCTIONS
 //---------------------------------------------------------------------------//

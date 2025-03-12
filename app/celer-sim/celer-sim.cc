@@ -204,6 +204,7 @@ int main(int argc, char* argv[])
     CLI::App cli{"Run standalone Celeritas"};
     setup_app(cli);
 
+    // TODO for 1.0: instead of separate flags, make these subcommands
     std::string filename;
     cli.add_option("filename", filename, "Input JSON")
         ->check(CLI::ExistingFile | dash_validator());
@@ -212,6 +213,11 @@ int main(int argc, char* argv[])
     auto set_diagnostic = [&diagnostic](auto func) {
         return [&diagnostic, func = std::move(func)](auto count) {
             CELER_DISCARD(count);
+            if (diagnostic)
+            {
+                throw ConflictingArguments{
+                    R"(only a single diagnostic is allowed)"};
+            }
             diagnostic = std::move(func);
         };
     };
@@ -228,6 +234,14 @@ int main(int argc, char* argv[])
 
     // Parse and run
     CELER_CLI11_PARSE(cli, argc, argv);
+
+    if ((!filename.empty() + (diagnostic ? 1 : 0)) != 1)
+    {
+        return process_parse_error(
+            cli,
+            ConflictingArguments{
+                R"(provide an input file or a diagnostic flag)"});
+    }
 
     if (diagnostic)
     {
