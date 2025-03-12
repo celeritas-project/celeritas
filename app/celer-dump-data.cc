@@ -1035,14 +1035,14 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
     }
 
     // Set up app
-    CLI::App cli{"Celeritas ROOT Data Dumper"};
-    setup_app(cli);
+    auto& cli = cli_app();
+    cli.description("Dump Geant4 data to ROOT");
 
     std::string filename;
     cli.add_option("filename", filename, "Input ROOT file")
         ->check(CLI::ExistingFile);
 
     // Parse and run
-    CELER_CLI11_PARSE(cli, argc, argv);
-    return run_safely(cli, run, filename);
+    CELER_CLI11_PARSE(argc, argv);
+    return run_safely(run, filename);
 }

@@ -6,18 +6,20 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iosfwd>
+#include <cstdlib>
+#include <exception>
+#include <type_traits>
 #include <CLI/CLI.hpp>
 
 //! Parse but only print on one processor on failure/help
-#define CELER_CLI11_PARSE(CLI_APP, ...)                           \
-    try                                                           \
-    {                                                             \
-        (CLI_APP).parse(__VA_ARGS__);                             \
-    }                                                             \
-    catch (CLI::ParseError const& e)                              \
-    {                                                             \
-        return celeritas::app::process_parse_error((CLI_APP), e); \
+#define CELER_CLI11_PARSE(ARGC, ARGV)                  \
+    try                                                \
+    {                                                  \
+        ::celeritas::app::cli_app().parse(ARGC, ARGV); \
+    }                                                  \
+    catch (CLI::ParseError const& e)                   \
+    {                                                  \
+        return celeritas::app::process_parse_error(e); \
     }
 
 namespace celeritas
@@ -27,23 +29,19 @@ namespace app
 //---------------------------------------------------------------------------//
 
 // Process a parsing error
-[[nodiscard]] int process_parse_error(CLI::App const&, CLI::ParseError const&);
+[[nodiscard]] int process_parse_error(CLI::ParseError const&);
 
 // Process a runtime error (returning EXIT_FAILURE)
-[[nodiscard]] int
-process_runtime_error(CLI::App const&, std::exception const& e);
+[[nodiscard]] int process_runtime_error(std::exception const& e);
 
-// Set up common options
-void setup_app(CLI::App& cli);
+// Access the app instance
+CLI::App& cli_app();
 
 // Get a validator for the special value '-'
 CLI::Validator dash_validator();
 
 // Get a validator for the empty string
 CLI::Validator empty_string_validator();
-
-// Print the usage of the app if possible, returning success
-bool print_usage(CLI::App const& cli, std::ostream& os);
 
 //! Raise an error about
 class ConflictingArguments : public CLI::ArgumentMismatch
@@ -59,18 +57,19 @@ class ConflictingArguments : public CLI::ArgumentMismatch
 //---------------------------------------------------------------------------//
 // INLINE FUNCTIONS
 //---------------------------------------------------------------------------//
-//! Run, checking for errors and printing on failure
+//! Run, checking for errors, printing on failure and returning an exit code
 template<typename RunFunc, typename... Args>
-[[nodiscard]] inline int
-run_safely(CLI::App const& cli, RunFunc&& run, Args&&... args)
+[[nodiscard]] inline int run_safely(RunFunc&& run, Args&&... args)
 {
+    static_assert(std::is_void_v<std::invoke_result_t<RunFunc, Args...>>,
+                  "RunFunc must return void");
     try
     {
         std::forward<RunFunc>(run)(std::forward<Args>(args)...);
     }
     catch (std::exception const& e)
     {
-        return process_runtime_error(cli, e);
+        return process_runtime_error(e);
     }
 
     return EXIT_SUCCESS;

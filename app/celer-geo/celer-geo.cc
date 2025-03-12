@@ -263,8 +263,8 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    CLI::App cli{"Celeritas interactive geometry"};
-    setup_app(cli);
+    auto& cli = cli_app();
+    cli.description("Geometry visualization server");
 
     std::string filename;
     cli.add_option("filename", filename, "Input JSON lines")
@@ -272,6 +272,6 @@ int main(int argc, char* argv[])
         ->check(CLI::ExistingFile | dash_validator());
 
     // Parse and run
-    CELER_CLI11_PARSE(cli, argc, argv);
-    return run_safely(cli, run, filename);
+    CELER_CLI11_PARSE(argc, argv);
+    return run_safely(run, filename);
 }

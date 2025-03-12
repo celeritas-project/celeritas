@@ -20,6 +20,26 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Print the usage of the app if possible, returning success.
+ */
+bool print_usage(CLI::App const& cli, std::ostream& os)
+{
+    if (auto base_formatter
+        = std::dynamic_pointer_cast<CLI::Formatter>(cli.get_formatter()))
+    {
+        auto usage = base_formatter->make_usage(&cli, std::string{});
+        if (!usage.empty() && usage.back() == '\n')
+        {
+            usage.pop_back();
+        }
+        os << usage;
+        return true;
+    }
+    return false;
+}
+
+//---------------------------------------------------------------------------//
 //! Construct a failure message for celeritas apps
 std::string failure_message(CLI::App const* cli, const CLI::Error& e)
 {
@@ -60,20 +80,19 @@ char const* failure_type(std::exception const& e)
 /*!
  * Process a parsing error.
  */
-[[nodiscard]] int
-process_parse_error(CLI::App const& cli, CLI::ParseError const& e)
+[[nodiscard]] int process_parse_error(CLI::ParseError const& e)
 {
     if (e.get_exit_code() != EXIT_SUCCESS)
     {
         CELER_LOG(error) << e.get_name() << ": " << e.what();
         if (celeritas::comm_world().rank() == 0)
         {
-            print_usage(cli, std::clog);
+            print_usage(cli_app(), std::clog);
         }
     }
     else if (celeritas::comm_world().rank() == 0)
     {
-        return cli.exit(e);
+        return cli_app().exit(e);
     }
     return e.get_exit_code();
 }
@@ -82,10 +101,9 @@ process_parse_error(CLI::App const& cli, CLI::ParseError const& e)
 /*!
  * Process a runtime error from run_safely.
  */
-[[nodiscard]] int
-process_runtime_error(CLI::App const& cli, std::exception const& e)
+[[nodiscard]] int process_runtime_error(std::exception const& e)
 {
-    world_logger()({cli.get_name(), 0}, LogLevel::critical)
+    world_logger()({cli_app().get_name(), 0}, LogLevel::critical)
         << failure_type(e) << ": " << e.what();
 
     return EXIT_FAILURE;
@@ -93,12 +111,18 @@ process_runtime_error(CLI::App const& cli, std::exception const& e)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up common options.
+ * Access the app, setting common options.
  */
-void setup_app(CLI::App& cli)
+CLI::App& cli_app()
 {
-    cli.failure_message(failure_message);
-    cli.set_version_flag("--version,-v", celeritas::version_string);
+    static CLI::App result;
+    static bool const did_setup = [&] {
+        result.failure_message(failure_message);
+        result.set_version_flag("--version,-v", celeritas::version_string);
+        return true;
+    }();
+    CELER_ENSURE(did_setup);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -129,26 +153,6 @@ CLI::Validator empty_string_validator()
                },
                "<empty>")
         .description("Empty string");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Print the usage of the app if possible, returning success.
- */
-bool print_usage(CLI::App const& cli, std::ostream& os)
-{
-    if (auto base_formatter
-        = std::dynamic_pointer_cast<CLI::Formatter>(cli.get_formatter()))
-    {
-        auto usage = base_formatter->make_usage(&cli, std::string{});
-        if (!usage.empty() && usage.back() == '\n')
-        {
-            usage.pop_back();
-        }
-        os << usage;
-        return true;
-    }
-    return false;
 }
 
 //---------------------------------------------------------------------------//

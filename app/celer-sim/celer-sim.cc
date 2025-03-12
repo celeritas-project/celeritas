@@ -201,8 +201,8 @@ int main(int argc, char* argv[])
     }
 
     // Set up app
-    CLI::App cli{"Run standalone Celeritas"};
-    setup_app(cli);
+    auto& cli = cli_app();
+    cli.description("Run standalone Celeritas");
 
     // TODO for 1.0: instead of separate flags, make these subcommands
     std::string filename;
@@ -233,21 +233,20 @@ int main(int argc, char* argv[])
                  "Show device information");
 
     // Parse and run
-    CELER_CLI11_PARSE(cli, argc, argv);
+    CELER_CLI11_PARSE(argc, argv);
 
     if ((!filename.empty() + (diagnostic ? 1 : 0)) != 1)
     {
-        return process_parse_error(
-            cli,
-            ConflictingArguments{
-                R"(provide an input file or a diagnostic flag)"});
+        return process_parse_error(ConflictingArguments{
+            R"(provide an input file or a diagnostic flag)"});
     }
 
     if (diagnostic)
     {
         // Print diagnostic and immediately exit
-        return run_safely(
-            cli, [&diagnostic] { std::cout << diagnostic() << std::endl; });
+        auto print_diagnostic
+            = [&diagnostic] { std::cout << diagnostic() << std::endl; };
+        return run_safely(print_diagnostic);
     }
 
     // Run and save output
@@ -259,7 +258,7 @@ int main(int argc, char* argv[])
     }
     catch (std::exception const& e)
     {
-        return_code = process_runtime_error(cli, e);
+        return_code = process_runtime_error(e);
 
         if (!output)
         {

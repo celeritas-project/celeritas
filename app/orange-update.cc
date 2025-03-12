@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    CLI::App cli{"Read in and write back an ORANGE JSON file"};
-    setup_app(cli);
+    auto& cli = cli_app();
+    cli.description("Read in and write back an ORANGE JSON file");
 
     std::string input_file;
     std::string output_file;
@@ -74,6 +74,6 @@ int main(int argc, char* argv[])
         ->required()
         ->check(CLI::ExistingFile | dash_validator());
 
-    CELER_CLI11_PARSE(cli, argc, argv);
-    return run_safely(cli, run, input_file, output_file);
+    CELER_CLI11_PARSE(argc, argv);
+    return run_safely(run, input_file, output_file);
 }
