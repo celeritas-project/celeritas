@@ -122,7 +122,19 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-include_guard(GLOBAL)
+set(_CUDA_RDC_VERSION 1)
+if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
+  # A newer version has already been loaded
+  return()
+endif()
+if(NOT CUDA_RDC_VERSION NOT COMMAND cuda_rdc_add_library)
+  # if this is the first we get here use include_guard
+  # to prevent the inclusion of non-version version
+  # of this file
+  include_guard(GLOBAL)
+endif()
+set(CUDA_RDC_VERSION ${_CUDA_RDC_VERSION})
+message(VERBOSE "Using CUDA_RDC_VERSION ${CUDA_RDC_VERSION}")
 
 cmake_policy(VERSION 3.24...3.31)
 # 3.19 is needed for set properties in INTERFACE libraries.
