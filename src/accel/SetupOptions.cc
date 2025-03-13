@@ -117,10 +117,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
         // Check if magnitude is zero
         auto field = u->get_field();
         auto field_val = norm(field.strength);
-        if (field_val > 0)
+	auto volumes = u->get_volumes();
+        if (field_val > 0 && !volumes.empty())
         {
             CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
             p.field = std::move(field);
+	    p.volumes = std::move(volumes);
         }
         else
         {

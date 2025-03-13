@@ -43,11 +43,11 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f)
  * Construct with field strength and the volumes where field is present.
  */
 UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f,
-                                                 VecVolume volumes)
-    : get_field_(std::move(f)), volumes_(std::move(volumes))
+                                                 VecVolumeFunction volumes)
+    : get_field_(std::move(f)), get_volumes_(std::move(volumes))
 {
     CELER_EXPECT(get_field_);
-    CELER_EXPECT(!volumes_.empty());
+    CELER_EXPECT(get_volumes_);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,14 +64,17 @@ auto UniformAlongStepFactory::operator()(
     auto field = this->get_field();
     auto magnitude = norm(field.strength);
 
+    // Get the volumes where field is present
+    auto volumes = this->get_volumes(); 
+
     if (magnitude > 0)
     {
         // Get the IDs of the volumes with field
-        if (!volumes_.empty())
+        if (!volumes.empty())
         {
-            field.volumes.reserve(volumes_.size());
+            field.volumes.reserve(volumes.size());
             GeantVolumeMapper find_volume(*input.geometry);
-            for (auto const* lv : volumes_)
+            for (auto const* lv : volumes)
             {
                 CELER_ASSERT(lv);
                 auto vol = find_volume(*lv);
@@ -87,7 +90,7 @@ auto UniformAlongStepFactory::operator()(
         CELER_LOG(info)
             << "Creating along-step action with field strength " << magnitude
             << " T in "
-            << (field.volumes.empty() ? "all" : std::to_string(volumes_.size()))
+            << (field.volumes.empty() ? "all" : std::to_string(volumes.size()))
             << " volumes";
 
         return celeritas::AlongStepUniformMscAction::from_params(
@@ -120,6 +123,15 @@ auto UniformAlongStepFactory::operator()(
 auto UniformAlongStepFactory::get_field() const -> FieldInput
 {
     return get_field_ ? get_field_() : FieldInput{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volumes where field is present
+ */
+auto UniformAlongStepFactory::get_volumes() const -> VecVolume
+{
+    return get_volumes_ ? get_volumes_() : VecVolume{};
 }
 
 //---------------------------------------------------------------------------//
