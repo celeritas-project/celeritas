@@ -58,8 +58,7 @@ inline auto& thrust_execution_policy()
     {
         return thrust_native::par;
     }
-#if (__CUDACC_VER_MAJOR__ < 11) \
-    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
+#if CELER_CUDACC_BUGGY_IF_CONSTEXPR
     CELER_ASSERT_UNREACHABLE();
 #endif
 }
@@ -86,8 +85,7 @@ inline auto thrust_execute_on(StreamId stream_id)
         return thrust_execution_policy<T>()(Alloc(&stream.memory_resource()))
             .on(stream.get());
     }
-#if (__CUDACC_VER_MAJOR__ < 11) \
-    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
+#if CELER_CUDACC_BUGGY_IF_CONSTEXPR
     CELER_ASSERT_UNREACHABLE();
 #endif
 }

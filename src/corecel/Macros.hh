@@ -270,4 +270,18 @@
  */
 #define CELER_DISCARD(CODE) static_cast<void>(sizeof(CODE));
 
+#if CELERITAS_USE_CUDA            \
+    && (__CUDACC_VER_MAJOR__ < 11 \
+        || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5))
+/*!
+ * Work around older NVCC bugs with `if constexpr`.
+ * These cause errors such as \verbatim
+  error: missing return statement at end of non-void function
+ \endverbatim
+ */
+#    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 1
+#else
+#    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 0
+#endif
+
 //---------------------------------------------------------------------------//
