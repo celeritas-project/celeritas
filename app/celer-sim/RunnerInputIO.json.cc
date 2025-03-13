@@ -94,7 +94,10 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
-    LDIO_LOAD_OPTION(default_stream);
+    if (j.count("default_stream"))
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
+    }
     if (auto iter = j.find("warm_up"); iter != j.end())
     {
         iter->get_to(v.warm_up);
@@ -187,7 +190,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(use_device);
     LDIO_SAVE(action_times);
     LDIO_SAVE(merge_events);
-    LDIO_SAVE(default_stream);
     LDIO_SAVE(warm_up);
 
     LDIO_SAVE_OPTION(field);

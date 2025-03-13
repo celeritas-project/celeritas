@@ -158,7 +158,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
 
         options_->action_times = input_.action_times;
-        options_->default_stream = input_.default_stream;
         options_->track_order = input_.track_order;
     }
     else
