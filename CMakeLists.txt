@@ -616,12 +616,9 @@ set(_cmake_files
   # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
-if(NOT CELERITAS_USE_VecGeom OR VecGeom_VERSION VERSION_LESS 1.2.10)
-  # Only install RDC utils if not available through vecgeom
-  list(APPEND _cmake_files
-    "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
-  )
-endif()
+list(APPEND _cmake_files
+  "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
+)
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
