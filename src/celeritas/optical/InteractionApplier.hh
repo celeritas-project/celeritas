@@ -35,10 +35,10 @@ struct InteractionApplierBaseImpl
 
 //---------------------------------------------------------------------------//
 /*!
- *
  * This class is partially specialized with a second template argument to
- * extract any launch bounds from the functor class. TODO: we could probably
- * inherit from a helper class to pull in those constants (if available).
+ * extract any launch bounds from the functor class.
+ *
+ * \todo Generalize this with the core interaction applier
  */
 template<class F, typename = void>
 struct InteractionApplier : public InteractionApplierBaseImpl<F>
@@ -95,6 +95,8 @@ InteractionApplierBaseImpl<F>::operator()(CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 
+    // Currently we have no optical actions capable of failing. This can be
+    // added in the future as necessary.
     CELER_ASSERT(result.action != Interaction::Action::failed);
 
     if (result.action == Interaction::Action::absorbed)

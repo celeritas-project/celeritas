@@ -119,6 +119,7 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
     , track_id_(track_id)
 {
     CELER_EXPECT(track_id_ < states_.size());
+    CELER_EXPECT(opt_mat < params_.scalars.num_materials);
 }
 
 //---------------------------------------------------------------------------//
@@ -223,6 +224,8 @@ CELER_FUNCTION ActionId PhysicsTrackView::discrete_action() const
  */
 CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 {
+    CELER_EXPECT(model < this->num_models());
+
     ValueGridId grid_id{opt_material_.get()
                         + model.get() * params_.scalars.num_materials};
 
