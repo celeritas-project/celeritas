@@ -57,7 +57,9 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
     # Run offload-template only on Geant4 v11
     cd "${CELER_SOURCE_DIR}/example/offload-template"
     build_local
-    ./run-offload
+    CELER_DISABLE_PARALLEL=1 \
+      G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT \
+      ./run-offload
   fi
 else
   printf "\e[31mSkipping 'accel' tests due to insufficient requirements\e[m\n"
