@@ -13,7 +13,10 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH
+  "${CMAKE_CURRENT_LIST_DIR}/cmake"
+  "${CMAKE_CURRENT_LIST_DIR}/cmake/external"
+)
 
 include(GNUInstallDirs)
 include(CeleritasOptionUtils)
@@ -636,6 +639,10 @@ set(_cmake_files
   # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
+if(_LOCAL_RDCUTILS_FILENAME)
+  # Install our newer copy of CudaRdcUtils
+  list(APPEND _cmake_files ${_LOCAL_RDCUTILS_FILENAME})
+endif()
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
@@ -645,10 +652,6 @@ if(CELERITAS_BUILD_TESTS)
   list(APPEND _cmake_files
     "${PROJECT_SOURCE_DIR}/cmake/CeleritasAddTest.cmake"
   )
-endif()
-if(_LOCAL_RDCUTILS_FILENAME)
-  # Install our newer copy of RDC Utils to build and install
-  list(APPEND _cmake_files ${_LOCAL_RDCUTILS_FILENAME})
 endif()
 
 install(FILES ${_cmake_files}
