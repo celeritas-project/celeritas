@@ -522,12 +522,10 @@ if(NOT CUDA_RDC_VERSION)
 else()
    set(_loaded_CUDA_RDC_VERSION ${CUDA_RDC_VERSION})
 endif()
+set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
 include("${_LOCAL_RDCUTILS_FILENAME}")
-if(CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
-  # Install our copy since it's newer than what's available elsewhere
-  set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
-else()
-  # Don't install
+if(NOT CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
+  # Only install our copy if it's newer than what's available elsewhere
   set(_LOCAL_RDCUTILS_FILENAME)
 endif()
 
