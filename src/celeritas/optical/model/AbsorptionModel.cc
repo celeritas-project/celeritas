@@ -7,8 +7,13 @@
 #include "AbsorptionModel.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
 
+#include "AbsorptionExecutor.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../InteractionApplier.hh"
 #include "../MfpBuilder.hh"
 
 namespace celeritas
@@ -51,9 +56,14 @@ void AbsorptionModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
 /*!
  * Execute the model on the host.
  */
-void AbsorptionModel::step(CoreParams const&, CoreStateHost&) const
+void AbsorptionModel::step(CoreParams const& params, CoreStateHost& state) const
 {
-    CELER_NOT_IMPLEMENTED("optical core physics");
+    launch_action(
+        state,
+        make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                    state.ptr(),
+                                    this->action_id(),
+                                    InteractionApplier{AbsorptionExecutor{}}));
 }
 
 //---------------------------------------------------------------------------//

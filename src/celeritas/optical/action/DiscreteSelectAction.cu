@@ -3,17 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/AbsorptionModel.cu
+//! \file celeritas/optical/action/DiscreteSelectAction.cu
 //---------------------------------------------------------------------------//
-#include "AbsorptionModel.hh"
+#include "DiscreteSelectAction.hh"
 
-#include "celeritas/optical/action/ActionLauncher.device.hh"
-#include "celeritas/optical/action/TrackSlotExecutor.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
 
-#include "AbsorptionExecutor.hh"
-#include "../CoreParams.hh"
-#include "../CoreState.hh"
-#include "../InteractionApplier.hh"
+#include "ActionLauncher.device.hh"
+#include "DiscreteSelectExecutor.hh"
+#include "TrackSlotExecutor.hh"
 
 namespace celeritas
 {
@@ -21,16 +20,15 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Interact with device data.
+ * Launch the discrete-select action on device.
  */
-void AbsorptionModel::step(CoreParams const& params,
-                           CoreStateDevice& state) const
+void DiscreteSelectAction::step(CoreParams const& params,
+                                CoreStateDevice& state) const
 {
-    auto execute = make_action_thread_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        InteractionApplier{AbsorptionExecutor{}});
+    auto execute = make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                               state.ptr(),
+                                               this->action_id(),
+                                               DiscreteSelectExecutor{});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

@@ -41,20 +41,26 @@ build_local
 
 # Run Geant4 app examples
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
+  if [ -z "${G4VERSION_NUMBER}" ]; then
+    # Get the geant4 version 11.2.3, failing if config isn't found
+    _vers=$(geant4-config --version)
+    # Replace . with ' ' and convert to MMmp (major/minor/patch)
+    G4VERSION_NUMBER=$(echo "${_vers}" | tr '.' ' ' | xargs printf '%d%01d%01d')
+    echo "Set G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\""
+  fi
+
   # Run small accel examples
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error
 
-  test -n "${G4VERSION_NUMBER}" || (
-    echo "G4VERSION_NUMBER is undefined"
-    exit 1
-  )
   if [ "${G4VERSION_NUMBER}" -ge 1100 ]; then
     # Run offload-template only on Geant4 v11
     cd "${CELER_SOURCE_DIR}/example/offload-template"
     build_local
-    G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT ./run-offload
+    CELER_DISABLE_PARALLEL=1 \
+      G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT \
+      ./run-offload
   fi
 else
   printf "\e[31mSkipping 'accel' tests due to insufficient requirements\e[m\n"

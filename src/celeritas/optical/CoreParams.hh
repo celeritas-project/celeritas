@@ -25,7 +25,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 class MaterialParams;
 class TrackInitParams;
-// TODO: class PhysicsParams;
+class PhysicsParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -38,6 +38,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<GeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
+    using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
@@ -52,7 +53,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     {
         SPConstGeo geometry;
         SPConstMaterial material;
-        // TODO: physics
+        SPConstPhysics physics;
         SPConstRng rng;
         SPConstTrackInit init;
 
@@ -86,6 +87,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     //! Access shared problem parameter data.
     SPConstGeo const& geometry() const { return input_.geometry; }
     SPConstMaterial const& material() const { return input_.material; }
+    SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }

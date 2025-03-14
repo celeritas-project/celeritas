@@ -849,23 +849,22 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
-        else if (import_optical_model)
+        else if (import_optical_model
+                 && dynamic_cast<G4OpAbsorption const*>(&process))
         {
-            if (dynamic_cast<G4OpAbsorption const*>(&process))
-            {
-                optical_models.push_back(import_optical_model(
-                    optical::ImportModelClass::absorption));
-            }
-            else if (dynamic_cast<G4OpRayleigh const*>(&process))
-            {
-                optical_models.push_back(
-                    import_optical_model(optical::ImportModelClass::rayleigh));
-            }
-            else if (dynamic_cast<G4OpWLS const*>(&process))
-            {
-                optical_models.push_back(
-                    import_optical_model(optical::ImportModelClass::wls));
-            }
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::absorption));
+        }
+        else if (import_optical_model
+                 && dynamic_cast<G4OpRayleigh const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::rayleigh));
+        }
+        else if (import_optical_model && dynamic_cast<G4OpWLS const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::wls));
         }
         else
         {
@@ -905,7 +904,41 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             append_process(*g4_particle_def, process);
         }
     }
+
+    // Optical photon PDG in Geant4 is 0 before version 10.7
+    if (G4VERSION_NUMBER < 1070
+        && G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
+    {
+        auto* photon_def = G4OpticalPhoton::OpticalPhoton();
+        CELER_ASSERT(photon_def);
+
+        if (!include_particle(g4_photon_pdg))
+        {
+            CELER_LOG(debug) << "Filtered all processes from particle '"
+                             << photon_def->GetParticleName() << "'";
+        }
+        else
+        {
+            G4ProcessVector const& process_list
+                = *photon_def->GetProcessManager()->GetProcessList();
+
+            for (auto j : range(process_list.size()))
+            {
+                G4VProcess const& process = *process_list[j];
+                if (!include_process(process.GetProcessType()))
+                {
+                    CELER_LOG(debug) << "Filtered process '"
+                                     << process.GetProcessName() << "'";
+                    continue;
+                }
+
+                append_process(*photon_def, process);
+            }
+        }
+    }
+
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
+    CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";
     return {
         std::move(processes), std::move(msc_models), std::move(optical_models)};
 }

@@ -17,6 +17,7 @@
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
+#include "PhysicsParams.hh"
 #include "TrackInitParams.hh"
 #include "action/AlongStepAction.hh"
 #include "action/BoundaryAction.hh"
@@ -46,7 +47,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.scalars = scalars;
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
-    // TODO: ref.physics = get_ref<M>(*p.physics);
+    ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
     ref.init = get_ref<M>(*p.init);
 
@@ -112,7 +113,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
                    << "optical core input is missing " << #MEMBER << " data")
     CP_VALIDATE_INPUT(geometry);
     CP_VALIDATE_INPUT(material);
-    // TODO: CP_VALIDATE_INPUT(physics);
+    CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);

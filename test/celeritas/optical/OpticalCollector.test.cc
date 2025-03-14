@@ -24,6 +24,7 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/detail/OffloadParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -185,6 +186,19 @@ void LArSphereOffloadTest::build_optical_collector()
     inp.buffer_capacity = buffer_capacity_;
     inp.initializer_capacity = initializer_capacity_;
     inp.auto_flush = auto_flush_;
+
+    using IMC = celeritas::optical::ImportModelClass;
+
+    ModelImporter importer{
+        this->imported_data(), this->optical_material(), this->material()};
+    std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh};
+    for (auto imc : imcs)
+    {
+        if (auto builder = importer(imc))
+        {
+            inp.model_builders.push_back(*builder);
+        }
+    }
 
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));

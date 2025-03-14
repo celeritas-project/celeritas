@@ -53,6 +53,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -326,11 +327,23 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+
+    // Import models
+    optical::ModelImporter importer{imported, oc_inp.material, params.material()};
+    for (auto const& model : imported.optical_models)
+    {
+        if (auto builder = importer(model.model_class))
+        {
+            oc_inp.model_builders.push_back(*builder);
+        }
+    }
+
     CELER_ASSERT(oc_inp);
 
     // TODO: optical collector really just *builds* the optical setup: it's
     // ok that it immediately goes out of scope
     OpticalCollector(params, std::move(oc_inp));
+
 }
 
 //---------------------------------------------------------------------------//
