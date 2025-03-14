@@ -510,7 +510,7 @@ endif()
 # RDC SUPPORT FOR VECGEOM+CUDA
 #----------------------------------------------------------------------------#
 
-# Load RDC utils using CMAKE_MODULE_PATH if it wasn't already
+# Load RDC utils using CMAKE_MODULE_PATH
 include(CudaRdcUtils)
 
 # Load our local copy if it's newer
