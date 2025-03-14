@@ -498,10 +498,24 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# BUILTINS
+# CudaRdcUtils
 #----------------------------------------------------------------------------#
 
 include(CudaRdcUtils)
+if (NOT CUDA_RDC_VERSION)
+   set(_loaded_CUDA_RDC_VERSION 0)
+else()
+   set(_loaded_CUDA_RDC_VERSION ${CUDA_RDC_VERSION})
+endif()
+set(_local_CudaRdcUtils ${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake)
+include(${_local_CudaRdcUtils})
+if(NOT CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
+   unset(_local_CudaRdcUtils)
+endif()
+
+#----------------------------------------------------------------------------#
+# BUILTINS
+#----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN)
   include(FetchContent)
@@ -616,9 +630,6 @@ set(_cmake_files
   # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
-list(APPEND _cmake_files
-  "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
-)
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
@@ -639,6 +650,18 @@ install(FILES ${_cmake_files}
 file(COPY ${_cmake_files}
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
 )
+
+if(_local_CudaRdcUtils)
+  # We have a newer version let's install it
+  install(FILES ${_local_CudaRdcUtils}
+    DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
+    COMPONENT development
+  )
+  # Copy CMake files to support using Celeritas build dir as an install dir
+  file(COPY ${_local_CudaRdcUtils}
+    DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
+  )
+endif()
 
 # Export all cache variables that start with CELERITAS_
 set(CELERITAS_EXPORT_VARIABLES)
