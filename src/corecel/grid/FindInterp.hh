@@ -6,9 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/detail/TypeTraits.hh"
+#include "corecel/math/Quantity.hh"
 
 namespace celeritas
 {
@@ -19,11 +23,10 @@ namespace celeritas
  * The resulting index will be in [0, grid.size() - 1)
  * and the fraction will be in [0, 1).
  */
-template<class T>
 struct FindInterp
 {
     size_type index{};  //!< Lower index into the grid
-    T fraction{};  //!< Fraction of the value between its neighbors
+    real_type fraction{};  //!< Fraction of the value between its neighbors
 };
 
 //---------------------------------------------------------------------------//
@@ -40,18 +43,26 @@ struct FindInterp
  * one.
  */
 template<class Grid>
-inline CELER_FUNCTION FindInterp<typename Grid::value_type>
-find_interp(Grid const& grid, typename Grid::value_type value)
+inline CELER_FUNCTION FindInterp find_interp(Grid const& grid,
+                                             typename Grid::value_type value)
 {
     CELER_EXPECT(value >= grid.front() && value < grid.back());
 
-    FindInterp<typename Grid::value_type> result;
+    FindInterp result;
     result.index = grid.find(value);
     CELER_ASSERT(result.index + 1 < grid.size());
     auto const lower_val = grid[result.index];
     auto const upper_val = grid[result.index + 1];
-    result.fraction = (value - lower_val) / (upper_val - lower_val);
-
+    using value_type = typename Grid::value_type;
+    if constexpr (detail::is_quantity_v<value_type>)
+    {
+        result.fraction = value_as<value_type>(value - lower_val)
+                          / value_as<value_type>(upper_val - lower_val);
+    }
+    else
+    {
+        result.fraction = (value - lower_val) / (upper_val - lower_val);
+    }
     return result;
 }
 

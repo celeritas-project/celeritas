@@ -8,8 +8,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/grid/UniformGridData.hh"
+#include "corecel/math/Turn.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -19,11 +20,16 @@ namespace celeritas
 /*!
  * FieldMap (3-dimensional RZ-Phi map) grid data
  */
+template<Ownership W, MemSpace M>
 struct RZPhiMapGridData
 {
-    UniformGridData data_z;
-    UniformGridData data_r;
-    UniformGridData data_phi;
+    template<class T>
+    using Items = Collection<T, W, M>;
+    Items<real_type> z;
+    Items<real_type> r;
+    Items<Turn> phi;
+
+    operator bool() const { return !z.empty() && !r.empty() && !phi.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -45,7 +51,7 @@ template<Ownership W, MemSpace M>
 struct RZPhiMapFieldParamsData
 {
     //! Grids of FieldMap
-    RZPhiMapGridData grids;
+    RZPhiMapGridData<W, M> grids;
 
     //! Options for FieldDriver
     FieldDriverOptions options;
@@ -66,23 +72,27 @@ struct RZPhiMapFieldParamsData
     inline CELER_FUNCTION bool
     valid(real_type z, real_type r, real_type phi) const
     {
-        CELER_EXPECT(grids.data_z);
-        CELER_EXPECT(grids.data_r);
-        CELER_EXPECT(grids.data_phi);
-        return (z >= grids.data_z.front && z <= grids.data_z.back
-                && r >= grids.data_r.front && r <= grids.data_r.back
-                && phi >= grids.data_phi.front && phi <= grids.data_phi.back);
+        CELER_EXPECT(grids);
+        Turn turn_phi{phi / Turn::unit_type::value()};
+        auto view_z
+            = Span<real_type const>{grids.z.data().get(), grids.z.size()};
+        auto view_r
+            = Span<real_type const>{grids.r.data().get(), grids.r.size()};
+        auto view_phi
+            = Span<Turn const>{grids.phi.data().get(), grids.phi.size()};
+        return (z >= view_z.front() && z <= view_z.back()
+                && r >= view_r.front() && r <= view_r.back()
+                && turn_phi >= view_phi.front() && turn_phi <= view_phi.back());
     }
 
     inline CELER_FUNCTION ElementId id(size_type idx_z,
                                        size_type idx_r,
                                        size_type idx_phi) const
     {
-        CELER_EXPECT(grids.data_r);
-        CELER_EXPECT(grids.data_phi);
+        CELER_EXPECT(grids);
         // Index with ordering [Z][R][Phi]
-        return ElementId(idx_z * grids.data_r.size * grids.data_phi.size
-                         + idx_r * grids.data_phi.size + idx_phi);
+        return ElementId(idx_z * grids.r.size() * grids.phi.size()
+                         + idx_r * grids.phi.size() + idx_phi);
     }
 
     //! Assign from another set of data
@@ -91,7 +101,9 @@ struct RZPhiMapFieldParamsData
     operator=(RZPhiMapFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        grids = other.grids;
+        grids.z = other.grids.z;
+        grids.r = other.grids.r;
+        grids.phi = other.grids.phi;
         options = other.options;
         fieldmap = other.fieldmap;
         return *this;

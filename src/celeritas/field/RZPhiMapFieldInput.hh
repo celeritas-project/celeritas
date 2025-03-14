@@ -13,6 +13,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/math/Turn.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -34,22 +36,14 @@ namespace celeritas
  */
 struct RZPhiMapFieldInput
 {
-    unsigned int num_grid_z{};
-    unsigned int num_grid_r{};
-    unsigned int num_grid_phi{};
-    double min_z{};  //!< Lower z coordinate [len]
-    double max_z{};  //!< Last z coordinate [len]
-    double min_r{};  //!< Lower r coordinate [len]
-    double max_r{};  //!< Last r coordinate [len]
-    double min_phi{};  //!< Lower phi coordinate [rad]
-    double max_phi{};  //!< Last phi coordinate [rad], typically 2\f$\pi\f$ for
-                       //!< full coverage Note: For a full circle (max_phi -
-                       //!< min_phi = 2\f$\pi\f$), the field is treated as
-                       //!< periodic, with points at max_phi equivalent to
-                       //!< points at min_phi.
-    std::vector<double> field_z;  //!< Flattened Z field component [bfield]
-    std::vector<double> field_r;  //!< Flattened R field component [bfield]
-    std::vector<double> field_phi;  //!< Flattened Phi field component [bfield]
+    std::vector<real_type> grid_r;  //!< R grid points [len]
+    std::vector<real_type> grid_z;  //!< Z grid points [len]
+    std::vector<Turn> grid_phi;  //!< Phi grid points [rad]
+
+    std::vector<real_type> field_z;  //!< Flattened Z field component [bfield]
+    std::vector<real_type> field_r;  //!< Flattened R field component [bfield]
+    std::vector<real_type> field_phi;  //!< Flattened Phi field component
+                                       //!< [bfield]
 
     // TODO: remove from field input; should be a separate input
     FieldDriverOptions driver_options;
@@ -58,14 +52,14 @@ struct RZPhiMapFieldInput
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return (num_grid_z >= 2)
-            && (num_grid_r >= 2)
-            && (num_grid_phi >= 2)
-            && (min_r >= 0)
-            && (max_z > min_z)
-            && (max_r > min_r)
-            && (max_phi > min_phi)
-            && (field_z.size() == num_grid_z * num_grid_r * num_grid_phi)
+        return (grid_r.size() >= 2)
+            && (grid_z.size() >= 2)
+            && (grid_phi.size() >= 2)
+            && (field_r.front() >= 0)
+            && (field_z.back() > field_z.front())
+            && (field_r.back() > field_r.front())
+            && (field_phi.back() > field_phi.front())
+            && (field_z.size() == grid_z.size() * grid_r.size() * grid_phi.size())
             && (field_r.size() == field_z.size())
             && (field_phi.size() == field_z.size());
         // clang-format on

@@ -113,7 +113,7 @@ class MuPPEnergyDistribution
     // Minimum incident particle kinetic energy [MeV]
     real_type min_energy_;
     // Log Z grid interpolation for the target element
-    FindInterp<real_type> logz_interp_;
+    FindInterp logz_interp_;
     // Coefficient for calculating the pair energy
     real_type coeff_;
     // Lower bound on the ratio of the pair energy to the incident energy
