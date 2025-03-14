@@ -36,8 +36,15 @@ TEST_F(DeviceTest, json_output)
     }
 
     ASSERT_TRUE(json_out.count("platform")) << json_out.dump(0);
-    auto platform = json_out["platform"].get<std::string>();
-    EXPECT_TRUE(platform == "cuda" || platform == "hip");
+    auto const& platform = json_out["platform"].get<std::string>();
+    if (CELERITAS_USE_CUDA)
+    {
+        EXPECT_EQ("CUDA", platform);
+    }
+    else if (CELERITAS_USE_HIP)
+    {
+        EXPECT_EQ("HIP", platform);
+    }
 
     if (d)
     {
