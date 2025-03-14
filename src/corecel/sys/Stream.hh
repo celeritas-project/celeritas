@@ -89,9 +89,6 @@ class Stream
     //!@}
 
   public:
-    // Whether asynchronous operations are supported
-    static bool async();
-
     // Construct by creating a stream
     Stream();
 

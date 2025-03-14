@@ -40,6 +40,12 @@
 #    define CELER_DEVICE_SUPPORTS_MEMPOOL 0
 #endif
 
+#if HIP_VERSION_MAJOR > 5 || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 7)
+#    define CELER_BUGGY_HIP_ASYNC 1
+#else
+#    define CELER_BUGGY_HIP_ASYNC 0
+#endif
+
 namespace celeritas
 {
 namespace
@@ -141,9 +147,42 @@ bool Device::debug()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether asynchronous operations are supported.
+ *
+ * This is true by default if CUDA or HIP (5.2 <= HIP_VERSION < 5.7) is in use,
+ * and can be disabled by setting the \c CELER_DEVICE_ASYNC environment
+ * variable.
+ */
+bool Device::async()
+{
+    if constexpr (CELER_STREAM_SUPPORTS_ASYNC)
+    {
+        static bool const result = [] {
+            constexpr bool default_val = CELERITAS_USE_CUDA
+                                         || !CELER_BUGGY_HIP_ASYNC;
+            auto result = getenv_flag("CELER_DEVICE_ASYNC", default_val);
+            if (!result.defaulted && result.value != default_val)
+            {
+                CELER_LOG(info)
+                    << R"(Overriding asynchronous stream memory default with CELER_DEVICE_ASYNC=)"
+                    << result.value;
+                return false;
+            }
+            return result.value;
+        }();
+        return result;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from a device ID.
  */
-Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
+Device::Device(int id) : id_{id}
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 

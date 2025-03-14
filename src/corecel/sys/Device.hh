@@ -13,6 +13,7 @@
 #include <string>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 
 #include "ThreadId.hh"
 
@@ -64,6 +65,9 @@ class Device
 
     // Whether verbose messages and error checking are enabled
     static bool debug();
+
+    // Whether asynchronous stream operations are supported
+    static bool async();
 
     //// CONSTRUCTORS ////
 

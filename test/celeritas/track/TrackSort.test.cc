@@ -55,7 +55,7 @@ class TrackSortTestBase : virtual public GlobalTestBase
         {
             device().create_streams(1);
         }
-        
+
         return Stepper<M>{std::move(result)};
     }
 
