@@ -16,7 +16,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 
-#include "RZPhiMapField.hh"
 #include "RZPhiMapFieldData.hh"
 #include "RZPhiMapFieldInput.hh"
 

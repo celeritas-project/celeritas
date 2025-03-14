@@ -52,7 +52,6 @@ class RZPhiMapField
     NonuniformGrid<real_type> const grid_r_;
     NonuniformGrid<real_type> const grid_z_;
     NonuniformGrid<real_type> const grid_phi_;
-    HyperslabIndexer<3> flat_index_;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,7 +66,6 @@ RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
     , grid_r_{params_.grids.r, params_.grids.storage}
     , grid_z_{params_.grids.z, params_.grids.storage}
     , grid_phi_{params_.grids.phi, params_.grids.storage}
-    , flat_index_{params_.grids.grid_size}
 {
 }
 
@@ -102,7 +100,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
         = find_interp<NonuniformGrid<real_type>>(grid_phi_, turn_phi.value());
 
     auto get_field = [this](size_type iz, size_type ir, size_type iphi) {
-        return params_.fieldmap[ItemId<size_type>{flat_index_(iphi, ir, iz)}];
+        return params_.fieldmap[params_.id(iphi, ir, iz)];
     };
 
     // Get the eight corner values for Z component of the field

@@ -6,12 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iosfwd>
 #include <vector>
 
-#include "corecel/Config.hh"
-
-#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Turn.hh"

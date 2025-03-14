@@ -9,7 +9,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Turn.hh"
@@ -49,6 +48,9 @@ struct RZPhiMapGridData
         CELER_EXPECT(other);
         storage = other.storage;
         grid_size = other.grid_size;
+        phi = other.phi;
+        r = other.r;
+        z = other.z;
         return *this;
     }
 };
@@ -102,6 +104,16 @@ struct RZPhiMapFieldParamsData
                 && r <= grids.storage[grids.r.back()]
                 && phi.value() >= grids.storage[grids.phi.front()]
                 && phi.value() <= grids.storage[grids.phi.back()]);
+    }
+
+    inline CELER_FUNCTION ElementId id(size_type idx_phi,
+                                       size_type idx_r,
+                                       size_type idx_z) const
+    {
+        CELER_EXPECT(grids);
+        // Index with ordering [Phi][R][Z]
+        return ElementId{
+            HyperslabIndexer{grids.grid_size}(idx_phi, idx_r, idx_z)};
     }
 
     //! Assign from another set of data
