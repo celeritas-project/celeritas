@@ -3,6 +3,8 @@
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+set -o pipefail
+
 if [ -z "${CELER_SOURCE_DIR}" ]; then
   CELER_SOURCE_DIR=$(cd "$(dirname $0)"/../.. && pwd)
 fi
@@ -43,8 +45,8 @@ build_local
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
   if [ -z "${G4VERSION_NUMBER}" ]; then
     # Get the geant4 version 11.2.3, replace `.` with ` `, concat as 110203
-    _vers=$(geant4-config --version)
-    G4VERSION_NUMBER=$(printf '%d%02d%02d' ${_vers//./ })
+    _vers=$(geant4-config --version | tr '.' ' ')
+    G4VERSION_NUMBER=$(printf '%d%02d%02d' ${_vers})
     echo "Set G4VERSION_NUMBER=${G4VERSION_NUMBER}"
   fi
 
