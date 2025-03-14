@@ -67,7 +67,7 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");
-    CELER_VALIDATE(soft_equal(1.0, inp.grid_phi.back().value()),
+    CELER_VALIDATE(soft_equal(real_type{1}, inp.grid_phi.back().value()),
                    << "Phi grid must be a complete circle (grid_phi max="
                    << inp.grid_phi.back().value() << "): should be 1");
 

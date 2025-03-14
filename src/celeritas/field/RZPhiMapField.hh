@@ -99,15 +99,11 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     FindInterp interp_r = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
     FindInterp interp_z
         = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
-
-    // Special handling for phi to account for periodicity
     FindInterp interp_phi
         = find_interp<NonuniformGrid<Turn>>(grid_phi_, turn_phi);
     size_type ir = interp_r.index;
     size_type iz = interp_z.index;
     size_type iphi = interp_phi.index;
-
-    // Handle phi wrap-around for interpolation
 
     // Perform trilinear interpolation for each field component
     // Define the interpolation weights
