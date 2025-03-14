@@ -29,13 +29,12 @@ void free_async(void* ptr, DeviceStream_t s);
 /*!
  * Thrust async memory resource associated with a CUDA/HIP stream.
  */
-template<class Pointer>
-class AsyncMemoryResource final : public thrust::mr::memory_resource<Pointer>
+class AsyncMemoryResource final : public thrust::mr::memory_resource<void*>
 {
   public:
     //!@{
     //! \name Type aliases
-    using pointer = Pointer;
+    using pointer = void*;
     using StreamT = DeviceStream_t;
     //!@}
 
@@ -54,10 +53,6 @@ class AsyncMemoryResource final : public thrust::mr::memory_resource<Pointer>
   private:
     StreamT stream_{nullptr};
 };
-
-//---------------------------------------------------------------------------//
-
-extern template class AsyncMemoryResource<void*>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
