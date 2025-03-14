@@ -18,6 +18,32 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Safely print a stream's ID (if possible) or
+struct StreamableStream
+{
+    detail::DeviceStream_t s;
+};
+
+#if !CELER_DEVICE_COMPILE
+std::ostream& operator<<(std::ostream& os, StreamableStream const& sds)
+{
+#    if CUDART_VERSION >= 12000
+    unsigned long long stream_id = -1;
+    CELER_DEVICE_API_CALL(StreamGetId(sds.s, &stream_id));
+    os << "id=" << stream_id;
+#    else
+    os << '@' << static_cast<void*>(sds.s);
+#    endif
+    return os;
+}
+#endif
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // PIMPL class
 struct Stream::Impl
@@ -34,9 +60,9 @@ void Stream::ImplDeleter::operator()(Impl* impl) noexcept
 {
     try
     {
-        CELER_DEVICE_API_CALL(StreamDestroy(impl->stream));
         CELER_LOG_LOCAL(debug)
-            << "Destroyed stream " << static_cast<void*>(impl->stream);
+            << "Destroying stream " << StreamableStream{impl->stream};
+        CELER_DEVICE_API_CALL(StreamDestroy(impl->stream));
     }
     catch (RuntimeError const& e)
     {
@@ -56,13 +82,7 @@ Stream::Stream()
 {
     StreamT stream;
     CELER_DEVICE_API_CALL(StreamCreate(&stream));
-#if CUDART_VERSION >= 12000
-    unsigned long long stream_id = -1;
-    CELER_DEVICE_API_CALL(StreamGetId(stream, &stream_id));
-    CELER_LOG_LOCAL(debug) << "Created stream ID " << stream_id;
-#else
-    CELER_LOG_LOCAL(debug) << "Created stream  " << static_cast<void*>(stream);
-#endif
+    CELER_LOG_LOCAL(debug) << "Created stream " << StreamableStream{stream};
     impl_.reset(new Impl);
     impl_->stream = stream;
     impl_->memory_resource = ResourceT{stream};
