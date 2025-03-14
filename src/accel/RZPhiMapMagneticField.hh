@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/RZMapMagneticField.hh
+//! \file accel/RZPhiMapMagneticField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -65,11 +65,6 @@ RZPhiMapMagneticField::RZPhiMapMagneticField(SPConstFieldParams params)
 void RZPhiMapMagneticField::GetFieldValue(double const pos[3],
                                           double* field) const
 {
-    auto const& g4_field = *G4TransportationManager::GetTransportationManager()
-                                ->GetFieldManager()
-                                ->GetDetectorField();
-    double gfield[3];
-    g4_field.GetFieldValue(pos, gfield);
     // Calculate the magnetic field value in the native Celeritas unit system
     Real3 result = calc_field_(convert_from_geant(pos, clhep_length));
     for (auto i = 0; i < 3; ++i)

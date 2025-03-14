@@ -168,7 +168,7 @@ RZMapFieldInput RZMapFieldAlongStepFactory::get_field() const
 /*!
  * Emit an along-step action with a non-uniform magnetic field.
  *
- * The action will embed the field propagator with a RZMapField.
+ * The action will embed the field propagator with a RZPhiMapField.
  */
 RZPhiMapFieldAlongStepFactory::RZPhiMapFieldAlongStepFactory(
     RZPhiMapFieldFunction f)
@@ -184,7 +184,7 @@ RZPhiMapFieldAlongStepFactory::RZPhiMapFieldAlongStepFactory(
 auto RZPhiMapFieldAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
-    CELER_LOG(info) << "Creating along-step action with a RZMapField";
+    CELER_LOG(info) << "Creating along-step action with a RZPhiMapField";
 
     return celeritas::AlongStepRZPhiMapFieldMscAction::from_params(
         input.action_id,

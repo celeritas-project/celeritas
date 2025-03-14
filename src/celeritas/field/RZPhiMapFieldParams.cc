@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "RZPhiMapFieldParams.hh"
 
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -77,21 +78,20 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     auto host_data = [&inp] {
         HostVal<RZPhiMapFieldParamsData> host;
 
-        auto builder = make_builder(&host.grids.storage);
-        builder.reserve(inp.grid_phi.size() + inp.grid_r.size()
-                        + inp.grid_z.size());
-        for (auto i : range(inp.grid_phi.size()))
-        {
-            builder.push_back(inp.grid_phi[i].value());
-        }
-        host.grids.phi = ItemRange<real_type>{builder.size_id()};
-        host.grids.r
-            = builder.insert_back(inp.grid_r.begin(), inp.grid_r.end());
-        host.grids.z
-            = builder.insert_back(inp.grid_z.begin(), inp.grid_z.end());
         host.grids.grid_size[0] = inp.grid_phi.size();
         host.grids.grid_size[1] = inp.grid_r.size();
         host.grids.grid_size[2] = inp.grid_z.size();
+
+        auto grid = make_builder(&host.grids.storage);
+        grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
+                     + inp.grid_z.size());
+        std::transform(inp.grid_phi.begin(),
+                       inp.grid_phi.end(),
+                       std::back_inserter(grid),
+                       [](auto const& val) { return val.value(); });
+        host.grids.phi = ItemRange<real_type>{grid.size_id()};
+        host.grids.r = grid.insert_back(inp.grid_r.begin(), inp.grid_r.end());
+        host.grids.z = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field_z.size());

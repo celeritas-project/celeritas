@@ -18,7 +18,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Propagate a track in an RZ map magnetic field.
+ * Propagate a track in an RZPhi map magnetic field.
  */
 struct RZPhiMapFieldPropagatorFactory
 {

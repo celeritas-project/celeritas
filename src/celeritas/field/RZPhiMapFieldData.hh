@@ -30,15 +30,18 @@ struct RZPhiMapGridData
     Items<real_type> storage;  //!< [Phi, R, Z]
     Array<size_type, 3> grid_size;  //!< [Phi, R, Z]
 
-    //! Index into storage
-    ItemRange<real_type> phi;
-    ItemRange<real_type> r;
-    ItemRange<real_type> z;
+    ItemRange<real_type> phi;  //!< Index range for phi
+    ItemRange<real_type> r;  //!< Index range for r
+    ItemRange<real_type> z;  //!< Index range for z
 
+    //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !storage.empty();
+        return !storage.empty() && grid_size[0] > 1 && grid_size[1] > 1
+               && grid_size[2] > 1 && phi.size() == grid_size[0]
+               && r.size() == grid_size[1] && z.size() == grid_size[2];
     }
+
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     RZPhiMapGridData& operator=(RZPhiMapGridData<W2, M2> const& other)
@@ -79,6 +82,8 @@ struct RZPhiMapFieldParamsData
 
     template<class T>
     using ElementItems = Collection<T, W, M, ElementId>;
+
+    //! FieldMap data
     ElementItems<RZPhiMapElement> fieldmap;
 
     //! Check whether the data is assigned
@@ -87,6 +92,7 @@ struct RZPhiMapFieldParamsData
         return !fieldmap.empty();
     }
 
+    //! Check if the given position is within the field map bounds
     inline CELER_FUNCTION bool valid(real_type z, real_type r, Turn phi) const
     {
         CELER_EXPECT(grids);

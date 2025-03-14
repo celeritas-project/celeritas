@@ -178,7 +178,7 @@ class RZPhiMapFieldAlongStepFactory final : public AlongStepFactoryInterface
     //!@}
 
   public:
-    // Construct with a function to return RZMapFieldInput
+    // Construct with a function to return RZPhiMapFieldInput
     explicit RZPhiMapFieldAlongStepFactory(RZPhiMapFieldFunction f);
 
     // Emit an along-step action

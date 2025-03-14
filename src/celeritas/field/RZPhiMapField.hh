@@ -25,7 +25,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the value of magnetic field based on a volume-based RZ-Phi field
+ * Evaluate the value of magnetic field based on a volume-based RZPhi field
  * map.
  */
 class RZPhiMapField

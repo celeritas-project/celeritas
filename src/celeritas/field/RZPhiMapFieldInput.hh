@@ -31,14 +31,14 @@ namespace celeritas
  * units, with allowable values of "si", "cgs", or "clhep". The native CLHEP
  * unit strength is 1000*tesla.
  *
- * The field values are all indexed with phi having stride 1, R having stride
- * (num_grid_phi), and Z having stride (num_grid_r * num_grid_phi): [Z][R][Phi]
+ * The field values are all indexed with Z having stride 1, R having stride
+ * (num_grid_z), and Phi having stride (num_grid_r * num_grid_z): [Phi][R][Z]
  */
 struct RZPhiMapFieldInput
 {
     std::vector<real_type> grid_r;  //!< R grid points [len]
     std::vector<real_type> grid_z;  //!< Z grid points [len]
-    std::vector<Turn> grid_phi;  //!< Phi grid points [rad]
+    std::vector<Turn> grid_phi;  //!< Phi grid points [AU]
 
     std::vector<real_type> field_z;  //!< Flattened Z field component [bfield]
     std::vector<real_type> field_r;  //!< Flattened R field component [bfield]
@@ -65,24 +65,6 @@ struct RZPhiMapFieldInput
         // clang-format on
     }
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper to read the field from a file or stream.
- *
- * Example to read from a file:
- * \code
-   RZPhiMapFieldInput inp;
-   std::ifstream("foo.json") >> inp;
- * \endcode
- */
-std::istream& operator>>(std::istream& is, RZPhiMapFieldInput&);
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper to write the field to a file or stream.
- */
-std::ostream& operator<<(std::ostream& os, RZPhiMapFieldInput const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
