@@ -1,8 +1,7 @@
-/*-----------------------------------*-C++-*-----------------------------------
- * Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
- * See the top-level COPYRIGHT file for details.
- * SPDX-License-Identifier: (Apache-2.0 OR MIT)
- *---------------------------------------------------------------------------*/
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
 //! \file corecel/DeviceRuntimeApi.hh
 //! \brief Include CUDA or HIP runtime APIs for compiling with host/cc
 //! compiler.
@@ -19,15 +18,11 @@
 
 #if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
-#    define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #elif CELERITAS_USE_HIP
 #    include <hip/hip_runtime.h>
-#    define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_HIP
 #endif
 
-#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
-#    include <thrust/mr/memory_resource.h>
-#endif
+#define CELER_DEVICE_RUNTIME_INCLUDED
 
 /*!
  * \def CELER_EU_PER_CU

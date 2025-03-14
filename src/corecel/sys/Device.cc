@@ -14,6 +14,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/math/Algorithms.hh"
 #if CELERITAS_USE_OPENMP
 #    include <omp.h>
 #endif
@@ -27,8 +28,6 @@
 #include "Environment.hh"
 #include "MpiCommunicator.hh"
 #include "Stream.hh"
-
-#include "detail/StreamStorage.hh"
 
 #if CELERITAS_USE_CUDA
 #    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
@@ -273,25 +272,23 @@ Device::Device(int id) : id_{id}
  */
 StreamId::size_type Device::num_streams() const
 {
-    if (!streams_)
-        return 0;
-    return streams_->size();
+    return streams_.size();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Allocate the given number of streams.
- *
- * If no streams have been created, the default stream will be used.
  */
 void Device::create_streams(unsigned int num_streams) const
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(streams_);
     CELER_EXPECT(num_streams > 0);
 
+    // TODO: const correctness for Device is weird
+    auto& streams = const_cast<Device*>(this)->streams_;
+
     CELER_LOG(info) << "Creating " << num_streams << " device streams";
-    *streams_ = detail::StreamStorage(num_streams);
+    streams.resize(num_streams);
 }
 
 //---------------------------------------------------------------------------//
@@ -301,41 +298,22 @@ void Device::create_streams(unsigned int num_streams) const
  * Depending on initialization order, CUDA may be shut down (or shutting down)
  * by the time the destructor for the global Device fires.
  *
+ * Note that this is used in the constructor to initialize a single global
+ * stream for the device. The `streams_` vector is only empty when the device
+ * is `false`.
+ *
  * \todo Const correctness for create_ and destroy_ streams is wrong; we should
  * probably make the global device non-const (and thread-local?) and then
  * activate it on "move".
  */
 void Device::destroy_streams() const
 {
-    if (streams_)
+    if (!streams_.empty())
     {
         CELER_LOG(debug) << "Destroying streams";
-        *streams_ = {};
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access a stream.
- *
- * This returns the default stream if no streams were allocated.
- */
-Stream& Device::stream(StreamId id) const
-{
-    CELER_EXPECT(streams_);
-
-    return streams_->get(id);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * External deleter for stream storage.
- *
- * This is for the PIMPL idiom with unique pointers.
- */
-void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
-{
-    delete p;
+    auto& streams = const_cast<Device*>(this)->streams_;
+    streams.clear();
 }
 
 //---------------------------------------------------------------------------//
