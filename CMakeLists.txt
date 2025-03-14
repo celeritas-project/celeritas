@@ -498,28 +498,34 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# CudaRdcUtils
-#----------------------------------------------------------------------------#
-
-include(CudaRdcUtils)
-if (NOT CUDA_RDC_VERSION)
-   set(_loaded_CUDA_RDC_VERSION 0)
-else()
-   set(_loaded_CUDA_RDC_VERSION ${CUDA_RDC_VERSION})
-endif()
-set(_local_CudaRdcUtils ${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake)
-include(${_local_CudaRdcUtils})
-if(NOT CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
-   unset(_local_CudaRdcUtils)
-endif()
-
-#----------------------------------------------------------------------------#
 # BUILTINS
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN)
   include(FetchContent)
   add_subdirectory(external)
+endif()
+
+#----------------------------------------------------------------------------#
+# RDC SUPPORT FOR VECGEOM+CUDA
+#----------------------------------------------------------------------------#
+
+# Load RDC utils using CMAKE_MODULE_PATH if it wasn't already
+include(CudaRdcUtils)
+
+# Load our local copy if it's newer
+if(NOT CUDA_RDC_VERSION)
+   set(_loaded_CUDA_RDC_VERSION 0)
+else()
+   set(_loaded_CUDA_RDC_VERSION ${CUDA_RDC_VERSION})
+endif()
+include("${_LOCAL_RDCUTILS_FILENAME}")
+if(CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
+  # Install our copy since it's newer than what's available elsewhere
+  set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
+else()
+  # Don't install
+  set(_LOCAL_RDCUTILS_FILENAME)
 endif()
 
 #----------------------------------------------------------------------------#
@@ -640,6 +646,10 @@ if(CELERITAS_BUILD_TESTS)
     "${PROJECT_SOURCE_DIR}/cmake/CeleritasAddTest.cmake"
   )
 endif()
+if(_LOCAL_RDCUTILS_FILENAME)
+  # Install our newer copy of RDC Utils to build and install
+  list(APPEND _cmake_files ${_LOCAL_RDCUTILS_FILENAME})
+endif()
 
 install(FILES ${_cmake_files}
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
@@ -650,18 +660,6 @@ install(FILES ${_cmake_files}
 file(COPY ${_cmake_files}
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
 )
-
-if(_local_CudaRdcUtils)
-  # We have a newer version let's install it
-  install(FILES ${_local_CudaRdcUtils}
-    DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
-    COMPONENT development
-  )
-  # Copy CMake files to support using Celeritas build dir as an install dir
-  file(COPY ${_local_CudaRdcUtils}
-    DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
-  )
-endif()
 
 # Export all cache variables that start with CELERITAS_
 set(CELERITAS_EXPORT_VARIABLES)
