@@ -127,12 +127,6 @@ if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
   # A newer version has already been loaded
   return()
 endif()
-if(NOT CUDA_RDC_VERSION AND NOT COMMAND cuda_rdc_add_library)
-  # if this is the first we get here use include_guard
-  # to prevent the inclusion of non-version version
-  # of this file
-  include_guard(GLOBAL)
-endif()
 set(CUDA_RDC_VERSION ${_CUDA_RDC_VERSION})
 message(VERBOSE "Using CUDA_RDC_VERSION ${CUDA_RDC_VERSION}")
 
