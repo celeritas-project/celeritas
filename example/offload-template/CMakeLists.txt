@@ -48,6 +48,7 @@ target_include_directories(run-offload PRIVATE
 
 # Use Celeritas CUDA RDC macros to correctly link libraries using VecGeom
 include(CudaRdcUtils)
+
 cuda_rdc_target_link_libraries(run-offload
   ${Geant4_LIBRARIES}
   Celeritas::celeritas

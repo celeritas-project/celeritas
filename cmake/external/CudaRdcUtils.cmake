@@ -122,7 +122,13 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-include_guard(GLOBAL)
+set(_CUDA_RDC_VERSION 1)
+if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
+  # A newer version has already been loaded
+  return()
+endif()
+set(CUDA_RDC_VERSION ${_CUDA_RDC_VERSION})
+message(VERBOSE "Using CUDA_RDC_VERSION ${CUDA_RDC_VERSION}")
 
 cmake_policy(VERSION 3.24...3.31)
 # 3.19 is needed for set properties in INTERFACE libraries.
@@ -591,6 +597,11 @@ function(cuda_rdc_depends_on OUTVARNAME lib potentialdepend)
     get_target_property(_lib_target_type ${lib} TYPE)
     if(NOT _lib_target_type STREQUAL "INTERFACE_LIBRARY")
       get_target_property(lib_link_libraries ${lib} LINK_LIBRARIES)
+      get_target_property(lib_interface_link_libraries ${lib} INTERFACE_LINK_LIBRARIES)
+      if(lib_interface_link_libraries)
+        list(APPEND lib_link_libraries lib_interface_link_libraries)
+        list(REMOVE_DUPLICATES lib_link_libraries)
+      endif()
     endif()
     if(NOT lib_link_libraries)
       return()
@@ -978,8 +989,9 @@ function(cuda_rdc_cuda_gather_dependencies outlist target)
   set(_deplist)
   if(NOT _target_type STREQUAL "INTERFACE_LIBRARY")
     get_target_property(_target_link_libraries ${target} LINK_LIBRARIES)
-    if(_target_link_libraries)
-      foreach(_lib ${_target_link_libraries})
+    get_target_property(_target_interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
+    if(_target_link_libraries OR _target_interface_link_libraries)
+      foreach(_lib ${_target_link_libraries} ${_target_interface_link_libraries})
         cuda_rdc_strip_alias(_lib ${_lib})
         set(_libmid)
         if(TARGET ${_lib})
