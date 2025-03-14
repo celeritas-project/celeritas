@@ -55,8 +55,8 @@ ScopedLimitSaver::~ScopedLimitSaver()
                     << "CUDA " << g_labels[i] << " was changed from "
                     << orig_limits_[i] << " to " << temp
                     << "; restoring to original values";
-                CELER_CUDA_CALL(
-                    cudaDeviceSetLimit(g_attrs[i], orig_limits_[i]));
+                CELER_DEVICE_API_CALL(
+                    DeviceSetLimit(g_attrs[i], orig_limits_[i]));
             }
         }
     }

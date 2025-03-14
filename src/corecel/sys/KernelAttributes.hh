@@ -105,11 +105,12 @@ make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
     if constexpr (CELERITAS_USE_CUDA)
     {
         // Stack size limit is CUDA-only
-        CELER_CUDA_CALL(
-            cudaDeviceGetLimit(&result.stack_size, cudaLimitStackSize));
+        CELER_DEVICE_API_CALL(DeviceGetLimit(
+            &result.stack_size, CELER_DEVICE_API_SYMBOL(LimitStackSize)));
         // HIP throws 'limit is not supported on this architecture'
-        CELER_DEVICE_API_CALL(DeviceGetLimit(&result.print_buffer_size,
-                                             cudaLimitPrintfFifoSize));
+        CELER_DEVICE_API_CALL(
+            DeviceGetLimit(&result.print_buffer_size,
+                           CELER_DEVICE_API_SYMBOL(LimitPrintfFifoSize)));
     }
     CELER_DEVICE_API_CALL(DeviceGetLimit(
         &result.heap_size, CELER_DEVICE_API_SYMBOL(LimitMallocHeapSize)));

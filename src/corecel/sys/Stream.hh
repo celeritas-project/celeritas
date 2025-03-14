@@ -33,7 +33,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 namespace detail
 {
-template<class T>
 class AsyncMemoryResource;
 }
 
@@ -66,7 +65,7 @@ class Stream
 #else
     using MissingDeviceRuntime = void;
 #endif
-    using ResourceT = detail::AsyncMemoryResource<void*>;
+    using ResourceT = detail::AsyncMemoryResource;
     //!@}
 
   public:
