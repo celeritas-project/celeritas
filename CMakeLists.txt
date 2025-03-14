@@ -13,10 +13,7 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
-list(APPEND CMAKE_MODULE_PATH
-  "${CMAKE_CURRENT_LIST_DIR}/cmake"
-  "${CMAKE_CURRENT_LIST_DIR}/cmake/external"
-)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(GNUInstallDirs)
 include(CeleritasOptionUtils)
