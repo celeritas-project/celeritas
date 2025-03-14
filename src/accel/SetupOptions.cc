@@ -11,6 +11,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/RZPhiMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Problem.hh"
@@ -131,6 +132,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
     else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting RZ map field";
+        p.field = u->get_field();
+    }
+    else if (auto* u
+             = so.make_along_step.target<RZPhiMapFieldAlongStepFactory>())
+    {
+        CELER_LOG(debug) << "Getting RZPhi map field";
         p.field = u->get_field();
     }
     else
