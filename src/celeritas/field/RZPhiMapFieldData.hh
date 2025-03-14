@@ -32,7 +32,10 @@ struct RZPhiMapGridData
     Items<Turn> phi;
     Array<size_type, 3> grid_size;  //!< [Z, R, Phi]
 
-    operator bool() const { return !z.empty() && !r.empty() && !phi.empty(); }
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        return !z.empty() && !r.empty() && !phi.empty();
+    }
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     RZPhiMapGridData& operator=(RZPhiMapGridData<W2, M2> const& other)
