@@ -9,6 +9,7 @@
 #include <map>
 
 #include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "Device.hh"
 
@@ -39,9 +40,7 @@ void to_json(nlohmann::json& j, Device const& d)
             CELER_DIO_PAIR(num_devices),
         };
 
-#define CELER_STRINGIFY(x) #x
-#define CELER_TOSTRING(x) CELER_STRINGIFY(x)
-        j["platform"] = CELER_TOSTRING(CELER_DEVICE_PLATFORM);
+        j["platform"] = CELER_DEVICE_PLATFORM_UPPER_STR;
         j["async"] = Device::async();
 
         for (auto const& kv : d.extra())

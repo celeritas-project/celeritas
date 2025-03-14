@@ -37,7 +37,7 @@ void SimpleLoopTestBase::run_impl(size_type num_tracks, size_type num_steps)
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_tracks;
 
-    if constexpr (M == MemSpace::host)
+    if constexpr (M == MemSpace::device)
     {
         device().create_streams(1);
     }

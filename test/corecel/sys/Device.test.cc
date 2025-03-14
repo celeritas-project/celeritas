@@ -29,9 +29,15 @@ TEST_F(DeviceTest, json_output)
 {
     auto& d = device();
     auto json_out = nlohmann::json(d);
-    ASSERT_TRUE(json_out.count("platform"));
+    if (!CELERITAS_USE_CUDA && !CELERITAS_USE_HIP)
+    {
+        EXPECT_JSON_EQ(json_out.dump(0), "null");
+        return;
+    }
+
+    ASSERT_TRUE(json_out.count("platform")) << json_out.dump(0);
     auto platform = json_out["platform"].get<std::string>();
-    EXPECT_TRUE(platform == "cuda" || platform == "hip" || platform == "none");
+    EXPECT_TRUE(platform == "cuda" || platform == "hip");
 
     if (d)
     {
