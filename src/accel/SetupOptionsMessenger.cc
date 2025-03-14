@@ -220,7 +220,7 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
                 "Add timers around every action (may reduce performance)");
         add_cmd(&options->default_stream,
                 "defaultStream",
-                "Launch all kernels on the default stream");
+                "Launch all kernels on the default stream (REMOVED)");
     }
 
     add_cmd(&options->slot_diagnostic_prefix,
