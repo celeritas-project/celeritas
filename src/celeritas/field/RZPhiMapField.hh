@@ -11,7 +11,6 @@
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/grid/FindInterp.hh"
@@ -53,7 +52,6 @@ class RZPhiMapField
     NonuniformGrid<real_type> const grid_r_;
     NonuniformGrid<real_type> const grid_z_;
     NonuniformGrid<Turn> const grid_phi_;
-    Span<RZPhiMapElement const> fieldmap_;
     HyperslabIndexer<3> flat_index_{params_.grids.grid_size};
 };
 
@@ -72,7 +70,6 @@ RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
               params_.grids.z}
     , grid_phi_{ItemRange<Turn>{ItemId<Turn>{params_.grids.phi.size()}},
                 params_.grids.phi}
-    , fieldmap_{params_.fieldmap.data().get(), params_.fieldmap.size()}
     , flat_index_{params_.grids.grid_size}
 {
 }
@@ -107,7 +104,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     auto [iphi, wphi1] = find_interp<NonuniformGrid<Turn>>(grid_phi_, turn_phi);
 
     auto get_field = [this](size_type iz, size_type ir, size_type iphi) {
-        return fieldmap_[flat_index_(iz, ir, iphi)];
+        return params_.fieldmap[ItemId<size_type>{flat_index_(iz, ir, iphi)}];
     };
 
     // Get the eight corner values for Z component of the field
