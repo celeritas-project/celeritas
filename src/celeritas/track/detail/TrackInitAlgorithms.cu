@@ -42,7 +42,7 @@ size_type remove_if_alive(
                                  start,
                                  start + vacancies.size(),
                                  IsEqual{occupied()});
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // New size of the vacancy vector
     return end - start;
@@ -71,7 +71,7 @@ size_type exclusive_scan_counts(
                                        data + counts.size(),
                                        data,
                                        size_type(0));
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
     return ItemCopier<size_type>{stream_id}(stop.get() - 1);
@@ -103,7 +103,7 @@ void partition_initializers(
         start,
         end,
         IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
 //---------------------------------------------------------------------------//

@@ -24,11 +24,11 @@ namespace
 inline auto to_memcpy_kind(MemSpace src, MemSpace dst)
 {
     if (src != MemSpace::device && dst == MemSpace::device)
-        return CELER_DEVICE_PREFIX(MemcpyHostToDevice);
+        return CELER_DEVICE_API_SYMBOL(MemcpyHostToDevice);
     else if (src == MemSpace::device && dst != MemSpace::device)
-        return CELER_DEVICE_PREFIX(MemcpyDeviceToHost);
+        return CELER_DEVICE_API_SYMBOL(MemcpyDeviceToHost);
     else if (src == MemSpace::device && dst == MemSpace::device)
-        return CELER_DEVICE_PREFIX(MemcpyDeviceToDevice);
+        return CELER_DEVICE_API_SYMBOL(MemcpyDeviceToDevice);
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
@@ -51,7 +51,7 @@ void copy_bytes(MemSpace dstmem,
         std::memcpy(dst, src, count);
         return;
     }
-    CELER_DEVICE_CALL_PREFIX(
+    CELER_DEVICE_API_CALL(
         Memcpy(dst, src, count, to_memcpy_kind(srcmem, dstmem)));
 }
 
@@ -72,7 +72,7 @@ void copy_bytes(MemSpace dstmem,
         return;
     }
     CELER_DISCARD(stream);
-    CELER_DEVICE_CALL_PREFIX(MemcpyAsync(
+    CELER_DEVICE_API_CALL(MemcpyAsync(
         dst,
         src,
         count,

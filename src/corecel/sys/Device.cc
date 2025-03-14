@@ -72,7 +72,7 @@ Device& global_device()
     {
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
-        CELER_DEVICE_CALL_PREFIX(GetDevice(&cur_id));
+        CELER_DEVICE_API_CALL(GetDevice(&cur_id));
         CELER_ASSERT(cur_id == device.device_id());
     }
 
@@ -111,7 +111,7 @@ int Device::num_devices()
         }
 
         int result = -1;
-        CELER_DEVICE_CALL_PREFIX(GetDeviceCount(&result));
+        CELER_DEVICE_API_CALL(GetDeviceCount(&result));
         if (result == 0)
         {
             CELER_LOG(warning)
@@ -195,7 +195,7 @@ Device::Device(int id) : id_{id}
 #    endif
 
     DevicePropT props;
-    CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
+    CELER_DEVICE_API_CALL(GetDeviceProperties(&props, id));
 
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
@@ -251,10 +251,12 @@ Device::Device(int id) : id_{id}
     {
         threshold = std::stoul(var);
     }
-    CELER_DEVICE_PREFIX(MemPool_t) mempool;
-    CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
-    CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
-        mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
+    CELER_DEVICE_API_SYMBOL(MemPool_t) mempool;
+    CELER_DEVICE_API_CALL(DeviceGetDefaultMemPool(&mempool, id_));
+    CELER_DEVICE_API_CALL(MemPoolSetAttribute(
+        mempool,
+        CELER_DEVICE_API_SYMBOL(MemPoolAttrReleaseThreshold),
+        &threshold));
 #endif
 
     // See DeviceRuntimeApi.hh
@@ -373,11 +375,11 @@ void activate_device(Device&& device)
                            << Device::num_devices();
 
     ScopedTimeLog scoped_time(&self_logger(), 1.0);
-    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
+    CELER_DEVICE_API_CALL(SetDevice(device.device_id()));
     d = std::move(device);
 
     // Call cudaFree to wake up the device, making other timers more accurate
-    CELER_DEVICE_CALL_PREFIX(Free(nullptr));
+    CELER_DEVICE_API_CALL(Free(nullptr));
 }
 
 //---------------------------------------------------------------------------//
@@ -417,7 +419,7 @@ void activate_device_local()
     if (d)
     {
         CELER_LOG_LOCAL(debug) << "Activating device " << d.device_id();
-        CELER_DEVICE_CALL_PREFIX(SetDevice(d.device_id()));
+        CELER_DEVICE_API_CALL(SetDevice(d.device_id()));
     }
 }
 

@@ -58,7 +58,7 @@ remove_if_invalid(GeneratorDistributionRef<MemSpace::device> const& buffer,
     auto start = thrust::device_pointer_cast(buffer.data().get());
     auto stop = thrust::remove_if(
         thrust_execute_on(stream), start + offset, start + size, IsInvalid{});
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
     return stop - start;
 }
 
@@ -80,7 +80,7 @@ count_num_photons(GeneratorDistributionRef<MemSpace::device> const& buffer,
                                                GetNumPhotons{},
                                                size_type(0),
                                                thrust::plus<size_type>());
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
     return count;
 }
 
@@ -109,7 +109,7 @@ size_type inclusive_scan_photons(
                                                  result,
                                                  GetNumPhotons{},
                                                  thrust::plus<size_type>());
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
     return ItemCopier<size_type>{stream}(stop.get() - 1);

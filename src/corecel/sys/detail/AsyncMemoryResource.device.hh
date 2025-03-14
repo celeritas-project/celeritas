@@ -18,7 +18,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 //! CUDA/HIP opaque stream handle
-using DeviceStream_t = CELER_DEVICE_PREFIX(Stream_t);
+using DeviceStream_t = CELER_DEVICE_API_SYMBOL(Stream_t);
 
 //! Allocate memory asynchronously if supported
 void* malloc_async(std::size_t bytes, DeviceStream_t s);

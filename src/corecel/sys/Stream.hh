@@ -62,7 +62,7 @@ class Stream
     //!@{
     //! \name Type aliases
 #ifdef CELER_DEVICE_RUNTIME_INCLUDED
-    using StreamT = CELER_DEVICE_PREFIX(Stream_t);
+    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
 #else
     using MissingDeviceRuntime = void;
 #endif

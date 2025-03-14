@@ -36,7 +36,7 @@ void StatusChecker::launch_impl(
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         this->label());
     launch_kernel(state, execute_thread);
-    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(
+    CELER_DEVICE_API_CALL(StreamSynchronize(
         celeritas::device().stream(state.stream_id()).get()));
 }
 

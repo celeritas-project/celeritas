@@ -37,14 +37,14 @@ void* malloc_pinned(std::size_t n, std::size_t sizeof_t)
     void* p{nullptr};
     if (Device::num_devices() > 0)
     {
-        // CUDA and HIP currently have a different API to allocate pinned host
-        // memory
+        // CUDA and HIP have a different API signature!
+
 #if CELERITAS_USE_CUDA
-        CELER_CUDA_CALL(cudaHostAlloc(
-            &p, n * sizeof_t, CELER_DEVICE_PREFIX(HostAllocDefault)));
+        CELER_DEVICE_API_CALL(HostAlloc(
+            &p, n * sizeof_t, CELER_DEVICE_API_SYMBOL(HostAllocDefault)));
 #elif CELERITAS_USE_HIP
-        CELER_HIP_CALL(hipHostMalloc(
-            &p, n * sizeof_t, CELER_DEVICE_PREFIX(HostMallocDefault)));
+        CELER_DEVICE_API_CALL(HostMalloc(
+            &p, n * sizeof_t, CELER_DEVICE_API_SYMBOL(HostMallocDefault)));
 #endif
     }
     else

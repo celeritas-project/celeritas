@@ -22,7 +22,7 @@ void* malloc_async(std::size_t bytes, DeviceStream_t s)
     if (Device::async())
     {
 #if CELER_STREAM_SUPPORTS_ASYNC
-        CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, s));
+        CELER_DEVICE_API_CALL(MallocAsync(&ptr, bytes, s));
 #else
         CELER_DISCARD(ptr);
         CELER_DISCARD(bytes);
@@ -32,7 +32,7 @@ void* malloc_async(std::size_t bytes, DeviceStream_t s)
     }
     else
     {
-        CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
+        CELER_DEVICE_API_CALL(Malloc(&ptr, bytes));
     }
     return ptr;
 }
@@ -44,7 +44,7 @@ void free_async(void* ptr, DeviceStream_t s)
     if (Device::async())
     {
 #if CELER_STREAM_SUPPORTS_ASYNC
-        CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, s));
+        CELER_DEVICE_API_CALL(FreeAsync(ptr, s));
 #else
         CELER_DISCARD(ptr);
         CELER_DISCARD(s);
@@ -53,7 +53,7 @@ void free_async(void* ptr, DeviceStream_t s)
     }
     else
     {
-        CELER_DEVICE_CALL_PREFIX(Free(ptr));
+        CELER_DEVICE_API_CALL(Free(ptr));
     }
 }
 

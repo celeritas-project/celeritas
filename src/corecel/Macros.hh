@@ -163,29 +163,6 @@
 #endif
 
 /*!
- * \def CELER_DEVICE_PLATFORM
- *
- * API prefix token for the device offloading type.
- */
-#if CELERITAS_USE_CUDA
-#    define CELER_DEVICE_PLATFORM cuda
-#elif CELERITAS_USE_HIP
-#    define CELER_DEVICE_PLATFORM hip
-#else
-#    define CELER_DEVICE_PLATFORM none
-#endif
-
-/*!
- * \def CELER_DEVICE_PREFIX
- *
- * Add a prefix "hip" or "cuda" to a code token.
- *
- * \todo Maybe this should be renamed since "prefix" is both a verb (as used
- * here) and a noun.
- */
-#define CELER_DEVICE_PREFIX(TOK) CELER_DEVICE_PLATFORM##TOK
-
-/*!
  * \def CELER_TRY_HANDLE
  *
  * "Try" to execute the statement, and "handle" *all* thrown errors by calling

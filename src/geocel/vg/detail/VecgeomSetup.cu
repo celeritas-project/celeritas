@@ -81,7 +81,7 @@ CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
 void setup_surface_tracking_device(SurfData const& surf_data)
 {
     BrepCudaManager::Instance().TransferSurfData(surf_data);
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }
 
 void teardown_surface_tracking_device()

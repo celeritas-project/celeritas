@@ -10,20 +10,30 @@
 
 #include "corecel/Config.hh"
 
-#if CELERITAS_USE_HIP && !defined(__HIPCC__)
-/* Assume we're on an AMD system but not being invoked by the rocm compiler */
-#    define __HIP_PLATFORM_AMD__ 1
-#    define __HIP_PLATFORM_HCC__ 1
-#endif
-
 #if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
 #elif CELERITAS_USE_HIP
+#    ifndef(__HIPCC__)
+/* Assume we're on an AMD system but not being invoked by the rocm compiler */
+#        define __HIP_PLATFORM_AMD__ 1
+#        define __HIP_PLATFORM_HCC__ 1
+#    endif
 #    include <hip/hip_runtime.h>
 #endif
 
-#define CELER_DEVICE_RUNTIME_INCLUDED
-
+/*!
+ * \def CELER_DEVICE_PLATFORM
+ *
+ * API prefix token for the device offloading type.
+ */
+/*!
+ * \def CELER_DEVICE_API_SYMBOL
+ *
+ * Add a prefix "hip" or "cuda" to a code token.
+ *
+ * \todo Maybe this should be renamed since "prefix" is both a verb (as used
+ * here) and a noun.
+ */
 /*!
  * \def CELER_EU_PER_CU
  *
@@ -34,23 +44,36 @@
  * and a "compute unit".
  */
 #if CELERITAS_USE_CUDA
+#    define CELER_DEVICE_PLATFORM cuda
+#    define CELER_DEVICE_PLATFORM_UPPER_STR "CUDA"
+#    define CELER_DEVICE_API_SYMBOL(TOK) cuda##TOK
 #    define CELER_EU_PER_CU 1
 #elif CELERITAS_USE_HIP
+#    define CELER_DEVICE_PLATFORM hip
+#    define CELER_DEVICE_PLATFORM_UPPER_STR "HIP"
+#    define CELER_DEVICE_API_SYMBOL(TOK) hip##TOK
 #    if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__)
 #        define CELER_EU_PER_CU 4
 #    elif defined(__HIP_PLATFORM_NVIDIA__) || defined(__HIP_PLATFORM_NVCC__)
 #        define CELER_EU_PER_CU 1
 #    else
-#        warning "Unknown HIP device configuration"
 #        define CELER_EU_PER_CU 0
 #    endif
 #else
-/* HIP and CUDA are disabled */
+#    define CELER_DEVICE_PLATFORM none
+#    define CELER_DEVICE_PLATFORM_UPPER_STR ""
+#    define CELER_DEVICE_API_SYMBOL(TOK) void
 #    define CELER_EU_PER_CU 0
 #endif
 
 /*!
- * Declare a dummy variable to be referenced in disabled \c CELER_BLAH calls.
+ * This macro informs downstream Celeritas code (namely, Stream) that it's safe
+ * to use types from the device APIs.
+ */
+#define CELER_DEVICE_RUNTIME_INCLUDED
+
+/*!
+ * Declare a dummy variable for disabled \c CELER_DEVICE_API_CALL calls.
  *
  * With this declaration, the build will fail if this include is missing.
  * (Unfortunately, since the use of this symbol is embedded in a macro, IWYU

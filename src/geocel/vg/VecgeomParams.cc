@@ -510,7 +510,7 @@ void VecgeomParams::build_surface_tracking()
 
         VG_SURF_CALL(
             detail::setup_surface_tracking_device(brep_helper.GetSurfData()));
-        CELER_DEVICE_CHECK_ERROR();
+        CELER_DEVICE_API_CALL(PeekAtLastError());
     }
 }
 
@@ -585,7 +585,7 @@ void VecgeomParams::build_volume_tracking()
                 "vecgeom::CudaManager.LoadGeometry");
 
             VG_CUDA_CALL(cuda_manager.LoadGeometry());
-            CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+            CELER_DEVICE_API_CALL(DeviceSynchronize());
         }
         {
             CELER_LOG(debug) << "Transferring geometry to GPU";
@@ -594,7 +594,7 @@ void VecgeomParams::build_volume_tracking()
             void const* world_top_devptr{nullptr};
             VG_CUDA_CALL(
                 world_top_devptr = cuda_manager.Synchronize().GetPtr());
-            CELER_DEVICE_CHECK_ERROR();
+            CELER_DEVICE_API_CALL(PeekAtLastError());
             CELER_VALIDATE(world_top_devptr != nullptr,
                            << "VecGeom failed to copy geometry to GPU");
         }
@@ -614,7 +614,7 @@ void VecgeomParams::build_volume_tracking()
                            << bvh_ptr << " but copy-from-symbol returned "
                            << bvh_symbol_ptr);
 #endif
-            CELER_DEVICE_CHECK_ERROR();
+            CELER_DEVICE_API_CALL(PeekAtLastError());
         }
 
         // Check BVH pointers

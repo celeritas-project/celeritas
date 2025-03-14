@@ -34,7 +34,7 @@ void Stream::ImplDeleter::operator()(Impl* impl) noexcept
 {
     try
     {
-        CELER_DEVICE_CALL_PREFIX(StreamDestroy(impl->stream));
+        CELER_DEVICE_API_CALL(StreamDestroy(impl->stream));
         CELER_LOG_LOCAL(debug)
             << "Destroyed stream " << static_cast<void*>(impl->stream);
     }
@@ -55,7 +55,7 @@ void Stream::ImplDeleter::operator()(Impl* impl) noexcept
 Stream::Stream()
 {
     StreamT stream;
-    CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream));
+    CELER_DEVICE_API_CALL(StreamCreate(&stream));
 #if CUDART_VERSION >= 12000
     unsigned long long stream_id = -1;
     CELER_CUDA_CALL(cudaStreamGetId(stream, &stream_id));
@@ -92,7 +92,7 @@ Stream::ResourceT& Stream::memory_resource()
  */
 void Stream::sync() const
 {
-    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(impl_->stream));
+    CELER_DEVICE_API_CALL(StreamSynchronize(impl_->stream));
 }
 
 //---------------------------------------------------------------------------//

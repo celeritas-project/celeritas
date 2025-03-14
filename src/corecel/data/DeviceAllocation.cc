@@ -34,7 +34,7 @@ DeviceAllocation::DeviceAllocation(size_type bytes) : size_{bytes}
 {
     CELER_EXPECT(celeritas::device());
     void* ptr = nullptr;
-    CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
+    CELER_DEVICE_API_CALL(Malloc(&ptr, bytes));
     data_.reset(static_cast<std::byte*>(ptr));
 }
 
@@ -61,20 +61,20 @@ void DeviceAllocation::copy_to_device(SpanConstBytes bytes)
     CELER_EXPECT(bytes.size() <= this->size());
     if (stream_)
     {
-        CELER_DEVICE_CALL_PREFIX(
+        CELER_DEVICE_API_CALL(
             MemcpyAsync(data_.get(),
                         bytes.data(),
                         bytes.size(),
-                        CELER_DEVICE_PREFIX(MemcpyHostToDevice),
+                        CELER_DEVICE_API_SYMBOL(MemcpyHostToDevice),
                         celeritas::device().stream(stream_).get()));
     }
     else
     {
-        CELER_DEVICE_CALL_PREFIX(
+        CELER_DEVICE_API_CALL(
             Memcpy(data_.get(),
                    bytes.data(),
                    bytes.size(),
-                   CELER_DEVICE_PREFIX(MemcpyHostToDevice)));
+                   CELER_DEVICE_API_SYMBOL(MemcpyHostToDevice)));
     }
 }
 
@@ -87,20 +87,20 @@ void DeviceAllocation::copy_to_host(SpanBytes bytes) const
     CELER_EXPECT(bytes.size() <= this->size());
     if (stream_)
     {
-        CELER_DEVICE_CALL_PREFIX(
+        CELER_DEVICE_API_CALL(
             MemcpyAsync(bytes.data(),
                         data_.get(),
                         this->size(),
-                        CELER_DEVICE_PREFIX(MemcpyDeviceToHost),
+                        CELER_DEVICE_API_SYMBOL(MemcpyDeviceToHost),
                         celeritas::device().stream(stream_).get()));
     }
     else
     {
-        CELER_DEVICE_CALL_PREFIX(
+        CELER_DEVICE_API_CALL(
             Memcpy(bytes.data(),
                    data_.get(),
                    this->size(),
-                   CELER_DEVICE_PREFIX(MemcpyDeviceToHost)));
+                   CELER_DEVICE_API_SYMBOL(MemcpyDeviceToHost)));
     }
 }
 
@@ -117,7 +117,7 @@ void DeviceAllocation::DeviceFreeDeleter::operator()(
         }
         else
         {
-            CELER_DEVICE_CALL_PREFIX(Free(ptr));
+            CELER_DEVICE_API_CALL(Free(ptr));
         }
     }
     catch (RuntimeError const& e)
