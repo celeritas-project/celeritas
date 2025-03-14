@@ -108,8 +108,8 @@ make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
         CELER_CUDA_CALL(
             cudaDeviceGetLimit(&result.stack_size, cudaLimitStackSize));
         // HIP throws 'limit is not supported on this architecture'
-        CELER_CUDA_CALL(cudaDeviceGetLimit(&result.print_buffer_size,
-                                           cudaLimitPrintfFifoSize));
+        CELER_DEVICE_API_CALL(DeviceGetLimit(&result.print_buffer_size,
+                                             cudaLimitPrintfFifoSize));
     }
     CELER_DEVICE_API_CALL(DeviceGetLimit(
         &result.heap_size, CELER_DEVICE_API_SYMBOL(LimitMallocHeapSize)));

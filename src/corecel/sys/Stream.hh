@@ -112,10 +112,12 @@ inline Stream::Stream()
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline Stream::MissingDeviceRuntime Stream::get() const
+#    ifdef CELER_DEVICE_RUNTIME_INCLUDED
+inline Stream::StreamT Stream::get() const
 {
     CELER_ASSERT_UNREACHABLE();
 }
+#    endif
 
 inline Stream::ResourceT& Stream::memory_resource()
 {
@@ -135,6 +137,12 @@ inline void Stream::free_async(void*) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
+
+inline void Stream::ImplDeleter::operator()(Impl*) noexcept
+{
+    CELER_UNREACHABLE;
+}
+
 #endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

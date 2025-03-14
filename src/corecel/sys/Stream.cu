@@ -58,7 +58,7 @@ Stream::Stream()
     CELER_DEVICE_API_CALL(StreamCreate(&stream));
 #if CUDART_VERSION >= 12000
     unsigned long long stream_id = -1;
-    CELER_CUDA_CALL(cudaStreamGetId(stream, &stream_id));
+    CELER_DEVICE_API_CALL(StreamGetId(stream, &stream_id));
     CELER_LOG_LOCAL(debug) << "Created stream ID " << stream_id;
 #else
     CELER_LOG_LOCAL(debug) << "Created stream  " << static_cast<void*>(stream);

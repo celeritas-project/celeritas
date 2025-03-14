@@ -461,7 +461,8 @@ void set_cuda_stack_size(int limit)
     {
         CELER_LOG(debug) << "Setting CUDA stack size to " << limit << "B";
     }
-    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
+    CELER_DEVICE_API_CALL(
+        DeviceSetLimit(CELER_DEVICE_API(LimitStackSize), limit));
 }
 
 //---------------------------------------------------------------------------//
@@ -485,7 +486,8 @@ void set_cuda_heap_size(int limit)
     {
         CELER_LOG(debug) << "Setting CUDA heap size to " << limit << "B";
     }
-    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitMallocHeapSize, limit));
+    CELER_DEVICE_API_CALL(
+        DeviceSetLimit(CELER_DEVICE_API(LimitMallocHeapSize), limit));
 }
 
 //---------------------------------------------------------------------------//
