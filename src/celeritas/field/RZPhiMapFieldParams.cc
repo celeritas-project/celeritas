@@ -77,9 +77,9 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     auto host_data = [&inp] {
         HostVal<RZPhiMapFieldParamsData> host;
         {
-            auto builder = make_builder(&host.grids.z);
-            builder.insert_back(inp.grid_z.begin(), inp.grid_z.end());
-            host.grids.grid_size[0] = inp.grid_z.size();
+            auto builder = make_builder(&host.grids.phi);
+            builder.insert_back(inp.grid_phi.begin(), inp.grid_phi.end());
+            host.grids.grid_size[0] = inp.grid_phi.size();
         }
         {
             auto builder = make_builder(&host.grids.r);
@@ -87,9 +87,9 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
             host.grids.grid_size[1] = inp.grid_r.size();
         }
         {
-            auto builder = make_builder(&host.grids.phi);
-            builder.insert_back(inp.grid_phi.begin(), inp.grid_phi.end());
-            host.grids.grid_size[2] = inp.grid_phi.size();
+            auto builder = make_builder(&host.grids.z);
+            builder.insert_back(inp.grid_z.begin(), inp.grid_z.end());
+            host.grids.grid_size[2] = inp.grid_z.size();
         }
 
         auto fieldmap = make_builder(&host.fieldmap);

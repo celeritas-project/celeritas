@@ -104,7 +104,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     auto [iphi, wphi1] = find_interp<NonuniformGrid<Turn>>(grid_phi_, turn_phi);
 
     auto get_field = [this](size_type iz, size_type ir, size_type iphi) {
-        return params_.fieldmap[ItemId<size_type>{flat_index_(iz, ir, iphi)}];
+        return params_.fieldmap[ItemId<size_type>{flat_index_(iphi, ir, iz)}];
     };
 
     // Get the eight corner values for Z component of the field

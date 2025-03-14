@@ -30,7 +30,7 @@ struct RZPhiMapGridData
     Items<real_type> z;
     Items<real_type> r;
     Items<Turn> phi;
-    Array<size_type, 3> grid_size;  //!< [Z, R, Phi]
+    Array<size_type, 3> grid_size;  //!< [Phi, R, Z]
 
     explicit inline CELER_FUNCTION operator bool() const
     {
