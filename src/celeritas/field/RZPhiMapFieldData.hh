@@ -27,23 +27,24 @@ struct RZPhiMapGridData
 {
     template<class T>
     using Items = Collection<T, W, M>;
-    Items<real_type> z;
-    Items<real_type> r;
-    Items<Turn> phi;
+    Items<real_type> storage;  //!< [Phi, R, Z]
     Array<size_type, 3> grid_size;  //!< [Phi, R, Z]
+
+    //! Index into storage
+    ItemRange<real_type> phi;
+    ItemRange<real_type> r;
+    ItemRange<real_type> z;
 
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !z.empty() && !r.empty() && !phi.empty();
+        return !storage.empty();
     }
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     RZPhiMapGridData& operator=(RZPhiMapGridData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        z = other.z;
-        r = other.r;
-        phi = other.phi;
+        storage = other.storage;
         grid_size = other.grid_size;
         return *this;
     }
@@ -86,20 +87,15 @@ struct RZPhiMapFieldParamsData
         return !fieldmap.empty();
     }
 
-    inline CELER_FUNCTION bool
-    valid(real_type z, real_type r, real_type phi) const
+    inline CELER_FUNCTION bool valid(real_type z, real_type r, Turn phi) const
     {
         CELER_EXPECT(grids);
-        Turn turn_phi{phi / Turn::unit_type::value()};
-        auto view_z
-            = Span<real_type const>{grids.z.data().get(), grids.z.size()};
-        auto view_r
-            = Span<real_type const>{grids.r.data().get(), grids.r.size()};
-        auto view_phi
-            = Span<Turn const>{grids.phi.data().get(), grids.phi.size()};
-        return (z >= view_z.front() && z <= view_z.back()
-                && r >= view_r.front() && r <= view_r.back()
-                && turn_phi >= view_phi.front() && turn_phi <= view_phi.back());
+        return (z >= grids.storage[grids.z.front()]
+                && z <= grids.storage[grids.z.back()]
+                && r >= grids.storage[grids.r.front()]
+                && r <= grids.storage[grids.r.back()]
+                && phi.value() >= grids.storage[grids.phi.front()]
+                && phi.value() <= grids.storage[grids.phi.back()]);
     }
 
     //! Assign from another set of data

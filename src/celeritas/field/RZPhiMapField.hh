@@ -51,8 +51,8 @@ class RZPhiMapField
 
     NonuniformGrid<real_type> const grid_r_;
     NonuniformGrid<real_type> const grid_z_;
-    NonuniformGrid<Turn> const grid_phi_;
-    HyperslabIndexer<3> flat_index_{params_.grids.grid_size};
+    NonuniformGrid<real_type> const grid_phi_;
+    HyperslabIndexer<3> flat_index_;
 };
 
 //---------------------------------------------------------------------------//
@@ -64,12 +64,9 @@ class RZPhiMapField
 CELER_FUNCTION
 RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
     : params_{params}
-    , grid_r_{ItemRange<real_type>{ItemId<real_type>{params_.grids.r.size()}},
-              params_.grids.r}
-    , grid_z_{ItemRange<real_type>{ItemId<real_type>{params_.grids.z.size()}},
-              params_.grids.z}
-    , grid_phi_{ItemRange<Turn>{ItemId<Turn>{params_.grids.phi.size()}},
-                params_.grids.phi}
+    , grid_r_{params_.grids.r, params_.grids.storage}
+    , grid_z_{params_.grids.z, params_.grids.storage}
+    , grid_phi_{params_.grids.phi, params_.grids.storage}
     , flat_index_{params_.grids.grid_size}
 {
 }
@@ -95,13 +92,14 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     Turn turn_phi{phi / Turn::unit_type::value()};
 
     // Check if point is within field map bounds
-    if (!params_.valid(pos[2], r, phi))
+    if (!params_.valid(pos[2], r, turn_phi))
         return value;
 
     // Find interpolation points for given r, z, and phi
     auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
     auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
-    auto [iphi, wphi1] = find_interp<NonuniformGrid<Turn>>(grid_phi_, turn_phi);
+    auto [iphi, wphi1]
+        = find_interp<NonuniformGrid<real_type>>(grid_phi_, turn_phi.value());
 
     auto get_field = [this](size_type iz, size_type ir, size_type iphi) {
         return params_.fieldmap[ItemId<size_type>{flat_index_(iphi, ir, iz)}];
