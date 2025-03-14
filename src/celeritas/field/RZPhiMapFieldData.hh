@@ -8,8 +8,10 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Turn.hh"
 
 #include "FieldDriverOptions.hh"
@@ -28,8 +30,20 @@ struct RZPhiMapGridData
     Items<real_type> z;
     Items<real_type> r;
     Items<Turn> phi;
+    Array<size_type, 3> grid_size;  //!< [Z, R, Phi]
 
     operator bool() const { return !z.empty() && !r.empty() && !phi.empty(); }
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    RZPhiMapGridData& operator=(RZPhiMapGridData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        z = other.z;
+        r = other.r;
+        phi = other.phi;
+        grid_size = other.grid_size;
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -85,25 +99,13 @@ struct RZPhiMapFieldParamsData
                 && turn_phi >= view_phi.front() && turn_phi <= view_phi.back());
     }
 
-    inline CELER_FUNCTION ElementId id(size_type idx_z,
-                                       size_type idx_r,
-                                       size_type idx_phi) const
-    {
-        CELER_EXPECT(grids);
-        // Index with ordering [Z][R][Phi]
-        return ElementId(idx_z * grids.r.size() * grids.phi.size()
-                         + idx_r * grids.phi.size() + idx_phi);
-    }
-
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     RZPhiMapFieldParamsData&
     operator=(RZPhiMapFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        grids.z = other.grids.z;
-        grids.r = other.grids.r;
-        grids.phi = other.grids.phi;
+        grids = other.grids;
         options = other.options;
         fieldmap = other.fieldmap;
         return *this;

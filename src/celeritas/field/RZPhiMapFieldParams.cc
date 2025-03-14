@@ -79,14 +79,17 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         {
             auto builder = make_builder(&host.grids.z);
             builder.insert_back(inp.grid_z.begin(), inp.grid_z.end());
+            host.grids.grid_size[0] = inp.grid_z.size();
         }
         {
             auto builder = make_builder(&host.grids.r);
             builder.insert_back(inp.grid_r.begin(), inp.grid_r.end());
+            host.grids.grid_size[1] = inp.grid_r.size();
         }
         {
             auto builder = make_builder(&host.grids.phi);
             builder.insert_back(inp.grid_phi.begin(), inp.grid_phi.end());
+            host.grids.grid_size[2] = inp.grid_phi.size();
         }
 
         auto fieldmap = make_builder(&host.fieldmap);

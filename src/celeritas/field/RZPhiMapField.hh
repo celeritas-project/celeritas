@@ -11,7 +11,9 @@
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/grid/FindInterp.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
@@ -51,6 +53,8 @@ class RZPhiMapField
     NonuniformGrid<real_type> const grid_r_;
     NonuniformGrid<real_type> const grid_z_;
     NonuniformGrid<Turn> const grid_phi_;
+    Span<RZPhiMapElement const> fieldmap_;
+    HyperslabIndexer<3> flat_index_{params_.grids.grid_size};
 };
 
 //---------------------------------------------------------------------------//
@@ -61,13 +65,15 @@ class RZPhiMapField
  */
 CELER_FUNCTION
 RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
-    : params_(params)
-    , grid_r_(ItemRange<real_type>{ItemId<real_type>{params_.grids.r.size()}},
-              params_.grids.r)
-    , grid_z_(ItemRange<real_type>{ItemId<real_type>{params_.grids.z.size()}},
-              params_.grids.z)
-    , grid_phi_(ItemRange<Turn>{ItemId<Turn>{params_.grids.phi.size()}},
-                params_.grids.phi)
+    : params_{params}
+    , grid_r_{ItemRange<real_type>{ItemId<real_type>{params_.grids.r.size()}},
+              params_.grids.r}
+    , grid_z_{ItemRange<real_type>{ItemId<real_type>{params_.grids.z.size()}},
+              params_.grids.z}
+    , grid_phi_{ItemRange<Turn>{ItemId<Turn>{params_.grids.phi.size()}},
+                params_.grids.phi}
+    , fieldmap_{params_.fieldmap.data().get(), params_.fieldmap.size()}
+    , flat_index_{params_.grids.grid_size}
 {
 }
 
@@ -96,31 +102,25 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
         return value;
 
     // Find interpolation points for given r, z, and phi
-    FindInterp interp_r = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
-    FindInterp interp_z
-        = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
-    FindInterp interp_phi
-        = find_interp<NonuniformGrid<Turn>>(grid_phi_, turn_phi);
-    size_type ir = interp_r.index;
-    size_type iz = interp_z.index;
-    size_type iphi = interp_phi.index;
+    auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
+    auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
+    auto [iphi, wphi1] = find_interp<NonuniformGrid<Turn>>(grid_phi_, turn_phi);
 
-    // Perform trilinear interpolation for each field component
-    // Define the interpolation weights
-    real_type wr1 = interp_r.fraction;
-    real_type wz1 = interp_z.fraction;
-    real_type wphi1 = interp_phi.fraction;
+    auto get_field = [this](size_type iz, size_type ir, size_type iphi) {
+        return fieldmap_[flat_index_(iz, ir, iphi)];
+    };
 
     // Get the eight corner values for Z component of the field
-    real_type v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_z;
-    real_type v001 = params_.fieldmap[params_.id(iz, ir, iphi + 1)].value_z;
-    real_type v010 = params_.fieldmap[params_.id(iz, ir + 1, iphi)].value_z;
-    real_type v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi + 1)].value_z;
-    real_type v100 = params_.fieldmap[params_.id(iz + 1, ir, iphi)].value_z;
-    real_type v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi + 1)].value_z;
-    real_type v110 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi)].value_z;
-    real_type v111
-        = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi + 1)].value_z;
+    // clang-format off
+    real_type v000 = get_field(iz,     ir,     iphi    ).value_z;
+    real_type v001 = get_field(iz,     ir,     iphi + 1).value_z;
+    real_type v010 = get_field(iz,     ir + 1, iphi    ).value_z;
+    real_type v011 = get_field(iz,     ir + 1, iphi + 1).value_z;
+    real_type v100 = get_field(iz + 1, ir,     iphi    ).value_z;
+    real_type v101 = get_field(iz + 1, ir,     iphi + 1).value_z;
+    real_type v110 = get_field(iz + 1, ir + 1, iphi    ).value_z;
+    real_type v111 = get_field(iz + 1, ir + 1, iphi + 1).value_z;
+    // clang-format on
 
     // Trilinear interpolation formula for Z component
     value[2] = (1 - wz1)
@@ -131,14 +131,16 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
                         + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
 
     // Get the eight corner values for R component of the field
-    v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_r;
-    v001 = params_.fieldmap[params_.id(iz, ir, iphi + 1)].value_r;
-    v010 = params_.fieldmap[params_.id(iz, ir + 1, iphi)].value_r;
-    v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi + 1)].value_r;
-    v100 = params_.fieldmap[params_.id(iz + 1, ir, iphi)].value_r;
-    v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi + 1)].value_r;
-    v110 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi)].value_r;
-    v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi + 1)].value_r;
+    // clang-format off
+    v000 = get_field(iz,     ir,     iphi    ).value_r;
+    v001 = get_field(iz,     ir,     iphi + 1).value_r;
+    v010 = get_field(iz,     ir + 1, iphi    ).value_r;
+    v011 = get_field(iz,     ir + 1, iphi + 1).value_r;
+    v100 = get_field(iz + 1, ir,     iphi    ).value_r;
+    v101 = get_field(iz + 1, ir,     iphi + 1).value_r;
+    v110 = get_field(iz + 1, ir + 1, iphi    ).value_r;
+    v111 = get_field(iz + 1, ir + 1, iphi + 1).value_r;
+    // clang-format on
 
     // Interpolate for R component
     real_type field_r = (1 - wz1)
@@ -149,14 +151,16 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
                                  + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
 
     // Get the eight corner values for Phi component of the field
-    v000 = params_.fieldmap[params_.id(iz, ir, iphi)].value_phi;
-    v001 = params_.fieldmap[params_.id(iz, ir, iphi + 1)].value_phi;
-    v010 = params_.fieldmap[params_.id(iz, ir + 1, iphi)].value_phi;
-    v011 = params_.fieldmap[params_.id(iz, ir + 1, iphi + 1)].value_phi;
-    v100 = params_.fieldmap[params_.id(iz + 1, ir, iphi)].value_phi;
-    v101 = params_.fieldmap[params_.id(iz + 1, ir, iphi + 1)].value_phi;
-    v110 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi)].value_phi;
-    v111 = params_.fieldmap[params_.id(iz + 1, ir + 1, iphi + 1)].value_phi;
+    // clang-format off
+    v000 = get_field(iz,     ir,     iphi    ).value_phi;
+    v001 = get_field(iz,     ir,     iphi + 1).value_phi;
+    v010 = get_field(iz,     ir + 1, iphi    ).value_phi;
+    v011 = get_field(iz,     ir + 1, iphi + 1).value_phi;
+    v100 = get_field(iz + 1, ir,     iphi    ).value_phi;
+    v101 = get_field(iz + 1, ir,     iphi + 1).value_phi;
+    v110 = get_field(iz + 1, ir + 1, iphi    ).value_phi;
+    v111 = get_field(iz + 1, ir + 1, iphi + 1).value_phi;
+    // clang-format on
 
     // Interpolate for Phi component
     real_type field_phi
