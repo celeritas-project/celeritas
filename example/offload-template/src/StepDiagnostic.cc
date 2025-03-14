@@ -30,6 +30,33 @@ namespace celeritas
 {
 namespace example
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+template<class A, class B>
+using DerivedPtr =
+    typename std::conditional<std::is_const<A>::value, B const*, B*>::type;
+
+// TODO: this helper function should be moved to corecel
+template<template<MemSpace> class Derived, typename Base, typename Func>
+auto visit_memspace_derived(Base& base, Func&& apply_derived)
+{
+    if (auto* derived
+        = dynamic_cast<DerivedPtr<Base, Derived<MemSpace::host>>>(&base))
+    {
+        return apply_derived(*derived);
+    }
+    else if (auto* derived
+             = dynamic_cast<DerivedPtr<Base, Derived<MemSpace::device>>>(&base))
+    {
+        return apply_derived(*derived);
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -72,32 +99,23 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
     NativeStepStatistics data;
     HostStepStatistics host_data;
 
-    auto try_copy = [&](auto* core_state) -> bool {
-        if (!core_state)
-            return false;
-
+    // Since the underlying state (and thus the copy methods we have to call)
+    // is host/device-dependent, we use a helper lambda
+    visit_memspace_derived<CoreState>(state, [&](auto& derived) {
         // Whether the given state is device/host
         constexpr MemSpace M
-            = std::remove_reference_t<decltype(*core_state)>::memspace;
+            = std::remove_reference_t<decltype(derived)>::memspace;
         CELER_LOG(debug) << "Copying step diagnostics from " << to_cstring(M);
 
         // Get the step data from the core state
-        auto& step_state
-            = core_state->template aux_data<StepStateData>(aux_id_);
+        auto& step_state = derived.template aux_data<StepStateData>(aux_id_);
         // Copy it
-        copy_to_host(step_state.data, Span{&data, 1}, core_state->stream_id());
+        copy_to_host(step_state.data, Span{&data, 1}, derived.stream_id());
         host_data = step_state.host_data;
         // Zero for the next event
-        reset(&step_state, core_state->stream_id());
+        reset(&step_state, derived.stream_id());
         return true;
-    };
-
-    if (try_copy(dynamic_cast<CoreState<MemSpace::host>*>(&state))) {}
-    else if (try_copy(dynamic_cast<CoreState<MemSpace::device>*>(&state))) {}
-    else
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+    });
 
     // Save to output, converting units
     StepStatistics result;
