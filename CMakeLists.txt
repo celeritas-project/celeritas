@@ -514,7 +514,7 @@ endif()
 #----------------------------------------------------------------------------#
 
 # Load RDC utils using CMAKE_MODULE_PATH
-include(CudaRdcUtils)
+include(CudaRdcUtils OPTIONAL)
 
 # Load our local copy if it's newer
 if(NOT CUDA_RDC_VERSION)
