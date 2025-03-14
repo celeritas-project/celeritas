@@ -30,9 +30,6 @@
  * \def CELER_DEVICE_API_SYMBOL
  *
  * Add a prefix "hip" or "cuda" to a code token.
- *
- * \todo Maybe this should be renamed since "prefix" is both a verb (as used
- * here) and a noun.
  */
 /*!
  * \def CELER_EU_PER_CU
