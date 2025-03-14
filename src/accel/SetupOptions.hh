@@ -216,7 +216,7 @@ struct SetupOptions
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
     bool action_times{false};
-    //! Launch all kernels on the default stream for debugging
+    //! Launch all kernels on the default stream for debugging (REMOVED)
     bool default_stream{false};
     //!@}
 

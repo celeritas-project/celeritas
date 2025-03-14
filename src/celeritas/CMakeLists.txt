@@ -88,6 +88,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/ModelImporter.cc
+  optical/PhysicsParams.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/WavelengthShiftParams.cc
@@ -313,6 +314,7 @@ celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/BoundaryAction)
+celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)

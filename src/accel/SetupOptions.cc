@@ -102,7 +102,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (celeritas::Device::num_devices())
     {
         inp::DeviceDebug dd;
-        dd.default_stream = so.default_stream;
         dd.sync_stream = so.action_times;
 
         p.control.device_debug = std::move(dd);

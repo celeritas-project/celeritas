@@ -106,9 +106,9 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
         OutputInterface::Category::input, "*", run_input));
 
-    // Allocate device streams, or use the default stream if there is only one.
+    // Allocate device streams
     size_type num_streams = run_stream.num_streams();
-    if (run_input->use_device && !run_input->default_stream && num_streams > 1)
+    if (run_input->use_device)
     {
         CELER_ASSERT(device());
         device().create_streams(num_streams);
