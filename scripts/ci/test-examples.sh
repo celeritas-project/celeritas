@@ -41,15 +41,18 @@ build_local
 
 # Run Geant4 app examples
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
+  if [ -z "${G4VERSION_NUMBER}" ]; then
+    # Get the geant4 version 11.2.3, replace `.` with ` `, concat as 110203
+    _vers=$(geant4-config --version)
+    G4VERSION_NUMBER=$(printf '%d%02d%02d' ${_vers//./ })
+    echo "Set G4VERSION_NUMBER=${G4VERSION_NUMBER}"
+  fi
+
   # Run small accel examples
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error
 
-  test -n "${G4VERSION_NUMBER}" || (
-    echo "G4VERSION_NUMBER is undefined"
-    exit 1
-  )
   if [ "${G4VERSION_NUMBER}" -ge 1100 ]; then
     # Run offload-template only on Geant4 v11
     cd "${CELER_SOURCE_DIR}/example/offload-template"
