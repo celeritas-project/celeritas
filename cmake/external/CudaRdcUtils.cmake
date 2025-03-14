@@ -910,7 +910,7 @@ function(cuda_rdc_target_link_libraries target)
            # In the past the linker considered symbols in dependencies of specified languages
            # to be available. But that changed in some later version and now the linker
            # enforces a more strict view of what is available.
-           target_link_libraries(${_target_final} ${_lib})
+           set_property(TARGET ${_target_final} APPEND PROPERTY LINK_LIBRARIES ${_lib})
         endif()
         if(TARGET ${_libstatic})
           target_link_options(${_target_final}
