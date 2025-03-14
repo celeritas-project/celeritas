@@ -40,12 +40,13 @@ DeviceAllocation::DeviceAllocation(size_type bytes) : size_{bytes}
 
 //---------------------------------------------------------------------------//
 /*!
- * Allocate a buffer with the given number of bytes.
+ * Allocate a buffer asynchronously with the given number of bytes.
  */
 DeviceAllocation::DeviceAllocation(size_type bytes, StreamId stream)
     : size_{bytes}, stream_{stream}, data_{nullptr, {stream}}
 {
     CELER_EXPECT(celeritas::device());
+    CELER_EXPECT(stream);
     void* ptr = celeritas::device().stream(stream_).malloc_async(bytes);
     CELER_ASSERT(ptr);
     data_.reset(static_cast<std::byte*>(ptr));

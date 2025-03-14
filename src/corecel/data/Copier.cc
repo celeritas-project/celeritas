@@ -55,6 +55,7 @@ void copy_bytes(MemSpace dstmem,
         Memcpy(dst, src, count, to_memcpy_kind(srcmem, dstmem)));
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Perform an asynchronous memcpy on the data.
  */
@@ -71,12 +72,12 @@ void copy_bytes(MemSpace dstmem,
         return;
     }
     CELER_DISCARD(stream);
-    CELER_DEVICE_CALL_PREFIX(
-        MemcpyAsync(dst,
-                    src,
-                    count,
-                    to_memcpy_kind(srcmem, dstmem),
-                    celeritas::device().stream(stream).get()));
+    CELER_DEVICE_CALL_PREFIX(MemcpyAsync(
+        dst,
+        src,
+        count,
+        to_memcpy_kind(srcmem, dstmem),
+        stream ? celeritas::device().stream(stream).get() : nullptr));
 }
 
 //---------------------------------------------------------------------------//
