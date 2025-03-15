@@ -110,7 +110,7 @@ Environment variables
 MPI support
 ^^^^^^^^^^^
 
-.. doxygenclass:: celeritas::ScopedMpi
+.. doxygenclass:: celeritas::ScopedMpiInit
 .. doxygenclass:: celeritas::MpiCommunicator
 
 Utility functions
