@@ -31,7 +31,7 @@ struct StreamableStream
 std::ostream& operator<<(std::ostream& os, StreamableStream const& sds)
 {
 #    if CUDART_VERSION >= 12000
-    unsigned long long stream_id = -1;
+    unsigned long long stream_id{0};
     CELER_DEVICE_API_CALL(StreamGetId(sds.s, &stream_id));
     os << "id=" << stream_id;
 #    else

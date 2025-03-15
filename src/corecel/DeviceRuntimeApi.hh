@@ -13,7 +13,7 @@
 #if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
 #elif CELERITAS_USE_HIP
-#    ifndef(__HIPCC__)
+#    ifndef __HIPCC__
 /* Assume we're on an AMD system but not being invoked by the rocm compiler */
 #        define __HIP_PLATFORM_AMD__ 1
 #        define __HIP_PLATFORM_HCC__ 1
