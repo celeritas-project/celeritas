@@ -36,19 +36,19 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     CELER_VALIDATE(inp.grid_phi.size() >= 2,
                    << "invalid field parameter (num_grid_phi="
                    << inp.grid_phi.size() << ")");
-    CELER_VALIDATE(inp.field_r.front() >= 0,
-                   << "invalid field parameter (min_r=" << inp.field_r.front()
+    CELER_VALIDATE(inp.grid_r.front() >= 0,
+                   << "invalid field parameter (min_r=" << inp.grid_r.front()
                    << ")");
-    CELER_VALIDATE(inp.field_r.back() > inp.field_r.front(),
-                   << "invalid field parameter (max_r=" << inp.field_r.back()
-                   << " <= min_r= " << inp.field_r.front() << ")");
-    CELER_VALIDATE(inp.field_z.back() > inp.field_z.front(),
-                   << "invalid field parameter (max_z=" << inp.field_z.back()
-                   << " <= min_z= " << inp.field_z.front() << ")");
+    CELER_VALIDATE(inp.grid_r.back() > inp.grid_r.front(),
+                   << "invalid field parameter (max_r=" << inp.grid_r.back()
+                   << " <= min_r= " << inp.grid_r.front() << ")");
+    CELER_VALIDATE(inp.grid_z.back() > inp.grid_z.front(),
+                   << "invalid field parameter (max_z=" << inp.grid_z.back()
+                   << " <= min_z= " << inp.grid_z.front() << ")");
     CELER_VALIDATE(
-        inp.field_phi.back() > inp.field_z.front(),
-        << "invalid field parameter (max_phi=" << inp.field_phi.back()
-        << " <= min_phi= " << inp.field_phi.front() << ")");
+        inp.grid_phi.back() > inp.grid_phi.front(),
+        << "invalid field parameter (max_phi=" << inp.grid_phi.back().value()
+        << " <= min_phi= " << inp.grid_phi.front().value() << ")");
 
     CELER_VALIDATE(
         inp.field_z.size()

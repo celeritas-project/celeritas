@@ -4,14 +4,23 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/Fields.test.cc
 //---------------------------------------------------------------------------//
+#include <algorithm>
 #include <fstream>
 
+#include "corecel/Constants.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/HyperslabIndexer.hh"
+#include "corecel/math/Turn.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
+#include "celeritas/field/RZPhiMapField.hh"
+#include "celeritas/field/RZPhiMapFieldInput.hh"
+#include "celeritas/field/RZPhiMapFieldParams.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 
@@ -145,6 +154,146 @@ TEST_F(RZMapFieldTest, all)
                                                0.016614892251046,
                                                0.016614892251046,
                                                3.757196366787};
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
+}
+
+using RZPhiMapFieldTest = ::celeritas::test::Test;
+
+TEST_F(RZPhiMapFieldTest, all)
+{
+    RZPhiMapFieldParams field_map = [] {
+        RZPhiMapFieldInput inp;
+        // Set up grid points in cylindrical coordinates
+        inp.grid_r = {0.0, 50.0, 100.0, 150.0};
+        inp.grid_z = {-150.0, -100.0, -50.0, 0.0, 50.0, 100.0, 150.0};
+        Array<real_type, 7> const phi_values = {
+            0.0, 1.0 / 6.0, 2.0 / 6.0, 3.0 / 6.0, 4.0 / 6.0, 5.0 / 6.0, 1.0};
+        inp.grid_phi.resize(phi_values.size());
+        std::transform(phi_values.begin(),
+                       phi_values.end(),
+                       inp.grid_phi.begin(),
+                       [](real_type phi) { return Turn{phi}; });
+
+        // Initialize field values with a predominantly z-directed field
+        auto const nr = inp.grid_r.size();
+        auto const nz = inp.grid_z.size();
+        auto const nphi = inp.grid_phi.size();
+        Array<size_type, 3> const dims{nphi, nr, nz};
+        auto const total_points = nr * nz * nphi;
+
+        // Resize each component of the field
+        inp.field_r.resize(total_points);
+        inp.field_phi.resize(total_points);
+        inp.field_z.resize(total_points);
+
+        // Fill with a simple field pattern
+        HyperslabIndexer<3> const flat_index{dims};
+        for (size_type ir = 0; ir < nr; ++ir)
+        {
+            real_type r = inp.grid_r[ir];
+            for (size_type iz = 0; iz < nz; ++iz)
+            {
+                for (size_type iphi = 0; iphi < nphi; ++iphi)
+                {
+                    // Convert turns to radians
+                    real_type phi = inp.grid_phi[iphi].value() * 2
+                                    * constants::pi;
+
+                    // Index calculation for 3D array
+                    auto idx = flat_index(iphi, ir, iz);
+
+                    // Set field components
+                    inp.field_r[idx] = 0.02 * r / 100.0 * std::cos(phi);
+                    inp.field_phi[idx] = 0.02 * r / 100.0 * std::sin(phi);
+                    inp.field_z[idx] = 3.8 - 0.0005 * (r / 100.0) * (r / 100.0);
+                }
+            }
+        }
+        return RZPhiMapFieldParams(inp);
+    }();
+
+    RZPhiMapField calc_field(field_map.host_ref());
+
+    // Define samples in cylindrical coordinates
+    size_type const nr_samples = 2;
+    size_type const nphi_samples = 2;
+    size_type const nz_samples = 2;
+
+    // Define sampling ranges
+    real_type r_min = from_cm(10.0);
+    real_type r_max = from_cm(100.0);
+    real_type phi_min = 0.0;
+    real_type phi_max = constants::pi.value() / 2;
+    real_type z_min = from_cm(-100.0);
+    real_type z_max = from_cm(100.0);
+
+    std::vector<real_type> actual;
+
+    for (size_type ir = 0; ir < nr_samples; ++ir)
+    {
+        real_type r = r_min + ir * (r_max - r_min) / (nr_samples - 1);
+        for (size_type iphi = 0; iphi < nphi_samples; ++iphi)
+        {
+            real_type phi = phi_min
+                            + iphi * (phi_max - phi_min) / (nphi_samples - 1);
+            for (size_type iz = 0; iz < nz_samples; ++iz)
+            {
+                real_type z = z_min + iz * (z_max - z_min) / (nz_samples - 1);
+
+                // Convert cylindrical to Cartesian coordinates for field
+                // lookup
+                Real3 pos{r * std::cos(phi), r * std::sin(phi), z};
+
+                Real3 field = calc_field(pos);
+                for (real_type f : field)
+                {
+                    actual.push_back(f);
+                }
+            }
+        }
+    }
+
+    // Expected field values at the 8 sample points (2×2×2 grid in r, phi, z)
+    static real_type const expected_field[] = {// r=10cm, phi=0, z=-100cm
+                                               0.002,
+                                               0.0,
+                                               3.799975,
+
+                                               // r=10cm, phi=0, z=100cm
+                                               0.002,
+                                               0.0,
+                                               3.799975,
+
+                                               // r=10cm, phi=pi/2, z=-100cm
+                                               -0.00173205080756888,
+                                               0,
+                                               3.799975,
+
+                                               // r=10cm, phi=pi/2, z=100cm
+                                               -0.00173205080756888,
+                                               0,
+                                               3.799975,
+
+                                               // r=100cm, phi=0, z=-100cm
+                                               0.02,
+                                               0.0,
+                                               3.7995,
+
+                                               // r=100cm, phi=0, z=100cm
+                                               0.02,
+                                               0.0,
+                                               3.7995,
+
+                                               // r=100cm, phi=pi/2, z=-100cm
+                                               -0.0173205080756888,
+                                               0,
+                                               3.7995,
+
+                                               // r=100cm, phi=pi/2, z=100cm
+                                               -0.0173205080756888,
+                                               0,
+                                               3.7995};
+
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 //---------------------------------------------------------------------------//

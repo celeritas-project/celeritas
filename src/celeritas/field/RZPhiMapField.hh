@@ -11,8 +11,6 @@
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/grid/FindInterp.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
