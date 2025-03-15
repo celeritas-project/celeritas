@@ -256,12 +256,12 @@ TEST_F(RZPhiMapFieldTest, all)
     // Expected field values at the 8 sample points (2×2×2 grid in r, phi, z)
     static real_type const expected_field[] = {// r=10cm, phi=0, z=-100cm
                                                0.002,
-                                               0.0,
+                                               0,
                                                3.799975,
 
                                                // r=10cm, phi=0, z=100cm
                                                0.002,
-                                               0.0,
+                                               0,
                                                3.799975,
 
                                                // r=10cm, phi=pi/2, z=-100cm
@@ -276,12 +276,12 @@ TEST_F(RZPhiMapFieldTest, all)
 
                                                // r=100cm, phi=0, z=-100cm
                                                0.02,
-                                               0.0,
+                                               0,
                                                3.7995,
 
                                                // r=100cm, phi=0, z=100cm
                                                0.02,
-                                               0.0,
+                                               0,
                                                3.7995,
 
                                                // r=100cm, phi=pi/2, z=-100cm
