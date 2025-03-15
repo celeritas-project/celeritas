@@ -12,15 +12,10 @@
 #include <utility>
 
 #include "corecel/Config.hh"
-
-#include "corecel/Macros.hh"
-#if CELERITAS_USE_OPENMP
-#    include <omp.h>
-#endif
-
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 
@@ -92,8 +87,8 @@ int Device::num_devices()
     static int const result = [] {
         if (!CELER_USE_DEVICE)
         {
-            CELER_LOG(debug) << "Disabling GPU support since CUDA and HIP are "
-                                "disabled";
+            CELER_LOG(debug)
+                << R"(Disabling GPU support since CUDA and HIP are disabled)";
             return 0;
         }
 
@@ -110,8 +105,7 @@ int Device::num_devices()
         if (result == 0)
         {
             CELER_LOG(warning)
-                << "Disabling GPU support since no CUDA devices "
-                   "are present";
+                << R"(Disabling GPU support since no CUDA devices are present)";
         }
 
         CELER_ENSURE(result >= 0);
@@ -326,9 +320,8 @@ void activate_device(Device&& device)
     static std::mutex m;
     std::lock_guard<std::mutex> scoped_lock{m};
     Device& d = global_device();
-    CELER_VALIDATE(!d,
-                   << "celeritas::activate_device may be called only once per "
-                      "application");
+    CELER_VALIDATE(
+        !d, << R"(activate_device may be called only once per application)");
 
     if (!device)
         return;
@@ -434,8 +427,8 @@ void set_cuda_stack_size(int limit)
     CELER_EXPECT(limit > 0);
     if (!celeritas::device())
     {
-        CELER_LOG(warning) << "Ignoring call to set_cuda_stack_size: no "
-                              "device is available";
+        CELER_LOG(warning)
+            << R"(Ignoring call to set_cuda_stack_size: no device is available)";
         return;
     }
     if constexpr (CELERITAS_USE_CUDA)
@@ -458,8 +451,8 @@ void set_cuda_heap_size(int limit)
     CELER_EXPECT(limit > 0);
     if (!celeritas::device())
     {
-        CELER_LOG(warning) << "Ignoring call to set_cuda_stack_size: no "
-                              "device is available";
+        CELER_LOG(warning)
+            << R"(Ignoring call to set_cuda_heap_size: no device is available)";
         return;
     }
     if constexpr (CELERITAS_USE_CUDA)
