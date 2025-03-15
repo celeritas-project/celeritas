@@ -175,11 +175,11 @@ TEST_F(RZPhiMapFieldTest, all)
                        [](real_type phi) { return Turn{phi}; });
 
         // Initialize field values with a predominantly z-directed field
-        auto const nr = inp.grid_r.size();
-        auto const nz = inp.grid_z.size();
-        auto const nphi = inp.grid_phi.size();
+        size_type const nr = inp.grid_r.size();
+        size_type const nz = inp.grid_z.size();
+        size_type const nphi = inp.grid_phi.size();
         Array<size_type, 3> const dims{nphi, nr, nz};
-        auto const total_points = nr * nz * nphi;
+        size_type const total_points = nr * nz * nphi;
 
         // Resize each component of the field
         inp.field_r.resize(total_points);
