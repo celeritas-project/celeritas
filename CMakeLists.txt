@@ -538,11 +538,10 @@ include(CeleritasLibraryUtils)
 # because mistakenly linking against both cudart and cudart_static (one of which
 # might come from upstream libraries such as vecgeom) can cause nasty link- and
 # run-time errors.
-add_library(celeritas_device_toolkit INTERFACE)
-add_library(Celeritas::DeviceToolkit ALIAS celeritas_device_toolkit)
+celeritas_add_src_library(DeviceToolkit INTERFACE)
 
 if(CELERITAS_USE_CUDA)
-  target_link_libraries(celeritas_device_toolkit INTERFACE CUDA::toolkit)
+  target_link_libraries(DeviceToolkit INTERFACE CUDA::toolkit)
 elseif(CELERITAS_USE_HIP)
   if(CMAKE_HIP_COMPILER_ROCM_ROOT)
     # Undocumented CMake variable
@@ -551,31 +550,27 @@ elseif(CELERITAS_USE_HIP)
     # This hack works on Crusher as of ROCm 5.1.0
     set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
   endif()
-  target_include_directories(celeritas_device_toolkit
+  target_include_directories(DeviceToolkit
     SYSTEM INTERFACE "${ROCM_PATH}/include"
   )
   find_library(ROCTX_LIBRARY roctx64)
   if(ROCTX_LIBRARY)
     set(CELERITAS_HAVE_ROCTX ON)
-    target_link_libraries(celeritas_device_toolkit INTERFACE "${ROCTX_LIBRARY}")
+    target_link_libraries(DeviceToolkit INTERFACE "${ROCTX_LIBRARY}")
   endif()
   if(NOT BUILD_SHARED_LIBS)
     # Downstream libs don't link against correct HIP dependencies when using
     # static libraries, and even though the code below propagates the library
     # names (-lamdhip64) CMake fails to include the link directories
     # (/opt/rocm/lib)
-    target_link_libraries(celeritas_device_toolkit
+    target_link_libraries(DeviceToolkit
       INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_LIBRARIES}>"
     )
-    target_link_directories(celeritas_device_toolkit
+    target_link_directories(DeviceToolkit
       INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_DIRECTORIES}>"
     )
   endif()
 endif()
-
-install(TARGETS celeritas_device_toolkit
-  EXPORT celeritas-targets
-)
 
 #----------------------------------------------------------------------------#
 if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
