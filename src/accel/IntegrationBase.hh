@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-class G4Run;
 #include "corecel/Macros.hh"
+
+class G4Run;
 
 namespace celeritas
 {
