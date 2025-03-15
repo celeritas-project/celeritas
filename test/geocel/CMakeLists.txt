@@ -6,7 +6,6 @@
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
-  celeritas_get_g4libs(_g4_geo_libs geometry)
   celeritas_get_g4libs(_g4_global_libs global)
 endif()
 
@@ -48,7 +47,7 @@ celeritas_target_link_libraries(testcel_geocel
   PUBLIC
     testcel_harness Celeritas::geocel
   PRIVATE
-    testcel_core
+    testcel_core Celeritas::ExtGeant4Geo
 )
 
 #-----------------------------------------------------------------------------#
@@ -103,7 +102,8 @@ if(CELERITAS_USE_VecGeom)
     set(_vecgeom_tests DISABLE)
   endif()
   celeritas_add_device_test(vg/Vecgeom
-    LINK_LIBRARIES VecGeom::vecgeom ${_g4_geo_libs} nlohmann_json::nlohmann_json
+    LINK_LIBRARIES
+      VecGeom::vecgeom Celeritas::ExtGeant4Geo nlohmann_json::nlohmann_json
     FILTER ${_vecgeom_tests}
     ${_fixme_cgs}
   )
@@ -112,7 +112,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # Geant4
 
-celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4} LINK_LIBRARIES ${_g4_geo_libs})
+celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4} LINK_LIBRARIES Celeritas::ExtGeant4Geo)
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
@@ -121,9 +121,12 @@ endif()
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   # These all require the Geant4 geometry wrappers which only are built when
   # double-precision is enabled
-  celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs})
-  celeritas_add_test(g4/VisitVolumes.test.cc LINK_LIBRARIES ${_g4_geo_libs})
-  celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
+  celeritas_add_test(g4/GeantGeo.test.cc
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+  celeritas_add_test(g4/VisitVolumes.test.cc
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+  celeritas_add_test(GeantGeoUtils.test.cc
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
 endif()
 
 #-----------------------------------------------------------------------------#

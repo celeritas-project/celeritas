@@ -274,7 +274,7 @@ function(celeritas_add_test_library target)
     endif()
   endif()
 
-  celeritas_add_library(${target} ${ARGN})
+  celeritas_add_library(${ARGV})
 
   if(CELERITAS_USE_ROOT)
     # Require PIC for static libraries, including "object" RDC lib
@@ -288,7 +288,7 @@ endfunction()
 
 function(celeritas_add_interface_library target)
   # Interface libraries don't need RDC wrappers
-  add_library(${target} INTERFACE)
+  add_library(${target} INTERFACE ${ARGN})
   add_library(Celeritas::${target} ALIAS ${target})
   install(TARGETS ${target}
     EXPORT celeritas-targets
@@ -311,7 +311,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_executable target)
-  add_executable("${target}" ${ARGN})
+  add_executable(${ARGV})
   install(TARGETS "${target}"
     EXPORT celeritas-targets
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"

@@ -20,11 +20,9 @@ endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
-  set(_g4_geo_libs)
 else()
   set(_optional_geant4_env ENVIRONMENT "${CELER_G4ENV}")
   set(_needs_geant4 ${_optional_geant4_env})
-  celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -46,7 +44,7 @@ endif()
 
 set(_all_geo_libs
   # Geometry includes
-  Celeritas::orange ${VecGeom_LIBRARIES} ${_g4_geo_libs}
+  Celeritas::orange ${VecGeom_LIBRARIES} Celeritas::ExtGeant4Geo
   # Test harness instantiations
   testcel_geocel testcel_orange
 )
@@ -101,7 +99,7 @@ celeritas_target_link_libraries(testcel_celeritas
     testcel_harness Celeritas::celeritas
   PRIVATE
     testcel_core testcel_orange testcel_geocel
-    nlohmann_json::nlohmann_json ${_g4_geo_libs}
+    nlohmann_json::nlohmann_json Celeritas::ExtGeant4Geo
 )
 
 if(CELERITAS_USE_Geant4)
@@ -114,7 +112,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_target_link_libraries(testcel_celeritas_g4
     PUBLIC
       testcel_celeritas testcel_harness Celeritas::celeritas
-      ${_g4_mat_libs} ${_g4_geo_libs}
+      ${_g4_mat_libs} Celeritas::ExtGeant4Geo
   )
 endif()
 

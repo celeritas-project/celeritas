@@ -498,6 +498,25 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
+# System property: availability of sincospi
+if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
+  foreach(_prefix "__" "_" "")
+    try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
+      # NOTE: the line below is required for CMake < 3.25
+      "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/sincospi${_prefix}"
+      SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-sincospi.cc"
+      COMPILE_DEFINITIONS "-DCELERITAS_SINCOSPI_PREFIX=${_prefix}"
+    )
+    if(CELERITAS_TRY_${_prefix}SINCOSPI)
+      set(CELERITAS_SINCOSPI_PREFIX "${_prefix}" CACHE INTERNAL
+        "Prefix for compiler-provided sincospi and related functions"
+      )
+      break()
+    endif()
+  endforeach()
+endif()
+
+#----------------------------------------------------------------------------#
 # BUILTINS
 #----------------------------------------------------------------------------#
 
@@ -526,71 +545,13 @@ if(NOT CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
   set(_LOCAL_RDCUTILS_FILENAME)
 endif()
 
+# NOTE: include library utils after RDC
+include(CeleritasLibraryUtils)
+
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
 
-include(CeleritasLibraryUtils)
-
-# Define an interface library for propagating include paths for GPU compilers.
-# This allow API calls, so long as the compiler or linker implicitly bring in
-# the correct CUDA/ROCM libraries. Those libraries are *not* explicitly linked
-# because mistakenly linking against both cudart and cudart_static (one of which
-# might come from upstream libraries such as vecgeom) can cause nasty link- and
-# run-time errors.
-celeritas_add_src_library(DeviceToolkit INTERFACE)
-
-if(CELERITAS_USE_CUDA)
-  target_link_libraries(DeviceToolkit INTERFACE CUDA::toolkit)
-elseif(CELERITAS_USE_HIP)
-  if(CMAKE_HIP_COMPILER_ROCM_ROOT)
-    # Undocumented CMake variable
-    set(ROCM_PATH "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
-  else()
-    # This hack works on Crusher as of ROCm 5.1.0
-    set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
-  endif()
-  target_include_directories(DeviceToolkit
-    SYSTEM INTERFACE "${ROCM_PATH}/include"
-  )
-  find_library(ROCTX_LIBRARY roctx64)
-  if(ROCTX_LIBRARY)
-    set(CELERITAS_HAVE_ROCTX ON)
-    target_link_libraries(DeviceToolkit INTERFACE "${ROCTX_LIBRARY}")
-  endif()
-  if(NOT BUILD_SHARED_LIBS)
-    # Downstream libs don't link against correct HIP dependencies when using
-    # static libraries, and even though the code below propagates the library
-    # names (-lamdhip64) CMake fails to include the link directories
-    # (/opt/rocm/lib)
-    target_link_libraries(DeviceToolkit
-      INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_LIBRARIES}>"
-    )
-    target_link_directories(DeviceToolkit
-      INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_DIRECTORIES}>"
-    )
-  endif()
-endif()
-
-#----------------------------------------------------------------------------#
-if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
-  foreach(_prefix "__" "_" "")
-    try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
-      # NOTE: the line below is required for CMake < 3.25
-      "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/sincospi${_prefix}"
-      SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-sincospi.cc"
-      COMPILE_DEFINITIONS "-DCELERITAS_SINCOSPI_PREFIX=${_prefix}"
-    )
-    if(CELERITAS_TRY_${_prefix}SINCOSPI)
-      set(CELERITAS_SINCOSPI_PREFIX "${_prefix}" CACHE INTERNAL
-        "Prefix for compiler-provided sincospi and related functions"
-      )
-      break()
-    endif()
-  endforeach()
-endif()
-
-#----------------------------------------------------------------------------#
 # Add the main libraries
 add_subdirectory(src)
 

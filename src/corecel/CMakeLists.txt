@@ -4,7 +4,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS nlohmann_json::nlohmann_json)
+set(PRIVATE_DEPS nlohmann_json::nlohmann_json Celeritas::ExtDeviceApi)
 set(PUBLIC_DEPS Celeritas::BuildFlags)
 
 #----------------------------------------------------------------------------#
@@ -163,7 +163,6 @@ list(APPEND SOURCES
   io/Label.cc
   io/LogContextException.cc
   io/LogHandlers.cc
-  io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
   io/OutputRegistry.cc
@@ -177,17 +176,13 @@ list(APPEND SOURCES
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc
-  sys/Device.cc
   sys/DeviceIO.json.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
   sys/KernelRegistryIO.json.cc
   sys/MemRegistry.cc
   sys/MemRegistryIO.json.cc
-  sys/MpiCommunicator.cc
-  sys/MultiExceptionHandler.cc
   sys/ScopedMem.cc
-  sys/ScopedMpiInit.cc
   sys/ScopedProfiling.cc
   sys/ScopedSignalHandler.cc
   sys/Stream.cc
@@ -196,10 +191,52 @@ list(APPEND SOURCES
 )
 
 #-----------------------------------------------------------------------------#
-# Configuration-dependent code/dependencies
+# Configuration-dependent object libraries
 #-----------------------------------------------------------------------------#
 
-list(APPEND PRIVATE_DEPS Celeritas::DeviceToolkit)
+# All these classes depend on OpenMP if available
+celeritas_add_object_library(corecel_openmp_obj
+  sys/MultiExceptionHandler.cc
+)
+celeritas_target_link_libraries(corecel_openmp_obj
+  PRIVATE Celeritas::ExtOpenMP Celeritas::BuildFlags
+)
+list(APPEND SOURCES $<TARGET_OBJECTS:corecel_openmp_obj>)
+list(APPEND PRIVATE_DEPS corecel_openmp_obj)
+
+#-----------------------------------------------------------------------------#
+
+# All these classes depend on MPI if available
+celeritas_add_object_library(corecel_mpi_obj
+  io/Logger.cc
+  sys/Device.cc
+  sys/MpiCommunicator.cc
+  sys/ScopedMpiInit.cc
+)
+celeritas_target_link_libraries(corecel_mpi_obj
+  PRIVATE Celeritas::ExtMPI Celeritas::ExtDeviceApi Celeritas::BuildFlags
+)
+list(APPEND SOURCES $<TARGET_OBJECTS:corecel_mpi_obj>)
+list(APPEND PRIVATE_DEPS corecel_mpi_obj)
+
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_Perfetto)
+  # Perfetto is required to build these classes
+  celeritas_add_object_library(corecel_perfetto_obj
+    sys/TraceCounter.perfetto.cc
+    sys/TracingSession.cc
+  )
+  celeritas_target_link_libraries(corecel_perfetto_obj
+    PRIVATE Celeritas::ExtPerfetto Celeritas::BuildFlags
+  )
+  list(APPEND SOURCES $<TARGET_OBJECTS:corecel_perfetto_obj>)
+  list(APPEND PRIVATE_DEPS corecel_perfetto_obj)
+endif()
+
+#-----------------------------------------------------------------------------#
+# CUDA/HIP code
+#-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
@@ -207,37 +244,18 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     sys/KernelParamCalculator.device.cc
   )
 endif()
+
 if(CELERITAS_USE_CUDA)
   # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
-  # NVTX requires `-ldl`
-  # This does not appears to be needed anymore with
-  # CMake 3.26.5 and CUDA sdk 12.6.
-  list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
 endif()
 
 if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
-  )
-endif()
-
-if(CELERITAS_USE_MPI)
-  list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
-endif()
-
-if(CELERITAS_USE_OpenMP)
-  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
-endif()
-
-if(CELERITAS_USE_Perfetto)
-  list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
-  list(APPEND SOURCES
-    sys/TraceCounter.perfetto.cc
-    sys/TracingSession.cc
   )
 endif()
 
@@ -250,15 +268,5 @@ celeritas_target_link_libraries(corecel
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
-
-#-----------------------------------------------------------------------------#
-# Create library
-#-----------------------------------------------------------------------------#
-
-celeritas_add_src_library(corecel_mpi INTERFACE)
-
-if(CELERITAS_USE_MPI)
-  target_link_libraries(corecel_mpi INTERFACE MPI::MPI_CXX)
-endif()
 
 #-----------------------------------------------------------------------------#

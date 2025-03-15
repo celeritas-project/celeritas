@@ -3,7 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-# Add a library for propagating common build flags
+#----------------------------------------------------------------------------#
+# INTERFACE LIBRARIES
+#----------------------------------------------------------------------------#
+
+# Add a library for propagating common build flags and Celeritas includes
 celeritas_add_src_library(BuildFlags INTERFACE)
 
 # Require at least C++17
@@ -24,6 +28,11 @@ if(WIN32)
       $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
     )
   endif()
+
+  # Inheriting via dominance is correct behavior
+  target_compile_options(BuildFlags
+    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
+  )
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
@@ -41,6 +50,81 @@ celeritas_target_include_directories(BuildFlags
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
+#----------------------------------------------------------------------------#
+
+# Define an interface library for propagating include paths for GPU compilers.
+# This allow API calls, so long as the compiler or linker implicitly bring in
+# the correct CUDA/ROCM libraries. Those libraries are *not* explicitly linked
+# because mistakenly linking against both cudart and cudart_static (one of which
+# might come from upstream libraries such as vecgeom) can cause nasty link- and
+# run-time errors.
+celeritas_add_interface_library(ExtDeviceApi)
+
+if(CELERITAS_USE_CUDA)
+  target_link_libraries(ExtDeviceApi INTERFACE CUDA::toolkit)
+
+  # NVTX requires `-ldl`
+  # This does not appears to be needed anymore with
+  # CMake 3.26.5 and CUDA sdk 12.6.
+  target_link_libraries(ExtDeviceApi INTERFACE ${CMAKE_DL_LIBS})
+elseif(CELERITAS_USE_HIP)
+  if(CMAKE_HIP_COMPILER_ROCM_ROOT)
+    # Undocumented CMake variable
+    set(ROCM_PATH "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
+  else()
+    # This works on some older OLCF environment
+    set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
+  endif()
+  target_include_directories(ExtDeviceApi
+    SYSTEM INTERFACE "${ROCM_PATH}/include"
+  )
+  find_library(ROCTX_LIBRARY roctx64)
+  if(ROCTX_LIBRARY)
+    set(CELERITAS_HAVE_ROCTX ON)
+    target_link_libraries(ExtDeviceApi INTERFACE "${ROCTX_LIBRARY}")
+  endif()
+  if(NOT BUILD_SHARED_LIBS)
+    # Downstream libs don't link against correct HIP dependencies when using
+    # static libraries, and even though the code below propagates the library
+    # names (-lamdhip64) CMake fails to include the link directories
+    # (/opt/rocm/lib)
+    target_link_libraries(ExtDeviceApi
+      INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_LIBRARIES}>"
+    )
+    target_link_directories(ExtDeviceApi
+      INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_DIRECTORIES}>"
+    )
+  endif()
+endif()
+
+#----------------------------------------------------------------------------#
+
+# Add libraries for optional external dependencies
+macro(celer_add_ext_library pkg)
+  celeritas_add_interface_library(Ext${pkg})
+
+  if(CELERITAS_USE_${pkg})
+    target_link_libraries(Ext${pkg} INTERFACE ${ARGN})
+  endif()
+endmacro()
+
+celer_add_ext_library(MPI MPI::MPI_CXX)
+celer_add_ext_library(OpenMP OpenMP::OpenMP_CXX)
+
+if(CELERITAS_BUILTIN_Perfetto)
+  # See /external
+  set(_perfetto_lib celeritas_perfetto)
+endif()
+celer_add_ext_library(Perfetto ${_pefetto_lib})
+
+celeritas_add_interface_library(ExtGeant4Geo)
+if(CELERITAS_USE_Geant4)
+  celeritas_get_g4libs(_cg4_libs geometry)
+  target_link_libraries(ExtGeant4Geo INTERFACE ${_cg4_libs})
+endif()
+
+#----------------------------------------------------------------------------#
+# CODE LIBRARIES
 #----------------------------------------------------------------------------#
 
 # Add individual libraries

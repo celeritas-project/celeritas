@@ -12,12 +12,6 @@ include(CeleritasAddTest)
 file(TO_CMAKE_PATH "${PROJECT_SOURCE_DIR}" CELERITAS_SOURCE_DIR)
 configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
-if(CELERITAS_USE_MPI)
-  set(_mpi_libs MPI::MPI_CXX)
-else()
-  set(_mpi_libs)
-endif()
-
 set(_harness_sources
   Test.cc
   testdetail/JsonComparer.json.cc
@@ -29,7 +23,7 @@ celeritas_add_test_library(testcel_harness ${_harness_sources})
 target_compile_features(testcel_harness PUBLIC cxx_std_17)
 celeritas_target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::gtest
-  PRIVATE nlohmann_json::nlohmann_json ${_mpi_libs}
+  PRIVATE nlohmann_json::nlohmann_json Celeritas::ExtMPI
 )
 celeritas_target_include_directories(testcel_harness
   PUBLIC

@@ -135,7 +135,6 @@ endforeach()
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   set(Perfetto_INCLUDE_DIR ${perfetto_SOURCE_DIR}/sdk)
   add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
-  add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
   target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
 endif()
 

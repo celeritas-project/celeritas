@@ -6,14 +6,14 @@
 .. _library:
 
 Software library
-----------------
+================
 
 The most stable part of Celeritas is, at the present time, the high-level
 :ref:`api_g4_interface`. However, many other
 components of the API are stable and documented in the :code:`api` section.
 
 CMake integration
-^^^^^^^^^^^^^^^^^
+-----------------
 
 The Celeritas library is most easily used when your downstream app is built with
 CMake. It should require a single line to initialize::
@@ -23,6 +23,25 @@ CMake. It should require a single line to initialize::
 and if VecGeom or CUDA are disabled, a single line to link::
 
    target_link_libraries(mycode PUBLIC Celeritas::celeritas)
+
+Targets
+^^^^^^^
+
+CMake targets exported by Celeritas live in the ``Celeritas::`` namespace.
+These targets are:
+
+- An interface lib ``BuildFlags`` that provides the include path to Celeritas,
+  language requirements, and warning overrides;
+- Wrapper interface libraries that provide links to optional dependencies if
+  enabled: ``ExtMPI``, ``ExtOpenMP``, ``ExtPerfetto``, ``ExtGeant4Geo``
+  (G4Geometry if available), and ``ExtDeviceApi`` (CUDA::toolkit if available,
+  ROCM/HIP libraries and includes, and roctx64 if available);
+- Code libraries described in :ref:`api`: corecel, geocel, orange,
+  celeritas, and accel;
+- Executables such as ``celer-sim`` and ``celer-geo``.
+
+CudaRdcUtils
+^^^^^^^^^^^^
 
 Because of complexities involving CUDA Relocatable Device Code (RDC), consuming
 Celeritas with CUDA and VecGeom support requires an additional include and the
@@ -73,7 +92,7 @@ use Celeritas as a library with a short standalone CMake project and with
 Geant4.
 
 App integration
-^^^^^^^^^^^^^^^
+---------------
 
 Integrating with Geant4 user applications and experiment frameworks requires
 setting up:
