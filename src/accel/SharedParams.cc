@@ -665,11 +665,14 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Set state size
     params.tracks_per_stream = options.max_num_tracks;
 
-    // Allocate device streams, or use the default stream if there is only one.
-    if (celeritas::device() && !options.default_stream
-        && params.max_streams > 1)
+    // Allocate device streams
+    if (auto& d = celeritas::device())
     {
-        celeritas::device().create_streams(params.max_streams);
+        d.create_streams(params.max_streams);
+    }
+    if (options.default_stream)
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
 
     // Construct along-step action

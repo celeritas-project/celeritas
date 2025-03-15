@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/src/PrimaryGeneratorAction.cc
+//! \file offload-template/src/PrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
@@ -12,6 +12,10 @@
 
 #include "DetectorConstruction.hh"
 
+namespace celeritas
+{
+namespace example
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct empty.
@@ -35,3 +39,6 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     particle_gun.SetParticleMomentumDirection(G4ThreeVector(1, 0, 0));  // +x
     particle_gun.GeneratePrimaryVertex(event);
 }
+
+}  // namespace example
+}  // namespace celeritas

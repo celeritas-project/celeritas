@@ -502,10 +502,8 @@ def generate(repodir, filename, namespace):
 
     if namespace is None:
         namespace = 'celeritas'
-        if all_dirs[0] == 'app':
-            namespace += '::app'
-        elif all_dirs[0] == 'test':
-            namespace += '::test'
+        if all_dirs[0] in ('app', 'test', 'example'):
+            namespace += '::' + all_dirs[0]
         if all_dirs[-1] == 'detail':
             namespace += '::detail'
 
@@ -566,6 +564,15 @@ def generate(repodir, filename, namespace):
     return filename
 
 
+def get_main_repo():
+    try:
+        out = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
+    except subprocess.SubprocessError as e:
+        return ".."
+
+    return out.decode().strip()
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
@@ -583,10 +590,7 @@ def main():
         default=None,
         help='C++ namespace to generate')
     args = parser.parse_args()
-    repodir = args.repodir or (
-        subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
-        .decode().strip()
-    )
+    repodir = args.repodir or get_main_repo()
     generated = []
     for fn in args.filename:
         fn = generate(repodir, fn, args.namespace)

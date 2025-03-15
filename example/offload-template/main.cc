@@ -5,6 +5,7 @@
 //! \file offload-template/main.cc
 //! \brief Minimal Geant4 application with Celeritas offloading
 //---------------------------------------------------------------------------//
+#include <iostream>
 #include <memory>
 #include <FTFP_BERT.hh>
 #include <G4RunManagerFactory.hh>
@@ -29,6 +30,8 @@ int main(int argc, char* argv[])
         std::cout << "Usage: " << argv[0] << std::endl;
         return EXIT_FAILURE;
     }
+
+    using namespace celeritas::example;
 
     std::unique_ptr<G4RunManager> run_manager;
     run_manager.reset(

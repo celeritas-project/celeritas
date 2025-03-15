@@ -122,7 +122,13 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-include_guard(GLOBAL)
+set(_CUDA_RDC_VERSION 1)
+if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
+  # A newer version has already been loaded
+  return()
+endif()
+set(CUDA_RDC_VERSION ${_CUDA_RDC_VERSION})
+message(VERBOSE "Using CUDA_RDC_VERSION ${CUDA_RDC_VERSION}")
 
 cmake_policy(VERSION 3.24...3.31)
 # 3.19 is needed for set properties in INTERFACE libraries.
@@ -471,7 +477,10 @@ function(cuda_rdc_add_library target)
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
     EXPORT_PROPERTIES "CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
   )
-  target_link_libraries(${target}_final PUBLIC ${target} PRIVATE CUDA::toolkit)
+  target_link_libraries(${target}_final PUBLIC ${target})
+  if(TARGET CUDA::toolkit)
+    target_link_libraries(${target}_final PRIVATE CUDA::toolkit)
+  endif()
   target_link_options(${target}_final
     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:${target}${_staticsuf}>>
   )
@@ -591,6 +600,11 @@ function(cuda_rdc_depends_on OUTVARNAME lib potentialdepend)
     get_target_property(_lib_target_type ${lib} TYPE)
     if(NOT _lib_target_type STREQUAL "INTERFACE_LIBRARY")
       get_target_property(lib_link_libraries ${lib} LINK_LIBRARIES)
+      get_target_property(lib_interface_link_libraries ${lib} INTERFACE_LINK_LIBRARIES)
+      if(lib_interface_link_libraries)
+        list(APPEND lib_link_libraries lib_interface_link_libraries)
+        list(REMOVE_DUPLICATES lib_link_libraries)
+      endif()
     endif()
     if(NOT lib_link_libraries)
       return()
@@ -896,7 +910,7 @@ function(cuda_rdc_target_link_libraries target)
            # In the past the linker considered symbols in dependencies of specified languages
            # to be available. But that changed in some later version and now the linker
            # enforces a more strict view of what is available.
-           target_link_libraries(${_target_final} ${_lib})
+           set_property(TARGET ${_target_final} APPEND PROPERTY LINK_LIBRARIES ${_lib})
         endif()
         if(TARGET ${_libstatic})
           target_link_options(${_target_final}
@@ -925,6 +939,7 @@ function(cuda_rdc_target_link_libraries target)
         set_target_properties(${_target_final} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
         set_target_properties(${_target_object} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
       endif()
+      set_property(TARGET ${_target_final} APPEND PROPERTY LINK_LIBRARIES ${CMAKE_DL_LIBS})
     endif()
   else() # We could restrict to the case where the dependent is a static library ... maybe
     set_target_properties(${target} PROPERTIES
@@ -977,8 +992,9 @@ function(cuda_rdc_cuda_gather_dependencies outlist target)
   set(_deplist)
   if(NOT _target_type STREQUAL "INTERFACE_LIBRARY")
     get_target_property(_target_link_libraries ${target} LINK_LIBRARIES)
-    if(_target_link_libraries)
-      foreach(_lib ${_target_link_libraries})
+    get_target_property(_target_interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
+    if(_target_link_libraries OR _target_interface_link_libraries)
+      foreach(_lib ${_target_link_libraries} ${_target_interface_link_libraries})
         cuda_rdc_strip_alias(_lib ${_lib})
         set(_libmid)
         if(TARGET ${_lib})

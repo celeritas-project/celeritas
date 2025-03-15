@@ -30,6 +30,24 @@ if(((@PROJECT_NAME@_FIND_VERSION_MAJOR EQUAL 0
 endif()
 
 #-----------------------------------------------------------------------------#
+# Configuration macros
+#-----------------------------------------------------------------------------#
+
+macro(_celer_set_local_default var val)
+  if(NOT DEFINED ${var})
+    message(VERBOSE "Celeritas: set ${var}=${val}")
+    set(${var} "${val}")
+  endif()
+endmacro()
+
+macro(_celer_set_cache_default var val)
+  if(NOT DEFINED ${var})
+    message(STATUS "Celeritas: set cache ${var}=${val}")
+    set(${var} "${val}" CACHE ${ARGN})
+  endif()
+endmacro()
+
+#-----------------------------------------------------------------------------#
 # Variables
 #-----------------------------------------------------------------------------#
 
@@ -45,6 +63,13 @@ include(CMakeFindDependencyMacro)
 
 if(CELERITAS_USE_CUDA)
   find_dependency(CUDAToolkit REQUIRED)
+
+  # Set cache variable if needed *before* checking CUDA
+  _celer_set_cache_default(
+    CMAKE_CUDA_ARCHITECTURES
+    "${CELERITAS_CMAKE_CUDA_ARCHITECTURES}"
+    STRING "CUDA architectures"
+  )
 
   if(NOT CMAKE_CUDA_COMPILER_LOADED)
     # enable_language only really works in top-level CMake directory, not even subprojects
@@ -65,6 +90,11 @@ if(CELERITAS_USE_CUDA)
     endif()
   endif()
 elseif(CELERITAS_USE_HIP)
+  _celer_set_cache_default(
+    CMAKE_HIP_ARCHITECTURES
+    "${CELERITAS_CMAKE_HIP_ARCHITECTURES}"
+    STRING "HIP architectures"
+  )
   find_dependency(hip REQUIRED QUIET)
 endif()
 

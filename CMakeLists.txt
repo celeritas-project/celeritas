@@ -279,6 +279,8 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 include(CeleritasUtils)
 
+celeritas_find_or_builtin_package(CLI11 2.4)
+
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
   include(CTest)
@@ -499,11 +501,29 @@ endif()
 # BUILTINS
 #----------------------------------------------------------------------------#
 
-include(CudaRdcUtils)
-
 if(CELERITAS_BUILTIN)
   include(FetchContent)
   add_subdirectory(external)
+endif()
+
+#----------------------------------------------------------------------------#
+# RDC SUPPORT FOR VECGEOM+CUDA
+#----------------------------------------------------------------------------#
+
+# Load RDC utils using CMAKE_MODULE_PATH
+include(CudaRdcUtils OPTIONAL)
+
+# Load our local copy if it's newer
+if(NOT CUDA_RDC_VERSION)
+   set(_loaded_CUDA_RDC_VERSION 0)
+else()
+   set(_loaded_CUDA_RDC_VERSION ${CUDA_RDC_VERSION})
+endif()
+set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
+include("${_LOCAL_RDCUTILS_FILENAME}")
+if(NOT CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
+  # Only install our copy if it's newer than what's available elsewhere
+  set(_LOCAL_RDCUTILS_FILENAME)
 endif()
 
 #----------------------------------------------------------------------------#
@@ -614,11 +634,9 @@ set(_cmake_files
   # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
-if(NOT CELERITAS_USE_VecGeom OR VecGeom_VERSION VERSION_LESS 1.2.10)
-  # Only install RDC utils if not available through vecgeom
-  list(APPEND _cmake_files
-    "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
-  )
+if(_LOCAL_RDCUTILS_FILENAME)
+  # Install our newer copy of CudaRdcUtils
+  list(APPEND _cmake_files ${_LOCAL_RDCUTILS_FILENAME})
 endif()
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
@@ -695,13 +713,11 @@ foreach(_key
     set(_cache_val "$CACHE{${_key}}")
     if(_cache_val)
       list(APPEND CELERITAS_EXPORT_VARIABLES
-        "set(${_key} \"${_cache_val}\" CACHE PATH \"Set by CeleritasConfig.cmake\")"
+        "_celer_set_cache_default(${_key} \"${_cache_val}\" PATH \"Set by CeleritasConfig.cmake\")"
       )
     else()
     list(APPEND CELERITAS_EXPORT_VARIABLES
-      "if(NOT DEFINED ${_key})"
-      "  set(${_key} \"${_val}\")"
-      "endif()"
+      "_celer_set_local_default(${_key} \"${_val}\")"
     )
   endif()
   endif()

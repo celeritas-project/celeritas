@@ -280,7 +280,6 @@ jobs:
                || !matrix.geant
               ) && '1' || ''
             }}
-          CELER_GEANT4_VERSION: ${{matrix.geant}}
         if: >-
           ${{
             (matrix.special != 'asanlite')

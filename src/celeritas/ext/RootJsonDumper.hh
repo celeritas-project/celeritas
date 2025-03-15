@@ -29,7 +29,7 @@ class RootJsonDumper
 {
   public:
     // Construct with an output stream
-    explicit RootJsonDumper(std::ostream* os);
+    explicit RootJsonDumper(std::ostream& os);
 
     // Save data to the JSON file
     void operator()(ImportData const& data);
@@ -40,7 +40,7 @@ class RootJsonDumper
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootJsonDumper::RootJsonDumper(std::ostream*)
+inline RootJsonDumper::RootJsonDumper(std::ostream&)
 {
     CELER_DISCARD(os_);
     CELER_NOT_CONFIGURED("ROOT");

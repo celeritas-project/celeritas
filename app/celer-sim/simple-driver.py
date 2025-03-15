@@ -39,6 +39,10 @@ physics_options = {
     'msc': "urban" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
+    'optical': {
+        'absorption': True,
+        'rayleigh_scattering': True,
+    }
 }
 
 physics_filename = None

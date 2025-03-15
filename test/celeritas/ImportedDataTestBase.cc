@@ -12,6 +12,8 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/ModelImporter.hh"
+#include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -150,6 +152,30 @@ auto ImportedDataTestBase::build_scintillation() -> SPConstScintillation
 {
     return optical::ScintillationParams::from_import(this->imported_data(),
                                                      this->particle());
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
+{
+    using IMC = celeritas::optical::ImportModelClass;
+
+    optical::PhysicsParams::Input input;
+    input.materials = this->optical_material();
+    input.action_registry = this->action_reg().get();
+
+    std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh, IMC::wls};
+    optical::ModelImporter importer(
+        this->imported_data(), this->optical_material(), this->material());
+
+    for (IMC imc : imcs)
+    {
+        if (auto builder = importer(imc))
+        {
+            input.model_builders.push_back(*builder);
+        }
+    }
+
+    return std::make_shared<optical::PhysicsParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
