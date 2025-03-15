@@ -12,6 +12,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/HyperslabIndexer.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
@@ -220,12 +221,12 @@ TEST_F(RZPhiMapFieldTest, all)
     size_type const nz_samples = 2;
 
     // Define sampling ranges
-    real_type r_min = from_cm(10.0);
-    real_type r_max = from_cm(100.0);
+    real_type r_min = 10.0;
+    real_type r_max = 100.0;
     real_type phi_min = 0.0;
     real_type phi_max = constants::pi.value() / 2;
-    real_type z_min = from_cm(-100.0);
-    real_type z_max = from_cm(100.0);
+    real_type z_min = -100.0;
+    real_type z_max = 100.0;
 
     std::vector<real_type> actual;
 
