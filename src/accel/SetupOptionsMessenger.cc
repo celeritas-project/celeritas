@@ -12,7 +12,6 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/sys/Device.hh"
 
 #include "SetupOptions.hh"
 
@@ -205,7 +204,7 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "enabled",
             "Call back to Geant4 sensitive detectors");
 
-    if (Device::num_devices() > 0)
+    if (CELERITAS_USE_CUDA)
     {
         directories_.emplace_back(new CelerDirectory(
             "/celer/cuda/", "Celeritas CUDA setup options"));
