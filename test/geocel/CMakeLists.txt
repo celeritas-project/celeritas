@@ -30,12 +30,11 @@ set(SOURCES
   GeoTests.cc
 )
 
-set(PRIVATE_DEPS ${testcel_core})
+set(PRIVATE_DEPS ${testcel_core} Celeritas::ExtGeant4Geo)
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND SOURCES
     g4/GeantGeoTestBase.cc
   )
-  list(APPEND PRIVATE_DEPS Celeritas::ExtGeant4Geo)
 endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
