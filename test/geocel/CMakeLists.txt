@@ -30,24 +30,30 @@ set(SOURCES
   GeoTests.cc
 )
 
+set(PRIVATE_DEPS ${testcel_core})
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND SOURCES
     g4/GeantGeoTestBase.cc
   )
+  list(APPEND PRIVATE_DEPS Celeritas::ExtGeant4Geo)
 endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vg/VecgeomTestBase.cc
   )
+  list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    # VecGeom headers propagate CUDA includes
+    # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
+    list(APPEND PRIVATE_DEPS Celeritas::ExtDeviceApi)
+  endif()
 endif()
 
 celeritas_add_test_library(testcel_geocel ${SOURCES})
 
 celeritas_target_link_libraries(testcel_geocel
-  PUBLIC
-    testcel_harness Celeritas::geocel
-  PRIVATE
-    testcel_core Celeritas::ExtGeant4Geo
+  PUBLIC testcel_harness Celeritas::geocel
+  PRIVATE ${PRIVATE_DEPS}
 )
 
 #-----------------------------------------------------------------------------#
@@ -112,7 +118,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Geant4
 
-celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4} LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+list(APPEND CELERITASTEST_LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4})
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
@@ -121,13 +128,11 @@ endif()
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   # These all require the Geant4 geometry wrappers which only are built when
   # double-precision is enabled
-  celeritas_add_test(g4/GeantGeo.test.cc
-    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
-  celeritas_add_test(g4/VisitVolumes.test.cc
-    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
-  celeritas_add_test(GeantGeoUtils.test.cc
-    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+  celeritas_add_test(g4/GeantGeo.test.cc)
+  celeritas_add_test(g4/VisitVolumes.test.cc)
+  celeritas_add_test(GeantGeoUtils.test.cc)
 endif()
+list(POP_BACK CELERITASTEST_LINK_LIBRARIES)
 
 #-----------------------------------------------------------------------------#
 # Rasterization
