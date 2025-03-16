@@ -87,6 +87,9 @@ if(CELERITAS_USE_VecGeom)
   elseif(VecGeom_CUDA_FOUND)
     # VecGeom is built with CUDA but Celeritas is not
     list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+    # VecGeom headers propagate CUDA includes
+    # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
+    list(APPEND PUBLIC_DEPS Celeritas::ExtDeviceApi)
   endif()
   list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
 endif()
