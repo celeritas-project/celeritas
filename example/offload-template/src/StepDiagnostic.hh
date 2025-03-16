@@ -19,6 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class CoreStateInterface;
+class CoreStateCounters;
 
 namespace example
 {
@@ -44,6 +45,32 @@ struct StepStatistics
  * manages "thread-local" (i.e., per-stream state auxiliary) data, launches
  * kernels to gather statistics, and provides an accessor for copying back to
  * the user regardless of where the accumulated data lives.
+ *
+ * It is constructed by the user options (see \c MakeCelerOptions) and
+ * integrates into the Geant4 transport loop in the user \c EventAction by
+ * calling \c GetAndReset.
+ *
+ * To be consistent in Geant4, additional \c SteppingAction and \c
+ * TrackingAction classes should be created to gather equivalent data from
+ * Geant4.
+ *
+ * The StepDiagnostic inherits from three Celeritas classes that provide
+ * interfaces:
+ * - \c ParamsData provides a unified template interface for shared problem
+ *   setup data.
+ * - \c CoreStepActionInterface allows the class to be called at every step
+ *   iteration with thread-local particle state data.
+ * - \c AuxParamsInterface is needed to store additional data alongside the
+ *   particle state without having to use a \c thread_local paradigm . (In
+ *   other words, this allows us to access the track data on a different CPU
+ *   thread from the one actually performing the tracking.)
+ *
+ * The two key methods for gathering data from Celeritas are \c accum_counters
+ * which updates counters that lives in host memory (regardless of whether the
+ * main particle data is on device), and the \c StepDiagnosticExecutor class
+ * which updates on-device data from the particle states. The latter class is
+ * instantiated and run in what is effectively a "parallel for" using a \c
+ * ActionLauncher class (GPU) or \c launch_action function (CPU).
  */
 class StepDiagnostic final : public CoreStepActionInterface,
                              public AuxParamsInterface,
@@ -110,6 +137,10 @@ class StepDiagnostic final : public CoreStepActionInterface,
     StaticActionData sad_;
     AuxId aux_id_;
     CollectionMirror<StepParamsData> mirror_;
+
+    //// HELPER FUNCTIONS ////
+    void accum_counters(CoreStateCounters const& counters,
+                        HostStepStatistics& stats) const;
 };
 
 //---------------------------------------------------------------------------//

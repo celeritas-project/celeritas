@@ -150,10 +150,8 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
     auto const& step_params = this->ref<MemSpace::native>();
     auto& step_state = state.aux_data<StepStateData>(aux_id_);
 
-    CoreStateCounters const& counters = state.counters();
-    step_state.host_data.steps += counters.num_active;
-    step_state.host_data.generated += counters.num_generated;
-    step_state.host_data.secondaries += counters.num_secondaries;
+    // Accumulate counters
+    this->accum_counters(state.counters(), step_state.host_data);
 
     // Create a functor that gathers data from a single track slot
     auto execute = make_active_track_executor(
@@ -171,6 +169,18 @@ void StepDiagnostic::step(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
+
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate step/track counters.
+ */
+void StepDiagnostic::accum_counters(CoreStateCounters const& counters,
+                                    HostStepStatistics& stats) const
+{
+    stats.steps += counters.num_active;
+    stats.generated += counters.num_generated;
+    stats.secondaries += counters.num_secondaries;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace example
