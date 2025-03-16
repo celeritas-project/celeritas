@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -20,6 +21,7 @@
 #include "corecel/math/Turn.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/field/RZPhiMapField.hh"
 #include "celeritas/field/RZPhiMapFieldInput.hh"
 #include "celeritas/field/RZPhiMapFieldParams.hh"
@@ -44,15 +46,23 @@ class RZPhiMapFieldSampler
     {
         RZPhiMapFieldParams::Input field_input;
 
-        field_input.grid_r = std::move(r_grid);
-        field_input.grid_z = std::move(z_grid);
+        // Convert from geant
+        std::transform(
+            r_grid.cbegin(),
+            r_grid.cend(),
+            std::back_inserter(field_input.grid_r),
+            [](real_type r) { return convert_from_geant(r, clhep_length); });
+        std::transform(
+            z_grid.cbegin(),
+            z_grid.cend(),
+            std::back_inserter(field_input.grid_z),
+            [](real_type z) { return convert_from_geant(z, clhep_length); });
 
-        // Convert phi values to Turn type
-        field_input.grid_phi.resize(phi_values.size());
+        //  Convert phi values to Turn type
         std::transform(
             phi_values.cbegin(),
             phi_values.cend(),
-            field_input.grid_phi.begin(),
+            std::back_inserter(field_input.grid_phi),
             [](real_type phi) { return native_value_to<Turn>(phi); });
 
         size_type const nr = field_input.grid_r.size();
@@ -86,11 +96,14 @@ class RZPhiMapFieldSampler
                     field.GetFieldValue(pos.data(), bfield.data());
 
                     // values in cylindrical vector space
-                    field_input.field_r[idx] = bfield[0] * std::cos(phi)
-                                               + bfield[1] * std::sin(phi);
-                    field_input.field_phi[idx] = -bfield[0] * std::sin(phi)
-                                                 + bfield[1] * std::cos(phi);
-                    field_input.field_z[idx] = bfield[2];
+                    field_input.field_r[idx] = convert_from_geant(
+                        bfield[0] * std::cos(phi) + bfield[1] * std::sin(phi),
+                        clhep_field);
+                    field_input.field_phi[idx] = convert_from_geant(
+                        -bfield[0] * std::sin(phi) + bfield[1] * std::cos(phi),
+                        clhep_field);
+                    field_input.field_z[idx]
+                        = convert_from_geant(bfield[2], clhep_field);
                 }
             }
         }
