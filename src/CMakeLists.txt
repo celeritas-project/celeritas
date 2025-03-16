@@ -114,7 +114,7 @@ celer_add_ext_library(VecGeom VecGeom::vecgeom)
 if(CELERITAS_USE_CUDA)
   # VecGeom headers propagate CUDA includes into host compiler ode
   # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
-  target_link_libraries(ExtVecGeom Celeritas::ExtDeviceApi)
+  target_link_libraries(ExtVecGeom INTERFACE Celeritas::ExtDeviceApi)
 endif()
 
 
