@@ -35,7 +35,7 @@ struct CudaPointers
 
 //---------------------------------------------------------------------------//
 // Get pointers to the device BVH after setup, for consistency checking
-CudaPointers<detail::BVH_t const> bvh_pointers_device();
+CudaPointers<detail::CudaBVH_t const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
 #if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)

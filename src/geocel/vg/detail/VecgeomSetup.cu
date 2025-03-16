@@ -35,7 +35,7 @@ namespace
 //! Access
 struct BvhGetter
 {
-    BVH_t const** dest{nullptr};
+    CudaBVH_t const** dest{nullptr};
 
     CELER_FUNCTION void operator()(ThreadId tid)
     {
@@ -49,13 +49,13 @@ struct BvhGetter
 /*!
  * Get pointers to the device BVH after setup, for consistency checking.
  */
-CudaPointers<BVH_t const> bvh_pointers_device()
+CudaPointers<CudaBVH_t const> bvh_pointers_device()
 {
-    CudaPointers<BVH_t const> result;
+    CudaPointers<CudaBVH_t const> result;
 
     // Copy from kernel using 1-thread launch
     {
-        DeviceVector<BVH_t const*> bvh_ptr{1, StreamId{}};
+        DeviceVector<CudaBVH_t const*> bvh_ptr{1, StreamId{}};
         BvhGetter execute_thread{bvh_ptr.data()};
         static KernelLauncher<decltype(execute_thread)> const launch_kernel(
             "vecgeom-get-bvhptr");
@@ -67,8 +67,13 @@ CudaPointers<BVH_t const> bvh_pointers_device()
     // Copy from symbol using runtime API
     CELER_CUDA_CALL(
         cudaMemcpyFromSymbol(&result.symbol,
+#if VECGEOM_VERSION >= VECGEOM_V2
                              vecgeom::cuda::dBVH<BvhPrecision>,
                              sizeof(vecgeom::cuda::dBVH<BvhPrecision>),
+#else
+                             vecgeom::cuda::dBVH,
+                             sizeof(vecgeom::cuda::dBVH),
+#endif
                              0,
                              cudaMemcpyDeviceToHost));
     CELER_CUDA_CALL(cudaDeviceSynchronize());

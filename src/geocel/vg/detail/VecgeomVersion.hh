@@ -6,35 +6,20 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <VecGeom/base/BVH.h>
 #include <VecGeom/base/Config.h>
+#include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Math.h>
 #include <VecGeom/base/Version.h>
+#include <VecGeom/management/ABBoxManager.h>
 
 #if VECGEOM_VERSION < 0x020000 && defined(VECGEOM_USE_SURF)
 #    error \
         "Unsupported: cannot build with VecGeom surface before merge into 2.0"
 #endif
 #define VECGEOM_V2 0x020000
-
-namespace vecgeom
-{
-//---------------------------------------------------------------------------//
-#if VECGEOM_VERSION >= VECGEOM_V2
-template<class T>
-#endif
-class ABBoxManager;
-
-namespace cuda
-{
-#if VECGEOM_VERSION >= VECGEOM_V2
-template<typename T>
-#endif
-class BVH;
-}  // namespace cuda
-
-//---------------------------------------------------------------------------//
-}  // namespace vecgeom
 
 namespace celeritas
 {
@@ -49,10 +34,10 @@ using BvhPrecision = double;
 
 #if VECGEOM_VERSION >= VECGEOM_V2
 using ABBoxManager_t = vecgeom::ABBoxManager<vecgeom::Precision>;
-using BVH_t = vecgeom::cuda::BVH<BvhPrecision>;
+using CudaBVH_t = vecgeom::cuda::BVH<BvhPrecision>;
 #else
 using ABBoxManager_t = vecgeom::ABBoxManager;
-using BVH_t = vecgeom::BVH;
+using CudaBVH_t = vecgeom::cuda::BVH;
 #endif
 
 //---------------------------------------------------------------------------//

@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <VecGeom/base/BVH.h>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>
@@ -600,15 +601,13 @@ void VecgeomParams::build_volume_tracking()
                 "vecgeom::BVHManager::DeviceInit");
 #if defined(VECGEOM_BVHMANAGER_DEVICE)
             auto* bvh_ptr = BVHManager::DeviceInit();
-#elif defined(VECGEOM_ENABLE_CUDA)
-            BVHManager::DeviceInit();
-#endif
-#ifdef VECGEOM_BVHMANAGER_DEVICE
             auto* bvh_symbol_ptr = BVHManager::GetDeviceBVH();
             CELER_VALIDATE(bvh_ptr && bvh_ptr == bvh_symbol_ptr,
                            << "inconsistent BVH device pointer: allocated "
                            << bvh_ptr << " but copy-from-symbol returned "
                            << bvh_symbol_ptr);
+#elif defined(VECGEOM_ENABLE_CUDA)
+            BVHManager::DeviceInit();
 #endif
             CELER_DEVICE_CHECK_ERROR();
         }
@@ -616,7 +615,7 @@ void VecgeomParams::build_volume_tracking()
         // Check BVH pointers
         auto ptrs = detail::bvh_pointers_device();
 
-        detail::BVH_t const* bvh_symbol_ptr{nullptr};
+        detail::CudaBVH_t const* bvh_symbol_ptr{nullptr};
 #ifdef VECGEOM_BVHMANAGER_DEVICE
         bvh_symbol_ptr = BVHManager::GetDeviceBVH();
 #endif
