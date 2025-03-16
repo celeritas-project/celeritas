@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 
 #include "FieldDriverOptions.hh"
@@ -52,7 +53,9 @@ struct RZPhiMapFieldInput
         return (grid_r.size() >= 2)
             && (grid_z.size() >= 2)
             && (grid_phi.size() >= 2)
-            && (field_r.front() >= 0)
+            && (grid_r.front() >= 0)
+            && (soft_zero(grid_phi.front().value()))
+            && (soft_equal(real_type{1}, grid_phi.back().value()))
             && std::is_sorted(grid_phi.cbegin(), grid_phi.cend())
             && std::is_sorted(grid_r.cbegin(), grid_r.cend())
             && std::is_sorted(grid_z.cbegin(), grid_z.cend())
