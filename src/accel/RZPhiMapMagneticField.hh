@@ -45,6 +45,9 @@ class RZPhiMapFieldSampler
                std::vector<real_type> phi_values) const
     {
         RZPhiMapFieldParams::Input field_input;
+        field_input.grid_r.reserve(r_grid.size());
+        field_input.grid_z.reserve(z_grid.size());
+        field_input.grid_phi.reserve(phi_values.size());
 
         // Convert from geant
         std::transform(
