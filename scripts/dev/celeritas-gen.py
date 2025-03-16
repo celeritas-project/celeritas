@@ -308,7 +308,7 @@ void {lowabbr}_test(
                         params.ref<MemSpace::native>(),
                         state);
 
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }}
 
 //---------------------------------------------------------------------------//

@@ -164,7 +164,7 @@ void copy_steps<MemSpace::device>(
 #undef DS_ASSIGN
 
     // Copies must be complete before returning
-    CELER_DEVICE_CALL_PREFIX(
+    CELER_DEVICE_API_CALL(
         StreamSynchronize(celeritas::device().stream(state.stream_id).get()));
 
     CELER_ENSURE(output->detector.size() == num_valid);

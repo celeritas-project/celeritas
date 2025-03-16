@@ -13,7 +13,6 @@
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/sys/TypeDemangler.hh"
 
 #include "celeritas_test.hh"
 

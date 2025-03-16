@@ -63,7 +63,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                device_pointer_cast(status.data()),
                                result,
                                IsVacant{});
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 
     return end - result;
 }
