@@ -17,7 +17,9 @@ if(NOT CELERITAS_USE_Geant4)
     "to be enabled in Celeritas")
 endif()
 
-include(CudaRdcUtils)
+# Use Celeritas CUDA RDC macros to correctly link libraries using VecGeom
+# NOTE: until vecgeom/g4vg get updated, we must use the Celeritas load path
+include("${Celeritas_DIR}/CudaRdcUtils.cmake")
 
 add_executable(simple-offload simple-offload.cc)
 cuda_rdc_target_link_libraries(simple-offload

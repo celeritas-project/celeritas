@@ -13,9 +13,10 @@ find_package(Celeritas 0.5 REQUIRED)
 
 add_executable(minimal minimal.cc)
 
-# Use special linking macros to support CUDA RDC across multiple libraries when
-# using VecGeom.
-include(CudaRdcUtils)
+# Use Celeritas CUDA RDC macros to correctly link libraries using VecGeom
+# NOTE: until vecgeom/g4vg get updated, we must use the Celeritas load path
+include("${Celeritas_DIR}/CudaRdcUtils.cmake")
+
 cuda_rdc_target_link_libraries(minimal
   Celeritas::celeritas
 )
