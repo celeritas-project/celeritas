@@ -29,6 +29,7 @@ elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_core_geo_deps Celeritas::ExtGeant4Geo)
 endif()
+list(APPEND PUBLIC_DEPS ${_core_geo_deps})
 
 #-----------------------------------------------------------------------------#
 # Main code
