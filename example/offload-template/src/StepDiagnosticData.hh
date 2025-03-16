@@ -41,8 +41,8 @@ namespace example
 //! Step statistics gathered in host memory
 struct HostStepStatistics
 {
-    //! Accumulated number of steps
-    size_type steps{};
+    //! Accumulated number of steps (use an extra-long int)
+    unsigned long long steps{};
 
     //! Accumulated number of new tracks
     size_type generated{};
@@ -86,7 +86,6 @@ struct StepStateData
 {
     //// TYPES ////
 
-    using size_type = unsigned long long;
     template<class T>
     using EventItems = celeritas::Collection<T, W, M, EventId>;
 

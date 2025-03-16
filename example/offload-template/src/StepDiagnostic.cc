@@ -75,9 +75,7 @@ StepDiagnostic::make_and_insert(CoreParams const& core)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with IDs and filename base.
- *
- * This also writes to the "metadata" JSON suffix.
+ * Construct with IDs.
  */
 StepDiagnostic::StepDiagnostic(ActionId action_id, AuxId aux_id)
     : sad_{action_id, "step-diagnostic", "accumulate step statistics"}

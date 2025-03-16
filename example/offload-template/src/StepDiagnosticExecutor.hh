@@ -34,7 +34,7 @@ struct StepDiagnosticExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Collect distribution of steps per track for each particle type.
+ * Collect statistics about the current step.
  */
 CELER_FUNCTION void
 StepDiagnosticExecutor::operator()(CoreTrackView const& track)

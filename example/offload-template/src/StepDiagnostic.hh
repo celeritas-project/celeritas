@@ -54,7 +54,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
     static std::shared_ptr<StepDiagnostic>
     make_and_insert(CoreParams const& core);
 
-    // Construct with IDs and filename base
+    // Construct with IDs
     StepDiagnostic(ActionId action_id, AuxId aux_id);
 
     //// USER INTEGRATION ////
@@ -98,9 +98,9 @@ class StepDiagnostic final : public CoreStepActionInterface,
     //!@{
     //! \name Data interface
 
-    //! Access physics properties on the host
+    //! Access shared setup data on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }
-    //! Access physics properties on the device
+    //! Access shared setup data on the device
     DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
     //!@}
 

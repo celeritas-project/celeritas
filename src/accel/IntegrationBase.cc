@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Set options before starting the run.
  *
- * This captures the input to indiate that options cannot be modified after
+ * This captures the input to indicate that options cannot be modified after
  * this point.
  */
 void IntegrationBase::SetOptions(SetupOptions&& opts)
