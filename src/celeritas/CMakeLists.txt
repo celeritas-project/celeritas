@@ -16,6 +16,20 @@ set(PUBLIC_DEPS
   Celeritas::geocel
 )
 
+# Core data has transient includes
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  set(_core_geo_deps VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    # VecGeom headers propagate CUDA includes
+    # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
+    list(APPEND _core_geo_deps Celeritas::ExtDeviceApi)
+  endif()
+elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  set(_core_geo_deps Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_core_geo_deps Celeritas::ExtGeant4Geo)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Main code
 #-----------------------------------------------------------------------------#
@@ -187,6 +201,7 @@ if(CELERITAS_USE_Geant4)
     PRIVATE
       Celeritas::BuildFlags
       Celeritas::geocel
+      ${_core_geo_deps} # needed by GeantSd and related
       XercesC::XercesC
       nlohmann_json::nlohmann_json
       ${_cg4_libs}
@@ -271,20 +286,6 @@ if(CELERITAS_USE_ROOT)
 
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_root>)
   list(APPEND PRIVATE_DEPS celeritas_root)
-endif()
-
-# Core data has transient includes
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
-  if(CELERITAS_USE_CUDA)
-    # VecGeom headers propagate CUDA includes
-    # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
-    list(APPEND PRIVATE_DEPS Celeritas::ExtDeviceApi)
-  endif()
-elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  list(APPEND PUBLIC_DEPS Celeritas::orange)
-elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  list(APPEND PUBLIC_DEPS Celeritas::ExtGeant4Geo)
 endif()
 
 #-----------------------------------------------------------------------------#
