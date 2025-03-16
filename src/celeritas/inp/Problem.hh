@@ -52,8 +52,6 @@ struct Problem
     Physics physics;
     //! Set up the magnetic field
     Field field;
-    //! Set up the volumes where field will be present
-    std::vector<G4LogicalVolume const*> volumes;   
     //! Manage scoring of hits and other quantities
     Scoring scoring;
     //! Tuning options that affect the physics
