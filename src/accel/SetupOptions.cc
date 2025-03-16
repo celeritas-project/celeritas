@@ -121,7 +121,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
         {
             CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
             p.field = std::move(field);
-	    p.volumes = u->get_volumes();
         }
         else
         {
