@@ -18,12 +18,7 @@ set(PUBLIC_DEPS
 
 # Core data has transient includes
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  set(_core_geo_deps VecGeom::vecgeom)
-  if(CELERITAS_USE_CUDA)
-    # VecGeom headers propagate CUDA includes
-    # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
-    list(APPEND _core_geo_deps Celeritas::ExtDeviceApi)
-  endif()
+  set(_core_geo_deps Celeritas::ExtVecGeom)
 elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_deps Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")

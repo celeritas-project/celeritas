@@ -41,12 +41,7 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vg/VecgeomTestBase.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
-  if(CELERITAS_USE_CUDA)
-    # VecGeom headers propagate CUDA includes
-    # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
-    list(APPEND PRIVATE_DEPS Celeritas::ExtDeviceApi)
-  endif()
+  list(APPEND PRIVATE_DEPS Celeritas::ExtVecGeom)
 endif()
 
 celeritas_add_test_library(testcel_geocel ${SOURCES})
