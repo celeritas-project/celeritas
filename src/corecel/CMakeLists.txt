@@ -122,37 +122,35 @@ foreach(_dep Geant4 VecGeom HepMC3)
   )
 endforeach()
 
-# Save VecGeom surface macro
+# Save VecGeom options as always-on macros to simplify testing
 set(CELERITAS_VECGEOM_CONFIG)
-if(CELERITAS_USE_VecGeom)
-  if(DEFINED VecGeom_USE_SURF)
-    set(VecGeom_SURFACE ${VecGeom_USE_SURF})
-  endif()
-  set(_vecgeom_opts)
-  foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
-    if(NOT DEFINED VecGeom_${_opt})
-      set(_val "0 /* not defined */")
-    elseif(VecGeom_${_opt})
-      set(_val 1)
-      string(TOLOWER "${_opt}" _lower_opt)
-      list(APPEND _vecgeom_opts "${_lower_opt}")
-    else()
-      set(_val 0)
-    endif()
-    list(APPEND CELERITAS_VECGEOM_CONFIG
-      "#define CELERITAS_VECGEOM_${_opt} ${_val}"
-    )
-  endforeach()
-  foreach(_opt NAV BACKEND)
-    if(DEFINED VecGeom_${_opt})
-      list(APPEND _vecgeom_opts "${VecGeom_${_opt}}")
-    endif()
-  endforeach()
-  if(NOT VecGeom_VECTOR STREQUAL "empty")
-    list(APPEND _vecgeom_opts "${VecGeom_VECTOR}")
-  endif()
-  list(JOIN _vecgeom_opts "," _vecgeom_opts)
+if(DEFINED VecGeom_USE_SURF)
+  set(VecGeom_SURFACE ${VecGeom_USE_SURF})
 endif()
+set(_vecgeom_opts)
+foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
+  if(NOT DEFINED VecGeom_${_opt})
+    set(_val "0 /* not defined */")
+  elseif(VecGeom_${_opt})
+    set(_val 1)
+    string(TOLOWER "${_opt}" _lower_opt)
+    list(APPEND _vecgeom_opts "${_lower_opt}")
+  else()
+    set(_val 0)
+  endif()
+  list(APPEND CELERITAS_VECGEOM_CONFIG
+    "#define CELERITAS_VECGEOM_${_opt} ${_val}"
+  )
+endforeach()
+foreach(_opt NAV BACKEND)
+  if(DEFINED VecGeom_${_opt})
+    list(APPEND _vecgeom_opts "${VecGeom_${_opt}}")
+  endif()
+endforeach()
+if(NOT VecGeom_VECTOR STREQUAL "empty")
+  list(APPEND _vecgeom_opts "${VecGeom_VECTOR}")
+endif()
+list(JOIN _vecgeom_opts "," _vecgeom_opts)
 celeritas_append_cmake_string("vecgeom_options" "${_vecgeom_opts}")
 
 # Convert lists to newline-separated strings
@@ -161,6 +159,7 @@ foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERS
 endforeach()
 
 #-----------------------------------------------------------------------------#
+# Generate the config files
 
 celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
 
