@@ -14,6 +14,7 @@
 #include "corecel/grid/FindInterp.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
 #include "celeritas/Types.hh"
 
@@ -85,7 +86,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     real_type r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
     real_type phi = std::fmod(atan2(pos[1], pos[0]), 2 * constants::pi.value());
-    Turn turn_phi{phi / Turn::unit_type::value()};
+    auto turn_phi{native_value_to<Turn>(phi)};
 
     // Check if point is within field map bounds
     if (!params_.valid(pos[2], r, turn_phi))
