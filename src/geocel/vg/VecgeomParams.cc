@@ -82,7 +82,7 @@ namespace
 #    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
 #endif
 
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
 #    define VG_SURF_CALL(CODE) CODE
 #else
 #    define VG_SURF_CALL(CODE) \
@@ -205,7 +205,11 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
  */
 bool VecgeomParams::use_surface_tracking()
 {
-    return CELERITAS_VECGEOM_SURFACE;
+#ifdef VECGEOM_USE_SURF
+    return 1;
+#else
+    return 0;
+#endif
 }
 
 //---------------------------------------------------------------------------//
