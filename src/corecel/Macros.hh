@@ -42,12 +42,10 @@
 #    define CELER_FORCEINLINE inline
 #endif
 
-// NOLINTBEGIN(cppcoreguidelines-macro-to-enum)
 //! Detection for the current compiler isn't supported yet
 #define CELER_COMPILER_UNKNOWN 0
 //! Compiling with clang, or a clang-based compiler defining __clang__ (hipcc)
 #define CELER_COMPILER_CLANG 1
-// NOLINTEND(cppcoreguidelines-macro-to-enum)
 /*!
  * \def CELER_COMPILER
  *
@@ -126,7 +124,6 @@
 #    define CELER_UNREACHABLE
 #endif
 
-// NOLINTBEGIN(cppcoreguidelines-macro-to-enum)
 /*!
  * \def CELER_USE_DEVICE
  *
@@ -137,7 +134,6 @@
 #else
 #    define CELER_USE_DEVICE 0
 #endif
-// NOLINTEND(cppcoreguidelines-macro-to-enum)
 
 /*!
  * \def CELER_DEVICE_SOURCE
