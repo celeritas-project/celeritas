@@ -9,21 +9,20 @@
 #include <cstddef>
 #include <iosfwd>  // IWYU pragma: keep
 #include <map>
-#include <memory>
 #include <string>
+#include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 
+#include "Stream.hh"
 #include "ThreadId.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class MpiCommunicator;
 class Stream;
-namespace detail
-{
-class StreamStorage;
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -49,6 +48,10 @@ class StreamStorage;
  * GPU. The active CUDA device is a static thread-local property but  \c
  * global_device is global. CUDA needs to be activated using \c activate_device
  * or \c activate_device_local on every thread, using the same device ID.
+ *
+ * \todo Const correctness for streams is wrong; we should
+ * probably make the global device non-const (and thread-local?) and then
+ * activate it on "move".
  */
 class Device
 {
@@ -64,6 +67,9 @@ class Device
 
     // Whether verbose messages and error checking are enabled
     static bool debug();
+
+    // Whether asynchronous stream operations are supported
+    static bool async();
 
     //// CONSTRUCTORS ////
 
@@ -121,17 +127,9 @@ class Device
     void destroy_streams() const;
 
     // Access a stream
-    Stream& stream(StreamId) const;
+    inline Stream& stream(StreamId) const;
 
   private:
-    struct StreamStorageDeleter
-    {
-        void operator()(detail::StreamStorage*) noexcept;
-    };
-
-    using UPStreamStorage
-        = std::unique_ptr<detail::StreamStorage, StreamStorageDeleter>;
-
     //// DATA ////
 
     // Required values for default constructor
@@ -148,7 +146,7 @@ class Device
     unsigned int capability_{0};
     unsigned int eu_per_cu_{};
     MapStrInt extra_;
-    UPStreamStorage streams_;
+    std::vector<Stream> streams_;
 };
 
 //---------------------------------------------------------------------------//
@@ -191,6 +189,16 @@ int Device::device_id() const
 {
     CELER_EXPECT(*this);
     return id_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a stream after creating.
+ */
+Stream& Device::stream(StreamId id) const
+{
+    CELER_EXPECT(id < streams_.size());
+    return const_cast<Stream&>(streams_[id.get()]);
 }
 
 //---------------------------------------------------------------------------//

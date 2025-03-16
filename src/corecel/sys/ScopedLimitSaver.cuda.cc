@@ -33,7 +33,7 @@ ScopedLimitSaver::ScopedLimitSaver()
                   && g_labels.size() == g_attrs.size());
     for (auto i : range(orig_limits_.size()))
     {
-        CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits_[i], g_attrs[i]));
+        CELER_DEVICE_API_CALL(DeviceGetLimit(&orig_limits_[i], g_attrs[i]));
     }
 }
 
@@ -48,15 +48,15 @@ ScopedLimitSaver::~ScopedLimitSaver()
         for (auto i : range(orig_limits_.size()))
         {
             std::size_t temp;
-            CELER_CUDA_CALL(cudaDeviceGetLimit(&temp, g_attrs[i]));
+            CELER_DEVICE_API_CALL(DeviceGetLimit(&temp, g_attrs[i]));
             if (temp != orig_limits_[i])
             {
                 CELER_LOG(info)
                     << "CUDA " << g_labels[i] << " was changed from "
                     << orig_limits_[i] << " to " << temp
                     << "; restoring to original values";
-                CELER_CUDA_CALL(
-                    cudaDeviceSetLimit(g_attrs[i], orig_limits_[i]));
+                CELER_DEVICE_API_CALL(
+                    DeviceSetLimit(g_attrs[i], orig_limits_[i]));
             }
         }
     }

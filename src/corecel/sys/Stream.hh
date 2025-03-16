@@ -6,113 +6,88 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/DeviceRuntimeApi.hh"
+#include <cstddef>
+#include <memory>
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
+#include "corecel/Config.hh"
+
+#include "corecel/Macros.hh"  // IWYU pragma: keep
+
+#if CELER_DEVICE_SOURCE
+#    include "corecel/DeviceRuntimeApi.hh"
+#endif
+
+#if CELERITAS_USE_CUDA
+#    define CELER_STREAM_SUPPORTS_ASYNC 1
+#elif CELERITAS_USE_HIP       \
+    && (HIP_VERSION_MAJOR > 5 \
+        || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2))
+#    define CELER_STREAM_SUPPORTS_ASYNC 1
+#else
+//! Whether CUDA/HIP is enabled and new enough to support async operations
+#    define CELER_STREAM_SUPPORTS_ASYNC 0
+#endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-struct MockStream_st;
-template<class Pointer>
-struct MockMemoryResource
+namespace detail
 {
-    virtual Pointer do_allocate(std::size_t, std::size_t) = 0;
-
-    virtual void do_deallocate(Pointer, std::size_t, std::size_t) = 0;
-
-  protected:
-    ~MockMemoryResource() = default;
-};
-#endif
+class AsyncMemoryResource;
+}
 
 //---------------------------------------------------------------------------//
 /*!
- * Thrust async memory resource associated with a Stream.
- */
-template<class Pointer>
-#if CELER_USE_DEVICE
-class AsyncMemoryResource final : public thrust::mr::memory_resource<Pointer>
-#else
-class AsyncMemoryResource final : public MockMemoryResource<Pointer>
-#endif
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using pointer = Pointer;
-#if CELER_USE_DEVICE
-    using StreamT = CELER_DEVICE_PREFIX(Stream_t);
-#else
-    using StreamT = MockStream_st*;
-#endif
-    //!@}
-
-    // Construct memory resource for the stream
-    explicit AsyncMemoryResource(StreamT stream) : stream_{stream} {}
-
-    // Construct with default Stream
-    AsyncMemoryResource() = default;
-
-    // Allocate device memory
-    pointer do_allocate(std::size_t bytes, std::size_t) final;
-
-    // Deallocate device memory
-    void do_deallocate(pointer p, std::size_t, std::size_t) final;
-
-  private:
-    StreamT stream_{nullptr};
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * CUDA or HIP stream.
+ * PIMPL class for CUDA or HIP stream.
  *
  * This creates/destroys a stream on construction/destruction and provides
  * accessors to low-level stream-related functionality. This class will
- * typically be accessed only by low-level device implementations.
+ * typically be accessed only by low-level device implementations or advanced
+ * kernels that need to interact with the device stream.
+ *
+ * \warning This class interface changes based on available headers.
+ * Because the CUDA/HIP stream type are only defined when those paths are
+ * included and available (which isn't true for all Celeritas code) we hide the
+ * stream unless DeviceRuntimeApi has been included or the file is being
+ * compiled by a CUDA/HIP compiler. Worse, our stream class has to manage a
+ * Thrust memory resource, and in newer versions of rocthrust, its headers
+ * cannot be included at all by a non-HIP compiler. Because this class forward
+ * declares the memory resource, downstream uses must include \c
+ * corecel/sys/detail/AsyncMemoryResource.device.hh .
  */
 class Stream
 {
   public:
     //!@{
     //! \name Type aliases
-#if CELER_USE_DEVICE
-    using StreamT = CELER_DEVICE_PREFIX(Stream_t);
+#ifdef CELER_DEVICE_RUNTIME_INCLUDED
+    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
 #else
-    using StreamT = MockStream_st*;
+    using MissingDeviceRuntime = void;
 #endif
-    using ResourceT = AsyncMemoryResource<void*>;
+    using ResourceT = detail::AsyncMemoryResource;
     //!@}
 
   public:
-    // Whether asynchronous operations are supported
-    static bool async();
-
     // Construct by creating a stream
     Stream();
+    CELER_DEFAULT_MOVE_DELETE_COPY(Stream);
+    ~Stream() = default;
 
-    // Construct with the default stream
-    Stream(std::nullptr_t) {}
-
-    // Destroy the stream
-    ~Stream();
-
-    // Move construct and assign
-    Stream(Stream const&) = delete;
-    Stream& operator=(Stream const&) = delete;
-    Stream(Stream&&) noexcept;
-    Stream& operator=(Stream&&) noexcept;
-    void swap(Stream& other) noexcept;
-
+#ifdef CELER_DEVICE_RUNTIME_INCLUDED
     // Access the stream
-    StreamT get() const { return stream_; }
+    StreamT get() const;
+#else
+    // Since CUDA/HIP declarations are unavailable, this function cannot be
+    // used. Include "corecel/DeviceRuntimeApi.hh" to fix.
+    MissingDeviceRuntime get() const {}
+#endif
 
     // Access the thrust resource allocator associated with the stream
-    ResourceT& memory_resource() { return memory_resource_; }
+    ResourceT& memory_resource();
+
+    // Synchronize this stream
+    void sync() const;
 
     // Allocate memory asynchronously on this stream if possible
     void* malloc_async(std::size_t bytes) const;
@@ -121,9 +96,52 @@ class Stream
     void free_async(void* ptr) const;
 
   private:
-    StreamT stream_{nullptr};
-    ResourceT memory_resource_;
+    struct Impl;
+    struct ImplDeleter
+    {
+        void operator()(Impl*) noexcept;
+    };
+    std::unique_ptr<Impl, ImplDeleter> impl_;
 };
 
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+inline Stream::Stream()
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+#    ifdef CELER_DEVICE_RUNTIME_INCLUDED
+inline Stream::StreamT Stream::get() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#    endif
+
+inline Stream::ResourceT& Stream::memory_resource()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void Stream::sync() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline void* Stream::malloc_async(std::size_t) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void Stream::free_async(void*) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void Stream::ImplDeleter::operator()(Impl*) noexcept
+{
+    CELER_UNREACHABLE;
+}
+
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

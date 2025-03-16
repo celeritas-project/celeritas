@@ -59,6 +59,12 @@ class DetectorStepsTest : public ::celeritas::test::Test
         host_data.volume_instance_depth = 4;
 
         params_ = CollectionMirror<StepParamsData>(std::move(host_data));
+
+        if (auto& d = celeritas::device())
+        {
+            // Copies happen asynchronously
+            d.create_streams(1);
+        }
     }
 
     // Select all attributes by default

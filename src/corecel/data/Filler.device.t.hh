@@ -14,9 +14,9 @@
 #include <thrust/execution_policy.h>
 #include <thrust/fill.h>
 
-#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
-#include "corecel/sys/Thrust.device.hh"
+#include "corecel/sys/Thrust.device.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -33,12 +33,12 @@ void Filler<T, M>::fill_device_impl(Span<T> data) const
     }
     else
     {
-        thrust::fill_n(thrust_execution_policy<ThrustExecMode::Sync>(),
+        thrust::fill_n(thrust_execute(),
                        thrust::device_pointer_cast<T>(data.data()),
                        data.size(),
                        value_);
     }
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
 //---------------------------------------------------------------------------//

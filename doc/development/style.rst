@@ -121,6 +121,9 @@ Some files have special extensions:
   file. These should only be in the main ``/test`` directory.
 
 
+.. _device_compilation:
+
+
 Device compilation
 ------------------
 

@@ -185,7 +185,6 @@ list(APPEND SOURCES
   sys/ScopedMem.cc
   sys/ScopedProfiling.cc
   sys/ScopedSignalHandler.cc
-  sys/Stream.cc
   sys/TypeDemangler.cc
   sys/Version.cc
 )
@@ -242,6 +241,8 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     data/Filler.cu
     sys/KernelParamCalculator.device.cc
+    sys/Stream.cu
+    sys/detail/AsyncMemoryResource.cu
   )
 endif()
 

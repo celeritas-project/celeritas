@@ -34,7 +34,7 @@ void shuffle_track_slots(
     auto start = thrust::device_pointer_cast(track_slots->data().get());
     thrust::shuffle(
         thrust_execute_on(stream), start, start + track_slots->size(), g);
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
 //---------------------------------------------------------------------------//
