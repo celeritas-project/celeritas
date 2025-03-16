@@ -6,10 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/base/BVH.h>
-#include <VecGeom/base/Config.h>
-
 #include "corecel/Assert.hh"
+
+#include "VecgeomVersion.hh"
+
 #if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
@@ -35,7 +35,7 @@ struct CudaPointers
 
 //---------------------------------------------------------------------------//
 // Get pointers to the device BVH after setup, for consistency checking
-CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device();
+CudaPointers<detail::BVH_t const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
 #if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)

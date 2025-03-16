@@ -9,10 +9,6 @@
 #include <cstddef>
 #include <vector>
 #include <VecGeom/base/Config.h>
-#
-#ifndef VECGEOM_VERSION
-#    include <VecGeom/base/Version.h>
-#endif
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
@@ -60,6 +56,7 @@
 
 #include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
+#include "detail/VecgeomVersion.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
@@ -348,9 +345,8 @@ GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
         // VecGeom volume is a specific instance of a G4PV: get the replica
         // number it corresponds to
         auto& geo_manager = vecgeom::GeoManager::Instance();
-#ifdef VECGEOM_USE_SURF
-        // TODO: this should use VECGEOM_VERSION >= 0x020000 once the
-        // changes get merged into master
+#if VECGEOM_VERSION >= 0x020000
+        // Constant-time access
         auto* vgpv = geo_manager.GetPlacedVolume(id.get());
 #else
         auto* vgpv = geo_manager.FindPlacedVolume(id.get());
@@ -535,11 +531,7 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-#if VECGEOM_VERSION < 0x020000
-        vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
-#else
-        vecgeom::ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
-#endif
+        detail::ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
     }
 
     // Init the bounding volume hierarchy structure
@@ -624,7 +616,7 @@ void VecgeomParams::build_volume_tracking()
         // Check BVH pointers
         auto ptrs = detail::bvh_pointers_device();
 
-        vecgeom::cuda::BVH const* bvh_symbol_ptr{nullptr};
+        detail::BVH_t const* bvh_symbol_ptr{nullptr};
 #ifdef VECGEOM_BVHMANAGER_DEVICE
         bvh_symbol_ptr = BVHManager::GetDeviceBVH();
 #endif
@@ -710,12 +702,8 @@ void VecgeomParams::build_metadata()
 
     // Save world bbox
     bbox_ = [world] {
-    // Calculate bounding box
-#if VECGEOM_VERSION < 0x020000
-        auto bbox_mgr = ABBoxManager::Instance();
-#else
-        auto bbox_mgr = ABBoxManager_t::Instance();
-#endif
+        // Calculate bounding box
+        auto bbox_mgr = detail::ABBoxManager_t::Instance();
         Vector3D<real_type> lower, upper;
         bbox_mgr.ComputeABBox(world, &lower, &upper);
         return BBox{detail::to_array(lower), detail::to_array(upper)};
