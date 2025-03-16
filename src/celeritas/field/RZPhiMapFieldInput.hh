@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <vector>
 
 #include "corecel/Macros.hh"
@@ -45,16 +46,16 @@ struct RZPhiMapFieldInput
     FieldDriverOptions driver_options;
 
     //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const
+    explicit operator bool() const
     {
         // clang-format off
         return (grid_r.size() >= 2)
             && (grid_z.size() >= 2)
             && (grid_phi.size() >= 2)
             && (field_r.front() >= 0)
-            && (field_z.back() > field_z.front())
-            && (field_r.back() > field_r.front())
-            && (field_phi.back() > field_phi.front())
+            && std::is_sorted(grid_phi.cbegin(), grid_phi.cend())
+            && std::is_sorted(grid_r.cbegin(), grid_r.cend())
+            && std::is_sorted(grid_z.cbegin(), grid_z.cend())
             && (field_z.size() == grid_z.size() * grid_r.size() * grid_phi.size())
             && (field_r.size() == field_z.size())
             && (field_phi.size() == field_z.size());

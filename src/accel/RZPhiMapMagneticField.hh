@@ -94,6 +94,7 @@ class RZPhiMapFieldSampler
                 }
             }
         }
+        CELER_ENSURE(field_input);
         return field_input;
     }
 };

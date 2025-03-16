@@ -84,8 +84,8 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         auto grid = make_builder(&host.grids.storage);
         grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
                      + inp.grid_z.size());
-        std::transform(inp.grid_phi.begin(),
-                       inp.grid_phi.end(),
+        std::transform(inp.grid_phi.cbegin(),
+                       inp.grid_phi.cend(),
                        std::back_inserter(grid),
                        [](auto const& val) { return val.value(); });
         host.grids.phi = ItemRange<real_type>{grid.size_id()};
