@@ -108,32 +108,26 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
     Array<G4double, 3> bfield;
     for (size_type iphi = 0; iphi < nphi; ++iphi)
     {
-        real_type phi = native_value_from(field_input.grid_phi[iphi]);
+        real_type phi = phi_values[iphi];
         for (size_type ir = 0; ir < nr; ++ir)
         {
-            real_type r = field_input.grid_r[ir];
+            real_type r = r_grid[ir];
             for (size_type iz = 0; iz < nz; ++iz)
             {
-                auto idx = flat_index(iphi, ir, iz, 0);
-                Array<G4double, 4> pos = {r * std::cos(phi),
-                                          r * std::sin(phi),
-                                          field_input.grid_z[iz],
-                                          0};
+                auto* cur_bfield = field_input.field.data()
+                                   + flat_index(iphi, ir, iz, 0);
+                Array<G4double, 4> pos
+                    = {r * std::cos(phi), r * std::sin(phi), z_grid[iz], 0};
                 field.GetFieldValue(pos.data(), bfield.data());
                 EnumArray<CylAxis, real_type> bfield_cyl;
                 cartesian_to_cylindrical(bfield, bfield_cyl);
-                auto bfield_cyl_g4
+                auto bfield_cyl_native
                     = convert_from_geant(bfield_cyl.data(), clhep_field);
                 for (auto comp : range(CylAxis::size_))
                 {
-                    field_input.field[idx + static_cast<size_type>(comp)]
-                        = bfield_cyl_g4[static_cast<size_type>(comp)];
+                    cur_bfield[static_cast<size_type>(comp)]
+                        = bfield_cyl_native[static_cast<size_type>(comp)];
                 }
-                CELER_LOG(info) << "Field at r=" << r << " cm, phi=" << phi
-                                << " rad, z=" << field_input.grid_z[iz]
-                                << " cm: " << field_input.field[idx] << " T, "
-                                << field_input.field[idx + 1] << " T, "
-                                << field_input.field[idx + 2] << " T";
             }
         }
     }
