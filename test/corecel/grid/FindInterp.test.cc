@@ -40,11 +40,12 @@ TEST(FindInterpTest, uniform_real)
         EXPECT_EQ(1, interp.index);
         EXPECT_SOFT_EQ(0.5, interp.fraction);
     }
-#if CELERITAS_DEBUG
-    EXPECT_THROW(find_interp(grid, 0.999), DebugError);
-    EXPECT_THROW(find_interp(grid, 5.0), DebugError);
-    EXPECT_THROW(find_interp(grid, 5.001), DebugError);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(find_interp(grid, 0.999), DebugError);
+        EXPECT_THROW(find_interp(grid, 5.0), DebugError);
+        EXPECT_THROW(find_interp(grid, 5.001), DebugError);
+    }
 }
 
 // In this case, the fraction is always truncated by integer division to zero
@@ -73,10 +74,11 @@ TEST(FindInterpTest, nonuniform)
         EXPECT_EQ(3, interp.index);
         EXPECT_TRUE(std::isnan(interp.fraction)) << repr(interp.fraction);
     }
-#if CELERITAS_DEBUG
-    EXPECT_THROW(find_interp(grid, -3), DebugError);
-    EXPECT_THROW(find_interp(grid, 8), DebugError);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(find_interp(grid, -3), DebugError);
+        EXPECT_THROW(find_interp(grid, 8), DebugError);
+    }
 }
 
 // In this case, the fraction is always truncated by integer division to zero
@@ -107,10 +109,11 @@ TEST(FindInterpTest, nonuniform_int)
         EXPECT_EQ(2, interp.index);
         EXPECT_EQ(0, interp.fraction);
     }
-#if CELERITAS_DEBUG
-    EXPECT_THROW(find_interp(grid, -1), DebugError);
-    EXPECT_THROW(find_interp(grid, 8), DebugError);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(find_interp(grid, -1), DebugError);
+        EXPECT_THROW(find_interp(grid, 8), DebugError);
+    }
 }
 
 TEST(FindInterpTest, Quantity)
