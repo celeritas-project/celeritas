@@ -11,6 +11,8 @@
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/grid/FindInterp.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
@@ -106,66 +108,29 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
         return params_.fieldmap[params_.id(iphi, ir, iz)];
     };
 
-    // Get the eight corner values for Z component of the field
-    // clang-format off
-    real_type v000 = get_field(iz,     ir,     iphi    ).value_z;
-    real_type v001 = get_field(iz,     ir,     iphi + 1).value_z;
-    real_type v010 = get_field(iz,     ir + 1, iphi    ).value_z;
-    real_type v011 = get_field(iz,     ir + 1, iphi + 1).value_z;
-    real_type v100 = get_field(iz + 1, ir,     iphi    ).value_z;
-    real_type v101 = get_field(iz + 1, ir,     iphi + 1).value_z;
-    real_type v110 = get_field(iz + 1, ir + 1, iphi    ).value_z;
-    real_type v111 = get_field(iz + 1, ir + 1, iphi + 1).value_z;
-    // clang-format on
+    EnumArray<CylAxis, real_type> interp_field;
 
-    // Trilinear interpolation formula for Z component
-    value[2] = (1 - wz1)
-                   * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
-                      + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
-               + wz1
-                     * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
-                        + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
-
-    // Get the eight corner values for R component of the field
-    // clang-format off
-    v000 = get_field(iz,     ir,     iphi    ).value_r;
-    v001 = get_field(iz,     ir,     iphi + 1).value_r;
-    v010 = get_field(iz,     ir + 1, iphi    ).value_r;
-    v011 = get_field(iz,     ir + 1, iphi + 1).value_r;
-    v100 = get_field(iz + 1, ir,     iphi    ).value_r;
-    v101 = get_field(iz + 1, ir,     iphi + 1).value_r;
-    v110 = get_field(iz + 1, ir + 1, iphi    ).value_r;
-    v111 = get_field(iz + 1, ir + 1, iphi + 1).value_r;
-    // clang-format on
-
-    // Interpolate for R component
-    real_type field_r = (1 - wz1)
-                            * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
-                               + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
-                        + wz1
-                              * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
-                                 + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
-
-    // Get the eight corner values for Phi component of the field
-    // clang-format off
-    v000 = get_field(iz,     ir,     iphi    ).value_phi;
-    v001 = get_field(iz,     ir,     iphi + 1).value_phi;
-    v010 = get_field(iz,     ir + 1, iphi    ).value_phi;
-    v011 = get_field(iz,     ir + 1, iphi + 1).value_phi;
-    v100 = get_field(iz + 1, ir,     iphi    ).value_phi;
-    v101 = get_field(iz + 1, ir,     iphi + 1).value_phi;
-    v110 = get_field(iz + 1, ir + 1, iphi    ).value_phi;
-    v111 = get_field(iz + 1, ir + 1, iphi + 1).value_phi;
-    // clang-format on
-
-    // Interpolate for Phi component
-    real_type field_phi
-        = (1 - wz1)
-              * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
-                 + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
-          + wz1
-                * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
-                   + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
+    for (auto axis : range(CylAxis::size_))
+    {
+        // clang-format off
+        real_type v000 = get_field(iz,     ir,     iphi    )[axis];
+        real_type v001 = get_field(iz,     ir,     iphi + 1)[axis];
+        real_type v010 = get_field(iz,     ir + 1, iphi    )[axis];
+        real_type v011 = get_field(iz,     ir + 1, iphi + 1)[axis];
+        real_type v100 = get_field(iz + 1, ir,     iphi    )[axis];
+        real_type v101 = get_field(iz + 1, ir,     iphi + 1)[axis];
+        real_type v110 = get_field(iz + 1, ir + 1, iphi    )[axis];
+        real_type v111 = get_field(iz + 1, ir + 1, iphi + 1)[axis];
+        // clang-format on
+        // Trilinear interpolation formula for the current component
+        interp_field[axis]
+            = (1 - wz1)
+                  * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
+                     + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
+              + wz1
+                    * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
+                       + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
+    }
 
     // Project cylindrical components to Cartesian coordinates
     // default for r == 0
@@ -177,8 +142,11 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
         cos_phi = pos[0] / r;
         sin_phi = pos[1] / r;
     }
-    value[0] = field_r * cos_phi - field_phi * sin_phi;
-    value[1] = field_r * sin_phi + field_phi * cos_phi;
+    value[0] = interp_field[CylAxis::R] * cos_phi
+               - interp_field[CylAxis::Phi] * sin_phi;
+    value[1] = interp_field[CylAxis::R] * sin_phi
+               + interp_field[CylAxis::Phi] * cos_phi;
+    value[2] = interp_field[CylAxis::Z];
 
     return value;
 }

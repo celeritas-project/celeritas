@@ -96,13 +96,16 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
              range(inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size()))
         {
             // Save field vector
-            RZPhiMapElement el;
-            auto idx = i * static_cast<size_type>(CylAxis::size_);
-            el.value_z = inp.field[idx + static_cast<size_type>(CylAxis::Z)];
-            el.value_r = inp.field[idx + static_cast<size_type>(CylAxis::R)];
-            el.value_phi
-                = inp.field[idx + static_cast<size_type>(CylAxis::Phi)];
-            fieldmap.push_back(el);
+            fieldmap.push_back(
+                [&, idx = i * static_cast<size_type>(CylAxis::size_)] {
+                    EnumArray<CylAxis, real_type> el;
+                    for (auto axis : range(CylAxis::size_))
+                    {
+                        el[axis]
+                            = inp.field[idx + static_cast<size_type>(axis)];
+                    }
+                    return el;
+                }());
         }
 
         host.options = inp.driver_options;

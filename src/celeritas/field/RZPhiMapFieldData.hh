@@ -57,17 +57,6 @@ struct RZPhiMapGridData
 
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap element for RZ-Phi map
- */
-struct RZPhiMapElement
-{
-    real_type value_z;
-    real_type value_r;
-    real_type value_phi;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Device data for interpolating field values.
  */
 template<Ownership W, MemSpace M>
@@ -86,7 +75,7 @@ struct RZPhiMapFieldParamsData
     using ElementItems = Collection<T, W, M, ElementId>;
 
     //! FieldMap data
-    ElementItems<RZPhiMapElement> fieldmap;
+    ElementItems<EnumArray<CylAxis, real_type>> fieldmap;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const

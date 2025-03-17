@@ -17,10 +17,12 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/field/RZPhiMapFieldInput.hh"
 #include "celeritas/field/RZPhiMapFieldParams.hh"
@@ -34,13 +36,13 @@ namespace
 
 //! Cartesion to cylindrical 3D vector conversion, cylindrical vector is
 //! ordered as Phi-R-Z
-inline void cartesian_to_cylindrical(Array<real_type, 3> const& cart,
-                                     Array<real_type, 3>& cyl)
+inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
+                                     EnumArray<CylAxis, real_type>& cyl)
 {
     double const phi = std::atan2(cart[1], cart[0]);
-    cyl[0] = -cart[0] * std::sin(phi) + cart[1] * std::cos(phi);
-    cyl[1] = cart[0] * std::cos(phi) + cart[1] * std::sin(phi);
-    cyl[2] = cart[2];
+    cyl[CylAxis::Phi] = -cart[0] * std::sin(phi) + cart[1] * std::cos(phi);
+    cyl[CylAxis::R] = cart[0] * std::cos(phi) + cart[1] * std::sin(phi);
+    cyl[CylAxis::Z] = cart[2];
 }
 
 //---------------------------------------------------------------------------//
@@ -117,9 +119,14 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
                                           field_input.grid_z[iz],
                                           0};
                 field.GetFieldValue(pos.data(), bfield.data());
-                Array<real_type, 3> cyl{field_input.field[idx]};
-                cartesian_to_cylindrical(bfield, cyl);
-                convert_from_geant(cyl.data(), clhep_field);
+                EnumArray<CylAxis, real_type> bfield_cyl;
+                cartesian_to_cylindrical(bfield, bfield_cyl);
+                convert_from_geant(bfield_cyl.data(), clhep_field);
+                for (auto comp : range(CylAxis::size_))
+                {
+                    field_input.field[idx + static_cast<size_type>(comp)]
+                        = bfield_cyl[comp];
+                }
             }
         }
     }
