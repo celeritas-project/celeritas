@@ -195,9 +195,9 @@ enum class NuclearFormFactorType
 //! Cylindrical coordinates indices
 enum class CylAxis
 {
-    Phi = 0,
-    R = 1,
-    Z = 2,
+    phi = 0,
+    r = 1,
+    z = 2,
     size_
 };
 

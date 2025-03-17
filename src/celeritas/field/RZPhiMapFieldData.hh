@@ -35,11 +35,14 @@ struct RZPhiMapGridData
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !storage.empty() && grid_size[CylAxis::Phi] > 1
-               && grid_size[CylAxis::R] > 1 && grid_size[CylAxis::Z] > 1
-               && axes[CylAxis::Phi].size() == grid_size[CylAxis::Phi]
-               && axes[CylAxis::R].size() == grid_size[CylAxis::R]
-               && axes[CylAxis::Z].size() == grid_size[CylAxis::Z];
+        return !storage.empty() && grid_size[CylAxis::phi] > 1
+               && grid_size[CylAxis::r] > 1 && grid_size[CylAxis::z] > 1
+               && axes[CylAxis::phi].size() == grid_size[CylAxis::phi]
+               && axes[CylAxis::r].size() == grid_size[CylAxis::r]
+               && axes[CylAxis::z].size() == grid_size[CylAxis::z]
+               && storage.size()
+                      == grid_size[CylAxis::phi] + grid_size[CylAxis::r]
+                             + grid_size[CylAxis::z];
     }
 
     //! Assign from another set of data
@@ -87,12 +90,12 @@ struct RZPhiMapFieldParamsData
     {
         CELER_EXPECT(grids);
         return (
-            z >= grids.storage[grids.axes[CylAxis::Z].front()]
-            && z <= grids.storage[grids.axes[CylAxis::Z].back()]
-            && r >= grids.storage[grids.axes[CylAxis::R].front()]
-            && r <= grids.storage[grids.axes[CylAxis::R].back()]
-            && phi.value() >= grids.storage[grids.axes[CylAxis::Phi].front()]
-            && phi.value() <= grids.storage[grids.axes[CylAxis::Phi].back()]);
+            z >= grids.storage[grids.axes[CylAxis::z].front()]
+            && z <= grids.storage[grids.axes[CylAxis::z].back()]
+            && r >= grids.storage[grids.axes[CylAxis::r].front()]
+            && r <= grids.storage[grids.axes[CylAxis::r].back()]
+            && phi.value() >= grids.storage[grids.axes[CylAxis::phi].front()]
+            && phi.value() <= grids.storage[grids.axes[CylAxis::phi].back()]);
     }
 
     inline CELER_FUNCTION ElementId id(size_type idx_phi,
@@ -102,9 +105,9 @@ struct RZPhiMapFieldParamsData
         CELER_EXPECT(grids);
         // HyperSlabIndexer does not take Array<T const>
         Array<size_type, static_cast<size_type>(CylAxis::size_)> tmp{
-            grids.grid_size[CylAxis::Phi],
-            grids.grid_size[CylAxis::R],
-            grids.grid_size[CylAxis::Z]};
+            grids.grid_size[CylAxis::phi],
+            grids.grid_size[CylAxis::r],
+            grids.grid_size[CylAxis::z]};
         return ElementId{HyperslabIndexer{tmp}(idx_phi, idx_r, idx_z)};
     }
 

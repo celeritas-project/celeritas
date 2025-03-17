@@ -35,15 +35,14 @@ namespace
 {
 //---------------------------------------------------------------------------//
 
-//! Cartesion to cylindrical 3D vector conversion, cylindrical vector is
-//! ordered as Phi-R-Z
+//! Cartesion to cylindrical 3D vector conversion.
 inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
                                      EnumArray<CylAxis, real_type>& cyl)
 {
     double const phi = std::atan2(cart[1], cart[0]);
-    cyl[CylAxis::Phi] = -cart[0] * std::sin(phi) + cart[1] * std::cos(phi);
-    cyl[CylAxis::R] = cart[0] * std::cos(phi) + cart[1] * std::sin(phi);
-    cyl[CylAxis::Z] = cart[2];
+    cyl[CylAxis::phi] = -cart[0] * std::sin(phi) + cart[1] * std::cos(phi);
+    cyl[CylAxis::r] = cart[0] * std::cos(phi) + cart[1] * std::sin(phi);
+    cyl[CylAxis::z] = cart[2];
 }
 
 //---------------------------------------------------------------------------//
@@ -123,8 +122,8 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
                 cartesian_to_cylindrical(bfield, bfield_cyl);
                 auto bfield_cyl_native
                     = convert_from_geant(bfield_cyl.data(), clhep_field);
-                std::copy(bfield_cyl_native.begin(),
-                          bfield_cyl_native.end(),
+                std::copy(bfield_cyl_native.cbegin(),
+                          bfield_cyl_native.cend(),
                           cur_bfield);
             }
         }

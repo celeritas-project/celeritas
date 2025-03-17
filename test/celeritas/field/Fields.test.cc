@@ -203,11 +203,11 @@ TEST_F(RZPhiMapFieldTest, all)
                     auto idx = flat_index(iphi, ir, iz, 0);
 
                     // Set field components
-                    inp.field[idx + static_cast<size_type>(CylAxis::R)]
+                    inp.field[idx + static_cast<size_type>(CylAxis::r)]
                         = 0.02 * r / 100.0 * std::cos(phi);
-                    inp.field[idx + static_cast<size_type>(CylAxis::Phi)]
+                    inp.field[idx + static_cast<size_type>(CylAxis::phi)]
                         = 0.02 * r / 100.0 * std::sin(phi);
-                    inp.field[idx + static_cast<size_type>(CylAxis::Z)]
+                    inp.field[idx + static_cast<size_type>(CylAxis::z)]
                         = 3.8 - 0.0005 * (r / 100.0) * (r / 100.0);
                 }
             }

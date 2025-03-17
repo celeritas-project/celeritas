@@ -63,9 +63,9 @@ class RZPhiMapField
 CELER_FUNCTION
 RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
     : params_{params}
-    , grid_r_{params_.grids.axes[CylAxis::R], params_.grids.storage}
-    , grid_z_{params_.grids.axes[CylAxis::Z], params_.grids.storage}
-    , grid_phi_{params_.grids.axes[CylAxis::Phi], params_.grids.storage}
+    , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
+    , grid_z_{params_.grids.axes[CylAxis::z], params_.grids.storage}
+    , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}
 {
 }
 
@@ -140,11 +140,11 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
         cos_phi = pos[0] / r;
         sin_phi = pos[1] / r;
     }
-    value[0] = interp_field[CylAxis::R] * cos_phi
-               - interp_field[CylAxis::Phi] * sin_phi;
-    value[1] = interp_field[CylAxis::R] * sin_phi
-               + interp_field[CylAxis::Phi] * cos_phi;
-    value[2] = interp_field[CylAxis::Z];
+    value[0] = interp_field[CylAxis::r] * cos_phi
+               - interp_field[CylAxis::phi] * sin_phi;
+    value[1] = interp_field[CylAxis::r] * sin_phi
+               + interp_field[CylAxis::phi] * cos_phi;
+    value[2] = interp_field[CylAxis::z];
 
     return value;
 }

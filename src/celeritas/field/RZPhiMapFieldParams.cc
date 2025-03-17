@@ -72,9 +72,9 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     auto host_data = [&inp] {
         HostVal<RZPhiMapFieldParamsData> host;
 
-        host.grids.grid_size[CylAxis::Phi] = inp.grid_phi.size();
-        host.grids.grid_size[CylAxis::R] = inp.grid_r.size();
-        host.grids.grid_size[CylAxis::Z] = inp.grid_z.size();
+        host.grids.grid_size[CylAxis::phi] = inp.grid_phi.size();
+        host.grids.grid_size[CylAxis::r] = inp.grid_r.size();
+        host.grids.grid_size[CylAxis::z] = inp.grid_z.size();
 
         auto grid = make_builder(&host.grids.storage);
         grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
@@ -83,10 +83,11 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
                        inp.grid_phi.cend(),
                        std::back_inserter(grid),
                        [](auto const& val) { return val.value(); });
-        host.grids.axes[CylAxis::Phi] = ItemRange<real_type>{grid.size_id()};
-        host.grids.axes[CylAxis::R]
+
+        host.grids.axes[CylAxis::phi] = ItemRange<real_type>{grid.size_id()};
+        host.grids.axes[CylAxis::r]
             = grid.insert_back(inp.grid_r.begin(), inp.grid_r.end());
-        host.grids.axes[CylAxis::Z]
+        host.grids.axes[CylAxis::z]
             = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
 
         auto fieldmap = make_builder(&host.fieldmap);
@@ -96,13 +97,12 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         {
             // Save field vector
             fieldmap.push_back(
-                [&, idx = i * static_cast<size_type>(CylAxis::size_)] {
+                [idx = inp.field.cbegin()
+                       + i * static_cast<size_type>(CylAxis::size_)] {
                     EnumArray<CylAxis, real_type> el;
-                    for (auto axis : range(CylAxis::size_))
-                    {
-                        el[axis]
-                            = inp.field[idx + static_cast<size_type>(axis)];
-                    }
+                    std::copy(idx,
+                              idx + static_cast<size_type>(CylAxis::size_),
+                              el.begin());
                     return el;
                 }());
         }

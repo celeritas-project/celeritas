@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
+#include "celeritas/Types.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -56,7 +57,7 @@ struct RZPhiMapFieldInput
             && std::is_sorted(grid_phi.cbegin(), grid_phi.cend())
             && std::is_sorted(grid_r.cbegin(), grid_r.cend())
             && std::is_sorted(grid_z.cbegin(), grid_z.cend())
-            && (field.size() == 3 * grid_z.size() * grid_r.size() * grid_phi.size());
+            && (field.size() == static_cast<size_type>(CylAxis::size_) * grid_z.size() * grid_r.size() * grid_phi.size());
         // clang-format on
     }
 };
