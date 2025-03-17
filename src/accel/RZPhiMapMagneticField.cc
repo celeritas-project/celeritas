@@ -37,7 +37,7 @@ namespace
 
 //! Cartesion to cylindrical 3D vector conversion.
 inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
-                                     EnumArray<CylAxis, real_type>& cyl)
+                                     EnumArray<CylAxis, G4double>& cyl)
 {
     double const phi = std::atan2(cart[1], cart[0]);
     cyl[CylAxis::phi] = -cart[0] * std::sin(phi) + cart[1] * std::cos(phi);
@@ -118,7 +118,7 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
                 Array<G4double, 4> pos
                     = {r * std::cos(phi), r * std::sin(phi), z_grid[iz], 0};
                 field.GetFieldValue(pos.data(), bfield.data());
-                EnumArray<CylAxis, real_type> bfield_cyl;
+                EnumArray<CylAxis, G4double> bfield_cyl;
                 cartesian_to_cylindrical(bfield, bfield_cyl);
                 auto bfield_cyl_native
                     = convert_from_geant(bfield_cyl.data(), clhep_field);
