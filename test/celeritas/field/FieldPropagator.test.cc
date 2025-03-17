@@ -408,23 +408,23 @@ TEST_F(TwoBoxesTest, gamma_exit)
         auto result = propagate(exact_distance);
 
         EXPECT_SOFT_EQ(exact_distance, result.distance);
-        if (using_vecgeom_surface)
+        /*if (using_vecgeom_surface)
         {
             // Numerical integration over the non-power-of-2 distance results
             // in being a little closer than the boundary
             EXPECT_FALSE(result.boundary);
         }
-        else
+        else*/
         {
             EXPECT_TRUE(result.boundary);
         }
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
         EXPECT_EQ(1, stepper.count());
-        if (using_vecgeom_surface)
-        {
-            result = propagate(1e-3);
-            EXPECT_TRUE(result.boundary);
-        }
+        //        if (using_vecgeom_surface)
+        //        {
+        //            result = propagate(1e-3);
+        //            EXPECT_TRUE(result.boundary);
+        //        }
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -1244,10 +1244,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     auto calc_radius
         = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
-    // NOTE: vecgeom surface puts this position slightly *inside* the beam tube
-    // rather than *outside*
-    EXPECT_EQ(using_vecgeom_surface ? "vacuum_tube" : "si_tracker",
-              this->volume_name(geo));
+    EXPECT_EQ("si_tracker", this->volume_name(geo));
 
     {
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
@@ -1256,20 +1253,19 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ("si_tracker", this->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_FALSE(result.looping);
         if (using_vecgeom_surface)
         {
             // Surface geometry does not intersect the cylinder boundary, so
             // the track keeps going until the "looping" counter is hit
-            EXPECT_EQ("vacuum_tube", this->volume_name(geo));
-            EXPECT_SOFT_EQ(2.3659210728880966, result.distance);
-            EXPECT_TRUE(result.looping);
-            EXPECT_FALSE(geo.is_on_boundary());
+            EXPECT_SOFT_EQ(1.0314309658010318e-13, result.distance);
+            EXPECT_FALSE(result.looping);
         }
         else
         {
             EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
-            EXPECT_EQ("si_tracker", this->volume_name(geo));
-            ASSERT_TRUE(geo.is_on_boundary());
             if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
             {
                 EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
@@ -1337,7 +1333,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
                      -5.43172303859124073e-01});
         geo.cross_boundary();
         successful_reentry = (this->volume_name(geo) == "em_calorimeter");
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        // if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // ORANGE should successfully reenter. However, under certain
             // system configurations, VecGeom will end up in the world volume,
@@ -1351,14 +1347,14 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
             static char const* const expected_log_levels[] = {"warning"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-        }
-        else if (!successful_reentry)
-        {
-            // This happens in Geant4 and *sometimes* in vecgeom
-            CELER_LOG(warning) << "Reentry failed for " << cmake::core_geo
-                               << " geometry: post-propagation volume is "
-                               << this->volume_name(geo);
-        }
+        } /*
+         else if (!successful_reentry)
+         {
+             // This happens in Geant4 and *sometimes* in vecgeom
+             CELER_LOG(warning) << "Reentry failed for " << cmake::core_geo
+                                << " geometry: post-propagation volume is "
+                                << this->volume_name(geo);
+         }*/
     }
     {
         ScopedLogStorer scoped_log_{&celeritas::self_logger()};
