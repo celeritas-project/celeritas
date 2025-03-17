@@ -31,9 +31,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Generates input for RZPhiMapField params with configurable nonuniform grid
- * dimensions in native Geant4 units. This must be called after
- * G4RunManager::Initialize as it will retrieve the G4FieldManager's field to
- * sample it.
+ * dimensions in native Geant4 units, and \f$\phi\f$ should be in the range
+ * [0;\f$2\times\pi\f$]. This must be called after G4RunManager::Initialize as
+ * it will retrieve the G4FieldManager's field to sample it.
  */
 class RZPhiMapFieldSampler
 {
