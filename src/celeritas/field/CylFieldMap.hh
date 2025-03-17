@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/RZPhiMapField.hh
+//! \file celeritas/field/CylFieldMap.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,27 +19,27 @@
 #include "corecel/math/Turn.hh"
 #include "celeritas/Types.hh"
 
-#include "RZPhiMapFieldData.hh"
+#include "CylFieldMapData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the value of magnetic field based on a volume-based RZPhi field
+ * Evaluate the value of magnetic field based on a volume-based Cyl field
  * map.
  */
-class RZPhiMapField
+class CylFieldMap
 {
   public:
     //!@{
     //! \name Type aliases
     using Real3 = Array<real_type, 3>;
-    using FieldParamsRef = NativeCRef<RZPhiMapFieldParamsData>;
+    using FieldParamsRef = NativeCRef<CylFieldMapParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit RZPhiMapField(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit CylFieldMap(FieldParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -61,7 +61,7 @@ class RZPhiMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
+CylFieldMap::CylFieldMap(FieldParamsRef const& params)
     : params_{params}
     , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
     , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}
@@ -77,7 +77,7 @@ RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
  * magnetic field vector from the stored R, Z, and Phi components of the field.
  * The result is in the native Celeritas unit system.
  */
-CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
+CELER_FUNCTION auto CylFieldMap::operator()(Real3 const& pos) const -> Real3
 {
     CELER_ENSURE(params_);
 

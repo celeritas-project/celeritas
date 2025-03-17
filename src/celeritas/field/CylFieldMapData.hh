@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/RZPhiMapFieldData.hh
+//! \file celeritas/field/CylFieldMapData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,7 +24,7 @@ namespace celeritas
  * FieldMap (3-dimensional RZ-Phi map) grid data
  */
 template<Ownership W, MemSpace M>
-struct RZPhiMapGridData
+struct CylMapGridData
 {
     template<class T>
     using Items = Collection<T, W, M>;
@@ -42,7 +42,7 @@ struct RZPhiMapGridData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RZPhiMapGridData& operator=(RZPhiMapGridData<W2, M2> const& other)
+    CylMapGridData& operator=(CylMapGridData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         storage = other.storage;
@@ -56,10 +56,10 @@ struct RZPhiMapGridData
  * Device data for interpolating field values.
  */
 template<Ownership W, MemSpace M>
-struct RZPhiMapFieldParamsData
+struct CylFieldMapParamsData
 {
     //! Grids of FieldMap
-    RZPhiMapGridData<W, M> grids;
+    CylMapGridData<W, M> grids;
 
     //! Options for FieldDriver
     FieldDriverOptions options;
@@ -106,8 +106,7 @@ struct RZPhiMapFieldParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RZPhiMapFieldParamsData&
-    operator=(RZPhiMapFieldParamsData<W2, M2> const& other)
+    CylFieldMapParamsData& operator=(CylFieldMapParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         grids = other.grids;

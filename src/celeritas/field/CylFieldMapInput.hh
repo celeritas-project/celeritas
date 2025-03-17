@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/RZPhiMapFieldInput.hh
+//! \file celeritas/field/CylFieldMapInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,7 +32,7 @@ namespace celeritas
  * The field values are all indexed with Z having stride 1, Phi having stride
  * (num_grid_z), and R having stride (num_grid_phi * num_grid_z): [R][Phi][Z]
  */
-struct RZPhiMapFieldInput
+struct CylFieldMapInput
 {
     std::vector<real_type> grid_r;  //!< R grid points [len]
     std::vector<Turn> grid_phi;  //!< Phi grid points [AU]

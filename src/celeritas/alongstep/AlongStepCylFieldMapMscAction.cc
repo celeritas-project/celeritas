@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/alongstep/AlongStepRZPhiMapFieldMscAction.cc
+//! \file celeritas/alongstep/AlongStepCylFieldMapMscAction.cc
 //---------------------------------------------------------------------------//
-#include "AlongStepRZPhiMapFieldMscAction.hh"
+#include "AlongStepCylFieldMapMscAction.hh"
 
 #include <type_traits>
 #include <utility>
@@ -13,7 +13,7 @@
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
-#include "celeritas/field/RZPhiMapFieldInput.hh"
+#include "celeritas/field/CylFieldMapInput.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -23,9 +23,9 @@
 
 #include "AlongStep.hh"
 
+#include "detail/CylFieldMapPropagatorFactory.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
-#include "detail/RZPhiMapFieldPropagatorFactory.hh"
 
 namespace celeritas
 {
@@ -33,14 +33,13 @@ namespace celeritas
 /*!
  * Construct the along-step action from input parameters.
  */
-std::shared_ptr<AlongStepRZPhiMapFieldMscAction>
-AlongStepRZPhiMapFieldMscAction::from_params(
-    ActionId id,
-    MaterialParams const& materials,
-    ParticleParams const& particles,
-    RZPhiMapFieldInput const& field_input,
-    SPConstMsc const& msc,
-    bool eloss_fluctuation)
+std::shared_ptr<AlongStepCylFieldMapMscAction>
+AlongStepCylFieldMapMscAction::from_params(ActionId id,
+                                           MaterialParams const& materials,
+                                           ParticleParams const& particles,
+                                           CylFieldMapInput const& field_input,
+                                           SPConstMsc const& msc,
+                                           bool eloss_fluctuation)
 {
     CELER_EXPECT(field_input);
 
@@ -50,7 +49,7 @@ AlongStepRZPhiMapFieldMscAction::from_params(
         fluct = std::make_shared<FluctuationParams>(particles, materials);
     }
 
-    return std::make_shared<AlongStepRZPhiMapFieldMscAction>(
+    return std::make_shared<AlongStepCylFieldMapMscAction>(
         id, field_input, std::move(fluct), msc);
 }
 
@@ -58,13 +57,13 @@ AlongStepRZPhiMapFieldMscAction::from_params(
 /*!
  * Construct with next action ID, energy loss parameters, and MSC.
  */
-AlongStepRZPhiMapFieldMscAction::AlongStepRZPhiMapFieldMscAction(
+AlongStepCylFieldMapMscAction::AlongStepCylFieldMapMscAction(
     ActionId id,
-    RZPhiMapFieldInput const& input,
+    CylFieldMapInput const& input,
     SPConstFluctuations fluct,
     SPConstMsc msc)
     : id_(id)
-    , field_{std::make_shared<RZPhiMapFieldParams>(input)}
+    , field_{std::make_shared<CylFieldMapParams>(input)}
     , fluct_(std::move(fluct))
     , msc_(std::move(msc))
 {
@@ -76,8 +75,8 @@ AlongStepRZPhiMapFieldMscAction::AlongStepRZPhiMapFieldMscAction(
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepRZPhiMapFieldMscAction::step(CoreParams const& params,
-                                           CoreStateHost& state) const
+void AlongStepCylFieldMapMscAction::step(CoreParams const& params,
+                                         CoreStateHost& state) const
 {
     using namespace ::celeritas::detail;
 
@@ -98,7 +97,7 @@ void AlongStepRZPhiMapFieldMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{RZPhiMapFieldPropagatorFactory{
+        PropagationApplier{CylFieldMapPropagatorFactory{
             field_->ref<MemSpace::native>()}}(track);
         if (this->has_msc())
         {
@@ -119,8 +118,8 @@ void AlongStepRZPhiMapFieldMscAction::step(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void AlongStepRZPhiMapFieldMscAction::step(CoreParams const&,
-                                           CoreStateDevice&) const
+void AlongStepCylFieldMapMscAction::step(CoreParams const&,
+                                         CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

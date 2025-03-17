@@ -2,10 +2,10 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/RZPhiMapMagneticField.cc
+//! \file accel/CylMapMagneticField.cc
 //---------------------------------------------------------------------------//
 
-#include "RZPhiMapMagneticField.hh"
+#include "CylMapMagneticField.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -25,8 +25,8 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/field/RZPhiMapFieldInput.hh"
-#include "celeritas/field/RZPhiMapFieldParams.hh"
+#include "celeritas/field/CylFieldMapInput.hh"
+#include "celeritas/field/CylFieldMapParams.hh"
 
 namespace celeritas
 {
@@ -50,17 +50,17 @@ inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generates input for RZPhiMapField params with configurable nonuniform grid
+ * Generates input for CylFieldMap params with configurable nonuniform grid
  * dimensions in native Geant4 units, and \f$\phi\f$ should be in the range
  * [0;\f$2\times\pi\f$]. This must be called after G4RunManager::Initialize as
  * it will retrieve the G4FieldManager's field to sample it.
  */
-RZPhiMapFieldParams::Input
-MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
-                       std::vector<real_type> const& phi_values,
-                       std::vector<real_type> const& z_grid)
+CylFieldMapParams::Input
+MakeCylFieldMapInput(std::vector<real_type> const& r_grid,
+                     std::vector<real_type> const& phi_values,
+                     std::vector<real_type> const& z_grid)
 {
-    RZPhiMapFieldParams::Input field_input;
+    CylFieldMapParams::Input field_input;
     field_input.grid_r.reserve(r_grid.size());
     field_input.grid_phi.reserve(phi_values.size());
     field_input.grid_z.reserve(z_grid.size());

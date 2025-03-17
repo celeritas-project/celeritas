@@ -13,15 +13,15 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/QuantityIO.hh"
 #include "geocel/g4/Convert.hh"
+#include "celeritas/alongstep/AlongStepCylFieldMapMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
-#include "celeritas/alongstep/AlongStepRZPhiMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
+#include "celeritas/field/CylFieldMapInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
-#include "celeritas/field/RZPhiMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/io/ImportData.hh"
 
@@ -168,10 +168,9 @@ RZMapFieldInput RZMapFieldAlongStepFactory::get_field() const
 /*!
  * Emit an along-step action with a non-uniform magnetic field.
  *
- * The action will embed the field propagator with a RZPhiMapField.
+ * The action will embed the field propagator with a CylFieldMap.
  */
-RZPhiMapFieldAlongStepFactory::RZPhiMapFieldAlongStepFactory(
-    RZPhiMapFieldFunction f)
+CylFieldMapAlongStepFactory::CylFieldMapAlongStepFactory(CylFieldMapFunction f)
     : get_fieldmap_(std::move(f))
 {
     CELER_EXPECT(get_fieldmap_);
@@ -181,12 +180,12 @@ RZPhiMapFieldAlongStepFactory::RZPhiMapFieldAlongStepFactory(
 /*!
  * Emit an along-step action.
  */
-auto RZPhiMapFieldAlongStepFactory::operator()(
+auto CylFieldMapAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
-    CELER_LOG(info) << "Creating along-step action with a RZPhiMapField";
+    CELER_LOG(info) << "Creating along-step action with a CylFieldMap";
 
-    return celeritas::AlongStepRZPhiMapFieldMscAction::from_params(
+    return celeritas::AlongStepCylFieldMapMscAction::from_params(
         input.action_id,
         *input.material,
         *input.particle,
@@ -200,7 +199,7 @@ auto RZPhiMapFieldAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-RZPhiMapFieldInput RZPhiMapFieldAlongStepFactory::get_field() const
+CylFieldMapInput CylFieldMapAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }

@@ -294,10 +294,9 @@ auto build_along_step(inp::Field const& var_field,
                 -> std::shared_ptr<CoreStepActionInterface> {
                 CELER_NOT_IMPLEMENTED("building RZ map field through input");
             },
-            [](inp::RZPhiMapField const&)
+            [](inp::CylFieldMap const&)
                 -> std::shared_ptr<CoreStepActionInterface> {
-                CELER_NOT_IMPLEMENTED(
-                    "building RZPhi map field through input");
+                CELER_NOT_IMPLEMENTED("building Cyl map field through input");
             },
         }),
         var_field);

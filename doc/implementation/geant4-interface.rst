@@ -164,9 +164,9 @@ written to be usable both by the ``celer-g4`` app and potential other users.
 
 .. doxygenclass:: celeritas::RZMapMagneticField
 
-.. doxygenclass:: celeritas::RZPhiMapMagneticField
+.. doxygenclass:: celeritas::CylMapMagneticField
 
-.. doxygenfunction:: celeritas::MakeRZPhiMapFieldInput
+.. doxygenfunction:: celeritas::MakeCylFieldMapInput
 
 
 Low-level Celeritas integration

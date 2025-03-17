@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/alongstep/AlongStepRZPhiMapFieldMscAction.hh
+//! \file celeritas/alongstep/AlongStepCylFieldMapMscAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,8 +14,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/field/RZPhiMapFieldData.hh"
-#include "celeritas/field/RZPhiMapFieldParams.hh"
+#include "celeritas/field/CylFieldMapData.hh"
+#include "celeritas/field/CylFieldMapParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas
@@ -25,36 +25,36 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
-struct RZPhiMapFieldInput;
+struct CylFieldMapInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Along-step kernel with MSC, energy loss fluctuations, and a RZPhiMapField.
+ * Along-step kernel with MSC, energy loss fluctuations, and a CylFieldMap.
  */
-class AlongStepRZPhiMapFieldMscAction final : public CoreStepActionInterface
+class AlongStepCylFieldMapMscAction final : public CoreStepActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
-    using SPConstFieldParams = std::shared_ptr<RZPhiMapFieldParams const>;
+    using SPConstFieldParams = std::shared_ptr<CylFieldMapParams const>;
     //!@}
 
   public:
-    static std::shared_ptr<AlongStepRZPhiMapFieldMscAction>
+    static std::shared_ptr<AlongStepCylFieldMapMscAction>
     from_params(ActionId id,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
-                RZPhiMapFieldInput const& field_input,
+                CylFieldMapInput const& field_input,
                 SPConstMsc const& msc,
                 bool eloss_fluctuation);
 
     // Construct with next action ID and physics properties
-    AlongStepRZPhiMapFieldMscAction(ActionId id,
-                                    RZPhiMapFieldInput const& input,
-                                    SPConstFluctuations fluct,
-                                    SPConstMsc msc);
+    AlongStepCylFieldMapMscAction(ActionId id,
+                                  CylFieldMapInput const& input,
+                                  SPConstFluctuations fluct,
+                                  SPConstMsc msc);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -66,7 +66,7 @@ class AlongStepRZPhiMapFieldMscAction final : public CoreStepActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the interaction kernel
-    std::string_view label() const final { return "along-step-RZPhiMap-msc"; }
+    std::string_view label() const final { return "along-step-CylMap-msc"; }
 
     //! Short description of the action
     std::string_view description() const final

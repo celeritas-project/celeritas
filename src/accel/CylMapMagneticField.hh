@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/RZPhiMapMagneticField.hh
+//! \file accel/CylMapMagneticField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,33 +17,33 @@
 #include "corecel/math/Quantity.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/RZPhiMapField.hh"
-#include "celeritas/field/RZPhiMapFieldParams.hh"
+#include "celeritas/field/CylFieldMap.hh"
+#include "celeritas/field/CylFieldMapParams.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined grid
-RZPhiMapFieldParams::Input
-MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
-                       std::vector<real_type> const& phi_values,
-                       std::vector<real_type> const& z_grid);
+CylFieldMapParams::Input
+MakeCylFieldMapInput(std::vector<real_type> const& r_grid,
+                     std::vector<real_type> const& phi_values,
+                     std::vector<real_type> const& z_grid);
 
 //---------------------------------------------------------------------------//
 /*!
- * A user magnetic field equivalent to celeritas::RZPhiMapField.
+ * A user magnetic field equivalent to celeritas::CylFieldMap.
  */
-class RZPhiMapMagneticField : public G4MagneticField
+class CylMapMagneticField : public G4MagneticField
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstFieldParams = std::shared_ptr<RZPhiMapFieldParams const>;
+    using SPConstFieldParams = std::shared_ptr<CylFieldMapParams const>;
     //!@}
 
   public:
-    // Construct with RZPhiMapFieldParams
-    inline explicit RZPhiMapMagneticField(SPConstFieldParams field_params);
+    // Construct with CylFieldMapParams
+    inline explicit CylMapMagneticField(SPConstFieldParams field_params);
 
     // Calculate values of the magnetic field vector
     inline void
@@ -51,16 +51,16 @@ class RZPhiMapMagneticField : public G4MagneticField
 
   private:
     SPConstFieldParams params_;
-    RZPhiMapField calc_field_;
+    CylFieldMap calc_field_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the Celeritas shared RZPhiMapFieldParams.
+ * Construct with the Celeritas shared CylFieldMapParams.
  */
-RZPhiMapMagneticField::RZPhiMapMagneticField(SPConstFieldParams params)
+CylMapMagneticField::CylMapMagneticField(SPConstFieldParams params)
     : params_(std::move(params))
-    , calc_field_(RZPhiMapField{params_->ref<MemSpace::native>()})
+    , calc_field_(CylFieldMap{params_->ref<MemSpace::native>()})
 {
     CELER_EXPECT(params_);
 }
@@ -69,8 +69,7 @@ RZPhiMapMagneticField::RZPhiMapMagneticField(SPConstFieldParams params)
 /*!
  * Calculate the magnetic field vector at the given position.
  */
-void RZPhiMapMagneticField::GetFieldValue(double const pos[3],
-                                          double* field) const
+void CylMapMagneticField::GetFieldValue(double const pos[3], double* field) const
 {
     // Calculate the magnetic field value in the native Celeritas unit system
     Real3 result = calc_field_(convert_from_geant(pos, clhep_length));

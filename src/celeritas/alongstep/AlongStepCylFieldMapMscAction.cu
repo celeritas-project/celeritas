@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/alongstep/AlongStepRZPhiMapFieldMscAction.cu
+//! \file celeritas/alongstep/AlongStepCylFieldMapMscAction.cu
 //---------------------------------------------------------------------------//
-#include "AlongStepRZPhiMapFieldMscAction.hh"
+#include "AlongStepCylFieldMapMscAction.hh"
 
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/field/RZPhiMapFieldParams.hh"
+#include "celeritas/field/CylFieldMapParams.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepKernels.hh"
+#include "detail/CylFieldMapPropagatorFactory.hh"
 #include "detail/PropagationApplier.hh"
-#include "detail/RZPhiMapFieldPropagatorFactory.hh"
 
 namespace celeritas
 {
@@ -26,8 +26,8 @@ namespace celeritas
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepRZPhiMapFieldMscAction::step(CoreParams const& params,
-                                           CoreStateDevice& state) const
+void AlongStepCylFieldMapMscAction::step(CoreParams const& params,
+                                         CoreStateDevice& state) const
 {
     if (this->has_msc())
     {
@@ -40,10 +40,10 @@ void AlongStepRZPhiMapFieldMscAction::step(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             this->action_id(),
-            detail::PropagationApplier{detail::RZPhiMapFieldPropagatorFactory{
+            detail::PropagationApplier{detail::CylFieldMapPropagatorFactory{
                 field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate-RZPhiMap");
+            *this, "propagate-CylMap");
         launch_kernel(*this, params, state, execute_thread);
     }
     if (this->has_msc())
