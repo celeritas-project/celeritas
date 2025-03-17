@@ -267,7 +267,9 @@ TEST_F(UrbanMscTest, step_conversion)
                 {
                     tol = std::sqrt(tol);
                 }
-                EXPECT_SOFT_NEAR(pstep, true_step, tol);
+                EXPECT_SOFT_NEAR(pstep, true_step, tol)
+                    << "Geo step = " << repr(gp.step)
+                    << ", alpha = " << repr(gp.alpha);
             }
         }
     };
