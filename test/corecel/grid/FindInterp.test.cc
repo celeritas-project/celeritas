@@ -10,6 +10,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/math/Turn.hh"
 
 #include "celeritas_test.hh"
 
@@ -110,6 +111,29 @@ TEST(FindInterpTest, nonuniform_int)
     EXPECT_THROW(find_interp(grid, -1), DebugError);
     EXPECT_THROW(find_interp(grid, 8), DebugError);
 #endif
+}
+
+TEST(FindInterpTest, Quantity)
+{
+    Collection<Turn, Ownership::value, MemSpace::host> data;
+    auto build = CollectionBuilder{&data};
+    auto const irange
+        = build.insert_back({Turn{0}, Turn{0.5}, Turn{0.75}, Turn{1}});
+    Collection<Turn, Ownership::const_reference, MemSpace::host> ref{data};
+    NonuniformGrid<Turn> grid(irange, ref);
+
+    {
+        auto interp = find_interp(grid, Turn{0});
+        EXPECT_EQ(0, interp.index);
+        EXPECT_EQ(0, interp.fraction);
+    }
+    {
+        auto interp = find_interp(grid, Turn{0.625});
+        EXPECT_EQ(1, interp.index);
+        EXPECT_TRUE((
+            std::is_same<decltype(interp.fraction), Turn::value_type>::value));
+        EXPECT_EQ(0.5, interp.fraction);
+    }
 }
 
 //---------------------------------------------------------------------------//
