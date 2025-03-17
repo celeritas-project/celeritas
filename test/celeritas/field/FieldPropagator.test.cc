@@ -408,23 +408,9 @@ TEST_F(TwoBoxesTest, gamma_exit)
         auto result = propagate(exact_distance);
 
         EXPECT_SOFT_EQ(exact_distance, result.distance);
-        /*if (using_vecgeom_surface)
-        {
-            // Numerical integration over the non-power-of-2 distance results
-            // in being a little closer than the boundary
-            EXPECT_FALSE(result.boundary);
-        }
-        else*/
-        {
-            EXPECT_TRUE(result.boundary);
-        }
+        EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
         EXPECT_EQ(1, stepper.count());
-        //        if (using_vecgeom_surface)
-        //        {
-        //            result = propagate(1e-3);
-        //            EXPECT_TRUE(result.boundary);
-        //        }
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
