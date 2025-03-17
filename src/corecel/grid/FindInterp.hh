@@ -27,7 +27,7 @@ struct FindInterp
 };
 
 template<class T>
-FindInterp(size_type, T) -> FindInterp<T>;
+CELER_FUNCTION FindInterp(size_type, T) -> FindInterp<T>;
 
 //---------------------------------------------------------------------------//
 /*!
