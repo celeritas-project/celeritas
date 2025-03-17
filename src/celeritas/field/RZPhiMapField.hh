@@ -8,7 +8,6 @@
 
 #include <cmath>
 
-#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"

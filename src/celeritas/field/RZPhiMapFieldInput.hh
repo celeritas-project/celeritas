@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <vector>
 
-#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"

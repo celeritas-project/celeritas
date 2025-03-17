@@ -10,7 +10,6 @@
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Quantity.hh"

@@ -14,7 +14,6 @@
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Turn.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/field/RZPhiMapFieldInput.hh"
 
 #include "FieldDriverOptions.hh"
 

@@ -17,7 +17,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/field/RZPhiMapField.hh"
 
 #include "RZPhiMapFieldData.hh"
 #include "RZPhiMapFieldInput.hh"

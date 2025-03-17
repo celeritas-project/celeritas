@@ -18,6 +18,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
 #include "geocel/g4/Convert.hh"
@@ -121,12 +122,18 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
                 field.GetFieldValue(pos.data(), bfield.data());
                 EnumArray<CylAxis, real_type> bfield_cyl;
                 cartesian_to_cylindrical(bfield, bfield_cyl);
-                convert_from_geant(bfield_cyl.data(), clhep_field);
+                auto bfield_cyl_g4
+                    = convert_from_geant(bfield_cyl.data(), clhep_field);
                 for (auto comp : range(CylAxis::size_))
                 {
                     field_input.field[idx + static_cast<size_type>(comp)]
-                        = bfield_cyl[comp];
+                        = bfield_cyl_g4[static_cast<size_type>(comp)];
                 }
+                CELER_LOG(info) << "Field at r=" << r << " cm, phi=" << phi
+                                << " rad, z=" << field_input.grid_z[iz]
+                                << " cm: " << field_input.field[idx] << " T, "
+                                << field_input.field[idx + 1] << " T, "
+                                << field_input.field[idx + 2] << " T";
             }
         }
     }
