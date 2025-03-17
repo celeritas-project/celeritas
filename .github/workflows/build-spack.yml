@@ -219,10 +219,11 @@ jobs:
       - name: Run unit tests
         id: unittest
         if: ${{matrix.special != 'clang-tidy'}}
-        continue-on-error: ${{
-          fromJSON(matrix.geant || '0') < 11
-          || matrix.geometry == 'vecgeom2'
-        }} # TODO: fix failing tests
+        continue-on-error: >- # TODO: fix failing tests
+          ${{
+            fromJSON(matrix.geant || '0') < 11
+            || matrix.geometry == 'vecgeom2'
+          }}
         run: |
           if ${{matrix.geant == '11.0'
                 && matrix.geometry != 'vecgeom2'}}; then
