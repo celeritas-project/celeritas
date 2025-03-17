@@ -34,14 +34,6 @@ namespace celeritas
  */
 struct RZPhiMapFieldInput
 {
-    //! Cylindrical coordinates indices
-    enum
-    {
-        Phi = 0,
-        R = 1,
-        Z = 2
-    };
-
     std::vector<real_type> grid_r;  //!< R grid points [len]
     std::vector<real_type> grid_z;  //!< Z grid points [len]
     std::vector<Turn> grid_phi;  //!< Phi grid points [AU]

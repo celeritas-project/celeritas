@@ -62,9 +62,9 @@ class RZPhiMapField
 CELER_FUNCTION
 RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
     : params_{params}
-    , grid_r_{params_.grids.r, params_.grids.storage}
-    , grid_z_{params_.grids.z, params_.grids.storage}
-    , grid_phi_{params_.grids.phi, params_.grids.storage}
+    , grid_r_{params_.grids.axes[CylAxis::R], params_.grids.storage}
+    , grid_z_{params_.grids.axes[CylAxis::Z], params_.grids.storage}
+    , grid_phi_{params_.grids.axes[CylAxis::Phi], params_.grids.storage}
 {
 }
 

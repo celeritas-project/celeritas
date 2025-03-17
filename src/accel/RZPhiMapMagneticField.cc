@@ -86,9 +86,11 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
     size_type const nphi = field_input.grid_phi.size();
     size_type const total_points = nr * nz * nphi;
 
-    field_input.field.resize(3 * total_points);
+    field_input.field.resize(static_cast<size_type>(CylAxis::size_)
+                             * total_points);
 
-    Array<size_type, 4> const dims{nphi, nr, nz, 3};
+    Array<size_type, 4> const dims{
+        nphi, nr, nz, static_cast<size_type>(CylAxis::size_)};
     HyperslabIndexer const flat_index{dims};
 
     CELER_EXPECT(G4TransportationManager::GetTransportationManager());

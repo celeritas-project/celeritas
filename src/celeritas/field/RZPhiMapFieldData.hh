@@ -9,9 +9,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Turn.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/field/RZPhiMapFieldInput.hh"
 
 #include "FieldDriverOptions.hh"
@@ -28,20 +30,17 @@ struct RZPhiMapGridData
     template<class T>
     using Items = Collection<T, W, M>;
     Items<real_type> storage;  //!< [Phi, R, Z]
-    Array<size_type, 3> grid_size;  //!< [Phi, R, Z]
-
-    ItemRange<real_type> phi;  //!< Index range for phi
-    ItemRange<real_type> r;  //!< Index range for r
-    ItemRange<real_type> z;  //!< Index range for z
+    EnumArray<CylAxis, size_type> grid_size;
+    EnumArray<CylAxis, ItemRange<real_type>> axes;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !storage.empty() && grid_size[0] > 1 && grid_size[1] > 1
-               && grid_size[2] > 1
-               && phi.size() == grid_size[RZPhiMapFieldInput::Phi]
-               && r.size() == grid_size[RZPhiMapFieldInput::R]
-               && z.size() == grid_size[RZPhiMapFieldInput::Z];
+        return !storage.empty() && grid_size[CylAxis::Phi] > 1
+               && grid_size[CylAxis::R] > 1 && grid_size[CylAxis::Z] > 1
+               && axes[CylAxis::Phi].size() == grid_size[CylAxis::Phi]
+               && axes[CylAxis::R].size() == grid_size[CylAxis::R]
+               && axes[CylAxis::Z].size() == grid_size[CylAxis::Z];
     }
 
     //! Assign from another set of data
@@ -51,9 +50,7 @@ struct RZPhiMapGridData
         CELER_EXPECT(other);
         storage = other.storage;
         grid_size = other.grid_size;
-        phi = other.phi;
-        r = other.r;
-        z = other.z;
+        axes = other.axes;
         return *this;
     }
 };
@@ -101,12 +98,13 @@ struct RZPhiMapFieldParamsData
     inline CELER_FUNCTION bool valid(real_type z, real_type r, Turn phi) const
     {
         CELER_EXPECT(grids);
-        return (z >= grids.storage[grids.z.front()]
-                && z <= grids.storage[grids.z.back()]
-                && r >= grids.storage[grids.r.front()]
-                && r <= grids.storage[grids.r.back()]
-                && phi.value() >= grids.storage[grids.phi.front()]
-                && phi.value() <= grids.storage[grids.phi.back()]);
+        return (
+            z >= grids.storage[grids.axes[CylAxis::Z].front()]
+            && z <= grids.storage[grids.axes[CylAxis::Z].back()]
+            && r >= grids.storage[grids.axes[CylAxis::R].front()]
+            && r <= grids.storage[grids.axes[CylAxis::R].back()]
+            && phi.value() >= grids.storage[grids.axes[CylAxis::Phi].front()]
+            && phi.value() <= grids.storage[grids.axes[CylAxis::Phi].back()]);
     }
 
     inline CELER_FUNCTION ElementId id(size_type idx_phi,
@@ -114,9 +112,12 @@ struct RZPhiMapFieldParamsData
                                        size_type idx_z) const
     {
         CELER_EXPECT(grids);
-        // Index with ordering [Phi][R][Z]
-        return ElementId{
-            HyperslabIndexer{grids.grid_size}(idx_phi, idx_r, idx_z)};
+        // HyperSlabIndexer does not take Array<T const>
+        Array<size_type, static_cast<size_type>(CylAxis::size_)> tmp{
+            grids.grid_size[CylAxis::Phi],
+            grids.grid_size[CylAxis::R],
+            grids.grid_size[CylAxis::Z]};
+        return ElementId{HyperslabIndexer{tmp}(idx_phi, idx_r, idx_z)};
     }
 
     //! Assign from another set of data

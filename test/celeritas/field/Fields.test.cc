@@ -10,6 +10,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Quantity.hh"
@@ -179,11 +180,12 @@ TEST_F(RZPhiMapFieldTest, all)
         size_type const nr = inp.grid_r.size();
         size_type const nz = inp.grid_z.size();
         size_type const nphi = inp.grid_phi.size();
-        Array<size_type, 4> const dims{nphi, nr, nz, 3};
+        Array<size_type, 4> const dims{
+            nphi, nr, nz, static_cast<size_type>(CylAxis::size_)};
         size_type const total_points = nr * nz * nphi;
 
         // Resize each component of the field
-        inp.field.resize(3 * total_points);
+        inp.field.resize(static_cast<size_type>(CylAxis::size_) * total_points);
 
         // Fill with a simple field pattern
         HyperslabIndexer const flat_index{dims};
@@ -202,11 +204,11 @@ TEST_F(RZPhiMapFieldTest, all)
                     auto idx = flat_index(iphi, ir, iz, 0);
 
                     // Set field components
-                    inp.field[idx + RZPhiMapFieldInput::R] = 0.02 * r / 100.0
-                                                             * std::cos(phi);
-                    inp.field[idx + RZPhiMapFieldInput::Phi] = 0.02 * r / 100.0
-                                                               * std::sin(phi);
-                    inp.field[idx + RZPhiMapFieldInput::Z]
+                    inp.field[idx + static_cast<size_type>(CylAxis::R)]
+                        = 0.02 * r / 100.0 * std::cos(phi);
+                    inp.field[idx + static_cast<size_type>(CylAxis::Phi)]
+                        = 0.02 * r / 100.0 * std::sin(phi);
+                    inp.field[idx + static_cast<size_type>(CylAxis::Z)]
                         = 3.8 - 0.0005 * (r / 100.0) * (r / 100.0);
                 }
             }

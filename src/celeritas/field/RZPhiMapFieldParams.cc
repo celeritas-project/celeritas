@@ -12,9 +12,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/field/RZPhiMapField.hh"
 
 #include "RZPhiMapFieldData.hh"
 #include "RZPhiMapFieldInput.hh"
@@ -52,7 +55,8 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
 
     CELER_VALIDATE(
         inp.field.size()
-            == 3 * inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size(),
+            == static_cast<size_type>(CylAxis::size_) * inp.grid_z.size()
+                   * inp.grid_r.size() * inp.grid_phi.size(),
         << "invalid field length (field size=" << inp.field.size()
         << "): should be "
         << 3 * inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size());
@@ -69,9 +73,9 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     auto host_data = [&inp] {
         HostVal<RZPhiMapFieldParamsData> host;
 
-        host.grids.grid_size[RZPhiMapFieldInput::Phi] = inp.grid_phi.size();
-        host.grids.grid_size[RZPhiMapFieldInput::R] = inp.grid_r.size();
-        host.grids.grid_size[RZPhiMapFieldInput::Z] = inp.grid_z.size();
+        host.grids.grid_size[CylAxis::Phi] = inp.grid_phi.size();
+        host.grids.grid_size[CylAxis::R] = inp.grid_r.size();
+        host.grids.grid_size[CylAxis::Z] = inp.grid_z.size();
 
         auto grid = make_builder(&host.grids.storage);
         grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
@@ -80,9 +84,11 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
                        inp.grid_phi.cend(),
                        std::back_inserter(grid),
                        [](auto const& val) { return val.value(); });
-        host.grids.phi = ItemRange<real_type>{grid.size_id()};
-        host.grids.r = grid.insert_back(inp.grid_r.begin(), inp.grid_r.end());
-        host.grids.z = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
+        host.grids.axes[CylAxis::Phi] = ItemRange<real_type>{grid.size_id()};
+        host.grids.axes[CylAxis::R]
+            = grid.insert_back(inp.grid_r.begin(), inp.grid_r.end());
+        host.grids.axes[CylAxis::Z]
+            = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field.size());
@@ -91,10 +97,11 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         {
             // Save field vector
             RZPhiMapElement el;
-            auto idx = i * 3;
-            el.value_z = inp.field[idx + RZPhiMapFieldInput::Z];
-            el.value_r = inp.field[idx + RZPhiMapFieldInput::R];
-            el.value_phi = inp.field[idx + RZPhiMapFieldInput::Phi];
+            auto idx = i * static_cast<size_type>(CylAxis::size_);
+            el.value_z = inp.field[idx + static_cast<size_type>(CylAxis::Z)];
+            el.value_r = inp.field[idx + static_cast<size_type>(CylAxis::R)];
+            el.value_phi
+                = inp.field[idx + static_cast<size_type>(CylAxis::Phi)];
             fieldmap.push_back(el);
         }
 
