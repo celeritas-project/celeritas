@@ -246,107 +246,44 @@
     CELER_RUNTIME_THROW(::celeritas::RuntimeError::not_impl_err_str, WHAT, {})
 
 /*!
- * \def CELER_CUDA_CALL
+ * \def CELER_DEVICE_API_CALL
  *
- * When CUDA support is enabled, execute the wrapped statement and throw a
- * RuntimeError if it fails. If CUDA is disabled, throw an unconfigured
- * assertion.
+ * Safely and portably dispatch a CUDA/HIP API call.
  *
- * If it fails, we call \c cudaGetLastError to clear the error code. Note that
- * this will \em not clear the code in a few fatal error cases (kernel
- * assertion failure, invalid memory access) and all subsequent CUDA calls will
- * fail.
- *
- * \code
-   CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
-   CELER_CUDA_CALL(cudaDeviceSynchronize());
- * \endcode
- *
- * \note A file that uses this macro must include \c
- * corecel/DeviceRuntimeApi.hh .
- */
-#if CELERITAS_USE_CUDA
-#    define CELER_CUDA_CALL(STATEMENT)                                     \
-        do                                                                 \
-        {                                                                  \
-            cudaError_t cuda_result_ = (STATEMENT);                        \
-            if (CELER_UNLIKELY(cuda_result_ != cudaSuccess))               \
-            {                                                              \
-                CELER_RUNTIME_THROW(                                       \
-                    "CUDA", cudaGetErrorString(cuda_result_), #STATEMENT); \
-            }                                                              \
-        } while (0)
-#else
-#    define CELER_CUDA_CALL(STATEMENT)               \
-        do                                           \
-        {                                            \
-            CELER_NOT_CONFIGURED("CUDA");            \
-            CELER_DISCARD(CorecelDeviceRuntimeApiHh) \
-        } while (0)
-#endif
-
-/*!
- * \def CELER_HIP_CALL
- *
- * When HIP support is enabled, execute the wrapped statement and throw a
- * RuntimeError if it fails. If HIP is disabled, throw an unconfigured
- * assertion.
- *
- * If it fails, we call \c hipGetLastError to clear the error code.
- *
- * \code
-   CELER_HIP_CALL(hipMalloc(&ptr_gpu, 100 * sizeof(float)));
-   CELER_HIP_CALL(hipDeviceSynchronize());
- * \endcode
- *
- * \note A file that uses this macro must include \c
- * corecel/DeviceRuntimeApi.hh . The \c CorecelDeviceRuntimeApiHh
- * declaration enforces this when HIP is disabled.
- */
-#if CELERITAS_USE_HIP
-#    define CELER_HIP_CALL(STATEMENT)                                   \
-        do                                                              \
-        {                                                               \
-            hipError_t hip_result_ = (STATEMENT);                       \
-            if (CELER_UNLIKELY(hip_result_ != hipSuccess))              \
-            {                                                           \
-                hip_result_ = hipGetLastError();                        \
-                CELER_RUNTIME_THROW(                                    \
-                    "HIP", hipGetErrorString(hip_result_), #STATEMENT); \
-            }                                                           \
-        } while (0)
-#else
-#    define CELER_HIP_CALL(STATEMENT)                \
-        do                                           \
-        {                                            \
-            CELER_NOT_CONFIGURED("HIP");             \
-            CELER_DISCARD(CorecelDeviceRuntimeApiHh) \
-        } while (0)
-#endif
-
-/*!
- * \def CELER_DEVICE_CALL_PREFIX
- *
- * Prepend the argument with "cuda" or "hip" and call with the appropriate
- * checking statement as above.
+ * When CUDA or HIP support is enabled, execute the wrapped statement
+ * prepend the argument with "cuda" or "hip" and throw a
+ * RuntimeError if it fails. If no device platform is enabled, throw an
+ * unconfigured assertion.
  *
  * Example:
  *
  * \code
-   CELER_DEVICE_CALL_PREFIX(Malloc(&ptr_gpu, 100 * sizeof(float)));
-   CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+   CELER_DEVICE_API_CALL(Malloc(&ptr_gpu, 100 * sizeof(float)));
+   CELER_DEVICE_API_CALL(DeviceSynchronize());
  * \endcode
  *
  * \note A file that uses this macro must include \c
  * corecel/DeviceRuntimeApi.hh . The \c CorecelDeviceRuntimeApiHh
- * declaration enforces this when CUDA/HIP are disabled.
+ * declaration enforces this when CUDA/HIP are disabled, and the absence of
+ * \c CELER_DEVICE_API_SYMBOL enforces when enabled.
  */
-#if CELERITAS_USE_CUDA
-#    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_CUDA_CALL(cuda##STMT)
-#elif CELERITAS_USE_HIP
-#    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_HIP_CALL(hip##STMT)
+#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+#    define CELER_DEVICE_API_CALL(STMT)                                      \
+        do                                                                   \
+        {                                                                    \
+            using ErrT_ = CELER_DEVICE_API_SYMBOL(Error_t);                  \
+            ErrT_ result_ = CELER_DEVICE_API_SYMBOL(STMT);                   \
+            if (CELER_UNLIKELY(result_ != CELER_DEVICE_API_SYMBOL(Success))) \
+            {                                                                \
+                result_ = CELER_DEVICE_API_SYMBOL(GetLastError)();           \
+                CELER_RUNTIME_THROW(                                         \
+                    CELER_DEVICE_PLATFORM_UPPER_STR,                         \
+                    CELER_DEVICE_API_SYMBOL(GetErrorString)(result_),        \
+                    #STMT);                                                  \
+            }                                                                \
+        } while (0)
 #else
-#    define CELER_DEVICE_CALL_PREFIX(STMT)           \
+#    define CELER_DEVICE_API_CALL(STMT)              \
         do                                           \
         {                                            \
             CELER_NOT_CONFIGURED("CUDA or HIP");     \
@@ -354,14 +291,10 @@
         } while (0)
 #endif
 
-/*!
- * \def CELER_DEVICE_CHECK_ERROR
- *
- * After a kernel launch or other call, check that no CUDA errors have
- * occurred. This is also useful for checking success after external CUDA
- * libraries have been called.
- */
-#define CELER_DEVICE_CHECK_ERROR() CELER_DEVICE_CALL_PREFIX(PeekAtLastError())
+// DEPRECATED: remove in v1.0
+#define CELER_DEVICE_PREFIX(STMT) CELER_DEVICE_API_SYMBOL(STMT)
+#define CELER_DEVICE_CALL_PREFIX(STMT) CELER_DEVICE_API_CALL(STMT)
+#define CELER_DEVICE_CHECK_ERROR() CELER_DEVICE_API_CALL(PeekAtLastError())
 
 /*!
  * \def CELER_MPI_CALL

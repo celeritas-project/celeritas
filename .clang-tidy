@@ -7,37 +7,38 @@ Checks: |
   -clang-analyzer-cplusplus.NewDelete
   performance-*
   -performance-avoid-endl
-  -performance-unnecessary-value-param
   -performance-enum-size
   -performance-noexcept-destructor
+  -performance-unnecessary-value-param
   cppcoreguidelines-*
-  -cppcoreguidelines-owning-memory
-  -cppcoreguidelines-narrowing-conversions
-  -cppcoreguidelines-avoid-magic-numbers
   -cppcoreguidelines-avoid-c-arrays
-  -cppcoreguidelines-pro-bounds-pointer-arithmetic
-  -cppcoreguidelines-init-variables
-  -cppcoreguidelines-pro-type-member-init
-  -cppcoreguidelines-avoid-do-while
-  -cppcoreguidelines-avoid-non-const-global-variables
-  -cppcoreguidelines-pro-type-const-cast
-  -cppcoreguidelines-pro-bounds-array-to-pointer-decay
   -cppcoreguidelines-avoid-const-or-ref-data-members
-  -cppcoreguidelines-pro-bounds-constant-array-index
-  -cppcoreguidelines-noexcept-swap
-  -cppcoreguidelines-noexcept-move-operations
-  -cppcoreguidelines-noexcept-destructor
-  -cppcoreguidelines-virtual-class-destructor
+  -cppcoreguidelines-avoid-do-while
+  -cppcoreguidelines-avoid-magic-numbers
+  -cppcoreguidelines-avoid-non-const-global-variables
   -cppcoreguidelines-c-copy-assignment-signature
+  -cppcoreguidelines-init-variables
+  -cppcoreguidelines-macro-to-enum
   -cppcoreguidelines-missing-std-forward
+  -cppcoreguidelines-narrowing-conversions
+  -cppcoreguidelines-noexcept-destructor
+  -cppcoreguidelines-noexcept-move-operations
+  -cppcoreguidelines-noexcept-swap
+  -cppcoreguidelines-owning-memory
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay
+  -cppcoreguidelines-pro-bounds-constant-array-index
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic
+  -cppcoreguidelines-pro-type-const-cast
+  -cppcoreguidelines-pro-type-member-init
   -cppcoreguidelines-special-member-functions
+  -cppcoreguidelines-virtual-class-destructor
   bugprone-*
-  -bugprone-sizeof-expression
-  -bugprone-narrowing-conversions
-  -bugprone-macro-parentheses
   -bugprone-easily-swappable-parameters
-  -bugprone-implicit-widening-of-multiplication-result
   -bugprone-exception-escape
+  -bugprone-implicit-widening-of-multiplication-result
+  -bugprone-macro-parentheses
+  -bugprone-narrowing-conversions
+  -bugprone-sizeof-expression
 WarningsAsErrors: '*'
 CheckOptions:
   cppcoreguidelines-macro-usage.CheckCapsOnly: true
