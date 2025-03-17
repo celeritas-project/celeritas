@@ -36,7 +36,7 @@ struct RZPhiMapGridData
     {
         return !storage.empty()
                && storage.size()
-                      == axes[CylAxis::phi].size() + axes[CylAxis::r].size()
+                      == axes[CylAxis::r].size() + axes[CylAxis::phi].size()
                              + axes[CylAxis::z].size();
     }
 
@@ -80,28 +80,28 @@ struct RZPhiMapFieldParamsData
     }
 
     //! Check if the given position is within the field map bounds
-    inline CELER_FUNCTION bool valid(real_type z, real_type r, Turn phi) const
+    inline CELER_FUNCTION bool valid(real_type r, Turn phi, real_type z) const
     {
         CELER_EXPECT(grids);
         return (
-            z >= grids.storage[grids.axes[CylAxis::z].front()]
-            && z <= grids.storage[grids.axes[CylAxis::z].back()]
-            && r >= grids.storage[grids.axes[CylAxis::r].front()]
+            r >= grids.storage[grids.axes[CylAxis::r].front()]
             && r <= grids.storage[grids.axes[CylAxis::r].back()]
             && phi.value() >= grids.storage[grids.axes[CylAxis::phi].front()]
-            && phi.value() <= grids.storage[grids.axes[CylAxis::phi].back()]);
+            && phi.value() <= grids.storage[grids.axes[CylAxis::phi].back()]
+            && z >= grids.storage[grids.axes[CylAxis::z].front()]
+            && z <= grids.storage[grids.axes[CylAxis::z].back()]);
     }
 
-    inline CELER_FUNCTION ElementId id(size_type idx_phi,
-                                       size_type idx_r,
+    inline CELER_FUNCTION ElementId id(size_type idx_r,
+                                       size_type idx_phi,
                                        size_type idx_z) const
     {
         CELER_EXPECT(grids);
         Array<size_type, static_cast<size_type>(CylAxis::size_)> tmp{
-            grids.axes[CylAxis::phi].size(),
             grids.axes[CylAxis::r].size(),
+            grids.axes[CylAxis::phi].size(),
             grids.axes[CylAxis::z].size()};
-        return ElementId{HyperslabIndexer{tmp}(idx_phi, idx_r, idx_z)};
+        return ElementId{HyperslabIndexer{tmp}(idx_r, idx_phi, idx_z)};
     }
 
     //! Assign from another set of data

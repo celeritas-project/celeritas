@@ -50,8 +50,8 @@ class RZPhiMapField
     FieldParamsRef const& params_;
 
     NonuniformGrid<real_type> const grid_r_;
-    NonuniformGrid<real_type> const grid_z_;
     NonuniformGrid<real_type> const grid_phi_;
+    NonuniformGrid<real_type> const grid_z_;
 };
 
 //---------------------------------------------------------------------------//
@@ -64,8 +64,8 @@ CELER_FUNCTION
 RZPhiMapField::RZPhiMapField(FieldParamsRef const& params)
     : params_{params}
     , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
-    , grid_z_{params_.grids.axes[CylAxis::z], params_.grids.storage}
     , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}
+    , grid_z_{params_.grids.axes[CylAxis::z], params_.grids.storage}
 {
 }
 
@@ -93,17 +93,17 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     }
 
     // Check if point is within field map bounds
-    if (!params_.valid(pos[2], r, phi))
+    if (!params_.valid(r, phi, pos[2]))
         return value;
 
-    // Find interpolation points for given r, z, and phi
+    // Find interpolation points for given r, phi, z
     auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
-    auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
     auto [iphi, wphi1]
         = find_interp<NonuniformGrid<real_type>>(grid_phi_, phi.value());
+    auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
 
-    auto get_field = [this](size_type iz, size_type ir, size_type iphi) {
-        return params_.fieldmap[params_.id(iphi, ir, iz)];
+    auto get_field = [this](size_type ir, size_type iphi, size_type iz) {
+        return params_.fieldmap[params_.id(ir, iphi, iz)];
     };
 
     EnumArray<CylAxis, real_type> interp_field;
@@ -111,23 +111,23 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     for (auto axis : range(CylAxis::size_))
     {
         // clang-format off
-        real_type v000 = get_field(iz,     ir,     iphi    )[axis];
-        real_type v001 = get_field(iz,     ir,     iphi + 1)[axis];
-        real_type v010 = get_field(iz,     ir + 1, iphi    )[axis];
-        real_type v011 = get_field(iz,     ir + 1, iphi + 1)[axis];
-        real_type v100 = get_field(iz + 1, ir,     iphi    )[axis];
-        real_type v101 = get_field(iz + 1, ir,     iphi + 1)[axis];
-        real_type v110 = get_field(iz + 1, ir + 1, iphi    )[axis];
-        real_type v111 = get_field(iz + 1, ir + 1, iphi + 1)[axis];
+        real_type v000 = get_field(ir,     iphi    ,     iz)[axis];
+        real_type v001 = get_field(ir,     iphi    , iz + 1)[axis];
+        real_type v010 = get_field(ir,     iphi + 1,     iz)[axis];
+        real_type v011 = get_field(ir,     iphi + 1, iz + 1)[axis];
+        real_type v100 = get_field(ir + 1, iphi    ,     iz)[axis];
+        real_type v101 = get_field(ir + 1, iphi    , iz + 1)[axis];
+        real_type v110 = get_field(ir + 1, iphi + 1,     iz)[axis];
+        real_type v111 = get_field(ir + 1, iphi + 1, iz + 1)[axis];
         // clang-format on
         // Trilinear interpolation formula for the current component
         interp_field[axis]
-            = (1 - wz1)
-                  * ((1 - wr1) * ((1 - wphi1) * v000 + wphi1 * v001)
-                     + wr1 * ((1 - wphi1) * v010 + wphi1 * v011))
-              + wz1
-                    * ((1 - wr1) * ((1 - wphi1) * v100 + wphi1 * v101)
-                       + wr1 * ((1 - wphi1) * v110 + wphi1 * v111));
+            = (1 - wr1)
+                  * ((1 - wphi1) * ((1 - wz1) * v000 + wz1 * v001)
+                     + wphi1 * ((1 - wz1) * v010 + wz1 * v011))
+              + wr1
+                    * ((1 - wphi1) * ((1 - wz1) * v100 + wz1 * v101)
+                       + wphi1 * ((1 - wz1) * v110 + wz1 * v111));
     }
 
     // Project cylindrical components to Cartesian coordinates

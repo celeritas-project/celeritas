@@ -26,8 +26,8 @@ namespace celeritas
 // Generate field input with user-defined grid
 RZPhiMapFieldParams::Input
 MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
-                       std::vector<real_type> const& z_grid,
-                       std::vector<real_type> const& phi_values);
+                       std::vector<real_type> const& phi_values,
+                       std::vector<real_type> const& z_grid);
 
 //---------------------------------------------------------------------------//
 /*!

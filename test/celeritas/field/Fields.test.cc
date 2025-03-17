@@ -166,7 +166,6 @@ TEST_F(RZPhiMapFieldTest, all)
         RZPhiMapFieldInput inp;
         // Set up grid points in cylindrical coordinates
         inp.grid_r = {0.0, 50.0, 100.0, 150.0};
-        inp.grid_z = {-150.0, -100.0, -50.0, 0.0, 50.0, 100.0, 150.0};
         Array<real_type, 7> const phi_values = {
             0.0, 1.0 / 6.0, 2.0 / 6.0, 3.0 / 6.0, 4.0 / 6.0, 5.0 / 6.0, 1.0};
         inp.grid_phi.resize(phi_values.size());
@@ -174,14 +173,15 @@ TEST_F(RZPhiMapFieldTest, all)
                        phi_values.end(),
                        inp.grid_phi.begin(),
                        [](real_type phi) { return Turn{phi}; });
+        inp.grid_z = {-150.0, -100.0, -50.0, 0.0, 50.0, 100.0, 150.0};
 
         // Initialize field values with a predominantly z-directed field
         size_type const nr = inp.grid_r.size();
-        size_type const nz = inp.grid_z.size();
         size_type const nphi = inp.grid_phi.size();
+        size_type const nz = inp.grid_z.size();
         Array<size_type, 4> const dims{
-            nphi, nr, nz, static_cast<size_type>(CylAxis::size_)};
-        size_type const total_points = nr * nz * nphi;
+            nr, nphi, nz, static_cast<size_type>(CylAxis::size_)};
+        size_type const total_points = nr * nphi * nz;
 
         // Resize each component of the field
         inp.field.resize(static_cast<size_type>(CylAxis::size_) * total_points);
@@ -191,16 +191,14 @@ TEST_F(RZPhiMapFieldTest, all)
         for (size_type ir = 0; ir < nr; ++ir)
         {
             real_type r = inp.grid_r[ir];
-            for (size_type iz = 0; iz < nz; ++iz)
+            for (size_type iphi = 0; iphi < nphi; ++iphi)
             {
-                for (size_type iphi = 0; iphi < nphi; ++iphi)
+                // Convert turns to radians
+                real_type phi = inp.grid_phi[iphi].value() * 2 * constants::pi;
+                for (size_type iz = 0; iz < nz; ++iz)
                 {
-                    // Convert turns to radians
-                    real_type phi = inp.grid_phi[iphi].value() * 2
-                                    * constants::pi;
-
                     // Index calculation for 3D array
-                    auto idx = flat_index(iphi, ir, iz, 0);
+                    auto idx = flat_index(ir, iphi, iz, 0);
 
                     // Set field components
                     inp.field[idx + static_cast<size_type>(CylAxis::r)]
@@ -298,7 +296,7 @@ TEST_F(RZPhiMapFieldTest, all)
         -0.0173205080756888,
         0,
         3.7995};
-        // clang-format on
+    // clang-format on
 
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
