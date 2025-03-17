@@ -196,7 +196,7 @@ jobs:
         if: >-
           ${{
             matrix.geant == '11.0'
-            && !matrix.special
+            && matrix.special != 'minimal'
           }}
         working-directory: build
         run: |
