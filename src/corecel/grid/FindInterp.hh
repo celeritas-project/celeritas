@@ -51,10 +51,7 @@ find_interp(Grid const& grid, typename Grid::value_type value)
     CELER_ASSERT(result.index + 1 < grid.size());
     auto const lower_val = grid[result.index];
     auto const upper_val = grid[result.index + 1];
-    if (!CELER_UNLIKELY(lower_val == upper_val))
-    {
-        result.fraction = (value - lower_val) / (upper_val - lower_val);
-    }
+    result.fraction = (value - lower_val) / (upper_val - lower_val);
 
     return result;
 }
