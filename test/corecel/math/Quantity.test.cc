@@ -185,6 +185,12 @@ TEST(QuantityTest, math)
         EXPECT_DOUBLE_EQ(3, divd.value());
     }
 
+    {
+        auto divd = RevDbl{12} / RevDbl{3};
+        EXPECT_TRUE((std::is_same<decltype(divd), double>::value));
+        EXPECT_DOUBLE_EQ(4, divd);
+    }
+
     // Test mixed integer/double
     {
         EXPECT_DOUBLE_EQ(static_cast<double>(4 * pi),
