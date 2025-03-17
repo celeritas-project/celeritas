@@ -281,6 +281,19 @@ TEST(TurnTest, math)
         EXPECT_TRUE((std::is_same_v<decltype(result), float>));
         EXPECT_EQ(float(0), result);
     }
+    {
+        auto ta = atan2turn(0.0, 0.001);  // y, x
+        EXPECT_TRUE((std::is_same<decltype(ta), Turn_t<double>>::value));
+        EXPECT_DOUBLE_EQ(0.0, ta.value());
+        ta = atan2turn(1.0, 0.0);
+        EXPECT_DOUBLE_EQ(0.25, ta.value());
+        ta = atan2turn(0.0, -1.0);
+        EXPECT_DOUBLE_EQ(0.5, ta.value());
+        ta = atan2turn(-0.0, -1.0);
+        EXPECT_DOUBLE_EQ(-0.5, ta.value());
+        ta = atan2turn(-1.0, 0.0);
+        EXPECT_DOUBLE_EQ(-0.25, ta.value());
+    }
 }
 
 TEST(QuarterTurnTest, basic)
