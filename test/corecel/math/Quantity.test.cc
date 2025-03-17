@@ -55,7 +55,7 @@ TEST(QuantityTest, usage)
 {
     // Since powers of 2 are exactly represented in IEEE arithimetic, we can
     // exactly operate on data (e.g. in this case where a user wants a radial
-    // mesh that spans half a Realturn, i.e. pi)
+    // mesh that spans half a turn, i.e. pi)
     Revolution user_input{0.5};
     double dtheta = user_input.value() / 8;
     EXPECT_EQ(1.0 / 16.0, dtheta);
@@ -315,11 +315,11 @@ TEST(QuarterTurnTest, sincos)
     }
     // clang-format off
     static int const expected_result[]
-        = {  0,  1, // -1 Realturn
-             1,  0, // -3/4 Realturn
-             0, -1, // -1/2 Realturn
-            -1,  0, // -1/4 Realturn
-             0,  1, // 0 Realturn
+        = {  0,  1, // -1 turn
+             1,  0, // -3/4 turn
+             0, -1, // -1/2 turn
+            -1,  0, // -1/4 turn
+             0,  1, // 0 turn
              1,  0, // 1/4
              0, -1, // 1/2
             -1,  0, // 3/4
