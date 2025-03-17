@@ -48,6 +48,7 @@ celeritas_add_test(data/AuxInterface.test.cc
   SOURCES data/AuxMockParams.cc)
 
 # Grid
+celeritas_add_test(grid/FindInterp.test.cc)
 celeritas_add_test(grid/Interpolator.test.cc)
 celeritas_add_test(grid/NonuniformGrid.test.cc)
 celeritas_add_test(grid/SplineDerivCalculator.test.cc)

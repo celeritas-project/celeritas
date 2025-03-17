@@ -14,6 +14,8 @@
 #include "corecel/io/Logger.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/Logger.hh"
+#include "accel/SetupOptionsMessenger.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 
 namespace celeritas
 {
@@ -229,9 +231,20 @@ void IntegrationSingleton::finalize_shared_params()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct and set up options messenger.
+ * Construct and set up the singleton.
+ *
+ * Using unique pointers for MPI and messenger allow us to catch errors they
+ * may throw during construction.
  */
-IntegrationSingleton::IntegrationSingleton() = default;
+IntegrationSingleton::IntegrationSingleton()
+{
+    CELER_TRY_HANDLE(
+        {
+            scoped_mpi_ = std::make_unique<ScopedMpiInit>();
+            messenger_ = std::make_unique<SetupOptionsMessenger>(&options_);
+        },
+        ExceptionConverter{"celer.init.singleton"});
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

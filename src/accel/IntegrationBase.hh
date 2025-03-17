@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-class G4Run;
 #include "corecel/Macros.hh"
+
+class G4Run;
 
 namespace celeritas
 {
@@ -28,7 +29,7 @@ class CoreParams;
  * \sa celeritas::TrackingManagerIntegration
  *
  * \note For developers: this and the integration daughters all share common
- * data in detail::IntegrationSingleton.
+ * data in \c detail::IntegrationSingleton.
  */
 class IntegrationBase
 {
