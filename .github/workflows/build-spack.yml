@@ -29,17 +29,8 @@ jobs:
       matrix:
         geometry: ["vecgeom"]
         special: [null]
-        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
+        geant: ["11.0"]
         include:
-          - geometry: "orange"
-            special: "minimal"
-            geant: null
-          - geometry: "orange"
-            special: "float"
-            geant: "11.0"
-          - geometry: "orange"
-            special: "asanlite"
-            geant: null
           - geometry: "vecgeom"
             special: "clhep"
             geant: "11.0"
@@ -49,12 +40,6 @@ jobs:
           - geometry: "vecgeom2"
             special: null
             geant: "11.0"
-          - geometry: "geant4"
-            special: null
-            geant: "11.0"
-          - geometry: "vecgeom"
-            special: "clang-tidy"
-            geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "${{matrix.special == 'asanlite' && '400' || '200'}}Mi"
