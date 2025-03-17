@@ -85,7 +85,11 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     // Convert Cartesian to cylindrical coordinates
     real_type r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
-    real_type phi = std::fmod(atan2(pos[1], pos[0]), 2 * constants::pi.value());
+    real_type phi = atan2(pos[1], pos[0]);
+    if (phi < 0)
+    {
+        phi += TwoPi::value();
+    }
     auto turn_phi{native_value_to<Turn>(phi)};
 
     // Check if point is within field map bounds
