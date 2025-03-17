@@ -37,7 +37,8 @@ struct FindInterp
  * result will always have an index such that its neighbor to the right is a
  * valid point on the grid, and the fraction between neghbors may be zero (in
  * the case where the value is exactly on a grid point) but is always less than
- * one.
+ * one. If the requested point is exactly on a coincident grid point, the lower
+ * point and a fraction of zero will result.
  */
 template<class Grid>
 inline CELER_FUNCTION FindInterp<typename Grid::value_type>
@@ -50,7 +51,10 @@ find_interp(Grid const& grid, typename Grid::value_type value)
     CELER_ASSERT(result.index + 1 < grid.size());
     auto const lower_val = grid[result.index];
     auto const upper_val = grid[result.index + 1];
-    result.fraction = (value - lower_val) / (upper_val - lower_val);
+    if (!CELER_UNLIKELY(lower_val == upper_val))
+    {
+        result.fraction = (value - lower_val) / (upper_val - lower_val);
+    }
 
     return result;
 }
