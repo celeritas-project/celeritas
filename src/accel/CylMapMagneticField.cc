@@ -18,7 +18,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
 #include "geocel/g4/Convert.hh"
