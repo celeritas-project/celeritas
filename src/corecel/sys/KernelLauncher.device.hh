@@ -104,7 +104,7 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
 {
     if (!threads.empty())
     {
-        using StreamT = CELER_DEVICE_PREFIX(Stream_t);
+        using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
         StreamT stream = stream_id
                              ? celeritas::device().stream(stream_id).get()
                              : nullptr;

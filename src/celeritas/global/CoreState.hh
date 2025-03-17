@@ -66,8 +66,6 @@ class CoreStateInterface
  * When the state lives on the device, we maintain a separate copy of the
  * device "ref" in device memory: otherwise we'd have to copy the entire state
  * in launch arguments and access it through constant memory.
- *
- * \todo Encapsulate all the action management accessors in a helper class.
  */
 template<MemSpace M>
 class CoreState final : public CoreStateInterface
@@ -81,6 +79,9 @@ class CoreState final : public CoreStateInterface
     using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
     //!@}
+
+    //! Memory space
+    static constexpr MemSpace memspace = M;
 
   public:
     // Construct from CoreParams

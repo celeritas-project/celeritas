@@ -60,23 +60,23 @@ CudaPointers<CudaBVH_t const> bvh_pointers_device()
         static KernelLauncher<decltype(execute_thread)> const launch_kernel(
             "vecgeom-get-bvhptr");
         launch_kernel(1u, StreamId{}, execute_thread);
-        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        CELER_DEVICE_API_CALL(DeviceSynchronize());
         bvh_ptr.copy_to_host({&result.kernel, 1});
     }
 
     // Copy from symbol using runtime API
-    CELER_CUDA_CALL(
-        cudaMemcpyFromSymbol(&result.symbol,
+    CELER_DEVICE_API_CALL(
+        MemcpyFromSymbol(&result.symbol,
 #if VECGEOM_VERSION >= VECGEOM_V2
-                             vecgeom::cuda::dBVH<BvhPrecision>,
-                             sizeof(vecgeom::cuda::dBVH<BvhPrecision>),
+                         vecgeom::cuda::dBVH<BvhPrecision>,
+                         sizeof(vecgeom::cuda::dBVH<BvhPrecision>),
 #else
-                             vecgeom::cuda::dBVH,
-                             sizeof(vecgeom::cuda::dBVH),
+                         vecgeom::cuda::dBVH,
+                         sizeof(vecgeom::cuda::dBVH),
 #endif
-                             0,
-                             cudaMemcpyDeviceToHost));
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+                         0,
+                         CELER_DEVICE_API_SYMBOL(MemcpyDeviceToHost)));
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     return result;
 }
@@ -88,7 +88,7 @@ CudaPointers<CudaBVH_t const> bvh_pointers_device()
 void setup_surface_tracking_device(SurfData const& surf_data)
 {
     BrepCudaManager::Instance().TransferSurfData(surf_data);
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }
 
 void teardown_surface_tracking_device()

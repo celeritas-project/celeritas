@@ -8,6 +8,7 @@
 
 #include <accel/TrackingManagerIntegration.hh>
 
+#include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
@@ -47,6 +48,9 @@ void ActionInitialization::Build() const
     // Initialize Geant4 user actions
     this->SetUserAction(new RunAction());
     this->SetUserAction(new PrimaryGeneratorAction());
+
+    // Print diagnostics
+    this->SetUserAction(new EventAction());
 }
 
 }  // namespace example
