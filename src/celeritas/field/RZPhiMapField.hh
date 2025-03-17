@@ -92,8 +92,7 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     {
         phi += TwoPi::value();
     }
-
-    auto turn_phi = make_turn(phi);
+    auto turn_phi{native_value_to<Turn>(phi)};
 
     // Check if point is within field map bounds
     if (!params_.valid(pos[2], r, turn_phi))
