@@ -24,9 +24,10 @@ namespace detail
  * Singletons used by the Integration interfaces.
  *
  * The singleton instance contains global data, including a single copy of the
- * options (which are referenced by the UI setup) and . Thread-local data is
- * managed by the \c local_transporter static function. Setup options are
- * permanently referenced by the UI messenger class.
+ * options (which are referenced by the UI setup) and an MPI setup/teardown
+ * helper.
+ * Thread-local data is managed by the \c local_transporter static function.
+ * Setup options are permanently referenced by the UI messenger class.
  *
  * The first call to the singleton initializes MPI if necessary, and MPI will
  * be finalized during the termination phase of the program.

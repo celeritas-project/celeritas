@@ -25,7 +25,7 @@ struct SetupOptions;
  * \sa celeritas::TrackingManagerIntegration
  *
  * \note For developers: this and the integration daughters all share common
- * data in detail::IntegrationSingleton.
+ * data in \c detail::IntegrationSingleton.
  */
 class IntegrationBase
 {

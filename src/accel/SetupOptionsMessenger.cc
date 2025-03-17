@@ -204,7 +204,7 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "enabled",
             "Call back to Geant4 sensitive detectors");
 
-    // TODO: add enabled flag: CELERITAS_USE_CUDA
+    // TODO: add conditional on (CELERITAS_USE_CUDA)
     directories_.emplace_back(new CelerDirectory(
         "/celer/cuda/",
         R"(Celeritas CUDA setup options (DEPRECATED: moved to /celer/device)"));
@@ -221,10 +221,11 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "defaultStream",
             "Launch all kernels on the default stream (REMOVED)");
 
-    // TODO: add enabled flag: CELERITAS_USE_CUDA|| CELERITAS_USE_HIP
+    // TODO: add conditional on (CELERITAS_USE_CUDA || CELERITAS_USE_HIP)
     directories_.emplace_back(
         new CelerDirectory("/celer/device/", "Celeritas device setup"));
-    // TODO: add enabled flag: CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+    // TODO: add conditional on (CELERITAS_CORE_GEO ==
+    // CELERITAS_CORE_GEO_VECGEOM)
     add_cmd(&options->cuda_stack_size,
             "stackSize",
             "Set the CUDA per-thread stack size for VecGeom");
