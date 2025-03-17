@@ -28,7 +28,7 @@ class TwodSubgridCalculator
     //! \name Type aliases
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
-    using InterpT = FindInterp;
+    using InterpT = FindInterp<real_type>;
     //!@}
 
   public:

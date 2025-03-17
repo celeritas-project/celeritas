@@ -83,8 +83,8 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
         return value;
 
     // Find interpolation points for given r and z
-    FindInterp interp_r = find_interp<UniformGrid>(grid_r_, r);
-    FindInterp interp_z = find_interp<UniformGrid>(grid_z_, pos[2]);
+    FindInterp<real_type> interp_r = find_interp<UniformGrid>(grid_r_, r);
+    FindInterp<real_type> interp_z = find_interp<UniformGrid>(grid_z_, pos[2]);
 
     size_type ir = interp_r.index;
     size_type iz = interp_z.index;
