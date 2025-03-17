@@ -50,7 +50,7 @@ void teardown_surface_tracking_device();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #ifndef VECGEOM_ENABLE_CUDA
-inline CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
+inline CudaPointers<detail::CudaBVH_t const> bvh_pointers_device()
 {
     CELER_ASSERT_UNREACHABLE();
 }
