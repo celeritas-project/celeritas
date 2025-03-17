@@ -136,16 +136,6 @@ auto build_physics_processes(inp::EmPhysics const& em,
     if (em.brems)
     {
         opts.brem_combined = em.brems->combined_model;
-        opts.brems_selection = [&brems = *em.brems] {
-            if (brems.rel && brems.sb)
-                return BremsModelSelection::all;
-            else if (brems.rel)
-                return BremsModelSelection::relativistic;
-            else if (brems.sb)
-                return BremsModelSelection::seltzer_berger;
-            else
-                return BremsModelSelection::none;
-        }();
     }
 
     // TODO: add callback for user processes

@@ -39,8 +39,6 @@ class BremsstrahlungProcess : public Process
     // TODO: update options based on ImportData
     struct Options
     {
-        BremsModelSelection selection{BremsModelSelection::all};  //!> Model
-                                                                  //! selection
         bool combined_model{false};  //!> Use a unified relativistic/SB
                                      //! interactor
         bool enable_lpm{true};  //!> Account for LPM effect at very high
