@@ -86,22 +86,21 @@ CELER_FUNCTION auto RZPhiMapField::operator()(Real3 const& pos) const -> Real3
     // Convert Cartesian to cylindrical coordinates
     real_type r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
-    real_type phi = atan2(pos[1], pos[0]);
-    if (phi < 0)
+    Turn phi = atan2turn(pos[1], pos[0]);
+    if (phi < zero_quantity())
     {
-        phi += TwoPi::value();
+        phi.value() += 1;
     }
-    auto turn_phi{native_value_to<Turn>(phi)};
 
     // Check if point is within field map bounds
-    if (!params_.valid(pos[2], r, turn_phi))
+    if (!params_.valid(pos[2], r, phi))
         return value;
 
     // Find interpolation points for given r, z, and phi
     auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
     auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
     auto [iphi, wphi1]
-        = find_interp<NonuniformGrid<real_type>>(grid_phi_, turn_phi.value());
+        = find_interp<NonuniformGrid<real_type>>(grid_phi_, phi.value());
 
     auto get_field = [this](size_type iz, size_type ir, size_type iphi) {
         return params_.fieldmap[params_.id(iphi, ir, iz)];
