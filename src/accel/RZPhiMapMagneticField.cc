@@ -123,11 +123,9 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
                 cartesian_to_cylindrical(bfield, bfield_cyl);
                 auto bfield_cyl_native
                     = convert_from_geant(bfield_cyl.data(), clhep_field);
-                for (auto comp : range(CylAxis::size_))
-                {
-                    cur_bfield[static_cast<size_type>(comp)]
-                        = bfield_cyl_native[static_cast<size_type>(comp)];
-                }
+                std::copy(bfield_cyl_native.begin(),
+                          bfield_cyl_native.end(),
+                          cur_bfield);
             }
         }
     }
