@@ -21,14 +21,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap (3-dimensional RZ-Phi map) grid data
+ * FieldMap (3-dimensional R-Phi-Z map) grid data
  */
 template<Ownership W, MemSpace M>
 struct CylMapGridData
 {
     template<class T>
     using Items = Collection<T, W, M>;
-    Items<real_type> storage;  //!< [Phi, R, Z]
+    Items<real_type> storage;  //!< [R, Phi, Z]
     EnumArray<CylAxis, ItemRange<real_type>> axes;
 
     //! Check whether the data is assigned

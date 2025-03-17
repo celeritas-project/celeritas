@@ -166,7 +166,7 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Create an along-step method for a three-dimensional (r-z-phi in the
+ * Create an along-step method for a three-dimensional (r-phi-z in the
  * cylindical coordinate system) map field (CylFieldMap).
  */
 class CylFieldMapAlongStepFactory final : public AlongStepFactoryInterface
