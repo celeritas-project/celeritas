@@ -175,14 +175,16 @@ if(NOT TARGET celeritas)
   # in dependencies
   include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake" OPTIONAL)
 
+  # Load targets created by `install(EXPORT celeritas-targets`
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 endif()
 
 #-----------------------------------------------------------------------------#
+# Set components for use by the caller
 
 foreach(_dep
     CUDA HIP # Languages
-    Geant4 HepMC3 JSON MPI OpenMP ROOT VecGeom # Packages
+    Geant4 HepMC3 PNG MPI OpenMP Perfetto ROOT VecGeom # Packages
   )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
