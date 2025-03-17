@@ -71,7 +71,7 @@ class AlongStepCylFieldMapMscAction final : public CoreStepActionInterface
     //! Short description of the action
     std::string_view description() const final
     {
-        return "apply along-step in a R-Z-Phi map field with Urban MSC";
+        return "apply along-step in a R-Phi-Z map field with Urban MSC";
     }
 
     //! Dependency ordering of the action
