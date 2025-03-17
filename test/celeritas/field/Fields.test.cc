@@ -255,45 +255,48 @@ TEST_F(RZPhiMapFieldTest, all)
     }
 
     // Expected field values at the 8 sample points (2×2×2 grid in r, phi, z)
-    static real_type const expected_field[] = {// r=10cm, phi=0, z=-100cm
-                                               0.002,
-                                               0,
-                                               3.799975,
+    // clang-format off
+    static real_type const expected_field[] = {
+        // r=10cm, phi=0, z=-100cm
+        0.002,
+        0,
+        3.799975,
 
-                                               // r=10cm, phi=0, z=100cm
-                                               0.002,
-                                               0,
-                                               3.799975,
+        // r=10cm, phi=0, z=100cm
+        0.002,
+        0,
+        3.799975,
 
-                                               // r=10cm, phi=pi/2, z=-100cm
-                                               -0.00173205080756888,
-                                               0,
-                                               3.799975,
+        // r=10cm, phi=pi/2, z=-100cm
+        -0.00173205080756888,
+        0,
+        3.799975,
 
-                                               // r=10cm, phi=pi/2, z=100cm
-                                               -0.00173205080756888,
-                                               0,
-                                               3.799975,
+        // r=10cm, phi=pi/2, z=100cm
+        -0.00173205080756888,
+        0,
+        3.799975,
 
-                                               // r=100cm, phi=0, z=-100cm
-                                               0.02,
-                                               0,
-                                               3.7995,
+        // r=100cm, phi=0, z=-100cm
+        0.02,
+        0,
+        3.7995,
 
-                                               // r=100cm, phi=0, z=100cm
-                                               0.02,
-                                               0,
-                                               3.7995,
+        // r=100cm, phi=0, z=100cm
+        0.02,
+        0,
+        3.7995,
 
-                                               // r=100cm, phi=pi/2, z=-100cm
-                                               -0.0173205080756888,
-                                               0,
-                                               3.7995,
+        // r=100cm, phi=pi/2, z=-100cm
+        -0.0173205080756888,
+        0,
+        3.7995,
 
-                                               // r=100cm, phi=pi/2, z=100cm
-                                               -0.0173205080756888,
-                                               0,
-                                               3.7995};
+        // r=100cm, phi=pi/2, z=100cm
+        -0.0173205080756888,
+        0,
+        3.7995};
+        // clang-format on
 
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
