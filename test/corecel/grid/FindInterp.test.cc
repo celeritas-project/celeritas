@@ -48,9 +48,6 @@ TEST(FindInterpTest, uniform_real)
     }
 }
 
-// In this case, the fraction is always truncated by integer division to zero
-// If we actually care about this in the future we can return a rational number
-// for the "value"
 TEST(FindInterpTest, nonuniform)
 {
     Collection<double, Ownership::value, MemSpace::host> data;
