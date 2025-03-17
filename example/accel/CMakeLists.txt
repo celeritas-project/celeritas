@@ -17,8 +17,6 @@ if(NOT CELERITAS_USE_Geant4)
     "to be enabled in Celeritas")
 endif()
 
-include(CudaRdcUtils)
-
 add_executable(simple-offload simple-offload.cc)
 cuda_rdc_target_link_libraries(simple-offload
   Celeritas::accel

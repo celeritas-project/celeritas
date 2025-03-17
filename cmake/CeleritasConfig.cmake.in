@@ -171,6 +171,10 @@ cmake_policy(POP)
 #-----------------------------------------------------------------------------#
 
 if(NOT TARGET celeritas)
+  # Load Celeritas-distributed RDC utils after potential older version
+  # in dependencies
+  include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake" OPTIONAL)
+
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 endif()
 
