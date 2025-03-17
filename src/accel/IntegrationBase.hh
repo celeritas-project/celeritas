@@ -14,12 +14,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct SetupOptions;
+class CoreStateInterface;
+class CoreParams;
 
 //---------------------------------------------------------------------------//
 /*!
  * Common interface for integrating Celeritas into user applications.
  *
  * This implements common functionality for the Celeritas integration classes.
+ * The \c GetParams and \c GetState methods may only be used during a run with
+ * Celeritas offloading enabled.
  *
  * \sa celeritas::UserActionIntegration
  * \sa celeritas::TrackingManagerIntegration
@@ -30,7 +34,7 @@ struct SetupOptions;
 class IntegrationBase
 {
   public:
-    // Edit options before starting the run
+    // Set options before starting the run
     void SetOptions(SetupOptions&& opts);
 
     // Initialize during ActionInitialization on non-worker thread
@@ -44,6 +48,14 @@ class IntegrationBase
 
     // End the run
     void EndOfRunAction(G4Run const* run);
+
+    //// ACCESSORS ////
+
+    // Access Celeritas shared params
+    CoreParams const& GetParams();
+
+    // Access THREAD-LOCAL Celeritas core state data for user diagnostics
+    CoreStateInterface& GetState();
 
   protected:
     IntegrationBase() = default;

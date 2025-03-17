@@ -10,17 +10,24 @@
 
 #include "corecel/Assert.hh"
 
+#include "ExceptionConverter.hh"
+
 #include "detail/IntegrationSingleton.hh"
+
+using celeritas::detail::IntegrationSingleton;
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Edit options before starting the run.
+ * Set options before starting the run.
+ *
+ * This captures the input to indicate that options cannot be modified after
+ * this point.
  */
 void IntegrationBase::SetOptions(SetupOptions&& opts)
 {
-    detail::IntegrationSingleton::instance().setup_options(std::move(opts));
+    IntegrationSingleton::instance().setup_options(std::move(opts));
 }
 
 //---------------------------------------------------------------------------//
@@ -29,12 +36,16 @@ void IntegrationBase::SetOptions(SetupOptions&& opts)
  */
 void IntegrationBase::BuildForMaster()
 {
-    CELER_VALIDATE(
-        G4Threading::IsMasterThread()
-            && G4Threading::IsMultithreadedApplication(),
-        << R"(BuildForMaster called from a worker thread or non-MT code)");
+    CELER_TRY_HANDLE(
+        {
+            CELER_VALIDATE(
+                G4Threading::IsMasterThread()
+                    && G4Threading::IsMultithreadedApplication(),
+                << R"(BuildForMaster called from a worker thread or non-MT code)");
+        },
+        ExceptionConverter{"celer.build_master"});
 
-    detail::IntegrationSingleton::instance().initialize_logger();
+    IntegrationSingleton::instance().initialize_logger();
 }
 
 //---------------------------------------------------------------------------//
@@ -48,11 +59,16 @@ void IntegrationBase::Build()
 {
     if (G4Threading::IsMasterThread())
     {
-        CELER_VALIDATE(!G4Threading::IsMultithreadedApplication(),
-                       << "cannot call Integration::Build from worker thread "
-                          "in a multithreaded application");
+        CELER_TRY_HANDLE(
+            {
+                CELER_VALIDATE(!G4Threading::IsMultithreadedApplication(),
+                               << "cannot call Integration::Build from worker "
+                                  "thread "
+                                  "in a multithreaded application");
+            },
+            ExceptionConverter{"celer.build"});
 
-        detail::IntegrationSingleton::instance().initialize_logger();
+        IntegrationSingleton::instance().initialize_logger();
     }
 }
 
@@ -64,7 +80,7 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 {
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
 
-    auto& singleton = detail::IntegrationSingleton::instance();
+    auto& singleton = IntegrationSingleton::instance();
 
     // Remove local transporter
     singleton.finalize_local_transporter();
@@ -73,6 +89,45 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
     {
         singleton.finalize_shared_params();
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access Celeritas shared params.
+ */
+CoreParams const& IntegrationBase::GetParams()
+{
+    auto& singleton = IntegrationSingleton::instance();
+    CELER_TRY_HANDLE(
+        {
+            CELER_VALIDATE(
+                singleton.mode() != IntegrationSingleton::Mode::disabled,
+                << R"(cannot access shared params when Celeritas is disabled)");
+        },
+        ExceptionConverter{"celer.get.params"});
+    return *singleton.shared_params().Params();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access THREAD-LOCAL Celeritas core state data for user diagnostics.
+ */
+CoreStateInterface& IntegrationBase::GetState()
+{
+    auto& singleton = IntegrationSingleton::instance();
+    CELER_TRY_HANDLE(
+        {
+            CELER_VALIDATE(
+                !G4Threading::IsMultithreadedApplication()
+                    || G4Threading::IsWorkerThread(),
+                << R"(cannot call Integration::GetState from master thread in a multithreaded application)");
+            CELER_VALIDATE(
+                singleton.mode() != IntegrationSingleton::Mode::disabled,
+                << R"(cannot access local state when Celeritas is disabled)");
+        },
+        ExceptionConverter{"celer.get.state"});
+
+    return singleton.local_transporter().GetState();
 }
 
 //---------------------------------------------------------------------------//

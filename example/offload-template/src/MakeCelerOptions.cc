@@ -9,10 +9,30 @@
 #include <accel/AlongStepFactory.hh>
 #include <accel/SetupOptions.hh>
 
+#include "EventAction.hh"
+#include "StepDiagnostic.hh"
+
 namespace celeritas
 {
 namespace example
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Add the step diagnostic.
+ */
+void AddUserActions(CoreParams const& params)
+{
+    // Add the diagnostic to the stepping loop
+    auto diagnostic = StepDiagnostic::make_and_insert(params);
+    CELER_ASSERT(diagnostic);
+
+    // Save it to transfer and print at the end of every event
+    EventAction::SetStepDiagnostic(std::move(diagnostic));
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Build options to set up Celeritas.
@@ -31,6 +51,8 @@ celeritas::SetupOptions MakeCelerOptions()
 
     // Save diagnostic information
     opts.output_file = "celeritas-offload-diagnostic.json";
+
+    opts.add_user_actions = AddUserActions;
 
     return opts;
 }

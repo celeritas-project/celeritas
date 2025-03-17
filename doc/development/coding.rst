@@ -59,6 +59,8 @@ DOI.) The procedure to set up a citation correctly is:
 .. _Better BibTeX for Zotero: https://github.com/retorquere/zotero-better-bibtex
 .. _Celeritas group: https://www.zotero.org/groups/2380941/celeritas/library
 
+.. _coding_testing:
+
 Test thoroughly
 ---------------
 

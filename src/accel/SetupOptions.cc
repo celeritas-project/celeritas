@@ -151,6 +151,9 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.diagnostics.slot = inp::SlotDiagnostic{so.slot_diagnostic_prefix};
     }
+
+    // Custom user actions
+    p.diagnostics.add_user_actions = so.add_user_actions;
 }
 
 //---------------------------------------------------------------------------//

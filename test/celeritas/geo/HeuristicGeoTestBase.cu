@@ -30,7 +30,7 @@ void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const& params,
         "heuristic-geo");
     launch_kernel(state.size(), StreamId{}, execute_thread);
 
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//
