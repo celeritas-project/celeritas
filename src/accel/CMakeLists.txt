@@ -20,6 +20,7 @@ list(APPEND SOURCES
   IntegrationBase.cc
   Logger.cc
   LocalTransporter.cc
+  RZPhiMapMagneticField.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
