@@ -11,6 +11,7 @@
 #include <G4Threading.hh>
 
 #include "corecel/io/Join.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 
 #include "ExceptionConverter.hh"

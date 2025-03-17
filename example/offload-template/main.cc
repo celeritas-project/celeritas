@@ -53,6 +53,6 @@ int main(int argc, char* argv[])
 
     // Run one event
     run_manager->Initialize();
-    run_manager->BeamOn(1);
+    run_manager->BeamOn(4);
     return EXIT_SUCCESS;
 }

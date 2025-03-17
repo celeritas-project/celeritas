@@ -54,10 +54,12 @@ void fill_sequence(Collection<T, W, M, I>* dst, StreamId stream)
  * Copy from the given collection to host.
  */
 template<class T, Ownership W, MemSpace M, class I, std::size_t E>
-void copy_to_host(Collection<T, W, M, I> const& src, Span<T, E> dst)
+void copy_to_host(Collection<T, W, M, I> const& src,
+                  Span<T, E> dst,
+                  StreamId sid = {})
 {
     CELER_EXPECT(src.size() == dst.size());
-    Copier<T, MemSpace::host> copy_to_result{dst};
+    Copier<T, MemSpace::host> copy_to_result{dst, sid};
     copy_to_result(M, src[AllItems<T, M>{}]);
 }
 

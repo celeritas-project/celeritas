@@ -17,6 +17,11 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
 High level interfaces
 ---------------------
 
+The high-level integration classes are the easiest way to add Celeritas to a
+Geant4 application. Under the hood, it contains a singleton class instance that
+sets up the UI commands (see :cpp:class:`celeritas::SetupOptionsMessenger`),
+MPI (if configured), and Celeritas logging.
+
 .. doxygenclass:: celeritas::IntegrationBase
    :members:
    :no-link:
@@ -31,7 +36,7 @@ manager correctly, we recommend using this helper class:
 
 .. doxygenclass:: celeritas::TrackingManagerConstructor
 
-The high-level :cpp:class:`TrackingManagerIntegration` class should be used in
+The high-level :cpp:class:`celeritas::TrackingManagerIntegration` class should be used in
 addition to the tracking manager constructor to set up and tear down Celeritas.
 See :ref:`example_template` for a template of adding to a user application.
 
@@ -114,9 +119,9 @@ compatible with Celeritas), the Celeritas setup will fail with an error like:
 .. doxygenclass:: celeritas::RZMapFieldAlongStepFactory
 
 
-The :cpp:class:`SetupOptionsMessenger`, instantiated automatically by the
-Integration helper classes, provides a Geant4 "UI" macro interface to many of
-the options.
+The :cpp:class:`celeritas::SetupOptionsMessenger`, instantiated automatically
+by the Integration helper classes, provides a Geant4 "UI" macro interface to
+many of the options.
 
 .. doxygenclass:: celeritas::SetupOptionsMessenger
 

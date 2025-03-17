@@ -26,6 +26,9 @@ struct FindInterp
     T fraction{};  //!< Fraction of the value between its neighbors
 };
 
+template<class T>
+CELER_FUNCTION FindInterp(size_type, T) -> FindInterp<T>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Find the index of the value and its fraction between neighboring points.
@@ -37,22 +40,20 @@ struct FindInterp
  * result will always have an index such that its neighbor to the right is a
  * valid point on the grid, and the fraction between neghbors may be zero (in
  * the case where the value is exactly on a grid point) but is always less than
- * one.
+ * one. If the requested point is exactly on a coincident grid point, the lower
+ * point and a fraction of zero will result.
  */
 template<class Grid>
-inline CELER_FUNCTION FindInterp<typename Grid::value_type>
+inline CELER_FUNCTION auto
 find_interp(Grid const& grid, typename Grid::value_type value)
 {
     CELER_EXPECT(value >= grid.front() && value < grid.back());
 
-    FindInterp<typename Grid::value_type> result;
-    result.index = grid.find(value);
-    CELER_ASSERT(result.index + 1 < grid.size());
-    auto const lower_val = grid[result.index];
-    auto const upper_val = grid[result.index + 1];
-    result.fraction = (value - lower_val) / (upper_val - lower_val);
-
-    return result;
+    auto index = grid.find(value);
+    CELER_ASSERT(index + 1 < grid.size());
+    auto const lower_val = grid[index];
+    auto const upper_val = grid[index + 1];
+    return FindInterp{index, (value - lower_val) / (upper_val - lower_val)};
 }
 
 //---------------------------------------------------------------------------//

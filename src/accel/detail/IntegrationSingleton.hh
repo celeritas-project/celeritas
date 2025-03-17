@@ -6,21 +6,31 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
-#include "accel/SetupOptionsMessenger.hh"
 #include "accel/SharedParams.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class ScopedMpiInit;
+class SetupOptionsMessenger;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Singletons used by the Integration interfaces.
  *
- * The single singleton instance contains global data. Thread-local data is
- * managed by the \c local_transporter static class.
+ * The singleton instance contains global data, including a single copy of the
+ * options (which are referenced by the UI setup) and an MPI setup/teardown
+ * helper.
+ * Thread-local data is managed by the \c local_transporter static function.
+ * Setup options are permanently referenced by the UI messenger class.
+ *
+ * The first call to the singleton initializes MPI if necessary, and MPI will
+ * be finalized during the termination phase of the program.
  */
 class IntegrationSingleton
 {
@@ -81,7 +91,8 @@ class IntegrationSingleton
     Mode mode_{Mode::size_};
     SetupOptions options_;
     SharedParams params_;
-    SetupOptionsMessenger messenger_{&options_};
+    std::unique_ptr<ScopedMpiInit> scoped_mpi_;
+    std::unique_ptr<SetupOptionsMessenger> messenger_;
 };
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,11 @@ namespace celeritas
  * should not be stored in TrackInitStateData because then the device-memory
  * copy will not be synchronized.
  *
+ * For all user \c StepActionOrder (TODO: this may change if we add a
+ * "user_end"), all but the secondaries/alive
+ * counts are for the current step iteration, and secondaries/alive values
+ * are from the previous step iteration.
+ *
  * \todo Drop the 'num' prefix since we know they're counters.
  */
 struct CoreStateCounters
