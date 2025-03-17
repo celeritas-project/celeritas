@@ -67,11 +67,9 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
     size_type const nphi = field_input.grid_phi.size();
     size_type const total_points = nr * nz * nphi;
 
-    field_input.field_r.resize(total_points);
-    field_input.field_phi.resize(total_points);
-    field_input.field_z.resize(total_points);
+    field_input.field.resize(3 * total_points);
 
-    Array<size_type, 3> const dims{nphi, nr, nz};
+    Array<size_type, 4> const dims{nphi, nr, nz, 3};
     HyperslabIndexer const flat_index{dims};
 
     CELER_EXPECT(G4TransportationManager::GetTransportationManager());
@@ -92,7 +90,7 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
             real_type r = field_input.grid_r[ir];
             for (size_type iz = 0; iz < nz; ++iz)
             {
-                auto idx = flat_index(iphi, ir, iz);
+                auto idx = flat_index(iphi, ir, iz, 0);
                 Array<G4double, 4> pos = {r * std::cos(phi),
                                           r * std::sin(phi),
                                           field_input.grid_z[iz],
@@ -100,13 +98,15 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
                 field.GetFieldValue(pos.data(), bfield.data());
 
                 // values in cylindrical vector space
-                field_input.field_r[idx] = convert_from_geant(
-                    bfield[0] * std::cos(phi) + bfield[1] * std::sin(phi),
-                    clhep_field);
-                field_input.field_phi[idx] = convert_from_geant(
-                    -bfield[0] * std::sin(phi) + bfield[1] * std::cos(phi),
-                    clhep_field);
-                field_input.field_z[idx]
+                field_input.field[idx + RZPhiMapFieldInput::R]
+                    = convert_from_geant(
+                        bfield[0] * std::cos(phi) + bfield[1] * std::sin(phi),
+                        clhep_field);
+                field_input.field[idx + RZPhiMapFieldInput::Phi]
+                    = convert_from_geant(
+                        -bfield[0] * std::sin(phi) + bfield[1] * std::cos(phi),
+                        clhep_field);
+                field_input.field[idx + RZPhiMapFieldInput::Z]
                     = convert_from_geant(bfield[2], clhep_field);
             }
         }

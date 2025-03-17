@@ -12,6 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Turn.hh"
+#include "celeritas/field/RZPhiMapFieldInput.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -37,8 +38,10 @@ struct RZPhiMapGridData
     explicit inline CELER_FUNCTION operator bool() const
     {
         return !storage.empty() && grid_size[0] > 1 && grid_size[1] > 1
-               && grid_size[2] > 1 && phi.size() == grid_size[0]
-               && r.size() == grid_size[1] && z.size() == grid_size[2];
+               && grid_size[2] > 1
+               && phi.size() == grid_size[RZPhiMapFieldInput::Phi]
+               && r.size() == grid_size[RZPhiMapFieldInput::R]
+               && z.size() == grid_size[RZPhiMapFieldInput::Z];
     }
 
     //! Assign from another set of data

@@ -51,19 +51,11 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         << " <= min_phi= " << inp.grid_phi.front().value() << ")");
 
     CELER_VALIDATE(
-        inp.field_z.size()
-            == inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size(),
-        << "invalid field length (field_z size=" << inp.field_z.size()
+        inp.field.size()
+            == 3 * inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size(),
+        << "invalid field length (field size=" << inp.field.size()
         << "): should be "
-        << inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size());
-    CELER_VALIDATE(
-        inp.field_r.size() == inp.field_z.size(),
-        << "invalid field length (field_r size=" << inp.field_r.size()
-        << "): should be " << inp.field_z.size());
-    CELER_VALIDATE(
-        inp.field_phi.size() == inp.field_z.size(),
-        << "invalid field length (field_phi size=" << inp.field_phi.size()
-        << "): should be " << inp.field_z.size());
+        << 3 * inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size());
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");
@@ -77,9 +69,9 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     auto host_data = [&inp] {
         HostVal<RZPhiMapFieldParamsData> host;
 
-        host.grids.grid_size[0] = inp.grid_phi.size();
-        host.grids.grid_size[1] = inp.grid_r.size();
-        host.grids.grid_size[2] = inp.grid_z.size();
+        host.grids.grid_size[RZPhiMapFieldInput::Phi] = inp.grid_phi.size();
+        host.grids.grid_size[RZPhiMapFieldInput::R] = inp.grid_r.size();
+        host.grids.grid_size[RZPhiMapFieldInput::Z] = inp.grid_z.size();
 
         auto grid = make_builder(&host.grids.storage);
         grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
@@ -93,14 +85,16 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
         host.grids.z = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
 
         auto fieldmap = make_builder(&host.fieldmap);
-        fieldmap.reserve(inp.field_z.size());
-        for (auto i : range(inp.field_z.size()))
+        fieldmap.reserve(inp.field.size());
+        for (auto i :
+             range(inp.grid_z.size() * inp.grid_r.size() * inp.grid_phi.size()))
         {
             // Save field vector
             RZPhiMapElement el;
-            el.value_z = inp.field_z[i];
-            el.value_r = inp.field_r[i];
-            el.value_phi = inp.field_phi[i];
+            auto idx = i * 3;
+            el.value_z = inp.field[idx + RZPhiMapFieldInput::Z];
+            el.value_r = inp.field[idx + RZPhiMapFieldInput::R];
+            el.value_phi = inp.field[idx + RZPhiMapFieldInput::Phi];
             fieldmap.push_back(el);
         }
 

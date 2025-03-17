@@ -179,16 +179,14 @@ TEST_F(RZPhiMapFieldTest, all)
         size_type const nr = inp.grid_r.size();
         size_type const nz = inp.grid_z.size();
         size_type const nphi = inp.grid_phi.size();
-        Array<size_type, 3> const dims{nphi, nr, nz};
+        Array<size_type, 4> const dims{nphi, nr, nz, 3};
         size_type const total_points = nr * nz * nphi;
 
         // Resize each component of the field
-        inp.field_r.resize(total_points);
-        inp.field_phi.resize(total_points);
-        inp.field_z.resize(total_points);
+        inp.field.resize(3 * total_points);
 
         // Fill with a simple field pattern
-        HyperslabIndexer<3> const flat_index{dims};
+        HyperslabIndexer const flat_index{dims};
         for (size_type ir = 0; ir < nr; ++ir)
         {
             real_type r = inp.grid_r[ir];
@@ -201,12 +199,15 @@ TEST_F(RZPhiMapFieldTest, all)
                                     * constants::pi;
 
                     // Index calculation for 3D array
-                    auto idx = flat_index(iphi, ir, iz);
+                    auto idx = flat_index(iphi, ir, iz, 0);
 
                     // Set field components
-                    inp.field_r[idx] = 0.02 * r / 100.0 * std::cos(phi);
-                    inp.field_phi[idx] = 0.02 * r / 100.0 * std::sin(phi);
-                    inp.field_z[idx] = 3.8 - 0.0005 * (r / 100.0) * (r / 100.0);
+                    inp.field[idx + RZPhiMapFieldInput::R] = 0.02 * r / 100.0
+                                                             * std::cos(phi);
+                    inp.field[idx + RZPhiMapFieldInput::Phi] = 0.02 * r / 100.0
+                                                               * std::sin(phi);
+                    inp.field[idx + RZPhiMapFieldInput::Z]
+                        = 3.8 - 0.0005 * (r / 100.0) * (r / 100.0);
                 }
             }
         }

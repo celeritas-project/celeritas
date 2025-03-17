@@ -34,14 +34,20 @@ namespace celeritas
  */
 struct RZPhiMapFieldInput
 {
+    //! Cylindrical coordinates indices
+    enum
+    {
+        Phi = 0,
+        R = 1,
+        Z = 2
+    };
+
     std::vector<real_type> grid_r;  //!< R grid points [len]
     std::vector<real_type> grid_z;  //!< Z grid points [len]
     std::vector<Turn> grid_phi;  //!< Phi grid points [AU]
 
-    std::vector<real_type> field_z;  //!< Flattened Z field component [bfield]
-    std::vector<real_type> field_r;  //!< Flattened R field component [bfield]
-    std::vector<real_type> field_phi;  //!< Flattened Phi field component
-                                       //!< [bfield]
+    std::vector<real_type> field;  //!< Flattened Phi-R-Z field component
+                                   //!< [bfield]
 
     // TODO: remove from field input; should be a separate input
     FieldDriverOptions driver_options;
@@ -59,9 +65,7 @@ struct RZPhiMapFieldInput
             && std::is_sorted(grid_phi.cbegin(), grid_phi.cend())
             && std::is_sorted(grid_r.cbegin(), grid_r.cend())
             && std::is_sorted(grid_z.cbegin(), grid_z.cend())
-            && (field_z.size() == grid_z.size() * grid_r.size() * grid_phi.size())
-            && (field_r.size() == field_z.size())
-            && (field_phi.size() == field_z.size());
+            && (field.size() == 3 * grid_z.size() * grid_r.size() * grid_phi.size());
         // clang-format on
     }
 };
