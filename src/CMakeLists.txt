@@ -104,7 +104,7 @@ macro(celer_add_ext_library pkg)
   celeritas_add_interface_library(Ext${pkg})
 
   if(CELERITAS_USE_${pkg})
-    target_link_libraries(Ext${pkg} INTERFACE ${ARGN})
+    celer_target_link_libraries(Ext${pkg} INTERFACE ${ARGN})
   endif()
 endmacro()
 
@@ -112,9 +112,11 @@ celer_add_ext_library(MPI MPI::MPI_CXX)
 celer_add_ext_library(OpenMP OpenMP::OpenMP_CXX)
 celer_add_ext_library(VecGeom VecGeom::vecgeom)
 if(CELERITAS_USE_CUDA)
-  # VecGeom headers propagate CUDA includes into host compiler ode
+  # VecGeom headers propagate CUDA includes into host compiler code
   # see https://gitlab.cern.ch/VecGeom/VecGeom/-/merge_requests/1289
-  target_link_libraries(ExtVecGeom INTERFACE Celeritas::ExtDeviceApi)
+  celer_target_link_libraries(ExtVecGeom
+    INTERFACE Celeritas::ExtDeviceApi
+  )
 endif()
 
 
