@@ -31,6 +31,9 @@ ScopedMpiInit::Status ScopedMpiInit::status_
 //---------------------------------------------------------------------------//
 /*!
  * Construct with argc/argv references.
+ *
+ * OpenMPI does not modify or access these, but other implementations might
+ * potentially.
  */
 ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
 {
