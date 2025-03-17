@@ -269,7 +269,7 @@ jobs:
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done
-          ./bin/celer-sim --version
+          ./bin/celer-sim --config
       - name: Build examples
         # TODO: ASAN requires flags downstream
         env:
