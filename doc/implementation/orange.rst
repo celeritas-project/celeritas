@@ -22,7 +22,7 @@ Intersect region
 ^^^^^^^^^^^^^^^^
 
 The lowest level primitive for construction is the "intersect region," which is
-a CSG intersection of half-spaces. The :cpp:class:`IntersectRegion` interface
+a CSG intersection of half-spaces. The IntersectRegion interface
 helps construct these objects.
 
 .. doxygenclass:: celeritas::orangeinp::IntersectRegionInterface

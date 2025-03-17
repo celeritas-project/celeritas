@@ -116,14 +116,29 @@ An assertion macro in :file:`Assert.hh` checks the return result of CUDA/HIP API
 System
 ------
 
+The system subdirectory provides uniform interfaces to hardware and the
+operating system.
+
+GPU management
+^^^^^^^^^^^^^^
+
 .. doxygenclass:: celeritas::Device
 .. doxygenfunction:: celeritas::device
 .. doxygenfunction:: celeritas::activate_device()
+
+Environment variables
+^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenclass:: celeritas::Environment
 .. doxygenfunction:: celeritas::environment
 .. doxygenfunction:: celeritas::getenv
 .. doxygenfunction:: celeritas::getenv_flag
+
+MPI support
+^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::ScopedMpiInit
+.. doxygenclass:: celeritas::MpiCommunicator
 
 Utility functions
 -----------------
