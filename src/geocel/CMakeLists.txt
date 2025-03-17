@@ -83,7 +83,7 @@ if(CELERITAS_USE_VecGeom)
     )
   elseif(VecGeom_CUDA_FOUND)
     # VecGeom is built with CUDA but Celeritas is not
-    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+    list(APPEND PUBLIC_DEPS VecGeom::vecgeomcuda)
   endif()
   list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
 endif()
