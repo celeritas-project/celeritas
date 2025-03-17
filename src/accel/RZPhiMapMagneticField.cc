@@ -28,6 +28,25 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+namespace
+{
+//---------------------------------------------------------------------------//
+
+//! Cartesion to cylindrical 3D vector conversion, cylindrical vector is
+//! ordered as Phi-R-Z
+inline void cartesian_to_cylindrical(Array<real_type, 3> const& cart,
+                                     Array<real_type, 3>& cyl)
+{
+    double const phi = std::atan2(cart[1], cart[0]);
+    cyl[0] = -cart[0] * std::sin(phi) + cart[1] * std::cos(phi);
+    cyl[1] = cart[0] * std::cos(phi) + cart[1] * std::sin(phi);
+    cyl[2] = cart[2];
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 /*!
  * Generates input for RZPhiMapField params with configurable nonuniform grid
  * dimensions in native Geant4 units, and \f$\phi\f$ should be in the range
@@ -96,18 +115,9 @@ MakeRZPhiMapFieldInput(std::vector<real_type> const& r_grid,
                                           field_input.grid_z[iz],
                                           0};
                 field.GetFieldValue(pos.data(), bfield.data());
-
-                // values in cylindrical vector space
-                field_input.field[idx + RZPhiMapFieldInput::R]
-                    = convert_from_geant(
-                        bfield[0] * std::cos(phi) + bfield[1] * std::sin(phi),
-                        clhep_field);
-                field_input.field[idx + RZPhiMapFieldInput::Phi]
-                    = convert_from_geant(
-                        -bfield[0] * std::sin(phi) + bfield[1] * std::cos(phi),
-                        clhep_field);
-                field_input.field[idx + RZPhiMapFieldInput::Z]
-                    = convert_from_geant(bfield[2], clhep_field);
+                Array<real_type, 3> cyl{field_input.field[idx]};
+                cartesian_to_cylindrical(bfield, cyl);
+                convert_from_geant(cyl.data(), clhep_field);
             }
         }
     }
