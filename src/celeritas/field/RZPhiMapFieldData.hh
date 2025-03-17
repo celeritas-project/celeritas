@@ -29,20 +29,15 @@ struct RZPhiMapGridData
     template<class T>
     using Items = Collection<T, W, M>;
     Items<real_type> storage;  //!< [Phi, R, Z]
-    EnumArray<CylAxis, size_type> grid_size;
     EnumArray<CylAxis, ItemRange<real_type>> axes;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !storage.empty() && grid_size[CylAxis::phi] > 1
-               && grid_size[CylAxis::r] > 1 && grid_size[CylAxis::z] > 1
-               && axes[CylAxis::phi].size() == grid_size[CylAxis::phi]
-               && axes[CylAxis::r].size() == grid_size[CylAxis::r]
-               && axes[CylAxis::z].size() == grid_size[CylAxis::z]
+        return !storage.empty()
                && storage.size()
-                      == grid_size[CylAxis::phi] + grid_size[CylAxis::r]
-                             + grid_size[CylAxis::z];
+                      == axes[CylAxis::phi].size() + axes[CylAxis::r].size()
+                             + axes[CylAxis::z].size();
     }
 
     //! Assign from another set of data
@@ -51,7 +46,6 @@ struct RZPhiMapGridData
     {
         CELER_EXPECT(other);
         storage = other.storage;
-        grid_size = other.grid_size;
         axes = other.axes;
         return *this;
     }
@@ -103,11 +97,10 @@ struct RZPhiMapFieldParamsData
                                        size_type idx_z) const
     {
         CELER_EXPECT(grids);
-        // HyperSlabIndexer does not take Array<T const>
         Array<size_type, static_cast<size_type>(CylAxis::size_)> tmp{
-            grids.grid_size[CylAxis::phi],
-            grids.grid_size[CylAxis::r],
-            grids.grid_size[CylAxis::z]};
+            grids.axes[CylAxis::phi].size(),
+            grids.axes[CylAxis::r].size(),
+            grids.axes[CylAxis::z].size()};
         return ElementId{HyperslabIndexer{tmp}(idx_phi, idx_r, idx_z)};
     }
 

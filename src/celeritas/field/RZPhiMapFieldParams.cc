@@ -72,10 +72,6 @@ RZPhiMapFieldParams::RZPhiMapFieldParams(RZPhiMapFieldInput const& inp)
     auto host_data = [&inp] {
         HostVal<RZPhiMapFieldParamsData> host;
 
-        host.grids.grid_size[CylAxis::phi] = inp.grid_phi.size();
-        host.grids.grid_size[CylAxis::r] = inp.grid_r.size();
-        host.grids.grid_size[CylAxis::z] = inp.grid_z.size();
-
         auto grid = make_builder(&host.grids.storage);
         grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
                      + inp.grid_z.size());
