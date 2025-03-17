@@ -13,7 +13,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: a91f96292c5d999463818365a3dfdabacdd3a31b # develop@2025-03-06
+  SPACK_REF: 38309ced3344d06168c25482083fc733bb654a63 # develop@2025-03-17
 
 jobs:
   spack:
@@ -82,12 +82,6 @@ jobs:
           buildcache: true
           color: true
           path: spack-src
-      - name: Patch spack # To be deleted; see associated github pulls
-        working-directory: spack-src
-        run: |
-          for id in 49397 49511; do
-            curl -LfsS "https://github.com/spack/spack/pull/${id}.diff" | patch -p1
-          done
       - name: Initialize spack environment
         run: |
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
