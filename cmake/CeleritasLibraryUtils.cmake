@@ -174,6 +174,12 @@ endfunction()
 
 function(celeritas_add_object_library target)
   add_library(${target} OBJECT ${ARGN})
+  install(TARGETS ${target}
+    EXPORT celeritas-targets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    COMPONENT runtime
+  )
 endfunction()
 
 #-----------------------------------------------------------------------------#
