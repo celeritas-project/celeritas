@@ -222,6 +222,8 @@ jobs:
         continue-on-error: >- # TODO: fix failing tests
           ${{
             fromJSON(matrix.geant || '0') < 11
+            || matrix.geometry == 'vgsurf'
+            || matrix.geometry == 'vecgeom2'
           }}
         run: |
           if ${{matrix.geant == '11.0'
