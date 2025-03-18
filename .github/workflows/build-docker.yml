@@ -22,9 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         special: [null]
-        geometry: ["vecgeom"]
+        geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
-        image: ["rocky-cuda"]
+        image: ["rocky-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
             image: "ubuntu-rocm" # VecGeom not installed on HIP
