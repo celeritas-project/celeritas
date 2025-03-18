@@ -71,6 +71,12 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
 
     VecReal range{5e-7, 1e-6, 1e-5, 1e-3, 1, 1e3, 5e6};
     {
+        real_type tol = SoftEqual{}.rel();
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            tol *= 10;
+        }
+
         // Test linear interpolation
         VecReal energy{
             3.0402753589113166e-4,
@@ -86,14 +92,15 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
         InverseRangeCalculator calc_energy(this->data(), this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {
-            EXPECT_SOFT_EQ(energy[i], value_as<Energy>(calc_energy(range[i])));
+            EXPECT_SOFT_NEAR(
+                energy[i], value_as<Energy>(calc_energy(range[i])), tol);
         }
 
         // Linear interpolation is invertible
         RangeCalculator calc_range(this->data(), this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {
-            EXPECT_SOFT_EQ(range[i], calc_range(Energy(energy[i])));
+            EXPECT_SOFT_NEAR(range[i], calc_range(Energy(energy[i])), tol);
         }
     }
     {
