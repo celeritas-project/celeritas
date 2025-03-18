@@ -491,8 +491,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
     {
         return v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
     }
-#if (__CUDACC_VER_MAJOR__ < 11) \
-    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
+#if CELER_CUDACC_BUGGY_IF_CONSTEXPR
     // "error: missing return statement at end of non-void function"
     return T{0};
 #endif

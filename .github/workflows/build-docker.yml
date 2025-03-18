@@ -96,6 +96,12 @@ jobs:
           }}
         run: |
           . /etc/profile
+          # Get Geant4 version number for use by script
+          export G4VERSION_NUMBER=$(
+            grep -E '^\s*#define\s+G4VERSION_NUMBER' \
+              /opt/view/include/Geant4/G4Version.hh \
+              | awk '{print $3}'
+          )
           ./scripts/ci/test-examples.sh
       - name: Upload test results
         if: >-

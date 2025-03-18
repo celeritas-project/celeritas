@@ -20,7 +20,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 namespace detail
 {
-class HitManager;
 class OffloadWriter;
 }  // namespace detail
 
@@ -31,6 +30,7 @@ struct SetupOptions;
 class StepCollector;
 class GeantGeoParams;
 class OutputRegistry;
+class GeantSd;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -57,6 +57,7 @@ class SharedParams
   public:
     //!@{
     //! \name Type aliases
+    using SPParams = std::shared_ptr<CoreParams>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
     //!@}
@@ -112,6 +113,9 @@ class SharedParams
     //! \name Accessors
 
     // Access constructed Celeritas data
+    inline SPParams const& Params();
+
+    // Access constructed Celeritas data
     inline SPConstParams Params() const;
 
     // Get a vector of particles supported by Celeritas offloading
@@ -124,7 +128,7 @@ class SharedParams
     //!@{
     //! \name Internal use only
 
-    using SPHitManager = std::shared_ptr<detail::HitManager>;
+    using SPGeantSd = std::shared_ptr<GeantSd>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPState = std::shared_ptr<CoreStateInterface>;
@@ -135,7 +139,7 @@ class SharedParams
     Mode mode() const { return mode_; }
 
     // Hit manager, to be used only by LocalTransporter
-    inline SPHitManager const& hit_manager() const;
+    inline SPGeantSd const& hit_manager() const;
 
     // Optional offload writer, only for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
@@ -162,7 +166,7 @@ class SharedParams
     // Created during initialization
     Mode mode_{Mode::uninitialized};
     std::shared_ptr<CoreParams> params_;
-    std::shared_ptr<detail::HitManager> hit_manager_;
+    std::shared_ptr<GeantSd> hit_manager_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
@@ -196,6 +200,19 @@ void SharedParams::Initialize(SetupOptions const& options)
  *
  * This can only be called after \c Initialize.
  */
+auto SharedParams::Params() -> SPParams const&
+{
+    CELER_EXPECT(mode_ == Mode::enabled);
+    CELER_ENSURE(params_);
+    return params_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access Celeritas data.
+ *
+ * This can only be called after \c Initialize.
+ */
 auto SharedParams::Params() const -> SPConstParams
 {
     CELER_EXPECT(mode_ == Mode::enabled);
@@ -219,7 +236,7 @@ auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
  *
  * If sensitive detector callback is disabled, the hit manager will be null.
  */
-auto SharedParams::hit_manager() const -> SPHitManager const&
+auto SharedParams::hit_manager() const -> SPGeantSd const&
 {
     CELER_EXPECT(*this);
     return hit_manager_;

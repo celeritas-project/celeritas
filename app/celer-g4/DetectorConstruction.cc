@@ -25,7 +25,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
-#include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/inp/Field.hh"
 #include "accel/AlongStepFactory.hh"
 #include "accel/GeantSimpleCalo.hh"
 #include "accel/RZMapMagneticField.hh"
@@ -184,15 +184,10 @@ auto DetectorConstruction::construct_field() const -> FieldData
                 convert_to_geant(field_val, CLHEP::tesla));
         }
 
-        // Convert field units from tesla to native celeritas units
-        for (real_type& v : field_val)
-        {
-            v = native_value_from(units::FieldTesla{v});
-        }
-
-        UniformFieldParams input;
-        input.field = field_val;
-        input.options = GlobalSetup::Instance()->GetFieldOptions();
+        inp::UniformField input;
+        input.units = UnitSystem::si;
+        input.strength = field_val;
+        input.driver_options = GlobalSetup::Instance()->GetFieldOptions();
 
         return {UniformAlongStepFactory([input] { return input; }),
                 std::move(g4field)};

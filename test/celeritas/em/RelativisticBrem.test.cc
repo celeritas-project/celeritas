@@ -120,7 +120,7 @@ TEST_F(RelativisticBremTest, dxsec)
     real_type const all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
+    auto material_view = this->material_track().material_record();
 
     // Create the differential cross section
     RBDiffXsCalculator dxsec_lpm(model_lpm_->host_ref(),
@@ -182,7 +182,7 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
+    auto material_view = this->material_track().material_record();
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
@@ -247,7 +247,7 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
+    auto material_view = this->material_track().material_record();
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
@@ -304,7 +304,7 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
+    auto material_view = this->material_track().material_record();
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor

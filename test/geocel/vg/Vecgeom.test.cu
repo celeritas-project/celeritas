@@ -87,7 +87,7 @@ VGGTestOutput vgg_test(VGGTestInput const& input)
                         raw_pointer_cast(ids.data()),
                         raw_pointer_cast(distances.data()));
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     // Copy result back to CPU
     VGGTestOutput result;

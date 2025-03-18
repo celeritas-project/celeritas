@@ -63,7 +63,6 @@ inp::Problem load_problem(RunInput const& ri)
     if (celeritas::Device::num_devices())
     {
         inp::DeviceDebug dd;
-        dd.default_stream = ri.default_stream;
         dd.sync_stream = ri.action_times;
         p.control.device_debug = std::move(dd);
     }

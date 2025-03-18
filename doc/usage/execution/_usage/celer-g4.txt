@@ -1,0 +1,17 @@
+usage: ./celer-g4 {input}.json
+       ./celer-g4 -
+       ./celer-g4 {commands}.mac
+       ./celer-g4 --interactive
+       ./celer-g4 [--help|-h]
+       ./celer-g4 --version
+       ./celer-g4 --dump-default
+Environment variables:
+  G4FORCE_RUN_MANAGER_TYPE: MT or Serial
+  G4FORCENUMBEROFTHREADS: set CPU worker thread count
+  CELER_DISABLE: nonempty disables offloading
+  CELER_DISABLE_DEVICE: nonempty disables CUDA
+  CELER_DISABLE_ROOT: nonempty disables ROOT I/O
+  CELER_KILL_OFFLOAD: nonempty kills offload tracks
+  CELER_LOG: global logging level
+  CELER_LOG_LOCAL: thread-local logging level
+

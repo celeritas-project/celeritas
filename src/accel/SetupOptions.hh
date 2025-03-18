@@ -24,8 +24,10 @@ namespace celeritas
 namespace inp
 {
 struct FrameworkInput;
+struct GeantSd;
 }
 
+class CoreParams;
 struct AlongStepFactoryInput;
 //---------------------------------------------------------------------------//
 /*!
@@ -68,7 +70,7 @@ struct AlongStepFactoryInput;
  * FindVolumes helper function can be used to determine LV pointers from
  * the volume names.
  *
- * \note These setup options affect only the \c HitManager construction that is
+ * \note These setup options affect only the \c GeantSd construction that is
  * responsible for reconstructing CPU hits and sending directly to the Geant4
  * detectors. It does not change the underlying physics.
  *
@@ -95,6 +97,8 @@ struct SDSetupOptions
     bool step_length{true};
     //! Set TouchableHandle for PreStepPoint
     bool locate_touchable{true};
+    //! Set TouchableHandle for PostStepPoint
+    bool locate_touchable_post{true};
     //! Create a track with the dynamic particle type and post-step data
     bool track{true};
     //! Options for saving and converting beginning-of-step data
@@ -216,7 +220,7 @@ struct SetupOptions
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
     bool action_times{false};
-    //! Launch all kernels on the default stream for debugging
+    //! Launch all kernels on the default stream for debugging (REMOVED)
     bool default_stream{false};
     //!@}
 
@@ -225,6 +229,10 @@ struct SetupOptions
 
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
+
+    //! Add additional diagnostic user actions [EXPERIMENTAL]
+    std::function<void(CoreParams const&)> add_user_actions;
+
     //!@}
 
     explicit inline operator bool() const
@@ -240,6 +248,9 @@ struct SetupOptions
 // Find volumes by name for SDSetupOptions
 std::unordered_set<G4LogicalVolume const*>
     FindVolumes(std::unordered_set<std::string>);
+
+// Convert SD options for forward compatibility
+inp::GeantSd to_inp(SDSetupOptions const& so);
 
 // Construct a framework input
 inp::FrameworkInput to_inp(SetupOptions const& so);

@@ -36,6 +36,7 @@ if(NOT CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  set(_needs_not_orange DISABLE)
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
@@ -45,7 +46,7 @@ endif()
 
 set(_all_geo_libs
   # Geometry includes
-  Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
+  Celeritas::orange ${VecGeom_LIBRARIES} ${_g4_geo_libs}
   # Test harness instantiations
   testcel_geocel testcel_orange
 )
@@ -102,6 +103,20 @@ celeritas_target_link_libraries(testcel_celeritas
     testcel_core testcel_orange testcel_geocel
     nlohmann_json::nlohmann_json ${_g4_geo_libs}
 )
+
+if(CELERITAS_USE_Geant4)
+  celeritas_get_g4libs(_g4_mat_libs materials digits_hits)
+
+  celeritas_add_test_library(testcel_celeritas_g4
+    ext/SDTestBase.cc
+    ext/SimpleSensitiveDetector.cc
+  )
+  celeritas_target_link_libraries(testcel_celeritas_g4
+    PUBLIC
+      testcel_celeritas testcel_harness Celeritas::celeritas
+      ${_g4_mat_libs} ${_g4_geo_libs}
+  )
+endif()
 
 #-----------------------------------------------------------------------------#
 # SETUP
@@ -182,18 +197,67 @@ celeritas_add_test(ext/GeantImporter.test.cc
 )
 celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
+
+
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(ext/GeantSd.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/detail/HitProcessor.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
+
+  set(_ltu_tests
+    "MultiLevelTest.*"
+  )
+  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+    # Geant4 doesn't yet have independent volume instance IDs for replicas
+    list(APPEND _ltu_tests
+      "ReplicaTest.*"
+    )
+  elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    set(_ltu_tests DISABLE)
+  endif()
+
+  celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    FILTER ${_ltu_tests})
+  if(CELERITAS_REAL_TYPE STREQUAL "double")
+    # This test requires Geant4 *geometry* which is incompatible
+    # with single-precision
+    celeritas_add_test(ext/detail/NaviTouchableUpdater.test.cc
+      LINK_LIBRARIES testcel_celeritas_g4 testcel_geocel)
+  endif()
+endif()
 #-----------------------------------------------------------------------------#
 # Field
+
+if(CELERITAS_USE_VecGeom)
+  # VecGeom surface cannot rebuild the geometry
+  set(_fieldprop_filter
+    FILTER
+    "-Layers*:SimpleCms*:Cmse*"
+    "Layers*"
+    "SimpleCms*"
+    "Cmse*"
+  )
+else()
+  # Other geometries should run everything (and some tests e.g. CMSE are
+  # disabled)
+  set(_fieldprop_filter)
+endif()
 
 celeritas_add_test(field/Fields.test.cc)
 celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
- ${_fixme_cgs}
-  LINK_LIBRARIES ${_core_geo_libs})
+  LINK_LIBRARIES ${_core_geo_libs}
+  ${_fieldprop_filter}
+  ${_fixme_cgs}
+)
 celeritas_add_test(field/LinearPropagator.test.cc
   LINK_LIBRARIES ${_all_geo_libs})
 celeritas_add_test(field/MagFieldEquation.test.cc)
@@ -208,7 +272,8 @@ set(_geo_args GPU ${_needs_double} ${_fixme_cgs}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
 endif()
-celeritas_add_test(geo/Geometry.test.cc ${_geo_args})
+celeritas_add_test(geo/Geometry.test.cc ${_geo_args}
+  FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)
@@ -243,13 +308,15 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 # Global
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
+    "-Em3*:SimpleCms*:LeadBox*:Mock*"
+    "Mock*"
     "Em3AlongStepTest.nofluct_nomsc"
     "Em3AlongStepTest.msc_nofluct"
     "Em3AlongStepTest.msc_nofluct_finegrid"
     "Em3AlongStepTest.fluct_nomsc"
     "SimpleCmsAlongStepTest.msc_field"
     "SimpleCmsAlongStepTest.msc_field_finegrid"
+    "SimpleCmsFieldVolAlongStepTest.msc_field"
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
@@ -341,6 +408,7 @@ celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
+celeritas_add_test(optical/Physics.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

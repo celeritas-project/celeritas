@@ -49,10 +49,13 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -71,8 +74,6 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 
-#include "detail/HitManager.hh"
-#include "detail/HitManagerOutput.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -296,7 +297,7 @@ SharedParams::SharedParams(SetupOptions const& options)
         return;
     }
 
-    CELER_LOG(info) << "Activating Celeritas version " << celeritas_version
+    CELER_LOG(info) << "Activating Celeritas version " << version_string
                     << " on " << (Device::num_devices() > 0 ? "GPU" : "CPU");
 
     // Initialize CUDA (CUDA environment variables control the preferred
@@ -489,7 +490,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
                    << "along-step action factory 'make_along_step' was not "
                       "defined in the celeritas::SetupOptions");
 
-    auto const imported = [&options] {
+    auto const imported = [] {
         celeritas::GeantImporter load_geant_data(
             GeantImporter::get_world_volume());
         // Convert ImportVolume names to GDML versions if we're exporting
@@ -497,7 +498,6 @@ void SharedParams::initialize_core(SetupOptions const& options)
         GeantImportDataSelection import_opts;
         import_opts.particles = GeantImportDataSelection::em_basic;
         import_opts.processes = import_opts.particles;
-        import_opts.unique_volumes = options.geometry_file.empty();
         return std::make_shared<ImportData>(load_geant_data(import_opts));
     }();
     CELER_ASSERT(imported && !imported->particles.empty()
@@ -665,11 +665,14 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Set state size
     params.tracks_per_stream = options.max_num_tracks;
 
-    // Allocate device streams, or use the default stream if there is only one.
-    if (celeritas::device() && !options.default_stream
-        && params.max_streams > 1)
+    // Allocate device streams
+    if (auto& d = celeritas::device())
     {
-        celeritas::device().create_streams(params.max_streams);
+        d.create_streams(params.max_streams);
+    }
+    if (options.default_stream)
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
 
     // Construct along-step action
@@ -697,15 +700,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Construct sensitive detector callback
     if (options.sd)
     {
-        hit_manager_
-            = std::make_shared<detail::HitManager>(params_->geometry(),
-                                                   *params_->particle(),
-                                                   options.sd,
-                                                   params_->max_streams());
+        hit_manager_ = std::make_shared<GeantSd>(params_->geometry(),
+                                                 *params_->particle(),
+                                                 to_inp(options.sd),
+                                                 params_->max_streams());
         step_collector_
             = StepCollector::make_and_insert(*params_, {hit_manager_});
-        output_reg_->insert(
-            std::make_shared<detail::HitManagerOutput>(hit_manager_));
+        output_reg_->insert(std::make_shared<GeantSdOutput>(hit_manager_));
     }
 
     // Add diagnostics
@@ -713,6 +714,12 @@ void SharedParams::initialize_core(SetupOptions const& options)
     {
         SlotDiagnostic::make_and_insert(*params_,
                                         options.slot_diagnostic_prefix);
+    }
+
+    // Add user diagnostics
+    if (options.add_user_actions)
+    {
+        options.add_user_actions(*params_);
     }
 }
 

@@ -15,7 +15,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 
 #-----------------------------------------------------------------------------#
 # Find packages
-find_package(Celeritas 0.6)
+find_package(Celeritas 0.6 REQUIRED)
 find_package(Geant4)
 
 if(NOT Celeritas_FOUND)
@@ -32,14 +32,29 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Add executable
-add_executable(run-offload
-  main.cc
+
+macro(polysource_append var filename_we)
+  list(APPEND ${var} "${filename_we}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND ${var} "${filename_we}.cu")
+  endif()
+endmacro()
+
+
+set(SOURCES
   src/ActionInitialization.cc
   src/DetectorConstruction.cc
+  src/EventAction.cc
   src/MakeCelerOptions.cc
   src/PrimaryGeneratorAction.cc
   src/RunAction.cc
   src/SensitiveDetector.cc
+)
+polysource_append(SOURCES src/StepDiagnostic)
+
+add_executable(run-offload
+  main.cc
+  ${SOURCES}
 )
 
 target_include_directories(run-offload PRIVATE
@@ -47,7 +62,6 @@ target_include_directories(run-offload PRIVATE
 )
 
 # Use Celeritas CUDA RDC macros to correctly link libraries using VecGeom
-include(CudaRdcUtils)
 cuda_rdc_target_link_libraries(run-offload
   ${Geant4_LIBRARIES}
   Celeritas::celeritas

@@ -32,35 +32,32 @@ struct LivermorePEExecutor
 CELER_FUNCTION Interaction
 LivermorePEExecutor::operator()(CoreTrackView const& track)
 {
-    auto particle = track.make_particle_view();
-    auto rng = track.make_rng_engine();
+    auto particle = track.particle();
+    auto rng = track.rng();
 
     // Get the element ID if an element was previously sampled
-    auto elcomp_id = track.make_physics_step_view().element();
+    auto elcomp_id = track.physics_step().element();
     if (!elcomp_id)
     {
         // Sample an element (calculating microscopic cross sections on the
         // fly) and store it
-        auto material_track = track.make_material_view();
-        auto material = material_track.make_material_view();
+        auto material = track.material();
+        auto material_record = material.material_record();
         ElementSelector select_el(
-            material,
+            material_record,
             LivermorePEMicroXsCalculator{params, particle.energy()},
-            material_track.element_scratch());
+            material.element_scratch());
         elcomp_id = select_el(rng);
         CELER_ASSERT(elcomp_id);
-        track.make_physics_step_view().element(elcomp_id);
+        track.physics_step().element(elcomp_id);
     }
-    auto el_id = track.make_material_view().make_material_view().element_id(
-        elcomp_id);
+    auto el_id = track.material().material_record().element_id(elcomp_id);
 
     // Set up photoelectric interactor with the selected element
-    auto relaxation
-        = track.make_physics_step_view().make_relaxation_helper(el_id);
-    auto cutoffs = track.make_cutoff_view();
-    auto const& dir = track.make_geo_view().dir();
-    auto allocate_secondaries
-        = track.make_physics_step_view().make_secondary_allocator();
+    auto relaxation = track.physics_step().make_relaxation_helper(el_id);
+    auto cutoffs = track.cutoff();
+    auto const& dir = track.geometry().dir();
+    auto allocate_secondaries = track.physics_step().make_secondary_allocator();
     LivermorePEInteractor interact(
         params, relaxation, el_id, particle, cutoffs, dir, allocate_secondaries);
 

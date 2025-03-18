@@ -14,8 +14,8 @@
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Vector3D.h>
-#include <VecGeom/navigation/NavStateIndex.h>
-#include <VecGeom/surfaces/Navigator.h>
+#include <VecGeom/navigation/NavigationState.h>
+#include <VecGeom/surfaces/BVHSurfNavigator.h>
 
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
@@ -32,29 +32,41 @@ class SurfNavigator
   public:
     using Precision = vecgeom::Precision;
     using Vector3D = vecgeom::Vector3D<vecgeom::Precision>;
-    using VPlacedVolumePtr_t = vecgeom::VPlacedVolume const*;
     using SurfData = vgbrep::SurfData<Precision>;
+    using Real_b = typename SurfData::Real_b;
+    using VPlacedVolumePtr_t = vecgeom::VPlacedVolume const*;
 
     static constexpr Precision kBoundaryPush = 10 * vecgeom::kTolerance;
 
-    // Locates the point in the geometry volume tree
-    CELER_FUNCTION static VPlacedVolumePtr_t
-    LocatePointIn(VPlacedVolumePtr_t vol,
-                  Vector3D const& point,
-                  vecgeom::NavStateIndex& path,
-                  bool top)
+    /// @brief Locates the point in the geometry volume tree
+    /// @param pvol_id Placed volume id to be checked first
+    /// @param point Point to be checked, in the local frame of pvol
+    /// @param path Path to a parent of pvol that must contain the point
+    /// @param top Check first if pvol contains the point
+    /// @param exclude Placed volume id to exclude from the search
+    /// @return Index of the placed volume that contains the point
+    CELER_FUNCTION static int LocatePointIn(int pvol_id,
+                                            Vector3D const& point,
+                                            vecgeom::NavigationState& path,
+                                            bool top,
+                                            int* exclude = nullptr)
     {
-        return vgbrep::protonav::LocatePointIn(vol, point, path, top);
+        return vgbrep::protonav::BVHSurfNavigator<Precision>::LocatePointIn(
+            pvol_id, point, path, top, exclude);
     }
 
-    // Computes the isotropic safety from the globalpoint.
+    /// @brief Computes the isotropic safety from the globalpoint.
+    /// @param globalpoint Point in global coordinates
+    /// @param state Path where to compute safety
+    /// @return Isotropic safe distance
     CELER_FUNCTION static Precision
     ComputeSafety(Vector3D const& globalpoint,
-                  vecgeom::NavStateIndex const& state)
+                  vecgeom::NavigationState const& state)
     {
-        int closest_surf = 0;
-        return vgbrep::protonav::ComputeSafety(
-            globalpoint, state, closest_surf);
+        auto safety
+            = vgbrep::protonav::BVHSurfNavigator<Precision>::ComputeSafety(
+                globalpoint, state);
+        return safety;
     }
 
     // Computes a step from the globalpoint (which must be in the current
@@ -68,9 +80,9 @@ class SurfNavigator
     ComputeStepAndNextVolume(Vector3D const& globalpoint,
                              Vector3D const& globaldir,
                              Precision step_limit,
-                             vecgeom::NavStateIndex const& in_state,
-                             vecgeom::NavStateIndex& out_state,
-                             [[maybe_unused]] Precision push = 0)
+                             vecgeom::NavigationState const& in_state,
+                             vecgeom::NavigationState& out_state,
+                             long& hitsurf)
     {
         if (step_limit <= 0)
         {
@@ -79,9 +91,13 @@ class SurfNavigator
             return step_limit;
         }
 
-        int exit_surf = 0;
-        auto step = vgbrep::protonav::ComputeStepAndHit(
-            globalpoint, globaldir, in_state, out_state, exit_surf, step_limit);
+        auto step = vgbrep::protonav::BVHSurfNavigator<
+            Precision>::ComputeStepAndNextSurface(globalpoint,
+                                                  globaldir,
+                                                  in_state,
+                                                  out_state,
+                                                  hitsurf,
+                                                  step_limit);
         return step;
     }
 
@@ -93,25 +109,34 @@ class SurfNavigator
     ComputeStepAndPropagatedState(Vector3D const& globalpoint,
                                   Vector3D const& globaldir,
                                   Precision step_limit,
-                                  vecgeom::NavStateIndex const& in_state,
-                                  vecgeom::NavStateIndex& out_state,
-                                  Precision push = 0)
+                                  long& hit_surf,
+                                  vecgeom::NavigationState const& in,
+                                  vecgeom::NavigationState& out)
     {
         return ComputeStepAndNextVolume(
-            globalpoint, globaldir, step_limit, in_state, out_state, push);
+            globalpoint, globaldir, step_limit, in, out, hit_surf);
     }
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: the
     // surface model does this computation within ComputeStepAndNextVolume, so
     // the relocation does nothing
     CELER_FUNCTION static void
-    RelocateToNextVolume(Vector3D const& /*globalpoint*/,
-                         Vector3D const& /*globaldir*/,
-                         vecgeom::NavStateIndex& /*state*/)
+    RelocateToNextVolume(Vector3D const& globalpoint,
+                         Vector3D const& globaldir,
+                         long hitsurf_index,
+                         vecgeom::NavigationState& out_state)
     {
+        CELER_EXPECT(!out_state.IsOutside());
+        vgbrep::CrossedSurface crossed_surf;
+        vgbrep::protonav::BVHSurfNavigator<Precision>::RelocateToNextVolume(
+            globalpoint,
+            globaldir,
+            Precision(0),
+            hitsurf_index,
+            out_state,
+            crossed_surf);
     }
 };
-
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // End namespace celeritas

@@ -32,22 +32,32 @@ Propagation
 
 .. doxygenfunction:: celeritas::make_mag_field_propagator
 
+Magnetic field types
+--------------------
+
+.. doxygenclass:: celeritas::UniformField
+
+.. doxygenclass:: celeritas::RZMapField
+
+.. doxygenclass:: celeritas::CylMapField
 
 .. _api_field_data:
 
 Field data input and options
 ----------------------------
 
-These classes correspond to JSON input files to the field setup.
-
-.. doxygenstruct:: celeritas::UniformFieldParams
-   :members:
-   :no-link:
+JSON input for the field setup corresponds to the uniform field input
+:cpp:struct:`celeritas::inp::UniformField` and the rz-map field input:
 
 .. doxygenstruct:: celeritas::RZMapFieldInput
    :members:
    :no-link:
 
+as well as fully cylindrical input:
+
+.. doxygenstruct:: celeritas::CylMapFieldInput
+   :members:
+   :no-link:
 
 The field driver options are not yet a stable part of the API:
 

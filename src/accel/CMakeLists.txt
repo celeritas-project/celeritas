@@ -20,20 +20,14 @@ list(APPEND SOURCES
   IntegrationBase.cc
   Logger.cc
   LocalTransporter.cc
+  CylMapMagneticField.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
-  detail/HitManager.cc
-  detail/HitManagerOutput.cc
-  detail/HitProcessor.cc
-  detail/LevelTouchableUpdater.cc
-  detail/NaviTouchableUpdater.cc
-  detail/SensDetInserter.cc
   detail/IntegrationSingleton.cc
-  detail/TouchableUpdaterInterface.cc
 )
 
 celeritas_polysource(ExceptionConverter)

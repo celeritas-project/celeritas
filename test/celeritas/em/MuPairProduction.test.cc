@@ -124,9 +124,8 @@ TEST_F(MuPairProductionTest, distribution)
         = 2 * value_as<units::MevMass>(model_->host_ref().electron_mass);
 
     // Get view to the current element
-    auto element
-        = this->material_track().make_material_view().make_element_view(
-            ElementComponentId{0});
+    auto element = this->material_track().material_record().element_record(
+        ElementComponentId{0});
 
     // Get the production cuts
     auto cutoff = this->cutoff_params()->get(MaterialId{0});
@@ -219,9 +218,8 @@ TEST_F(MuPairProductionTest, basic)
     this->resize_secondaries(2 * num_samples);
 
     // Get view to the current element
-    auto element
-        = this->material_track().make_material_view().make_element_view(
-            ElementComponentId{0});
+    auto element = this->material_track().material_record().element_record(
+        ElementComponentId{0});
 
     // Get the production cuts
     auto cutoff = this->cutoff_params()->get(MaterialId{0});
@@ -290,9 +288,8 @@ TEST_F(MuPairProductionTest, stress_test)
     std::vector<double> avg_costheta;
 
     // Get view to the current element
-    auto element
-        = this->material_track().make_material_view().make_element_view(
-            ElementComponentId{0});
+    auto element = this->material_track().material_record().element_record(
+        ElementComponentId{0});
 
     // Get the production cuts
     auto cutoff = this->cutoff_params()->get(MaterialId{0});

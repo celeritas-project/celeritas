@@ -28,12 +28,18 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "corecel/sys/TraceCounter.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/ActionSequence.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/Stepper.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -42,7 +48,6 @@
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 
-#include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -56,6 +61,45 @@ bool nonfatal_flush()
         return result.value;
     }();
     return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Trace the number of active, alive, dead, and queued tracks
+class TrackCounters
+{
+  public:
+    TrackCounters()
+    {
+        if (use_profiling())
+        {
+            std::string stream_id = std::to_string(get_geant_thread_id());
+            active_counter_ = std::string("active-" + stream_id);
+            alive_counter_ = std::string("alive-" + stream_id);
+            dead_counter_ = std::string("dead-" + stream_id);
+            queued_counter_ = std::string("queued-" + stream_id);
+        }
+    };
+
+    void operator()(StepperResult const& track_counts) const
+    {
+        trace_counter(active_counter_.c_str(), track_counts.active);
+        trace_counter(alive_counter_.c_str(), track_counts.alive);
+        trace_counter(dead_counter_.c_str(),
+                      track_counts.active - track_counts.alive);
+        trace_counter(queued_counter_.c_str(), track_counts.queued);
+    }
+
+  private:
+    std::string active_counter_;
+    std::string alive_counter_;
+    std::string dead_counter_;
+    std::string queued_counter_;
+};
+
+void trace(StepperResult const& track_counts)
+{
+    static thread_local TrackCounters const trace_;
+    trace_(track_counts);
 }
 
 #define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
@@ -321,6 +365,7 @@ void LocalTransporter::Flush()
     run_accum_.steps += track_counts.active;
     run_accum_.primaries += buffer_.size();
     run_accum_.lost_primaries += buffer_accum_.lost_primaries;
+    trace(track_counts);
 
     buffer_.clear();
     buffer_accum_ = {};
@@ -338,7 +383,7 @@ void LocalTransporter::Flush()
         track_counts = (*step_)();
         run_accum_.steps += track_counts.active;
         ++step_iters;
-
+        trace(track_counts);
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
@@ -382,6 +427,9 @@ void LocalTransporter::Finalize()
 #endif
     }
 
+    // Flush any remaining track counters on the worker thread
+    flush_tracing();
+
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";
     *this = {};
@@ -412,6 +460,30 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
         }
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access core state data for user diagnostics.
+ */
+CoreStateInterface const& LocalTransporter::GetState() const
+{
+    CELER_EXPECT(*this);
+
+    return step_->state();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access core state data for user diagnostics.
+ */
+CoreStateInterface& LocalTransporter::GetState()
+{
+    CELER_EXPECT(*this);
+
+    // NOTE: the Stepper will be removed in the near term in a major refactor
+    // of the shared params and state, so we allow this as a convenience hack
+    return const_cast<CoreStateInterface&>(step_->state());
 }
 
 //---------------------------------------------------------------------------//

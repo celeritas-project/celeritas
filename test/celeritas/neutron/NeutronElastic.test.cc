@@ -101,7 +101,7 @@ TEST_F(NeutronElasticTest, macro_xs)
 {
     // Calculate the CHIPS elastic neutron-nucleus macroscopic cross section
     // (\f$ cm^{-1} \f$) in the valid range [1e-5:2000] (MeV)
-    auto material = this->material_track().make_material_view();
+    auto material = this->material_track().material_record();
     auto calc_xs = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
         model_->host_ref(), material);
 
@@ -165,17 +165,17 @@ TEST_F(NeutronElasticTest, basic)
 
     // Sample neutron-He4 interactions
     IsotopeView isotope_he4 = this->material_track()
-                                  .make_material_view()
-                                  .make_element_view(ElementComponentId{0})
-                                  .make_isotope_view(IsotopeComponentId{1});
+                                  .material_record()
+                                  .element_record(ElementComponentId{0})
+                                  .isotope_record(IsotopeComponentId{1});
     ChipsNeutronElasticInteractor interact_light_target(
         shared, this->particle_track(), this->direction(), isotope_he4);
 
     // Sample neutron-Cu63 interactions
     IsotopeView isotope_cu63 = this->material_track()
-                                   .make_material_view()
-                                   .make_element_view(ElementComponentId{1})
-                                   .make_isotope_view(IsotopeComponentId{0});
+                                   .material_record()
+                                   .element_record(ElementComponentId{1})
+                                   .isotope_record(IsotopeComponentId{0});
     ChipsNeutronElasticInteractor interact_heavy_target(
         shared, this->particle_track(), this->direction(), isotope_cu63);
 
@@ -228,9 +228,9 @@ TEST_F(NeutronElasticTest, extended)
     ElementComponentId el_id{1};
     IsotopeComponentId iso_id{0};
     IsotopeView const isotope_he4 = this->material_track()
-                                        .make_material_view()
-                                        .make_element_view(el_id)
-                                        .make_isotope_view(iso_id);
+                                        .material_record()
+                                        .element_record(el_id)
+                                        .isotope_record(iso_id);
     // Sample interaction
     NeutronElasticRef shared = model_->host_ref();
     RandomEngine& rng_engine = this->rng();
@@ -287,9 +287,9 @@ TEST_F(NeutronElasticTest, stress_test)
     ElementComponentId el_id{1};
     IsotopeComponentId iso_id{1};
     IsotopeView const isotope = this->material_track()
-                                    .make_material_view()
-                                    .make_element_view(el_id)
-                                    .make_isotope_view(iso_id);
+                                    .material_record()
+                                    .element_record(el_id)
+                                    .isotope_record(iso_id);
 
     // Sample interaction
     NeutronElasticRef shared = model_->host_ref();

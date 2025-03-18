@@ -47,15 +47,15 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
     if (track.thread_id() == ThreadId{0})
     {
         // Clear secondary storage on a single thread
-        auto alloc = track.make_physics_step_view().make_secondary_allocator();
+        auto alloc = track.physics_step().make_secondary_allocator();
         alloc.clear();
     }
 
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     if (sim.status() == TrackStatus::inactive)
     {
 #if CELERITAS_DEBUG
-        auto step = track.make_physics_step_view();
+        auto step = track.physics_step();
         step.reset_energy_deposition_debug();
         step.secondaries({});
 #endif
@@ -67,7 +67,7 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
 
     // Complete the "initializing" stage of tracks, since pre-step happens
     // after user initialization
-    auto step = track.make_physics_step_view();
+    auto step = track.physics_step();
     {
         // Clear out energy deposition, secondary pointers, and sampled element
         step.reset_energy_deposition();
@@ -85,18 +85,18 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
                  || sim.status() == TrackStatus::alive);
     sim.status(TrackStatus::alive);
 
-    auto phys = track.make_physics_view();
+    auto phys = track.physics();
     if (!phys.has_interaction_mfp())
     {
         // Sample mean free path
-        auto rng = track.make_rng_engine();
+        auto rng = track.rng();
         ExponentialDistribution<real_type> sample_exponential;
         phys.interaction_mfp(sample_exponential(rng));
     }
 
     // Calculate physics step limits and total macro xs
-    auto mat = track.make_material_view();
-    auto particle = track.make_particle_view();
+    auto mat = track.material();
+    auto particle = track.particle();
     sim.reset_step_limit(calc_physics_step_limit(mat, particle, phys, step));
 
     // Initialize along-step action based on particle charge:

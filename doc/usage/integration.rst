@@ -20,18 +20,14 @@ CMake. It should require a single line to initialize::
 
    find_package(Celeritas REQUIRED CONFIG)
 
-and if VecGeom or CUDA are disabled, a single line to link::
+and a single line to link::
 
-   target_link_libraries(mycode PUBLIC Celeritas::celeritas)
+   cuda_rdc_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
-Because of complexities involving CUDA Relocatable Device Code (RDC), consuming
-Celeritas with CUDA and VecGeom support requires an additional include and the
-use of wrappers around CMake's target commands::
-
-  include(CudaRdcUtils)
-  cuda_rdc_add_executable(mycode ...)
-  cuda_rdc_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
-
+This special ``cuda_rdc_`` prefix, rather than the simpler native CMake command
+``target_link_libraries``, is needed in case Celeritas is built with both
+CUDA and the current version of VecGeom, which uses a special but messy feature
+called CUDA Relocatable Device Code (RDC).
 As the ``cuda_rdc_...`` functions decay to the wrapped CMake commands if CUDA
 and VecGeom are disabled, you can use them to safely build and link nearly all targets
 consuming Celeritas in your project. This provides tracking of the appropriate

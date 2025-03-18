@@ -40,6 +40,8 @@ list(APPEND SOURCES
   field/FieldDriverOptionsIO.json.cc
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
+  field/CylMapFieldParams.cc
+  field/UniformFieldParams.cc
   geo/GeoMaterialParams.cc
   global/ActionGroups.cc
   global/ActionSequence.cc
@@ -87,6 +89,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/ModelImporter.cc
+  optical/PhysicsParams.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/WavelengthShiftParams.cc
@@ -147,6 +150,8 @@ if(CELERITAS_USE_Geant4)
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
     ext/GeantImporter.cc
+    ext/GeantSd.cc
+    ext/GeantSdOutput.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
     ext/detail/EmStandardPhysics.cc
@@ -156,13 +161,20 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeoOpticalIdMap.cc
+    ext/detail/HitProcessor.cc
+    ext/detail/LevelTouchableUpdater.cc
     ext/detail/MuHadEmStandardPhysics.cc
+    ext/detail/NaviTouchableUpdater.cc
     ext/detail/OpticalPhysics.cc
+    ext/detail/SensDetInserter.cc
+    ext/detail/TouchableUpdaterInterface.cc
   )
   celeritas_get_g4libs(_cg4_libs
     global geometry materials processes run physicslists tasking
   )
-  list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
+  list(APPEND _cg4_libs
+    Celeritas::corecel Celeritas::geocel XercesC::XercesC nlohmann_json::nlohmann_json
+  )
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
   celeritas_target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
@@ -278,6 +290,7 @@ celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
 celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
@@ -303,6 +316,7 @@ celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/BoundaryAction)
+celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)

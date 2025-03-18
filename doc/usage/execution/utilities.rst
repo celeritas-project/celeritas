@@ -15,10 +15,9 @@ The ``celer-geo`` app is a server-like front end to the Celeritas geometry
 interfaces that can generate exact images of a user geometry model. It should
 be invoked only as part of the celerpy_ python app.  See :ref:`example_celer_geo` for an example.
 
-Usage::
+Usage:
 
-  celer-geo {input}.jsonl
-            -
+.. literalinclude:: _usage/celer-geo.txt
 
 .. _celerpy: https://github.com/celeritas-project/celerpy
 
@@ -94,10 +93,10 @@ can be used in one of two modes:
 
 ----
 
-Usage::
+Usage:
 
-   celer-export-geant {input}.gdml [{options}.json, -, ''] {output}.[root, json]
-   celer-export-geant --dump-default
+.. literalinclude:: _usage/celer-export-geant.txt
+
 
 input
   Detector definition file
@@ -121,9 +120,10 @@ via :ref:`celer-export-geant`.
 
 ----
 
-Usage::
+Usage:
 
-   celer-dump-data {output}.root
+.. literalinclude:: _usage/celer-dump-data.txt
+
 
 output
   A ROOT file containing exported :ref:`api_importdata`.
@@ -138,9 +138,9 @@ names or fewer options) to a newer version.
 
 ----
 
-Usage::
+Usage:
 
-   orange-update {input}.org.json {output}.org.json
+.. literalinclude:: _usage/orange-update.txt
 
 Either of the filenames can be replaced by ``-`` to read from stdin or write to
 stdout.

@@ -7,10 +7,11 @@
 #pragma once
 
 #include <optional>
-#include <set>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/io/Label.hh"
 
 class G4LogicalVolume;
@@ -21,7 +22,7 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 //! Options for saving attributes at each step point
-struct GeantSDStepPointAttributes
+struct GeantSdStepPointAttributes
 {
     //! Store the time since the start of the event
     bool global_time{true};
@@ -31,6 +32,8 @@ struct GeantSDStepPointAttributes
     bool direction{true};
     //! Store the step point energy
     bool kinetic_energy{true};
+    //! Reconstruct the complete volume hierarchy
+    bool touchable{true};
 };
 
 //---------------------------------------------------------------------------//
@@ -44,9 +47,9 @@ struct GeantSDStepPointAttributes
  * - To improve performance and memory usage, determine what quantities (time,
  *   position, direction, touchable, ...) are required by your setup's
  *   sensitive detectors and set all other attributes to \c false.
- * - Reconstructing the full geometry status using \c locate_touchable is the
- *   most expensive detector option. Disable it unless your SDs require (e.g.)
- *   the volume's copy number to locate a detector submodule.
+ * - Reconstructing the full geometry status using \c touchable step option is
+ *   the most expensive detector option. Disable it unless your SDs require
+ *   (e.g.) the volume's copy number to locate a detector submodule.
  * - Some reconstructed track attributes (such as post-step material) are
  *   currently never set because they are rarely used in practice. Contact the
  *   Celeritas team or submit a pull request to add this functionality.
@@ -75,13 +78,25 @@ struct GeantSDStepPointAttributes
  * FindVolumes helper function can be used to determine LV pointers from
  * the volume names.
  *
- * \sa celeritas::HitManager
+ * \todo For improved granularity in models with duplicate names, we could add
+ * a vector of \c Label to \c VariantSetVolume .
+ * \todo change from \c unordered_set to \c set for better reproducibility in
+ * serialized output
+ *
+ * The pre- and post-step attributes can be set with: \code
+  sd.points[StepPoint::pre].global_time = true;
+  sd.points[StepPoint::post].touchable = false;
+  \endcode
+ *
+ * \sa celeritas::GeantSd
  */
-struct GeantSensitiveDetector
+struct GeantSd
 {
     //! Provide either a set of labels or a set of pointers to Geant4 objects
-    using VariantSetVolume
-        = std::variant<std::set<Label>, std::set<G4LogicalVolume const*>>;
+    using SetVolume = std::unordered_set<G4LogicalVolume const*>;
+    using SetString = std::unordered_set<std::string>;
+    using VariantSetVolume = std::variant<SetVolume, SetString>;
+    using PointAttrs = EnumArray<StepPoint, GeantSdStepPointAttributes>;
 
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
@@ -89,15 +104,11 @@ struct GeantSensitiveDetector
     bool energy_deposition{true};
     //! Save physical step length
     bool step_length{true};
-    //! Set TouchableHandle for PreStepPoint
-    bool locate_touchable{true};
     //! Create a track with the dynamic particle type and post-step data
     bool track{true};
 
-    //! Options for saving and converting beginning-of-step data
-    GeantSDStepPointAttributes pre;
-    //! Options for saving and converting end-of-step data
-    GeantSDStepPointAttributes post;
+    //! Options for saving and converting beginning- and end-of-step data
+    PointAttrs points;
 
     //! Manually list LVs that don't have an SD on the master thread
     VariantSetVolume force_volumes;
@@ -127,7 +138,7 @@ struct SimpleCalo
 struct Scoring
 {
     //! Enable Geant4 sensitive detector integration
-    std::optional<GeantSensitiveDetector> sd;
+    std::optional<GeantSd> sd;
 
     //! Add simple on-device calorimeters integrated over events
     std::optional<SimpleCalo> simple_calo;

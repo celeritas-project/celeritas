@@ -14,7 +14,10 @@
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/field/UniformFieldParams.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/inp/Field.hh"
 
 namespace celeritas
 {
@@ -33,23 +36,27 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
   public:
     //!@{
     //! \name Type aliases
+    using Input = inp::UniformField;
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
+    using SPConstFieldParams = std::shared_ptr<UniformFieldParams const>;
     //!@}
 
   public:
     // Construct the along-step action from input parameters
     static std::shared_ptr<AlongStepUniformMscAction>
     from_params(ActionId id,
+                GeoParams const& geometry,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
-                UniformFieldParams const& field_params,
+                Input const& field_input,
                 SPConstMsc msc,
                 bool eloss_fluctuation);
 
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepUniformMscAction(ActionId id,
-                              UniformFieldParams const& field_params,
+                              GeoParams const& geometry,
+                              Input const& field_input,
                               SPConstFluctuations fluct,
                               SPConstMsc msc);
 
@@ -85,14 +92,11 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
     //! Whether MSC is in use
     bool has_msc() const { return static_cast<bool>(msc_); }
 
-    //! Field strength
-    Real3 const& field() const { return field_params_.field; }
-
   private:
     ActionId id_;
+    SPConstFieldParams field_;
     SPConstFluctuations fluct_;
     SPConstMsc msc_;
-    UniformFieldParams field_params_;
 };
 
 //---------------------------------------------------------------------------//

@@ -8,8 +8,10 @@
 
 #include <cstddef>
 #include <vector>
+#include <VecGeom/base/BVH.h>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
+#include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
@@ -55,6 +57,7 @@
 
 #include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
+#include "detail/VecgeomVersion.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
@@ -135,8 +138,8 @@ std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<VolT>(
-        std::move(names), [](VolT const& vol) { return vol.id(); });
+    return detail::make_label_vector<VolT const*>(
+        std::move(names), [](VolT const* vol) { return vol->id(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -187,8 +190,8 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
         },
         world);
 
-    return detail::make_label_vector<VolT>(
-        std::move(names), [](VolT const& vol) { return vol.id(); });
+    return detail::make_label_vector<VolT const*>(
+        std::move(names), [](VolT const* vol) { return vol->id(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -201,9 +204,9 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 bool VecgeomParams::use_surface_tracking()
 {
 #ifdef VECGEOM_USE_SURF
-    return true;
+    return 1;
 #else
-    return false;
+    return 0;
 #endif
 }
 
@@ -278,22 +281,40 @@ VecgeomParams::~VecgeomParams()
 {
     if (device_ref_)
     {
-        if (VecgeomParams::use_surface_tracking())
+        CELER_LOG(debug)
+            << "Clearing VecGeom "
+            << (VecgeomParams::use_surface_tracking() ? "surface" : "volume")
+            << "GPU data";
+        try
         {
-            CELER_LOG(debug) << "Clearing VecGeom surface GPU data";
-            VG_SURF_CALL(detail::teardown_surface_tracking_device());
+            if (VecgeomParams::use_surface_tracking())
+            {
+                VG_SURF_CALL(detail::teardown_surface_tracking_device());
+            }
+            else
+            {
+                VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+            }
         }
-        else
+        catch (std::exception const& e)
         {
-            CELER_LOG(debug) << "Clearing VecGeom GPU data";
-            VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+            CELER_LOG(critical)
+                << "Failed during VecGeom device cleanup: " << e.what();
         }
     }
 
     if (VecgeomParams::use_surface_tracking())
     {
         CELER_LOG(debug) << "Clearing SurfModel CPU data";
+    }
+    try
+    {
         VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(critical)
+            << "Failed during VecGeom surface model cleanup: " << e.what();
     }
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
@@ -309,14 +330,33 @@ VecgeomParams::~VecgeomParams()
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
  */
-G4VPhysicalVolume const* VecgeomParams::id_to_pv(VolumeInstanceId viid) const
+GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
 {
-    CELER_EXPECT(viid);
-    if (viid < g4_pv_map_.size())
+    CELER_EXPECT(id < g4_pv_map_.size() || g4_pv_map_.empty());
+    if (g4_pv_map_.empty())
     {
-        return g4_pv_map_[viid.unchecked_get()];
+        // Model was loaded with VGDML
+        return {};
     }
-    return nullptr;
+
+    GeantPhysicalInstance result;
+    result.pv = g4_pv_map_[id.unchecked_get()];
+    if (result.pv && is_replica(*result.pv))
+    {
+        // VecGeom volume is a specific instance of a G4PV: get the replica
+        // number it corresponds to
+        auto& geo_manager = vecgeom::GeoManager::Instance();
+#if VECGEOM_VERSION >= 0x020000
+        // Constant-time access
+        auto* vgpv = geo_manager.GetPlacedVolume(id.get());
+#else
+        auto* vgpv = geo_manager.FindPlacedVolume(id.get());
+#endif
+        CELER_ASSERT(vgpv);
+        result.replica
+            = id_cast<GeantPhysicalInstance::ReplicaId>(vgpv->GetCopyNo());
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -471,7 +511,7 @@ void VecgeomParams::build_surface_tracking()
 
         VG_SURF_CALL(
             detail::setup_surface_tracking_device(brep_helper.GetSurfData()));
-        CELER_DEVICE_CHECK_ERROR();
+        CELER_DEVICE_API_CALL(PeekAtLastError());
     }
 }
 
@@ -492,7 +532,7 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-        vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+        detail::ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
     }
 
     // Init the bounding volume hierarchy structure
@@ -542,7 +582,7 @@ void VecgeomParams::build_volume_tracking()
                 "vecgeom::CudaManager.LoadGeometry");
 
             VG_CUDA_CALL(cuda_manager.LoadGeometry());
-            CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+            CELER_DEVICE_API_CALL(DeviceSynchronize());
         }
         {
             CELER_LOG(debug) << "Transferring geometry to GPU";
@@ -551,7 +591,7 @@ void VecgeomParams::build_volume_tracking()
             void const* world_top_devptr{nullptr};
             VG_CUDA_CALL(
                 world_top_devptr = cuda_manager.Synchronize().GetPtr());
-            CELER_DEVICE_CHECK_ERROR();
+            CELER_DEVICE_API_CALL(PeekAtLastError());
             CELER_VALIDATE(world_top_devptr != nullptr,
                            << "VecGeom failed to copy geometry to GPU");
         }
@@ -561,23 +601,21 @@ void VecgeomParams::build_volume_tracking()
                 "vecgeom::BVHManager::DeviceInit");
 #if defined(VECGEOM_BVHMANAGER_DEVICE)
             auto* bvh_ptr = BVHManager::DeviceInit();
-#elif defined(VECGEOM_ENABLE_CUDA)
-            BVHManager::DeviceInit();
-#endif
-#ifdef VECGEOM_BVHMANAGER_DEVICE
             auto* bvh_symbol_ptr = BVHManager::GetDeviceBVH();
             CELER_VALIDATE(bvh_ptr && bvh_ptr == bvh_symbol_ptr,
                            << "inconsistent BVH device pointer: allocated "
                            << bvh_ptr << " but copy-from-symbol returned "
                            << bvh_symbol_ptr);
+#elif defined(VECGEOM_ENABLE_CUDA)
+            BVHManager::DeviceInit();
 #endif
-            CELER_DEVICE_CHECK_ERROR();
+            CELER_DEVICE_API_CALL(PeekAtLastError());
         }
 
         // Check BVH pointers
         auto ptrs = detail::bvh_pointers_device();
 
-        vecgeom::cuda::BVH const* bvh_symbol_ptr{nullptr};
+        detail::CudaBVH_t const* bvh_symbol_ptr{nullptr};
 #ifdef VECGEOM_BVHMANAGER_DEVICE
         bvh_symbol_ptr = BVHManager::GetDeviceBVH();
 #endif
@@ -664,8 +702,9 @@ void VecgeomParams::build_metadata()
     // Save world bbox
     bbox_ = [world] {
         // Calculate bounding box
+        auto bbox_mgr = detail::ABBoxManager_t::Instance();
         Vector3D<real_type> lower, upper;
-        ABBoxManager::Instance().ComputeABBox(world, &lower, &upper);
+        bbox_mgr.ComputeABBox(world, &lower, &upper);
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }

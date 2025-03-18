@@ -51,11 +51,13 @@ authors:
     orcid: "https://orcid.org/0000-0002-7748-7887"
   - family-names: Morgan
     given-names: Ben
+    orcid: "https://orcid.org/0000-0003-3604-0883"
   - family-names: Evans
     given-names: Tom
     orcid: "https://orcid.org/0000-0001-5743-3788"
   - family-names: Esseiva
     given-names: Julien
+    orcid: "https://orcid.org/0009-0002-1119-4851"
 date-released: 2022
 url: https://doi.org/10.11578/dc.20221011.1
 identifiers:
@@ -86,6 +88,7 @@ preferred-citation:
       orcid: "https://orcid.org/0000-0001-9741-6608"
     - family-names: Esseiva
       given-names: Julien
+      orcid: "https://orcid.org/0009-0002-1119-4851"
     - family-names: Jun
       given-names: Soon Yung
       orcid: "https://orcid.org/0000-0003-3370-6109"
@@ -94,11 +97,13 @@ preferred-citation:
       orcid: "https://orcid.org/0000-0003-4585-0546"
     - family-names: Biondo
       given-names: Elliott
+      orcid: "https://orcid.org/0000-0002-9088-1360"
     - family-names: Evans
       given-names: Thomas
       orcid: "https://orcid.org/0000-0001-5743-3788"
     - family-names: Demarteau
       given-names: Marcel
+      orcid: "https://orcid.org/0000-0001-9409-4308"
     - family-names: Romano
       given-names: Paul
       orcid: "https://orcid.org/0000-0002-1147-045X"

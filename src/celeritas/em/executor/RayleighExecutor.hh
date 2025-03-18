@@ -36,17 +36,17 @@ struct RayleighExecutor
 CELER_FUNCTION Interaction
 RayleighExecutor::operator()(CoreTrackView const& track)
 {
-    auto material = track.make_material_view().make_material_view();
-    auto particle = track.make_particle_view();
+    auto material = track.material().material_record();
+    auto particle = track.particle();
 
-    auto elcomp_id = track.make_physics_step_view().element();
+    auto elcomp_id = track.physics_step().element();
     CELER_ASSERT(elcomp_id);
     auto el_id = material.element_id(elcomp_id);
-    auto const& dir = track.make_geo_view().dir();
+    auto const& dir = track.geometry().dir();
 
     RayleighInteractor interact(params, particle, dir, el_id);
 
-    auto rng = track.make_rng_engine();
+    auto rng = track.rng();
     return interact(rng);
 }
 

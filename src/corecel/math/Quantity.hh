@@ -186,6 +186,13 @@ operator-(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() - rhs.value()};
 }
 
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto
+operator/(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept
+{
+    return lhs.value() / rhs.value();
+}
+
 template<class U, class T>
 CELER_CONSTEXPR_FUNCTION auto operator-(Quantity<U, T> q) noexcept
 {

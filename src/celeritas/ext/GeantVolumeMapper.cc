@@ -76,7 +76,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
     auto all_ids = volumes.find_all(label.name);
     if (all_ids.size() == 1)
     {
-        CELER_LOG(warning) << "Failed to exactly match " << celeritas_core_geo
+        CELER_LOG(warning) << "Failed to exactly match " << cmake::core_geo
                            << " volume from Geant4 volume '" << label
                            << "'; found '" << volumes.at(all_ids.front())
                            << "' by omitting the extension";

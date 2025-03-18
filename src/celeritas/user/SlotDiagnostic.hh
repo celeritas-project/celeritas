@@ -74,9 +74,9 @@ class SlotDiagnostic final : public CoreStepActionInterface,
     //!@{
     //! \name Step action interface
 
-    //! Index of this class instance in its registry
+    //! Index of this class instance in the action registry
     ActionId action_id() const final { return sad_.action_id(); }
-    //! Index of this class instance in its registry
+    //! Ordering of the action inside the step
     StepActionOrder order() const final { return StepActionOrder::user_post; }
     // Execute the action with host data
     void step(CoreParams const& params, CoreStateHost& state) const final;
@@ -87,7 +87,7 @@ class SlotDiagnostic final : public CoreStepActionInterface,
     //!@{
     //! \name Aux params interface
 
-    //! Index of this class instance in its registry
+    //! Index of this class instance in the aux registry
     AuxId aux_id() const final { return aux_id_; }
     // Build state data for a stream
     UPState create_state(MemSpace m, StreamId id, size_type size) const final;

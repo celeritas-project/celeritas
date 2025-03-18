@@ -15,11 +15,9 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/cont/detail/VariantUtilsImpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/Constant.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -55,6 +53,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -64,6 +63,7 @@
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
+#include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
@@ -136,16 +136,6 @@ auto build_physics_processes(inp::EmPhysics const& em,
     if (em.brems)
     {
         opts.brem_combined = em.brems->combined_model;
-        opts.brems_selection = [&brems = *em.brems] {
-            if (brems.rel && brems.sb)
-                return BremsModelSelection::all;
-            else if (brems.rel)
-                return BremsModelSelection::relativistic;
-            else if (brems.sb)
-                return BremsModelSelection::seltzer_berger;
-            else
-                return BremsModelSelection::none;
-        }();
     }
     opts.interpolation = em.interpolation;
 
@@ -282,32 +272,22 @@ auto build_along_step(inp::Field const& var_field,
                     next_id, *params.material, *params.particle, msc, eloss);
             },
             [&](inp::UniformField const& field) {
-                UniformFieldParams field_params;
-
-                if (field.units != UnitSystem::si)
-                {
-                    CELER_NOT_IMPLEMENTED("field units in other unit systems");
-                }
-                field_params.field = field.strength;
-                field_params.options = field.driver_options;
-
-                // Interpret input in units of Tesla
-                for (real_type& v : field_params.field)
-                {
-                    v = native_value_from(units::FieldTesla{v});
-                }
-
                 return AlongStepUniformMscAction::from_params(
                     params.action_reg->next_id(),
+                    *params.geometry,
                     *params.material,
                     *params.particle,
-                    field_params,
+                    field,
                     msc,
                     eloss);
             },
             [](inp::RZMapField const&)
                 -> std::shared_ptr<CoreStepActionInterface> {
                 CELER_NOT_IMPLEMENTED("building RZ map field through input");
+            },
+            [](inp::CylMapField const&)
+                -> std::shared_ptr<CoreStepActionInterface> {
+                CELER_NOT_IMPLEMENTED("building Cyl map field through input");
             },
         }),
         var_field);
@@ -342,11 +322,23 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+
+    // Import models
+    optical::ModelImporter importer{imported, oc_inp.material, params.material()};
+    for (auto const& model : imported.optical_models)
+    {
+        if (auto builder = importer(model.model_class))
+        {
+            oc_inp.model_builders.push_back(*builder);
+        }
+    }
+
     CELER_ASSERT(oc_inp);
 
     // TODO: optical collector really just *builds* the optical setup: it's
     // ok that it immediately goes out of scope
     OpticalCollector(params, std::move(oc_inp));
+
 }
 
 //---------------------------------------------------------------------------//
@@ -447,6 +439,12 @@ problem(inp::Problem const& p, ImportData const& imported)
     if (p.diagnostics.action)
     {
         ActionDiagnostic::make_and_insert(*core_params);
+    }
+
+    if (p.diagnostics.status_checker)
+    {
+        // Add detailed debugging of track states
+        StatusChecker::make_and_insert(*core_params);
     }
 
     if (p.diagnostics.step)

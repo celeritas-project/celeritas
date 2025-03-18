@@ -136,7 +136,7 @@ void SlotDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
                               detail::SlotDiagnosticExecutor{
                                   ObserverPtr{buffer.data()}}});
 
-    // Write IDs to
+    // Write IDs to the file
     this->write_buffer(state.aux());
 }
 
