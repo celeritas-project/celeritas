@@ -532,19 +532,12 @@ endif()
 # RDC SUPPORT FOR VECGEOM+CUDA
 #----------------------------------------------------------------------------#
 
-# Load RDC utils using CMAKE_MODULE_PATH
-include(CudaRdcUtils OPTIONAL)
-
-# Load our local copy if it's newer
-if(NOT CUDA_RDC_VERSION)
-   set(_loaded_CUDA_RDC_VERSION 0)
-else()
-   set(_loaded_CUDA_RDC_VERSION ${CUDA_RDC_VERSION})
-endif()
+# Load our local copy in case a dependency hasn't loaded a newer one
 set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
 include("${_LOCAL_RDCUTILS_FILENAME}")
 
 # NOTE: include library utils after RDC
+include(CeleritasLibrary)
 include(CeleritasLibraryUtils)
 
 #----------------------------------------------------------------------------#
@@ -586,7 +579,6 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
   # TODO: this might not need installing if VecGeom provides a new version
   "${_LOCAL_RDCUTILS_FILENAME}"
