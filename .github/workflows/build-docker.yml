@@ -87,7 +87,7 @@ jobs:
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done
-          ./bin/celer-sim --version
+          ./bin/celer-sim --config
       - name: Build examples
         # TODO: rocm+ndebug fails to propagate HIP library link
         if: >-

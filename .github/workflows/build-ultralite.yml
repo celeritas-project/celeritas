@@ -58,6 +58,7 @@ jobs:
         working-directory: install
         run: |
           ./bin/celer-sim --version
+          ./bin/celer-sim --config
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |
