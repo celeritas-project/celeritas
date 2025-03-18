@@ -277,6 +277,8 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
 # NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
+# and check the dependency code in the CMakeConfig setup at the bottom of this
+# file
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)
@@ -585,8 +587,8 @@ set(_cmake_files
   # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
-foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
-  if(CELERITAS_USE_${_dep})
+foreach(_dep CLI11 Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+  if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
 endforeach()

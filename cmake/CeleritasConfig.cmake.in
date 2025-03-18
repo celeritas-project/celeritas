@@ -124,6 +124,10 @@ if(CELERITAS_USE_OpenMP)
   find_dependency(OpenMP REQUIRED)
 endif()
 
+if(CELERITAS_USE_Perfetto AND NOT CELERITAS_BUILTIN_Perfetto)
+  find_dependency(Perfetto REQUIRED)
+endif()
+
 if(CELERITAS_USE_PNG)
   find_dependency(PNG REQUIRED)
 endif()
