@@ -600,7 +600,7 @@ function(cuda_rdc_install subcommand firstarg)
     list(APPEND _toinstall ${_target_elem})
   endforeach()
   install(TARGETS ${_toinstall} ${_next} ${ARGN})
-  endfunction()
+endfunction()
 
 #-----------------------------------------------------------------------------#
 # Return TRUE if 'lib' depends/uses directly or indirectly the library `potentialdepend`
