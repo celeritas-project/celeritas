@@ -15,7 +15,6 @@
 #include <VecGeom/navigation/NavigationState.h>
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"

@@ -16,41 +16,22 @@ CMake integration
 -----------------
 
 The Celeritas library is most easily used when your downstream app is built with
-CMake. It should require a single line to initialize::
+CMake, demonstrated by the :ref:`example_minimal` and :ref:`example_cmake` examples. It should require a single line to initialize::
 
-   find_package(Celeritas REQUIRED CONFIG)
+   find_package(Celeritas REQUIRED)
 
-and if VecGeom or CUDA are disabled, a single line to link::
+and a single line to link::
 
-   target_link_libraries(mycode PUBLIC Celeritas::celeritas)
-
-Targets
-^^^^^^^
-
-CMake targets exported by Celeritas live in the ``Celeritas::`` namespace.
-These targets are:
-
-- An interface lib ``BuildFlags`` that provides the include path to Celeritas,
-  language requirements, and warning overrides;
-- Wrapper interface libraries that provide links to optional dependencies if
-  enabled: ``ExtMPI``, ``ExtOpenMP``, ``ExtPerfetto``, ``ExtGeant4Geo``
-  (G4Geometry if available), and ``ExtDeviceApi`` (CUDA::toolkit if available,
-  ROCM/HIP libraries and includes, and roctx64 if available);
-- Code libraries described in :ref:`api`: corecel, geocel, orange,
-  celeritas, and accel;
-- Executables such as ``celer-sim`` and ``celer-geo``.
+   cuda_rdc_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
 CudaRdcUtils
 ^^^^^^^^^^^^
 
-Because of complexities involving CUDA Relocatable Device Code (RDC), consuming
-Celeritas with CUDA and VecGeom support requires an additional include and the
-use of wrappers around CMake's target commands::
-
-  include(CudaRdcUtils)
-  cuda_rdc_add_executable(mycode ...)
-  cuda_rdc_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
-
+The special ``cuda_rdc_`` command in the previous statement,
+rather than the simpler native CMake command
+``target_link_libraries``, is needed in case Celeritas is built with both
+CUDA and the current version of VecGeom, which uses a special but messy feature
+called CUDA Relocatable Device Code (RDC).
 As the ``cuda_rdc_...`` functions decay to the wrapped CMake commands if CUDA
 and VecGeom are disabled, you can use them to safely build and link nearly all targets
 consuming Celeritas in your project. This provides tracking of the appropriate
@@ -62,6 +43,10 @@ and whether Celeritas is CPU-only or CUDA enabled::
 
   cuda_rdc_add_executable(myapplication ...)
   cuda_rdc_target_link_libraries(myapplication PRIVATE myconsumer)
+
+.. note:: Prior to Celeritas v0.6, obtaining the above commands required the
+   user to include :file:`CudaRdcUtils.cmake` manually. Now, it is included
+   automatically.
 
 If your project builds shared libraries that are intended to be loaded at
 application runtime (e.g. via ``dlopen``), you should prefer use the CMake
@@ -79,7 +64,9 @@ and its device code counterpart::
 
   add_library(mybadplugin SHARED ...)
   # ... or myproject_add_library(mybadplugin ...)
-  target_link_libraries(mybadplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
+  target_link_libraries(mybadplugin
+    PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>
+  )
   # ... or otherwise declare the plugin as requiring linking to the two targets
 
 Celeritas device code counterpart target names are always the name of the
@@ -87,9 +74,22 @@ primary target appended with ``_final``. They are only present if Celeritas was
 built with CUDA support so it is recommended to use the CMake generator
 expression above to support CUDA or CPU-only builds transparently.
 
-The :ref:`example_minimal` and :ref:`example_cmake` examples demonstrate how to
-use Celeritas as a library with a short standalone CMake project and with
-Geant4.
+Targets
+^^^^^^^
+
+CMake targets exported by Celeritas live in the ``Celeritas::`` namespace.
+These targets are:
+
+- An interface lib ``BuildFlags`` that provides the include path to Celeritas,
+  language requirements, and warning overrides;
+- Wrapper interface libraries that provide links to optional dependencies if
+  enabled: ``ExtMPI``, ``ExtOpenMP``, ``ExtPerfetto``, ``ExtGeant4Geo``
+  (G4Geometry if available), and ``ExtDeviceApi`` (CUDA::toolkit if available,
+  ROCM/HIP libraries and includes, and roctx64 if available);
+- Code libraries described in :ref:`api`: corecel, geocel, orange,
+  celeritas, and accel;
+- Executables such as ``celer-sim`` and ``celer-geo``.
+
 
 App integration
 ---------------

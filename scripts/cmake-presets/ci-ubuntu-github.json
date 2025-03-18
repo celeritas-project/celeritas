@@ -120,7 +120,12 @@
     },
     {
       "name": "reldeb-vgsurf",
-      "description": "Build with release, assertions, VecGeom",
+      "description": "Build with release, assertions, VecGeom 2+surf",
+      "inherits": [".vecgeom", "spack"]
+    },
+    {
+      "name": "reldeb-vecgeom2",
+      "description": "Build with release, assertions, VecGeom 2~surf",
       "inherits": [".vecgeom", "spack"]
     },
     {

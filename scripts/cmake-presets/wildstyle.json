@@ -69,16 +69,25 @@
       "displayName": "Debug with VecGeom",
       "inherits": [".debug", ".base"],
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "vgsurf",
+      "displayName": "Debug with VecGeom+surface",
+      "inherits": ["vecgeom"],
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view"
       }
     },
     {
       "name": "clhep",
       "displayName": "Debug with VecGeom and clhep units",
-      "inherits": [".debug", ".base"],
+      "inherits": ["vecgeom"],
       "cacheVariables": {
-        "CELERITAS_UNITS": "CLHEP",
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_UNITS": "CLHEP"
       }
     },
     {
@@ -99,11 +108,7 @@
     {
       "name": "reldeb-vgsurf",
       "displayName": "Everything in release mode with debug symbols and assertions",
-      "inherits": [".reldeb", "vecgeom"],
-      "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view"
-      }
+      "inherits": [".reldeb", "vgsurf"]
     },
     {
       "name": "reldeb-vecgeom",
@@ -113,16 +118,12 @@
     {
       "name": "ndebug-vecgeom",
       "displayName": "Everything in release mode",
-      "inherits": [".ndebug", "reldeb-vgsurf"]
+      "inherits": [".ndebug", "vecgeom"]
     },
     {
       "name": "ndebug-vgsurf",
       "displayName": "Everything in release mode with debug symbols and assertions",
-      "inherits": [".ndebug", "vecgeom"],
-      "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-surface/.spack-env/view"
-      }
+      "inherits": [".ndebug", "vgsurf"]
     },
     {
       "name": "reldeb-serial",

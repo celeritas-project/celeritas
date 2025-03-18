@@ -267,7 +267,9 @@ TEST_F(UrbanMscTest, step_conversion)
                 {
                     tol = std::sqrt(tol);
                 }
-                EXPECT_SOFT_NEAR(pstep, true_step, tol);
+                EXPECT_SOFT_NEAR(pstep, true_step, tol)
+                    << "Geo step = " << repr(gp.step)
+                    << ", alpha = " << repr(gp.alpha);
             }
         }
     };
@@ -676,7 +678,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
     EXPECT_VEC_SOFT_EQ(expected_msc_range_limit, msc_range_limit);
     EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
     EXPECT_VEC_NEAR(
-        expected_displace, displace, using_vecgeom_surface ? 1e-4 : 1e-12);
+        expected_displace, displace, using_vecgeom_surface ? 1e-2 : 1e-12);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

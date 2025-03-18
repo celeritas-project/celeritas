@@ -16,7 +16,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 #-----------------------------------------------------------------------------#
 # Find packages
 find_package(Celeritas 0.6 REQUIRED)
-message(STATUS "Found Celeritas version ${Celeritas_VERSION} in ${Celeritas_DIR}")
 find_package(Geant4)
 
 if(NOT Celeritas_FOUND)
@@ -63,9 +62,6 @@ target_include_directories(run-offload PRIVATE
 )
 
 # Use Celeritas CUDA RDC macros to correctly link libraries using VecGeom
-# NOTE: until vecgeom/g4vg get updated, we must use the Celeritas load path
-include("${Celeritas_DIR}/CudaRdcUtils.cmake")
-
 cuda_rdc_target_link_libraries(run-offload
   ${Geant4_LIBRARIES}
   Celeritas::celeritas

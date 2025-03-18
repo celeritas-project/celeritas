@@ -18,6 +18,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #ifdef VECGEOM_USE_SURF
 using BrepCudaManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
@@ -34,7 +35,7 @@ namespace
 //! Access
 struct BvhGetter
 {
-    vecgeom::cuda::BVH const** dest{nullptr};
+    CudaBVH_t const** dest{nullptr};
 
     CELER_FUNCTION void operator()(ThreadId tid)
     {
@@ -48,13 +49,13 @@ struct BvhGetter
 /*!
  * Get pointers to the device BVH after setup, for consistency checking.
  */
-CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
+CudaPointers<CudaBVH_t const> bvh_pointers_device()
 {
-    CudaPointers<vecgeom::cuda::BVH const> result;
+    CudaPointers<CudaBVH_t const> result;
 
     // Copy from kernel using 1-thread launch
     {
-        DeviceVector<vecgeom::cuda::BVH const*> bvh_ptr{1, StreamId{}};
+        DeviceVector<CudaBVH_t const*> bvh_ptr{1, StreamId{}};
         BvhGetter execute_thread{bvh_ptr.data()};
         static KernelLauncher<decltype(execute_thread)> const launch_kernel(
             "vecgeom-get-bvhptr");
@@ -64,11 +65,17 @@ CudaPointers<vecgeom::cuda::BVH const> bvh_pointers_device()
     }
 
     // Copy from symbol using runtime API
-    CELER_DEVICE_API_CALL(MemcpyFromSymbol(&result.symbol,
-                                           vecgeom::cuda::dBVH,
-                                           sizeof(vecgeom::cuda::dBVH),
-                                           0,
-                                           cudaMemcpyDeviceToHost));
+    CELER_DEVICE_API_CALL(
+        MemcpyFromSymbol(&result.symbol,
+#if VECGEOM_VERSION >= VECGEOM_V2
+                         vecgeom::cuda::dBVH<BvhPrecision>,
+                         sizeof(vecgeom::cuda::dBVH<BvhPrecision>),
+#else
+                         vecgeom::cuda::dBVH,
+                         sizeof(vecgeom::cuda::dBVH),
+#endif
+                         0,
+                         CELER_DEVICE_API_SYMBOL(MemcpyDeviceToHost)));
     CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     return result;
