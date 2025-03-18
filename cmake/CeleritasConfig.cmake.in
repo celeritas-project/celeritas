@@ -171,17 +171,30 @@ cmake_policy(POP)
 #-----------------------------------------------------------------------------#
 
 if(NOT TARGET celeritas)
+  # Load Celeritas-distributed RDC utils after potential older version
+  # in dependencies
+  include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake" OPTIONAL)
+
+  # Load targets created by `install(EXPORT celeritas-targets`
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 endif()
 
 #-----------------------------------------------------------------------------#
+# Set components for use by the caller
 
 foreach(_dep
     CUDA HIP # Languages
-    Geant4 HepMC3 JSON MPI OpenMP ROOT VecGeom # Packages
+    Geant4 HepMC3 PNG MPI OpenMP Perfetto ROOT VecGeom # Packages
   )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
 unset(_dep)
+
+#-----------------------------------------------------------------------------#
+# Print a pretty message if the caller doesn't have a FindCeleritas.cmake
+
+include(FindPackageHandleStandardArgs)
+set(${CMAKE_FIND_PACKAGE_NAME}_CONFIG "${CMAKE_CURRENT_LIST_FILE}")
+find_package_handle_standard_args(@PROJECT_NAME@ CONFIG_MODE)
 
 #-----------------------------------------------------------------------------#

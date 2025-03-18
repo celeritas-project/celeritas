@@ -12,13 +12,6 @@ into a downstream project.
 CMake infrastructure
 --------------------
 
-A three-line helper script ``FindCeleritas.cmake`` gives more verbose loading
-messages when using Celeritas externally.
-
-.. literalinclude:: ../../example/FindCeleritas.cmake
-   :language: cmake
-   :start-at: find_package(
-
 The CMake code itself is straightforward, though note the use of
 ``celeritas_target_link_libraries`` instead of ``target_link_libraries`` to
 support CUDA RDC, which is required by VecGeom.
