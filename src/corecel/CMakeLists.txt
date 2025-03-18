@@ -256,7 +256,7 @@ if(CELERITAS_USE_Perfetto)
     sys/TracingSession.cc
   )
   celeritas_target_link_libraries(corecel_perfetto_obj
-    PRIVATE Celeritas::ExtPerfetto Celeritas::BuildFlags
+    PRIVATE Celeritas::perfetto Celeritas::BuildFlags
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:corecel_perfetto_obj>)
   list(APPEND PRIVATE_DEPS corecel_perfetto_obj)
