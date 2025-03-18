@@ -13,7 +13,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: a91f96292c5d999463818365a3dfdabacdd3a31b # develop@2025-03-06
+  SPACK_REF: 38309ced3344d06168c25482083fc733bb654a63 # develop@2025-03-17
 
 jobs:
   spack:
@@ -44,6 +44,9 @@ jobs:
             special: "clhep"
             geant: "11.0"
           - geometry: "vgsurf"
+            special: null
+            geant: "11.0"
+          - geometry: "vecgeom2"
             special: null
             geant: "11.0"
           - geometry: "geant4"
@@ -88,8 +91,10 @@ jobs:
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
             spack -e . add vecgeom@1.2.10:1+gdml
+          elif ${{matrix.geometry == 'vecgeom2'}}; then
+            spack -e . add vecgeom@2.0.0-surfacedev.2~surface+gdml
           elif ${{matrix.geometry == 'vgsurf'}}; then
-            spack -e . add vecgeom+surface
+            spack -e . add vecgeom@2.0.0-surfacedev.2+surface+gdml
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
@@ -100,6 +105,7 @@ jobs:
             spack -e . add geant4@${{matrix.geant}}
           fi
           if ${{(matrix.geometry == 'vecgeom'
+                 || matrix.geometry == 'vecgeom2'
                  || matrix.geometry == 'vgsurf')
                 && matrix.geant}}; then
             spack -e . add g4vg@1.0.2:
@@ -152,8 +158,7 @@ jobs:
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
           git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          # NOTE: since we update the environment for vgsurf, DO NOT reload it
-          if ${{matrix.geant == '11.0' && matrix.geometry != 'vgsurf'}}; then
+          if ${{matrix.geant == '11.0'}}; then
             # Test overriding of Geant4 environment variables
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
@@ -203,21 +208,27 @@ jobs:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
       - name: Regenerate ROOT test data
-        if: ${{
-          matrix.geant == '11.0'
-          && matrix.special != 'minimal'
-          && matrix.special != 'vgsurf'
-         }}
+        if: >-
+          ${{
+            matrix.geant == '11.0'
+            && matrix.special != 'minimal'
+          }}
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
       - name: Run unit tests
         id: unittest
         if: ${{matrix.special != 'clang-tidy'}}
-        continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
+        continue-on-error: >- # TODO: fix failing tests
+          ${{
+            fromJSON(matrix.geant || '0') < 11
+            || matrix.geometry == 'vgsurf'
+            || matrix.geometry == 'vecgeom2'
+          }}
         run: |
-          if ${{matrix.geant == '11.0' && matrix.special != 'vgsurf'}}; then
-            # Note this is ignored for geant4, float, clhep, vgsurf
+          if ${{matrix.geant == '11.0'
+                && matrix.geometry != 'vecgeom2'}}; then
+            # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
           fi
           ctest -LE app --preset=spack-unit
@@ -231,12 +242,15 @@ jobs:
           ctest -L app --preset=spack-app
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: >-
+        if: >- # not skipped, new geant4, not experimental vecgeom
           ${{
             always()
             && (steps.unittest.outcome == 'success'
                 || steps.unittest.outcome == 'failure')
-            && (!matrix.geant || fromJSON(matrix.geant) >= 11)
+            && (!matrix.geant
+                || fromJSON(matrix.geant) >= 11)
+            && !(matrix.geometry == 'vgsurf'
+                 || matrix.geometry == 'vecgeom2')
           }}
         with:
           name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
@@ -257,7 +271,12 @@ jobs:
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         id: install
-        if: ${{!cancelled() && steps.build.outcome == 'success' && matrix.special != 'clang-tidy'}}
+        if: >-
+          ${{
+            !cancelled()
+            && steps.build.outcome == 'success'
+            && matrix.special != 'clang-tidy'
+          }}
         working-directory: build
         run: |
           ninja install
@@ -269,7 +288,7 @@ jobs:
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done
-          ./bin/celer-sim --version
+          ./bin/celer-sim --config
       - name: Build examples
         # TODO: ASAN requires flags downstream
         env:

@@ -73,7 +73,7 @@ struct VecgeomStateData
     // Collections
     Items<Real3> pos;
     Items<Real3> dir;
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     Items<long> next_surface;
 #endif
 
@@ -87,7 +87,7 @@ struct VecgeomStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return this->size() > 0 && dir.size() == this->size()
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
                && next_surface.size() == this->size()
 #endif
                && vgstate && vgnext;
@@ -106,7 +106,7 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
         next_surface = other.next_surface;
 #endif
         vgstate = other.vgstate;
@@ -130,7 +130,7 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     resize(&data->next_surface, size);
 #endif
     data->vgstate.resize(params.max_depth, size);

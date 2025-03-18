@@ -12,6 +12,7 @@ spack:
   - ninja
   - nlohmann-json
   config:
+    deprecated: True
     install_tree:
       root: /opt/spack
       projections:
