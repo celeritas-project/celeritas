@@ -20,6 +20,7 @@ list(APPEND SOURCES
   IntegrationBase.cc
   Logger.cc
   LocalTransporter.cc
+  CylMapMagneticField.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc

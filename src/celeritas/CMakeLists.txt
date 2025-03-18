@@ -40,6 +40,7 @@ list(APPEND SOURCES
   field/FieldDriverOptionsIO.json.cc
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
+  field/CylMapFieldParams.cc
   field/UniformFieldParams.cc
   geo/GeoMaterialParams.cc
   global/ActionGroups.cc
@@ -289,6 +290,7 @@ celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
 celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
