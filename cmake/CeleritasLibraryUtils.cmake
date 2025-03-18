@@ -1,6 +1,5 @@
-#----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
@@ -15,34 +14,23 @@ forward directly to CMake or alternatively to CudaRdc.
 
   Add a library that correctly links against CUDA relocatable device code, has
   the ``Celeritas::`` aliases, is generated into the ``lib/`` build
-  directory, and is installed with the project.
+  directory, automatically uses HIP for ``.cu`` files, and is installed with the
+  project.
 
 .. command:: celeritas_add_test_library
 
   Add a test-only library that uses RDC but does not get installed.
 
-.. command:: celeritas_get_cuda_source_args
+.. command:: celeritas_add_interface_library
 
-  Get a list of all source files in the argument that are CUDA language.
-
-    celeritas_get_cuda_source_args(<var> [<source> ...])
-
-.. command:: celeritas_add_library
-
-  Add a library that correctly links against CUDA relocatable device code.
-
-.. command:: celeritas_install
-
-  Install library that correctly deal with CUDA relocatable device code.
-
-.. command:: celeritas_set_target_properties
-
-  Install library that correctly deal with CUDA relocatable device code extra
-  libraries.
+  Add an interface library that correctly links against CUDA relocatable device
+  code, has the ``Celeritas::`` aliases, and is installed with the project.
+  Interface libraries should have capitalized names to distinguish them.
 
 .. command:: celeritas_add_object_library
 
-  Add an OBJECT library to reduce dependencies (e.g. includes) from other libraries.
+  Add an OBJECT library to reduce dependencies (e.g. includes) from other
+  libraries. The source files MUST NOT be CUDA/HIP.
 
 .. command:: celeritas_add_executable
 
@@ -57,61 +45,6 @@ forward directly to CMake or alternatively to CudaRdc.
 
   The ``<source>`` arguments are passed to CMake's builtin ``add_executable``
   command.
-
-.. command:: celeritas_target_link_libraries
-
-  Specify libraries or flags to use when linking a given target and/or its
-  dependents, taking in account the extra targets (see
-  celeritas_rdc_add_library) needed to support CUDA relocatable device code.
-
-    ::
-
-      celeritas_target_link_libraries(<target>
-        <PRIVATE|PUBLIC|INTERFACE> <item>...
-        [<PRIVATE|PUBLIC|INTERFACE> <item>...]...))
-
-  Usage requirements from linked library targets will be propagated to all four
-  targets. Usage requirements of a target's dependencies affect compilation of
-  its own sources. In the case that ``<target>`` does not contain CUDA code, the
-  command decays to ``target_link_libraries``.
-
-  See ``target_link_libraries`` for additional detail.
-
-
-.. command:: celeritas_target_include_directories
-
-  Add include directories to a target.
-
-    ::
-
-      celeritas_target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
-        <INTERFACE|PUBLIC|PRIVATE> [items1...]
-        [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
-
-  Specifies include directories to use when compiling a given target. The named
-  <target> must have been created by a command such as
-  celeritas_rdc_add_library(), add_executable() or add_library(), and can be
-  used with an ALIAS target. It is aware of the 4 underlying targets (objects,
-  static, middle, final) present when the input target was created
-  celeritas_rdc_add_library() and will propagate the include directories to all
-  four. In the case that ``<target>`` does not contain CUDA code, the command
-  decays to ``target_include_directories``.
-
-  See ``target_include_directories`` for additional detail.
-
-.. command:: celeritas_target_compile_options
-
-   Specify compile options for a CUDA RDC target
-
-     ::
-       celeritas_target_compile_options(<target> [BEFORE]
-         <INTERFACE|PUBLIC|PRIVATE> [items1...]
-         [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
-
-  In the case that an input target does not contain CUDA code, the command decays
-  to ``target_compile_options``.
-
-  See ``target_compile_options`` for additional detail.
 
 .. command:: celeritas_configure_file
 
@@ -128,64 +61,22 @@ forward directly to CMake or alternatively to CudaRdc.
 
     celeritas_polysource_append(SOURCES my/Class)
 
+Helper functions
+^^^^^^^^^^^^^^^^
+
+.. command:: celeritas_get_cuda_source_args
+
+  Get a list of all source files in the argument that are CUDA language.
+
+    celeritas_get_cuda_source_args(<var> [<source> ...])
+
 #]=======================================================================]
 include_guard(GLOBAL)
 
-if(NOT DEFINED CELERITAS_USE_VecGeom)
+if(NOT COMMAND celeritas_add_library)
   message(FATAL_ERROR
-    "This file can only be included after options are defined"
+    "This file can only be included after CeleritasLibrary is loaded."
   )
-endif()
-
-if(NOT DEFINED CUDA_RDC_VERSION)
-  message(FATAL_ERROR
-    "This file can only be included after CudaRdcUtils is loaded"
-  )
-endif()
-
-#-----------------------------------------------------------------------------#
-# Wrapper functions
-
-if(NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA))
-  # Forward all arguments direcly to CMake builtins
-  macro(celeritas_add_library)
-    add_library(${ARGV})
-  endmacro()
-  macro(celeritas_set_target_properties)
-    set_target_properties(${ARGV})
-  endmacro()
-  macro(celeritas_install)
-    install(${ARGV})
-  endmacro()
-  macro(celeritas_target_link_libraries)
-    target_link_libraries(${ARGV})
-  endmacro()
-  macro(celeritas_target_include_directories)
-    target_include_directories(${ARGV})
-  endmacro()
-  macro(celeritas_target_compile_options)
-    target_compile_options(${ARGV})
-  endmacro()
-else()
-  # Forward all arguments to RDC utility wrappers
-  macro(celeritas_add_library)
-    cuda_rdc_add_library(${ARGV})
-  endmacro()
-  macro(celeritas_set_target_properties)
-    cuda_rdc_set_target_properties(${ARGV})
-  endmacro()
-  macro(celeritas_install)
-    cuda_rdc_install(${ARGV})
-  endmacro()
-  macro(celeritas_target_link_libraries)
-    cuda_rdc_target_link_libraries(${ARGV})
-  endmacro()
-  macro(celeritas_target_include_directories)
-    cuda_rdc_target_include_directories(${ARGV})
-  endmacro()
-  macro(celeritas_target_compile_options)
-    cuda_rdc_target_compile_options(${ARGV})
-  endmacro()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -257,7 +148,7 @@ function(celeritas_add_test_library target)
     endif()
   endif()
 
-  celeritas_add_library(${target} ${ARGN})
+  celeritas_add_library(${ARGV})
 
   if(CELERITAS_USE_ROOT)
     # Require PIC for static libraries, including "object" RDC lib
@@ -268,8 +159,19 @@ function(celeritas_add_test_library target)
 endfunction()
 
 #-----------------------------------------------------------------------------#
-# Add an object library to limit the propagation of includes to the rest of the
-# library.
+
+function(celeritas_add_interface_library target)
+  # Interface libraries don't need RDC wrappers
+  add_library(${target} INTERFACE ${ARGN})
+  add_library(Celeritas::${target} ALIAS ${target})
+  install(TARGETS ${target}
+    EXPORT celeritas-targets
+    COMPONENT runtime
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
 function(celeritas_add_object_library target)
   add_library(${target} OBJECT ${ARGN})
   install(TARGETS ${target}
@@ -283,7 +185,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_executable target)
-  add_executable("${target}" ${ARGN})
+  add_executable(${ARGV})
   install(TARGETS "${target}"
     EXPORT celeritas-targets
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"

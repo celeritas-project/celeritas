@@ -17,7 +17,7 @@ if(NOT CELERITAS_USE_Geant4)
 endif()
 
 add_executable(simple-offload simple-offload.cc)
-cuda_rdc_target_link_libraries(simple-offload
+celeritas_target_link_libraries(simple-offload
   Celeritas::accel
   ${Geant4_LIBRARIES}
 )
@@ -27,7 +27,7 @@ if(Geant4_VERSION VERSION_LESS 11.1)
 endif()
 
 add_executable(fastsim-offload fastsim-offload.cc)
-cuda_rdc_target_link_libraries(fastsim-offload
+celeritas_target_link_libraries(fastsim-offload
   Celeritas::accel
   ${Geant4_LIBRARIES}
 )
@@ -36,7 +36,7 @@ if(Geant4_VERSION VERSION_LESS 11.0)
   message(WARNING "G4VTrackingManager offload requires Geant4 11.0 or higher")
 else()
   add_executable(trackingmanager-offload trackingmanager-offload.cc)
-  cuda_rdc_target_link_libraries(trackingmanager-offload
+  celeritas_target_link_libraries(trackingmanager-offload
     Celeritas::accel
     ${Geant4_LIBRARIES}
   )

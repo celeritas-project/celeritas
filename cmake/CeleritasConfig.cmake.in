@@ -176,6 +176,9 @@ if(NOT TARGET celeritas)
   # in dependencies
   include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake" OPTIONAL)
 
+  # Load Celeritas library wrappers
+  include("${CELERITAS_CMAKE_DIR}/CeleritasLibrary.cmake")
+  
   # Load targets created by `install(EXPORT celeritas-targets`
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 endif()
