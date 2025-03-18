@@ -150,6 +150,10 @@ if(CELERITAS_USE_VecGeom)
       "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
     )
   endif()
+
+  if(CELERITAS_USE_Geant4 AND NOT CELERITAS_BUILTIN_G4VG)
+    find_dependency(G4VG @G4VG_VERSION@ REQUIRED)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_TESTS)
