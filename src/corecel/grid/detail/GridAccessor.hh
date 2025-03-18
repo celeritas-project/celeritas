@@ -95,15 +95,15 @@ class UniformGridAccessor : public GridAccessor
                                Values const& values);
 
     //! Get the x grid value at the given index
-    inline real_type x(size_type index) const;
+    inline real_type x(size_type index) const final;
 
     //! Get the y grid value at the given index
-    inline real_type y(size_type index) const;
+    inline real_type y(size_type index) const final;
 
     //! Get the grid size
     size_type size() const final { return loge_grid_.size(); }
 
-  protected:
+  private:
     UniformGridRecord const& data_;
     Values const& reals_;
     UniformGrid loge_grid_;
@@ -113,17 +113,33 @@ class UniformGridAccessor : public GridAccessor
 /*!
  * Helper class for accessing grid data from an inverse uniform grid.
  */
-class InverseGridAccessor : public UniformGridAccessor
+class InverseGridAccessor : public GridAccessor
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using Values
+        = Collection<real_type, Ownership::const_reference, MemSpace::native>;
+    //!@}
+
+  public:
     // Construct with grid data
-    using UniformGridAccessor::UniformGridAccessor;
+    inline InverseGridAccessor(UniformGridRecord const& grid,
+                               Values const& values);
 
     //! Get the x grid value at the given index
     inline real_type x(size_type index) const final;
 
     //! Get the y grid value at the given index
     inline real_type y(size_type index) const final;
+
+    //! Get the grid size
+    size_type size() const final { return loge_grid_.size(); }
+
+  private:
+    UniformGridRecord const& data_;
+    Values const& reals_;
+    UniformGrid loge_grid_;
 };
 
 //---------------------------------------------------------------------------//
@@ -220,6 +236,17 @@ real_type UniformGridAccessor::y(size_type index) const
 {
     CELER_EXPECT(index < this->size());
     return reals_[data_.value[index]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Contruct from cross section grid.
+ */
+InverseGridAccessor::InverseGridAccessor(UniformGridRecord const& grid,
+                                         Values const& values)
+    : data_(grid), reals_(values), loge_grid_(data_.grid)
+{
+    CELER_EXPECT(data_);
 }
 
 //---------------------------------------------------------------------------//
