@@ -34,7 +34,6 @@ struct ImportMuPairProductionTable;
 struct ProcessBuilderOptions
 {
     bool brem_combined{false};
-    BremsModelSelection brems_selection{BremsModelSelection::all};
 };
 
 //---------------------------------------------------------------------------//
@@ -117,7 +116,6 @@ class ProcessBuilder
     std::function<ImportPhysicsVector(AtomicNumber)> read_neutron_elastic_;
     std::shared_ptr<ImportMuPairProductionTable> mu_pairprod_table_;
 
-    BremsModelSelection selection_;
     bool brem_combined_;
     bool enable_lpm_;
     bool use_integral_xs_;

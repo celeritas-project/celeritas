@@ -102,10 +102,6 @@ foreach(_pkg CLHEP CUDA HepMC3 HIP Geant4 ROOT Thrust VecGeom)
   celeritas_append_cmake_string("${_lower}_version" "${_value}")
 endforeach()
 
-foreach(_ext DECL DEF)
-  list(JOIN CELERITAS_CMAKE_STRINGS_${_ext} "\n" CELERITAS_CMAKE_STRINGS_${_ext})
-endforeach()
-
 # NOTE: some values are defined in top-level CMakeLists
 # - CELERITAS_HAVE_ROCTX
 # - CELERITAS_SINCOSPI_PREFIX
@@ -125,12 +121,45 @@ foreach(_dep Geant4 VecGeom HepMC3)
     "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
   )
 endforeach()
-list(JOIN CELERITAS_DEPENDENCY_VERSIONS "\n" CELERITAS_DEPENDENCY_VERSIONS)
 
-# Save VecGeom surface macro
-set(CELERITAS_VECGEOM_SURFACE ${VecGeom_USE_SURF})
+# Save VecGeom options as always-on macros to simplify testing
+set(CELERITAS_VECGEOM_CONFIG)
+if(DEFINED VecGeom_USE_SURF)
+  set(VecGeom_SURFACE ${VecGeom_USE_SURF})
+endif()
+set(_vecgeom_opts)
+foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
+  if(NOT DEFINED VecGeom_${_opt})
+    set(_val "0 /* not defined */")
+  elseif(VecGeom_${_opt})
+    set(_val 1)
+    string(TOLOWER "${_opt}" _lower_opt)
+    list(APPEND _vecgeom_opts "${_lower_opt}")
+  else()
+    set(_val 0)
+  endif()
+  list(APPEND CELERITAS_VECGEOM_CONFIG
+    "#define CELERITAS_VECGEOM_${_opt} ${_val}"
+  )
+endforeach()
+foreach(_opt NAV BACKEND)
+  if(DEFINED VecGeom_${_opt})
+    list(APPEND _vecgeom_opts "${VecGeom_${_opt}}")
+  endif()
+endforeach()
+if(NOT VecGeom_VECTOR STREQUAL "empty")
+  list(APPEND _vecgeom_opts "${VecGeom_VECTOR}")
+endif()
+list(JOIN _vecgeom_opts "," _vecgeom_opts)
+celeritas_append_cmake_string("vecgeom_options" "${_vecgeom_opts}")
+
+# Convert lists to newline-separated strings
+foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERSIONS)
+  list(JOIN CELERITAS_${_ext} "\n" CELERITAS_${_ext})
+endforeach()
 
 #-----------------------------------------------------------------------------#
+# Generate the config files
 
 celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
 

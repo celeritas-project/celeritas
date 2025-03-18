@@ -32,6 +32,7 @@ if(NOT CELERITAS_USE_CUDA)
 endif()
 
 # Optional dependencies
+# NOTE: when adding a new dependency, update the CMakeConfig "COMPONENTS"
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
@@ -275,6 +276,7 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
+# NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)
@@ -521,10 +523,6 @@ else()
 endif()
 set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
 include("${_LOCAL_RDCUTILS_FILENAME}")
-if(NOT CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
-  # Only install our copy if it's newer than what's available elsewhere
-  set(_LOCAL_RDCUTILS_FILENAME)
-endif()
 
 #----------------------------------------------------------------------------#
 # LIBRARY
@@ -633,11 +631,9 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 set(_cmake_files
   # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
+  # TODO: this might not need installing if VecGeom provides a new version
+  "${_LOCAL_RDCUTILS_FILENAME}"
 )
-if(_LOCAL_RDCUTILS_FILENAME)
-  # Install our newer copy of CudaRdcUtils
-  list(APPEND _cmake_files ${_LOCAL_RDCUTILS_FILENAME})
-endif()
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
@@ -702,7 +698,7 @@ list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
   Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
-  VecCore_DIR VecGeom_DIR
+  VecCore_DIR VecGeom_DIR G4VG_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
   VDT_INCLUDE_DIR VDT_LIBRARY
