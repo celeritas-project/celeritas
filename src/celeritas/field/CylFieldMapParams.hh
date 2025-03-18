@@ -20,7 +20,7 @@ struct CylFieldMapInput;
 /*!
  * Set up a 3D CylFieldMapParams.
  *
- * The input values should be converted to the native unit system.
+ * The input values are in the native unit system.
  */
 class CylFieldMapParams final
     : public ParamsDataInterface<CylFieldMapParamsData>

@@ -66,7 +66,7 @@ class AlongStepCylFieldMapMscAction final : public CoreStepActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the interaction kernel
-    std::string_view label() const final { return "along-step-CylMap-msc"; }
+    std::string_view label() const final { return "along-step-cylmap-msc"; }
 
     //! Short description of the action
     std::string_view description() const final

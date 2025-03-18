@@ -23,8 +23,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the value of magnetic field based on a volume-based Cyl field
- * map.
+ * Interpolate a magnetic field vector on an r/phi/z grid.
+ *
+ * The field vector is stored as a cartesian \f$(x,y,z)\f$ value on the
+ * cylindrical mesh grid points, and trilinear interpolation is performed
+ * within each grid cell. The value outside the grid is zero.
+ *
+ * Currently the grid requires a full \f$2\pi\f$ azimuthal grid.
  */
 class CylFieldMap
 {
