@@ -65,7 +65,7 @@ auto UniformAlongStepFactory::operator()(
     auto magnitude = norm(field.strength);
 
     // Get the volumes where field is present
-    auto volumes = this->get_volumes(); 
+    auto volumes = this->get_volumes();
 
     if (magnitude > 0)
     {
@@ -78,18 +78,15 @@ auto UniformAlongStepFactory::operator()(
             {
                 CELER_ASSERT(lv);
                 auto vol = find_volume(*lv);
-		CELER_VALIDATE(
+                CELER_VALIDATE(
                     vol,
                     << "failed to find volume corresponding to Geant4 volume "
                     << lv->GetName() << " while setting up uniform field");
-                CELER_LOG(debug)
-		    << "Found volume "
-		    << lv->GetName()
-		    << " that will be assigned a uniform field";
-		field.volumes.push_back(vol);
+                CELER_LOG(debug) << "Found volume " << lv->GetName()
+                                 << " that will be assigned a uniform field";
+                field.volumes.push_back(vol);
             }
         }
-
 
         // Create a uniform field
         CELER_LOG(info)
