@@ -533,6 +533,7 @@ endif()
 #----------------------------------------------------------------------------#
 
 # Load our local copy in case a dependency hasn't loaded a newer one
+# and install it alongside CeleritasConfig (see further below)
 set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
 include("${_LOCAL_RDCUTILS_FILENAME}")
 
@@ -580,7 +581,8 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 # Build list of CMake files to install
 set(_cmake_files
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
-  # TODO: this might not need installing if VecGeom provides a new version
+  # TODO: in the future, don't include or distribute RdcUtils.
+  # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
 foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)

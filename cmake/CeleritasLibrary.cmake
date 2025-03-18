@@ -45,12 +45,6 @@ if(NOT DEFINED CELERITAS_USE_VecGeom)
   )
 endif()
 
-if(NOT DEFINED CUDA_RDC_VERSION)
-  message(FATAL_ERROR
-    "This file can only be included after CudaRdcUtils is loaded"
-  )
-endif()
-
 if(NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA))
   # Forward all arguments direcly to CMake builtins
   macro(celeritas_add_library)
@@ -72,6 +66,10 @@ if(NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA))
     target_compile_options(${ARGV})
   endmacro()
 else()
+  if(NOT COMMAND cuda_rdc_add_library)
+    message(FATAL_ERROR "This file MUST be used with CudaRdcUtils")
+  endif()
+
   # Forward all arguments to RDC utility wrappers
   macro(celeritas_add_library)
     cuda_rdc_add_library(${ARGV})
