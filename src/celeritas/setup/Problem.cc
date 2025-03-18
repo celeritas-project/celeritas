@@ -255,13 +255,13 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
  * Construct magnetic field from variant input.
  */
 auto build_along_step(inp::Field const& var_field,
-                      inp::EmPhysics const& em,
+                      inp::Interpolation const& interpolation,
                       CoreParams::Input const& params,
                       ImportData const& imported)
 {
     bool const eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported, {em.interpolation});
+        *params.particle, *params.material, imported, {interpolation});
 
     CELER_ASSUME(!var_field.valueless_by_exception());
     auto next_id = params.action_reg->next_id();
@@ -402,8 +402,10 @@ problem(inp::Problem const& p, ImportData const& imported)
     params.physics = build_physics(p, params, imported);
 
     CELER_ASSUME(!p.field.valueless_by_exception());
+    auto interp = p.physics.em ? p.physics.em->interpolation
+                               : inp::Interpolation{};
     params.action_reg->insert(
-        build_along_step(p.field, *p.physics.em, params, imported));
+        build_along_step(p.field, interp, params, imported));
 
     // Construct RNG params
     params.rng = std::make_shared<RngParams>(p.control.seed);
