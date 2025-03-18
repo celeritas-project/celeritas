@@ -538,6 +538,7 @@ set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.
 include("${_LOCAL_RDCUTILS_FILENAME}")
 
 # NOTE: include library utils after RDC
+include(CeleritasLibrary)
 include(CeleritasLibraryUtils)
 
 #----------------------------------------------------------------------------#

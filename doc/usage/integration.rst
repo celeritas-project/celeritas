@@ -22,31 +22,41 @@ CMake, demonstrated by the :ref:`example_minimal` and :ref:`example_cmake` examp
 
 and a single line to link::
 
-   cuda_rdc_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
+   celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
+
+This special CMake command and its sisters wrap the CMake commands
+``add_library``, ``set_target_properties``
+``target_link_libraries``, ``target_include_directories``,
+``target_compile_options``, and ``install``. They are needed in case Celeritas
+uses both CUDA and VecGeom, forwarding to the ``CudaRdcUtils`` commands if so
+and forwarding to native CMake commands if not. (Note that ``add_executable``
+does not need wrapping, so the regular CMake command can be used.)
 
 CudaRdcUtils
 ^^^^^^^^^^^^
 
-The special ``cuda_rdc_`` command in the previous statement,
-rather than the simpler native CMake command
-``target_link_libraries``, is needed in case Celeritas is built with both
+.. note:: Prior to Celeritas v0.6, obtaining the CudaRdc commands required the
+   user to include :file:`CudaRdcUtils.cmake` manually. Now it is included
+   automatically, but the use of the ``celeritas_`` macros is preferred for
+   readability (provenance) in the downstream application.
+
+The special ``cuda_rdc_`` commands are needed when Celeritas is built with both
 CUDA and the current version of VecGeom, which uses a special but messy feature
 called CUDA Relocatable Device Code (RDC).
 As the ``cuda_rdc_...`` functions decay to the wrapped CMake commands if CUDA
-and VecGeom are disabled, you can use them to safely build and link nearly all targets
-consuming Celeritas in your project. This provides tracking of the appropriate
-sequence of linking for the final application whether it uses CUDA code or not,
-and whether Celeritas is CPU-only or CUDA enabled::
+and VecGeom are disabled, you can directly use them to safely build and link nearly all targets
+consuming Celeritas in your project, but the ``celeritas_`` versions will
+result in a slightly faster (and possibly safer) configuration when VecGeom or
+CUDA are disabled.
+
+The CudaRdc commands track and propagate the appropriate sequence of linking
+for the final application::
 
   cuda_rdc_add_library(myconsumer SHARED ...)
   cuda_rdc_target_link_libraries(myconsumer PUBLIC Celeritas::celeritas)
 
   cuda_rdc_add_executable(myapplication ...)
   cuda_rdc_target_link_libraries(myapplication PRIVATE myconsumer)
-
-.. note:: Prior to Celeritas v0.6, obtaining the above commands required the
-   user to include :file:`CudaRdcUtils.cmake` manually. Now, it is included
-   automatically.
 
 If your project builds shared libraries that are intended to be loaded at
 application runtime (e.g. via ``dlopen``), you should prefer use the CMake
