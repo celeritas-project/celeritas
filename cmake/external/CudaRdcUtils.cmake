@@ -122,9 +122,11 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-set(_CUDA_RDC_VERSION 1)
+set(_CUDA_RDC_VERSION 3)
 if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
   # A newer version has already been loaded
+  message(VERBOSE "Ignoring CUDA_RDC_VERSION ${_CUDA_RDC_VERSION}: "
+    "already loaded ${CUDA_RDC_VERSION}")
   return()
 endif()
 set(CUDA_RDC_VERSION ${_CUDA_RDC_VERSION})
@@ -504,7 +506,16 @@ function(cuda_rdc_target_include_directories target)
     if(_targettype)
       get_target_property(_target_middle ${target} CUDA_RDC_MIDDLE_LIBRARY)
       get_target_property(_target_object ${target} CUDA_RDC_OBJECT_LIBRARY)
+      # also need to set those to have the proper exports.
+      get_target_property(_target_static ${target} CUDA_RDC_STATIC_LIBRARY)
+      get_target_property(_target_final  ${target} CUDA_RDC_FINAL_LIBRARY)
     endif()
+  endif()
+  if(_target_final)
+    target_include_directories(${_target_final} ${ARGN})
+  endif()
+  if(_target_static)
+    target_include_directories(${_target_static} ${ARGN})
   endif()
   if(_target_object)
     target_include_directories(${_target_object} ${ARGN})
