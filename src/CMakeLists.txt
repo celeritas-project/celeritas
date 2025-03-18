@@ -117,12 +117,10 @@ if(CELERITAS_USE_CUDA)
   target_link_libraries(ExtVecGeom INTERFACE Celeritas::ExtDeviceApi)
 endif()
 
-
+celer_add_ext_library(Perfetto)
 if(CELERITAS_BUILTIN_Perfetto)
-  # See /external
-  set(_perfetto_lib celeritas_perfetto)
+  target_link_libraries(ExtPerfetto Celeritas::perfetto)
 endif()
-celer_add_ext_library(Perfetto ${_pefetto_lib})
 
 celeritas_add_interface_library(ExtGeant4Geo)
 if(CELERITAS_USE_Geant4)

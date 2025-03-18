@@ -155,8 +155,7 @@
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -174,10 +173,9 @@
     },
     {
       "name": "reldeb-orange-float",
-      "description": "Build with single-precision arithmetic (no HIP)",
+      "description": "Build with single-precision arithmetic and perfetto",
       "inherits": ["spack"],
       "cacheVariables": {
-        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"
       }
     }
