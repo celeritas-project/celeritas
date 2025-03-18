@@ -32,6 +32,7 @@ if(NOT CELERITAS_USE_CUDA)
 endif()
 
 # Optional dependencies
+# NOTE: when adding a new dependency, update the CMakeConfig "COMPONENTS"
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
@@ -275,6 +276,7 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
+# NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)
