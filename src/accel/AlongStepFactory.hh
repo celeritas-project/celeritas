@@ -21,6 +21,7 @@ namespace celeritas
 {
 struct ImportData;
 struct RZMapFieldInput;
+struct CylMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
@@ -113,6 +114,7 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     using FieldInput = inp::UniformField;
     using FieldFunction = std::function<FieldInput()>;
     using VecVolume = std::vector<G4LogicalVolume const*>;
+    using VecVolumeFunction = std::function<VecVolume()>;
     //!@}
 
   public:
@@ -123,7 +125,7 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     explicit UniformAlongStepFactory(FieldFunction f);
 
     // Construct with field strength and volumes where field is present
-    UniformAlongStepFactory(FieldFunction f, VecVolume volumes);
+    UniformAlongStepFactory(FieldFunction f, VecVolumeFunction volumes);
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
@@ -131,9 +133,12 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     // Get the field params (used for converting to celeritas::inp)
     FieldInput get_field() const;
 
+    // Get the volumes where field is present
+    VecVolume get_volumes() const;
+
   private:
     FieldFunction get_field_;
-    VecVolume volumes_;
+    VecVolumeFunction get_volumes_;
 };
 
 //---------------------------------------------------------------------------//
@@ -161,6 +166,33 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 
   private:
     RZMapFieldFunction get_fieldmap_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a three-dimensional (r-phi-z in the
+ * cylindical coordinate system) map field (CylMapField).
+ */
+class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using CylMapFieldFunction = std::function<CylMapFieldInput()>;
+    //!@}
+
+  public:
+    // Construct with a function to return CylMapFieldInput
+    explicit CylMapFieldAlongStepFactory(CylMapFieldFunction f);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+    // Get the field params (used for converting to celeritas::inp)
+    CylMapFieldInput get_field() const;
+
+  private:
+    CylMapFieldFunction get_fieldmap_;
 };
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
