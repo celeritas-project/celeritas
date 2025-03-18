@@ -17,32 +17,32 @@
 #include "corecel/math/Quantity.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/CylFieldMap.hh"
-#include "celeritas/field/CylFieldMapParams.hh"
+#include "celeritas/field/CylMapField.hh"
+#include "celeritas/field/CylMapFieldParams.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined grid
-CylFieldMapParams::Input
-MakeCylFieldMapInput(std::vector<real_type> const& r_grid,
+CylMapFieldParams::Input
+MakeCylMapFieldInput(std::vector<real_type> const& r_grid,
                      std::vector<real_type> const& phi_values,
                      std::vector<real_type> const& z_grid);
 
 //---------------------------------------------------------------------------//
 /*!
- * A user magnetic field equivalent to celeritas::CylFieldMap.
+ * A user magnetic field equivalent to celeritas::CylMapField.
  */
 class CylMapMagneticField : public G4MagneticField
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstFieldParams = std::shared_ptr<CylFieldMapParams const>;
+    using SPConstFieldParams = std::shared_ptr<CylMapFieldParams const>;
     //!@}
 
   public:
-    // Construct with CylFieldMapParams
+    // Construct with CylMapFieldParams
     inline explicit CylMapMagneticField(SPConstFieldParams field_params);
 
     // Calculate values of the magnetic field vector
@@ -51,16 +51,16 @@ class CylMapMagneticField : public G4MagneticField
 
   private:
     SPConstFieldParams params_;
-    CylFieldMap calc_field_;
+    CylMapField calc_field_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the Celeritas shared CylFieldMapParams.
+ * Construct with the Celeritas shared CylMapFieldParams.
  */
 CylMapMagneticField::CylMapMagneticField(SPConstFieldParams params)
     : params_(std::move(params))
-    , calc_field_(CylFieldMap{params_->ref<MemSpace::native>()})
+    , calc_field_(CylMapField{params_->ref<MemSpace::native>()})
 {
     CELER_EXPECT(params_);
 }

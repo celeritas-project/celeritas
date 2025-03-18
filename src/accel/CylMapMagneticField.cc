@@ -24,8 +24,8 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/field/CylFieldMapInput.hh"
-#include "celeritas/field/CylFieldMapParams.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
+#include "celeritas/field/CylMapFieldParams.hh"
 
 namespace celeritas
 {
@@ -49,17 +49,17 @@ inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generates input for CylFieldMap params with configurable nonuniform grid
+ * Generates input for CylMapField params with configurable nonuniform grid
  * dimensions in native Geant4 units, and \f$\phi\f$ should be in the range
  * [0;\f$2\times\pi\f$]. This must be called after G4RunManager::Initialize as
  * it will retrieve the G4FieldManager's field to sample it.
  */
-CylFieldMapParams::Input
-MakeCylFieldMapInput(std::vector<real_type> const& r_grid,
+CylMapFieldParams::Input
+MakeCylMapFieldInput(std::vector<real_type> const& r_grid,
                      std::vector<real_type> const& phi_values,
                      std::vector<real_type> const& z_grid)
 {
-    CylFieldMapParams::Input field_input;
+    CylMapFieldParams::Input field_input;
     field_input.grid_r.reserve(r_grid.size());
     field_input.grid_phi.reserve(phi_values.size());
     field_input.grid_z.reserve(z_grid.size());

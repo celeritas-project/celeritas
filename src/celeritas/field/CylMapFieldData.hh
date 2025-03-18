@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/CylFieldMapData.hh
+//! \file celeritas/field/CylMapFieldData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,7 +21,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap (3-dimensional R-Phi-Z map) grid data
+ * MapField (3-dimensional R-Phi-Z map) grid data
  */
 template<Ownership W, MemSpace M>
 struct CylMapGridData
@@ -56,21 +56,21 @@ struct CylMapGridData
  * Device data for interpolating field values.
  */
 template<Ownership W, MemSpace M>
-struct CylFieldMapParamsData
+struct CylMapFieldParamsData
 {
-    //! Grids of FieldMap
+    //! Grids of MapField
     CylMapGridData<W, M> grids;
 
     //! Options for FieldDriver
     FieldDriverOptions options;
 
-    //! Index of FieldMap Collection
+    //! Index of MapField Collection
     using ElementId = ItemId<size_type>;
 
     template<class T>
     using ElementItems = Collection<T, W, M, ElementId>;
 
-    //! FieldMap data
+    //! MapField data
     ElementItems<EnumArray<CylAxis, real_type>> fieldmap;
 
     //! Check whether the data is assigned
@@ -106,7 +106,7 @@ struct CylFieldMapParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CylFieldMapParamsData& operator=(CylFieldMapParamsData<W2, M2> const& other)
+    CylMapFieldParamsData& operator=(CylMapFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         grids = other.grids;

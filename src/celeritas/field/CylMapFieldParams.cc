@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/CylFieldMapParams.cc
+//! \file celeritas/field/CylMapFieldParams.cc
 //---------------------------------------------------------------------------//
-#include "CylFieldMapParams.hh"
+#include "CylMapFieldParams.hh"
 
 #include <algorithm>
 #include <utility>
@@ -19,8 +19,8 @@
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 
-#include "CylFieldMapData.hh"
-#include "CylFieldMapInput.hh"
+#include "CylMapFieldData.hh"
+#include "CylMapFieldInput.hh"
 
 namespace celeritas
 {
@@ -28,7 +28,7 @@ namespace celeritas
 /*!
  * Construct from a user-defined field map.
  */
-CylFieldMapParams::CylFieldMapParams(CylFieldMapInput const& inp)
+CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
 {
     CELER_VALIDATE(
         inp.grid_r.size() >= 2,
@@ -74,7 +74,7 @@ CylFieldMapParams::CylFieldMapParams(CylFieldMapInput const& inp)
     validate_input(inp.driver_options);
 
     auto host_data = [&inp] {
-        HostVal<CylFieldMapParamsData> host;
+        HostVal<CylMapFieldParamsData> host;
 
         auto grid = make_builder(&host.grids.storage);
         grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
@@ -114,7 +114,7 @@ CylFieldMapParams::CylFieldMapParams(CylFieldMapInput const& inp)
     }();
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<CylFieldMapParamsData>{std::move(host_data)};
+    mirror_ = CollectionMirror<CylMapFieldParamsData>{std::move(host_data)};
     CELER_ENSURE(this->mirror_);
 }
 

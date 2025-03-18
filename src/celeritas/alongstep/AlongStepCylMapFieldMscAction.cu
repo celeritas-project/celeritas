@@ -3,21 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/alongstep/AlongStepCylFieldMapMscAction.cu
+//! \file celeritas/alongstep/AlongStepCylMapFieldMscAction.cu
 //---------------------------------------------------------------------------//
-#include "AlongStepCylFieldMapMscAction.hh"
+#include "AlongStepCylMapFieldMscAction.hh"
 
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/field/CylFieldMapParams.hh"
+#include "celeritas/field/CylMapFieldParams.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepKernels.hh"
-#include "detail/CylFieldMapPropagatorFactory.hh"
+#include "detail/CylMapFieldPropagatorFactory.hh"
 #include "detail/PropagationApplier.hh"
 
 namespace celeritas
@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepCylFieldMapMscAction::step(CoreParams const& params,
+void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
                                          CoreStateDevice& state) const
 {
     if (this->has_msc())
@@ -40,7 +40,7 @@ void AlongStepCylFieldMapMscAction::step(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             this->action_id(),
-            detail::PropagationApplier{detail::CylFieldMapPropagatorFactory{
+            detail::PropagationApplier{detail::CylMapFieldPropagatorFactory{
                 field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate-CylMap");

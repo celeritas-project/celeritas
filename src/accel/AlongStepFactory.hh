@@ -21,7 +21,7 @@ namespace celeritas
 {
 struct ImportData;
 struct RZMapFieldInput;
-struct CylFieldMapInput;
+struct CylMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
@@ -167,28 +167,28 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 //---------------------------------------------------------------------------//
 /*!
  * Create an along-step method for a three-dimensional (r-phi-z in the
- * cylindical coordinate system) map field (CylFieldMap).
+ * cylindical coordinate system) map field (CylMapField).
  */
-class CylFieldMapAlongStepFactory final : public AlongStepFactoryInterface
+class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using CylFieldMapFunction = std::function<CylFieldMapInput()>;
+    using CylMapFieldFunction = std::function<CylMapFieldInput()>;
     //!@}
 
   public:
-    // Construct with a function to return CylFieldMapInput
-    explicit CylFieldMapAlongStepFactory(CylFieldMapFunction f);
+    // Construct with a function to return CylMapFieldInput
+    explicit CylMapFieldAlongStepFactory(CylMapFieldFunction f);
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
 
     // Get the field params (used for converting to celeritas::inp)
-    CylFieldMapInput get_field() const;
+    CylMapFieldInput get_field() const;
 
   private:
-    CylFieldMapFunction get_fieldmap_;
+    CylMapFieldFunction get_fieldmap_;
 };
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

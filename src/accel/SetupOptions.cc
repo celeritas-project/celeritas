@@ -10,7 +10,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
-#include "celeritas/field/CylFieldMapInput.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
@@ -133,7 +133,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
         CELER_LOG(debug) << "Getting RZ map field";
         p.field = u->get_field();
     }
-    else if (auto* u = so.make_along_step.target<CylFieldMapAlongStepFactory>())
+    else if (auto* u = so.make_along_step.target<CylMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting Cyl map field";
         p.field = u->get_field();

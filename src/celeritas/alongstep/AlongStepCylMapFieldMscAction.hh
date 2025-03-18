@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/alongstep/AlongStepCylFieldMapMscAction.hh
+//! \file celeritas/alongstep/AlongStepCylMapFieldMscAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,8 +14,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/field/CylFieldMapData.hh"
-#include "celeritas/field/CylFieldMapParams.hh"
+#include "celeritas/field/CylMapFieldData.hh"
+#include "celeritas/field/CylMapFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas
@@ -25,34 +25,34 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
-struct CylFieldMapInput;
+struct CylMapFieldInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Along-step kernel with MSC, energy loss fluctuations, and a CylFieldMap.
+ * Along-step kernel with MSC, energy loss fluctuations, and a CylMapField.
  */
-class AlongStepCylFieldMapMscAction final : public CoreStepActionInterface
+class AlongStepCylMapFieldMscAction final : public CoreStepActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
-    using SPConstFieldParams = std::shared_ptr<CylFieldMapParams const>;
+    using SPConstFieldParams = std::shared_ptr<CylMapFieldParams const>;
     //!@}
 
   public:
-    static std::shared_ptr<AlongStepCylFieldMapMscAction>
+    static std::shared_ptr<AlongStepCylMapFieldMscAction>
     from_params(ActionId id,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
-                CylFieldMapInput const& field_input,
+                CylMapFieldInput const& field_input,
                 SPConstMsc const& msc,
                 bool eloss_fluctuation);
 
     // Construct with next action ID and physics properties
-    AlongStepCylFieldMapMscAction(ActionId id,
-                                  CylFieldMapInput const& input,
+    AlongStepCylMapFieldMscAction(ActionId id,
+                                  CylMapFieldInput const& input,
                                   SPConstFluctuations fluct,
                                   SPConstMsc msc);
 

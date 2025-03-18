@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/CylFieldMap.hh
+//! \file celeritas/field/CylMapField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,7 +17,7 @@
 #include "corecel/math/Turn.hh"
 #include "celeritas/Types.hh"
 
-#include "CylFieldMapData.hh"
+#include "CylMapFieldData.hh"
 
 namespace celeritas
 {
@@ -31,18 +31,18 @@ namespace celeritas
  *
  * Currently the grid requires a full \f$2\pi\f$ azimuthal grid.
  */
-class CylFieldMap
+class CylMapField
 {
   public:
     //!@{
     //! \name Type aliases
     using Real3 = Array<real_type, 3>;
-    using FieldParamsRef = NativeCRef<CylFieldMapParamsData>;
+    using FieldParamsRef = NativeCRef<CylMapFieldParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit CylFieldMap(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit CylMapField(FieldParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -64,7 +64,7 @@ class CylFieldMap
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-CylFieldMap::CylFieldMap(FieldParamsRef const& params)
+CylMapField::CylMapField(FieldParamsRef const& params)
     : params_{params}
     , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
     , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}
@@ -80,7 +80,7 @@ CylFieldMap::CylFieldMap(FieldParamsRef const& params)
  * magnetic field vector from the stored R, Z, and Phi components of the field.
  * The result is in the native Celeritas unit system.
  */
-CELER_FUNCTION auto CylFieldMap::operator()(Real3 const& pos) const -> Real3
+CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 {
     CELER_ENSURE(params_);
 

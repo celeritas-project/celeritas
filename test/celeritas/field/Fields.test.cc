@@ -16,9 +16,9 @@
 #include "corecel/math/Turn.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/CylFieldMap.hh"
-#include "celeritas/field/CylFieldMapInput.hh"
-#include "celeritas/field/CylFieldMapParams.hh"
+#include "celeritas/field/CylMapField.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
+#include "celeritas/field/CylMapFieldParams.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -158,12 +158,12 @@ TEST_F(RZMapFieldTest, all)
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 
-using CylFieldMapTest = ::celeritas::test::Test;
+using CylMapFieldTest = ::celeritas::test::Test;
 
-TEST_F(CylFieldMapTest, all)
+TEST_F(CylMapFieldTest, all)
 {
-    CylFieldMapParams field_map = [] {
-        CylFieldMapInput inp;
+    CylMapFieldParams field_map = [] {
+        CylMapFieldInput inp;
         // Set up grid points in cylindrical coordinates
         inp.grid_r = {0.0, 50.0, 100.0, 150.0};
         Array<real_type, 7> const phi_values = {
@@ -210,10 +210,10 @@ TEST_F(CylFieldMapTest, all)
                 }
             }
         }
-        return CylFieldMapParams(inp);
+        return CylMapFieldParams(inp);
     }();
 
-    CylFieldMap calc_field(field_map.host_ref());
+    CylMapField calc_field(field_map.host_ref());
 
     // Define samples in cylindrical coordinates
     size_type const nr_samples = 2;

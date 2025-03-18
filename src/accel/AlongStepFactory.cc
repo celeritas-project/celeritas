@@ -13,14 +13,14 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/QuantityIO.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/alongstep/AlongStepCylFieldMapMscAction.hh"
+#include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
-#include "celeritas/field/CylFieldMapInput.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/io/ImportData.hh"
@@ -168,9 +168,9 @@ RZMapFieldInput RZMapFieldAlongStepFactory::get_field() const
 /*!
  * Emit an along-step action with a non-uniform magnetic field.
  *
- * The action will embed the field propagator with a CylFieldMap.
+ * The action will embed the field propagator with a CylMapField.
  */
-CylFieldMapAlongStepFactory::CylFieldMapAlongStepFactory(CylFieldMapFunction f)
+CylMapFieldAlongStepFactory::CylMapFieldAlongStepFactory(CylMapFieldFunction f)
     : get_fieldmap_(std::move(f))
 {
     CELER_EXPECT(get_fieldmap_);
@@ -180,12 +180,12 @@ CylFieldMapAlongStepFactory::CylFieldMapAlongStepFactory(CylFieldMapFunction f)
 /*!
  * Emit an along-step action.
  */
-auto CylFieldMapAlongStepFactory::operator()(
+auto CylMapFieldAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
-    CELER_LOG(info) << "Creating along-step action with a CylFieldMap";
+    CELER_LOG(info) << "Creating along-step action with a CylMapField";
 
-    return celeritas::AlongStepCylFieldMapMscAction::from_params(
+    return celeritas::AlongStepCylMapFieldMscAction::from_params(
         input.action_id,
         *input.material,
         *input.particle,
@@ -199,7 +199,7 @@ auto CylFieldMapAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-CylFieldMapInput CylFieldMapAlongStepFactory::get_field() const
+CylMapFieldInput CylMapFieldAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }

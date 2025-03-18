@@ -11,7 +11,7 @@
 
 #include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
-#include "celeritas/field/CylFieldMapInput.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 
 namespace celeritas
@@ -60,11 +60,11 @@ struct UniformField
  * \todo Move field input here
  */
 using RZMapField = ::celeritas::RZMapFieldInput;
-using CylFieldMap = ::celeritas::CylFieldMapInput;
+using CylMapField = ::celeritas::CylMapFieldInput;
 
 //---------------------------------------------------------------------------//
 //! Field type
-using Field = std::variant<NoField, UniformField, RZMapField, CylFieldMap>;
+using Field = std::variant<NoField, UniformField, RZMapField, CylMapField>;
 
 //---------------------------------------------------------------------------//
 }  // namespace inp
