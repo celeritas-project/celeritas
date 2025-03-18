@@ -253,7 +253,7 @@ if(CELERITAS_USE_Perfetto)
   # Perfetto is required to build these classes
   celeritas_add_object_library(corecel_perfetto_obj
     sys/TraceCounter.perfetto.cc
-    sys/TracingSession.cc
+    sys/TracingSession.perfetto.cc
   )
   celeritas_target_link_libraries(corecel_perfetto_obj
     PRIVATE Celeritas::perfetto Celeritas::BuildFlags
