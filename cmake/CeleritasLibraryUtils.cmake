@@ -6,9 +6,9 @@
 CeleritasLibraryUtils
 ---------------------
 
-CMake library functions for Celeritas. This *must* be included after
-configurations are set up. Most of these are wrappers that forward directly to
-CMake or alternatively to CudaRdc.
+CMake library functions for Celeritas internals. This *must* be included after
+configurations and CudaRdcUtils are set up. Most of these are wrappers that
+forward directly to CMake or alternatively to CudaRdc.
 
 .. command:: celeritas_add_src_library
 
@@ -136,8 +136,11 @@ if(NOT DEFINED CELERITAS_USE_VecGeom)
   )
 endif()
 
-# Include RDC utils if not included already
-include(CudaRdcUtils)
+if(NOT DEFINED CUDA_RDC_VERSION)
+  message(FATAL_ERROR
+    "This file can only be included after CudaRdcUtils is loaded"
+  )
+endif()
 
 #-----------------------------------------------------------------------------#
 # Wrapper functions

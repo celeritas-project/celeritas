@@ -38,6 +38,23 @@ if(BUILD_TESTING)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Application utils
+#-----------------------------------------------------------------------------#
+
+celeritas_add_library(celer_app_utils STATIC
+  CliUtils.cc
+)
+
+celeritas_target_link_libraries(celer_app_utils
+  PUBLIC CLI11::CLI11
+  PRIVATE Celeritas::corecel Celeritas::corecel_mpi
+)
+
+celeritas_target_include_directories(celer_app_utils
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+#-----------------------------------------------------------------------------#
 # Geant4/ROOT data interface
 #-----------------------------------------------------------------------------#
 
@@ -46,6 +63,8 @@ celeritas_add_executable(orange-update orange-update.cc)
 celeritas_target_link_libraries(orange-update
   Celeritas::orange
   nlohmann_json::nlohmann_json
+  CLI11::CLI11
+  celer_app_utils
 )
 
 # Exporter
@@ -53,12 +72,16 @@ celeritas_add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant
   Celeritas::celeritas
   nlohmann_json::nlohmann_json
+  CLI11::CLI11
+  celer_app_utils
 )
 
 # Reader
 celeritas_add_executable(celer-dump-data celer-dump-data.cc)
 celeritas_target_link_libraries(celer-dump-data
   Celeritas::celeritas
+  CLI11::CLI11
+  celer_app_utils
 )
 
 add_subdirectory(celer-sim)

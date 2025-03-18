@@ -9,8 +9,7 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
-#include <mutex>
-#include <sstream>  // IWYU pragma: keep
+#include <sstream>
 #include <string>
 
 #include "corecel/Assert.hh"
@@ -20,6 +19,7 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 
 #include "ColorUtils.hh"
+#include "LogHandlers.hh"
 #include "LoggerTypes.hh"
 
 namespace celeritas
@@ -29,27 +29,6 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
-//! Default global logger prints the error message with basic colors
-void default_global_handler(LogProvenance prov, LogLevel lev, std::string msg)
-{
-    static std::mutex log_mutex;
-    std::lock_guard<std::mutex> scoped_lock{log_mutex};
-
-    if (lev == LogLevel::debug || lev >= LogLevel::warning)
-    {
-        // Output problem line/file for debugging or high level
-        std::clog << color_code('x') << prov.file;
-        if (prov.line)
-            std::clog << ':' << prov.line;
-        std::clog << color_code(' ') << ": ";
-    }
-
-    // clang-format on
-    std::clog << to_color_code(lev) << to_cstring(lev) << ": "
-              << color_code(' ') << msg << std::endl;
-}
-
-//---------------------------------------------------------------------------//
 //! Log the local node number as well as the message
 class LocalHandler
 {
@@ -58,11 +37,12 @@ class LocalHandler
 
     void operator()(LogProvenance prov, LogLevel lev, std::string msg)
     {
-        // Use buffered 'clog'
-        std::clog << color_code('x') << prov.file << ':' << prov.line
-                  << color_code(' ') << ": " << color_code('W') << "rank "
-                  << rank_ << ": " << color_code('x') << to_cstring(lev)
-                  << ": " << color_code(' ') << msg << std::endl;
+        // Buffer to reduce I/O contention in MPI runner
+        std::ostringstream os;
+        os << color_code('W') << "rank " << rank_ << ": ";
+        StreamLogHandler{os}(prov, lev, msg);
+
+        std::clog << std::move(os).str();
     }
 
   private:
@@ -139,13 +119,18 @@ LogLevel log_level_from_env(std::string const& level_env, LogLevel default_lev)
 /*!
  * Create a default logger using the world communicator.
  *
- * The result prints only on one processor in the world communicator group.
+ * The result prints to stderr (buffered through \c std::clog ) only on one
+ * processor in the world communicator group.
+ * Since it's for messages that should be printed once across all processes,
+ * and usually during setup when no local threads are printing, it is not
+ * mutexed.
  * This function can be useful when resetting a test harness.
  */
 Logger make_default_world_logger()
 {
-    Logger log{celeritas::comm_world().rank() == 0 ? &default_global_handler
-                                                   : nullptr};
+    Logger log{celeritas::comm_world().rank() == 0
+                   ? LogHandler{StreamLogHandler{std::clog}}
+                   : nullptr};
     set_log_level_from_env(&log, "CELER_LOG");
     return log;
 }
@@ -155,12 +140,15 @@ Logger make_default_world_logger()
  * Create a default logger using the local communicator.
  *
  * If MPI is enabled, this will prepend the local process index to the message.
+ * Because multiple threads and processes can print log messages at the same
+ * time, this log output uses a mutex to synchronize output, and prints to
+ * buffered stderr through \c std::clog .
  */
 Logger make_default_self_logger()
 {
     auto const& comm = celeritas::comm_world();
     auto handler = ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-                       ? LogHandler{&default_global_handler}
+                       ? LogHandler{MutexedStreamLogHandler{std::clog}}
                        : LocalHandler{comm};
     Logger log{std::move(handler)};
     set_log_level_from_env(&log, "CELER_LOG_LOCAL");

@@ -166,16 +166,16 @@ void to_json(nlohmann::json& j, CoreTrackView const& view)
     ASSIGN_TRANSFORMED(track_slot_id, to_int);
 
     FromId from_id{view.core_scalars().host_core_params.get()};
-    to_json_impl(j["sim"], view.make_sim_view(), from_id);
+    to_json_impl(j["sim"], view.sim(), from_id);
 
-    if (view.make_sim_view().status() == TrackStatus::inactive)
+    if (view.sim().status() == TrackStatus::inactive)
     {
         // Skip all other output since the track is inactive
         return;
     }
 
-    to_json_impl(j["geo"], view.make_geo_view(), from_id);
-    to_json_impl(j["particle"], view.make_particle_view(), from_id);
+    to_json_impl(j["geo"], view.geometry(), from_id);
+    to_json_impl(j["particle"], view.particle(), from_id);
 }
 
 //---------------------------------------------------------------------------//

@@ -1,6 +1,7 @@
 spack:
   specs:
     - adios2
+    - cli11
     - cmake
     - "geant4@11.0"
     - git

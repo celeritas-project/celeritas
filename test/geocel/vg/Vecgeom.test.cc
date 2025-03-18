@@ -29,15 +29,9 @@
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
-#include "../CmsEeBackDeeGeoTest.hh"
-#include "../CmseGeoTest.hh"
-#include "../FourLevelsGeoTest.hh"
 #include "../GeantImportVolumeResult.hh"
 #include "../GenericGeoParameterizedTest.hh"
-#include "../MultiLevelGeoTest.hh"
-#include "../SolidsGeoTest.hh"
-#include "../TransformedBoxGeoTest.hh"
-#include "../ZnenvGeoTest.hh"
+#include "../GeoTests.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
@@ -60,7 +54,7 @@ namespace test
 namespace
 {
 auto const vecgeom_version
-    = celeritas::Version::from_string(celeritas_vecgeom_version);
+    = celeritas::Version::from_string(cmake::vecgeom_version);
 
 }  // namespace
 
@@ -69,13 +63,20 @@ auto const vecgeom_version
 //---------------------------------------------------------------------------//
 class VecgeomTestBaseImpl : public VecgeomTestBase
 {
-  protected:
+  public:
     using SpanStringView = Span<std::string_view const>;
 
     virtual SpanStringView expected_log_levels() const { return {}; }
+
+    //! Get the safety tolerance: lower for surface geo
+    real_type safety_tol() const override
+    {
+        if (CELERITAS_VECGEOM_SURFACE)
+            return 5e-5;
+        return VecgeomTestBase::safety_tol();
+    }
 };
 
-//---------------------------------------------------------------------------//
 //! Load a geometry using VecGeom's GDML reader
 class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 {
@@ -92,7 +93,6 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
     }
 };
 
-//---------------------------------------------------------------------------//
 //! Load a geometry using G4VG
 class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 {
@@ -144,136 +144,6 @@ G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 // VGDML TESTS
 //---------------------------------------------------------------------------//
 
-class SimpleCmsVgdmlTest : public VecgeomVgdmlTestBase
-{
-  public:
-    std::string geometry_basename() const final { return "simple-cms"; }
-};
-
-TEST_F(SimpleCmsVgdmlTest, accessors)
-{
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(7, geom.volumes().size());
-}
-
-TEST_F(SimpleCmsVgdmlTest, track)
-{
-    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
-    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
-
-    auto next = geo.find_next_step(from_cm(100));
-    EXPECT_SOFT_EQ(100, to_cm(next.distance));
-    EXPECT_FALSE(next.boundary);
-    geo.move_internal(from_cm(20));
-    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol());
-
-    geo.set_dir({1, 0, 0});
-    next = geo.find_next_step(from_cm(50));
-    EXPECT_SOFT_EQ(30, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-
-    geo.move_to_boundary();
-    EXPECT_FALSE(geo.is_outside());
-    geo.cross_boundary();
-    EXPECT_EQ("si_tracker", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
-
-    // Scatter to tangent
-    geo.set_dir({0, 1, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_internal(from_cm(10));
-    EXPECT_SOFT_NEAR(
-        1.6227766016837926, to_cm(geo.find_safety()), safety_tol());
-
-    // Move to boundary and scatter back inside
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(111.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    geo.set_dir({-1, 0, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(60., to_cm(next.distance));
-}
-
-TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
-{
-    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
-
-    // Set up test input
-    VGGTestInput input;
-    input.init = {{{10, 0, 0}, {1, 0, 0}},
-                  {{29.99, 0, 0}, {1, 0, 0}},
-                  {{150, 0, 0}, {0, 1, 0}},
-                  {{174, 0, 0}, {0, 1, 0}},
-                  {{0, -250, 100}, {-1, 0, 0}},
-                  {{250, -250, 100}, {-1, 0, 0}},
-                  {{250, 0, 100}, {0, -1, 0}},
-                  {{-250, 0, 100}, {0, -1, 0}}};
-    StateStore device_states(this->geometry()->host_ref(), input.init.size());
-    input.max_segments = 5;
-    input.params = this->geometry()->device_ref();
-    input.state = device_states.ref();
-
-    // Run kernel
-    auto output = vgg_test(input);
-
-    static int const expected_ids[] = {
-        1, 2, 3, 4,  5,  1, 2, 3, 4, 5,  3, 4, 5, 6,  -2, 3, 4, 5, 6,  -2,
-        4, 5, 6, -2, -3, 3, 4, 5, 6, -2, 4, 5, 6, -2, -3, 4, 5, 6, -2, -3,
-    };
-    static double const expected_distances[] = {
-        20,
-        95,
-        50,
-        100,
-        100,
-        0.010,
-        95,
-        50,
-        100,
-        100,
-        90.1387818866,
-        140.34982954572,
-        113.20456568937,
-        340.04653943718,
-        316.26028344113,
-        18.681541692269,
-        194.27150477573,
-        119.23515320201,
-        345.84129821338,
-        321.97050211661,
-        114.5643923739,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        -3,
-        135.4356076261,
-        229.12878474779,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        114.5643923739,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        -3,
-        114.5643923739,
-        164.94410481358,
-        374.32634434363,
-        346.1651584689,
-        -3,
-    };
-
-    // Check results
-    EXPECT_VEC_EQ(expected_ids, output.ids);
-    EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
-}
-
-//---------------------------------------------------------------------------//
-
 using FourLevelsVgdmlTest
     = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, FourLevelsGeoTest>;
 
@@ -312,7 +182,7 @@ TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
     auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ("Shape2", this->volume_name(geo));
     EXPECT_FALSE(geo.is_on_boundary());
 
     auto next = geo.find_next_step(from_cm(10.0));
@@ -330,127 +200,8 @@ TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
 {
-    {
-        SCOPED_TRACE("rightward along corner");
-        auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
-        ASSERT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
-        EXPECT_FALSE(geo.is_on_boundary());
-
-        // Check for surfaces up to a distance of 4 units away
-        auto next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-        next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-        geo.move_internal(from_cm(3.5));
-        EXPECT_FALSE(geo.is_on_boundary());
-
-        // Find one a bit further, then cross it
-        next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
-        geo.cross_boundary();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
-        EXPECT_TRUE(geo.is_on_boundary());
-
-        // Find the next boundary and make sure that nearer distances aren't
-        // accepted
-        next = geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-        EXPECT_TRUE(geo.is_on_boundary());
-        next = geo.find_next_step(from_cm(0.5));
-        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-    }
-    {
-        SCOPED_TRACE("outside in");
-        auto geo = this->make_geo_track_view({-25, 6.5, 6.5}, {1, 0, 0});
-        EXPECT_TRUE(geo.is_outside());
-
-        auto next = geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-
-        geo.move_to_boundary();
-        EXPECT_TRUE(geo.is_outside());
-        geo.cross_boundary();
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
-    }
-    {
-        SCOPED_TRACE("inside out");
-        auto geo = this->make_geo_track_view({-23.5, 6.5, 6.5}, {-1, 0, 0});
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
-
-        auto next = geo.find_next_step(from_cm(2));
-        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-
-        geo.move_to_boundary();
-        EXPECT_FALSE(geo.is_outside());
-        geo.cross_boundary();
-        EXPECT_TRUE(geo.is_outside());
-
-        next = geo.find_next_step();
-        EXPECT_GT(next.distance, 1e10);
-        EXPECT_FALSE(next.boundary);
-    }
-}
-
-TEST_F(FourLevelsVgdmlTest, reentrant_boundary)
-{
-    auto geo = this->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    // Check for surfaces: we should hit the outside of the sphere Shape2
-    auto next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-    // Move to the boundary but scatter perpendicularly, away from the sphere
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({0, 1, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    // Move a bit internally, then scatter back toward the sphere
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(6, to_cm(next.distance));
-    geo.set_dir({-1, 0, 0});
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    // Move to the sphere boundary then scatter still into the sphere
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-8, next.distance);
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({0, -1, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.cross_boundary();
-    EXPECT_EQ("Shape2", this->volume_name(geo));
-    EXPECT_TRUE(geo.is_on_boundary());
-
-    // Travel nearly tangent to the right edge of the sphere, then scatter to
-    // still outside
-    next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(0.00031622777925735285, to_cm(next.distance));
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({1, 0, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.cross_boundary();
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    EXPECT_TRUE(geo.is_on_boundary());
-    next = geo.find_next_step(from_cm(10.0));
+    // Templated test
+    FourLevelsGeoTest::test_detailed_tracking(this);
 }
 
 TEST_F(FourLevelsVgdmlTest, trace)
@@ -549,11 +300,106 @@ TEST_F(MultiLevelVgdmlTest, trace)
 
 //---------------------------------------------------------------------------//
 
-class SolidsVgdmlTest : public VecgeomVgdmlTestBase
-{
-  public:
-    std::string geometry_basename() const final { return "solids"; }
+using SimpleCmsVgdmlTest
+    = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SimpleCmsGeoTest>;
 
+TEST_F(SimpleCmsVgdmlTest, accessors)
+{
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(7, geom.volumes().size());
+}
+
+TEST_F(SimpleCmsVgdmlTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(SimpleCmsVgdmlTest, detailed_track)
+{
+    // Templated test
+    SimpleCmsGeoTest::test_detailed_tracking(this);
+}
+
+TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
+{
+    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
+
+    // Set up test input
+    VGGTestInput input;
+    input.init = {{{10, 0, 0}, {1, 0, 0}},
+                  {{29.99, 0, 0}, {1, 0, 0}},
+                  {{150, 0, 0}, {0, 1, 0}},
+                  {{174, 0, 0}, {0, 1, 0}},
+                  {{0, -250, 100}, {-1, 0, 0}},
+                  {{250, -250, 100}, {-1, 0, 0}},
+                  {{250, 0, 100}, {0, -1, 0}},
+                  {{-250, 0, 100}, {0, -1, 0}}};
+    StateStore device_states(this->geometry()->host_ref(), input.init.size());
+    input.max_segments = 5;
+    input.params = this->geometry()->device_ref();
+    input.state = device_states.ref();
+
+    // Run kernel
+    auto output = vgg_test(input);
+
+    static int const expected_ids[] = {
+        1, 2, 3, 4,  5,  1, 2, 3, 4, 5,  3, 4, 5, 6,  -2, 3, 4, 5, 6,  -2,
+        4, 5, 6, -2, -3, 3, 4, 5, 6, -2, 4, 5, 6, -2, -3, 4, 5, 6, -2, -3,
+    };
+    static double const expected_distances[] = {
+        20,
+        95,
+        50,
+        100,
+        100,
+        0.010,
+        95,
+        50,
+        100,
+        100,
+        90.1387818866,
+        140.34982954572,
+        113.20456568937,
+        340.04653943718,
+        316.26028344113,
+        18.681541692269,
+        194.27150477573,
+        119.23515320201,
+        345.84129821338,
+        321.97050211661,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+        135.4356076261,
+        229.12878474779,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+    };
+
+    // Check results
+    EXPECT_VEC_EQ(expected_ids, output.ids);
+    EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
+}
+
+//---------------------------------------------------------------------------//
+
+class SolidsVgdmlTest
+    : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SolidsGeoTest>
+{
     SpanStringView expected_log_levels() const final
     {
         if (vecgeom_version >= Version{2})
@@ -600,27 +446,6 @@ TEST_F(SolidsVgdmlTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), to_cm(bbox.upper()));
 }
 
-TEST_F(SolidsVgdmlTest, names)
-{
-    auto const& geom = *this->geometry();
-    std::vector<std::string> labels;
-    for (auto vid : range(VolumeId{geom.volumes().size()}))
-    {
-        labels.push_back(
-            this->genericize_pointers(to_string(geom.volumes().at(vid))));
-    }
-
-    // clang-format off
-    static char const* const expected_labels[] = {"", "", "",
-        "", "box500", "cone1", "para1", "sphere1", "parabol1", "trap1",
-        "trd1", "trd2", "", "trd3_refl@1", "tube100", "boolean1",
-        "polycone1", "genPocone1", "ellipsoid1", "tetrah1", "orb1",
-        "polyhedr1", "hype1", "elltube1", "ellcone1", "arb8b", "arb8a",
-        "xtru1", "World", "", "trd3_refl@0"};
-    // clang-format on
-    EXPECT_VEC_EQ(expected_labels, labels);
-}
-
 TEST_F(SolidsVgdmlTest, output)
 {
     GeoParamsOutput out(this->geometry());
@@ -628,11 +453,9 @@ TEST_F(SolidsVgdmlTest, output)
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        auto out_str = this->genericize_pointers(to_string(out));
-
         EXPECT_JSON_EQ(
             R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
-            out_str);
+            to_string(out));
     }
 }
 
@@ -643,6 +466,24 @@ TEST_F(SolidsVgdmlTest, reflected_vol)
     // Note: through GDML there is only one trd3_refl
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
+}
+
+//---------------------------------------------------------------------------//
+
+class TwoBoxesVgdmlTest
+    : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, TwoBoxesGeoTest>
+{
+};
+
+TEST_F(TwoBoxesVgdmlTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(TwoBoxesVgdmlTest, track)
+{
+    // Templated test
+    TwoBoxesGeoTest::test_detailed_tracking(this);
 }
 
 //---------------------------------------------------------------------------//
@@ -669,6 +510,25 @@ using CmseTest = GenericGeoParameterizedTest<VecgeomGeantTestBase, CmseGeoTest>;
 TEST_F(CmseTest, trace)
 {
     this->impl().test_trace();
+}
+
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-550, 0, -4000});
+    inp.upper_right = from_cm({550, 0, 2000});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 8;
+
+    std::string prefix = "vg";
+    if (VecgeomParams::use_surface_tracking())
+    {
+        prefix += "surf";
+    }
+
+    write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
 }
 
 //---------------------------------------------------------------------------//
@@ -726,6 +586,28 @@ TEST_F(MultiLevelTest, accessors)
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+class ReplicaTest
+    : public GenericGeoParameterizedTest<VecgeomGeantTestBase, ReplicaGeoTest>
+{
+    real_type safety_tol() const final
+    {
+        if (CELERITAS_VECGEOM_SURFACE)
+            return 1e-5;
+        return 1e-10;
+    }
+};
+
+TEST_F(ReplicaTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(ReplicaTest, volume_stack)
+{
+    this->impl().test_volume_stack();
 }
 
 //---------------------------------------------------------------------------//
@@ -818,7 +700,7 @@ TEST_F(SolidsTest, reflected_vol)
     EXPECT_EQ("trd3_refl@0", to_string(label));
 }
 
-TEST_F(SolidsTest, DISABLED_imager)
+TEST_F(SolidsTest, imager)
 {
     SafetyImager write_image{this->geometry()};
 
@@ -826,12 +708,18 @@ TEST_F(SolidsTest, DISABLED_imager)
     inp.lower_left = from_cm({-550, -250, 5});
     inp.upper_right = from_cm({550, 250, 5});
     inp.rightward = {1.0, 0.0, 0.0};
-    inp.vertical_pixels = 256;
+    inp.vertical_pixels = 8;
 
-    write_image(ImageParams{inp}, "vg-solids-xy-hi.jsonl");
+    std::string prefix = "vg";
+    if (VecgeomParams::use_surface_tracking())
+    {
+        prefix += "surf";
+    }
+
+    write_image(ImageParams{inp}, prefix + "-solids-xy-hi.jsonl");
 
     inp.lower_left[2] = inp.upper_right[2] = from_cm(-5);
-    write_image(ImageParams{inp}, "vg-solids-xy-lo.jsonl");
+    write_image(ImageParams{inp}, prefix + "-solids-xy-lo.jsonl");
 }
 
 //---------------------------------------------------------------------------//

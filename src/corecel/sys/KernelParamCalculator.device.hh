@@ -43,7 +43,7 @@
                                  0,                                          \
                                  STREAM,                                     \
                                  __VA_ARGS__);                               \
-        CELER_DEVICE_CHECK_ERROR();                                          \
+        CELER_DEVICE_API_CALL(PeekAtLastError());                            \
     } while (0)
 
 /*!
@@ -66,7 +66,7 @@
                                  0,                                          \
                                  STREAM,                                     \
                                  __VA_ARGS__);                               \
-        CELER_DEVICE_CHECK_ERROR();                                          \
+        CELER_DEVICE_API_CALL(PeekAtLastError());                            \
     } while (0)
 
 #if CELERITAS_USE_CUDA

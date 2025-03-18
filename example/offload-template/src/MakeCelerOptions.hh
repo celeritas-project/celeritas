@@ -8,5 +8,12 @@
 
 #include <accel/SetupOptions.hh>
 
+namespace celeritas
+{
+namespace example
+{
 // Build options to set up Celeritas
 celeritas::SetupOptions MakeCelerOptions();
+
+}  // namespace example
+}  // namespace celeritas

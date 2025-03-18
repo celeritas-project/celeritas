@@ -50,7 +50,7 @@ TEST_F(RootJsonDumperTest, all)
     std::string str = [&imported] {
         std::ostringstream os;
         ScopedRootErrorHandler scoped_root_error;
-        RootJsonDumper{&os}(imported);
+        RootJsonDumper{os}(imported);
         scoped_root_error.throw_if_errors();
         return std::move(os).str();
     }();

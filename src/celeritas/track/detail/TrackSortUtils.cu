@@ -54,7 +54,7 @@ void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
                       start,
                       start + track_slots.size(),
                       std::forward<F>(func));
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
 //---------------------------------------------------------------------------//
@@ -99,7 +99,7 @@ void sort_impl(TrackSlots const& track_slots,
                         reordered_ids.data(),
                         reordered_ids.data() + reordered_ids.size(),
                         device_pointer_cast(track_slots.data()));
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
 //---------------------------------------------------------------------------//
@@ -187,7 +187,7 @@ void count_tracks_per_action(
                  start,
                  start + offsets.size(),
                  ThreadId{});
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
     auto* stream = celeritas::device().stream(states.stream_id).get();
     CELER_LAUNCH_KERNEL(tracks_per_action,
                         states.size(),
@@ -202,7 +202,7 @@ void count_tracks_per_action(
     copy_to_host(MemSpace::device, offsets);
 
     // Copies must be complete before backfilling
-    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
+    CELER_DEVICE_API_CALL(StreamSynchronize(stream));
     backfill_action_count(sout, states.size());
 }
 

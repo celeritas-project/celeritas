@@ -24,6 +24,7 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/detail/OffloadParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -152,13 +153,13 @@ void LArSphereOffloadTest::RunResult::print_expected() const
 auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
-    UniformFieldParams field_params;
-    field_params.field = {0, 0, static_cast<real_type>(1 * units::tesla)};
+    UniformFieldParams::Input field_inp;
+    field_inp.strength = {0, 0, 1};
     auto msc = UrbanMscParams::from_import(
         *this->particle(), *this->material(), this->imported_data());
 
     auto result = std::make_shared<AlongStepUniformMscAction>(
-        action_reg.next_id(), field_params, nullptr, msc);
+        action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
     CELER_ASSERT(result);
     CELER_ASSERT(result->has_msc());
     action_reg.insert(result);
@@ -185,6 +186,19 @@ void LArSphereOffloadTest::build_optical_collector()
     inp.buffer_capacity = buffer_capacity_;
     inp.initializer_capacity = initializer_capacity_;
     inp.auto_flush = auto_flush_;
+
+    using IMC = celeritas::optical::ImportModelClass;
+
+    ModelImporter importer{
+        this->imported_data(), this->optical_material(), this->material()};
+    std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh};
+    for (auto imc : imcs)
+    {
+        if (auto builder = importer(imc))
+        {
+            inp.model_builders.push_back(*builder);
+        }
+    }
 
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));

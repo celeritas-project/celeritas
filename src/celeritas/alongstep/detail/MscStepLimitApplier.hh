@@ -43,19 +43,19 @@ template<class MH>
 CELER_FUNCTION void
 MscStepLimitApplier<MH>::operator()(CoreTrackView const& track)
 {
-    if (msc.is_applicable(track, track.make_sim_view().step_length()))
+    if (msc.is_applicable(track, track.sim().step_length()))
     {
         // Apply MSC step limiters and transform "physical" step (with MSC) to
         // "geometrical" step (smooth curve)
         msc.limit_step(track);
 
-        auto step_view = track.make_physics_step_view();
+        auto step_view = track.physics_step();
         CELER_ASSERT(step_view.msc_step().geom_path > 0);
     }
     else
     {
         // TODO: hack flag for saving "use_msc"
-        auto step_view = track.make_physics_step_view();
+        auto step_view = track.physics_step();
         step_view.msc_step().geom_path = 0;
     }
 }

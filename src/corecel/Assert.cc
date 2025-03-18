@@ -62,7 +62,7 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
 
     std::ostringstream msg;
 
-    msg << "celeritas: " << color_code('R') << (d.which ? d.which : "unknown")
+    msg << color_code('R') << (d.which ? d.which : "unknown")
         << " error: " << color_code(' ');
     if (cstring_equal(d.which, RuntimeError::not_config_err_str))
     {

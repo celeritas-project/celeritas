@@ -38,7 +38,7 @@ namespace celeritas
     myvec.copy_to_host(make_span(hostvec));
    \endcode
  *
- * - TODO: remove stream?
+ * - TODO: remove stream? it complicates things
  * - TODO: move to detail since this is basically only a backend for Collection
  */
 template<class T>
@@ -142,11 +142,21 @@ DeviceVector<T>::DeviceVector(size_type count)
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a number of allocated elements and a stream.
+ *
+ * To make resizing eaasier, the stream may be null.
  */
 template<class T>
 DeviceVector<T>::DeviceVector(size_type count, StreamId stream)
-    : allocation_{count * sizeof(T), stream}, size_{count}
 {
+    if (stream)
+    {
+        allocation_ = DeviceAllocation{count * sizeof(T), stream};
+    }
+    else
+    {
+        allocation_ = DeviceAllocation{count * sizeof(T)};
+    }
+    size_ = count;
 }
 
 //---------------------------------------------------------------------------//

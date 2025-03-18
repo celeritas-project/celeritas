@@ -50,9 +50,14 @@ endif()
 
 # Save CMake variables as strings
 set(CELERITAS_CMAKE_STRINGS)
+set(CELERITAS_CMAKE_STRINGS_DECL)
+set(CELERITAS_CMAKE_STRINGS_DEF)
 macro(celeritas_append_cmake_string key value)
-  list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${key}[] = R\"(${value})\"\;"
+  list(APPEND CELERITAS_CMAKE_STRINGS_DECL
+    "extern char const ${key}[]\;"
+  )
+  list(APPEND CELERITAS_CMAKE_STRINGS_DEF
+    "char const ${key}[] = R\"(${value})\"\;"
   )
 endmacro()
 
@@ -66,7 +71,7 @@ else()
   endif()
 endif()
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
-  string(TOLOWER "celeritas_${_var}" _lower)
+  string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
 
@@ -78,7 +83,7 @@ elseif(CELERITAS_USE_HIP)
 endif()
 # Arch variable may be ;-separated list, so we need to escape the ;
 string(REPLACE ";" "\;" _gpu_arch "${_gpu_arch}")
-celeritas_append_cmake_string("celeritas_gpu_architectures" "${_gpu_arch}")
+celeritas_append_cmake_string("gpu_architectures" "${_gpu_arch}")
 
 list(APPEND CELERITAS_CMAKE_STRINGS "")
 
@@ -94,10 +99,8 @@ foreach(_pkg CLHEP CUDA HepMC3 HIP Geant4 ROOT Thrust VecGeom)
   else()
     set(_value "")
   endif()
-  celeritas_append_cmake_string("celeritas_${_lower}_version" "${_value}")
+  celeritas_append_cmake_string("${_lower}_version" "${_value}")
 endforeach()
-
-list(JOIN CELERITAS_CMAKE_STRINGS "\n" CELERITAS_CMAKE_STRINGS)
 
 # NOTE: some values are defined in top-level CMakeLists
 # - CELERITAS_HAVE_ROCTX
@@ -118,12 +121,53 @@ foreach(_dep Geant4 VecGeom HepMC3)
     "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
   )
 endforeach()
-list(JOIN CELERITAS_DEPENDENCY_VERSIONS "\n" CELERITAS_DEPENDENCY_VERSIONS)
+
+# Save VecGeom options as always-on macros to simplify testing
+set(CELERITAS_VECGEOM_CONFIG)
+if(DEFINED VecGeom_USE_SURF)
+  set(VecGeom_SURFACE ${VecGeom_USE_SURF})
+endif()
+set(_vecgeom_opts)
+foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
+  if(NOT DEFINED VecGeom_${_opt})
+    set(_val "0 /* not defined */")
+  elseif(VecGeom_${_opt})
+    set(_val 1)
+    string(TOLOWER "${_opt}" _lower_opt)
+    list(APPEND _vecgeom_opts "${_lower_opt}")
+  else()
+    set(_val 0)
+  endif()
+  list(APPEND CELERITAS_VECGEOM_CONFIG
+    "#define CELERITAS_VECGEOM_${_opt} ${_val}"
+  )
+endforeach()
+foreach(_opt NAV BACKEND)
+  if(DEFINED VecGeom_${_opt})
+    list(APPEND _vecgeom_opts "${VecGeom_${_opt}}")
+  endif()
+endforeach()
+if(NOT VecGeom_VECTOR STREQUAL "empty")
+  list(APPEND _vecgeom_opts "${VecGeom_VECTOR}")
+endif()
+list(JOIN _vecgeom_opts "," _vecgeom_opts)
+celeritas_append_cmake_string("vecgeom_options" "${_vecgeom_opts}")
+
+# Convert lists to newline-separated strings
+foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERSIONS)
+  list(JOIN CELERITAS_${_ext} "\n" CELERITAS_${_ext})
+endforeach()
 
 #-----------------------------------------------------------------------------#
+# Generate the config files
 
-celeritas_configure_file("Version.hh.in" "corecel/Version.hh" @ONLY)
 celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
+
+foreach(_file Version Config)
+  celeritas_configure_file("${_file}.hh.in" "corecel/${_file}.hh" @ONLY)
+  configure_file("${_file}.cc.in" "${_file}.cc" @ONLY)
+  list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/${_file}.cc")
+endforeach()
 
 #-----------------------------------------------------------------------------#
 # Main code
@@ -147,6 +191,7 @@ list(APPEND SOURCES
   io/JsonUtils.json.cc
   io/Label.cc
   io/LogContextException.cc
+  io/LogHandlers.cc
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
@@ -174,7 +219,6 @@ list(APPEND SOURCES
   sys/ScopedMpiInit.cc
   sys/ScopedProfiling.cc
   sys/ScopedSignalHandler.cc
-  sys/Stream.cc
   sys/TypeDemangler.cc
   sys/Version.cc
 )
@@ -189,6 +233,8 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     data/Filler.cu
     sys/KernelParamCalculator.device.cc
+    sys/Stream.cu
+    sys/detail/AsyncMemoryResource.cu
   )
 endif()
 if(CELERITAS_USE_CUDA)
@@ -198,6 +244,8 @@ if(CELERITAS_USE_CUDA)
     sys/ScopedProfiling.cuda.cc
   )
   # NVTX requires `-ldl`
+  # This does not appears to be needed anymore with
+  # CMake 3.26.5 and CUDA sdk 12.6.
   list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
 endif()
 
@@ -257,7 +305,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
   )
 endif()
 
-
 celeritas_target_include_directories(corecel
   PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
@@ -268,5 +315,15 @@ celeritas_target_link_libraries(corecel
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
+
+#-----------------------------------------------------------------------------#
+# Create library
+#-----------------------------------------------------------------------------#
+
+celeritas_add_src_library(corecel_mpi INTERFACE)
+
+if(CELERITAS_USE_MPI)
+  target_link_libraries(corecel_mpi INTERFACE MPI::MPI_CXX)
+endif()
 
 #-----------------------------------------------------------------------------#

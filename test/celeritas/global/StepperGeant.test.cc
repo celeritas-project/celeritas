@@ -14,7 +14,7 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/field/UniformFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -172,15 +172,15 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
     SPConstAction build_along_step() override
     {
         auto& action_reg = *this->action_reg();
-        UniformFieldParams field_params;
-        field_params.field = {0, 0, 1e-3 * units::tesla};
+        UniformFieldParams::Input field_inp;
+        field_inp.strength = {0, 0, 1e-3};
 
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr, msc);
+            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
         action_reg.insert(result);
         return result;
     }
@@ -512,7 +512,7 @@ TEST_F(TestEm3Msc, host)
     if (this->is_ci_build())
     {
         EXPECT_EQ(57, result.num_step_iters());
-        EXPECT_LE(40.5, result.calc_avg_steps_per_primary());
+        EXPECT_LE(40, result.calc_avg_steps_per_primary());
         EXPECT_GE(40.625, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({8, 6}), result.calc_queue_hwm());
@@ -574,7 +574,7 @@ TEST_F(TestEm3MscNofluct, host)
     {
         EXPECT_LE(69, result.num_step_iters());
         EXPECT_GE(73, result.num_step_iters());
-        EXPECT_LE(60.5, result.calc_avg_steps_per_primary());
+        EXPECT_LE(58.625, result.calc_avg_steps_per_primary());
         EXPECT_GE(63.125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());

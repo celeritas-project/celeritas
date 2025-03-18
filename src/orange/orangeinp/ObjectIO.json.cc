@@ -184,6 +184,19 @@ void to_json(nlohmann::json& j, Ellipsoid const& cr)
 {
     j = {{"_type", "ellipsoid"}, SIO_ATTR_PAIR(cr, radii)};
 }
+void to_json(nlohmann::json& j, EllipticalCylinder const& cr)
+{
+    j = {{"_type", "ellipticalcylinder"},
+         SIO_ATTR_PAIR(cr, radii),
+         SIO_ATTR_PAIR(cr, halfheight)};
+}
+void to_json(nlohmann::json& j, EllipticalCone const& cr)
+{
+    j = {{"_type", "ellipticalcone"},
+         SIO_ATTR_PAIR(cr, lower_radii),
+         SIO_ATTR_PAIR(cr, upper_radii),
+         SIO_ATTR_PAIR(cr, halfheight)};
+}
 void to_json(nlohmann::json& j, GenPrism const& cr)
 {
     j = {{"_type", "genprism"},

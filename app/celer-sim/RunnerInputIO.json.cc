@@ -79,6 +79,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(write_track_counts);
     LDIO_LOAD_OPTION(write_step_times);
     LDIO_LOAD_OPTION(transporter_result);
+    LDIO_LOAD_OPTION(status_checker);
     LDIO_LOAD_OPTION(log_progress);
 
     LDIO_LOAD_DEPRECATED(max_num_tracks, num_track_slots);
@@ -93,7 +94,10 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
-    LDIO_LOAD_OPTION(default_stream);
+    if (j.count("default_stream"))
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
+    }
     if (auto iter = j.find("warm_up"); iter != j.end())
     {
         iter->get_to(v.warm_up);
@@ -174,6 +178,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(write_track_counts);
     LDIO_SAVE(write_step_times);
     LDIO_SAVE(transporter_result);
+    LDIO_SAVE(status_checker);
     LDIO_SAVE(log_progress);
 
     LDIO_SAVE(seed);
@@ -185,7 +190,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(use_device);
     LDIO_SAVE(action_times);
     LDIO_SAVE(merge_events);
-    LDIO_SAVE(default_stream);
     LDIO_SAVE(warm_up);
 
     LDIO_SAVE_OPTION(field);

@@ -161,7 +161,7 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
 
     // Calculate the excitation macroscopic cross sections and apply the width
     // correction
-    auto const& mat = cur_mat.make_material_view();
+    auto const& mat = cur_mat.material_record();
     if (max_energy_ > value_as<Energy>(mat.mean_excitation_energy()))
     {
         // Common term in the numerator and denominator of PRM Eq. 7.10

@@ -25,14 +25,10 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
-  CmsEeBackDeeGeoTest.cc
   LazyGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoTestInterface.cc
-  FourLevelsGeoTest.cc
-  MultiLevelGeoTest.cc
-  SolidsGeoTest.cc
-  TransformedBoxGeoTest.cc
+  GeoTests.cc
 )
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
@@ -80,11 +76,13 @@ if(CELERITAS_USE_VecGeom)
   set(_vecgeom_tests)
   if(VecGeom_GDML_FOUND)
     list(APPEND _vecgeom_tests
+      "TwoBoxesVgdmlTest.*"
       "SimpleCmsVgdmlTest.*"
       "FourLevelsVgdmlTest.*"
-      "MultiLevelVgdmlTest.*"
-      "SolidsVgdmlTest.*"
     )
+    if(NOT VecGeom_SURF_FOUND)
+      list(APPEND _vecgeom_tests "SolidsVgdmlTest.*" "MultiLevelVgdmlTest.*")
+    endif()
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
@@ -92,10 +90,13 @@ if(CELERITAS_USE_VecGeom)
       "CmsEeBackDeeTest.*"
       "FourLevelsTest.*"
       "MultiLevelTest.*"
-      "SolidsTest.*"
+      "ReplicaTest.*"
       "TransformedBoxTest.*"
       "ZnenvTest.*"
     )
+    if(NOT VecGeom_SURF_FOUND)
+      list(APPEND _vecgeom_tests "SolidsTest.*")
+    endif()
   endif()
   if(NOT _vecgeom_tests)
     # Bad: no way of setting up geometry!

@@ -2,15 +2,20 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/src/ActionInitialization.cc
+//! \file offload-template/src/ActionInitialization.cc
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
 #include <accel/TrackingManagerIntegration.hh>
 
+#include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
+namespace celeritas
+{
+namespace example
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct empty.
@@ -43,4 +48,10 @@ void ActionInitialization::Build() const
     // Initialize Geant4 user actions
     this->SetUserAction(new RunAction());
     this->SetUserAction(new PrimaryGeneratorAction());
+
+    // Print diagnostics
+    this->SetUserAction(new EventAction());
 }
+
+}  // namespace example
+}  // namespace celeritas

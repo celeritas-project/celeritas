@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "StatusChecker.hh"
 
+#include <mutex>
+
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -36,6 +39,23 @@ void copy_in_memspace(Collection<T, W, M, I> const& src,
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct and add to core params.
+ */
+std::shared_ptr<StatusChecker>
+StatusChecker::make_and_insert(CoreParams const& core)
+{
+    ActionRegistry& actions = *core.action_reg();
+    AuxParamsRegistry& aux = *core.aux_reg();
+    auto result
+        = std::make_shared<StatusChecker>(actions.next_id(), aux.next_id());
+
+    actions.insert(result);
+    aux.insert(result);
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -126,30 +146,39 @@ void StatusChecker::step(ActionId prev_action,
  */
 void StatusChecker::begin_run_impl(CoreParams const& params)
 {
-    auto const& reg = *params.action_reg();
-
-    HostVal<StatusCheckParamsData> host_val;
-    auto build_orders = CollectionBuilder{&host_val.orders};
-
-    // Loop over all action IDs
-    for (auto aidx : range(reg.num_actions()))
+    if (!data_)
     {
-        // Get abstract action shared pointer and see if it's explicit
-        auto const& base = reg.action(ActionId{aidx});
-        if (auto const* expl
-            = dynamic_cast<CoreStepActionInterface const*>(base.get()))
+        static std::mutex initialize_mutex;
+        std::lock_guard<std::mutex> scoped_lock{initialize_mutex};
+
+        if (!data_)
         {
-            build_orders.push_back(expl->order());
-        }
-        else
-        {
-            build_orders.push_back(host_val.implicit_order);
+            auto const& reg = *params.action_reg();
+
+            HostVal<StatusCheckParamsData> host_val;
+            auto build_orders = CollectionBuilder{&host_val.orders};
+
+            // Loop over all action IDs
+            for (auto aidx : range(reg.num_actions()))
+            {
+                // Get abstract action shared pointer and see if it's explicit
+                auto const& base = reg.action(ActionId{aidx});
+                if (auto const* expl
+                    = dynamic_cast<CoreStepActionInterface const*>(base.get()))
+                {
+                    build_orders.push_back(expl->order());
+                }
+                else
+                {
+                    build_orders.push_back(host_val.implicit_order);
+                }
+            }
+            CELER_ASSERT(build_orders.size() == reg.num_actions());
+
+            // Construct host/device data
+            data_ = CollectionMirror{std::move(host_val)};
         }
     }
-    CELER_ASSERT(build_orders.size() == reg.num_actions());
-
-    // Construct host/device data
-    data_ = CollectionMirror{std::move(host_val)};
 
     CELER_ENSURE(data_);
 }

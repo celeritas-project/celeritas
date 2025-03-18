@@ -1,6 +1,9 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. **NOTE**: this file is referenced by README.md:
+.. if changing the former, update the latter!!
+
 .. _code_guidelines:
 
 Code development guidelines
@@ -55,6 +58,8 @@ DOI.) The procedure to set up a citation correctly is:
 
 .. _Better BibTeX for Zotero: https://github.com/retorquere/zotero-better-bibtex
 .. _Celeritas group: https://www.zotero.org/groups/2380941/celeritas/library
+
+.. _coding_testing:
 
 Test thoroughly
 ---------------

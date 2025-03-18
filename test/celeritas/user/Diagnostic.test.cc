@@ -66,13 +66,13 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
     SPConstAction build_along_step() override
     {
         auto& action_reg = *this->action_reg();
-        UniformFieldParams field_params;
-        field_params.field = {0, 0, real_type(1 * units::tesla)};
+        UniformFieldParams::Input field_inp;
+        field_inp.strength = {0, 0, 1};
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr, msc);
+            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
         CELER_ASSERT(result);
         CELER_ASSERT(result->has_msc());
         action_reg.insert(result);
@@ -149,8 +149,7 @@ TEST_F(TestEm3DiagnosticTest, host)
                         "stuck on some builds but not others";
     }
 
-    if (this->is_ci_build()
-        && std::string(celeritas_geant4_version) == "11.0.4")
+    if (this->is_ci_build() && std::string(cmake::geant4_version) == "11.0.4")
     {
         static char const* const expected_nonzero_action_keys[] = {
             "annihil-2-gamma e+",

@@ -16,9 +16,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/TrackInitParams.hh"
 #include "celeritas/optical/action/ActionGroups.hh"
-#include "celeritas/optical/action/BoundaryAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
@@ -99,6 +99,14 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
             input.initializer_capacity);
         inp.action_reg = std::make_shared<ActionRegistry>();
         inp.max_streams = core.max_streams();
+        {
+            optical::PhysicsParams::Input phys_input;
+            phys_input.model_builders = std::move(input.model_builders);
+            phys_input.materials = inp.material;
+            phys_input.action_registry = inp.action_reg.get();
+            inp.physics = std::make_shared<optical::PhysicsParams>(
+                std::move(phys_input));
+        }
         CELER_ENSURE(inp);
         return inp;
     }());
@@ -133,8 +141,9 @@ std::string_view OpticalLaunchAction::description() const
 /*!
  * Build state data for a stream.
  */
-auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) const
-    -> UPState
+auto OpticalLaunchAction::create_state(MemSpace m,
+                                       StreamId sid,
+                                       size_type) const -> UPState
 {
     if (m == MemSpace::host)
     {

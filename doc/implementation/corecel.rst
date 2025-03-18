@@ -14,10 +14,12 @@ Configuration
 
 The :file:`corecel/Config.hh` configure file contains all-caps definitions of the
 CMake configuration options as 0/1 defines so they can be used with ``if
-constexpr`` and other C++ expressions. In addition, it defines static C strings
+constexpr`` and other C++ expressions. In addition, it defines external C strings
 with configuration options such as key dependent library versions.
 Finally, :file:`corecel/Version.hh` defines version numbers as preprocessor
-definition, a set of integers, and a descriptive string.
+definition, a set of integers, and a descriptive string. The external API of
+Celeritas should depend almost exclusively on the version, not the configured
+options.
 
 The files :file:`celeritas_{config,version,cmake_strings,sys_config}.h` and
 :file:`corecel/device_runtime_api.h` are deprecated aliases for
@@ -27,7 +29,6 @@ backward-compatibility.
    These will be removed in v0.6.
 
 .. doxygendefine:: CELERITAS_VERSION
-.. doxygenvariable:: celeritas_version
 
 
 Fundamentals
@@ -40,37 +41,27 @@ with device code enabled, but is a 64-bit integer on other 64-bit systems.
 .. doxygentypedef:: celeritas::size_type
 .. doxygentypedef:: celeritas::real_type
 
-Macros
-^^^^^^
-
-The :file:`Macros.hh` file defines language and compiler abstraction macro
-definitions.  It includes cross-platform (CUDA, C++, HIP) macros that expand to
-attributes depending on the compiler and build configuration.
-
-.. doxygendefine:: CELER_FUNCTION
-.. doxygendefine:: CELER_CONSTEXPR_FUNCTION
-.. doxygendefine:: CELER_DEVICE_COMPILE
-.. doxygendefine:: CELER_TRY_HANDLE
-.. doxygendefine:: CELER_TRY_HANDLE_CONTEXT
-.. doxygendefine:: CELER_DEFAULT_COPY_MOVE
-.. doxygendefine:: CELER_DELETE_COPY_MOVE
-.. doxygendefine:: CELER_DEFAULT_MOVE_DELETE_COPY
-.. doxygendefine:: CELER_DISCARD
+.. _debug_assertions:
 
 Debug assertions
 ^^^^^^^^^^^^^^^^
 
-Celeritas debug assertions are only enabled when the ``CELERITAS_DEBUG``
-configuration option is set. The macros ``CELER_EXPECT``, ``CELER_ASSERT``, and
-``CELER_ENSURE`` correspond to "precondition contract", "internal assertion",
-and "postcondition contract".
+Celeritas exception types and assertions are defined in
+:file:`corecel/Assert`. Debug assertions (see :ref:`coding_testing`) are only
+enabled when the
+``CELERITAS_DEBUG`` (host code) and ``CELERITAS_DEVICE_DEBUG`` (device code)
+CMake configuration options are set.
+
+The assertion macros ``CELER_EXPECT``, ``CELER_ASSERT``, and ``CELER_ENSURE``
+correspond to "precondition contract", "internal assertion", and "postcondition
+contract".
 
 .. doxygendefine:: CELER_EXPECT
 .. doxygendefine:: CELER_ASSERT
 .. doxygendefine:: CELER_ENSURE
 
 The following two macros will throw debug assertions *or* cause undefined
-behavior at runtime:
+behavior at runtime to allow compiler optimizations:
 
 .. doxygendefine:: CELER_ASSERT_UNREACHABLE
 .. doxygendefine:: CELER_ASSUME
@@ -82,20 +73,72 @@ incorrect configuration or input values.
 .. doxygendefine:: CELER_NOT_CONFIGURED
 .. doxygendefine:: CELER_NOT_IMPLEMENTED
 
+Utility macros
+^^^^^^^^^^^^^^
+
+The :file:`corecel/Macros.hh` file defines language and compiler abstraction
+macro definitions.
+
+.. doxygendefine:: CELER_TRY_HANDLE
+.. doxygendefine:: CELER_TRY_HANDLE_CONTEXT
+
+.. doxygendefine:: CELER_DEFAULT_COPY_MOVE
+.. doxygendefine:: CELER_DELETE_COPY_MOVE
+.. doxygendefine:: CELER_DEFAULT_MOVE_DELETE_COPY
+
+.. doxygendefine:: CELER_DISCARD
+
+Platform portability macros
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :file:`Macros.hh` file also defines language and compiler abstraction macro
+definitions.  It includes cross-platform (CUDA, C++, HIP) macros that expand to
+attributes depending on the compiler and build configuration.
+
+.. doxygendefine:: CELER_FUNCTION
+.. doxygendefine:: CELER_CONSTEXPR_FUNCTION
+.. doxygendefine:: CELER_DEVICE_COMPILE
+
+The :file:`DeviceRuntimeApi` file, which must be included from all ``.cu``
+files and ``.cc`` file which make CUDA/HIP API calls (see
+:ref:`device_compilation`), provides cross-platform compatibility macros for
+building against CUDA and HIP.
+
+.. doxygendefine:: CELER_DEVICE_API_SYMBOL
+
+An assertion macro in :file:`Assert.hh` checks the return result of CUDA/HIP API calls and throws a detailed exception if they fail:
+
+.. doxygendefine:: CELER_DEVICE_API_CALL
+
 
 .. _api_system:
 
 System
 ------
 
+The system subdirectory provides uniform interfaces to hardware and the
+operating system.
+
+GPU management
+^^^^^^^^^^^^^^
+
 .. doxygenclass:: celeritas::Device
 .. doxygenfunction:: celeritas::device
 .. doxygenfunction:: celeritas::activate_device()
+
+Environment variables
+^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenclass:: celeritas::Environment
 .. doxygenfunction:: celeritas::environment
 .. doxygenfunction:: celeritas::getenv
 .. doxygenfunction:: celeritas::getenv_flag
+
+MPI support
+^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::ScopedMpiInit
+.. doxygenclass:: celeritas::MpiCommunicator
 
 Utility functions
 -----------------

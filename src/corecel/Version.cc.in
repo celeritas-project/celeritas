@@ -1,0 +1,25 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file corecel/Version.cc
+//! \brief Celeritas version definitinos.
+//---------------------------------------------------------------------------//
+#include "corecel/Version.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+
+//! Celeritas version string with git metadata
+char const version_string[] = "@Celeritas_VERSION_STRING@";
+//! Celeritas major version
+unsigned int const version_major = @PROJECT_VERSION_MAJOR@;
+//! Celeritas minor version
+unsigned int const version_minor = @PROJECT_VERSION_MINOR@;
+//! Celeritas patch version
+unsigned int const version_patch = @PROJECT_VERSION_PATCH@;
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
+

@@ -185,8 +185,10 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
-    auto const& vol_inst = this->geometry()->volume_instances();
+    auto const& geo_params = *this->geometry();
+    auto const& vol_inst = geo_params.volume_instances();
     real_type const inv_length = real_type{1} / this->unit_length();
+    real_type const bump_tol = this->bump_tol() * this->unit_length();
 
     if (geo.is_outside())
     {
@@ -208,14 +210,23 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         result.volumes.push_back(this->volume_name(geo));
         if (vol_inst)
         {
-            if (auto vi_id = geo.volume_instance_id())
-            {
-                result.volume_instances.push_back(vol_inst.at(vi_id).name);
-            }
-            else
-            {
-                result.volume_instances.push_back("---");
-            }
+            result.volume_instances.push_back([&] {
+                auto vi_id = geo.volume_instance_id();
+                if (!vi_id)
+                {
+                    return std::string{"---"};
+                }
+                std::string s = vol_inst.at(vi_id).name;
+                if (auto phys_inst = geo_params.id_to_geant(vi_id))
+                {
+                    if (phys_inst.replica)
+                    {
+                        s += '@';
+                        s += std::to_string(phys_inst.replica.get());
+                    }
+                }
+                return s;
+            }());
         }
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance * inv_length);
@@ -226,7 +237,22 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
-        if (next.distance > real_type(from_cm(1e-7)))
+        if (next.distance < bump_tol)
+        {
+            // Don't add epsilon distances
+            result.distances.pop_back();
+            result.volumes.pop_back();
+            if (vol_inst)
+            {
+                result.volume_instances.pop_back();
+            }
+            // Instead add the point to the bump list
+            for (auto p : geo.pos())
+            {
+                result.bumps.push_back(p * inv_length);
+            }
+        }
+        else
         {
             geo.move_internal(next.distance / 2);
             try
@@ -290,6 +316,52 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         --max_step;
     }
 
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance stack at a position.
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos) -> VolumeStackResult
+{
+    auto geo = this->make_geo_track_view(pos, Real3{0, 0, 1});
+    auto const& geo_params = *this->geometry();
+    auto const& vol_inst = geo_params.volume_instances();
+
+    auto level = geo.level();
+    if (!level)
+    {
+        return {};
+    }
+    std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+    geo.volume_instance_id(make_span(inst_ids));
+
+    VolumeStackResult result;
+    result.volume_instances.resize(inst_ids.size());
+    result.replicas.assign(inst_ids.size(), -1);
+    for (auto i : range(inst_ids.size()))
+    {
+        auto vi_id = inst_ids[i];
+        if (!vi_id)
+        {
+            result.volume_instances[i] = "<null>";
+            continue;
+        }
+        auto const& label = vol_inst.at(vi_id);
+        if (auto phys_inst = geo_params.id_to_geant(vi_id))
+        {
+            if (phys_inst.replica)
+            {
+                result.replicas[i] = phys_inst.replica.get();
+            }
+        }
+        // Only write extension if not a replica, because Geant4
+        // effectively gives multiple volume instances the same name+ext
+        result.volume_instances[i] = !result.replicas[i] ? to_string(label)
+                                                         : label.name;
+    }
     return result;
 }
 

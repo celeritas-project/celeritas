@@ -17,7 +17,6 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/detail/Joined.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -29,13 +28,14 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
+#include "CliUtils.hh"
+
 using std::cout;
 using std::endl;
 using std::fixed;
 using std::scientific;
 using std::setprecision;
 using std::setw;
-using std::stringstream;
 
 namespace celeritas
 {
@@ -822,7 +822,10 @@ class OpticalMfpHelper
     OpticalMfpHelper(std::vector<ImportOpticalModel> const& models,
                      optical::ImportModelClass imc)
     {
-        auto iter = std::find_if(models.begin(), models.end(), [imc] (auto const& m) { return m.model_class == imc; });
+        auto iter
+            = std::find_if(models.begin(), models.end(), [imc](auto const& m) {
+                  return m.model_class == imc;
+              });
         if (iter != models.end())
         {
             mfps_ = &iter->mfp_table;
@@ -910,7 +913,8 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
     }
 
     {
-        OpticalMfpHelper rayleigh_model(io_models, optical::ImportModelClass::rayleigh);
+        OpticalMfpHelper rayleigh_model(io_models,
+                                        optical::ImportModelClass::rayleigh);
 
         cout << "\n## Rayleigh";
         cout << header;
@@ -931,7 +935,8 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
     }
 
     {
-        OpticalMfpHelper absorption_helper(io_models, optical::ImportModelClass::absorption);
+        OpticalMfpHelper absorption_helper(
+            io_models, optical::ImportModelClass::absorption);
 
         cout << "\n## Absorption";
         cout << header;
@@ -970,49 +975,15 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
 
 //---------------------------------------------------------------------------//
 }  // namespace
-}  // namespace app
-}  // namespace celeritas
 
-//---------------------------------------------------------------------------//
-/*!
- * Execute and run.
- */
-int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
+void run(std::string const& filename)
 {
-    using namespace celeritas;
-    using namespace celeritas::app;
+    ScopedRootErrorHandler scoped_root_error;
+    RootImporter import(filename);
+    auto data = import();
+    scoped_root_error.throw_if_errors();
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
-    if (scoped_mpi.is_world_multiprocess())
-    {
-        CELER_LOG(critical) << "This app cannot run in parallel";
-        return EXIT_FAILURE;
-    }
-
-    if (argc != 2)
-    {
-        // If number of arguments is incorrect, print help
-        std::cerr << "usage: " << argv[0] << " {output}.root" << std::endl;
-        return 2;
-    }
-
-    ImportData data;
-    try
-    {
-        ScopedRootErrorHandler scoped_root_error;
-        RootImporter import(argv[1]);
-        data = import();
-        scoped_root_error.throw_if_errors();
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(critical)
-            << "While processing ROOT data at " << argv[1] << ": " << e.what();
-
-        return EXIT_FAILURE;
-    }
-
-    cout << "Contents of `" << argv[1] << "` (" << data.units
+    cout << "Contents of `" << filename << "` (" << data.units
          << " unit system)\n\n"
             "-----\n\n";
 
@@ -1041,6 +1012,37 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
     print_em_params(data.em_params);
     print_trans_params(data.trans_params, *particle_params);
     // TODO: print optical params?
+}
 
-    return EXIT_SUCCESS;
+//---------------------------------------------------------------------------//
+}  // namespace app
+}  // namespace celeritas
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute and run.
+ */
+int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
+{
+    using namespace celeritas::app;
+
+    // Set up MPI
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
+    if (scoped_mpi.is_world_multiprocess())
+    {
+        CELER_LOG(critical) << "This app cannot run in parallel";
+        return EXIT_FAILURE;
+    }
+
+    // Set up app
+    auto& cli = cli_app();
+    cli.description("Dump Geant4 data to ROOT");
+
+    std::string filename;
+    cli.add_option("filename", filename, "Input ROOT file")
+        ->check(CLI::ExistingFile);
+
+    // Parse and run
+    CELER_CLI11_PARSE(argc, argv);
+    return run_safely(run, filename);
 }

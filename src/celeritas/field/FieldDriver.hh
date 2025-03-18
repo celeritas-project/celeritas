@@ -44,8 +44,10 @@ namespace celeritas
    r - h = r \cos \frac{s}{2r}
   \f]
  * For small chord lengths or a large radius, we expand
- * \f$ \cos \theta \sim 1 \frac{\theta^2}{2} \f$, giving a radius of curvature
- * \f[ r = \frac{s^2}{8h} \; . \f]
+ * \f$ \cos \theta \sim 1 - \frac{\theta^2}{2} \f$, giving a radius of
+ * curvature \f[
+   r = \frac{s^2}{8h} \; .
+   \f]
  * Given a trial step (chord length) \em s and resulting sagitta of \em h,
  * the exact step needed to give a chord length of \f$ \epsilon = {} \f$ \c
  * delta_chord is \f[
@@ -171,7 +173,7 @@ FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
  * For a given trial step, advance by a sub-step within a required tolerance
  * and update the current state (position and momentum).  For an efficient
  * adaptive integration, the proposed chord of which the sagitta (the
- * closest distance from the curved trajectory to the chord) is smaller than
+ * largest distance from the curved trajectory to the chord) is smaller than
  * a reference distance (dist_chord) will be accepted if its stepping error is
  * within a reference accuracy. Otherwise, the more accurate step integration
  * (advance_accurate) will be performed.

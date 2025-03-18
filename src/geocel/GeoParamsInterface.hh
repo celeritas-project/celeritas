@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"  // IWYU pragma: export
 #include "corecel/cont/Span.hh"  // IWYU pragma: export
@@ -19,6 +21,31 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Unique placement/replica of a Geant4 physical volume.
+ *
+ * This should correspond to a \c VolumeInstanceId and be a unique
+ * instantiation of a Geant4 physical volume (PV). Some Geant4 PVs are
+ * "parameterised" or "replica" types, which allows a single instance to be
+ * mutated at runtime to form a sort of array.
+ * If the pointed-to physical volume is *not* a replica/parameterised volume,
+ * \c replica is false. Otherwise, it corresponds to the PV's copy number,
+ * which can be used to reconstruct the placed volume instance.
+ */
+struct GeantPhysicalInstance
+{
+    using ReplicaId = OpaqueId<struct Replica_>;
+
+    //! Geant4 physical volume
+    G4VPhysicalVolume const* pv{nullptr};
+    //! Replica/parameterisation instance
+    ReplicaId replica;
+
+    //! False if no PV is associated
+    constexpr explicit operator bool() const { return static_cast<bool>(pv); }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Interface class for accessing host geometry metadata.
@@ -47,7 +74,7 @@ class GeoParamsInterface
     //! Outer bounding box of geometry
     virtual BBox const& bbox() const = 0;
 
-    //! Maximum nested scene/volume depth
+    //! Maximum nested volume instance depth
     virtual LevelId::size_type max_depth() const = 0;
 
     //// VOLUMES ////
@@ -62,7 +89,7 @@ class GeoParamsInterface
     virtual VolumeId find_volume(G4LogicalVolume const* volume) const = 0;
 
     //! Get the Geant4 PV corresponding to a volume instance
-    virtual G4VPhysicalVolume const* id_to_pv(VolumeInstanceId id) const = 0;
+    virtual GeantPhysicalInstance id_to_geant(VolumeInstanceId id) const = 0;
 
     //// DEPRECATED: remove in v0.6 ////
 

@@ -1,0 +1,156 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/field/CylMapField.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/grid/FindInterp.hh"
+#include "corecel/grid/NonuniformGrid.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/math/Turn.hh"
+#include "celeritas/Types.hh"
+
+#include "CylMapFieldData.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Interpolate a magnetic field vector on an r/phi/z grid.
+ *
+ * The field vector is stored as a cartesian \f$(x,y,z)\f$ value on the
+ * cylindrical mesh grid points, and trilinear interpolation is performed
+ * within each grid cell. The value outside the grid is zero.
+ *
+ * Currently the grid requires a full \f$2\pi\f$ azimuthal grid.
+ */
+class CylMapField
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using Real3 = Array<real_type, 3>;
+    using FieldParamsRef = NativeCRef<CylMapFieldParamsData>;
+    //!@}
+
+  public:
+    // Construct with the shared map data
+    inline CELER_FUNCTION explicit CylMapField(FieldParamsRef const& shared);
+
+    // Evaluate the magnetic field value for the given position
+    CELER_FUNCTION
+    inline Real3 operator()(Real3 const& pos) const;
+
+  private:
+    // Shared constant field map
+    FieldParamsRef const& params_;
+
+    NonuniformGrid<real_type> const grid_r_;
+    NonuniformGrid<real_type> const grid_phi_;
+    NonuniformGrid<real_type> const grid_z_;
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with the shared magnetic field map data.
+ */
+CELER_FUNCTION
+CylMapField::CylMapField(FieldParamsRef const& params)
+    : params_{params}
+    , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
+    , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}
+    , grid_z_{params_.grids.axes[CylAxis::z], params_.grids.storage}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the magnetic field vector for the given position.
+ *
+ * This does a 3-D interpolation on the input grid and reconstructs the
+ * magnetic field vector from the stored R, Z, and Phi components of the field.
+ * The result is in the native Celeritas unit system.
+ */
+CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
+{
+    CELER_ENSURE(params_);
+
+    Real3 value{0, 0, 0};
+
+    // Convert Cartesian to cylindrical coordinates
+    real_type r = hypot(pos[0], pos[1]);
+    // Ensure phi is in [0, 2\f$\pi\f$)
+    Turn phi = atan2turn(pos[1], pos[0]);
+    if (phi < zero_quantity())
+    {
+        phi.value() += 1;
+    }
+
+    // Check if point is within field map bounds
+    if (!params_.valid(r, phi, pos[2]))
+        return value;
+
+    // Find interpolation points for given r, phi, z
+    auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
+    auto [iphi, wphi1]
+        = find_interp<NonuniformGrid<real_type>>(grid_phi_, phi.value());
+    auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
+
+    auto get_field = [this](size_type ir, size_type iphi, size_type iz) {
+        return params_.fieldmap[params_.id(ir, iphi, iz)];
+    };
+
+    EnumArray<CylAxis, real_type> interp_field;
+
+    for (auto axis : range(CylAxis::size_))
+    {
+        // clang-format off
+        real_type v000 = get_field(ir,     iphi    ,     iz)[axis];
+        real_type v001 = get_field(ir,     iphi    , iz + 1)[axis];
+        real_type v010 = get_field(ir,     iphi + 1,     iz)[axis];
+        real_type v011 = get_field(ir,     iphi + 1, iz + 1)[axis];
+        real_type v100 = get_field(ir + 1, iphi    ,     iz)[axis];
+        real_type v101 = get_field(ir + 1, iphi    , iz + 1)[axis];
+        real_type v110 = get_field(ir + 1, iphi + 1,     iz)[axis];
+        real_type v111 = get_field(ir + 1, iphi + 1, iz + 1)[axis];
+        // clang-format on
+        // Trilinear interpolation formula for the current component
+        interp_field[axis]
+            = (1 - wr1)
+                  * ((1 - wphi1) * ((1 - wz1) * v000 + wz1 * v001)
+                     + wphi1 * ((1 - wz1) * v010 + wz1 * v011))
+              + wr1
+                    * ((1 - wphi1) * ((1 - wz1) * v100 + wz1 * v101)
+                       + wphi1 * ((1 - wz1) * v110 + wz1 * v111));
+    }
+
+    // Project cylindrical components to Cartesian coordinates
+    // default for r == 0
+    real_type cos_phi = 1.;
+    real_type sin_phi = 0.;
+
+    if (r != 0)
+    {
+        cos_phi = pos[0] / r;
+        sin_phi = pos[1] / r;
+    }
+    value[0] = interp_field[CylAxis::r] * cos_phi
+               - interp_field[CylAxis::phi] * sin_phi;
+    value[1] = interp_field[CylAxis::r] * sin_phi
+               + interp_field[CylAxis::phi] * cos_phi;
+    value[2] = interp_field[CylAxis::z];
+
+    return value;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas

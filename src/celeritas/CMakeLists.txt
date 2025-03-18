@@ -40,6 +40,8 @@ list(APPEND SOURCES
   field/FieldDriverOptionsIO.json.cc
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
+  field/CylMapFieldParams.cc
+  field/UniformFieldParams.cc
   geo/GeoMaterialParams.cc
   global/ActionGroups.cc
   global/ActionSequence.cc
@@ -87,6 +89,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/ModelImporter.cc
+  optical/PhysicsParams.cc
   optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/WavelengthShiftParams.cc
@@ -287,6 +290,7 @@ celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
 celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
@@ -312,6 +316,7 @@ celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/BoundaryAction)
+celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)

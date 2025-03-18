@@ -44,3 +44,8 @@ Example classes
   :cpp:class:`ProcessHits`: is currently the *only* Celeritas callback
   interface to Geant4; at each step, Celeritas sends data back as a
   :cpp:class:`G4Step` to be processed by Geant4.
+
+:cpp:class:`StepDiagnostic`
+  This advanced and experimental class (expect it to break at major version
+  changes) demonstrates an efficient GPU-based stepping action that integrates
+  with the main Geant4 code.

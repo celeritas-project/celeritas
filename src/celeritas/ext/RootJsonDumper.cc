@@ -22,12 +22,11 @@ namespace celeritas
 /*!
  * Construct with an output stream.
  */
-RootJsonDumper::RootJsonDumper(std::ostream* os) : os_{os}
+RootJsonDumper::RootJsonDumper(std::ostream& os) : os_{&os}
 {
-    CELER_EXPECT(os_);
-    CELER_VALIDATE(RootFileManager::use_root(),
-                   << "cannot interface with ROOT (disabled by user "
-                      "environment)");
+    CELER_VALIDATE(
+        RootFileManager::use_root(),
+        << R"(cannot interface with ROOT (disabled by user environment))");
 }
 
 //---------------------------------------------------------------------------//
