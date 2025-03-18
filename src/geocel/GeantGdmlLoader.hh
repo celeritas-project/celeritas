@@ -40,8 +40,7 @@ class GeantGdmlLoader
   public:
     //!@{
     //! \name Type aliases
-    using MapDetectors
-        = std::map<std::pair<std::string, int>, G4LogicalVolume*>;
+    using MapDetectors = std::multimap<std::string, G4LogicalVolume*>;
     //!@}
 
     //! How to handle pointers in volume names

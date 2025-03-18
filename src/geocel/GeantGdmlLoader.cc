@@ -113,13 +113,11 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
                 std::string const& sd_name = aux.value;
                 if (aux.type == "SensDet")
                 {
-                    result.detectors.insert(
-                        {{sd_name, lv->GetInstanceID()}, lv});
+                    result.detectors.insert({sd_name, lv});
                     if (auto* refl_lv = refl_factory->GetReflectedLV(lv))
                     {
                         // Add the reflected volume as well
-                        result.detectors.insert(
-                            {{sd_name, refl_lv->GetInstanceID()}, refl_lv});
+                        result.detectors.insert({sd_name, refl_lv});
                     }
                 }
             }

@@ -11,7 +11,6 @@
 #include <string>
 #include <G4VUserDetectorConstruction.hh>
 
-#include "geocel/GeantGdmlLoader.hh"
 #include "accel/SetupOptions.hh"
 
 class G4LogicalVolume;
@@ -47,7 +46,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
   private:
     //// TYPES ////
 
-    using MapDetectors = GeantGdmlLoader::MapDetectors;
+    using MapDetectors = std::multimap<std::string, G4LogicalVolume*>;
     using AlongStepFactory = SetupOptions::AlongStepFactory;
     using SPMagneticField = std::shared_ptr<G4MagneticField>;
     using SPSimpleCalo = std::shared_ptr<GeantSimpleCalo>;

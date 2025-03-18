@@ -21,6 +21,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -103,7 +104,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                == SensitiveDetectorType::simple_calo)
     {
         this->foreach_detector([this](auto start, auto stop) {
-            std::string name = start->first.first;
+            std::string name = start->first;
             std::vector<G4LogicalVolume*> volumes;
             for (auto iter = start; iter != stop; ++iter)
             {
@@ -252,16 +253,15 @@ void DetectorConstruction::ConstructSDandField()
         CELER_LOG_LOCAL(status) << "Creating SDs";
         this->foreach_detector([sd_manager](auto start, auto stop) {
             // Create one detector for all the volumes
-            auto detector
-                = std::make_unique<SensitiveDetector>(start->first.first);
+            auto detector = std::make_unique<SensitiveDetector>(start->first);
 
             // Attach sensitive detectors
             for (auto iter = start; iter != stop; ++iter)
             {
                 CELER_LOG_LOCAL(debug)
-                    << "Attaching '" << iter->first.first << "'@"
-                    << detector.get() << " to '" << iter->second->GetName()
-                    << "'@" << static_cast<void const*>(iter->second);
+                    << "Attaching '" << iter->first << "'@" << detector.get()
+                    << " to '" << iter->second->GetName() << "'@"
+                    << static_cast<void const*>(iter->second);
                 iter->second->SetSensitiveDetector(detector.get());
             }
 
@@ -271,7 +271,7 @@ void DetectorConstruction::ConstructSDandField()
             // Add to ROOT output
             if (GlobalSetup::Instance()->root_sd_io())
             {
-                RootIO::Instance()->AddSensitiveDetector(start->first.first);
+                RootIO::Instance()->AddSensitiveDetector(start->first);
             }
         });
     }
@@ -292,8 +292,7 @@ void DetectorConstruction::foreach_detector(F&& apply_to_range) const
         do
         {
             ++stop;
-        } while (stop != detectors_.end()
-                 && start->first.first == stop->first.first);
+        } while (stop != detectors_.end() && start->first == stop->first);
 
         apply_to_range(start, stop);
         start = stop;
