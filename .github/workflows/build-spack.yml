@@ -27,6 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        build_type: ["reldeb"]
         geometry: ["vecgeom"]
         special: [null]
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
@@ -37,6 +38,10 @@ jobs:
           - geometry: "orange"
             special: "float"
             geant: "11.0"
+          - geometry: "orange"
+            special: "static"
+            geant: "11.0"
+            build_type: "ndebug"
           - geometry: "orange"
             special: "asanlite"
             geant: null
@@ -59,7 +64,8 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "${{matrix.special == 'asanlite' && '400' || '200'}}Mi"
       CMAKE_PRESET: >-
-        ${{format('reldeb-{0}{1}{2}',
+        ${{format('{0}-{1}{2}{3}',
+                  matrix.build_type,
                   matrix.geometry,
                   matrix.special && '-' || '',
                   matrix.special)}}
@@ -98,6 +104,7 @@ jobs:
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
+                && (matrix.special != 'static')
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
           fi
@@ -218,7 +225,11 @@ jobs:
           ninja -v -k0 update-root-test-data
       - name: Run unit tests
         id: unittest
-        if: ${{matrix.special != 'clang-tidy'}}
+        if: >-
+          ${{
+            matrix.special != 'clang-tidy'
+            && matrix.special != 'static'
+          }}
         continue-on-error: >- # TODO: fix failing tests
           ${{
             fromJSON(matrix.geant || '0') < 11

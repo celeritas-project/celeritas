@@ -21,6 +21,7 @@
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Perfetto":{"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Python":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
@@ -96,7 +97,6 @@
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_Perfetto":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_SCAN_FOR_MODULES":  {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
@@ -130,11 +130,22 @@
     },
     {
       "name": "ndebug-vecgeom",
-      "description": "Build release with vecgeom for testing *only* demos",
+      "description": "Build release with vecgeom for testing *only* apps",
       "inherits": [".ndebug", ".vecgeom", "spack"],
       "cacheVariables": {
         "BUILD_TESTING":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "ndebug-orange-static",
+      "description": "Build with static libraries and perfetto",
+      "inherits": [".ndebug", "spack"],
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Perfetto":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":{"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -173,7 +184,7 @@
     },
     {
       "name": "reldeb-orange-float",
-      "description": "Build with single-precision arithmetic and perfetto",
+      "description": "Build with single-precision arithmetic",
       "inherits": ["spack"],
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float"
