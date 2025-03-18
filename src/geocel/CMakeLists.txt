@@ -81,8 +81,11 @@ if(CELERITAS_USE_VecGeom)
       vg/RaytraceImager.cu
       vg/detail/VecgeomSetup.cu
     )
+    # VecGeom CUDA is required in this case; those libraries are automatically
+    # configured via the CudaRdc linking
   elseif(VecGeom_CUDA_FOUND)
-    # VecGeom is built with CUDA but Celeritas is not
+    # VecGeom is built with CUDA but Celeritas is not: need to fill missing
+    # symbols with the VecGeom "final" library
     list(APPEND PUBLIC_DEPS VecGeom::vecgeomcuda)
   endif()
   list(APPEND PRIVATE_DEPS VecGeom::vecgeom)

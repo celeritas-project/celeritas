@@ -18,7 +18,9 @@ set(PUBLIC_DEPS
 
 # Core data has transient includes
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  set(_core_geo_deps Celeritas::ExtVecGeom)
+  # NOTE: use vecgeom directly here since we know it's enabled and it's
+  # necessary to make CudaRdc work downstream
+  set(_core_geo_deps VecGeom::vecgeom)
 elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_deps Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
