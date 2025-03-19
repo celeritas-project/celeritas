@@ -271,12 +271,12 @@
     {
       "name": "fast-unit",
       "configurePreset":  "fast",
-      "inherits": ["unit", "base"]
+      "inherits": [".unit", ".base"]
     },
     {
       "name": "fast-app",
       "configurePreset":  "fast",
-      "inherits": ["app", "base"]
+      "inherits": [".app", ".base"]
     },
     {
       "name": "ultralite",

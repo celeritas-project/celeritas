@@ -74,6 +74,7 @@ jobs:
       - name: Configure Celeritas
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --version
           cmake --preset=${CMAKE_PRESET} \
             ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
@@ -181,6 +182,7 @@ jobs:
       - name: Build
         id: build
         run: |
+          cmake --version
           cmake --build --preset=$Env:CMAKE_PRESET
       - name: Show ccache stats
         if: ${{!cancelled()}}

@@ -33,6 +33,7 @@ jobs:
       - name: Configure Celeritas
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --version
           cmake --preset=${CMAKE_PRESET} \
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
@@ -124,6 +125,7 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
+          cmake --version
           cmake --preset=$Env:CMAKE_PRESET `
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
