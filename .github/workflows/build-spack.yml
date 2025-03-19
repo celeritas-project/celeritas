@@ -85,7 +85,10 @@ jobs:
         with:
           fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
-      - name: Setup Spack
+
+      ### ENVIRONMENT ###
+      
+      - name: Check out Spack
         uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
         with:
           ref: ${{env.SPACK_REF}}
@@ -131,7 +134,7 @@ jobs:
       - name: Concretize
         run: |
           spack -e . -v concretize
-      - name: Install dependencies with Spack
+      - name: Install dependencies
         run: |
           spack -e . env depfile -o Makefile
           make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
@@ -150,17 +153,9 @@ jobs:
           echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
           echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
           spack env activate . --sh > "${SPACK_VIEW}/rc"
-      - name: Restore ccache
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-            ccache-${{env.CMAKE_PRESET}}
-      - name: Zero ccache stats
-        run: |
-          ccache -z
+
+      ### CONFIGURE ###
+      
       - name: Configure Celeritas
         run: |
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
@@ -172,7 +167,18 @@ jobs:
             test -n "${G4LEDATA}"
           fi
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
-      - name: Run incremental clang-tidy
+
+      ### BUILD ###
+      
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+          restore-keys: |
+            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+            ccache-${{env.CMAKE_PRESET}}
+      - name: Build incremental clang-tidy
         id: clang-tidy
         if: ${{matrix.special == 'clang-tidy'}}
         env:
@@ -208,13 +214,21 @@ jobs:
         if: ${{matrix.special != 'clang-tidy'}}
         working-directory: build
         run: |
+          ccache -z
           ninja -v -k0
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
         uses: actions/cache/save@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+
+      ### TEST ###
+      
       - name: Regenerate ROOT test data
         if: >-
           ${{
@@ -269,6 +283,9 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+
+      ### INSTALL ###
+      
       - name: Check using build directory as install
         # TODO: ASAN requires flags downstream
         if: >-
@@ -302,15 +319,14 @@ jobs:
           done
           ./bin/celer-sim --config
       - name: Build examples
-        # TODO: ASAN requires flags downstream
         env:
           CELER_DISABLE_ACCEL_EXAMPLES: >-
             ${{
-              (   (matrix.special == 'minimal')
-               || (matrix.special == 'float')
+              (   (matrix.special == 'float')
                || !matrix.geant
               ) && '1' || ''
             }}
+        # TODO: ASAN requires flags downstream
         if: >-
           ${{
             (matrix.special != 'asanlite')
@@ -320,9 +336,5 @@ jobs:
           . ${SPACK_VIEW}/rc
           export G4VERSION_NUMBER=$(echo "${{matrix.geant}}" | awk '{printf "%.0f", $1 * 100}')
           ./scripts/ci/test-examples.sh
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
 
 # vim: set nowrap tw=100:
