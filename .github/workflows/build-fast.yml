@@ -91,12 +91,12 @@ jobs:
       - name: Run unit tests
         id: unittest
         run: |
-          ctest -LE app --preset=${CMAKE_PRESET}-unit
+          ctest --preset=${CMAKE_PRESET}-unit
       - name: Run app tests
         id: apptest
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
         run: |
-          ctest -L app --preset=${CMAKE_PRESET}-app
+          ctest --preset=${CMAKE_PRESET}-app
       - name: Install
         working-directory: build
         run: |

@@ -1,6 +1,6 @@
 {
   "version": 6,
-  "cmakeMinimumRequired": {"major": 3, "minor": 23, "patch": 0},
+  "cmakeMinimumRequired": {"major": 3, "minor": 25, "patch": 0},
   "configurePresets": [
     {
       "name": "base",
@@ -223,7 +223,6 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
-        "timeout": 15,
         "jobs": 4
       },
       "output": {
@@ -233,18 +232,37 @@
       }
     },
     {
+      "name": "unit",
+      "execution": {
+        "timeout": 15
+      },
+      "filter": {
+        "exclude": {
+          "label": "app"
+        }
+      },
+      "output": {
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/unit.xml"
+      }
+    },
+    {
       "name": "app",
       "execution": {
         "timeout": 30
       },
+      "filter": {
+        "include": {
+          "label": "app"
+        }
+      },
       "output": {
-        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/app.xml"
       }
     },
     {
       "name": "spack-unit",
       "configurePreset": "base-spack",
-      "inherits": ".base"
+      "inherits": ["unit", "base"]
     },
     {
       "name": "spack-app",
@@ -253,12 +271,12 @@
     },
     {
       "name": "fast-unit",
-      "configurePreset": "fast",
+      "configurePreset": ["unit", "fast"],
       "inherits": "base"
     },
     {
       "name": "fast-app",
-      "configurePreset": "fast",
+      "configurePreset": ["app", "fast"],
       "inherits": ["app", "base"]
     },
     {

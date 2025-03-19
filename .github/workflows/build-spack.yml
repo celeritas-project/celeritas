@@ -257,7 +257,7 @@ jobs:
             # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
           fi
-          ctest -LE app --preset=spack-unit
+          ctest --preset=spack-unit
       - name: Run app tests
         id: apptest
         if: ${{!cancelled()
@@ -265,7 +265,7 @@ jobs:
             && steps.build.outcome == 'success'}}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
         run: |
-          ctest -L app --preset=spack-app
+          ctest --preset=spack-app
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: >- # not skipped, new geant4, not experimental vecgeom
