@@ -63,19 +63,44 @@ jobs:
         with:
           fetch-depth: 383
           fetch-tags: true
+
+      ### CONFIGURE ###
+
       - name: Configure Celeritas
         run: |
           git config --global --add safe.directory ${PWD}
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
+
+      ### BUILD ###
+
       - name: Build Celeritas
         working-directory: build
         run: |
           ninja
+
+      ### TEST ###
+
       - name: Test Celeritas
         id: test
         run: |
           ctest --preset=base
+      - name: Upload test results
+        if: >-
+          ${{
+            always()
+            && (steps.test.outcome == 'success'
+                || steps.test.outcome == 'failure')
+          }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
+          path: "test-output/**/*.xml"
+          if-no-files-found: error
+          retention-days: 1
+
+      ### INSTALL ###
+
       - name: Install Celeritas
         working-directory: build
         run: |
@@ -103,18 +128,5 @@ jobs:
               | awk '{print $3}'
           )
           ./scripts/ci/test-examples.sh
-      - name: Upload test results
-        if: >-
-          ${{
-            always()
-            && (steps.test.outcome == 'success'
-                || steps.test.outcome == 'failure')
-          }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
-          path: "test-output/**/*.xml"
-          if-no-files-found: error
-          retention-days: 1
 
 # vim: set nowrap tw=100:

@@ -218,7 +218,7 @@
   ],
   "testPresets": [
     {
-      "name": "base",
+      "name": ".base",
       "configurePreset": "base",
       "execution": {
         "noTestsAction": "error",
@@ -232,7 +232,7 @@
       }
     },
     {
-      "name": "unit",
+      "name": ".unit",
       "configurePreset": "base",
       "execution": {
         "timeout": 15
@@ -244,7 +244,7 @@
       }
     },
     {
-      "name": "app",
+      "name": ".app",
       "configurePreset": "base",
       "execution": {
         "timeout": 30
@@ -261,12 +261,12 @@
     {
       "name": "spack-unit",
       "configurePreset": "base-spack",
-      "inherits": ["unit", "base"]
+      "inherits": [".unit", ".base"]
     },
     {
       "name": "spack-app",
       "configurePreset": "base-spack",
-      "inherits": ["app", "base"]
+      "inherits": [".app", ".base"]
     },
     {
       "name": "fast-unit",
@@ -281,7 +281,7 @@
     {
       "name": "ultralite",
       "configurePreset": "ultralite",
-      "inherits": "base"
+      "inherits": ".base"
     }
   ]
 }

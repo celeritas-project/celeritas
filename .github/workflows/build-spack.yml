@@ -32,33 +32,40 @@ jobs:
         special: [null]
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
         include:
-          - geometry: "orange"
+          - build_type: "reldeb"
+            geometry: "orange"
             special: "minimal"
             geant: null
-          - geometry: "orange"
+          - build_type: "reldeb"
+            geometry: "orange"
             special: "float"
             geant: "11.0"
-          - geometry: "orange"
+          - build_type: "ndebug"
+            geometry: "orange"
             special: "static"
             geant: "11.0"
-            build_type: "ndebug"
-          - geometry: "orange"
+          - build_type: "reldebinfo"
+            geometry: "orange"
             special: "asanlite"
             geant: null
-            build_type: "reldebinfo"
-          - geometry: "vecgeom"
+          - build_type: "reldeb"
+            geometry: "vecgeom"
             special: "clhep"
             geant: "11.0"
-          - geometry: "vgsurf"
+          - build_type: "reldeb"
+            geometry: "vgsurf"
             special: null
             geant: "11.0"
-          - geometry: "vecgeom2"
+          - build_type: "reldeb"
+            geometry: "vecgeom2"
             special: null
             geant: "11.0"
-          - geometry: "geant4"
+          - build_type: "reldeb"
+            geometry: "geant4"
             special: null
             geant: "11.0"
-          - geometry: "vecgeom"
+          - build_type: "reldeb"
+            geometry: "vecgeom"
             special: "clang-tidy"
             geant: "11.2"
     env:
@@ -87,7 +94,7 @@ jobs:
           fetch-tags: true # to get version information
 
       ### ENVIRONMENT ###
-      
+
       - name: Check out Spack
         uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
         with:
@@ -155,7 +162,7 @@ jobs:
           spack env activate . --sh > "${SPACK_VIEW}/rc"
 
       ### CONFIGURE ###
-      
+
       - name: Configure Celeritas
         run: |
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
@@ -169,7 +176,7 @@ jobs:
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
 
       ### BUILD ###
-      
+
       - name: Restore ccache
         uses: actions/cache/restore@v4
         with:
@@ -228,7 +235,7 @@ jobs:
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
 
       ### TEST ###
-      
+
       - name: Regenerate ROOT test data
         if: >-
           ${{
@@ -285,7 +292,7 @@ jobs:
           retention-days: 1
 
       ### INSTALL ###
-      
+
       - name: Check using build directory as install
         # TODO: ASAN requires flags downstream
         if: >-

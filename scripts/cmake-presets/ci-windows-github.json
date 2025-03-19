@@ -65,7 +65,7 @@
   ],
   "testPresets": [
     {
-      "name": "base",
+      "name": ".base",
       "configurePreset": "base",
       "execution": {
         "noTestsAction": "error",
@@ -79,7 +79,7 @@
       }
     },
     {
-      "name": "unit",
+      "name": ".unit",
       "configurePreset": "base",
       "execution": {
         "timeout": 30
@@ -91,7 +91,7 @@
       }
     },
     {
-      "name": "app",
+      "name": ".app",
       "configurePreset": "base",
       "execution": {
         "timeout": 90
@@ -108,13 +108,13 @@
     {
       "name": "fast-unit",
       "configurePreset": "fast",
-      "inherits": ["unit", "base"]
+      "inherits": [".unit", ".base"]
     },
     {
       "name": "fast-app",
       "configurePreset": "fast",
-      "inherits": ["app", "base"]
+      "inherits": [".app", ".base"]
     },
-    {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
+    {"name": "ultralite", "configurePreset": "ultralite", "inherits": ".base"}
   ]
 }
