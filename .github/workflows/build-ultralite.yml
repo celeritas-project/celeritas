@@ -26,7 +26,7 @@ jobs:
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
-            ccache cmake ninja-build nlohmann-json3-dev libpng-dev
+            ccache nlohmann-json3-dev libpng-dev
 
       ### CONFIGURE ###
 

@@ -281,7 +281,13 @@
     {
       "name": "ultralite",
       "configurePreset": "ultralite",
-      "inherits": ".base"
+      "inherits": ".base",
+      "execution": {
+        "timeout": 30
+      },
+      "output": {
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
+      }
     }
   ]
 }

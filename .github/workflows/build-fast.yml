@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
-            ccache cmake ninja-build python3 \
+            ccache \
             nlohmann-json3-dev libgtest-dev libhepmc3-dev libpng-dev \
             ${{matrix.compiler}}-${{matrix.version}} \
             ${{matrix.compiler == 'gcc' && format('g++-{0}', matrix.version) || ''}}
