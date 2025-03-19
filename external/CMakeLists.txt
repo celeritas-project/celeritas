@@ -137,6 +137,10 @@ if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   add_library(perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
   target_include_directories(perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
   add_library(Celeritas::perfetto ALIAS perfetto)
+  install(TARGETS perfetto
+    EXPORT celeritas-targets
+    COMPONENT runtime
+  )
 endif()
 
 if(CELERITAS_BUILTIN_CLI11)
