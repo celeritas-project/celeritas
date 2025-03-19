@@ -217,7 +217,7 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_Perfetto)
-  list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
+  list(APPEND PRIVATE_DEPS Celeritas::perfetto)
   list(APPEND SOURCES
     sys/TraceCounter.perfetto.cc
     sys/TracingSession.cc

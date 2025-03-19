@@ -277,6 +277,8 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
 # NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
+# and check the dependency code in the CMakeConfig setup at the bottom of this
+# file
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)

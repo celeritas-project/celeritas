@@ -13,7 +13,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: a91f96292c5d999463818365a3dfdabacdd3a31b # develop@2025-03-06
+  SPACK_REF: 38309ced3344d06168c25482083fc733bb654a63 # develop@2025-03-17
 
 jobs:
   spack:
@@ -27,33 +27,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        build_type: ["reldeb"]
         geometry: ["vecgeom"]
         special: [null]
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
         include:
-          - geometry: "orange"
+          - build_type: "reldeb"
+            geometry: "orange"
             special: "minimal"
             geant: null
-          - geometry: "orange"
+          - build_type: "reldeb"
+            geometry: "orange"
             special: "float"
             geant: "11.0"
-          - geometry: "orange"
+          - build_type: "ndebug"
+            geometry: "orange"
+            special: "static"
+            geant: "11.0"
+          - build_type: "reldebinfo"
+            geometry: "orange"
             special: "asanlite"
             geant: null
-          - geometry: "vecgeom"
+          - build_type: "reldeb"
+            geometry: "vecgeom"
             special: "clhep"
             geant: "11.0"
-          - geometry: "geant4"
+          - build_type: "reldeb"
+            geometry: "geant4"
             special: null
             geant: "11.0"
-          - geometry: "vecgeom"
+          - build_type: "reldeb"
+            geometry: "vecgeom"
             special: "clang-tidy"
             geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "${{matrix.special == 'asanlite' && '400' || '200'}}Mi"
+      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '400' || '200'}}Mi"
       CMAKE_PRESET: >-
-        ${{format('reldeb-{0}{1}{2}',
+        ${{format('{0}-{1}{2}{3}',
+                  matrix.build_type,
                   matrix.geometry,
                   matrix.special && '-' || '',
                   matrix.special)}}
@@ -72,7 +84,10 @@ jobs:
         with:
           fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
-      - name: Setup Spack
+
+      ### ENVIRONMENT ###
+
+      - name: Check out Spack
         uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
         with:
           ref: ${{env.SPACK_REF}}
@@ -88,13 +103,15 @@ jobs:
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
+                && (matrix.special != 'static')
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
           fi
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
-          if ${{matrix.geometry == 'vecgeom' && matrix.geant}}; then
+          if ${{(matrix.geometry == 'vecgeom')
+                && matrix.geant}}; then
             spack -e . add g4vg@1.0.2:
           fi
           spack -vd -e . compiler find --mixed-toolchain
@@ -110,7 +127,7 @@ jobs:
       - name: Concretize
         run: |
           spack -e . -v concretize
-      - name: Install dependencies with Spack
+      - name: Install dependencies
         run: |
           spack -e . env depfile -o Makefile
           make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
@@ -129,17 +146,9 @@ jobs:
           echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
           echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
           spack env activate . --sh > "${SPACK_VIEW}/rc"
-      - name: Restore ccache
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-            ccache-${{env.CMAKE_PRESET}}
-      - name: Zero ccache stats
-        run: |
-          ccache -z
+
+      ### CONFIGURE ###
+
       - name: Configure Celeritas
         run: |
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
@@ -151,7 +160,18 @@ jobs:
             test -n "${G4LEDATA}"
           fi
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
-      - name: Run incremental clang-tidy
+
+      ### BUILD ###
+
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+          restore-keys: |
+            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+            ccache-${{env.CMAKE_PRESET}}
+      - name: Build incremental clang-tidy
         id: clang-tidy
         if: ${{matrix.special == 'clang-tidy'}}
         env:
@@ -187,56 +207,86 @@ jobs:
         if: ${{matrix.special != 'clang-tidy'}}
         working-directory: build
         run: |
+          ccache -z
           ninja -v -k0
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
         uses: actions/cache/save@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+
+      ### TEST ###
+
       - name: Regenerate ROOT test data
-        if: ${{matrix.geant == '11.0'}}
+        if: >-
+          ${{
+            matrix.geant == '11.0'
+            && matrix.special != 'minimal'
+            && matrix.special != 'static'
+          }}
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
       - name: Run unit tests
         id: unittest
-        if: ${{matrix.special != 'clang-tidy'}}
-        continue-on-error: ${{fromJSON(matrix.geant || '0') < 11}} # TODO: fix failing tests
+        if: >-
+          ${{
+            matrix.special != 'clang-tidy'
+            && matrix.special != 'static'
+          }}
+        continue-on-error: >- # TODO: fix failing tests
+          ${{
+            fromJSON(matrix.geant || '0') < 11
+          }}
         run: |
-          if ${{matrix.geant == '11.0'}}; then
-            # Note this is ignored for geant4, float, clhep
+          if ${{matrix.geant == '11.0'
+                && matrix.geometry != 'vecgeom2'}}; then
+            # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
           fi
-          ctest -LE app --preset=spack-unit
+          ctest --preset=spack-unit
       - name: Run app tests
         id: apptest
-        if: ${{!cancelled()
+        if: >-
+          ${{
+            !cancelled()
             && matrix.special != 'clang-tidy'
-            && steps.build.outcome == 'success'}}
+            && steps.build.outcome == 'success'
+          }}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
         run: |
-          ctest -L app --preset=spack-app
+          ctest --preset=spack-app
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: >-
+        if: >- # not skipped, new geant4, not experimental vecgeom
           ${{
             always()
             && (steps.unittest.outcome == 'success'
                 || steps.unittest.outcome == 'failure')
-            && (!matrix.geant || fromJSON(matrix.geant) >= 11)
+            && (!matrix.geant
+                || fromJSON(matrix.geant) >= 11)
           }}
         with:
           name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+
+      ### INSTALL ###
+
       - name: Check using build directory as install
         # TODO: ASAN requires flags downstream
         if: >-
           ${{
-            (matrix.special != 'asanlite')
-            && (matrix.special != 'clang-tidy')
+            !cancelled()
+            && steps.build.outcome == 'success'
+            && matrix.special != 'asanlite'
+            && matrix.special != 'clang-tidy'
           }}
         env:
           CELER_DISABLE_ACCEL_EXAMPLES: 1 # Only run minimal example
@@ -245,40 +295,44 @@ jobs:
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         id: install
-        if: ${{!cancelled() && steps.build.outcome == 'success' && matrix.special != 'clang-tidy'}}
+        if: >-
+          ${{
+            !cancelled()
+            && steps.build.outcome == 'success'
+            && matrix.special != 'clang-tidy'
+          }}
         working-directory: build
         run: |
           ninja install
       - name: Check installation
-        if: ${{steps.install.outcome == 'success'}}
+        if: >-
+          ${{
+            !cancelled()
+            && steps.install.outcome == 'success'
+          }}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant celer-dump-data \
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done
-          ./bin/celer-sim --version
+          ./bin/celer-sim --config
       - name: Build examples
-        # TODO: ASAN requires flags downstream
         env:
           CELER_DISABLE_ACCEL_EXAMPLES: >-
-            ${{
-              (   (matrix.special == 'minimal')
-               || (matrix.special == 'float')
-               || !matrix.geant
-              ) && '1' || ''
-            }}
+            ${{(
+              matrix.special == 'float'
+              || !matrix.geant
+            ) && '1' || ''}}
+        # TODO: ASAN requires flags downstream
         if: >-
           ${{
-            (matrix.special != 'asanlite')
-            && (matrix.special != 'clang-tidy')
+            matrix.special != 'asanlite'
+            && matrix.special != 'clang-tidy'
           }}
         run: |
           . ${SPACK_VIEW}/rc
+          export G4VERSION_NUMBER=$(echo "${{matrix.geant}}" | awk '{printf "%.0f", $1 * 100}')
           ./scripts/ci/test-examples.sh
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
 
 # vim: set nowrap tw=100:
