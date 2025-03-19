@@ -119,7 +119,7 @@ endif()
 
 celer_add_ext_library(Perfetto)
 if(CELERITAS_BUILTIN_Perfetto)
-  target_link_libraries(ExtPerfetto Celeritas::perfetto)
+  target_link_libraries(ExtPerfetto INTERFACE Celeritas::perfetto)
 endif()
 
 celeritas_add_interface_library(ExtGeant4Geo)
