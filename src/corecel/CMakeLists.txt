@@ -211,7 +211,6 @@ list(APPEND SOURCES
   sys/MemRegistry.cc
   sys/MemRegistryIO.json.cc
   sys/ScopedMem.cc
-  sys/ScopedProfiling.cc
   sys/ScopedSignalHandler.cc
   sys/TypeDemangler.cc
   sys/Version.cc
@@ -249,18 +248,21 @@ list(APPEND PRIVATE_DEPS corecel_mpi_obj)
 
 #-----------------------------------------------------------------------------#
 
+set(_profiling_sources
+  sys/ScopedProfiling.cc
+)
 if(CELERITAS_USE_Perfetto)
-  # Perfetto is required to build these classes
-  celeritas_add_object_library(corecel_perfetto_obj
+  list(APPEND _profiling_sources
     sys/TraceCounter.perfetto.cc
     sys/TracingSession.perfetto.cc
   )
-  celeritas_target_link_libraries(corecel_perfetto_obj
-    PRIVATE Celeritas::perfetto Celeritas::BuildFlags
-  )
-  list(APPEND SOURCES $<TARGET_OBJECTS:corecel_perfetto_obj>)
-  list(APPEND PRIVATE_DEPS corecel_perfetto_obj)
 endif()
+celeritas_add_object_library(corecel_profiling_obj ${_profiling_sources})
+celeritas_target_link_libraries(corecel_profiling_obj
+  PRIVATE Celeritas::ExtPerfetto Celeritas::BuildFlags
+)
+list(APPEND SOURCES $<TARGET_OBJECTS:corecel_profiling_obj>)
+list(APPEND PRIVATE_DEPS corecel_profiling_obj)
 
 #-----------------------------------------------------------------------------#
 # CUDA/HIP code
