@@ -45,24 +45,6 @@
       }
     },
     {
-      "name": "fast",
-      "inherits": ["base"],
-      "displayName": "CONFIG: fast build using apt-get",
-      "cacheVariables": {
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"}
-      }
-    },
-    {
-      "name": "ultralite",
-      "inherits": ["base"],
-      "displayName": "CONFIG: ultralite build with no externals",
-      "cacheVariables": {
-        "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
-      }
-    },
-    {
       "name": "base-spack",
       "hidden": true,
       "inherits": ["base"],
@@ -99,6 +81,24 @@
         "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
         "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Release"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "fast",
+      "inherits": ["type-reldeb", "base"],
+      "displayName": "FINAL: fast build using apt-get",
+      "cacheVariables": {
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "ultralite",
+      "inherits": ["type-ndebug", "base"],
+      "displayName": "FINAL: ultralite build with no externals",
+      "cacheVariables": {
+        "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     },
@@ -240,9 +240,6 @@
         "exclude": {
           "label": "app"
         }
-      },
-      "output": {
-        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/unit.xml"
       }
     },
     {
@@ -271,12 +268,12 @@
     },
     {
       "name": "fast-unit",
-      "configurePreset": ["unit", "fast"],
-      "inherits": "base"
+      "configurePreset":  "fast",
+      "inherits": ["unit", "base"]
     },
     {
       "name": "fast-app",
-      "configurePreset": ["app", "fast"],
+      "configurePreset":  "fast",
       "inherits": ["app", "base"]
     },
     {

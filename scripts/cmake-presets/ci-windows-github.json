@@ -70,8 +70,7 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
-        "jobs": 4,
-        "timeout": 180
+        "jobs": 4
       },
       "output": {
         "maxFailedTestOutputSize": 1048576,
@@ -80,17 +79,39 @@
       }
     },
     {
+      "name": "unit",
+      "execution": {
+        "timeout": 30
+      },
+      "filter": {
+        "exclude": {
+          "label": "app"
+        }
+      }
+    },
+    {
+      "name": "app",
+      "execution": {
+        "timeout": 90
+      },
+      "filter": {
+        "include": {
+          "label": "app"
+        }
+      },
+      "output": {
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/app.xml"
+      }
+    },
+    {
       "name": "fast-unit",
       "configurePreset": "fast",
-      "inherits": "base"
+      "inherits": ["unit", "base"]
     },
     {
       "name": "fast-app",
       "configurePreset": "fast",
-      "inherits": "base",
-      "output": {
-        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
-      }
+      "inherits": ["app", "base"]
     },
     {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ]
