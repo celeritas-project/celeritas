@@ -241,6 +241,7 @@ jobs:
           ${{
             matrix.geant == '11.0'
             && matrix.special != 'minimal'
+            && matrix.special != 'static'
           }}
         working-directory: build
         run: |
@@ -267,9 +268,12 @@ jobs:
           ctest --preset=spack-unit
       - name: Run app tests
         id: apptest
-        if: ${{!cancelled()
+        if: >-
+          ${{
+            !cancelled()
             && matrix.special != 'clang-tidy'
-            && steps.build.outcome == 'success'}}
+            && steps.build.outcome == 'success'
+          }}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
         run: |
           ctest --preset=spack-app
@@ -297,8 +301,10 @@ jobs:
         # TODO: ASAN requires flags downstream
         if: >-
           ${{
-            (matrix.special != 'asanlite')
-            && (matrix.special != 'clang-tidy')
+            !cancelled()
+            && steps.build.outcome == 'success'
+            && matrix.special != 'asanlite'
+            && matrix.special != 'clang-tidy'
           }}
         env:
           CELER_DISABLE_ACCEL_EXAMPLES: 1 # Only run minimal example
@@ -317,7 +323,11 @@ jobs:
         run: |
           ninja install
       - name: Check installation
-        if: ${{steps.install.outcome == 'success'}}
+        if: >-
+          ${{
+            !cancelled()
+            && steps.install.outcome == 'success'
+          }}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant celer-dump-data \
@@ -328,16 +338,15 @@ jobs:
       - name: Build examples
         env:
           CELER_DISABLE_ACCEL_EXAMPLES: >-
-            ${{
-              (   (matrix.special == 'float')
-               || !matrix.geant
-              ) && '1' || ''
-            }}
+            ${{(
+              matrix.special == 'float'
+              || !matrix.geant
+            ) && '1' || ''}}
         # TODO: ASAN requires flags downstream
         if: >-
           ${{
-            (matrix.special != 'asanlite')
-            && (matrix.special != 'clang-tidy')
+            matrix.special != 'asanlite'
+            && matrix.special != 'clang-tidy'
           }}
         run: |
           . ${SPACK_VIEW}/rc
