@@ -13,6 +13,7 @@
       },
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
@@ -124,6 +125,15 @@
       "name": "ndebug-vgsurf",
       "displayName": "Everything in release mode with debug symbols and assertions",
       "inherits": [".ndebug", "vgsurf"]
+    },
+    {
+      "name": "vecgeom-v1",
+      "displayName": "Ndebug with VecGeom v1",
+      "inherits": [".ndebug", "vecgeom"],
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-old/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-old/.spack-env/view"
+      }
     },
     {
       "name": "reldeb-serial",

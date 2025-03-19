@@ -81,12 +81,13 @@ void BuildOutput::output(JsonPimpl* j) const
             CO_ADD_COND_VERS(ROOT, ROOT, root);
             CO_ADD_COND_VERS(VECGEOM, VecGeom, vecgeom);
 #undef CO_ADD_COND_VERS
-            if constexpr (CELERITAS_USE_VECGEOM)
-            {
-                deps["vecgeom_options"] = std::string(cmake::vecgeom_options);
-            }
             return deps;
         }();
+
+        if constexpr (CELERITAS_USE_VECGEOM)
+        {
+            cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+        }
 
         return cfg;
     }();
