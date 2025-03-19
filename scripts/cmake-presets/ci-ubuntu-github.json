@@ -63,7 +63,7 @@
       }
     },
     {
-      "name": ".spack",
+      "name": "base-spack",
       "hidden": true,
       "inherits": ["base"],
       "displayName": "CONFIG: use full spack toolchain",
@@ -75,16 +75,16 @@
       }
     },
     {
-      "name": ".vecgeom",
+      "name": "base-vecgeom",
       "hidden": true,
       "description": "CONFIG: options to enable VecGeom on Ubuntu",
-      "inherits": [".spack"],
+      "inherits": ["base-spack"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     },
     {
-      "name": ".reldeb",
+      "name": "type-reldeb",
       "description": "TYPE: debug assertions but no debug symbols",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
@@ -93,7 +93,7 @@
       }
     },
     {
-      "name": ".ndebug",
+      "name": "type-ndebug",
       "description": "TYPE: release build for testing *only* apps",
       "cacheVariables": {
         "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
@@ -105,12 +105,12 @@
     {
       "name": "reldeb-orange",
       "description": "FINAL: ORANGE",
-      "inherits": [".reldeb", ".spack"]
+      "inherits": ["type-reldeb", "base-spack"]
     },
     {
       "name": "reldeb-vecgeom-clang-tidy",
       "description": "FINAL: VecGeom and clang-tidy checks",
-      "inherits": [".reldeb", ".vecgeom"],
+      "inherits": ["type-reldeb", "base-vecgeom"],
       "cacheVariables": {
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
@@ -124,7 +124,7 @@
     {
       "name": "reldeb-vecgeom-clhep",
       "description": "FINAL: VecGeom and CLHEP units",
-      "inherits": [".reldeb", ".vecgeom"],
+      "inherits": ["type-reldeb", "base-vecgeom"],
       "cacheVariables": {
         "CELERITAS_UNITS": "CLHEP"
       }
@@ -132,27 +132,27 @@
     {
       "name": "reldeb-vecgeom",
       "description": "FINAL: release, assertions, VecGeom",
-      "inherits": [".reldeb", ".vecgeom"]
+      "inherits": ["type-reldeb", "base-vecgeom"]
     },
     {
       "name": "reldeb-vgsurf",
       "description": "FINAL: release, assertions, VecGeom 2+surf",
-      "inherits": [".reldeb", ".vecgeom"]
+      "inherits": ["type-reldeb", "base-vecgeom"]
     },
     {
       "name": "reldeb-vecgeom2",
       "description": "FINAL: release, assertions, VecGeom 2~surf",
-      "inherits": [".reldeb", ".vecgeom"]
+      "inherits": ["type-reldeb", "base-vecgeom"]
     },
     {
       "name": "ndebug-vecgeom",
       "description": "FINAL: vecgeom app only",
-      "inherits": [".ndebug", ".vecgeom"]
+      "inherits": ["type-ndebug", "base-vecgeom"]
     },
     {
       "name": "ndebug-orange-static",
       "description": "FINAL: static libraries and perfetto, no tests",
-      "inherits": [".ndebug", ".spack"],
+      "inherits": ["type-ndebug", "base-spack"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Perfetto":{"type": "BOOL", "value": "ON"},
@@ -163,7 +163,7 @@
     {
       "name": "reldeb-geant4",
       "description": "FINAL: Geant4 geometry",
-      "inherits": [".reldeb", ".spack"],
+      "inherits": ["type-reldeb", "base-spack"],
       "cacheVariables": {
         "CELERITAS_CORE_GEO": "Geant4",
         "CELERITAS_UNITS": "CLHEP"
@@ -172,7 +172,7 @@
     {
       "name": "reldeb-orange-minimal",
       "description": "FINAL: minimal reasonable dependencies",
-      "inherits": [".reldeb", ".spack"],
+      "inherits": ["type-reldeb", "base-spack"],
       "cacheVariables": {
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
@@ -184,7 +184,7 @@
     {
       "name": "reldebinfo-orange-asanlite",
       "description": "FINAL: address sanitizer flags and debug symbols",
-      "inherits": [".spack"],
+      "inherits": ["base-spack"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
@@ -198,7 +198,7 @@
     {
       "name": "reldeb-orange-float",
       "description": "FINAL: single-precision arithmetic",
-      "inherits": [".reldeb", ".spack"],
+      "inherits": ["type-reldeb", "base-spack"],
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float"
       }
@@ -243,12 +243,12 @@
     },
     {
       "name": "spack-unit",
-      "configurePreset": ".spack",
+      "configurePreset": "base-spack",
       "inherits": ".base"
     },
     {
       "name": "spack-app",
-      "configurePreset": ".spack",
+      "configurePreset": "base-spack",
       "inherits": [".app", ".base"]
     },
     {
