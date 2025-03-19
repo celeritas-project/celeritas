@@ -80,6 +80,7 @@
     },
     {
       "name": "unit",
+      "configurePreset": "base",
       "execution": {
         "timeout": 30
       },
@@ -91,6 +92,7 @@
     },
     {
       "name": "app",
+      "configurePreset": "base",
       "execution": {
         "timeout": 90
       },

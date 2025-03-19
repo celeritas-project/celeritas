@@ -233,6 +233,7 @@
     },
     {
       "name": "unit",
+      "configurePreset": "base",
       "execution": {
         "timeout": 15
       },
@@ -244,6 +245,7 @@
     },
     {
       "name": "app",
+      "configurePreset": "base",
       "execution": {
         "timeout": 30
       },
