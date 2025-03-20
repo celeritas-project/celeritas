@@ -246,6 +246,11 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     using DistRef
         = Collection<GeneratorDistributionData, Ownership::reference, M>;
 
+    if constexpr (M == MemSpace::device)
+    {
+        device().create_streams(1);
+    }
+
     // Create the core stepper
     StepperInput step_inp;
     step_inp.params = this->core();

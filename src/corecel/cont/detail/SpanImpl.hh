@@ -11,7 +11,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
 
 namespace celeritas
 {

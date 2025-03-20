@@ -50,6 +50,12 @@ class TrackSortTestBase : virtual public GlobalTestBase
         result.params = this->core();
         result.stream_id = StreamId{0};
         result.num_track_slots = tracks;
+
+        if constexpr (M == MemSpace::device)
+        {
+            device().create_streams(1);
+        }
+
         return Stepper<M>{std::move(result)};
     }
 

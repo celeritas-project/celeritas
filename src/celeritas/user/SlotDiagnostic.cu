@@ -34,7 +34,7 @@ void SlotDiagnostic::step(CoreParams const& params, CoreStateDevice& state) cons
     device_buffer.copy_to_host(this->get_host_buffer(state.aux()));
     device_buffer = {};
 
-    // Write IDs to
+    // Write IDs to the file
     this->write_buffer(state.aux());
 }
 

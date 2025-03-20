@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
-FindCeleritas
--------------
+FindPerfetto
+------------
 
-Find the Celeritas library. This helper script provides extra verbosity versus
-relying on `find_package` alone.
+Find the Perfetto performance analysis library.
 
 #]=======================================================================]
 
-find_package(Celeritas QUIET CONFIG)
+find_package(Perfetto QUIET CONFIG)
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Celeritas CONFIG_MODE)
+find_package_handle_standard_args(Perfetto CONFIG_MODE)
+
+#-----------------------------------------------------------------------------#

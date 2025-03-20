@@ -13,18 +13,12 @@ set(SOURCES
 )
 set(LIBRARIES
   Celeritas::celeritas
-  Celeritas::DeviceToolkit
+  Celeritas::ExtDeviceApi
+  Celeritas::ExtOpenMP
   nlohmann_json::nlohmann_json
   CLI11::CLI11
   celer_app_utils
 )
-
-if(CELERITAS_USE_CUDA AND CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND LIBRARIES VecGeom::vecgeom)
-endif()
-if(CELERITAS_USE_OpenMP)
-  list(APPEND LIBRARIES OpenMP::OpenMP_CXX)
-endif()
 
 # Add the executable
 celeritas_add_executable(celer-sim ${SOURCES})

@@ -20,13 +20,14 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
 #include "VecgeomData.hh"
 
 #include "detail/VecgeomCompatibility.hh"
 
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
 #    include "geocel/vg/detail/SurfNavigator.hh"
 #elif VECGEOM_VERSION >= 0x020000
 #    include <VecGeom/navigation/BVHNavigator.h>
@@ -58,7 +59,7 @@ class VecgeomTrackView
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     using Navigator = celeritas::detail::SurfNavigator;
 #elif VECGEOM_VERSION >= 0x020000
     using Navigator = vecgeom::BVHNavigator;
@@ -168,7 +169,7 @@ class VecgeomTrackView
     NavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     long& next_surface_;
 #endif
     //!@}
@@ -187,7 +188,7 @@ class VecgeomTrackView
     //! Get a reference to the current volume
     inline CELER_FUNCTION Volume const& volume() const;
 
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     static CELER_CONSTEXPR_FUNCTION long null_surface() { return -1; }
 #endif
 };
@@ -207,7 +208,7 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     , vgnext_(states.vgnext.at(params_.max_depth, tid))
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     , next_surface_{states.next_surface[tid]}
 #endif
 {
@@ -229,14 +230,14 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // Initialize position/direction
     pos_ = init.pos;
     dir_ = init.dir;
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     next_surface_ = null_surface();
 #endif
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
     constexpr bool contains_point = true;
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     auto world = vecgeom::NavigationState::WorldId();
 #else
     vecgeom::VPlacedVolume const* world = params_.world_volume;
@@ -383,7 +384,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
     // Use the navigator to find internal distance
     next_surface_ = null_surface();
 #endif
@@ -393,7 +394,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      max_step,
                                                      vgstate_,
                                                      vgnext_
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
                                                      ,
                                                      next_surface_
 #endif
@@ -443,8 +444,13 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
     CELER_EXPECT(!this->is_on_boundary());
     CELER_EXPECT(max_radius > 0);
 
-    real_type safety
-        = Navigator::ComputeSafety(detail::to_vector(this->pos()), vgstate_);
+    real_type safety = Navigator::ComputeSafety(detail::to_vector(this->pos()),
+                                                vgstate_
+#if VECGEOM_VERSION >= 0x200000
+                                                ,
+                                                max_radius
+#endif
+    );
     safety = min<real_type>(safety, max_radius);
 
     // Since the reported "safety" is negative if we've moved slightly beyond
@@ -483,7 +489,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-#if CELERITAS_VECGEOM_SURFACE
+#ifdef VECGEOM_USE_SURF
         if (!vgstate_.IsOutside())
         {
             // In surf model, relocation does not work from [OUTSIDE]

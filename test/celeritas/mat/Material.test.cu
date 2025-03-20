@@ -99,7 +99,7 @@ MTestOutput m_test(MTestInput const& input)
                         raw_pointer_cast(temperatures.data()),
                         raw_pointer_cast(rad_len.data()),
                         raw_pointer_cast(tot_z.data()));
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     MTestOutput result;
     result.temperatures.resize(init.size());

@@ -102,7 +102,8 @@ if use_celeritas:
     # do it here as an example
     args = [exe, inp_file]
     inp["output_file"] = "-"
-    inp["slot_diagnostic_prefix"] = f"slot-diag-{ext}-"
+    if not use_device:
+        inp["slot_diagnostic_prefix"] = f"slot-diag-{ext}-"
 
     env = dict(environ)
     kwargs = dict(

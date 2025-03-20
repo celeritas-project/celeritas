@@ -47,7 +47,7 @@ celeritas_add_library(celer_app_utils STATIC
 
 celeritas_target_link_libraries(celer_app_utils
   PUBLIC CLI11::CLI11
-  PRIVATE Celeritas::corecel Celeritas::corecel_mpi
+  PRIVATE Celeritas::corecel Celeritas::ExtMPI
 )
 
 celeritas_target_include_directories(celer_app_utils

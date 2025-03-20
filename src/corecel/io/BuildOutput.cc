@@ -84,6 +84,11 @@ void BuildOutput::output(JsonPimpl* j) const
             return deps;
         }();
 
+        if constexpr (CELERITAS_USE_VECGEOM)
+        {
+            cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+        }
+
         return cfg;
     }();
 

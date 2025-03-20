@@ -26,6 +26,7 @@ struct FrameworkInput;
 struct GeantSd;
 }
 
+class CoreParams;
 struct AlongStepFactoryInput;
 //---------------------------------------------------------------------------//
 /*!
@@ -216,7 +217,7 @@ struct SetupOptions
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
     bool action_times{false};
-    //! Launch all kernels on the default stream for debugging
+    //! Launch all kernels on the default stream for debugging (REMOVED)
     bool default_stream{false};
     //!@}
 
@@ -225,6 +226,10 @@ struct SetupOptions
 
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
+
+    //! Add additional diagnostic user actions [EXPERIMENTAL]
+    std::function<void(CoreParams const&)> add_user_actions;
+
     //!@}
 
     explicit inline operator bool() const

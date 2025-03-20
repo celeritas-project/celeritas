@@ -76,10 +76,13 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 template<MemSpace M>
 void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
 {
-    [[maybe_unused]] Stream::StreamT stream = nullptr;
+    // Save the stream for synchronizing after each step for timing
+    // NOTE: instead of synchronizing the stream we could add
+    // device timers to reduce the performance
+    Stream* stream = nullptr;
     if (M == MemSpace::device && options_.action_times)
     {
-        stream = celeritas::device().stream(state.stream_id()).get();
+        stream = &device().stream(state.stream_id());
     }
 
     // When running a single track slot on host, we can preemptively skip
@@ -106,9 +109,9 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
                 ScopedProfiling profile_this{action.label()};
                 Stopwatch get_time;
                 action.step(params, state);
-                if constexpr (M == MemSpace::device)
+                if (stream)
                 {
-                    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
+                    stream->sync();
                 }
                 accum_time_[i] += get_time();
                 if (CELER_UNLIKELY(status_checker_))

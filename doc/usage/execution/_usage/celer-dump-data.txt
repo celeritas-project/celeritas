@@ -1,11 +1,11 @@
 Dump Geant4 data to ROOT 
 
 
-./celer-dump-data [OPTIONS] [filename]
+./celer-dump-data [OPTIONS] filename
 
 
 POSITIONALS:
-  filename TEXT:FILE          Input ROOT file 
+  filename TEXT:FILE REQUIRED Input ROOT file 
 
 OPTIONS:
   -h,     --help              Print this help message and exit 

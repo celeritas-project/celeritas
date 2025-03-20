@@ -58,7 +58,7 @@ NLTestOutput<T> nl_test()
 {
     // Allocate output data
     NLTestOutput<T>* result_device;
-    CELER_DEVICE_CALL_PREFIX(Malloc(&result_device, sizeof(NLTestOutput<T>)));
+    CELER_DEVICE_API_CALL(Malloc(&result_device, sizeof(NLTestOutput<T>)));
 
     static KernelParamCalculator const calc_launch_params(
         "nl_test", nl_test_kernel<T>, device().threads_per_warp());
@@ -70,16 +70,15 @@ NLTestOutput<T> nl_test()
                              0,
                              0,
                              result_device);
-    CELER_DEVICE_CHECK_ERROR();
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     // Copy to host
     NLTestOutput<T> result;
-    CELER_DEVICE_CALL_PREFIX(Memcpy(&result,
-                                    result_device,
-                                    sizeof(NLTestOutput<T>),
-                                    CELER_DEVICE_PREFIX(MemcpyDeviceToHost)));
-    CELER_DEVICE_CALL_PREFIX(Free(result_device));
+    CELER_DEVICE_API_CALL(Memcpy(&result,
+                                 result_device,
+                                 sizeof(NLTestOutput<T>),
+                                 CELER_DEVICE_API_SYMBOL(MemcpyDeviceToHost)));
+    CELER_DEVICE_API_CALL(Free(result_device));
     return result;
 }
 

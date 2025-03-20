@@ -89,7 +89,7 @@ StepParams::StepParams(AuxId aux_id,
     CELER_ASSERT((has_det == HasDetectors::none) == detector_map.empty());
 
     // Save data
-    mirror_ = CollectionMirror<StepParamsData>{[&] {
+    mirror_ = CollectionMirror{[&] {
         HostVal<StepParamsData> host_data;
         host_data.selection = selection;
 

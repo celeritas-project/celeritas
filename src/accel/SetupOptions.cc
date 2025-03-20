@@ -10,6 +10,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
@@ -102,7 +103,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (celeritas::Device::num_devices())
     {
         inp::DeviceDebug dd;
-        dd.default_stream = so.default_stream;
         dd.sync_stream = so.action_times;
 
         p.control.device_debug = std::move(dd);
@@ -120,7 +120,17 @@ void ProblemSetup::operator()(inp::Problem& p) const
         auto field_val = norm(field.strength);
         if (field_val > 0)
         {
-            CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
+            auto msg = CELER_LOG(info);
+            msg << "Using a uniform field: " << field_val << " [T] in ";
+            if (field.volumes.empty())
+            {
+                msg << "all";
+            }
+            else
+            {
+                msg << field.volumes.size();
+            }
+            msg << " volumes";
             p.field = std::move(field);
         }
         else
@@ -131,6 +141,11 @@ void ProblemSetup::operator()(inp::Problem& p) const
     else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting RZ map field";
+        p.field = u->get_field();
+    }
+    else if (auto* u = so.make_along_step.target<CylMapFieldAlongStepFactory>())
+    {
+        CELER_LOG(debug) << "Getting Cyl map field";
         p.field = u->get_field();
     }
     else
@@ -152,6 +167,9 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.diagnostics.slot = inp::SlotDiagnostic{so.slot_diagnostic_prefix};
     }
+
+    // Custom user actions
+    p.diagnostics.add_user_actions = so.add_user_actions;
 }
 
 //---------------------------------------------------------------------------//

@@ -15,8 +15,9 @@
 #include "corecel/Config.hh"
 
 //---------------------------------------------------------------------------//
-// MACROS
-//---------------------------------------------------------------------------//
+//!@{
+//! \name Compiler type/version macros
+
 /*!
  * \def CELER_FUNCTION
  *
@@ -41,12 +42,10 @@
 #    define CELER_FORCEINLINE inline
 #endif
 
-// NOLINTBEGIN(cppcoreguidelines-macro-to-enum)
 //! Detection for the current compiler isn't supported yet
 #define CELER_COMPILER_UNKNOWN 0
 //! Compiling with clang, or a clang-based compiler defining __clang__ (hipcc)
 #define CELER_COMPILER_CLANG 1
-// NOLINTEND(cppcoreguidelines-macro-to-enum)
 /*!
  * \def CELER_COMPILER
  *
@@ -125,7 +124,6 @@
 #    define CELER_UNREACHABLE
 #endif
 
-// NOLINTBEGIN(cppcoreguidelines-macro-to-enum)
 /*!
  * \def CELER_USE_DEVICE
  *
@@ -136,7 +134,6 @@
 #else
 #    define CELER_USE_DEVICE 0
 #endif
-// NOLINTEND(cppcoreguidelines-macro-to-enum)
 
 /*!
  * \def CELER_DEVICE_SOURCE
@@ -162,18 +159,25 @@
 #    define CELER_DEVICE_COMPILE 0
 #endif
 
+#if CELERITAS_USE_CUDA            \
+    && (__CUDACC_VER_MAJOR__ < 11 \
+        || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5))
 /*!
- * \def CELER_DEVICE_PREFIX
+ * Work around older NVCC bugs with `if constexpr`.
  *
- * Add a prefix "hip" or "cuda" to a code token.
+ * These cause errors such as \verbatim
+ *    error: missing return statement at end of non-void function
+ * \endverbatim
  */
-#if CELERITAS_USE_CUDA
-#    define CELER_DEVICE_PREFIX(TOK) cuda##TOK
-#elif CELERITAS_USE_HIP
-#    define CELER_DEVICE_PREFIX(TOK) hip##TOK
+#    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 1
 #else
-#    define CELER_DEVICE_PREFIX(TOK) DEVICE_UNAVAILABLE
+#    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 0
 #endif
+
+//!@}
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Exception handling macros
 
 /*!
  * \def CELER_TRY_HANDLE
@@ -222,6 +226,11 @@
         } while (0),                                       \
         HANDLE_EXCEPTION)
 
+//!@}
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Class definition macros
+
 /*!
  * \def CELER_DEFAULT_COPY_MOVE
  *
@@ -259,6 +268,9 @@
     CLS& operator=(CLS const&) = delete;    \
     CLS(CLS&&) = default;                   \
     CLS& operator=(CLS&&) = default
+
+//!@}
+//---------------------------------------------------------------------------//
 
 /*!
  * \def CELER_DISCARD

@@ -67,7 +67,7 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
         for (auto i : range(inp.field_z.size()))
         {
             // Save field vector
-            FieldMapElement el;
+            MapFieldElement el;
             el.value_z = inp.field_z[i];
             el.value_r = inp.field_r[i];
             fieldmap.push_back(el);
