@@ -52,9 +52,9 @@ class CylMapField
     // Shared constant field map
     FieldParamsRef const& params_;
 
-    NonuniformGrid<real_type> const grid_r_;
-    NonuniformGrid<real_type> const grid_phi_;
-    NonuniformGrid<real_type> const grid_z_;
+    NonuniformGrid<float> const grid_r_;
+    NonuniformGrid<float> const grid_phi_;
+    NonuniformGrid<float> const grid_z_;
 };
 
 //---------------------------------------------------------------------------//
@@ -87,9 +87,9 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
     Real3 value{0, 0, 0};
 
     // Convert Cartesian to cylindrical coordinates
-    real_type r = hypot(pos[0], pos[1]);
+    float r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
-    Turn phi = atan2turn(pos[1], pos[0]);
+    Turn_t<float> phi = atan2turn<float>(pos[1], pos[0]);
     if (phi < zero_quantity())
     {
         phi.value() += 1;
@@ -100,28 +100,28 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
         return value;
 
     // Find interpolation points for given r, phi, z
-    auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
+    auto [ir, wr1] = find_interp<NonuniformGrid<float>>(grid_r_, r);
     auto [iphi, wphi1]
-        = find_interp<NonuniformGrid<real_type>>(grid_phi_, phi.value());
-    auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
+        = find_interp<NonuniformGrid<float>>(grid_phi_, phi.value());
+    auto [iz, wz1] = find_interp<NonuniformGrid<float>>(grid_z_, pos[2]);
 
     auto get_field = [this](size_type ir, size_type iphi, size_type iz) {
         return params_.fieldmap[params_.id(ir, iphi, iz)];
     };
 
-    EnumArray<CylAxis, real_type> interp_field;
+    EnumArray<CylAxis, float> interp_field;
 
     for (auto axis : range(CylAxis::size_))
     {
         // clang-format off
-        real_type v000 = get_field(ir,     iphi    ,     iz)[axis];
-        real_type v001 = get_field(ir,     iphi    , iz + 1)[axis];
-        real_type v010 = get_field(ir,     iphi + 1,     iz)[axis];
-        real_type v011 = get_field(ir,     iphi + 1, iz + 1)[axis];
-        real_type v100 = get_field(ir + 1, iphi    ,     iz)[axis];
-        real_type v101 = get_field(ir + 1, iphi    , iz + 1)[axis];
-        real_type v110 = get_field(ir + 1, iphi + 1,     iz)[axis];
-        real_type v111 = get_field(ir + 1, iphi + 1, iz + 1)[axis];
+        float v000 = get_field(ir,     iphi    ,     iz)[axis];
+        float v001 = get_field(ir,     iphi    , iz + 1)[axis];
+        float v010 = get_field(ir,     iphi + 1,     iz)[axis];
+        float v011 = get_field(ir,     iphi + 1, iz + 1)[axis];
+        float v100 = get_field(ir + 1, iphi    ,     iz)[axis];
+        float v101 = get_field(ir + 1, iphi    , iz + 1)[axis];
+        float v110 = get_field(ir + 1, iphi + 1,     iz)[axis];
+        float v111 = get_field(ir + 1, iphi + 1, iz + 1)[axis];
         // clang-format on
         // Trilinear interpolation formula for the current component
         interp_field[axis]
@@ -135,8 +135,8 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Project cylindrical components to Cartesian coordinates
     // default for r == 0
-    real_type cos_phi = 1.;
-    real_type sin_phi = 0.;
+    float cos_phi = 1.;
+    float sin_phi = 0.;
 
     if (r != 0)
     {

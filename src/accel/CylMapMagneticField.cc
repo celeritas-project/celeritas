@@ -55,9 +55,9 @@ inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
  * it will retrieve the G4FieldManager's field to sample it.
  */
 CylMapFieldParams::Input
-MakeCylMapFieldInput(std::vector<real_type> const& r_grid,
-                     std::vector<real_type> const& phi_values,
-                     std::vector<real_type> const& z_grid)
+MakeCylMapFieldInput(std::vector<float> const& r_grid,
+                     std::vector<float> const& phi_values,
+                     std::vector<float> const& z_grid)
 {
     CylMapFieldParams::Input field_input;
     field_input.grid_r.reserve(r_grid.size());
@@ -65,21 +65,20 @@ MakeCylMapFieldInput(std::vector<real_type> const& r_grid,
     field_input.grid_z.reserve(z_grid.size());
 
     // Convert from geant
-    std::transform(
-        r_grid.cbegin(),
-        r_grid.cend(),
-        std::back_inserter(field_input.grid_r),
-        [](real_type r) { return convert_from_geant(r, clhep_length); });
+    std::transform(r_grid.cbegin(),
+                   r_grid.cend(),
+                   std::back_inserter(field_input.grid_r),
+                   [](float r) { return convert_from_geant(r, clhep_length); });
     //  Convert phi values to Turn type
-    std::transform(phi_values.cbegin(),
-                   phi_values.cend(),
-                   std::back_inserter(field_input.grid_phi),
-                   [](real_type phi) { return native_value_to<Turn>(phi); });
     std::transform(
-        z_grid.cbegin(),
-        z_grid.cend(),
-        std::back_inserter(field_input.grid_z),
-        [](real_type z) { return convert_from_geant(z, clhep_length); });
+        phi_values.cbegin(),
+        phi_values.cend(),
+        std::back_inserter(field_input.grid_phi),
+        [](float phi) { return native_value_to<Turn_t<float>>(phi); });
+    std::transform(z_grid.cbegin(),
+                   z_grid.cend(),
+                   std::back_inserter(field_input.grid_z),
+                   [](float z) { return convert_from_geant(z, clhep_length); });
 
     size_type const nr = field_input.grid_r.size();
     size_type const nphi = field_input.grid_phi.size();
@@ -105,10 +104,10 @@ MakeCylMapFieldInput(std::vector<real_type> const& r_grid,
     Array<G4double, 3> bfield;
     for (size_type ir = 0; ir < nr; ++ir)
     {
-        real_type r = r_grid[ir];
+        float r = r_grid[ir];
         for (size_type iphi = 0; iphi < nphi; ++iphi)
         {
-            real_type phi = phi_values[iphi];
+            float phi = phi_values[iphi];
             for (size_type iz = 0; iz < nz; ++iz)
             {
                 auto* cur_bfield = field_input.field.data()

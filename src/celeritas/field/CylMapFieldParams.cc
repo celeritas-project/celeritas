@@ -57,7 +57,7 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");
-    CELER_VALIDATE(soft_equal(real_type{1}, inp.grid_phi.back().value()),
+    CELER_VALIDATE(soft_equal(float{1}, inp.grid_phi.back().value()),
                    << "Phi grid must be a complete circle (grid_phi max="
                    << inp.grid_phi.back().value() << "): should be 1");
 
@@ -88,7 +88,7 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
                        std::back_inserter(grid),
                        [](auto const& val) { return val.value(); });
         host.grids.axes[CylAxis::phi]
-            = ItemRange<real_type>{phi_start, grid.size_id()};
+            = ItemRange<float>{phi_start, grid.size_id()};
         host.grids.axes[CylAxis::z]
             = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
 
@@ -101,7 +101,7 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
             fieldmap.push_back(
                 [idx = inp.field.cbegin()
                        + i * static_cast<size_type>(CylAxis::size_)] {
-                    EnumArray<CylAxis, real_type> el;
+                    EnumArray<CylAxis, float> el;
                     std::copy(idx,
                               idx + static_cast<size_type>(CylAxis::size_),
                               el.begin());

@@ -28,8 +28,8 @@ struct CylMapGridData
 {
     template<class T>
     using Items = Collection<T, W, M>;
-    Items<real_type> storage;  //!< [R, Phi, Z]
-    EnumArray<CylAxis, ItemRange<real_type>> axes;
+    Items<float> storage;  //!< [R, Phi, Z]
+    EnumArray<CylAxis, ItemRange<float>> axes;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
@@ -71,7 +71,7 @@ struct CylMapFieldParamsData
     using ElementItems = Collection<T, W, M, ElementId>;
 
     //! MapField data
-    ElementItems<EnumArray<CylAxis, real_type>> fieldmap;
+    ElementItems<EnumArray<CylAxis, float>> fieldmap;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
@@ -80,7 +80,7 @@ struct CylMapFieldParamsData
     }
 
     //! Check if the given position is within the field map bounds
-    inline CELER_FUNCTION bool valid(real_type r, Turn phi, real_type z) const
+    inline CELER_FUNCTION bool valid(float r, Turn_t<float> phi, float z) const
     {
         CELER_EXPECT(grids);
         return (

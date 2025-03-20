@@ -34,12 +34,12 @@ namespace celeritas
  */
 struct CylMapFieldInput
 {
-    std::vector<real_type> grid_r;  //!< R grid points [len]
-    std::vector<Turn> grid_phi;  //!< Phi grid points [AU]
-    std::vector<real_type> grid_z;  //!< Z grid points [len]
+    std::vector<float> grid_r;  //!< R grid points [len]
+    std::vector<Turn_t<float>> grid_phi;  //!< Phi grid points [AU]
+    std::vector<float> grid_z;  //!< Z grid points [len]
 
-    std::vector<real_type> field;  //!< Flattened R-Phi-Z field component
-                                   //!< [bfield]
+    std::vector<float> field;  //!< Flattened R-Phi-Z field component
+                               //!< [bfield]
 
     // TODO: remove from field input; should be a separate input
     FieldDriverOptions driver_options;
@@ -54,7 +54,7 @@ struct CylMapFieldInput
             && (grid_z.size() >= 2)
             && (grid_r.front() >= 0)
             && (soft_zero(grid_phi.front().value()))
-            && (soft_equal(real_type{1}, grid_phi.back().value()))
+            && (soft_equal(float{1}, grid_phi.back().value()))
             && std::is_sorted(grid_r.cbegin(), grid_r.cend())
             && std::is_sorted(grid_phi.cbegin(), grid_phi.cend())
             && std::is_sorted(grid_z.cbegin(), grid_z.cend())
