@@ -33,6 +33,11 @@ using StateRef = StateCollection<T, Ownership::reference, M>;
 template<MemSpace M>
 std::vector<int> locate_vacancies(std::vector<TrackStatus> const& input)
 {
+    if constexpr (M == MemSpace::device)
+    {
+        device().create_streams(1);
+    }
+
     StateVal<TrackStatus, MemSpace::host> host_status;
     make_builder(&host_status).insert_back(input.begin(), input.end());
     StateVal<TrackStatus, M> status(host_status);
@@ -43,7 +48,7 @@ std::vector<int> locate_vacancies(std::vector<TrackStatus> const& input)
     StateRef<TrackStatus, M> status_ref(status);
     StateRef<TrackSlotId, M> vacancies_ref(vacancies);
     size_type num_vacancies = optical::detail::copy_if_vacant(
-        status_ref, vacancies_ref, StreamId{});
+        status_ref, vacancies_ref, StreamId{0});
 
     auto host_vacancies = copy_to_host(vacancies);
 
