@@ -11,12 +11,14 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "LPMCalculator.hh"
 #include "ScreeningFunctions.hh"
@@ -152,13 +154,12 @@ real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
     real_type dxsec{0};
 
     real_type y = gamma_energy / total_energy_;
-    real_type onemy = 1 - y;
-    real_type term0 = onemy + R(0.75) * ipow<2>(y);
+    real_type term0 = PolyEvaluator<real_type, 2>{1.0, -1.0, 0.75}(y);
 
     if (element_.atomic_number() < AtomicNumber{5})
     {
         // The Dirac-Fock model
-        dxsec = term0 * elem_data_.factor1 + onemy * elem_data_.factor2;
+        dxsec = term0 * elem_data_.factor1 + (1 - y) * elem_data_.factor2;
     }
     else
     {
@@ -176,10 +177,10 @@ real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
                     * ((R(0.25) * sfunc.phi1 - elem_data_.fz)
                        + (R(0.25) * sfunc.psi1 - 2 * element_.log_z() / 3)
                              * invz)
-                + R(0.125) * onemy * (sfunc.phi2 + sfunc.psi2 * invz);
+                + R(0.125) * (1 - y) * (sfunc.dphi + sfunc.dpsi * invz);
     }
 
-    return celeritas::max(dxsec, R(0));
+    return clamp_to_nonneg(dxsec);
 }
 
 //---------------------------------------------------------------------------//
@@ -196,12 +197,12 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
     auto lpm = calc_lpm_functions(epsilon);
 
     real_type y = gamma_energy / total_energy_;
-    real_type onemy = 1 - y;
-    real_type y2 = R(0.25) * ipow<2>(y);
-    real_type term = lpm.xi * (y2 * lpm.g + (onemy + 2 * y2) * lpm.phi);
-    real_type dxsec = term * elem_data_.factor1 + onemy * elem_data_.factor2;
+    real_type hy_sq = R(0.25) * ipow<2>(y);
+    real_type term = lpm.xi * (hy_sq * lpm.g + (1 - y + 2 * hy_sq) * lpm.phi);
 
-    return max(dxsec, R(0));
+    real_type dxsec = term * elem_data_.factor1 + (1 - y) * elem_data_.factor2;
+
+    return clamp_to_nonneg(dxsec);
 }
 
 //---------------------------------------------------------------------------//

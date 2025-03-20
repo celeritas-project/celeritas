@@ -15,17 +15,21 @@ namespace celeritas
  * Bethe-Heitler-Wheeler-Lamb screening factors for use in atomic showers.
  *
  * These are derived from \citet{bethe-stopping-1934,
- * https://doi.org/10.1098/rspa.1934.0140} for the \f$ \phi\f$ (elastic)
- * components and \citet{wheeler-electrons-1939,
+ * https://doi.org/10.1098/rspa.1934.0140} (Eq. 31) for the \f$ \phi\f$
+ * (elastic) components and \citet{wheeler-electrons-1939,
  * https://doi.org/10.1103/PhysRev.55.858} for the \f$ \psi \f$ (inelastic)
  * components.
  */
 struct BhwlScreeningFactors
 {
     //! Elastic component, multiplied into Z^2
-    Array<real_type, 2> phi;
+    real_type phi1{};
+    //! \f$\phi_1 - \phi_2\f$ corrective term for low-energy secondary
+    real_type dphi{};
     //! Inelastic component, multiplied into Z
-    Array<real_type, 2> psi;
+    real_type psi1{};
+    //! \f$\psi_1 - \psi_2\f$ corrective term for low-energy secondary
+    real_type dpsi{};
 };
 
 //---------------------------------------------------------------------------//
@@ -125,19 +129,18 @@ CELER_FUNCTION auto TsaiScreeningCalculator::operator()(real_type delta) const
     real_type gam = delta * f_gamma_;
     real_type eps = delta * f_epsilon_;
 
-    ScreenFunctions func;
-    real_type gam2 = ipow<2>(gam);
-    real_type eps2 = ipow<2>(eps);
+    using PolyQuad = PolyEvaluator<real_type, 2>;
+    result_type func;
 
-    func.phi[1] = R(16.863) - 2 * std::log(1 + R(0.311877) * gam2)
-                  + R(2.4) * std::exp(R(-0.9) * gam)
-                  + R(1.6) * std::exp(R(-1.5) * gam);
-    func.phi[2] = 2 / (3 + R(19.5) * gam + 18 * gam2);
+    func.phi1 = R(20.863 - 4) - 2 * std::log(1 + ipow<2>(R(0.55846) * gam))
+                + R(-4 * -0.6) * std::exp(R(-0.9) * gam)
+                + R(-4 * -0.4) * std::exp(R(-1.5) * gam);
+    func.dphi = (R{2} / R{3}) / PolyQuad{1, 6.5, 6}(gam);
 
-    func.psi[1] = R(24.34) - 2 * std::log(1 + R(13.111641) * eps2)
-                  + R(2.8) * std::exp(R(-8) * eps)
-                  + R(1.2) * std::exp(R(-29.2) * eps);
-    func.psi[2] = 2 / (3 + 120 * eps + 1200 * eps2);
+    func.psi1 = R(28.340 - 4) - 2 * std::log(1 + ipow<2>(R(3.621) * eps))
+                + R(-4 * -0.7) * std::exp(R(-8) * eps)
+                + R(-4 * -0.3) * std::exp(R(-29.2) * eps);
+    func.dpsi = (R{2} / R{3}) / PolyQuad{1, 40, 400}(eps);
 
     return func;
 }
