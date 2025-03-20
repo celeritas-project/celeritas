@@ -1,0 +1,12 @@
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+.. SPDX-License-Identifier: CC-BY-4.0
+
+Series 0.6
+==========
+
+.. _release_v0.6.0:
+
+Version 0.6.0
+-------------
+
+
