@@ -111,6 +111,27 @@ auto ImportedModelAdapter::energy_grid_bounds(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the model's low energy limit.
+ *
+ * Note that the model may not actually be valid down to this energy if the
+ * production cut is larger than this value.
+ */
+auto ImportedModelAdapter::low_energy_limit(ParticleId pid) const -> Energy
+{
+    return Energy{this->get_model(pid).low_energy_limit};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the model's high energy limit.
+ */
+auto ImportedModelAdapter::high_energy_limit(ParticleId pid) const -> Energy
+{
+    return Energy{this->get_model(pid).high_energy_limit};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the imported model for the given particle.
  */
 ImportModel const& ImportedModelAdapter::get_model(ParticleId particle) const

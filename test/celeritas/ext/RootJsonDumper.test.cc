@@ -234,7 +234,9 @@ TEST_F(RootJsonDumperTest, all)
       "_typename" : "celeritas::ImportModelMaterial",
       "energy" : [1e-4, 100000000],
       "micro_xs" : []
-    }]
+    }],
+    "low_energy_limit" : 1e-4,
+    "high_energy_limit" : 100000000
   }],
   "tables" : [],
   "applies_at_rest" : true
@@ -255,7 +257,9 @@ TEST_F(RootJsonDumperTest, all)
       "_typename" : "celeritas::ImportModelMaterial",
       "energy" : [1000, 100000000],
       "micro_xs" : [[4.49737396284378e-27, 8.88833778887632e-27], [5.17552797162603e-27, 1.0219747115308e-26]]
-    }]
+    }],
+    "low_energy_limit" : 1e-4,
+    "high_energy_limit" : 100000000
   }],
   "tables" : [{
     "_typename" : "celeritas::ImportPhysicsTable",

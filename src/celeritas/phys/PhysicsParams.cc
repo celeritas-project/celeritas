@@ -368,7 +368,12 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             CELER_VALIDATE(applic.particle < particles.size(),
                            << "invalid particle ID "
                            << applic.particle.unchecked_get());
-            CELER_ASSERT(applic.lower < applic.upper);
+            CELER_VALIDATE(applic.lower < applic.upper,
+                           << "expected lower energy limit ("
+                           << value_as<ModelGroup::Energy>(applic.lower)
+                           << " MeV) to be less than upper energy limit ("
+                           << value_as<ModelGroup::Energy>(applic.upper)
+                           << " MeV) for model " << m.label());
             particle_models[applic.particle.get()][process_id].push_back(
                 {value_as<ModelGroup::Energy>(applic.lower),
                  value_as<ModelGroup::Energy>(applic.upper),
