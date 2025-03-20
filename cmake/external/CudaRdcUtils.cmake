@@ -608,6 +608,10 @@ endfunction()
 #-----------------------------------------------------------------------------#
 # Return TRUE if 'lib' depends/uses directly or indirectly the library `potentialdepend`
 function(cuda_rdc_depends_on OUTVARNAME lib potentialdepend)
+  if(NOT TARGET ${lib} OR NOT TARGET ${potentialdepend})
+    set(${OUTVARNAME} FALSE PARENT_SCOPE)
+    return()
+  endif()
   set(${OUTVARNAME} FALSE PARENT_SCOPE)
   if(TARGET ${lib} AND TARGET ${potentialdepend})
     set(lib_link_libraries "")
