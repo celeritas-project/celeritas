@@ -37,11 +37,11 @@ namespace celeritas
  *
  * For small energies, the suppression factors all approach unity.
  *
- * See section 10.2.2 of the Geant4 Physics Reference Manual and
- * ComputeLPMfunctions and GetLPMFunctions in G4eBremsstrahlungRelModel and
- * G4PairProductionRelModel. Also see T. Stanev, Ch. Vankov, Development of
- * ultrahigh-energy electromagnetic cascades in water and lead including the
- * Landau-Pomeranchuk-Migdal effect, Phys. Rev. D, 25 (1982), p. 1291.
+ * See section 10.2.2 of \cite{g4prm} and
+ * \c ComputeLPMfunctions and \c GetLPMFunctions in \c
+ * G4eBremsstrahlungRelModel and \c G4PairProductionRelModel respectively,
+ * which implement \citet{stanev-lpm-1982,
+ * https://doi.org/10.1103/PhysRevD.25.1291} .
  */
 class LPMCalculator
 {
