@@ -160,18 +160,6 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-if(CELERITAS_BUILD_TESTS)
-  if(CMAKE_VERSION VERSION_LESS 3.20)
-    # First look for standard CMake installation
-    # (automatically done for CMake >= 3.20)
-    find_dependency(GTest @GTest_VERSION@ NO_MODULE)
-  endif()
-  if(NOT GTest_FOUND)
-    # If not found, try again
-    find_dependency(GTest)
-  endif()
-endif()
-
 cmake_policy(POP)
 
 #-----------------------------------------------------------------------------#
