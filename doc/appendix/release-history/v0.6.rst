@@ -1,12 +1,198 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
-Series 0.6
-==========
-
 .. _release_v0.6.0:
 
 Version 0.6.0
 -------------
 
+*Released 2025/03/21*
 
+Version 0.6.0 is a major update to Celeritas featuring:
+
+-
+
+A few minor features are noteworthy:
+
+-
+
+Important changes:
+
+-
+
+Notable bug fixes include:
+
+-
+
+Some interfaces have been removed:
+
+-
+
+New features
+------------
+
+* Implement optical Rayleigh model *(@hhollenb, #1469)*
+* Allow core and optical loops to have different numbers of track slots *(@amandalund, #1491)*
+* Add muon decay interactor *(@stognini, #1456)*
+* Add option to use spline-interpolated energy loss *(@lebuller, #1496)*
+* Add option to use spline-interpolated energy loss *(@lebuller, #1496)*
+* Add an Optical WLS *(@whokion, #1507)*
+* Add muon pair production *(@amandalund, #1518)*
+* Extend BIH capabilities for intersection operations *(@elliottbiondo, #1479)*
+* Add along-step and tracking cut optical executors *(@sethrj, #1540)*
+* Enable optical stepping loop *(@sethrj, #1546)*
+* Simplify UnitProto after building a CsgUnit *(@esseivaju, #1415)*
+* Implement device bitset *(@esseivaju, #1547)*
+* Reduce ``celer-sim`` memory usage and improve its ``CELER_LOG`` transport output *(@stognini, #1550)*
+* Support sense caching for future lazy evaluation *(@esseivaju, #1539)*
+* Support building infix logic representation *(@esseivaju, #1530)*
+* Import and use muon+hadron EM physics parameters *(@amandalund, #1581)*
+* Extend Coulomb scattering to support additional particle types *(@amandalund, #1574)*
+* Improve diagnostic output when offloading *(@sethrj, #1589)*
+* Add optical model importer and refactor imported optical materials *(@hhollenb, #1520)*
+* Output diagnostic information about core sizes *(@sethrj, #1591)*
+* Simplify and add to system config diagnostics *(@sethrj, #1590)*
+* Add global Celeritas input definition *(@sethrj, #1562)*
+* Add hit manager output diagnostic *(@sethrj, #1596)*
+* Always select at-rest process for stopped tracks *(@amandalund, #1592)*
+* Write out optical size diagnostic *(@sethrj, #1597)*
+* Use BIH to accelerate background_intersect *(@elliottbiondo, #1599)*
+* Add ultra-simple tracking manager integration *(@sethrj, #1609)*
+* Implement cubic spline interpolation *(@amandalund, #1607)*
+* Add a calculator to integrate range from energy loss *(@amandalund, #1544)*
+* Add G4Ellipsoid without bottom/top cuts *(@elliottbiondo, #1617)*
+* Add safety visualization tool *(@sethrj, #1614)*
+* Remove pointers from Geant4 labels *(@sethrj, #1620)*
+* Add high-level user/fast sim integration helpers *(@sethrj, #1615)*
+* Support spline interpolation on a nonuniform grid *(@amandalund, #1625)*
+* Prune primaries that start outside the world volume *(@sethrj, #1624)*
+* Add support for Z cuts when converting G4Solids *(@elliottbiondo, #1638)*
+* Support sensitive detectors in replica/parameterized volumes *(@sethrj, #1649)*
+* Add an option to enable status checker through celer-sim *(@sethrj, #1650)*
+* Add support for elliptical cylinders and elliptical cones in orange and g4org *(@elliottbiondo, #1642)*
+* Support post-step touchable location and step status *(@sethrj, #1653)*
+* Support surface-based VecGeom 2.x navigator *(@mrguilima, #1422)*
+* Approximate G4Torus using inner/outer bounding cylinders *(@elliottbiondo, #1654)*
+* Support volume-specific uniform field *(@amandalund, #1659)*
+* Implement discrete optical physics *(@hhollenb, #1604)*
+* Default downstream CUDA/HIP architectures *(@sethrj, #1669)*
+* Add an example user action for gathering statistics on GPU *(@sethrj, #1664)*
+* Add quantity support to FindInterp and template Turn *(@sethrj, #1675)*
+* By default load CudaRdcUtils and print config message *(@sethrj, #1676)*
+* Support VecGeom 2.0 *(@sethrj, #1674)*
+* Add 3D Cylindrical field map *(@esseivaju, #1662)*
+* Add Celeritas cmake command wrappers for downstream code *(@sethrj, #1678)*
+
+Reviewers: @sethrj *(27)*, @amandalund *(14)*, @pcanal *(5)*, @esseivaju *(4)*, @mrguilima *(4)*, @stognini *(3)*, @elliottbiondo *(2)*, @whokion *(1)*
+
+Bug fixes
+---------
+
+* Fix documentation *(@sethrj, #1502)*
+* Fix clang-tidy weekly cron *(@esseivaju, #1541)*
+* Set step length and other data in reconstructed tracks *(@sethrj, #1595)*
+* Fix multiple ``release()`` calls to ensure nullptr is not used in process construction *(@amandalund, #1612)*
+* Fix CUDA+VecGeom linking with Ubuntu *(@pcanal, #1618)*
+* Support different grid spacings for cross section data *(@amandalund, #1622)*
+* Fix crash in multithreaded celer-g4 *(@amandalund, #1627)*
+* Fix loading of GDML files with reflection *(@sethrj, #1626)*
+* Bump VecGeom minimum version to 1.2.10 *(@pcanal, #1628)*
+* Fix navigation and mapping of reflecting volumes *(@sethrj, #1629)*
+* Fix reading and writing HepMC3 events *(@amandalund, #1635)*
+* Fix ``getenv_flag`` *(@amandalund, #1647)*
+* Fix link errors with CUDA RDC and ``--as-needed`` flag *(@pcanal, #1661)*
+* Initialize MPI in high-level integration classes *(@sethrj, #1672)*
+* Fix bremsstrahlung process construction when using only a single model *(@amandalund, #1677)*
+* Lazily fetch volumes for UniformAlongStepFactory  *(@rahmans1, #1666)*
+* Fix static builds and CI reporting *(@sethrj, #1680)*
+* Fix BoundingZone floating point issue *(@elliottbiondo, #1681)*
+
+Reviewers: @sethrj *(12)*, @amandalund *(3)*, @esseivaju *(2)*, @elliottbiondo *(1)*, @stognini *(1)*, @mrguilima *(1)*, @pcanal *(1)*
+
+Documentation improvements
+--------------------------
+
+* Require clang-tidy in CI *(@esseivaju, #1524)*
+* Tidy headers *(@esseivaju, #1534)*
+* Run clang-tidy on modified files only *(@esseivaju, #1531)*
+* Build VecGeom in weekly clang-tidy cron *(@esseivaju, #1551)*
+* Document and slightly refactor Bethe-Heitler interactor *(@sethrj, #1553)*
+* Update copyrights *(@sethrj, #1560)*
+* Enable more dependencies in clang-tidy checks *(@esseivaju, #1561)*
+* Fix Doxygen member group formatting *(@amandalund, #1567)*
+* Improve and fix documentation *(@sethrj, #1588)*
+* Add example offloading template *(@stognini, #1573)*
+* Update core advisors *(@sethrj, #1598)*
+* Add JLSE CMake preset and a few small fixes *(@amandalund, #1611)*
+* Add comment directing to CMake doc of feature being used *(@pcanal, #1619)*
+* Add generic geometry test interface to reduce duplication *(@sethrj, #1623)*
+* Improve testing and documentation for VecGeom *(@sethrj, #1639)*
+* Fix rendering of README *(@dalg24, #1640)*
+* Add ORCID to citation *(@esseivaju, #1645)*
+* Increase ccache size for asanlite job *(@sethrj, #1646)*
+* Hotfix: remove Ubuntu 20 from CI configuration *(@sethrj, #1651)*
+* Improve geometry testing *(@sethrj, #1652)*
+* Hotfix: prevent vecgeom 2.0 in regular builds *(@sethrj, #1655)*
+* Move offload template into a celeritas::example namespace *(@sethrj, #1663)*
+* Enable optical GPU tests *(@amandalund, #1682)*
+
+Reviewers: @sethrj *(12)*, @pcanal *(4)*, @amandalund *(4)*, @esseivaju *(1)*, @paulromano *(1)*, @mrguilima *(1)*, @stognini *(1)*
+
+Minor internal changes
+----------------------
+
+* Store edge bounding boxes on BIH and refactor for upcoming intersection capabilities *(@elliottbiondo, #1478)*
+* Add FourVector helper functions *(@sethrj, #1510)*
+* Define hypotenuse function using fma *(@sethrj, #1513)*
+* Add a helper class for inverse transform sampling *(@amandalund, #1525)*
+* Rename Cerenkov to Cherenkov *(@amandalund, #1533)*
+* Clean up optical mock test data *(@hhollenb, #1519)*
+* Store a single process-integrated energy loss and range table per particle *(@amandalund, #1536)*
+* Add piecewise integrator and CDF utilities *(@sethrj, #1537)*
+* Define precision-agnostic Constant class *(@sethrj, #1549)*
+* Adapt bitset word size *(@esseivaju, #1554)*
+* Add 'LogicalTrue' functor *(@sethrj, #1564)*
+* Fix unnecessary use of inline constexpr *(@sethrj, #1568)*
+* Replace "volid" with "vol_id" throughout ORANGE *(@elliottbiondo, #1486)*
+* Compose caching functionality of LazySenseCalculator *(@esseivaju, #1569)*
+* Use lazy sense calculator *(@esseivaju, #1576)*
+* Change PrimaryGeneratorAction to be a wrapper  *(@sethrj, #1593)*
+* Refactor primary generator using new ``inp`` *(@sethrj, #1583)*
+* Add postfix to infix conversion utility *(@esseivaju, #1582)*
+* Move physics lists out of details and rename tracking offload *(@sethrj, #1603)*
+* Update perfetto to v49.0 *(@esseivaju, #1608)*
+* Use external G4VG *(@sethrj, #1605)*
+* Add TrackingManagerConstructor and SharedParams::GetMode *(@sethrj, #1606)*
+* Move ``PolyEvaluator`` to corecel/math *(@amandalund, #1610)*
+* Rename fast simulation offload *(@sethrj, #1613)*
+* Rename ``Generic`` grid to ``Nonuniform`` *(@amandalund, #1616)*
+* Rename ``EXTERNAL`` CMake variable *(@sethrj, #1621)*
+* Construct CoreParams from new problem input in celer-sim *(@sethrj, #1601)*
+* Flush perfetto TrackEvents *(@esseivaju, #1630)*
+* Move Geant4 SD integration into celeritas/ext *(@sethrj, #1631)*
+* Add perfetto track counters to accel LocalTransporter *(@esseivaju, #1634)*
+* Update externals and enforce G4VG version *(@sethrj, #1641)*
+* Update cmake-git-version *(@sethrj, #1643)*
+* Refactor log handlers for better reuse *(@sethrj, #1636)*
+* Rename ``CoreTrackView`` methods *(@amandalund, #1658)*
+* Refactor geometry tests into common file *(@sethrj, #1656)*
+* Use extern static data for versions, configuration *(@sethrj, #1657)*
+* Use CLI11 for front end command line parsing *(@sethrj, #1660)*
+* Update frontier toolchain for Feb 2025 *(@sethrj, #1668)*
+* Fix downstream RDC linking and add versioning *(@pcanal, #1665)*
+* Extend CudaRdc compatibility *(@pcanal, #1671)*
+* Hide Thrust from .cc code *(@sethrj, #1670)*
+* Remove G4EmExtraPhysics from FtfpBertPhysicsList *(@whokion, #1644)*
+* Define dependency helper targets and reorganize CMakeLists *(@sethrj, #1673)*
+* Update CudaRdcUtils to v3 *(@pcanal, #1679)*
+
+Reviewers: @sethrj *(20)*, @amandalund *(15)*, @pcanal *(4)*, @esseivaju *(3)*, @stognini *(2)*, @drbenmorgan *(1)*, @mrguilima *(1)*
+
+Deprecation and removal
+-----------------------
+
+* Remove 'default_stream' option *(@sethrj, #1667)*
+
+Reviewers: @amandalund *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.5.1...v0.6.0
