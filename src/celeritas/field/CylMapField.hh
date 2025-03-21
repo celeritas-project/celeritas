@@ -90,10 +90,7 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
     real_type r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
     Turn phi = atan2turn(pos[1], pos[0]);
-    if (phi < zero_quantity())
-    {
-        phi.value() += 1;
-    }
+    phi.value() = eumod(phi.value(), real_type(1));
 
     // Check if point is within field map bounds
     if (!params_.valid(r, phi, pos[2]))

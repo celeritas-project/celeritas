@@ -506,6 +506,10 @@ TEST(MathTest, eumod)
     EXPECT_DOUBLE_EQ(0.0, eumod(360.0, 360.0));
     EXPECT_DOUBLE_EQ(15.0, eumod(375.0, 360.0));
     EXPECT_DOUBLE_EQ(30.0, eumod(720.0 + 30, 360.0));
+
+    // Floating point edge cases
+    EXPECT_LT(eumod(-(0.1 * numeric_limits<real_type>::epsilon()), 1.0), 1.0);
+    EXPECT_LT(eumod(-(0.1 * numeric_limits<real_type>::epsilon()), -1.0), 1.0);
 }
 
 //---------------------------------------------------------------------------//

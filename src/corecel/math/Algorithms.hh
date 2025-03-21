@@ -661,6 +661,12 @@ CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
             r -= denom;
         }
     }
+
+    // Handle edge case due to floating point precision
+    if (CELER_UNLIKELY(r == std::fabs(denom)))
+    {
+        r = 0;
+    }
     return r;
 }
 
