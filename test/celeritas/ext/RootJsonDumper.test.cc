@@ -113,7 +113,7 @@ TEST_F(RootJsonDumperTest, all)
     "name" : "G4_STAINLESS-STEEL",
     "state" : 1,
     "temperature" : 293.15,
-    "number_density" : 86993489258991547580416,
+    "number_density" : 86993489258991530803200,
     "elements" : [{
       "_typename" : "celeritas::ImportMatElemComponent",
       "element_id" : 0,
@@ -249,12 +249,12 @@ TEST_F(RootJsonDumperTest, all)
       "model_class" : 20,
       "materials" : [{
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy" : [1000, 100000000],
-        "micro_xs" : [[2.06274734475354e-29, 3.86346553888676e-29]]
+        "energy" : [100, 100000000],
+        "micro_xs" : [[1.44873278987692e-29, 3.86367883566152e-29]]
       }, {
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy" : [1000, 100000000],
-        "micro_xs" : [[4.49737396284378e-27, 8.88833778887632e-27], [5.17552797162603e-27, 1.0219747115308e-26]]
+        "energy" : [100, 100000000],
+        "micro_xs" : [[3.00641640152192e-27, 8.8885205839549e-27], [3.46220315764337e-27, 1.02199532648639e-26]]
       }]
     }],
     "tables" : [{
@@ -265,13 +265,13 @@ TEST_F(RootJsonDumperTest, all)
       "physics_vectors" : [{
         "_typename" : "celeritas::ImportPhysicsVector",
         "vector_type" : 2,
-        "x" : [1000, 100000000],
-        "y" : [0, 2.30830366120884e-30]
+        "x" : [100, 100000000],
+        "y" : [0, 2.30843109957244e-30]
       }, {
         "_typename" : "celeritas::ImportPhysicsVector",
         "vector_type" : 2,
-        "x" : [1000, 100000000],
-        "y" : [0, 7.63113707977686e-4]
+        "x" : [100, 100000000],
+        "y" : [0, 7.63129425045843e-4]
       }]
     }],
     "applies_at_rest" : false
@@ -294,7 +294,7 @@ TEST_F(RootJsonDumperTest, all)
         "_typename" : "celeritas::ImportPhysicsVector",
         "vector_type" : 2,
         "x" : [1e-4, 100],
-        "y" : [0.0919755519795959, 128.588033594672]
+        "y" : [0.0919755519795958, 128.588033594672]
       }]
     }
   }, {
@@ -328,14 +328,14 @@ TEST_F(RootJsonDumperTest, all)
     "atomic_number" : [1, 92],
     "physics_vectors" : [{
       "_typename" : "celeritas::ImportPhysics2DVector",
-      "x" : [6.90775527898214, 18.4206807439524],
-      "y" : [-6.19284873971536, 0],
-      "value" : [0, 4.0853712905423e-28, 0, 2.43638436260562e-25]
+      "x" : [6.74523634948436, 18.4206807439524],
+      "y" : [-6.03032981021759, 0],
+      "value" : [0, 2.97408672967084e-28, 0, 2.43638436260564e-25]
     }, {
       "_typename" : "celeritas::ImportPhysics2DVector",
-      "x" : [6.90775527898214, 18.4206807439524],
-      "y" : [-6.19284873971536, 0],
-      "value" : [0, 3.30246663127583e-24, 0, 7.93413967608228e-22]
+      "x" : [6.74523634948436, 18.4206807439524],
+      "y" : [-6.03032981021759, 0],
+      "value" : [0, 2.39787798860303e-24, 0, 7.93413967608236e-22]
     }]
   },
   "em_params" : {
