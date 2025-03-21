@@ -239,7 +239,7 @@ jobs:
       - name: Regenerate ROOT test data
         if: >-
           ${{
-            matrix.geant == '11.0'
+            matrix.geant == '11.3'
             && matrix.special != 'minimal'
             && matrix.special != 'static'
           }}
