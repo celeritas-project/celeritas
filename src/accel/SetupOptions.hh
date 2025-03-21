@@ -164,7 +164,7 @@ struct SetupOptions
 
     //! Number of track "slots" to be transported simultaneously
     size_type max_num_tracks{};
-    //! Maximum number of events in use (DEPRECATED: remove in v0.6)
+    //! Maximum number of events in use (DEPRECATED: remove in v0.7)
     size_type max_num_events{};
     //! Limit on number of steps per track before killing
     size_type max_steps = no_max_steps();
