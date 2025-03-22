@@ -195,7 +195,7 @@ struct SetupOptions
     //!@{
     //! \name Field options
 
-    size_type max_field_substeps{100};
+    size_type max_field_substeps{10};
     //!@}
 
     //! Sensitive detector options
