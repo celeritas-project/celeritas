@@ -1,6 +1,5 @@
-#---------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#------------------------------- -*- cmake -*- -------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
@@ -93,7 +92,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
   )
 else()
-  set(CELERITAS_MAX_BLOCK_SIZE 0)
+  set(CELERITAS_MAX_BLOCK_SIZE)
 endif()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -394,7 +393,15 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  set(_min_vecgeom_version 1.2.8)
+  if(CELERITAS_USE_CUDA)
+    # 1.2.10 is needed due to the `no-as-needed` link feature
+    # requiring VecGeom to be build with a distinct object
+    # and final libraries
+    set(_min_vecgeom_version 1.2.10)
+  else()
+    # 1.2.8 is needed due to G4VG, which needs the logger.
+    set(_min_vecgeom_version 1.2.8)
+  endif()
   if(NOT VecGeom_FOUND)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
@@ -503,26 +510,17 @@ endif()
 # RDC SUPPORT FOR VECGEOM+CUDA
 #----------------------------------------------------------------------------#
 
-# Load RDC utils using CMAKE_MODULE_PATH
-include(CudaRdcUtils OPTIONAL)
-
-# Load our local copy if it's newer
-if(NOT CUDA_RDC_VERSION)
-   set(_loaded_CUDA_RDC_VERSION 0)
-else()
-   set(_loaded_CUDA_RDC_VERSION ${CUDA_RDC_VERSION})
-endif()
+# Load our local copy in case a dependency hasn't loaded a newer one
+# and install it alongside CeleritasConfig (see further below)
 set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
 include("${_LOCAL_RDCUTILS_FILENAME}")
-if(NOT CUDA_RDC_VERSION GREATER _loaded_CUDA_RDC_VERSION)
-  # Only install our copy if it's newer than what's available elsewhere
-  set(_LOCAL_RDCUTILS_FILENAME)
-endif()
 
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
 
+# NOTE: include library utils after RDC
+include(CeleritasLibrary)
 include(CeleritasLibraryUtils)
 
 # Define an interface library for propagating include paths for GPU compilers.
@@ -624,15 +622,13 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
+  # TODO: in the future, don't include or distribute RdcUtils.
+  # For now, include in case downstream projects do `include(CudaRdcUtils)`.
+  "${_LOCAL_RDCUTILS_FILENAME}"
 )
-if(_LOCAL_RDCUTILS_FILENAME)
-  # Install our newer copy of CudaRdcUtils
-  list(APPEND _cmake_files ${_LOCAL_RDCUTILS_FILENAME})
-endif()
-foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
-  if(CELERITAS_USE_${_dep})
+foreach(_dep Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+  if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
 endforeach()
@@ -695,9 +691,10 @@ list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
   Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
-  VecCore_DIR VecGeom_DIR
+  VecCore_DIR VecGeom_DIR G4VG_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
+  VDT_INCLUDE_DIR VDT_LIBRARY
   XercesC_LIBRARY XercesC_INCLUDE_DIR
 )
   set(_val "${${_key}}")
@@ -724,7 +721,6 @@ configure_file(
 )
 
 # Export version info
-# TODO for version 1.0.0: change COMPATIBILITY to MajorVersion
 write_basic_package_version_file(
   "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
   COMPATIBILITY AnyNewerVersion
