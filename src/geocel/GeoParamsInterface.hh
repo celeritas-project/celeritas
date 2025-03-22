@@ -114,8 +114,6 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
     // Default destructor
     ~GeoParamsSurfaceInterface() override = 0;
 
-    using GeoParamsInterface::id_to_label;
-
     //! Get surface metadata
     virtual SurfaceMap const& surfaces() const = 0;
 
