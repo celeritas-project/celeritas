@@ -70,7 +70,8 @@ jobs:
         run: |
           git config --global --add safe.directory ${PWD}
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+          cmake --version
+          cmake --preset=${CMAKE_PRESET} --log-level=verbose
 
       ### BUILD ###
 

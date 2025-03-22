@@ -159,7 +159,8 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+          cmake --version
+          cmake --preset=${CMAKE_PRESET} --log-level=verbose
 
       ### BUILD ###
 
