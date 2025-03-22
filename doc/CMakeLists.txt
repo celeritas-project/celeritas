@@ -137,7 +137,9 @@ else()
           "${CMAKE_CURRENT_SOURCE_DIR}"
           "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Building ${type} documentation with Sphinx"
-      DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
+      DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/config.json"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     )
   endfunction()
