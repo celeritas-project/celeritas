@@ -73,6 +73,7 @@
 
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
+#include "TimeOutput.hh"
 
 #include "detail/OffloadWriter.hh"
 
@@ -273,6 +274,10 @@ SharedParams::SharedParams(SetupOptions const& options)
         output_reg_ = std::make_shared<OutputRegistry>();
         output_filename_ = options.output_file;
 
+        // Create the timing output
+        timer_
+            = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
+
         if (!output_filename_.empty())
         {
             CELER_LOG(debug)
@@ -291,6 +296,7 @@ SharedParams::SharedParams(SetupOptions const& options)
                     "environ",
                     celeritas::environment()));
             output_reg_->insert(std::make_shared<BuildOutput>());
+            output_reg_->insert(timer_);
         }
 
         return;
@@ -719,6 +725,10 @@ void SharedParams::initialize_core(SetupOptions const& options)
     {
         options.add_user_actions(*params_);
     }
+
+    // Add timing output
+    timer_ = std::make_shared<TimeOutput>(this->num_streams());
+    output_reg_->insert(timer_);
 }
 
 //---------------------------------------------------------------------------//

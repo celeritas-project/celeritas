@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/sys/Stopwatch.hh"
+
 #include "IntegrationBase.hh"
 
 class G4Event;
@@ -63,6 +65,8 @@ class UserActionIntegration final : public IntegrationBase
   private:
     // Only allow the singleton to construct
     UserActionIntegration();
+
+    Stopwatch get_event_time_;
 };
 
 //---------------------------------------------------------------------------//

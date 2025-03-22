@@ -2,30 +2,28 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/TimerOutput.hh
+//! \file accel/TimeOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <unordered_map>
 #include <vector>
-#include <G4Event.hh>
 
 #include "corecel/Types.hh"
 #include "corecel/io/OutputInterface.hh"
 
 namespace celeritas
 {
-namespace app
-{
 //---------------------------------------------------------------------------//
 /*!
  * Collect timing results and output at the end of a run.
  *
- * Setup time, total time, and time per event are always recorded. The
- * accumulated action times are recorded when running on the host or on the
- * device with synchronization enabled.
+ * Setup time and total time are always recorded. Event time is recorded of \c
+ * BeginOfEventAction and \c EndOfEventAction are called. The accumulated
+ * action times are recorded when running on the host or on the device with
+ * synchronization enabled.
  */
-class TimerOutput final : public OutputInterface
+class TimeOutput final : public OutputInterface
 {
   public:
     //!@{
@@ -34,8 +32,8 @@ class TimerOutput final : public OutputInterface
     //!@}
 
   public:
-    // Construct with number of threads
-    explicit TimerOutput(size_type num_threads);
+    // Construct with number of CPU threads
+    explicit TimeOutput(size_type num_threads);
 
     //!@{
     //! \name Output interface
@@ -49,16 +47,16 @@ class TimerOutput final : public OutputInterface
     //!@}
 
     // Record the accumulated action times
-    void RecordActionTime(MapStrReal&& time);
+    void record_action_time(MapStrReal&& time);
 
     // Record the time for the event
-    void RecordEventTime(real_type time);
+    void record_event_time(real_type time);
 
-    // Record the setup time
-    void RecordSetupTime(real_type time);
+    // Record the Celeritas setup time
+    void record_setup_time(real_type time);
 
     // Record the total time for the run
-    void RecordTotalTime(real_type time);
+    void record_total_time(real_type time);
 
   private:
     using VecReal = std::vector<real_type>;
@@ -70,5 +68,4 @@ class TimerOutput final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas
