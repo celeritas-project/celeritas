@@ -118,7 +118,8 @@ auto ImportedModelAdapter::energy_grid_bounds(
  */
 auto ImportedModelAdapter::low_energy_limit(ParticleId pid) const -> Energy
 {
-    return Energy{this->get_model(pid).low_energy_limit};
+    return Energy{
+        static_cast<real_type>(this->get_model(pid).low_energy_limit)};
 }
 
 //---------------------------------------------------------------------------//
@@ -127,7 +128,8 @@ auto ImportedModelAdapter::low_energy_limit(ParticleId pid) const -> Energy
  */
 auto ImportedModelAdapter::high_energy_limit(ParticleId pid) const -> Energy
 {
-    return Energy{this->get_model(pid).high_energy_limit};
+    return Energy{
+        static_cast<real_type>(this->get_model(pid).high_energy_limit)};
 }
 
 //---------------------------------------------------------------------------//

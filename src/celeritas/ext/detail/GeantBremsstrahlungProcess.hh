@@ -10,8 +10,6 @@
 #include <G4ParticleDefinition.hh>
 #include <G4VEnergyLossProcess.hh>
 
-#include "celeritas/Quantities.hh"
-
 #include "../GeantPhysicsOptions.hh"
 
 namespace celeritas
@@ -36,7 +34,7 @@ class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
   public:
     // Construct with model selection and energy limit
     GeantBremsstrahlungProcess(ModelSelection selection,
-                               Energy seltzer_berger_limit);
+                               double seltzer_berger_limit);
 
     // True for electrons and positrons
     bool IsApplicable(G4ParticleDefinition const& particle) final;

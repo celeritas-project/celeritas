@@ -40,7 +40,7 @@ namespace detail
  * Construct with model selection.
  */
 GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(
-    ModelSelection selection, Energy seltzer_berger_limit)
+    ModelSelection selection, double seltzer_berger_limit)
     : G4VEnergyLossProcess("eBrem"), model_selection_(selection)
 {
     CELER_VALIDATE(selection != ModelSelection::none,
@@ -50,11 +50,10 @@ GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(
     auto const& em_parameters = G4EmParameters::Instance();
     double energy_min = em_parameters->MinKinEnergy();
     double energy_max = em_parameters->MaxKinEnergy();
-    sb_limit_ = clamp(
-        value_as<Energy>(seltzer_berger_limit), energy_min, energy_max);
+    sb_limit_ = clamp(seltzer_berger_limit, energy_min, energy_max);
 
     if (selection == ModelSelection::relativistic
-        && value_as<Energy>(seltzer_berger_limit) > energy_min)
+        && seltzer_berger_limit > energy_min)
     {
         CELER_LOG(warning)
             << "Bremmstrahlung without a model at low energies "
