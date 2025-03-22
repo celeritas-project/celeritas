@@ -507,9 +507,12 @@ TEST(MathTest, eumod)
     EXPECT_DOUBLE_EQ(15.0, eumod(375.0, 360.0));
     EXPECT_DOUBLE_EQ(30.0, eumod(720.0 + 30, 360.0));
 
-    // Floating point edge cases
-    EXPECT_LT(eumod(-(0.1 * numeric_limits<real_type>::epsilon()), 1.0), 1.0);
-    EXPECT_LT(eumod(-(0.1 * numeric_limits<real_type>::epsilon()), -1.0), 1.0);
+    // Edge case where the result can equal the denominator due to FP precision
+    constexpr double eps = 1e-13;
+    EXPECT_DOUBLE_EQ(360.0, eumod(-eps, 360.0));
+    EXPECT_DOUBLE_EQ(360.0, eumod(-eps, -360.0));
+
+    EXPECT_DOUBLE_EQ(eps, eumod(eps, 360.0));
 }
 
 //---------------------------------------------------------------------------//
