@@ -6,6 +6,7 @@
 set(SOURCES)
 set(PRIVATE_DEPS
   nlohmann_json::nlohmann_json
+  Celeritas::ExtThrust # TODO: add thrust exception conversion to corecel?
   Celeritas::ExtOpenMP # TODO: provide thread utils in corecel
 )
 set(PUBLIC_DEPS

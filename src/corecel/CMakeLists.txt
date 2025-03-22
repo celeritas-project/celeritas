@@ -4,7 +4,10 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS nlohmann_json::nlohmann_json Celeritas::ExtDeviceApi)
+set(PRIVATE_DEPS
+  nlohmann_json::nlohmann_json
+  Celeritas::ExtDeviceApi Celeritas::ExtThrust
+)
 set(PUBLIC_DEPS Celeritas::BuildFlags)
 
 #----------------------------------------------------------------------------#

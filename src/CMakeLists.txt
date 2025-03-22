@@ -122,6 +122,15 @@ if(CELERITAS_BUILTIN_Perfetto)
   target_link_libraries(ExtPerfetto INTERFACE Celeritas::perfetto)
 endif()
 
+celer_add_ext_library(Thrust Thrust::Thrust)
+if(CELERITAS_USE_CUDA)
+  if(TARGET Thrust::CUDA)
+    target_link_libraries(ExtThrust INTERFACE Thrust::CUDA)
+  endif()
+  # Perlmutter with RDC enabled complains about missing dlclose
+  target_link_libraries(ExtThrust INTERFACE ${CMAKE_DL_LIBS})
+endif()
+
 celeritas_add_interface_library(ExtGeant4Geo)
 if(CELERITAS_USE_Geant4)
   celeritas_get_g4libs(_cg4_libs geometry)
