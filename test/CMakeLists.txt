@@ -49,7 +49,13 @@ function(celeritas_add_device_test base)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     set(_cuda_args GPU SOURCES "${base}.test.cu")
   endif()
-  celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
+    # GCC 13 requires some tests to have -ldl explicitely added
+    if(${base} MATCHES "Range"
+      OR ${base} MATCHES "StackAllocator"
+      OR ${base} MATCHES "ObserverPtr")
+          set(ARGN LINK_LIBRARIES dl)
+    endif()
+    celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
 if(CELERITAS_UNITS STREQUAL "CGS")
