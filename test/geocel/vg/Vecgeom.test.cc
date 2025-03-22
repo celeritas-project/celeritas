@@ -51,6 +51,13 @@ namespace test
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
 #endif
 
+// constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
+//     && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+
+constexpr bool using_vecgeom_solid = !CELERITAS_VECGEOM_SURFACE
+                                     && CELERITAS_CORE_GEO
+                                            == CELERITAS_CORE_GEO_VECGEOM;
+
 namespace
 {
 auto const vecgeom_version
@@ -402,7 +409,7 @@ class SolidsVgdmlTest
 {
     SpanStringView expected_log_levels() const final
     {
-        if (vecgeom_version >= Version{2})
+        if (vecgeom_version >= Version{2} && !using_vecgeom_solid)
         {
             static std::string_view const levels[] = {"warning", "warning"};
             return make_span(levels);

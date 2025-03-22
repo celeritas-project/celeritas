@@ -397,6 +397,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 template<class GeoTest>
 void SimpleCmsGeoTest::test_detailed_tracking(GeoTest* test)
 {
+    // TODO: understand the error from Geant4 navigator
     auto safety_tol = test->safety_tol();
     auto geo = test->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", test->volume_name(geo));
