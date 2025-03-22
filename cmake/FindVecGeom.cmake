@@ -25,7 +25,9 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
   get_target_property(_vecgeom_lib_type VecGeom::vecgeom TYPE)
   if (_vecgeom_lib_type STREQUAL "STATIC_LIBRARY")
      set(_vecgeom_cuda_runtime "Static")
-     set(_vecgeom_middle_library_suffix "_static")
+     if(TARGET VecGeom::vecgeomcuda_static)
+	set(_vecgeom_middle_library_suffix "_static")
+     endif()
   else()
      set(_vecgeom_cuda_runtime "Shared")
      set(_vecgeom_middle_library_suffix "")
@@ -47,12 +49,14 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
   endif()
   # Suppress warnings from virtual function calls in RDC
   foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
-    target_compile_options(${_lib}
-      INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
-    )
-    target_link_options(${_lib}
-      INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
-    )
+    if(TARGET ${_lib})
+      target_compile_options(${_lib}
+        INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+      target_link_options(${_lib}
+        INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+    endif()
   endforeach()
 
   if(NOT _vecgeom_lib_rdc_final)
