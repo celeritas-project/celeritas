@@ -29,13 +29,14 @@ namespace celeritas
  * This accounts for the LPM effect if the option is enabled and the
  * electron energy is high enough.
  *
- * This is a shape function used for rejection, so as long as the resulting
- * cross section is scaled by the maximum value the units do not matter.
- *
  * The screening function uses Tsai's analytical approximations of coherent and
  * incoherent screening function to the numerical screening functions computed
  * using the Thomas-Fermi model \citep{tsai-1974,
  * https://doi.org/10.1103/RevModPhys.46.815} .
+ *
+ * \note This is currently used only as a shape function for rejection, so as
+ * long as the resulting cross section is scaled by the maximum value the units
+ * do not matter.
  */
 class RBDiffXsCalculator
 {
