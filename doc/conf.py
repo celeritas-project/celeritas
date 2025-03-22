@@ -150,6 +150,8 @@ mathjax3_config = {
         "macros": {
             "dif": r"\;\mathrm{d}",
             "difd": [r"\frac{\mathrm{d}#1}{\mathrm{d}#2}", 2],
+            "norm": [r"\|#1\|", 1],
+            "abs": [r"|#1|", 1],
         },
     },
     "loader": {"load": ["ui/lazy", "output/svg"]},
