@@ -74,7 +74,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
-        params_->timer()->record_setup_time(
+        params_->timer()->RecordSetupTime(
             GlobalSetup::Instance()->GetSetupTime());
         get_transport_time_ = {};
     }
@@ -127,11 +127,11 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (transport_ && *transport_)
     {
-        params_->timer()->record_action_time(transport_->GetActionTime());
+        params_->timer()->RecordActionTime(transport_->GetActionTime());
     }
     if (init_shared_)
     {
-        params_->timer()->record_total_time(get_transport_time_());
+        params_->timer()->RecordTotalTime(get_transport_time_());
     }
 
     if (params_->mode() == SharedParams::Mode::enabled)

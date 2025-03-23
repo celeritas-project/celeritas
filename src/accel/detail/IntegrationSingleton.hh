@@ -85,11 +85,11 @@ class IntegrationSingleton
     // Destroy params
     void finalize_shared_params();
 
-    // Start the transport timer
-    void start_timer();
+    // Start the transport timer [s]
+    void start_timer() { get_time_ = {}; }
 
-    // Get the transport time
-    real_type stop_timer();
+    // Stop the timer and return the elapsed time [s]
+    real_type stop_timer() { return get_time_(); }
 
   private:
     // Only this class can construct

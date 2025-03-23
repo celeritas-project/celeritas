@@ -48,7 +48,7 @@ void UserActionIntegration::BeginOfRunAction(G4Run const*)
 
     if (G4Threading::IsMasterThread())
     {
-        singleton.shared_params().timer()->record_setup_time(get_setup_time());
+        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
         singleton.start_timer();
     }
 }
@@ -117,7 +117,7 @@ void UserActionIntegration::EndOfEventAction(G4Event const*)
         ExceptionConverter("celer.event.flush", &singleton.shared_params()));
 
     // Record the time for this event
-    singleton.shared_params().timer()->record_event_time(get_event_time_());
+    singleton.shared_params().timer()->RecordEventTime(get_event_time_());
 }
 
 //---------------------------------------------------------------------------//

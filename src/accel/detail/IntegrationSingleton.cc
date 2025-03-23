@@ -209,7 +209,7 @@ void IntegrationSingleton::finalize_local_transporter()
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be finalized more than once");
-            params_.timer()->record_action_time(lt.GetActionTime());
+            params_.timer()->RecordActionTime(lt.GetActionTime());
             lt.Finalize();
         },
         ExceptionConverter("celer.finalize.local"));
@@ -229,24 +229,6 @@ void IntegrationSingleton::finalize_shared_params()
             params_.Finalize();
         },
         ExceptionConverter("celer.finalize.global"));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Start the timer.
- */
-void IntegrationSingleton::start_timer()
-{
-    get_time_ = {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Stop the timer and return the elapsed time.
- */
-real_type IntegrationSingleton::stop_timer()
-{
-    return get_time_();
 }
 
 //---------------------------------------------------------------------------//

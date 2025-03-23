@@ -18,10 +18,12 @@ namespace celeritas
 /*!
  * Collect timing results and output at the end of a run.
  *
- * Setup time and total time are always recorded. Event time is recorded of \c
+ * Setup time and total time are always recorded. Event time is recorded if \c
  * BeginOfEventAction and \c EndOfEventAction are called. The accumulated
  * action times are recorded when running on the host or on the device with
  * synchronization enabled.
+ *
+ * All results are in units of seconds.
  */
 class TimeOutput final : public OutputInterface
 {
@@ -47,16 +49,16 @@ class TimeOutput final : public OutputInterface
     //!@}
 
     // Record the accumulated action times
-    void record_action_time(MapStrReal&& time);
+    void RecordActionTime(MapStrReal&& time);
 
     // Record the time for the event
-    void record_event_time(real_type time);
+    void RecordEventTime(real_type time);
 
     // Record the Celeritas setup time
-    void record_setup_time(real_type time);
+    void RecordSetupTime(real_type time);
 
     // Record the total time for the run
-    void record_total_time(real_type time);
+    void RecordTotalTime(real_type time);
 
   private:
     using VecReal = std::vector<real_type>;

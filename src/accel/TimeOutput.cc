@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {
@@ -34,10 +35,12 @@ TimeOutput::TimeOutput(size_type num_threads)
 void TimeOutput::output(JsonPimpl* j) const
 {
     using json = nlohmann::json;
+    using TimeSecond = RealQuantity<units::Second>;
 
     auto obj = json::object();
 
     obj = {
+        {"_units", TimeSecond::unit_type::label()},
         {"_index", "thread"},
         {"actions", action_time_},
         {"events", event_time_},
@@ -52,7 +55,7 @@ void TimeOutput::output(JsonPimpl* j) const
 /*!
  * Record the accumulated action times.
  */
-void TimeOutput::record_action_time(MapStrReal&& time)
+void TimeOutput::RecordActionTime(MapStrReal&& time)
 {
     size_type thread_id = get_geant_thread_id();
     CELER_ASSERT(thread_id < action_time_.size());
@@ -63,7 +66,7 @@ void TimeOutput::record_action_time(MapStrReal&& time)
 /*!
  * Record the time for the event.
  */
-void TimeOutput::record_event_time(real_type time)
+void TimeOutput::RecordEventTime(real_type time)
 {
     size_type thread_id = get_geant_thread_id();
     CELER_ASSERT(thread_id < event_time_.size());
@@ -76,7 +79,7 @@ void TimeOutput::record_event_time(real_type time)
  *
  * This should be called once by the master thread.
  */
-void TimeOutput::record_setup_time(real_type time)
+void TimeOutput::RecordSetupTime(real_type time)
 {
     setup_time_ = time;
 }
@@ -87,7 +90,7 @@ void TimeOutput::record_setup_time(real_type time)
  *
  * This should be called once by the master thread.
  */
-void TimeOutput::record_total_time(real_type time)
+void TimeOutput::RecordTotalTime(real_type time)
 {
     total_time_ = time;
 }

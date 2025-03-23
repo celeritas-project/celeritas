@@ -69,7 +69,7 @@ void FastSimulationIntegration::BeginOfRunAction(G4Run const*)
 
     if (G4Threading::IsMasterThread())
     {
-        singleton.shared_params().timer()->record_setup_time(get_setup_time());
+        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
         singleton.start_timer();
     }
 }

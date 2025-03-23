@@ -91,7 +91,7 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 
     if (G4Threading::IsMasterThread())
     {
-        singleton.shared_params().timer()->record_total_time(time);
+        singleton.shared_params().timer()->RecordTotalTime(time);
         singleton.finalize_shared_params();
     }
 }
