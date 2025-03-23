@@ -21,11 +21,11 @@ cmake_policy(POP)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
-if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
+if(VecGeom_FOUND AND (TARGET VecGeom::vecgeomcuda OR TARGET VecGeom::vecgeom_final))
   get_target_property(_vecgeom_lib_type VecGeom::vecgeom TYPE)
   if (_vecgeom_lib_type STREQUAL "STATIC_LIBRARY")
      set(_vecgeom_cuda_runtime "Static")
-     if(TARGET VecGeom::vecgeomcuda_static)
+     if(TARGET VecGeom::vecgeomcuda_static OR TARGET VecGeom::vecgeom_static)
 	set(_vecgeom_middle_library_suffix "_static")
      endif()
   else()
@@ -33,7 +33,7 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
      set(_vecgeom_middle_library_suffix "")
   endif()
   get_target_property(_vecgeom_lib_rdc_final VecGeom::vecgeomcuda CUDA_RDC_FINAL_LIBRARY)
-  if(NOT _vecgeom_lib_rdc_final)
+  if(NOT TARGET VecGeom::vecgeom_final AND NOT _vecgeom_lib_rdc_final)
     set_target_properties(VecGeom::vecgeom PROPERTIES
       CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
       CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda${_vecgeom_middle_library_suffix}
@@ -48,7 +48,12 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
     )
   endif()
   # Suppress warnings from virtual function calls in RDC
-  foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
+  if(TARGET VecGeom::vecgeom_final)
+    set(_vecgeom_cuda_libs VecGeom::vecgeom VecGeom::vecgeom_static)
+  else()
+    set(_vecgeom_cuda_libs VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
+  endif()
+  foreach(_lib ${_vecgeom_cuda_libs})
     if(TARGET ${_lib})
       target_compile_options(${_lib}
         INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
@@ -59,7 +64,7 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
     endif()
   endforeach()
 
-  if(NOT _vecgeom_lib_rdc_final)
+  if(NOT TARGET VecGeom::vecgeom_final AND NOT _vecgeom_lib_rdc_final)
     # Inform cuda_rdc_add_library code
     foreach(_lib VecGeom::vecgeom VecGeom::vecgeomcuda
         VecGeom::vecgeomcuda_static)
