@@ -212,7 +212,7 @@ void CmseGeoTest::test_trace() const
         static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
             60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
             60.4, 85.85, 267.5, 460};
-            
+
         EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
             using_vecgeom_surface ? 1e-4
             : using_vecgeom_solid ? 1e-6 : 1e-12);
@@ -1262,47 +1262,40 @@ void SimpleCmsGeoTest::test_trace() const
 {
     bool const is_orange = test_->geometry_type() == "ORANGE";
     {
-        auto result = test_->track(
-            {-33.3599681684743388, 1.43414625226707426, -700.000001},
-            {-0.680265923322200705,
-             0.731921125057842015,
-             -0.0391118941072485030});
-        result.print_expected();
-        /*        auto result = test_->track({-75, 0, 0}, {1, 0, 0});
-                GenericGeoTrackingResult ref;
-                ref.volumes = {
-                    "si_tracker",
-                    "vacuum_tube",
-                    "si_tracker",
-                    "em_calorimeter",
-                    "had_calorimeter",
-                    "sc_solenoid",
-                    "fe_muon_chambers",
-                    "world",
-                };
-                ref.volume_instances = {
-                    "si_tracker_pv",
-                    "vacuum_tube_pv",
-                    "si_tracker_pv",
-                    "em_calorimeter_pv",
-                    "had_calorimeter_pv",
-                    "sc_solenoid_pv",
-                    "iron_muon_chambers_pv",
-                    "world_PV",
-                };
-                ref.distances = {45, 60, 95, 50, 100, 100, 325, 300};
-                ref.halfway_safeties = {22.5, 30, 47.5, 25, 50, 50, 162.5,
-           150}; ref.bumps = {};
+        auto result = test_->track({-75, 0, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "si_tracker",
+            "vacuum_tube",
+            "si_tracker",
+            "em_calorimeter",
+            "had_calorimeter",
+            "sc_solenoid",
+            "fe_muon_chambers",
+            "world",
+        };
+        ref.volume_instances = {
+            "si_tracker_pv",
+            "vacuum_tube_pv",
+            "si_tracker_pv",
+            "em_calorimeter_pv",
+            "had_calorimeter_pv",
+            "sc_solenoid_pv",
+            "iron_muon_chambers_pv",
+            "world_PV",
+        };
+        ref.distances = {45, 60, 95, 50, 100, 100, 325, 300};
+        ref.halfway_safeties = {22.5, 30, 47.5, 25, 50, 50, 162.5, 150};
+        ref.bumps = {};
 
-                if (is_orange)
-                {
-                    ref.volume_instances.clear();
-                    // TODO: at this exact point it ignores the cylindrical
-           distance ref.halfway_safeties[1] = 700;
-                }
-                auto tol = GenericGeoTrackingTolerance::from_test(*test_);
-                EXPECT_RESULT_NEAR(ref, result, tol);
-                */
+        if (is_orange)
+        {
+            ref.volume_instances.clear();
+            // TODO: at this exact point it ignores the cylindrical distance
+            ref.halfway_safeties[1] = 700;
+        }
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
     }
     {
         auto result = test_->track({25, 0, 701}, {0, 0, -1});

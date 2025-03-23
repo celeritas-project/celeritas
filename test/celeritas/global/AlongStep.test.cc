@@ -555,20 +555,11 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
 
         // Without field in the world volume electron reaches a boundary
         auto result = this->run(inp, num_tracks);
-        if (using_vecgeom_surface)
         {
             EXPECT_SOFT_EQ(1364.3080101955252, result.step);
             EXPECT_EQ(0, result.eloss);
             EXPECT_EQ(0, result.mfp);
             EXPECT_EQ("geo-boundary", result.action);
-        }
-        else
-        {
-            // using vecgeom surface, something different happens :-(
-            EXPECT_SOFT_EQ(0.0058697336085243726, result.step);
-            EXPECT_EQ(0.021414365425745555, result.eloss);
-            EXPECT_EQ(0.0028303689991387936, result.mfp);
-            EXPECT_EQ("msc-range", result.action);
         }
         EXPECT_REAL_EQ(1, result.alive);
     }
