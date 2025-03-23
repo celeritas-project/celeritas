@@ -91,47 +91,6 @@ class GeoParamsInterface
     //! Get the Geant4 PV corresponding to a volume instance
     virtual GeantPhysicalInstance id_to_geant(VolumeInstanceId id) const = 0;
 
-    //// DEPRECATED: remove in v0.6 ////
-
-    //! Number of volumes
-    [[deprecated]]
-    VolumeId::size_type num_volumes() const { return this->volumes().size(); }
-
-    //! Get the label for a placed volume ID
-    [[deprecated]]
-    Label const& id_to_label(VolumeId vol_id) const
-    {
-        return this->volumes().at(vol_id);
-    }
-
-    //! Get the volume ID corresponding to a unique name
-    [[deprecated]]
-    VolumeId find_volume(std::string const& name) const
-    {
-        return this->volumes().find_unique(name);
-    }
-
-    //! Get the volume ID corresponding to a unique label
-    [[deprecated]]
-    VolumeId find_volume(Label const& label) const
-    {
-        return this->volumes().find_exact(label);
-    }
-
-    //! Get the volume ID corresponding to a unique name
-    [[deprecated]]
-    VolumeId find_volume(char const* name) const
-    {
-        return this->volumes().find_unique(name);
-    }
-
-    //! Get the volume ID corresponding to a unique name
-    [[deprecated]]
-    SpanConstVolumeId find_volumes(std::string const& name) const
-    {
-        return this->volumes().find_all(name);
-    }
-
   protected:
     GeoParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);
@@ -155,33 +114,8 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
     // Default destructor
     ~GeoParamsSurfaceInterface() override = 0;
 
-    using GeoParamsInterface::id_to_label;
-
     //! Get surface metadata
     virtual SurfaceMap const& surfaces() const = 0;
-
-    //// DEPRECATED: remove in v0.6 ////
-
-    //! Get the label for a placed volume ID
-    [[deprecated]]
-    Label const& id_to_label(SurfaceId surf_id) const
-    {
-        return this->surfaces().at(surf_id);
-    }
-
-    //! Get the surface ID corresponding to a unique label name
-    [[deprecated]]
-    SurfaceId find_surface(std::string const& name) const
-    {
-        return this->surfaces().find_unique(name);
-    }
-
-    //! Number of distinct surfaces
-    [[deprecated]]
-    SurfaceId::size_type num_surfaces() const
-    {
-        return this->surfaces().size();
-    }
 
   protected:
     GeoParamsSurfaceInterface() = default;

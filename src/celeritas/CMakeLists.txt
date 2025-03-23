@@ -4,8 +4,29 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS Celeritas::DeviceToolkit nlohmann_json::nlohmann_json)
-set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
+set(PRIVATE_DEPS
+  Celeritas::ExtDeviceApi
+  nlohmann_json::nlohmann_json
+  Celeritas::ExtMPI
+  Celeritas::ExtOpenMP
+)
+set(PUBLIC_DEPS
+  Celeritas::BuildFlags
+  Celeritas::corecel
+  Celeritas::geocel
+)
+
+# Core data has transient includes
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  # NOTE: use vecgeom directly here since we know it's enabled and it's
+  # necessary to make CudaRdc work downstream
+  set(_core_geo_deps VecGeom::vecgeom)
+elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  set(_core_geo_deps Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_core_geo_deps Celeritas::ExtGeant4Geo)
+endif()
+list(APPEND PUBLIC_DEPS ${_core_geo_deps})
 
 #-----------------------------------------------------------------------------#
 # Main code
@@ -134,8 +155,9 @@ list(APPEND SOURCES
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_CORE_RNG STREQUAL "CURAND")
-  list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
+if(CELERITAS_CORE_RNG STREQUAL "CURAND"
+    OR CELERITAS_CORE_RNG STREQUAL "hipRAND")
+  list(APPEND PUBLIC_DEPS Celeritas::ExtDeviceApi)
 endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
@@ -169,16 +191,20 @@ if(CELERITAS_USE_Geant4)
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
   )
+
   celeritas_get_g4libs(_cg4_libs
     global geometry materials processes run physicslists tasking
   )
-  list(APPEND _cg4_libs
-    Celeritas::corecel Celeritas::geocel XercesC::XercesC nlohmann_json::nlohmann_json
-  )
-
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
-  celeritas_target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
-
+  celeritas_target_link_libraries(celeritas_geant4
+    PRIVATE
+      Celeritas::BuildFlags
+      Celeritas::geocel
+      ${_core_geo_deps} # needed by GeantSd and related
+      XercesC::XercesC
+      nlohmann_json::nlohmann_json
+      ${_cg4_libs}
+  )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_geant4>)
   list(APPEND PRIVATE_DEPS celeritas_geant4)
 endif()
@@ -193,14 +219,6 @@ if(CELERITAS_USE_HepMC3)
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_hepmc>)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
-endif()
-
-if(CELERITAS_USE_MPI)
-  list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
-endif()
-
-if(CELERITAS_USE_OpenMP)
-  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
 if(CELERITAS_USE_ROOT)
@@ -250,7 +268,7 @@ if(CELERITAS_USE_ROOT)
   )
 
   target_link_libraries(celeritas_root
-    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree ROOT::RIO
+    PRIVATE Celeritas::BuildFlags ROOT::Core ROOT::Tree ROOT::RIO
   )
 
   # Install the rootmap/pcm files needed for users or downstream apps to use
@@ -267,15 +285,6 @@ if(CELERITAS_USE_ROOT)
 
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_root>)
   list(APPEND PRIVATE_DEPS celeritas_root)
-endif()
-
-# Core data has transient includes
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
-elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  list(APPEND PUBLIC_DEPS Celeritas::orange)
-elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
- list(APPEND PUBLIC_DEPS ${Geant4_LIBRARIES})
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -350,20 +359,6 @@ celeritas_polysource(user/detail/StepGatherAction)
 #-----------------------------------------------------------------------------#
 
 celeritas_add_src_library(celeritas ${SOURCES})
-
-if(NOT CELERITAS_USE_OpenMP
-    AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-         OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
-  celeritas_target_compile_options(celeritas
-    PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>"
-  )
-endif()
-if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  # Inheriting via dominance is correct behavior
-  celeritas_target_compile_options(celeritas
-    PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
-  )
-endif()
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

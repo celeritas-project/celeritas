@@ -4,8 +4,8 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS nlohmann_json::nlohmann_json)
-set(PUBLIC_DEPS)
+set(PRIVATE_DEPS nlohmann_json::nlohmann_json Celeritas::ExtDeviceApi)
+set(PUBLIC_DEPS Celeritas::BuildFlags)
 
 #----------------------------------------------------------------------------#
 # Configure Files
@@ -174,7 +174,6 @@ endforeach()
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
-  Assert.cc
   AssertIO.json.cc
   Types.cc
   data/Copier.cc
@@ -192,7 +191,6 @@ list(APPEND SOURCES
   io/Label.cc
   io/LogContextException.cc
   io/LogHandlers.cc
-  io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
   io/OutputRegistry.cc
@@ -206,28 +204,69 @@ list(APPEND SOURCES
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc
-  sys/Device.cc
   sys/DeviceIO.json.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
   sys/KernelRegistryIO.json.cc
   sys/MemRegistry.cc
   sys/MemRegistryIO.json.cc
-  sys/MpiCommunicator.cc
-  sys/MultiExceptionHandler.cc
   sys/ScopedMem.cc
-  sys/ScopedMpiInit.cc
-  sys/ScopedProfiling.cc
   sys/ScopedSignalHandler.cc
   sys/TypeDemangler.cc
   sys/Version.cc
 )
 
 #-----------------------------------------------------------------------------#
-# Configuration-dependent code/dependencies
+# Configuration-dependent object libraries
 #-----------------------------------------------------------------------------#
 
-list(APPEND PRIVATE_DEPS Celeritas::DeviceToolkit)
+# All these classes depend on OpenMP if available
+celeritas_add_object_library(corecel_openmp_obj
+  sys/MultiExceptionHandler.cc
+)
+celeritas_target_link_libraries(corecel_openmp_obj
+  PRIVATE Celeritas::ExtOpenMP Celeritas::BuildFlags
+)
+list(APPEND SOURCES $<TARGET_OBJECTS:corecel_openmp_obj>)
+list(APPEND PRIVATE_DEPS corecel_openmp_obj)
+
+#-----------------------------------------------------------------------------#
+
+# All these classes depend on MPI if available
+celeritas_add_object_library(corecel_mpi_obj
+  Assert.cc
+  io/Logger.cc
+  sys/Device.cc
+  sys/MpiCommunicator.cc
+  sys/ScopedMpiInit.cc
+)
+celeritas_target_link_libraries(corecel_mpi_obj
+  PRIVATE Celeritas::ExtMPI Celeritas::ExtDeviceApi Celeritas::BuildFlags
+)
+list(APPEND SOURCES $<TARGET_OBJECTS:corecel_mpi_obj>)
+list(APPEND PRIVATE_DEPS corecel_mpi_obj)
+
+#-----------------------------------------------------------------------------#
+
+set(_profiling_sources
+  sys/ScopedProfiling.cc
+)
+if(CELERITAS_USE_Perfetto)
+  list(APPEND _profiling_sources
+    sys/TraceCounter.perfetto.cc
+    sys/TracingSession.perfetto.cc
+  )
+endif()
+celeritas_add_object_library(corecel_profiling_obj ${_profiling_sources})
+celeritas_target_link_libraries(corecel_profiling_obj
+  PRIVATE Celeritas::ExtPerfetto Celeritas::BuildFlags
+)
+list(APPEND SOURCES $<TARGET_OBJECTS:corecel_profiling_obj>)
+list(APPEND PRIVATE_DEPS corecel_profiling_obj)
+
+#-----------------------------------------------------------------------------#
+# CUDA/HIP code
+#-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
@@ -237,16 +276,13 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     sys/detail/AsyncMemoryResource.cu
   )
 endif()
+
 if(CELERITAS_USE_CUDA)
   # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
-  # NVTX requires `-ldl`
-  # This does not appears to be needed anymore with
-  # CMake 3.26.5 and CUDA sdk 12.6.
-  list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
 endif()
 
 if(CELERITAS_USE_HIP)
@@ -255,75 +291,14 @@ if(CELERITAS_USE_HIP)
   )
 endif()
 
-if(CELERITAS_USE_MPI)
-  list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
-endif()
-
-if(CELERITAS_USE_OpenMP)
-  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
-endif()
-
-if(CELERITAS_USE_Perfetto)
-  list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
-  list(APPEND SOURCES
-    sys/TraceCounter.perfetto.cc
-    sys/TracingSession.cc
-  )
-endif()
-
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#
 
 celeritas_add_src_library(corecel ${SOURCES})
-
-# Require at least C++17
-target_compile_features(corecel PUBLIC cxx_std_17)
-if(CELERITAS_USE_CUDA)
-  target_compile_features(corecel PUBLIC cuda_std_17)
-endif()
-if(WIN32)
-  target_compile_definitions(corecel PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX NOGDI>
-  )
-
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    # __cplusplus: use standard-compliant C++ version macro
-    # preprocessor: use standard-compliant preprocessor
-    # EHsc: enable standard C++ exception handling
-    target_compile_options(corecel PUBLIC
-      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
-    )
-  endif()
-endif()
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
-  # GCC 13 and 14 have *lots* of false positives, and not just on our project
-  # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
-  celeritas_target_compile_options(corecel
-    PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wno-dangling-reference>"
-  )
-endif()
-
-celeritas_target_include_directories(corecel
-  PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-    "$<BUILD_INTERFACE:${CELERITAS_HEADER_CONFIG_DIRECTORY}>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-)
 celeritas_target_link_libraries(corecel
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
-
-#-----------------------------------------------------------------------------#
-# Create library
-#-----------------------------------------------------------------------------#
-
-celeritas_add_src_library(corecel_mpi INTERFACE)
-
-if(CELERITAS_USE_MPI)
-  target_link_libraries(corecel_mpi INTERFACE MPI::MPI_CXX)
-endif()
 
 #-----------------------------------------------------------------------------#

@@ -65,6 +65,12 @@ class ImportedModelAdapter
     // Get the xs energy grid bounds for the given material and particle
     EnergyBounds energy_grid_bounds(ParticleId, MaterialId) const;
 
+    // Get the low energy limit for the given particle
+    Energy low_energy_limit(ParticleId) const;
+
+    // Get the high energy limit for the given particle
+    Energy high_energy_limit(ParticleId) const;
+
   private:
     //// TYPES ////
 

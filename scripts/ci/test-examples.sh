@@ -26,7 +26,7 @@ build_local() {
   printf "\e[32mTesting in ${PWD}\e[m\n"
   mkdir build
   cd build
-  cmake -G Ninja \
+  cmake -G Ninja --log-level=verbose \
     -D CMAKE_INSTALL_PREFIX=${EXAMPLE_INSTALL} \
     ..
   ninja

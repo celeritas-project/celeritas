@@ -1,4 +1,5 @@
 Run standalone Celeritas 
+[Exactly 1 of the following options are required] 
 
 
 ./celer-sim [OPTIONS] [filename]

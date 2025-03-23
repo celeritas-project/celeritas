@@ -51,11 +51,16 @@ jobs:
         || matrix.runner == 'noble-arm' && 'ubuntu-24.04-arm'
       }}
     steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+
+      ### ENVIRONMENT ###
+
       - name: Install dependencies
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
-            ccache cmake ninja-build python3 \
+            ccache \
             nlohmann-json3-dev libgtest-dev libhepmc3-dev libpng-dev \
             ${{matrix.compiler}}-${{matrix.version}} \
             ${{matrix.compiler == 'gcc' && format('g++-{0}', matrix.version) || ''}}
@@ -63,8 +68,21 @@ jobs:
           ld --version | head -1
           $CC --version | head -1
           $CXX --version | head -1
-      - name: Check out Celeritas
-        uses: actions/checkout@v4
+
+      ### CONFIGURE ###
+
+      - name: Configure Celeritas
+        run: |
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --version
+          cmake --preset=${CMAKE_PRESET} \
+            ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
+            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
+              && format(';-pr.{0};', github.event.pull_request.number)
+              || format(';-{0};', github.ref_name)}}"
+
+      ### BUILD ###
+
       - name: Cache ccache
         uses: actions/cache@v4
         with:
@@ -75,40 +93,27 @@ jobs:
       - name: Zero ccache stats
         run: |
           ccache -z
-      - name: Configure Celeritas
-        run: |
-          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          cmake --preset=${CMAKE_PRESET} \
-            ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
       - name: Build
         id: build
         working-directory: build
         run: |
           ninja
-      - name: Run unit tests
-        id: unittest
-        run: |
-          ctest -LE app --preset=${CMAKE_PRESET}-unit
-      - name: Run app tests
-        id: apptest
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
-        run: |
-          ctest -L app --preset=${CMAKE_PRESET}-app
-      - name: Install
-        working-directory: build
-        run: |
-          ninja install
-      - name: Check installation
-        working-directory: install
-        run: |
-          ./bin/celer-sim --version
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |
           ccache -s
+
+      ### TEST ###
+
+      - name: Run unit tests
+        id: unittest
+        run: |
+          ctest --preset=${CMAKE_PRESET}-unit
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        run: |
+          ctest --preset=${CMAKE_PRESET}-app
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: >-
@@ -122,6 +127,18 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+
+      ### INSTALL ###
+
+      - name: Install
+        working-directory: build
+        run: |
+          ninja install
+      - name: Check installation
+        working-directory: install
+        run: |
+          ./bin/celer-sim --config
+
   windows:
     defaults:
       run:
@@ -132,13 +149,26 @@ jobs:
       CMAKE_PRESET: fast
     runs-on: windows-latest
     steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+
+      ### ENVIRONMENT ###
+
       - name: Install dependencies
         run: |
           choco install ninja ccache
-      - name: Check out Celeritas
-        uses: actions/checkout@v4
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Configure Celeritas
+        run: |
+          Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
+          cmake --preset=$Env:CMAKE_PRESET `
+            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
+              && format(';-pr.{0};', github.event.pull_request.number)
+              || format(';-{0};', github.ref_name)}}"
+
+      ### BUILD ###
+
       - name: Cache ccache
         uses: actions/cache@v4
         with:
@@ -149,17 +179,18 @@ jobs:
       - name: Zero ccache stats
         run: |
           ccache -z
-      - name: Configure Celeritas
-        run: |
-          Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
-          cmake --preset=$Env:CMAKE_PRESET `
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
       - name: Build
         id: build
         run: |
-          cmake --build --preset=$Env:CMAKE_PRESET 
+          cmake --version
+          cmake --build --preset=$Env:CMAKE_PRESET
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
+
+      ### TEST ###
+
       - name: Run unit tests
         id: unittest
         continue-on-error: true
@@ -170,18 +201,6 @@ jobs:
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
         run: |
           ctest --preset=$Env:CMAKE_PRESET-app
-      - name: Install
-        working-directory: build
-        run: |
-          cmake --install .
-      - name: Check installation
-        working-directory: install
-        run: |
-          ./bin/celer-sim --version
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: >-
@@ -195,5 +214,16 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+
+      ### INSTALL ###
+
+      - name: Install
+        working-directory: build
+        run: |
+          cmake --install .
+      - name: Check installation
+        working-directory: install
+        run: |
+          ./bin/celer-sim --config
 
 # vim: set nowrap tw=100:

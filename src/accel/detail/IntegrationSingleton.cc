@@ -12,10 +12,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/Logger.hh"
 #include "accel/SetupOptionsMessenger.hh"
-#include "corecel/sys/ScopedMpiInit.hh"
+#include "accel/TimeOutput.hh"
 
 namespace celeritas
 {
@@ -208,6 +209,7 @@ void IntegrationSingleton::finalize_local_transporter()
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be finalized more than once");
+            params_.timer()->RecordActionTime(lt.GetActionTime());
             lt.Finalize();
         },
         ExceptionConverter("celer.finalize.local"));

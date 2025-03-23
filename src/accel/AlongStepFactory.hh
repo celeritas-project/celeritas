@@ -116,6 +116,7 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     using FieldInput = inp::UniformField;
     using FieldFunction = std::function<FieldInput()>;
     using VecVolume = std::vector<G4LogicalVolume const*>;
+    using VecVolumeFunction = std::function<VecVolume()>;
     //!@}
 
   public:
@@ -126,7 +127,7 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     explicit UniformAlongStepFactory(FieldFunction f);
 
     // Construct with field strength and volumes where field is present
-    UniformAlongStepFactory(FieldFunction f, VecVolume volumes);
+    UniformAlongStepFactory(FieldFunction f, VecVolumeFunction volumes);
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
@@ -134,9 +135,12 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     // Get the field params (used for converting to celeritas::inp)
     FieldInput get_field() const;
 
+    // Get the volumes where field is present
+    VecVolume get_volumes() const;
+
   private:
     FieldFunction get_field_;
-    VecVolume volumes_;
+    VecVolumeFunction get_volumes_;
 };
 
 //---------------------------------------------------------------------------//

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/TracingSession.cc
+//! \file corecel/sys/TracingSession.perfetto.cc
 //! \brief RAII class for managing a perfetto session and its resources.
 //---------------------------------------------------------------------------//
 #include "TracingSession.hh"

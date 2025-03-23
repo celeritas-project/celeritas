@@ -11,10 +11,12 @@
 #include <G4Threading.hh>
 
 #include "corecel/io/Join.hh"
+#include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 
 #include "ExceptionConverter.hh"
+#include "TimeOutput.hh"
 #include "TrackingManager.hh"
 #include "TrackingManagerConstructor.hh"
 
@@ -137,6 +139,8 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
  */
 void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 {
+    Stopwatch get_setup_time;
+
     auto& singleton = detail::IntegrationSingleton::instance();
 
     if (G4Threading::IsMasterThread())
@@ -158,6 +162,12 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
                 singleton.shared_params(),
                 singleton.local_transporter()),
             ExceptionConverter{"celer.init.verify"});
+    }
+
+    if (G4Threading::IsMasterThread())
+    {
+        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
+        singleton.start_timer();
     }
 }
 

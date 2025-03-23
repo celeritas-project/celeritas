@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
-FindCLI11
----------
+FindPerfetto
+------------
 
-Find the CLI11 command line utility library.
+Find the Perfetto performance analysis library.
 
 #]=======================================================================]
 
-find_package(CLI11 QUIET CONFIG)
+find_package(Perfetto QUIET CONFIG)
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(CLI11 CONFIG_MODE)
+find_package_handle_standard_args(Perfetto CONFIG_MODE)
 
 #-----------------------------------------------------------------------------#

@@ -24,6 +24,8 @@
 #include <G4eBremsstrahlungRelModel.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "../GeantPhysicsOptions.hh"
 
@@ -37,12 +39,35 @@ namespace detail
 /*!
  * Construct with model selection.
  */
-GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(ModelSelection selection)
+GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(
+    ModelSelection selection, double seltzer_berger_limit)
     : G4VEnergyLossProcess("eBrem"), model_selection_(selection)
 {
     CELER_VALIDATE(selection != ModelSelection::none,
                    << "Cannot initialize GeantBremsstrahlungProcess with "
                       "BremsModelSelection::none.");
+
+    auto const& em_parameters = G4EmParameters::Instance();
+    double energy_min = em_parameters->MinKinEnergy();
+    double energy_max = em_parameters->MaxKinEnergy();
+    sb_limit_ = clamp(seltzer_berger_limit, energy_min, energy_max);
+
+    if (selection == ModelSelection::relativistic
+        && seltzer_berger_limit > energy_min)
+    {
+        CELER_LOG(warning)
+            << "Bremmstrahlung without a model at low energies "
+               "is not supported: extending relativistic model down to "
+            << energy_min << " MeV";
+        sb_limit_ = energy_min;
+    }
+    else if (selection == ModelSelection::seltzer_berger)
+    {
+        CELER_LOG(warning)
+            << "Using bremmstrahlung without a relativistic "
+               "model may result in failures for high energy tracks";
+    }
+
     SetProcessSubType(G4EmProcessSubType::fBremsstrahlung);
     SetSecondaryParticle(G4Gamma::Gamma());
     SetIonisation(false);
@@ -85,13 +110,10 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
     }
 
     auto const& em_parameters = G4EmParameters::Instance();
-
     double energy_min = em_parameters->MinKinEnergy();
     double energy_max = em_parameters->MaxKinEnergy();
-    double sb_energy_limit = 1 * GeV;
-    double energy_limit = std::min(energy_max, sb_energy_limit);
-    G4VEmFluctuationModel* fluctuation_model = nullptr;
 
+    G4VEmFluctuationModel* fluctuation_model = nullptr;
     std::size_t model_index = 0;
 
     if (model_selection_ == ModelSelection::seltzer_berger
@@ -104,12 +126,14 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
 
         auto* em_model = G4VEnergyLossProcess::EmModel(model_index);
         em_model->SetLowEnergyLimit(energy_min);
-        em_model->SetHighEnergyLimit(energy_limit);
+        em_model->SetHighEnergyLimit(sb_limit_);
         em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
 #if G4VERSION_NUMBER < 1120
         em_model->SetLPMFlag(false);
 #endif
         G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
+        CELER_LOG(debug) << "Added G4SeltzerBergerModel from " << energy_min
+                         << " to " << sb_limit_ << " MeV";
 
         ++model_index;
     }
@@ -117,7 +141,7 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
     if (model_selection_ == ModelSelection::relativistic
         || model_selection_ == ModelSelection::all)
     {
-        if (energy_max > energy_limit)
+        if (energy_max > sb_limit_)
         {
             if (!G4VEnergyLossProcess::EmModel(model_index))
             {
@@ -126,13 +150,15 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
             }
 
             auto* em_model = G4VEnergyLossProcess::EmModel(model_index);
-            em_model->SetLowEnergyLimit(energy_limit);
+            em_model->SetLowEnergyLimit(sb_limit_);
             em_model->SetHighEnergyLimit(energy_max);
             em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
 #if G4VERSION_NUMBER < 1120
             em_model->SetLPMFlag(em_parameters->LPM());
 #endif
             G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
+            CELER_LOG(debug) << "Added G4eBremsstrahlungRelModel from "
+                             << sb_limit_ << " to " << energy_max << " MeV";
         }
     }
 

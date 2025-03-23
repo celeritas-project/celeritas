@@ -22,6 +22,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/TimeOutput.hh"
 
 #include "ExceptionHandler.hh"
 #include "GeantDiagnostics.hh"
@@ -73,7 +74,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
-        diagnostics_->timer()->RecordSetupTime(
+        params_->timer()->RecordSetupTime(
             GlobalSetup::Instance()->GetSetupTime());
         get_transport_time_ = {};
     }
@@ -126,11 +127,11 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (transport_ && *transport_)
     {
-        diagnostics_->timer()->RecordActionTime(transport_->GetActionTime());
+        params_->timer()->RecordActionTime(transport_->GetActionTime());
     }
     if (init_shared_)
     {
-        diagnostics_->timer()->RecordTotalTime(get_transport_time_());
+        params_->timer()->RecordTotalTime(get_transport_time_());
     }
 
     if (params_->mode() == SharedParams::Mode::enabled)

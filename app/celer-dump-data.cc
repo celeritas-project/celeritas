@@ -305,7 +305,18 @@ void print_process(ImportProcess const& proc,
 
     for (ImportModel const& model : proc.models)
     {
-        cout << "### Model: " << to_cstring(model.model_class) << R"gfm(
+        cout << "### Model: " << to_cstring(model.model_class) << "\n";
+        cout << R"gfm(
+| Parameter            | Value     | Units |
+| -------------------- | --------- | ----- |
+)gfm";
+        cout << "| " << setw(20) << std::left << "Low energy limit" << " | "
+             << setw(9) << setprecision(3) << model.low_energy_limit << " | "
+             << setw(5) << "MeV" << " |\n";
+        cout << "| " << setw(20) << std::left << "High energy limit" << " | "
+             << setw(9) << setprecision(3) << model.high_energy_limit << " | "
+             << setw(5) << "MeV" << " |\n";
+        cout << R"gfm(
 Energy grids per material:
 
 | Material             | Size  | Endpoints (MeV)              |
@@ -1041,6 +1052,7 @@ int main(int argc, char* argv[])  // NOLINT(bugprone-exception-escape)
 
     std::string filename;
     cli.add_option("filename", filename, "Input ROOT file")
+        ->required()
         ->check(CLI::ExistingFile);
 
     // Parse and run

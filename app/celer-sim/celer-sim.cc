@@ -232,14 +232,11 @@ int main(int argc, char* argv[])
                  set_diagnostic(get_device_string),
                  "Show device information");
 
+    // Require exactly one option
+    cli.require_option(1);
+
     // Parse and run
     CELER_CLI11_PARSE(argc, argv);
-
-    if ((!filename.empty() + (diagnostic ? 1 : 0)) != 1)
-    {
-        return process_parse_error(ConflictingArguments{
-            R"(provide an input file or a diagnostic flag)"});
-    }
 
     if (diagnostic)
     {

@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 
 #include "ExceptionConverter.hh"
+#include "TimeOutput.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
@@ -82,11 +83,15 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 
     auto& singleton = IntegrationSingleton::instance();
 
+    // Record the run time
+    auto time = singleton.stop_timer();
+
     // Remove local transporter
     singleton.finalize_local_transporter();
 
     if (G4Threading::IsMasterThread())
     {
+        singleton.shared_params().timer()->RecordTotalTime(time);
         singleton.finalize_shared_params();
     }
 }

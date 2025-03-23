@@ -4,8 +4,16 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS nlohmann_json::nlohmann_json)
-set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
+set(PRIVATE_DEPS
+  nlohmann_json::nlohmann_json
+  Celeritas::ExtOpenMP # TODO: provide thread utils in corecel
+)
+set(PUBLIC_DEPS
+  Celeritas::BuildFlags
+  Celeritas::corecel
+  Celeritas::geocel
+  Celeritas::celeritas
+)
 
 #-----------------------------------------------------------------------------#
 # Main code
@@ -25,6 +33,7 @@ list(APPEND SOURCES
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
+  TimeOutput.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
   detail/IntegrationSingleton.cc
@@ -43,10 +52,6 @@ endif()
 if(CELERITAS_USE_HepMC3)
   list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
-endif()
-
-if(CELERITAS_USE_OpenMP)
-  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
 celeritas_get_g4libs(_g4_private digits_hits run)

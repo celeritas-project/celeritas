@@ -327,7 +327,10 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
     if (options_.brems != BremsModelSelection::none)
     {
         physics_list->RegisterProcess(
-            new GeantBremsstrahlungProcess(options_.brems), p);
+            new GeantBremsstrahlungProcess(
+                options_.brems,
+                value_as<Options::MevEnergy>(options_.seltzer_berger_limit)),
+            p);
 
         if (!options_.ionization)
         {

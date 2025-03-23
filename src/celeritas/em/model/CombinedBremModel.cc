@@ -53,6 +53,15 @@ CombinedBremModel::CombinedBremModel(ActionId id,
     rb_model_ = std::make_shared<RelativisticBremModel>(
         id, particles, materials, data, enable_lpm);
 
+    CELER_VALIDATE(sb_model_->host_ref().high_energy_limit
+                       == rb_model_->host_ref().low_energy_limit,
+                   << "Seltzer-Berger high energy limit ("
+                   << sb_model_->host_ref().high_energy_limit.value()
+                   << " MeV) is inconsistent with relativistic "
+                      "bremsstrahlung low energy limit ("
+                   << rb_model_->host_ref().low_energy_limit.value()
+                   << " MeV)");
+
     HostVal<CombinedBremData> host_ref;
     host_ref.sb_differential_xs = sb_model_->host_ref().differential_xs;
     host_ref.rb_data = rb_model_->host_ref();

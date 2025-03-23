@@ -163,26 +163,21 @@ int main(int argc, char* argv[])
                 | empty_string_validator());
     cli.add_option("output",
                    out_filename,
-                   R"(Output file (ROOT or JSON or '-' for stdout JSON)");
+                   R"(Output file (ROOT or JSON or '-' for stdout JSON))");
+
+    cli.get_option("--gen-test")->needs(cli.get_option("gdml"));
+    cli.get_option("gdml")->needs(cli.get_option("physopt"));
+    cli.get_option("gdml")->needs(cli.get_option("output"));
+
+    // Require at least one option
+    cli.require_option();
 
     CELER_CLI11_PARSE(argc, argv);
-
-    if ((!gdml_filename.empty() + dump_default) != 1)
-    {
-        return process_parse_error(ConflictingArguments{
-            R"(provide a GDML file, or the gen/dump options)"});
-    }
 
     if (dump_default)
     {
         return run_safely(run_dump_default);
     }
-
-    if (out_filename.empty())
-    {
-        return process_parse_error(CLI::RequiredError("output"));
-    }
-
     return run_safely(
         run, gdml_filename, opts_filename, out_filename, gen_test);
 }
