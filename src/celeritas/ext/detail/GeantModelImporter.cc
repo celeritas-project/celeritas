@@ -131,6 +131,10 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
         result.model_class = ImportModelClass::other;
     }
 
+    // Get the model energy limits
+    result.low_energy_limit = model.LowEnergyLimit();
+    result.high_energy_limit = model.HighEnergyLimit();
+
     // Calculate lower cutoff energy for the model in each material
     result.materials.resize(materials_.size());
 

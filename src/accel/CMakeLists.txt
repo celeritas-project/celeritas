@@ -33,6 +33,7 @@ list(APPEND SOURCES
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
+  TimeOutput.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
   detail/IntegrationSingleton.cc

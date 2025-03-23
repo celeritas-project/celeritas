@@ -91,7 +91,8 @@ class CoulombScatteringTest : public InteractorHostTestBase
                 pdg::electron(),
                 {},
                 ImportProcessClass::coulomb_scat,
-                {ImportModelClass::e_coulomb_scattering});
+                {ImportModelClass::e_coulomb_scattering},
+                {{0, 1e12}});
             ImportProcess ip_positron = ip_electron;
             ip_positron.particle_pdg = pdg::positron().get();
             this->set_imported_processes(
