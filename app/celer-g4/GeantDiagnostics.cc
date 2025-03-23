@@ -66,10 +66,6 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     CELER_ASSERT(output_reg);
     size_type num_threads = params.num_streams();
 
-    // Create the timer output and add to output registry
-    timer_output_ = std::make_shared<TimerOutput>(num_threads);
-    output_reg->insert(timer_output_);
-
     auto& global_setup = *GlobalSetup::Instance();
     if (global_setup.StepDiagnostic())
     {

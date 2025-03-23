@@ -137,7 +137,7 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 
     // Sample the bremsstrahlung photon energy
     Energy gamma_energy;
-    if (particle_.energy() >= detail::seltzer_berger_upper_limit())
+    if (particle_.energy() >= shared_.rb_data.low_energy_limit)
     {
         detail::RBEnergySampler sample_energy{
             shared_.rb_data, particle_, cutoffs_, material_, elcomp_id_};

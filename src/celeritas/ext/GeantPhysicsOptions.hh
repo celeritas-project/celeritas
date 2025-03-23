@@ -123,6 +123,8 @@ struct GeantPhysicsOptions
     bool annihilation{true};
     //! Enable bremsstrahlung and select a model
     BremsModelSelection brems{BremsModelSelection::all};
+    //! Upper limit for the Seltzer-Berger bremsstrahlung model
+    MevEnergy seltzer_berger_limit{1e3};  // 1 GeV
     //! Enable multiple coulomb scattering and select a model
     MscModelSelection msc{MscModelSelection::urban};
     //! Enable atomic relaxation and select a model
@@ -215,6 +217,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.ionization == b.ionization
            && a.annihilation == b.annihilation
            && a.brems == b.brems
+           && a.seltzer_berger_limit == b.seltzer_berger_limit
            && a.msc == b.msc
            && a.relaxation == b.relaxation
            && a.em_bins_per_decade == b.em_bins_per_decade

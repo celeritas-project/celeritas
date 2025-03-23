@@ -49,8 +49,5 @@ struct LogProvenance
 //! Type for handling a log message
 using LogHandler = std::function<void(LogProvenance, LogLevel, std::string)>;
 
-// DEPRECATED: remove in v0.6
-using Provenance [[deprecated]] = LogProvenance;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

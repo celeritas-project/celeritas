@@ -101,6 +101,7 @@ template<Ownership W, MemSpace M>
 struct SeltzerBergerData
 {
     using MevMass = units::MevMass;
+    using Energy = units::MevEnergy;
 
     //// MEMBER DATA ////
 
@@ -109,6 +110,9 @@ struct SeltzerBergerData
 
     //! Electron mass [MeV / c^2]
     MevMass electron_mass;
+
+    //! High energy limit of the model
+    Energy high_energy_limit;
 
     // Differential cross section storage
     SeltzerBergerTableData<W, M> differential_xs;
@@ -128,6 +132,7 @@ struct SeltzerBergerData
         CELER_EXPECT(other);
         ids = other.ids;
         electron_mass = other.electron_mass;
+        high_energy_limit = other.high_energy_limit;
         differential_xs = other.differential_xs;
         return *this;
     }

@@ -7,6 +7,8 @@
 #pragma once
 
 #include <memory>
+
+#include "corecel/sys/Stopwatch.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
@@ -83,6 +85,12 @@ class IntegrationSingleton
     // Destroy params
     void finalize_shared_params();
 
+    // Start the transport timer [s]
+    void start_timer() { get_time_ = {}; }
+
+    // Stop the timer and return the elapsed time [s]
+    real_type stop_timer() { return get_time_(); }
+
   private:
     // Only this class can construct
     IntegrationSingleton();
@@ -93,6 +101,7 @@ class IntegrationSingleton
     SharedParams params_;
     std::unique_ptr<ScopedMpiInit> scoped_mpi_;
     std::unique_ptr<SetupOptionsMessenger> messenger_;
+    Stopwatch get_time_;
 };
 
 //---------------------------------------------------------------------------//

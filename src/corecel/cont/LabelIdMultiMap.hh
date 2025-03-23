@@ -76,20 +76,6 @@ class LabelIdMultiMap
     // Access an ID by name/extension pair
     inline IdT find_exact(Label const& label) const;
 
-    // Access the Id using an *exact* label, dangerous because of string->Label
-    // cast
-    // DEPRECATED: remove in v0.6 (use 'find_exact')
-    [[deprecated]]
-    CELER_FORCEINLINE IdT find(Label const& label) const
-    {
-        return this->find_exact(label);
-    }
-
-    // Access the label+sublabel pair for an Id
-    // DEPRECATED: remove in v0.6 (use 'at')
-    [[deprecated]]
-    CELER_FORCEINLINE Label const& get(IdT id) const { return this->at(id); }
-
     // Access the label+sublabel pair for an Id
     inline Label const& at(IdT id) const;
 
