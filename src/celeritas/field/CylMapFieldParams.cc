@@ -110,9 +110,11 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
                 [idx = inp.field.cbegin()
                        + i * static_cast<size_type>(CylAxis::size_)] {
                     EnumArray<CylAxis, real_type> el;
-                    std::copy(idx,
-                              idx + static_cast<size_type>(CylAxis::size_),
-                              el.begin());
+                    std::transform(
+                        idx,
+                        idx + static_cast<size_type>(CylAxis::size_),
+                        el.begin(),
+                        [](auto val) { return static_cast<real_type>(val); });
                     return el;
                 }());
         }
