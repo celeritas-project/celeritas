@@ -642,6 +642,11 @@ function(cuda_rdc_depends_on OUTVARNAME lib potentialdepend)
       get_target_property(lib_link_libraries ${lib} LINK_LIBRARIES)
       get_target_property(lib_interface_link_libraries ${lib} INTERFACE_LINK_LIBRARIES)
       if(lib_interface_link_libraries)
+        # if `lib_link_libraries` is false this means that LINK_LIBRARIES was
+        # not set for ${lib} and thus the value of `lib_link_libraries` is
+        # actually `lib_link_libraries-NOTFOUND`.
+        # CMake's list APPEND to a list containing just varname-NOTFOUND will
+        # keep that value so we need to special case to avoid this outcome.
         if(lib_link_libraries)
 	   list(APPEND lib_link_libraries ${lib_interface_link_libraries})
         else()
@@ -1074,8 +1079,13 @@ function(cuda_rdc_cuda_gather_dependencies outlist target)
     get_target_property(_target_link_libraries ${target} LINK_LIBRARIES)
     get_target_property(_target_interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
     if(_target_link_libraries OR _target_interface_link_libraries)
+      # if `_target_link_libraries` is false this means that LINK_LIBRARIES was
+      # not set for ${target} and thus the value of `_target_link_libraries` is
+      # actually `_target_link_libraries-NOTFOUND`.
+      # CMake's list APPEND to a list containing just varname-NOTFOUND will
+      # keep that value so we need to special case to avoid this outcome.
       if(_target_link_libraries)
-	 set(_link_libs ${_target_link_libraries})
+        set(_link_libs ${_target_link_libraries})
       else()
 	 set(_link_libs)
       endif()
