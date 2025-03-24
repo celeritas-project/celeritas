@@ -21,6 +21,8 @@ cmake_policy(POP)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
+# VecGeom::vecgeomcuda was in use in VecGeom v1.2.10 and older and
+# in early dev release of v2.0.0 (at least up to v2.0.0-rc3 and v2.0.0-surfacedev.2).
 if(VecGeom_FOUND AND (TARGET VecGeom::vecgeomcuda OR TARGET VecGeom::vecgeom_final))
   get_target_property(_vecgeom_lib_type VecGeom::vecgeom TYPE)
   if (_vecgeom_lib_type STREQUAL "STATIC_LIBRARY")
