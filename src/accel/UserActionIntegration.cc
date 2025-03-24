@@ -10,7 +10,10 @@
 #include <G4Threading.hh>
 #include <G4Track.hh>
 
+#include "corecel/sys/Stopwatch.hh"
+
 #include "ExceptionConverter.hh"
+#include "TimeOutput.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
@@ -32,6 +35,8 @@ UserActionIntegration& UserActionIntegration::Instance()
  */
 void UserActionIntegration::BeginOfRunAction(G4Run const*)
 {
+    Stopwatch get_setup_time;
+
     auto& singleton = detail::IntegrationSingleton::instance();
 
     if (G4Threading::IsMasterThread())
@@ -40,6 +45,12 @@ void UserActionIntegration::BeginOfRunAction(G4Run const*)
     }
 
     singleton.initialize_local_transporter();
+
+    if (G4Threading::IsMasterThread())
+    {
+        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
+        singleton.start_timer();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -48,6 +59,8 @@ void UserActionIntegration::BeginOfRunAction(G4Run const*)
  */
 void UserActionIntegration::BeginOfEventAction(G4Event const* event)
 {
+    get_event_time_ = {};
+
     auto& local = detail::IntegrationSingleton::local_transporter();
     if (!local)
         return;
@@ -102,6 +115,9 @@ void UserActionIntegration::EndOfEventAction(G4Event const*)
     CELER_TRY_HANDLE(
         local.Flush(),
         ExceptionConverter("celer.event.flush", &singleton.shared_params()));
+
+    // Record the time for this event
+    singleton.shared_params().timer()->RecordEventTime(get_event_time_());
 }
 
 //---------------------------------------------------------------------------//

@@ -30,6 +30,7 @@ void from_json(nlohmann::json const& j, PhysicsListSelection& value)
     auto const& s = j.get<std::string>();
     if (CELER_UNLIKELY(s == "geant_physics_list"))
     {
+        // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Deprecated option value '" << s
                            << "': use 'celer_em' instead";
         value = PhysicsListSelection::celer_em;
@@ -81,6 +82,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(primary_options);
 
+    // DEPRECATED: remove in v1.0
     RI_LOAD_DEPRECATED(sync, action_times);
 
     RI_LOAD_OPTION(num_track_slots);
@@ -90,6 +92,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(action_times);
     if (j.count("default_stream"))
     {
+        // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
     if (auto iter = j.find("auto_flush"); iter != j.end())
@@ -113,8 +116,9 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     if (auto iter = j.find("enable_sd"); iter != j.end())
     {
-        CELER_LOG(warning) << "Deprecated option 'enable_sd': refactor as "
-                              "'sd_type'";
+        // DEPRECATED: remove in v1.0
+        CELER_LOG(warning)
+            << R"(Deprecated option 'enable_sd': refactor as 'sd_type')";
         if (iter->get<bool>())
         {
             v.sd_type = SensitiveDetectorType::event_hit;
@@ -133,6 +137,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     if (auto iter = j.find("write_sd_hits"); iter != j.end())
     {
+        // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Deprecated option 'write_sd_hits': disable "
                               "output using CELER_DISABLE_ROOT";
         if (!iter->get<bool>())

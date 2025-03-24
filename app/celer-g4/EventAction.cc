@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/TimeOutput.hh"
 
 #include "GlobalSetup.hh"
 #include "RootIO.hh"
@@ -76,7 +77,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     }
 
     // Record the time for this event
-    diagnostics_->timer()->RecordEventTime(get_event_time_());
+    params_->timer()->RecordEventTime(get_event_time_());
 
     CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
 }

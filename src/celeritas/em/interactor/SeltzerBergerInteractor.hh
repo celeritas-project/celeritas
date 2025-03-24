@@ -128,7 +128,7 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
                  || particle.particle_id() == shared_.ids.positron);
     CELER_EXPECT(gamma_cutoff_ > zero_quantity());
     CELER_EXPECT(inc_energy_ > gamma_cutoff_
-                 && inc_energy_ < detail::seltzer_berger_upper_limit());
+                 && inc_energy_ < shared_.high_energy_limit);
 }
 
 //---------------------------------------------------------------------------//

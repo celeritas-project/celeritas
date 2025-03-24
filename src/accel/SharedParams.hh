@@ -30,6 +30,7 @@ struct SetupOptions;
 class StepCollector;
 class GeantGeoParams;
 class OutputRegistry;
+class TimeOutput;
 class GeantSd;
 
 //---------------------------------------------------------------------------//
@@ -131,6 +132,7 @@ class SharedParams
     using SPGeantSd = std::shared_ptr<GeantSd>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPTimeOutput = std::shared_ptr<TimeOutput>;
     using SPState = std::shared_ptr<CoreStateInterface>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
     using BBox = BoundingBox<double>;
@@ -146,6 +148,9 @@ class SharedParams
 
     // Output registry
     inline SPOutputRegistry const& output_reg() const;
+
+    // Access the timer
+    inline SPTimeOutput const& timer() const;
 
     // Let LocalTransporter register the thread's state
     void set_state(unsigned int stream_id, SPState&&);
@@ -172,11 +177,12 @@ class SharedParams
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
     std::vector<std::shared_ptr<CoreStateInterface>> states_;
+    SPOutputRegistry output_reg_;
+    SPTimeOutput timer_;
+    BBox bbox_;
 
     // Lazily created
-    SPOutputRegistry output_reg_;
     SPConstGeantGeoParams geant_geo_;
-    BBox bbox_;
 
     //// HELPER FUNCTIONS ////
 
@@ -260,6 +266,17 @@ auto SharedParams::output_reg() const -> SPOutputRegistry const&
 {
     CELER_EXPECT(*this);
     return output_reg_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the timer.
+ */
+auto SharedParams::timer() const -> SPTimeOutput const&
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(timer_);
+    return timer_;
 }
 
 //---------------------------------------------------------------------------//

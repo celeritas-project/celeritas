@@ -96,6 +96,13 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
     {
         phi.value() += 1;
     }
+    if (CELER_UNLIKELY(phi.value() == 1))
+    {
+        // Make sure phi is in [0, 1). If phi is a negative value smaller
+        // than machine epsilon, adding 1 will result in phi equal to 1
+        phi.value() = 0;
+    }
+    CELER_ASSERT(phi >= zero_quantity() && phi.value() < 1);
 
     // Check if point is within field map bounds
     if (!params_.valid(r, phi, pos[2]))

@@ -57,9 +57,10 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");
-    CELER_VALIDATE(soft_equal(real_type{1}, inp.grid_phi.back().value()),
-                   << "Phi grid must be a complete circle (grid_phi max="
-                   << inp.grid_phi.back().value() << "): should be 1");
+    CELER_VALIDATE(
+        soft_equal(celeritas::real_type{1}, inp.grid_phi.back().value()),
+        << "Phi grid must be a complete circle (grid_phi max="
+        << inp.grid_phi.back().value() << "): should be 1");
 
     CELER_VALIDATE(
         inp.field.size()
@@ -82,13 +83,18 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
 
         host.grids.axes[CylAxis::r]
             = grid.insert_back(inp.grid_r.begin(), inp.grid_r.end());
+
+        // Replace first and last phi grid values with exact zero and unity
         auto phi_start = grid.size_id();
-        std::transform(inp.grid_phi.cbegin(),
-                       inp.grid_phi.cend(),
+        grid.push_back(0);
+        std::transform(inp.grid_phi.cbegin() + 1,
+                       inp.grid_phi.cend() - 1,
                        std::back_inserter(grid),
                        [](auto const& val) { return val.value(); });
+        grid.push_back(1);
         host.grids.axes[CylAxis::phi]
-            = ItemRange<float>{phi_start, grid.size_id()};
+            = ItemRange<real_type>{phi_start, grid.size_id()};
+
         host.grids.axes[CylAxis::z]
             = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
 
