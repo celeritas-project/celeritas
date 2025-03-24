@@ -12,6 +12,7 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 
 #include "SetupOptions.hh"
 
@@ -152,6 +153,8 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
 {
     CELER_EXPECT(options);
 
+    G4UImessenger::commandsShouldBeInMaster = true;
+
     auto add_cmd = [this](auto* ptr, char const* relpath, char const* desc) {
         CELER_ASSERT(!directories_.empty());
         this->commands_.emplace_back(
@@ -198,6 +201,10 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "maxFieldSubsteps",
             "Limit on substeps in the field propagator");
 
+    add_cmd(&options->slot_diagnostic_prefix,
+            "slotDiagnosticPrefix",
+            "Filename base for slot diagnostics");
+
     directories_.emplace_back(new CelerDirectory(
         "/celer/detector/", "Celeritas sensitive detector setup options"));
     add_cmd(&options->sd.enabled,
@@ -235,10 +242,6 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->action_times,
             "actionTimes",
             "Add timers around every action (may reduce performance)");
-
-    add_cmd(&options->slot_diagnostic_prefix,
-            "slotDiagnosticPrefix",
-            "Filename base for slot diagnostics");
 }
 
 //---------------------------------------------------------------------------//
@@ -253,6 +256,8 @@ void SetupOptionsMessenger::SetNewValue(G4UIcommand* cmd, G4String val)
     CELER_EXPECT(celer_cmd);
 
     celer_cmd->apply(val);
+    CELER_LOG(debug) << "Set " << cmd->GetCommandPath() << " to "
+                     << celer_cmd->get();
 }
 
 //---------------------------------------------------------------------------//
