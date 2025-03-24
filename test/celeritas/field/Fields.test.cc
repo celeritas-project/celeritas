@@ -17,7 +17,6 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/CylMapField.hh"
-#include "celeritas/field/CylMapFieldData.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
 #include "celeritas/field/RZMapField.hh"
@@ -171,7 +170,7 @@ TEST_F(CylMapFieldTest, all)
         CylMapFieldInput inp;
         // Set up grid points in cylindrical coordinates
         inp.grid_r = {0, 50, 100, 150};
-        Array<celeritas::real_type, 7> const phi_values = {
+        Array<real_type, 7> const phi_values = {
             0.0, 1.0 / 6.0, 2.0 / 6.0, 3.0 / 6.0, 4.0 / 6.0, 5.0 / 6.0, 1.0};
         inp.grid_phi.resize(phi_values.size());
         std::transform(phi_values.begin(),
