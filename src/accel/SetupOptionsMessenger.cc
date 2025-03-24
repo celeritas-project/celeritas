@@ -153,7 +153,9 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
 {
     CELER_EXPECT(options);
 
-    G4UImessenger::commandsShouldBeInMaster = true;
+    // Setup options affect the shared parameters: if this base-class protected
+    // variable isn't set, commands will be ignored :(
+    this->commandsShouldBeInMaster = true;
 
     auto add_cmd = [this](auto* ptr, char const* relpath, char const* desc) {
         CELER_ASSERT(!directories_.empty());
