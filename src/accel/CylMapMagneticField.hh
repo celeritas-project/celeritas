@@ -25,9 +25,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined grid
 CylMapFieldParams::Input
-MakeCylMapFieldInput(std::vector<real_type> const& r_grid,
-                     std::vector<real_type> const& phi_values,
-                     std::vector<real_type> const& z_grid);
+MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
+                     std::vector<G4double> const& phi_values,
+                     std::vector<G4double> const& z_grid);
 
 //---------------------------------------------------------------------------//
 /*!
@@ -47,7 +47,7 @@ class CylMapMagneticField : public G4MagneticField
 
     // Calculate values of the magnetic field vector
     inline void
-    GetFieldValue(double const point[3], double* field) const override;
+    GetFieldValue(G4double const point[3], G4double* field) const override;
 
   private:
     SPConstFieldParams params_;
@@ -69,7 +69,8 @@ CylMapMagneticField::CylMapMagneticField(SPConstFieldParams params)
 /*!
  * Calculate the magnetic field vector at the given position.
  */
-void CylMapMagneticField::GetFieldValue(double const pos[3], double* field) const
+void CylMapMagneticField::GetFieldValue(G4double const pos[3],
+                                        G4double* field) const
 {
     // Calculate the magnetic field value in the native Celeritas unit system
     Real3 result = calc_field_(convert_from_geant(pos, clhep_length));
