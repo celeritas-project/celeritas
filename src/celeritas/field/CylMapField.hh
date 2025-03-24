@@ -91,7 +91,7 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
     // Convert Cartesian to cylindrical coordinates
     real_type r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
-    Turn_t<real_type> phi = atan2turn<real_type>(pos[1], pos[0]);
+    auto phi = atan2turn<real_type>(pos[1], pos[0]);
     if (phi < zero_quantity())
     {
         phi.value() += 1;
