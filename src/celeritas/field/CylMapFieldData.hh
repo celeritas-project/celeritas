@@ -19,6 +19,9 @@
 
 namespace celeritas
 {
+//! Real type for cylindrical map field data
+using cylmap_real_type = float;
+
 //---------------------------------------------------------------------------//
 /*!
  * MapField (3-dimensional R-Phi-Z map) grid data
@@ -26,10 +29,12 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct CylMapGridData
 {
+    using real_type = cylmap_real_type;
+
     template<class T>
     using Items = Collection<T, W, M>;
-    Items<float> storage;  //!< [R, Phi, Z]
-    EnumArray<CylAxis, ItemRange<float>> axes;
+    Items<real_type> storage;  //!< [R, Phi, Z]
+    EnumArray<CylAxis, ItemRange<real_type>> axes;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
@@ -58,6 +63,8 @@ struct CylMapGridData
 template<Ownership W, MemSpace M>
 struct CylMapFieldParamsData
 {
+    using real_type = cylmap_real_type;
+
     //! Grids of MapField
     CylMapGridData<W, M> grids;
 
@@ -71,7 +78,7 @@ struct CylMapFieldParamsData
     using ElementItems = Collection<T, W, M, ElementId>;
 
     //! MapField data
-    ElementItems<EnumArray<CylAxis, float>> fieldmap;
+    ElementItems<EnumArray<CylAxis, real_type>> fieldmap;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
@@ -80,7 +87,8 @@ struct CylMapFieldParamsData
     }
 
     //! Check if the given position is within the field map bounds
-    inline CELER_FUNCTION bool valid(float r, Turn_t<float> phi, float z) const
+    inline CELER_FUNCTION bool
+    valid(real_type r, Turn_t<real_type> phi, real_type z) const
     {
         CELER_EXPECT(grids);
         return (

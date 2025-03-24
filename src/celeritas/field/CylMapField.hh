@@ -8,6 +8,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/FindInterp.hh"
@@ -36,7 +37,8 @@ class CylMapField
   public:
     //!@{
     //! \name Type aliases
-    using Real3 = Array<real_type, 3>;
+    using real_type = cylmap_real_type;
+    using Real3 = Array<celeritas::real_type, 3>;
     using FieldParamsRef = NativeCRef<CylMapFieldParamsData>;
     //!@}
 
@@ -52,9 +54,9 @@ class CylMapField
     // Shared constant field map
     FieldParamsRef const& params_;
 
-    NonuniformGrid<float> const grid_r_;
-    NonuniformGrid<float> const grid_phi_;
-    NonuniformGrid<float> const grid_z_;
+    NonuniformGrid<real_type> const grid_r_;
+    NonuniformGrid<real_type> const grid_phi_;
+    NonuniformGrid<real_type> const grid_z_;
 };
 
 //---------------------------------------------------------------------------//
@@ -84,12 +86,12 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 {
     CELER_ENSURE(params_);
 
-    Real3 value{0, 0, 0};
+    Array<real_type, 3> value{0, 0, 0};
 
     // Convert Cartesian to cylindrical coordinates
-    float r = hypot(pos[0], pos[1]);
+    real_type r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
-    Turn_t<float> phi = atan2turn<float>(pos[1], pos[0]);
+    Turn_t<real_type> phi = atan2turn<real_type>(pos[1], pos[0]);
     if (phi < zero_quantity())
     {
         phi.value() += 1;
@@ -97,31 +99,31 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Check if point is within field map bounds
     if (!params_.valid(r, phi, pos[2]))
-        return value;
+        return {0, 0, 0};
 
     // Find interpolation points for given r, phi, z
-    auto [ir, wr1] = find_interp<NonuniformGrid<float>>(grid_r_, r);
+    auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
     auto [iphi, wphi1]
-        = find_interp<NonuniformGrid<float>>(grid_phi_, phi.value());
-    auto [iz, wz1] = find_interp<NonuniformGrid<float>>(grid_z_, pos[2]);
+        = find_interp<NonuniformGrid<real_type>>(grid_phi_, phi.value());
+    auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
 
     auto get_field = [this](size_type ir, size_type iphi, size_type iz) {
         return params_.fieldmap[params_.id(ir, iphi, iz)];
     };
 
-    EnumArray<CylAxis, float> interp_field;
+    EnumArray<CylAxis, real_type> interp_field;
 
     for (auto axis : range(CylAxis::size_))
     {
         // clang-format off
-        float v000 = get_field(ir,     iphi    ,     iz)[axis];
-        float v001 = get_field(ir,     iphi    , iz + 1)[axis];
-        float v010 = get_field(ir,     iphi + 1,     iz)[axis];
-        float v011 = get_field(ir,     iphi + 1, iz + 1)[axis];
-        float v100 = get_field(ir + 1, iphi    ,     iz)[axis];
-        float v101 = get_field(ir + 1, iphi    , iz + 1)[axis];
-        float v110 = get_field(ir + 1, iphi + 1,     iz)[axis];
-        float v111 = get_field(ir + 1, iphi + 1, iz + 1)[axis];
+        real_type v000 = get_field(ir,     iphi    ,     iz)[axis];
+        real_type v001 = get_field(ir,     iphi    , iz + 1)[axis];
+        real_type v010 = get_field(ir,     iphi + 1,     iz)[axis];
+        real_type v011 = get_field(ir,     iphi + 1, iz + 1)[axis];
+        real_type v100 = get_field(ir + 1, iphi    ,     iz)[axis];
+        real_type v101 = get_field(ir + 1, iphi    , iz + 1)[axis];
+        real_type v110 = get_field(ir + 1, iphi + 1,     iz)[axis];
+        real_type v111 = get_field(ir + 1, iphi + 1, iz + 1)[axis];
         // clang-format on
         // Trilinear interpolation formula for the current component
         interp_field[axis]
@@ -135,8 +137,8 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Project cylindrical components to Cartesian coordinates
     // default for r == 0
-    float cos_phi = 1.;
-    float sin_phi = 0.;
+    real_type cos_phi = 1;
+    real_type sin_phi = 0;
 
     if (r != 0)
     {
@@ -149,7 +151,7 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
                + interp_field[CylAxis::phi] * cos_phi;
     value[2] = interp_field[CylAxis::z];
 
-    return value;
+    return {value[0], value[1], value[2]};
 }
 
 //---------------------------------------------------------------------------//

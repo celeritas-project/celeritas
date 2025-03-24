@@ -55,9 +55,9 @@ inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
  * it will retrieve the G4FieldManager's field to sample it.
  */
 CylMapFieldParams::Input
-MakeCylMapFieldInput(std::vector<float> const& r_grid,
-                     std::vector<float> const& phi_values,
-                     std::vector<float> const& z_grid)
+MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
+                     std::vector<G4double> const& phi_values,
+                     std::vector<G4double> const& z_grid)
 {
     CylMapFieldParams::Input field_input;
     field_input.grid_r.reserve(r_grid.size());
@@ -68,17 +68,16 @@ MakeCylMapFieldInput(std::vector<float> const& r_grid,
     std::transform(r_grid.cbegin(),
                    r_grid.cend(),
                    std::back_inserter(field_input.grid_r),
-                   [](float r) { return convert_from_geant(r, clhep_length); });
+                   [](auto r) { return convert_from_geant(r, clhep_length); });
     //  Convert phi values to Turn type
-    std::transform(
-        phi_values.cbegin(),
-        phi_values.cend(),
-        std::back_inserter(field_input.grid_phi),
-        [](float phi) { return native_value_to<Turn_t<float>>(phi); });
+    std::transform(phi_values.cbegin(),
+                   phi_values.cend(),
+                   std::back_inserter(field_input.grid_phi),
+                   [](auto phi) { return native_value_to<RealTurn>(phi); });
     std::transform(z_grid.cbegin(),
                    z_grid.cend(),
                    std::back_inserter(field_input.grid_z),
-                   [](float z) { return convert_from_geant(z, clhep_length); });
+                   [](auto z) { return convert_from_geant(z, clhep_length); });
 
     size_type const nr = field_input.grid_r.size();
     size_type const nphi = field_input.grid_phi.size();
@@ -104,10 +103,10 @@ MakeCylMapFieldInput(std::vector<float> const& r_grid,
     Array<G4double, 3> bfield;
     for (size_type ir = 0; ir < nr; ++ir)
     {
-        float r = r_grid[ir];
+        auto r = r_grid[ir];
         for (size_type iphi = 0; iphi < nphi; ++iphi)
         {
-            float phi = phi_values[iphi];
+            auto phi = phi_values[iphi];
             for (size_type iz = 0; iz < nz; ++iz)
             {
                 auto* cur_bfield = field_input.field.data()
