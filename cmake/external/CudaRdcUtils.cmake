@@ -982,7 +982,8 @@ function(cuda_rdc_target_link_libraries target)
           set(_current_runtime_setting ${_lib_runtime_setting})
         endif()
         get_target_property(_libstatic ${_lib} CUDA_RDC_STATIC_LIBRARY)
-        if(_target_type STREQUAL "EXECUTABLE")
+        # If ${_libstatic} is a TARGET we have a RDC library.
+        if(_target_type STREQUAL "EXECUTABLE" AND TARGET ${_libstatic})
            # We need to explicit list the RDC library without the compiler might complain with:
            #    error adding symbols: DSO missing from command line
            # This DSO missing from command line message will be displayed when the linker
