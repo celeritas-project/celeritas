@@ -167,19 +167,18 @@ using CylMapFieldTest = ::celeritas::test::Test;
 
 TEST_F(CylMapFieldTest, all)
 {
-    using real_type = celeritas::cylmap_real_type;
     CylMapFieldParams field_map = [] {
         CylMapFieldInput inp;
         // Set up grid points in cylindrical coordinates
-        inp.grid_r = {0.0, 50.0, 100.0, 150.0};
-        Array<real_type, 7> const phi_values = {
+        inp.grid_r = {0, 50, 100, 150};
+        Array<celeritas::real_type, 7> const phi_values = {
             0.0, 1.0 / 6.0, 2.0 / 6.0, 3.0 / 6.0, 4.0 / 6.0, 5.0 / 6.0, 1.0};
         inp.grid_phi.resize(phi_values.size());
         std::transform(phi_values.begin(),
                        phi_values.end(),
                        inp.grid_phi.begin(),
                        [](real_type phi) { return RealTurn{phi}; });
-        inp.grid_z = {-150.0, -100.0, -50.0, 0.0, 50.0, 100.0, 150.0};
+        inp.grid_z = {-150, -100, -50, 0, 50, 100, 150};
 
         // Initialize field values with a predominantly z-directed field
         size_type const nr = inp.grid_r.size();
@@ -208,11 +207,11 @@ TEST_F(CylMapFieldTest, all)
 
                     // Set field components
                     inp.field[idx + static_cast<size_type>(CylAxis::r)]
-                        = 0.02 * r / 100.0 * std::cos(phi);
+                        = 0.02 * r / 100 * std::cos(phi);
                     inp.field[idx + static_cast<size_type>(CylAxis::phi)]
-                        = 0.02 * r / 100.0 * std::sin(phi);
+                        = 0.02 * r / 100 * std::sin(phi);
                     inp.field[idx + static_cast<size_type>(CylAxis::z)]
-                        = 3.8 - 0.0005 * (r / 100.0) * (r / 100.0);
+                        = 3.8 - 0.0005 * (r / 100) * (r / 100);
                 }
             }
         }
@@ -227,12 +226,12 @@ TEST_F(CylMapFieldTest, all)
     size_type const nz_samples = 2;
 
     // Define sampling ranges
-    real_type r_min = 10.0;
-    real_type r_max = 100.0;
-    real_type phi_min = 0.0;
+    real_type r_min = 10;
+    real_type r_max = 100;
+    real_type phi_min = 0;
     real_type phi_max = constants::pi.value() / 2;
-    real_type z_min = -100.0;
-    real_type z_max = 100.0;
+    real_type z_min = -100;
+    real_type z_max = 100;
 
     std::vector<real_type> actual;
 
