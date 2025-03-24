@@ -81,8 +81,14 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
         grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
                      + inp.grid_z.size());
 
+        auto r_start = grid.size_id();
+        std::transform(
+            inp.grid_r.cbegin(),
+            inp.grid_r.cend(),
+            std::back_inserter(grid),
+            [](auto const& val) { return static_cast<real_type>(val); });
         host.grids.axes[CylAxis::r]
-            = grid.insert_back(inp.grid_r.begin(), inp.grid_r.end());
+            = ItemRange<real_type>{r_start, grid.size_id()};
 
         // Replace first and last phi grid values with exact zero and unity
         auto phi_start = grid.size_id();
@@ -97,8 +103,14 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
         host.grids.axes[CylAxis::phi]
             = ItemRange<real_type>{phi_start, grid.size_id()};
 
+        auto z_start = grid.size_id();
+        std::transform(
+            inp.grid_z.cbegin(),
+            inp.grid_z.cend(),
+            std::back_inserter(grid),
+            [](auto const& val) { return static_cast<real_type>(val); });
         host.grids.axes[CylAxis::z]
-            = grid.insert_back(inp.grid_z.begin(), inp.grid_z.end());
+            = ItemRange<real_type>{z_start, grid.size_id()};
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field.size());
