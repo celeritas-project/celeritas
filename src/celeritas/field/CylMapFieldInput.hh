@@ -35,7 +35,7 @@ namespace celeritas
 struct CylMapFieldInput
 {
     std::vector<real_type> grid_r;  //!< R grid points [len]
-    std::vector<Turn> grid_phi;  //!< Phi grid points [AU]
+    std::vector<RealTurn> grid_phi;  //!< Phi grid points [AU]
     std::vector<real_type> grid_z;  //!< Z grid points [len]
 
     std::vector<real_type> field;  //!< Flattened R-Phi-Z field component

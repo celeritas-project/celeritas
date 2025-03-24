@@ -73,6 +73,7 @@
 
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
+#include "TimeOutput.hh"
 
 #include "detail/OffloadWriter.hh"
 
@@ -273,6 +274,10 @@ SharedParams::SharedParams(SetupOptions const& options)
         output_reg_ = std::make_shared<OutputRegistry>();
         output_filename_ = options.output_file;
 
+        // Create the timing output
+        timer_
+            = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
+
         if (!output_filename_.empty())
         {
             CELER_LOG(debug)
@@ -291,6 +296,7 @@ SharedParams::SharedParams(SetupOptions const& options)
                     "environ",
                     celeritas::environment()));
             output_reg_->insert(std::make_shared<BuildOutput>());
+            output_reg_->insert(timer_);
         }
 
         return;
@@ -664,6 +670,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Set state size
     params.tracks_per_stream = options.max_num_tracks;
 
+    // Set state size
+    if (options.max_num_events)
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
+                              "be an error in v0.7";
+    }
+
     // Allocate device streams
     if (auto& d = celeritas::device())
     {
@@ -671,7 +684,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
     }
     if (options.default_stream)
     {
-        CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
+        CELER_LOG(warning) << "Ignoring removed option 'default_stream': will "
+                              "be an error in v0.7";
     }
 
     // Construct along-step action
@@ -719,6 +733,10 @@ void SharedParams::initialize_core(SetupOptions const& options)
     {
         options.add_user_actions(*params_);
     }
+
+    // Add timing output
+    timer_ = std::make_shared<TimeOutput>(this->num_streams());
+    output_reg_->insert(timer_);
 }
 
 //---------------------------------------------------------------------------//

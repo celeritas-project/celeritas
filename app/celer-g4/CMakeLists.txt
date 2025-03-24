@@ -20,7 +20,6 @@ if(CELERITAS_USE_Geant4)
     RunInputIO.json.cc
     SensitiveDetector.cc
     SensitiveHit.cc
-    TimerOutput.cc
     TrackingAction.cc
   )
   set(LIBRARIES Celeritas::accel nlohmann_json::nlohmann_json)

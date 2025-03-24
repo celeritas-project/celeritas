@@ -19,6 +19,9 @@
 
 namespace celeritas
 {
+//! Real type for cylindrical map field data
+using cylmap_real_type = float;
+
 //---------------------------------------------------------------------------//
 /*!
  * MapField (3-dimensional R-Phi-Z map) grid data
@@ -26,6 +29,8 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct CylMapGridData
 {
+    using real_type = cylmap_real_type;
+
     template<class T>
     using Items = Collection<T, W, M>;
     Items<real_type> storage;  //!< [R, Phi, Z]
@@ -58,6 +63,8 @@ struct CylMapGridData
 template<Ownership W, MemSpace M>
 struct CylMapFieldParamsData
 {
+    using real_type = cylmap_real_type;
+
     //! Grids of MapField
     CylMapGridData<W, M> grids;
 
@@ -80,7 +87,8 @@ struct CylMapFieldParamsData
     }
 
     //! Check if the given position is within the field map bounds
-    inline CELER_FUNCTION bool valid(real_type r, Turn phi, real_type z) const
+    inline CELER_FUNCTION bool
+    valid(real_type r, Turn_t<real_type> phi, real_type z) const
     {
         CELER_EXPECT(grids);
         return (

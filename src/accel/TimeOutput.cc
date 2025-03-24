@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/TimerOutput.cc
+//! \file accel/TimeOutput.cc
 //---------------------------------------------------------------------------//
-#include "TimerOutput.hh"
+#include "TimeOutput.hh"
 
 #include <nlohmann/json.hpp>
 
@@ -12,16 +12,15 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
-{
-namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with number of threads.
  */
-TimerOutput::TimerOutput(size_type num_threads)
+TimeOutput::TimeOutput(size_type num_threads)
 {
     CELER_EXPECT(num_threads > 0);
 
@@ -33,13 +32,15 @@ TimerOutput::TimerOutput(size_type num_threads)
 /*!
  * Write output to the given JSON object.
  */
-void TimerOutput::output(JsonPimpl* j) const
+void TimeOutput::output(JsonPimpl* j) const
 {
     using json = nlohmann::json;
+    using TimeSecond = RealQuantity<units::Second>;
 
     auto obj = json::object();
 
     obj = {
+        {"_units", TimeSecond::unit_type::label()},
         {"_index", "thread"},
         {"actions", action_time_},
         {"events", event_time_},
@@ -54,7 +55,7 @@ void TimerOutput::output(JsonPimpl* j) const
 /*!
  * Record the accumulated action times.
  */
-void TimerOutput::RecordActionTime(MapStrReal&& time)
+void TimeOutput::RecordActionTime(MapStrReal&& time)
 {
     size_type thread_id = get_geant_thread_id();
     CELER_ASSERT(thread_id < action_time_.size());
@@ -65,7 +66,7 @@ void TimerOutput::RecordActionTime(MapStrReal&& time)
 /*!
  * Record the time for the event.
  */
-void TimerOutput::RecordEventTime(real_type time)
+void TimeOutput::RecordEventTime(real_type time)
 {
     size_type thread_id = get_geant_thread_id();
     CELER_ASSERT(thread_id < event_time_.size());
@@ -74,11 +75,11 @@ void TimerOutput::RecordEventTime(real_type time)
 
 //---------------------------------------------------------------------------//
 /*!
- * Record the time for setup.
+ * Record the time for setting up Celeritas.
  *
  * This should be called once by the master thread.
  */
-void TimerOutput::RecordSetupTime(real_type time)
+void TimeOutput::RecordSetupTime(real_type time)
 {
     setup_time_ = time;
 }
@@ -89,11 +90,10 @@ void TimerOutput::RecordSetupTime(real_type time)
  *
  * This should be called once by the master thread.
  */
-void TimerOutput::RecordTotalTime(real_type time)
+void TimeOutput::RecordTotalTime(real_type time)
 {
     total_time_ = time;
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

@@ -61,6 +61,9 @@ struct RelativisticBremData
     //! Electron mass [MeVMass]
     units::MevMass electron_mass;
 
+    //! Low energy limit of the model
+    units::MevEnergy low_energy_limit;
+
     //! LPM flag
     bool enable_lpm{};
 
@@ -88,6 +91,7 @@ struct RelativisticBremData
         CELER_EXPECT(other);
         ids = other.ids;
         electron_mass = other.electron_mass;
+        low_energy_limit = other.low_energy_limit;
         enable_lpm = other.enable_lpm;
         elem_data = other.elem_data;
         return *this;

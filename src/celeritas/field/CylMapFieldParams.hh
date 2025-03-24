@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -28,6 +29,7 @@ class CylMapFieldParams final
   public:
     //@{
     //! \name Type aliases
+    using real_type = cylmap_real_type;
     using Input = CylMapFieldInput;
     //@}
 

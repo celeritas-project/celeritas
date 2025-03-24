@@ -126,25 +126,30 @@ ImportProcess InteractorHostBase::make_import_process(
     PDGNumber particle,
     PDGNumber secondary,
     ImportProcessClass ipc,
-    std::vector<ImportModelClass> models) const
+    std::vector<ImportModelClass> models,
+    std::vector<Array<double, 2>> model_limits) const
 {
     CELER_EXPECT(particle);
     CELER_EXPECT(material_params_);
     CELER_EXPECT(!models.empty());
+    CELER_EXPECT(models.size() == model_limits.size());
+
     ImportProcess result;
     result.particle_pdg = particle.get();
     result.secondary_pdg = secondary ? secondary.get() : 0;
     result.process_type = ImportProcessType::electromagnetic;
     result.process_class = ipc;
 
-    for (auto& mcls : models)
+    for (auto i : range(models.size()))
     {
         ImportModel m;
-        m.model_class = mcls;
+        m.model_class = models[i];
         m.materials.resize(material_params_->num_materials());
+        m.low_energy_limit = model_limits[i][0];
+        m.high_energy_limit = model_limits[i][1];
         for (ImportModelMaterial& imm : m.materials)
         {
-            imm.energy = {0, 1e12};
+            imm.energy = {m.low_energy_limit, m.high_energy_limit};
         }
         CELER_ASSERT(m);
         result.models.push_back(std::move(m));
