@@ -107,7 +107,7 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
             fieldmap.push_back(
                 [idx = inp.field.cbegin()
                        + i * static_cast<size_type>(CylAxis::size_)] {
-                    EnumArray<CylAxis, float> el;
+                    EnumArray<CylAxis, real_type> el;
                     std::copy(idx,
                               idx + static_cast<size_type>(CylAxis::size_),
                               el.begin());
