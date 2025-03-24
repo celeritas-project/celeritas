@@ -829,18 +829,20 @@ function(cuda_rdc_check_cuda_runtime OUTVAR library)
     # the shared run-time library and we don't have the scafolding libraries
     # (shared/static/final) then this won't work well. i.e. if we were to detect this
     # case we probably need to 'error out'.
-    get_target_property(_cuda_library_type ${library} CUDA_RDC_LIBRARY_TYPE)
-    get_target_property(_cuda_find_library ${library} CUDA_RDC_FINAL_LIBRARY)
-    if(_cuda_library_type STREQUAL "Shared")
-      set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime_setting "Shared")
-    elseif(NOT _cuda_find_library)
+    get_target_property(_cuda_middle_library ${library} CUDA_RDC_MIDDLE_LIBRARY)
+    get_target_property(_cuda_static_library ${library} CUDA_RDC_STATIC_LIBRARY)
+    if(_cuda_middle_library AND _cuda_static_library)
+      # We could also check that _cuda_middle_library's "target_type" is STATIC_LIBRARY
+      if(_cuda_static_library STREQUAL _cuda_middle_library)
+        set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Static")
+        set(_runtime_setting "Static")
+      else()
+        set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+        set(_runtime_setting "Shared")
+      endif()
+    else()
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "None")
       set(_runtime_setting "None")
-    else()
-      # If we have a final library then the library is shared.
-      set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime_setting "Shared")
     endif()
   endif()
 
