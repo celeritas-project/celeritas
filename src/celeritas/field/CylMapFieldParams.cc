@@ -90,7 +90,9 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
         std::transform(inp.grid_phi.cbegin() + 1,
                        inp.grid_phi.cend() - 1,
                        std::back_inserter(grid),
-                       [](auto const& val) { return val.value(); });
+                       [](auto const& val) {
+                           return static_cast<real_type>(val.value());
+                       });
         grid.push_back(1);
         host.grids.axes[CylAxis::phi]
             = ItemRange<real_type>{phi_start, grid.size_id()};
