@@ -972,16 +972,18 @@ function(cuda_rdc_target_link_libraries target)
           set(_need_to_use_shared_runtime TRUE)
         endif()
         if(NOT _first_lib_runtime_setting AND NOT _lib_runtime_setting STREQUAL "None")
-         set(_first_lib_runtime_setting ${_lib_runtime_setting})
-         set(_first_lib ${_lib})
+          set(_first_lib_runtime_setting ${_lib_runtime_setting})
+          set(_first_lib ${_lib})
+          # We need to match the dependent library since we can not change it.
+          if(NOT _current_runtime_setting OR NOT _current_runtime_setting STREQUAL _first_lib_runtime_setting)
+            set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY ${_lib_runtime_setting})
+            set(_current_runtime_setting ${_lib_runtime_setting})
+          endif()
         elseif(_lib_runtime_setting AND NOT (_first_lib_runtime_setting STREQUAL _lib_runtime_setting)
                AND NOT _lib_runtime_setting STREQUAL "None")
+          # Case where we encounter 2 dependent library with different runtime requirement, we can not
+          # match both.
           message(FATAL_ERROR "The CUDA runtime used for ${_lib} [${_lib_runtime_setting}] is different from the one used by ${_first_lib}  [${_first_lib_runtime_setting}]")
-        endif()
-        # We need to match the dependent library since we can not change it.
-        if(NOT _current_runtime_setting AND NOT _lib_runtime_setting STREQUAL "None")
-          set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY ${_lib_runtime_setting})
-          set(_current_runtime_setting ${_lib_runtime_setting})
         endif()
         get_target_property(_libstatic ${_lib} CUDA_RDC_STATIC_LIBRARY)
         # If ${_libstatic} is a TARGET we have a RDC library.
