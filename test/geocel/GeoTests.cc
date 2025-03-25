@@ -875,8 +875,7 @@ void ReplicaGeoTest::test_volume_stack() const
             "fSecondArmPhys",
         };
         ref.replicas = {-1, -1};
-        if (test_->geometry_type() == "Geant4"
-            || (test_->geometry_type() == "VecGeom"))
+        if (test_->geometry_type() == "Geant4" || using_vecgeom_surface)
         {
             ref.volume_instances.insert(ref.volume_instances.end(),
                                         {"EMcalorimeter", "cell_param"});

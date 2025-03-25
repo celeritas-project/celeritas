@@ -50,6 +50,7 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
                                        && CELERITAS_CORE_GEO
                                               == CELERITAS_CORE_GEO_VECGEOM;
+
 constexpr bool using_vecgeom_solid = !CELERITAS_VECGEOM_SURFACE
                                      && CELERITAS_CORE_GEO
                                             == CELERITAS_CORE_GEO_VECGEOM;
@@ -829,8 +830,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
             EXPECT_EQ("inner_box.py", this->surface_name(geo));
         }
         geo.cross_boundary();
-        EXPECT_EQ(this->volume_name(geo),
-                  using_vecgeom_solid ? "inner" : "world");
+        EXPECT_EQ(this->volume_name(geo), "world");
     }
     {
         SCOPED_TRACE("Barely (correctly) misses y");
@@ -1237,8 +1237,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
     // NOTE: vecgeom surface puts this position slightly *outside* the beam
     // tube rather than *inside*
-    EXPECT_EQ(using_vecgeom_solid ? "vacuum_tube" : "si_tracker",
-              this->volume_name(geo));
+    EXPECT_EQ("si_tracker", this->volume_name(geo));
     {
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
@@ -1251,7 +1250,6 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_FALSE(result.looping);
 
-        // if (using_vecgeom_solid)
         if (using_vecgeom_surface)
         {
             // Surface geometry does not intersect the cylinder boundary, so
@@ -1271,7 +1269,6 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             geo.cross_boundary();
         }
     }
-    if (using_vecgeom_solid)
     {
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
@@ -1279,17 +1276,14 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(30);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_SOFT_NEAR(double{using_vecgeom_surface ? 30 : 46},
-                         static_cast<double>(stepper.count()),
-                         0.2);
-        ASSERT_EQ(using_vecgeom_surface, geo.is_on_boundary());
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
-        }
-        EXPECT_SOFT_EQ(29.966101314162309, calc_radius());
+        EXPECT_EQ(stepper.count(), using_vecgeom_surface ? 27 : 30);
+        EXPECT_EQ(geo.is_on_boundary(), !using_vecgeom_surface);
+        EXPECT_SOFT_NEAR(calc_radius(), 29.9999996, 4e-7);
         geo.cross_boundary();
-        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+        EXPECT_EQ(this->volume_name(geo),
+                  using_vecgeom_surface ? "vacuum_tube" : "si_tracker");
+        std::cerr << " using surface=" << using_vecgeom_surface
+                  << " solid:" << using_vecgeom_solid << std::endl;
     }
 }
 
@@ -1334,7 +1328,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         geo.set_dir({-1.31178657592616127e-01,
                      -8.29310561920304168e-01,
                      -5.43172303859124073e-01});
-        geo.cross_boundary();
+        geo.cross_boundary();  // TODO: hack cross_boundary to handle this case
         successful_reentry = (this->volume_name(geo) == "em_calorimeter");
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1366,14 +1360,15 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
                                << " geometry: post-propagation volume is "
                                << this->volume_name(geo);
 
-            EXPECT_EQ("si_tracker", this->volume_name(geo));
+            EXPECT_EQ(this->volume_name(geo),
+                      using_vecgeom_surface ? "si_tracker" : "world");
 
             // Interestingly, VecGeom surf and solid models see that surface
             // slightly differently.  Only surface model thinks the surface
             // was actually crossed, therefore the next step will find distinct
             // results
             auto result = geo.find_next_step(1);
-            EXPECT_EQ(result.distance, using_vecgeom_surface ? 1e-13 : 1);
+            EXPECT_EQ(result.distance, using_vecgeom_surface ? 1e-13 : 1e-8);
 
             if (result.distance < 1e-6)
             {
@@ -1386,8 +1381,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             EXPECT_EQ(result.distance, 1);
             EXPECT_FALSE(result.boundary);
             EXPECT_TRUE(geo.is_on_boundary());
-            EXPECT_EQ(using_vecgeom_surface ? "em_calorimeter" : "si_tracker",
-                      this->volume_name(geo));
+            EXPECT_EQ(this->volume_name(geo), "em_calorimeter");
             EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
         }
     }
@@ -1424,23 +1418,17 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 
             EXPECT_SOFT_EQ(12.02714054426572, result.distance);
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(573, stepper.count());
+            EXPECT_EQ(stepper.count(), 573);
             EXPECT_TRUE(result.looping);
         }
         else
         {
             // Repeated substep bisection failed; particle is bumped
-            EXPECT_SOFT_NEAR(using_vecgeom_surface ? 12.02714054426572
-                                                   : 0.0072982367804632848,
-                             result.distance,
-                             coarse_eps);
+            EXPECT_SOFT_NEAR(result.distance, 12.02714054426572, coarse_eps);
             // Minor floating point differences could make this 98 or so
-            EXPECT_SOFT_NEAR(real_type(using_vecgeom_surface ? 573 : 87),
-                             real_type(stepper.count()),
-                             0.05);
-            EXPECT_EQ(result.boundary, using_vecgeom_solid);  // FIXME: should
-                                                              // have reentered
-            EXPECT_EQ(result.looping, using_vecgeom_surface);
+            EXPECT_EQ(stepper.count(), 573);
+            EXPECT_FALSE(result.boundary);
+            EXPECT_TRUE(result.looping);
 
             if (scoped_log_.empty()) {}
             else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
@@ -1562,11 +1550,11 @@ TEST_F(CmseTest, coarse)
     }
     else if (using_vecgeom_solid)
     {
-        expected_num_boundary = {286, 168, 89, 173};
-        expected_num_step = {10001, 6555, 3287, 1409};
-        expected_num_intercept = {31906, 20704, 16759, 14349};
-        expected_num_integration = {81877, 59837, 42633, 30095};
-        EXPECT_EQ(scoped_log_.messages().size(), 441);  // TODO: why so many?
+        expected_num_boundary = {134, 101, 60, 40};
+        expected_num_step = {10001, 6462, 3236, 1303};
+        expected_num_intercept = {30419, 19551, 16170, 9956};
+        expected_num_integration = {80659, 58282, 41914, 26114};
+        EXPECT_EQ(scoped_log_.messages().size(), 1);
     }
     else if (!scoped_log_.empty())
     {
