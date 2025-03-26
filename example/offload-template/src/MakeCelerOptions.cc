@@ -41,13 +41,18 @@ celeritas::SetupOptions MakeCelerOptions()
 {
     celeritas::SetupOptions opts;
 
+    // NOTE: these can be omitted if using a .mac input file
     opts.max_num_tracks = 1024 * 16;
     opts.initializer_capacity = 1024 * 128 * 4;
+
+    opts.ignore_processes = {"CoulombScat"};
 
     // Set along-step factory with zero field
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
+    // Add a callback to adding user actions
     opts.add_user_actions = AddUserActions;
+
     return opts;
 }
 
