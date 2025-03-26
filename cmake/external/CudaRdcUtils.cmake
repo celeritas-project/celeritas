@@ -122,7 +122,7 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-set(_CUDA_RDC_VERSION 4)
+set(_CUDA_RDC_VERSION 6)
 if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
   # A newer version has already been loaded
   message(VERBOSE "Ignoring CUDA_RDC_VERSION ${_CUDA_RDC_VERSION}: "
@@ -442,7 +442,7 @@ function(cuda_rdc_add_library target)
     ${_common_props}
     CUDA_RDC_LIBRARY_TYPE Shared
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
-    EXPORT_PROPERTIES "CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
+    EXPORT_PROPERTIES "CUDA_RUNTIME_LIBRARY;CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
   )
 
   ## STATIC ##
@@ -454,7 +454,7 @@ function(cuda_rdc_add_library target)
     set_target_properties(${target}${_staticsuf} PROPERTIES
       ${_common_props}
       CUDA_RDC_LIBRARY_TYPE Static
-      EXPORT_PROPERTIES "CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
+      EXPORT_PROPERTIES "CUDA_RUNTIME_LIBRARY;CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
     )
   endif()
 
@@ -480,7 +480,7 @@ function(cuda_rdc_add_library target)
     LINK_DEPENDS $<TARGET_FILE:${target}${_staticsuf}>
     CUDA_RDC_LIBRARY_TYPE Final
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
-    EXPORT_PROPERTIES "CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
+    EXPORT_PROPERTIES "CUDA_RUNTIME_LIBRARY;CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
   )
   target_link_libraries(${target}_final PUBLIC ${target})
   if(TARGET CUDA::toolkit)
@@ -829,18 +829,20 @@ function(cuda_rdc_check_cuda_runtime OUTVAR library)
     # the shared run-time library and we don't have the scafolding libraries
     # (shared/static/final) then this won't work well. i.e. if we were to detect this
     # case we probably need to 'error out'.
-    get_target_property(_cuda_library_type ${library} CUDA_RDC_LIBRARY_TYPE)
-    get_target_property(_cuda_find_library ${library} CUDA_RDC_FINAL_LIBRARY)
-    if(_cuda_library_type STREQUAL "Shared")
-      set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime_setting "Shared")
-    elseif(NOT _cuda_find_library)
+    get_target_property(_cuda_middle_library ${library} CUDA_RDC_MIDDLE_LIBRARY)
+    get_target_property(_cuda_static_library ${library} CUDA_RDC_STATIC_LIBRARY)
+    if(_cuda_middle_library AND _cuda_static_library)
+      # We could also check that _cuda_middle_library's "target_type" is STATIC_LIBRARY
+      if(_cuda_static_library STREQUAL _cuda_middle_library)
+        set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Static")
+        set(_runtime_setting "Static")
+      else()
+        set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+        set(_runtime_setting "Shared")
+      endif()
+    else()
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "None")
       set(_runtime_setting "None")
-    else()
-      # If we have a final library then the library is shared.
-      set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime_setting "Shared")
     endif()
   endif()
 
@@ -970,19 +972,22 @@ function(cuda_rdc_target_link_libraries target)
           set(_need_to_use_shared_runtime TRUE)
         endif()
         if(NOT _first_lib_runtime_setting AND NOT _lib_runtime_setting STREQUAL "None")
-         set(_first_lib_runtime_setting ${_lib_runtime_setting})
-         set(_first_lib ${_lib})
+          set(_first_lib_runtime_setting ${_lib_runtime_setting})
+          set(_first_lib ${_lib})
+          # We need to match the dependent library since we can not change it.
+          if(NOT _current_runtime_setting OR NOT _current_runtime_setting STREQUAL _first_lib_runtime_setting)
+            set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY ${_lib_runtime_setting})
+            set(_current_runtime_setting ${_lib_runtime_setting})
+          endif()
         elseif(_lib_runtime_setting AND NOT (_first_lib_runtime_setting STREQUAL _lib_runtime_setting)
                AND NOT _lib_runtime_setting STREQUAL "None")
+          # Case where we encounter 2 dependent library with different runtime requirement, we can not
+          # match both.
           message(FATAL_ERROR "The CUDA runtime used for ${_lib} [${_lib_runtime_setting}] is different from the one used by ${_first_lib}  [${_first_lib_runtime_setting}]")
         endif()
-        # We need to match the dependent library since we can not change it.
-        if(NOT _current_runtime_setting AND NOT _lib_runtime_setting STREQUAL "None")
-          set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY ${_lib_runtime_setting})
-          set(_current_runtime_setting ${_lib_runtime_setting})
-        endif()
         get_target_property(_libstatic ${_lib} CUDA_RDC_STATIC_LIBRARY)
-        if(_target_type STREQUAL "EXECUTABLE")
+        # If ${_libstatic} is a TARGET we have a RDC library.
+        if(_target_type STREQUAL "EXECUTABLE" AND TARGET ${_libstatic})
            # We need to explicit list the RDC library without the compiler might complain with:
            #    error adding symbols: DSO missing from command line
            # This DSO missing from command line message will be displayed when the linker
