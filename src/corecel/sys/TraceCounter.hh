@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 #include "corecel/Config.hh"
 
@@ -17,10 +18,12 @@ namespace celeritas
 template<class T>
 void trace_counter(char const* name, T value);
 
-#if CELERITAS_USE_PERFETTO
+#if CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA
 // Explicit instantiations
-extern template void trace_counter(char const*, unsigned int);
-extern template void trace_counter(char const*, std::size_t);
+extern template void trace_counter(char const*, std::uint32_t);
+extern template void trace_counter(char const*, std::uint64_t);
+extern template void trace_counter(char const*, std::int32_t);
+extern template void trace_counter(char const*, std::int64_t);
 extern template void trace_counter(char const*, float);
 extern template void trace_counter(char const*, double);
 

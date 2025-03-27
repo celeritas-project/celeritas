@@ -280,8 +280,10 @@ endif()
 if(CELERITAS_USE_CUDA)
   # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
+    sys/detail/NvtxUtils.cc
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
+    sys/TraceCounter.cuda.cc
   )
 endif()
 
