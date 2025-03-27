@@ -81,7 +81,8 @@ if celer_config['options']['breathe']:
     extensions.append('breathe')
     breathe_default_project = 'celeritas'
     breathe_projects = {
-        breathe_default_project: build_dir / 'xml'
+        # See CMakeLists.txt
+        breathe_default_project: build_dir / 'doxygen-xml'
     }
     breathe_default_members = ()
     breathe_show_include = False

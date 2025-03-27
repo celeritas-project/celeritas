@@ -95,7 +95,7 @@ doxygen_add_docs(doxygen
   ${_DOXYGEN_EXTRA_SOURCE}
   ${_DOXYGEN_TEST_SOURCE}
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Generating Doxygen to doc/doxygen-html/index.html"
+  COMMENT "Generating Doxygen to doc/${DOXYGEN_HTML_OUTPUT}/index.html"
 )
 
 #-----------------------------------------------------------------------------#
@@ -109,7 +109,7 @@ if(CELERITAS_PYTHONPATH_RERUN)
 endif()
 
 if(NOT Sphinx_FOUND)
-  function(celeritas_build_sphinx type output)
+  function(celeritas_build_sphinx type output depends)
     add_custom_command(
       OUTPUT "${output}"
       VERBATIM COMMAND
@@ -118,12 +118,11 @@ if(NOT Sphinx_FOUND)
         -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
         -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON
         "${CMAKE_BINARY_DIR}"
-      BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Rerunning CMake because Sphinx was not found"
     )
   endfunction()
 else()
-  function(celeritas_build_sphinx type output)
+  function(celeritas_build_sphinx type output depends)
     add_custom_command(
       OUTPUT "${output}"
       VERBATIM COMMAND
@@ -137,9 +136,11 @@ else()
           "${CMAKE_CURRENT_SOURCE_DIR}"
           "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Building ${type} documentation with Sphinx"
+      BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
         "${CMAKE_CURRENT_BINARY_DIR}/config.json"
+         ${depends}
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     )
   endfunction()
@@ -194,11 +195,12 @@ configure_file("config.json.in" "config.json" @ONLY)
 set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_USER")
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
+set(DOXYGEN_XML_OUTPUT "doxygen-xml")
+set(DOXYGEN_XML_PROGRAMLISTING NO)
 set(DOXYGEN_COLLABORATION_GRAPH NO)
 set(DOXYGEN_CLASS_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
-set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 set(DOXYGEN_ALIASES
   "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
@@ -249,8 +251,17 @@ doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_EXTRA_SOURCE}
   USE_STAMP_FILE
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Generating Doxygen XML"
+  COMMENT "Generating Doxygen to doc/${DOXYGEN_XML_OUTPUT}/index.xml"
 )
+
+if(CELERITAS_USE_BREATHE)
+  set(_breathe_deps
+    "${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_XML_OUTPUT}/index.xml"
+    doxygen_xml
+  )
+else()
+  set(_breathe_deps)
+endif()
 
 #-----------------------------------------------------------------------------#
 # HTML
@@ -259,11 +270,8 @@ set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
 mark_as_advanced(CELERITAS_SPHINX_USER_HTML_ARGS)
 
 set(_doc_html "${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
-celeritas_build_sphinx(html "${_doc_html}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
+celeritas_build_sphinx(html "${_doc_html}" "${_breathe_deps}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
 add_custom_target(doc DEPENDS "${_doc_html}")
-if(CELERITAS_USE_BREATHE)
-  add_dependencies(doc doxygen_xml)
-endif()
 
 install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
   DESTINATION "${CMAKE_INSTALL_DOCDIR}"
@@ -274,7 +282,7 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
 # PDF
 
 set(_doc_tex "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.tex")
-celeritas_build_sphinx(latex "${_doc_tex}")
+celeritas_build_sphinx(latex "${_doc_tex}" "${_breathe_deps}")
 
 if(Sphinx_FOUND)
   # Download ornltm class
