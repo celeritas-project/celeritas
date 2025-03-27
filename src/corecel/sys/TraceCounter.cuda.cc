@@ -23,10 +23,7 @@ namespace celeritas
  * \tparam T Arithmetic counter type
  *
  * Records a named value at the current timestamp which
- * can then be displayed on a timeline. Only supported on host, this compiles
- * but is a noop on device.
- *
- * See https://perfetto.dev/docs/instrumentation/track-events#counters
+ * can then be displayed on a timeline. Only supported on host
  */
 template<class T>
 void trace_counter(char const* name, T value)
