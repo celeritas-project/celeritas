@@ -122,7 +122,7 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-set(_CUDA_RDC_VERSION 6)
+set(_CUDA_RDC_VERSION 8)
 if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
   # A newer version has already been loaded
   message(VERBOSE "Ignoring CUDA_RDC_VERSION ${_CUDA_RDC_VERSION}: "
@@ -817,7 +817,10 @@ endfunction()
 #
 #  Check which CUDA runtime is needed for a given (dependent) library.
 function(cuda_rdc_check_cuda_runtime OUTVAR library)
-
+  if(NOT TARGET ${library})
+    set(${OUTVAR} "None" PARENT_SCOPE)
+    return()
+  endif()
   get_target_property(_runtime_setting ${library} CUDA_RUNTIME_LIBRARY)
   if(NOT _runtime_setting)
     # We could get more exact information by using:
@@ -926,8 +929,24 @@ function(cuda_rdc_target_link_libraries target)
       if(_final_target_type STREQUAL "STATIC_LIBRARY")
         # for static libraries we need to list the libraries a second time (to resolve symbol from the final library)
         get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
-        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} ${_finallibs} ${_current_link_libraries} )
-      else()
+        # Gather all the dependent static libraries, especially the cuda RDC libraries.
+        # We need to list them twice (once in reverse order, once in the right order)
+        # to fully resolve all the (CUDA RDC) symbols.
+        cuda_rdc_cuda_gather_dependencies(_flat_list_linked_libs ${target})
+        foreach(_dep_lib IN LISTS _flat_list_linked_libs)
+          cuda_rdc_strip_alias(_alias_dep_lib ${_dep_lib})
+          if(TARGET ${_alias_dep_lib})
+            get_target_property(_target_type ${_alias_dep_lib} TYPE)
+            get_target_property(_middle_lib ${_alias_dep_lib} CUDA_RDC_MIDDLE_LIBRARY)
+            if(_target_type STREQUAL "STATIC_LIBRARY")
+              list(APPEND _short_flat_list_linked_libs ${_dep_lib})
+            endif()
+          endif()
+        endforeach()
+        set(_reverse_flat_list_linked_libs ${_short_flat_list_linked_libs})
+        list(REVERSE _reverse_flat_list_linked_libs)
+        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_reverse_flat_list_linked_libs} ${_short_flat_list_linked_libs} ${_finallibs} ${_current_link_libraries})
+     else()
         # We could have used:
         #    target_link_libraries(${target} PUBLIC ${_finallibs})
         # but target_link_libraries must used either all plain arguments or all plain
