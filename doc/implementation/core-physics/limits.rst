@@ -7,7 +7,7 @@ Step limits
 ===========
 
 Currently there are only a few, hard-coded step limitation mechanics that apply
-to a particle at each step. The ordering of these can affect
+to a particle at each step. The ordering of these can affect the performance.
 
 .. _limits_interaction:
 

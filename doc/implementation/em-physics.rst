@@ -48,7 +48,7 @@ distributions to sample an *Interaction* based on incident particle
 properties.
 The sampled result contains the updated particle direction and energy, as well
 as properties of any secondary particles produced. Interaction limits are
-described
+described in :ref:`limits`.
 
 The following table summarizes the EM processes and models in Celeritas.
 
