@@ -7,12 +7,7 @@ Step limits
 ===========
 
 Currently there are only a few, hard-coded step limitation mechanics that apply
-to a particle at each step.
-
-User-input
-----------
-
-See :cpp:class:`celeritas::inp::TrackingLimits`.
+to a particle at each step. The ordering of these can affect
 
 .. _limits_interaction:
 
@@ -34,6 +29,16 @@ beginning-of-step cross sections.
 
 .. doxygenfunction:: celeritas::select_discrete_interaction
 
+User-input
+----------
+
+See :cpp:class:`celeritas::inp::TrackingLimits`.
+
+Range and energy loss
+---------------------
+
+See :ref:`em_slowing_down`.
+
 Multiple scattering
 -------------------
 
@@ -41,8 +46,16 @@ See :ref:`em_coulomb`.
 
 .. doxygenclass:: celeritas::detail::UrbanMscSafetyStepLimit
 
+.. doxygenclass:: celeritas::detail::UrbanMscMinimalStepLimit
 
-Range and energy loss
----------------------
+When multiple scattering is in play, the "physical" step limit must be
+converted to and from a "geometry" step limit before and after the propagation
+(movement within geometry) step limiting calculation.
 
-See :ref:`em_slowing_down`.
+.. doxygenclass:: celeritas::detail::MscStepFromGeo
+.. doxygenclass:: celeritas::detail::MscStepToGeo
+
+Geometry
+--------
+
+See :ref:`api_propagation`.

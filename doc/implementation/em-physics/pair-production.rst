@@ -6,8 +6,14 @@
 Pair production
 ===============
 
+Models
+------
+
 .. doxygenclass:: celeritas::BetheHeitlerInteractor
 .. doxygenclass:: celeritas::MuPairProductionInteractor
+
+Distributions
+-------------
 
 The energy transfer for muon pair production is sampled using the inverse
 transform method with tabulated CDFs.

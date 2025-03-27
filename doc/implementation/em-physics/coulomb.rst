@@ -27,14 +27,25 @@ with the single Coulomb scattering model, is an implementation of the mixed
 simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
 
+Models
+------
+
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
-.. doxygenclass:: celeritas::WentzelDistribution
+.. doxygenclass:: celeritas::detail::UrbanMscScatter
+
+Cross sections
+--------------
+
 .. doxygenclass:: celeritas::WentzelHelper
 .. doxygenclass:: celeritas::MottRatioCalculator
+
+Distributions
+-------------
+
+.. doxygenclass:: celeritas::WentzelDistribution
+
+The nuclear form factors used by this distribution are:
 
 .. doxygenclass:: celeritas::ExpNuclearFormFactor
 .. doxygenclass:: celeritas::GaussianNuclearFormFactor
 .. doxygenclass:: celeritas::UUNuclearFormFactor
-
-.. doxygenclass:: celeritas::detail::UrbanMscScatter
-

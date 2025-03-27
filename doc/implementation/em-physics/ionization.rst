@@ -4,10 +4,16 @@
 .. _em_ionization:
 
 Ionization
-----------
+==========
+
+Models
+------
 
 .. doxygenclass:: celeritas::MollerBhabhaInteractor
 .. doxygenclass:: celeritas::MuHadIonizationInteractor
+
+Distributions
+-------------
 
 The exiting energy distribution from most of these ionization models
 are sampled using external helper distributions.

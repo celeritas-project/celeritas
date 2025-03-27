@@ -4,7 +4,13 @@
 Annihilation
 ============
 
+Models
+------
+
 .. doxygenclass:: celeritas::EPlusGGInteractor
+
+Cross sections
+--------------
 
 Positron annihilation cross sections are calculated on the fly.
 

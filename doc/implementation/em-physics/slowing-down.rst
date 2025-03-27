@@ -14,6 +14,9 @@ over the step.
 
 .. doxygenfunction:: celeritas::calc_mean_energy_loss
 
+Energy loss fluctuations
+------------------------
+
 Since true energy loss is a stochastic function of many small collisions, the
 *mean* energy loss term is an approximation. Additional
 models are implemented to adjust the loss per step with stochastic sampling for
