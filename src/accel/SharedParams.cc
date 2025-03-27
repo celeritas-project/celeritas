@@ -28,6 +28,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/BuildOutput.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -779,30 +780,15 @@ void SharedParams::try_output() const
     std::string filename = output_filename_;
     if (filename.empty())
     {
-        CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "
-                            "empty";
+        CELER_LOG(debug)
+            << R"(Skipping output: SetupOptions::output_file is empty)";
         return;
     }
 
+    FileOrStdout outf{filename};
     auto msg = CELER_LOG(info);
-    msg << "Wrote Geant4 diagnostic output to ";
-    std::ofstream outf;
-    std::ostream* os{nullptr};
-    if (filename == "-")
-    {
-        os = &std::cout;
-        msg << "<stdout>";
-    }
-    else
-    {
-        os = &outf;
-        outf.open(filename);
-        CELER_VALIDATE(
-            outf, << "failed to open output file at \"" << filename << '"');
-        msg << '"' << filename << '"';
-    }
-    CELER_ASSERT(os);
-    output_reg_->output(os);
+    output_reg_->output(outf);
+    CELER_LOG(info) << "Wrote Geant4 diagnostic output to " << outf.filename();
 }
 
 //---------------------------------------------------------------------------//

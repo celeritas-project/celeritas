@@ -49,6 +49,9 @@ class FileOrStdout
     //! Implicitly cast to the opened stream
     operator std::ostream&() { return outf_.is_open() ? outf_ : std::cout; }
 
+    //! Implicitly cast as a pointer to the opened stream
+    operator std::ostream*() { return &static_cast<std::ostream&>(*this); }
+
     //! Get the filename or renamed placeholder
     std::string const& filename() const { return filename_; }
 
