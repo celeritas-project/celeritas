@@ -128,6 +128,12 @@ inline std::ostream& operator<<(std::ostream&, PrintableLV const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
+
+inline bool is_replica(G4VPhysicalVolume const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
 #endif
 
 //---------------------------------------------------------------------------//
