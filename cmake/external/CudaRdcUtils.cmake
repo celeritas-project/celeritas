@@ -817,7 +817,10 @@ endfunction()
 #
 #  Check which CUDA runtime is needed for a given (dependent) library.
 function(cuda_rdc_check_cuda_runtime OUTVAR library)
-
+  if(NOT TARGET ${library})
+    set(${OUTVAR} "None" PARENT_SCOPE)
+    return()
+  endif()
   get_target_property(_runtime_setting ${library} CUDA_RUNTIME_LIBRARY)
   if(NOT _runtime_setting)
     # We could get more exact information by using:
