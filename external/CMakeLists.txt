@@ -93,7 +93,7 @@ if(CELERITAS_BUILTIN_G4VG)
     6f0920a9ad2e04a701bec636f117d4093be1e50761f091ec507efd078b659bcd
   )
   foreach(_var BUILD_TESTS DEBUG)
-    set(G4VG_${_var} CELERITAS_${_var})
+    set(G4VG_${_var} ${CELERITAS_${_var}})
   endforeach()
 endif()
 
