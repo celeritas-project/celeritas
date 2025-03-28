@@ -300,6 +300,10 @@ if(CELERITAS_USE_CUDA)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
+  find_library(ROCTX_LIBRARY roctx64)
+  if(ROCTX_LIBRARY)
+    set(CELERITAS_HAVE_ROCTX ON)
+  endif()
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
@@ -502,8 +506,10 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# System property: availability of sincospi and related functions:
-# All of: `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
+# System properties
+
+# Availability of sincospi and related functions: all comibinations of:
+# `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
 if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
   foreach(_prefix "__" "_" "")
     try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
