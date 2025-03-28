@@ -68,7 +68,13 @@ class FileOrStdout
     operator std::ostream*() { return &static_cast<std::ostream&>(*this); }
 
     //! Get the filename or renamed placeholder
-    std::string const& filename() const { return filename_; }
+    std::string const& filename() const& { return filename_; }
+
+    //! Get the filename or renamed placeholder (during move)
+    std::string&& filename() && { return std::move(filename_); }
+
+    //! Whether we're writing to cout
+    bool is_stdout() const { return !outf_.is_open(); }
 
   private:
     std::string filename_;

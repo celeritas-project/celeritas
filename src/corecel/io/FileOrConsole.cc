@@ -88,8 +88,9 @@ FileOrStdout::FileOrStdout(std::string filename, OpenMode mode)
         outf_ = open_file_noreplace(filename_);
         if (mode == OpenMode::unique && !outf_.is_open() && !outf_.bad())
         {
-            CELER_LOG(warning) << "Failed to open file '" << filename_
-                               << "' without clobbering";
+            auto msg = CELER_LOG(warning);
+            msg << "Failed to open file '" << filename_
+                << "' without clobbering";
 
             // Try with a unique filename
             detail::UniqueFileNamer make_filename(filename_);
@@ -99,6 +100,11 @@ FileOrStdout::FileOrStdout(std::string filename, OpenMode mode)
             {
                 filename_ = make_filename();
                 outf_ = open_file_noreplace(filename_);
+            }
+
+            if (outf_.is_open())
+            {
+                msg << ": renamed to " << filename_;
             }
         }
     }

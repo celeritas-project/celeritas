@@ -352,17 +352,8 @@ SharedParams::SharedParams(SetupOptions const& options)
     // Save output filename (possibly empty if disabling output)
     output_filename_ = options.output_file;
 
-    if (output_filename_ != "-")
-    {
-        // Write output after params are constructed before anything can go
-        // wrong
-        this->try_output();
-    }
-    else
-    {
-        CELER_LOG(debug)
-            << R"(Skipping 'startup' JSON output since writing to stdout)";
-    }
+    // Write output after params are constructed before anything can go wrong
+    this->try_output();
 
     if (!options.offload_output_file.empty())
     {
@@ -772,23 +763,41 @@ void SharedParams::set_num_streams(unsigned int num_streams)
 /*!
  * Write available Celeritas output.
  *
- * This can be done multiple times, overwriting the same file so that we can
- * get output before construction *and* after.
+ * The first call should provide an output filename. If it's to a file, an
+ * initial copy of the output (the setup) will be written in case of later
+ * failure. If the file already exists, a different filename will be used.
  */
-void SharedParams::try_output() const
+void SharedParams::try_output()
 {
-    std::string filename = output_filename_;
-    if (filename.empty())
+    if (output_filename_.empty())
     {
         CELER_LOG(debug)
             << R"(Skipping output: SetupOptions::output_file is empty)";
         return;
     }
 
-    FileOrStdout outf{filename};
-    auto msg = CELER_LOG(info);
-    output_reg_->output(outf);
-    CELER_LOG(info) << "Wrote Geant4 diagnostic output to " << outf.filename();
+    // Uniquify the filename on the first write
+    using Mode = FileOrStdout::OpenMode;
+    Mode mode = first_output_ ? Mode::unique : Mode::overwrite;
+    FileOrStdout outf{output_filename_, mode};
+    if (first_output_ && outf.is_stdout())
+    {
+        CELER_LOG(debug)
+            << R"(Skipping 'startup' JSON output since writing to stdout)";
+    }
+    else
+    {
+        output_reg_->output(outf);
+        CELER_LOG(info) << "Wrote Geant4 diagnostic output to "
+                        << outf.filename();
+        if (first_output_)
+        {
+            // Replace filename in case it got changed for uniqueness
+            output_filename_ = std::move(outf).filename();
+        }
+    }
+
+    first_output_ = false;
 }
 
 //---------------------------------------------------------------------------//

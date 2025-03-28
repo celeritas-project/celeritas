@@ -175,6 +175,7 @@ class SharedParams
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
+    bool first_output_{true};
     SPOffloadWriter offload_writer_;
     std::vector<std::shared_ptr<CoreStateInterface>> states_;
     SPOutputRegistry output_reg_;
@@ -188,7 +189,7 @@ class SharedParams
 
     void initialize_core(SetupOptions const& options);
     void set_num_streams(unsigned int num_streams);
-    void try_output() const;
+    void try_output();
 };
 
 //---------------------------------------------------------------------------//
