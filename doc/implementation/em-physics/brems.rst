@@ -16,7 +16,7 @@ Models
 The exiting electron energies from the interaction are calculated with a shared
 helper function:
 
-.. doxygenclass:: celeritas::BremFinalStateHelper
+.. doxygenclass:: celeritas::detail::BremFinalStateHelper
 
 Cross sections
 --------------
