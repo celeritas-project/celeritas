@@ -5,10 +5,11 @@
 //! \file corecel/sys/detail/TraceCounter.perfetto.cc
 //! \brief Numeric tracing counter
 //---------------------------------------------------------------------------//
-#include <cstdint>
+
 #include <type_traits>
 #include <perfetto.h>
 
+#include "TraceCounterImpl.hh"
 #include "TrackEvent.perfetto.hh"
 
 namespace celeritas

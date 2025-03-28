@@ -13,26 +13,13 @@
 #include "corecel/Config.hh"
 
 #include "ScopedProfiling.hh"
+#if CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA
+#    include "detail/TraceCounterImpl.hh"
+#endif
 
 namespace celeritas
 {
 #if CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA
-namespace detail
-{
-template<class T>
-void trace_counter_impl(char const* name, T value);
-
-// Explicit instantiations
-extern template void trace_counter_impl(char const*, std::uint32_t);
-extern template void trace_counter_impl(char const*, std::uint64_t);
-extern template void trace_counter_impl(char const*, std::int32_t);
-extern template void trace_counter_impl(char const*, std::int64_t);
-extern template void trace_counter_impl(char const*, float);
-extern template void trace_counter_impl(char const*, double);
-
-//---------------------------------------------------------------------------//
-}  // namespace detail
-
 //---------------------------------------------------------------------------//
 // Simple tracing counter
 template<class T>

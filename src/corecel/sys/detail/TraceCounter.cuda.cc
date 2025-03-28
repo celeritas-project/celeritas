@@ -11,6 +11,7 @@
 #include <nvtx3/nvToolsExt.h>
 
 #include "NvtxUtils.hh"
+#include "TraceCounterImpl.hh"
 
 namespace celeritas
 {
