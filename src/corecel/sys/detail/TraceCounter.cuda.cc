@@ -10,9 +10,7 @@
 #include <type_traits>
 #include <nvtx3/nvToolsExt.h>
 
-#include "corecel/sys/detail/NvtxUtils.hh"
-
-#include "ScopedProfiling.hh"
+#include "NvtxUtils.hh"
 
 namespace celeritas
 {
@@ -49,7 +47,6 @@ void trace_counter_impl(char const* name, T value)
     // clang-format off
     TC_SET_PAYLOAD     (std::uint32_t, NVTX_PAYLOAD_TYPE_UNSIGNED_INT32, uiValue)
     else TC_SET_PAYLOAD(std::uint64_t, NVTX_PAYLOAD_TYPE_UNSIGNED_INT64, ullValue)
-    else TC_SET_PAYLOAD(std::size_t,   NVTX_PAYLOAD_TYPE_UNSIGNED_INT64, ullValue)
     else TC_SET_PAYLOAD(float,         NVTX_PAYLOAD_TYPE_FLOAT,          fValue)
     else TC_SET_PAYLOAD(double,        NVTX_PAYLOAD_TYPE_DOUBLE,         dValue)
     else TC_SET_PAYLOAD(std::int32_t,  NVTX_PAYLOAD_TYPE_INT32,          iValue)
@@ -67,7 +64,6 @@ template void trace_counter_impl(char const*, std::uint32_t);
 template void trace_counter_impl(char const*, std::uint64_t);
 template void trace_counter_impl(char const*, std::int32_t);
 template void trace_counter_impl(char const*, std::int64_t);
-template void trace_counter_impl(char const*, std::size_t);
 template void trace_counter_impl(char const*, float);
 template void trace_counter_impl(char const*, double);
 

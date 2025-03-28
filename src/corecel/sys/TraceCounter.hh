@@ -12,7 +12,7 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/sys/ScopedProfiling.hh"
+#include "ScopedProfiling.hh"
 
 namespace celeritas
 {
@@ -27,7 +27,6 @@ extern template void trace_counter_impl(char const*, std::uint32_t);
 extern template void trace_counter_impl(char const*, std::uint64_t);
 extern template void trace_counter_impl(char const*, std::int32_t);
 extern template void trace_counter_impl(char const*, std::int64_t);
-extern template void trace_counter_impl(char const*, std::size_t);
 extern template void trace_counter_impl(char const*, float);
 extern template void trace_counter_impl(char const*, double);
 

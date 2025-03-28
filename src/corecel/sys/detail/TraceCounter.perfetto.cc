@@ -5,11 +5,9 @@
 //! \file corecel/sys/detail/TraceCounter.perfetto.cc
 //! \brief Numeric tracing counter
 //---------------------------------------------------------------------------//
+#include <cstdint>
 #include <type_traits>
 #include <perfetto.h>
-
-#include "corecel/Types.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 
 #include "TrackEvent.perfetto.hh"
 
@@ -45,7 +43,6 @@ template void trace_counter_impl(char const*, std::uint32_t);
 template void trace_counter_impl(char const*, std::uint64_t);
 template void trace_counter_impl(char const*, std::int32_t);
 template void trace_counter_impl(char const*, std::int64_t);
-template void trace_counter_impl(char const*, std::size_t);
 template void trace_counter_impl(char const*, float);
 template void trace_counter_impl(char const*, double);
 
