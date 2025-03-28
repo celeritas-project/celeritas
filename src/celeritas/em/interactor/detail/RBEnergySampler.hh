@@ -76,13 +76,11 @@ RBEnergySampler::RBEnergySampler(RelativisticBremRef const& shared,
                                  MaterialView const& material,
                                  ElementComponentId elcomp_id)
     : calc_dxsec_(shared, particle, material, elcomp_id)
+    , tmin_sq_(ipow<2>(value_as<Energy>(
+          min(cutoffs.energy(shared.ids.gamma), particle.energy()))))
+    , tmax_sq_(ipow<2>(value_as<Energy>(
+          min(detail::high_energy_limit(), particle.energy()))))
 {
-    // Min and max kinetic energy limits for sampling the secondary photon
-    tmin_sq_ = ipow<2>(value_as<Energy>(
-        min(cutoffs.energy(shared.ids.gamma), particle.energy())));
-    tmax_sq_ = ipow<2>(
-        value_as<Energy>(min(detail::high_energy_limit(), particle.energy())));
-
     CELER_ENSURE(tmax_sq_ >= tmin_sq_);
 }
 

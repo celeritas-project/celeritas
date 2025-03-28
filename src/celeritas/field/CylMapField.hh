@@ -8,6 +8,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/FindInterp.hh"
@@ -36,7 +37,8 @@ class CylMapField
   public:
     //!@{
     //! \name Type aliases
-    using Real3 = Array<real_type, 3>;
+    using real_type = cylmap_real_type;
+    using Real3 = Array<celeritas::real_type, 3>;
     using FieldParamsRef = NativeCRef<CylMapFieldParamsData>;
     //!@}
 
@@ -84,20 +86,27 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 {
     CELER_ENSURE(params_);
 
-    Real3 value{0, 0, 0};
+    Array<real_type, 3> value{0, 0, 0};
 
     // Convert Cartesian to cylindrical coordinates
     real_type r = hypot(pos[0], pos[1]);
     // Ensure phi is in [0, 2\f$\pi\f$)
-    Turn phi = atan2turn(pos[1], pos[0]);
+    auto phi = atan2turn<real_type>(pos[1], pos[0]);
     if (phi < zero_quantity())
     {
         phi.value() += 1;
     }
+    if (CELER_UNLIKELY(phi.value() == 1))
+    {
+        // Make sure phi is in [0, 1). If phi is a negative value smaller
+        // than machine epsilon, adding 1 will result in phi equal to 1
+        phi.value() = 0;
+    }
+    CELER_ASSERT(phi >= zero_quantity() && phi.value() < 1);
 
     // Check if point is within field map bounds
     if (!params_.valid(r, phi, pos[2]))
-        return value;
+        return {0, 0, 0};
 
     // Find interpolation points for given r, phi, z
     auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
@@ -135,8 +144,8 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Project cylindrical components to Cartesian coordinates
     // default for r == 0
-    real_type cos_phi = 1.;
-    real_type sin_phi = 0.;
+    real_type cos_phi = 1;
+    real_type sin_phi = 0;
 
     if (r != 0)
     {
@@ -149,7 +158,7 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
                + interp_field[CylAxis::phi] * cos_phi;
     value[2] = interp_field[CylAxis::z];
 
-    return value;
+    return {value[0], value[1], value[2]};
 }
 
 //---------------------------------------------------------------------------//
