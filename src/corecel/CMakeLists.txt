@@ -187,6 +187,7 @@ list(APPEND SOURCES
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
+  io/FileOrConsole.cc
   io/JsonUtils.json.cc
   io/Label.cc
   io/LogContextException.cc
