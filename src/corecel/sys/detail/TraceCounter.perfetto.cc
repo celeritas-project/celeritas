@@ -2,20 +2,20 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/TraceCounter.perfetto.cc
+//! \file corecel/sys/detail/TraceCounter.perfetto.cc
 //! \brief Numeric tracing counter
 //---------------------------------------------------------------------------//
-#include "TraceCounter.hh"
-
 #include <type_traits>
 #include <perfetto.h>
 
 #include "corecel/Types.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 
-#include "detail/TrackEvent.perfetto.hh"
+#include "TrackEvent.perfetto.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -29,27 +29,26 @@ namespace celeritas
  * See https://perfetto.dev/docs/instrumentation/track-events#counters
  */
 template<class T>
-void trace_counter(char const* name, T value)
+void trace_counter_impl(char const* name, T value)
 {
     static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
-    if (use_profiling())
-    {
-        TRACE_COUNTER(detail::perfetto_track_event_category,
-                      ::perfetto::DynamicString{name},
-                      value);
-    }
+    TRACE_COUNTER(detail::perfetto_track_event_category,
+                  ::perfetto::DynamicString{name},
+                  value);
 }
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template void trace_counter(char const*, std::uint32_t);
-template void trace_counter(char const*, std::uint64_t);
-template void trace_counter(char const*, std::int32_t);
-template void trace_counter(char const*, std::int64_t);
-template void trace_counter(char const*, float);
-template void trace_counter(char const*, double);
+template void trace_counter_impl(char const*, std::uint32_t);
+template void trace_counter_impl(char const*, std::uint64_t);
+template void trace_counter_impl(char const*, std::int32_t);
+template void trace_counter_impl(char const*, std::int64_t);
+template void trace_counter_impl(char const*, std::size_t);
+template void trace_counter_impl(char const*, float);
+template void trace_counter_impl(char const*, double);
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

@@ -8,25 +8,43 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 #include "corecel/Config.hh"
 
+#include "corecel/sys/ScopedProfiling.hh"
+
 namespace celeritas
 {
+#if CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA
+namespace detail
+{
+template<class T>
+void trace_counter_impl(char const* name, T value);
+
+// Explicit instantiations
+extern template void trace_counter_impl(char const*, std::uint32_t);
+extern template void trace_counter_impl(char const*, std::uint64_t);
+extern template void trace_counter_impl(char const*, std::int32_t);
+extern template void trace_counter_impl(char const*, std::int64_t);
+extern template void trace_counter_impl(char const*, std::size_t);
+extern template void trace_counter_impl(char const*, float);
+extern template void trace_counter_impl(char const*, double);
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 // Simple tracing counter
 template<class T>
-void trace_counter(char const* name, T value);
-
-#if CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA
-// Explicit instantiations
-extern template void trace_counter(char const*, std::uint32_t);
-extern template void trace_counter(char const*, std::uint64_t);
-extern template void trace_counter(char const*, std::int32_t);
-extern template void trace_counter(char const*, std::int64_t);
-extern template void trace_counter(char const*, float);
-extern template void trace_counter(char const*, double);
-
+inline void trace_counter(char const* name, T value)
+{
+    static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
+    if (use_profiling())
+    {
+        detail::trace_counter_impl(name, value);
+    }
+}
 #else
 
 // Ignore if Perfetto is unavailable
