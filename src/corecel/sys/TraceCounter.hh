@@ -41,7 +41,15 @@ inline void trace_counter(char const* name, T value)
     static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
     if (use_profiling())
     {
-        detail::trace_counter_impl(name, value);
+        // on some platform size_t is equivalent to uint64_t, which would cause
+        // duplicate template instantiation
+        using counter_type = std::conditional_t<
+            std::is_same_v<T, std::size_t>,
+            std::conditional_t<sizeof(std::size_t) == sizeof(std::uint64_t),
+                               std::uint64_t,
+                               std::uint32_t>,
+            T>;
+        detail::trace_counter_impl<counter_type>(name, value);
     }
 }
 #else
