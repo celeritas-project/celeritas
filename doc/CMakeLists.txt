@@ -124,7 +124,7 @@ if(NOT Sphinx_FOUND)
 else()
   function(celeritas_build_sphinx type output depends)
     add_custom_command(
-      OUTPUT "${output}"
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output}"
       VERBATIM COMMAND
         "${CMAKE_COMMAND}" -E env
           "PYTHONPATH=${CELERITAS_PYTHONPATH}"
@@ -135,7 +135,7 @@ else()
           ${ARGN}
           "${CMAKE_CURRENT_SOURCE_DIR}"
           "${CMAKE_CURRENT_BINARY_DIR}/${type}"
-      COMMENT "Building ${type} documentation with Sphinx"
+      COMMENT "Building Sphinx ${type} documentation: doc/${output}"
       BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
@@ -251,16 +251,24 @@ doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_EXTRA_SOURCE}
   USE_STAMP_FILE
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Generating Doxygen to doc/${DOXYGEN_XML_OUTPUT}/index.xml"
+  COMMENT "Generating Doxygen: doc/${DOXYGEN_XML_OUTPUT}/index.xml"
 )
 
-if(CELERITAS_USE_BREATHE)
-  set(_breathe_deps
-    "${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_XML_OUTPUT}/index.xml"
-    doxygen_xml
-  )
+if(Sphinx_FOUND)
+  file(GLOB_RECURSE _user_deps "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
 else()
-  set(_breathe_deps)
+  set(_user_deps)
+endif()
+
+if(CELERITAS_USE_BREATHE)
+  set(_doc_xml "${DOXYGEN_XML_OUTPUT}/index.xml")
+  add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}"
+    DEPENDS doxygen_xml
+    COMMAND "${CMAKE_COMMAND}" -E touch_nocreate "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}"
+    VERBATIM
+  )
+  list(APPEND _user_deps "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}" doxygen_xml)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -269,9 +277,9 @@ set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
   "Additional arguments to pass to Sphinx to build HTML user docs")
 mark_as_advanced(CELERITAS_SPHINX_USER_HTML_ARGS)
 
-set(_doc_html "${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
-celeritas_build_sphinx(html "${_doc_html}" "${_breathe_deps}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
-add_custom_target(doc DEPENDS "${_doc_html}")
+set(_doc_html "html/index.html")
+celeritas_build_sphinx(html "${_doc_html}" "${_user_deps}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
+add_custom_target(doc DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doc_html}")
 
 install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
   DESTINATION "${CMAKE_INSTALL_DOCDIR}"
@@ -281,8 +289,8 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
 #-----------------------------------------------------------------------------#
 # PDF
 
-set(_doc_tex "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.tex")
-celeritas_build_sphinx(latex "${_doc_tex}" "${_breathe_deps}")
+set(_doc_tex "latex/Celeritas.tex")
+celeritas_build_sphinx(latex "${_doc_tex}" "${_user_deps}")
 
 if(Sphinx_FOUND)
   # Download ornltm class
@@ -314,11 +322,11 @@ if(Sphinx_FOUND)
   )
 
   # Generate PDF
-  set(_doc_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.pdf")
+  set(_doc_pdf "latex/Celeritas.pdf")
   celeritas_build_latex(
     Celeritas
-    "${_doc_pdf}"
-    COMMENT "Building PDF documentation from LaTeX"
+    "${CMAKE_CURRENT_BINARY_DIR}/${_doc_pdf}"
+    COMMENT "Building final LaTeX document doc/${_doc_pdf}"
     DEPENDS "${_doc_tex}" "${_header_pdf}" "${_footer_pdf}" ornltm
   )
 else()
@@ -326,7 +334,7 @@ else()
   set(_doc_pdf "${_doc_tex}")
 endif()
 
-add_custom_target(doc_pdf DEPENDS "${_doc_pdf}")
+add_custom_target(doc_pdf DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doc_pdf}")
 if(CELERITAS_USE_BREATHE)
   add_dependencies(doc_pdf doxygen_xml)
 endif()
