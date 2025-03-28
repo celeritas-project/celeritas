@@ -201,6 +201,7 @@ list(APPEND SOURCES
   io/detail/EnumStringMapperImpl.cc
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
+  io/detail/UniqueFileNamer.cc
   math/TridiagonalSolver.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
@@ -216,6 +217,12 @@ list(APPEND SOURCES
   sys/TypeDemangler.cc
   sys/Version.cc
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  # GCC8 needs special treatment to work with C++17 file system
+  list(APPEND PRIVATE_DEPS stdc++fs)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Configuration-dependent object libraries

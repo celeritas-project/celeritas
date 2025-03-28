@@ -10,9 +10,6 @@
 #include <iostream>
 #include <string>
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -23,7 +20,7 @@ class FileOrStdin
 {
   public:
     // Construct with a filename
-    explicit inline FileOrStdin(std::string filename);
+    explicit FileOrStdin(std::string filename);
 
     //! Implicitly cast to the opened stream
     operator std::istream&() { return inf_.is_open() ? inf_ : std::cin; }
@@ -39,12 +36,30 @@ class FileOrStdin
 //---------------------------------------------------------------------------//
 /*!
  * Construct an output to a new file, or stdout if the filename is "-".
+ *
+ * It includes a facility to writing a unique output filename.
  */
 class FileOrStdout
 {
   public:
-    // Construct with a filename
-    explicit inline FileOrStdout(std::string filename);
+    //! How to open the file if not writing to stdout
+    enum class OpenMode
+    {
+        overwrite,  //!< Replace an existing file silently
+        error_if_exists,  //!< Throw an error if it exists
+        unique,  //!< Generate a unique replacement
+        size_
+    };
+
+  public:
+    // Construct with a filename and the default modee
+    FileOrStdout(std::string filename, OpenMode mode);
+
+    //! Construct with a filename and default to overwrite if not stdout
+    explicit FileOrStdout(std::string filename)
+        : FileOrStdout{std::move(filename), OpenMode::overwrite}
+    {
+    }
 
     //! Implicitly cast to the opened stream
     operator std::ostream&() { return outf_.is_open() ? outf_ : std::cout; }

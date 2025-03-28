@@ -59,6 +59,7 @@ celeritas_add_test(grid/VectorUtils.test.cc)
 
 # IO
 celeritas_add_test(io/EnumStringMapper.test.cc)
+celeritas_add_test(io/FileOrConsole.test.cc)
 celeritas_add_test(io/Label.test.cc)
 celeritas_add_test(io/Join.test.cc)
 celeritas_add_test(io/Logger.test.cc
