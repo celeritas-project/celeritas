@@ -76,7 +76,7 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 /*!
  * Calculate the center of a bounding box.
  *
- * \pre The bounding box cannot be null, or "semi-infinte" (i.e., it may not
+ * \pre The bounding box cannot be null, or "semi-infinite" (i.e., it may not
  * have a finite lower/upper value in a particular dimension, with a
  * corresponding infinite upper/lower value).
  */
@@ -96,7 +96,7 @@ inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
             // and infinite value
             CELER_ASSERT(isinf(bbox.upper()[ax]) && isinf(bbox.upper()[ax]));
 
-            // Fully infinite this dimension, center can be reasonably set to 0
+            // Fully infinite in this dimension, center can be set to 0
             center[ax] = 0;
         }
         else
