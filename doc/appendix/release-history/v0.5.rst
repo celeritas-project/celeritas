@@ -37,7 +37,7 @@ Notable bug fixes include:
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add optical "locate vacancies" and pre-step actions *(@amandalund, #1441)*
 * Extend debug utilities for stuck/errored tracks *(@sethrj, #1451)*
@@ -58,7 +58,7 @@ New features
 Reviewers: @amandalund *(6)*, @sethrj *(4)*, @pcanal *(4)*, @mrguilima *(2)*, @whokion *(1)*, @stognini *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Define a "unique event ID" different from event counter *(@sethrj, #1447)*
 * Fix optical import when unused materials are defined *(@sethrj, #1449)*
@@ -77,7 +77,7 @@ Bug fixes
 Reviewers: @pcanal *(6)*, @sethrj *(4)*, @amandalund *(3)*, @esseivaju *(2)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Improve XSCalculator documentation and tests *(@sethrj, #1450)*
 * Fix/standardize multi-level.gdml file and improve debug logging *(@sethrj, #1493)*
@@ -103,7 +103,7 @@ Documentation improvements
 Reviewers: @amandalund *(6)*, @sethrj *(6)*, @pcanal *(5)*, @esseivaju *(3)*, @mrguilima *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Give priority to existing environment variables for G4 data location *(@pcanal, #1457)*
 * Define ``id_cast`` helper function *(@sethrj, #1459)*
@@ -129,7 +129,7 @@ Minor internal changes
 Reviewers: @sethrj *(7)*, @amandalund *(6)*, @pcanal *(5)*, @esseivaju *(2)*, @drbenmorgan *(1)*
 
 Deprecation and removal
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 * Delete obsolete demonstration apps *(@sethrj, #1463)*
 * Remove curand performance test *(@sethrj, #1543)*
@@ -179,7 +179,7 @@ from v0.4.4.
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add Cerenkov distribution and generator *(@amandalund, #1080)*
 * Add specialized "permutation" transform *(@sethrj, #1077)*
@@ -306,7 +306,7 @@ New features
 Reviewers: @sethrj *(53)*, @elliottbiondo *(32)*, @amandalund *(25)*, @whokion *(12)*, @stognini *(8)*, @mrguilima *(7)*, @pcanal *(5)*, @esseivaju *(4)*, @drbenmorgan *(3)*, @hhollenb *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Change propagation fatal error to be recoverable *(@sethrj, #1090)*
 * Fix position check after propagating *(@amandalund, #1094)*
@@ -343,7 +343,7 @@ Bug fixes
 Reviewers: @sethrj *(14)*, @elliottbiondo *(8)*, @mrguilima *(5)*, @amandalund *(2)*, @pcanal *(2)*, @hhollenb *(1)*, @whokion *(1)*, @esseivaju *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Expand position check test and fix for other unit systems *(@amandalund, #1097)*
 * Prevent a PR with failed actions from being merged *(@sethrj, #1096)*
@@ -390,7 +390,7 @@ Documentation improvements
 Reviewers: @amandalund *(19)*, @sethrj *(10)*, @pcanal *(5)*, @esseivaju *(5)*, @stognini *(4)*, @elliottbiondo *(1)*, @drbenmorgan *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Remove unused data from ImportElement/Material *(@sethrj, #1089)*
 * Refactor Geant4 utilities in preparation for g4vg *(@sethrj, #1095)*

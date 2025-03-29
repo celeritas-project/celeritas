@@ -17,7 +17,7 @@ enhancements specific to the new code base, so those were not backported.
 
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix hit mapping when using GDML geometry with pointers *(@sethrj, #672)*
 * Fail fast instead of giving wrong answers for multithreading *(@sethrj, #691)*
@@ -80,7 +80,7 @@ New features
 Reviewers: @amandalund *(2)*, @pcanal *(1)*, @sethrj *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Allow invalid volume IDs in ROOT MC truth output *(@amandalund, #603)*
 * Fix missing Geant4 environment in unit test *(@drbenmorgan, #602)*
@@ -174,7 +174,7 @@ New features
 Reviewers: @sethrj *(13)*, @amandalund *(10)*, @stognini *(2)*, @paulromano *(2)*, @whokion *(2)*, @tmdelellis *(1)*, @pcanal *(1)*, @elliottbiondo *(1)*, @mrguilima *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix infrastructure and build issues for summit *(@sethrj, #509)*
 * Fix indexing of imported micro xs *(@amandalund, #512)*
