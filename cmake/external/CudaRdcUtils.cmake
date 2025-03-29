@@ -905,8 +905,16 @@ function(cuda_rdc_target_link_libraries target)
       if(${_final_count} GREATER 0)
         # If there is at least one final library this means that we
         # have somewhere some "separable" nvcc compilations
+        # In the case where we have:
+        #    add_executable(name source.cxx)
+        #    cuda_rdc_target_ink_library(name rdc_lib1)
+        #    target_sources(name source.cu)
+        #    cuda_rdc_target_ink_library(name rdc_lib2)
+        # We would have set to OFF and the target_sources did not
+        # turn it back on
         set_target_properties(${target} PROPERTIES
           CUDA_SEPARABLE_COMPILATION ON
+          CUDA_RESOLVE_DEVICE_SYMBOLS ON
         )
       endif()
     elseif(${_final_count} EQUAL 1)
