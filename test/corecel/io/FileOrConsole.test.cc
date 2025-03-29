@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 
 #include "celeritas_test.hh"
 
@@ -149,11 +150,15 @@ TEST_F(FileOrConsoleTest, fileOrStdout_unique)
         std::ostream& stream = output;
         stream << "unique content" << std::endl;
 
-        static char const* const expected_log_messages[] = {
-            "Failed to open file 'test_output_unique.txt' without clobbering"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[] = {"warning"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+
+        // Note that the extension is unique so we can only test the front of
+        // the warning
+        ASSERT_EQ(1, scoped_log_.messages().size());
+        EXPECT_TRUE(starts_with(
+            scoped_log_.messages().front(),
+            R"(Failed to open file 'test_output_unique.txt' without clobbering: renamed to test_output_unique-)"));
     }
 
     // Verify both files exist
