@@ -28,7 +28,7 @@ class UniqueFileNamer
     //! Get the next filename in sequence
     std::string operator()()
     {
-        return stem_ + "-" + std::to_string(counter_) + ext_;
+        return stem_ + "-" + std::to_string(++counter_) + ext_;
     }
 
   private:

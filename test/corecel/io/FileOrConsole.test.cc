@@ -25,47 +25,46 @@ namespace test
 // FIXTURES
 //---------------------------------------------------------------------------//
 
-class FileOrConsoleTest : public ::testing::Test
+class FileOrConsoleTest : public ::celeritas::test::Test
 {
   protected:
-    void SetUp() override
-    {
-        // Create a test file with sample content
-        std::ofstream test_file("test_input.txt");
-        test_file << "test content" << std::endl;
-        test_file.close();
-    }
-
     void TearDown() override
     {
-        // Clean up test files
-        std::remove("test_input.txt");
-        std::remove("test_output.txt");
-        std::remove("test_output_exists.txt");
-
         // Clean up any unique files that might have been created
-        // (This is simplistic - in a real test you might want to use a
-        // more sophisticated approach to track created files)
-        std::remove("test_output_unique.1.txt");
-        if (!unique_filename_.empty())
+        for (auto const& fn : created_files_)
         {
-            std::remove(unique_filename_.c_str());
+            try
+            {
+                std::remove(fn.c_str());
+            }
+            catch (std::exception const& e)
+            {
+                FAIL() << e.what();
+            }
         }
     }
 
-    std::string unique_filename_;
+    std::vector<std::string> created_files_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(FileOrConsoleTest, fileOrStdin)
+TEST_F(FileOrConsoleTest, in)
 {
+    auto const filename = this->make_unique_filename(".txt");
+    {
+        // Create a test file with sample content
+        std::ofstream test_file(filename);
+        test_file << "test content" << std::endl;
+        created_files_.push_back(filename);
+    }
+
     // Test with a real file
     {
-        FileOrStdin input("test_input.txt");
-        EXPECT_EQ(input.filename(), "test_input.txt");
+        FileOrStdin input(filename);
+        EXPECT_EQ(input.filename(), filename);
 
         std::string content;
         std::istream& stream = input;
@@ -82,37 +81,40 @@ TEST_F(FileOrConsoleTest, fileOrStdin)
     }
 }
 
-TEST_F(FileOrConsoleTest, fileOrStdout_overwrite)
+TEST_F(FileOrConsoleTest, out_overwrite)
 {
+    auto const filename = this->make_unique_filename(".txt");
+
     // Create a file first to test overwrite
     {
-        std::ofstream pre_file("test_output.txt");
+        std::ofstream pre_file(filename);
         pre_file << "old content" << std::endl;
-        pre_file.close();
+        created_files_.push_back(filename);
     }
 
     // Test overwrite mode
     {
-        FileOrStdout output("test_output.txt",
-                            FileOrStdout::OpenMode::overwrite);
-        EXPECT_EQ(output.filename(), "test_output.txt");
+        FileOrStdout output(filename, FileOrStdout::OpenMode::overwrite);
+        EXPECT_EQ(output.filename(), filename);
 
         std::ostream& stream = output;
         stream << "new content" << std::endl;
     }
 
     // Verify content was overwritten
-    std::ifstream verify("test_output.txt");
+    std::ifstream verify(filename);
     std::string content;
     std::getline(verify, content);
     EXPECT_EQ(content, "new content");
 }
 
-TEST_F(FileOrConsoleTest, fileOrStdout_error)
+TEST_F(FileOrConsoleTest, out_error)
 {
+    auto const filename = this->make_unique_filename(".txt");
+
     // Create a file first
     {
-        std::ofstream pre_file("test_output_exists.txt");
+        std::ofstream pre_file(filename);
         pre_file << "existing content" << std::endl;
         pre_file.close();
     }
@@ -120,66 +122,77 @@ TEST_F(FileOrConsoleTest, fileOrStdout_error)
     // Test error_if_exists mode - should throw
     EXPECT_THROW(
         {
-            FileOrStdout output("test_output_exists.txt",
+            FileOrStdout output(filename,
                                 FileOrStdout::OpenMode::error_if_exists);
         },
         RuntimeError);
 }
 
-TEST_F(FileOrConsoleTest, fileOrStdout_unique)
+TEST_F(FileOrConsoleTest, out_unique)
 {
-    // Create a file first
+    auto const orig_filename = "test_output_unique.txt";
+    try
     {
-        std::ofstream pre_file("test_output_unique.txt");
-        pre_file << "existing content" << std::endl;
-        pre_file.close();
+        // Just in case the file already existed from a previous test that
+        // broke...
+        std::remove(orig_filename);
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(warning) << e.what();
     }
 
     // Test unique mode
+    for (int i = 0; i < 4; ++i)
     {
-        ScopedLogStorer scoped_log_(&world_logger());
-        FileOrStdout output("test_output_unique.txt",
-                            FileOrStdout::OpenMode::unique);
+        ScopedLogStorer scoped_log(&world_logger());
+        FileOrStdout output(orig_filename, FileOrStdout::OpenMode::unique);
 
         // The filename should have been changed to something unique
-        unique_filename_ = output.filename();
-        EXPECT_NE(unique_filename_, "test_output_unique.txt");
-        EXPECT_TRUE(unique_filename_.find("test_output_unique")
-                    != std::string::npos);
+        created_files_.push_back(output.filename());
+        static_cast<std::ostream&>(output)
+            << "unique: " << output.filename() << std::endl;
 
-        std::ostream& stream = output;
-        stream << "unique content" << std::endl;
+        if (i == 0)
+        {
+            EXPECT_EQ(orig_filename, output.filename());
 
-        static char const* const expected_log_levels[] = {"warning"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+            EXPECT_TRUE(scoped_log.empty());
+        }
+        else
+        {
+            EXPECT_NE(orig_filename, output.filename());
+            EXPECT_TRUE(output.filename().find("test_output_unique")
+                        != std::string::npos);
 
-        // Note that the extension is unique so we can only test the front of
-        // the warning
-        ASSERT_EQ(1, scoped_log_.messages().size());
-        EXPECT_TRUE(starts_with(
-            scoped_log_.messages().front(),
-            R"(Failed to open file 'test_output_unique.txt' without clobbering: renamed to test_output_unique-)"));
+            static char const* const expected_log_levels[] = {"warning"};
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+
+            // Note that the extension is unique so we can only test the front
+            // of the warning
+            ASSERT_EQ(1, scoped_log.messages().size());
+            EXPECT_TRUE(starts_with(
+                scoped_log.messages().front(),
+                R"(Failed to open file 'test_output_unique.txt' without clobbering: renamed to test_output_unique-)"));
+        }
     }
 
-    // Verify both files exist
+    // Verify all files exist
+    for (auto const& filename : created_files_)
     {
-        std::ifstream original("test_output_unique.txt");
-        EXPECT_TRUE(original.good());
-        std::string content;
-        std::getline(original, content);
-        EXPECT_EQ(content, "existing content");
-    }
+        std::ifstream infile(filename);
+        ASSERT_TRUE(infile.good());
 
-    {
-        std::ifstream unique(unique_filename_);
-        EXPECT_TRUE(unique.good());
-        std::string content;
-        std::getline(unique, content);
-        EXPECT_EQ(content, "unique content");
+        std::ostringstream expected;
+        expected << "unique: " << filename;
+
+        std::string actual;
+        std::getline(infile, actual);
+        EXPECT_EQ(expected.str(), actual);
     }
 }
 
-TEST_F(FileOrConsoleTest, fileOrStdout_stdout)
+TEST_F(FileOrConsoleTest, out_stdout)
 {
     // Test with "-" (stdout)
     FileOrStdout output("-", FileOrStdout::OpenMode::overwrite);
