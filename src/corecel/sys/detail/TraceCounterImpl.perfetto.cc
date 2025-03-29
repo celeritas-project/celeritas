@@ -2,14 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/detail/TraceCounter.perfetto.cc
+//! \file corecel/sys/detail/TraceCounterImpl.perfetto.cc
 //! \brief Numeric tracing counter
 //---------------------------------------------------------------------------//
+
+#include "TraceCounterImpl.hh"
 
 #include <type_traits>
 #include <perfetto.h>
 
-#include "TraceCounterImpl.hh"
 #include "TrackEvent.perfetto.hh"
 
 namespace celeritas
@@ -22,8 +23,7 @@ namespace detail
  * \tparam T Arithmetic counter type
  *
  * Records a named value at the current timestamp which
- * can then be displayed on a timeline. Only supported on host, this compiles
- * but is a noop on device.
+ * can then be displayed on a timeline.
  *
  * See https://perfetto.dev/docs/instrumentation/track-events#counters
  */
@@ -40,12 +40,12 @@ void trace_counter_impl(char const* name, T value)
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template void trace_counter_impl(char const*, std::uint32_t);
-template void trace_counter_impl(char const*, std::uint64_t);
+template void trace_counter_impl(char const*, double);
+template void trace_counter_impl(char const*, float);
 template void trace_counter_impl(char const*, std::int32_t);
 template void trace_counter_impl(char const*, std::int64_t);
-template void trace_counter_impl(char const*, float);
-template void trace_counter_impl(char const*, double);
+template void trace_counter_impl(char const*, std::uint32_t);
+template void trace_counter_impl(char const*, std::uint64_t);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
