@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Array.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/math/PolyEvaluator.hh"
 
 namespace celeritas
 {
@@ -22,11 +24,11 @@ namespace celeritas
  */
 struct BhwlScreeningFactors
 {
-    //! Elastic component, multiplied into Z^2
+    //! Elastic component, to be multiplied into Z^2
     real_type phi1{};
     //! \f$\phi_1 - \phi_2\f$ corrective term for low-energy secondary
     real_type dphi{};
-    //! Inelastic component, multiplied into Z
+    //! Inelastic component, to be multiplied into Z
     real_type psi1{};
     //! \f$\psi_1 - \psi_2\f$ corrective term for low-energy secondary
     real_type dpsi{};
@@ -96,7 +98,7 @@ class TsaiScreeningCalculator
                                                   real_type epsilon_factor);
 
     // Calculate screening function from energy transfer
-    CELER_FUNCTION result_type operator()(real_type delta) const;
+    CELER_FUNCTION inline result_type operator()(real_type delta) const;
 
   private:
     real_type f_gamma_;
@@ -130,6 +132,7 @@ CELER_FUNCTION auto TsaiScreeningCalculator::operator()(real_type delta) const
     real_type eps = delta * f_epsilon_;
 
     using PolyQuad = PolyEvaluator<real_type, 2>;
+    using R = real_type;
     result_type func;
 
     func.phi1 = R(20.863 - 4) - 2 * std::log(1 + ipow<2>(R(0.55846) * gam))
