@@ -29,8 +29,14 @@ namespace celeritas
  * This accounts for the LPM effect if the option is enabled and the
  * electron energy is high enough.
  *
- * This is a shape function used for rejection, so as long as the resulting
- * cross section is scaled by the maximum value the units do not matter.
+ * The screening function uses Tsai's analytical approximations of coherent and
+ * incoherent screening function to the numerical screening functions computed
+ * using the Thomas-Fermi model \citep{tsai-1974,
+ * https://doi.org/10.1103/RevModPhys.46.815} .
+ *
+ * \note This is currently used only as a shape function for rejection, so as
+ * long as the resulting cross section is scaled by the maximum value the units
+ * do not matter.
  */
 class RBDiffXsCalculator
 {
@@ -213,9 +219,7 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute screen_functions: Tsai's analytical approximations of coherent and
- * incoherent screening function to the numerical screening functions computed
- * by using the Thomas-Fermi model: Y.-S.Tsai, Rev. Mod. Phys. 49 (1977) 421.
+ * Compute screen_functions.
  */
 CELER_FUNCTION auto
 RBDiffXsCalculator::compute_screen_functions(real_type gam,
