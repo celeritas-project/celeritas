@@ -73,6 +73,8 @@ std::string to_string(Repr<T> const& s)
 //---------------------------------------------------------------------------//
 // HELPER FUNCTION DECLARATIONS
 //---------------------------------------------------------------------------//
+bool all_printable(std::string_view s);
+
 void repr_char(std::ostream& os, char value);
 
 std::string char_to_hex_string(unsigned char value);

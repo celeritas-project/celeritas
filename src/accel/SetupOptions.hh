@@ -26,6 +26,7 @@ struct FrameworkInput;
 struct GeantSd;
 }
 
+class CoreParams;
 struct AlongStepFactoryInput;
 //---------------------------------------------------------------------------//
 /*!
@@ -163,7 +164,7 @@ struct SetupOptions
 
     //! Number of track "slots" to be transported simultaneously
     size_type max_num_tracks{};
-    //! Maximum number of events in use (DEPRECATED: remove in v0.6)
+    //! Maximum number of events in use (DEPRECATED: remove in v0.7)
     size_type max_num_events{};
     //! Limit on number of steps per track before killing
     size_type max_steps = no_max_steps();
@@ -194,7 +195,7 @@ struct SetupOptions
     //!@{
     //! \name Field options
 
-    size_type max_field_substeps{100};
+    size_type max_field_substeps{10};
     //!@}
 
     //! Sensitive detector options
@@ -216,7 +217,7 @@ struct SetupOptions
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
     bool action_times{false};
-    //! Launch all kernels on the default stream for debugging
+    //! Launch all kernels on the default stream for debugging (REMOVED)
     bool default_stream{false};
     //!@}
 
@@ -225,6 +226,10 @@ struct SetupOptions
 
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
+
+    //! Add additional diagnostic user actions [EXPERIMENTAL]
+    std::function<void(CoreParams const&)> add_user_actions;
+
     //!@}
 
     explicit inline operator bool() const

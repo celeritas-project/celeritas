@@ -98,8 +98,7 @@ re_test_canonical(RngDeviceParamsRef params, RngDeviceStateRef states)
                              params,
                              states,
                              raw_pointer_cast(samples.data()));
-    CELER_DEVICE_CHECK_ERROR();
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     std::vector<T> host_samples(states.size());
     thrust::copy(samples.begin(), samples.end(), host_samples.begin());

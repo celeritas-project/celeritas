@@ -21,14 +21,13 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 
 #include "Environment.hh"
 #include "MpiCommunicator.hh"
 #include "Stream.hh"
-
-#include "detail/StreamStorage.hh"
 
 #if CELERITAS_USE_CUDA
 #    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
@@ -38,6 +37,12 @@
 #    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
 #else
 #    define CELER_DEVICE_SUPPORTS_MEMPOOL 0
+#endif
+
+#if HIP_VERSION_MAJOR > 5 || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 7)
+#    define CELER_BUGGY_HIP_ASYNC 1
+#else
+#    define CELER_BUGGY_HIP_ASYNC 0
 #endif
 
 namespace celeritas
@@ -67,7 +72,7 @@ Device& global_device()
     {
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
-        CELER_DEVICE_CALL_PREFIX(GetDevice(&cur_id));
+        CELER_DEVICE_API_CALL(GetDevice(&cur_id));
         CELER_ASSERT(cur_id == device.device_id());
     }
 
@@ -92,8 +97,8 @@ int Device::num_devices()
     static int const result = [] {
         if (!CELER_USE_DEVICE)
         {
-            CELER_LOG(debug) << "Disabling GPU support since CUDA and HIP are "
-                                "disabled";
+            CELER_LOG(debug)
+                << R"(Disabling GPU support since CUDA and HIP are disabled)";
             return 0;
         }
 
@@ -106,12 +111,11 @@ int Device::num_devices()
         }
 
         int result = -1;
-        CELER_DEVICE_CALL_PREFIX(GetDeviceCount(&result));
+        CELER_DEVICE_API_CALL(GetDeviceCount(&result));
         if (result == 0)
         {
             CELER_LOG(warning)
-                << "Disabling GPU support since no CUDA devices "
-                   "are present";
+                << R"(Disabling GPU support since no CUDA devices are present)";
         }
 
         CELER_ENSURE(result >= 0);
@@ -141,9 +145,42 @@ bool Device::debug()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether asynchronous operations are supported.
+ *
+ * This is true by default if CUDA or HIP (5.2 <= HIP_VERSION < 5.7) is in use,
+ * and can be disabled by setting the \c CELER_DEVICE_ASYNC environment
+ * variable.
+ */
+bool Device::async()
+{
+    if constexpr (CELER_STREAM_SUPPORTS_ASYNC)
+    {
+        static bool const result = [] {
+            constexpr bool default_val = CELERITAS_USE_CUDA
+                                         || !CELER_BUGGY_HIP_ASYNC;
+            auto result = getenv_flag("CELER_DEVICE_ASYNC", default_val);
+            if (!result.defaulted && result.value != default_val)
+            {
+                CELER_LOG(info)
+                    << R"(Overriding asynchronous stream memory default with CELER_DEVICE_ASYNC=)"
+                    << result.value;
+                return false;
+            }
+            return result.value;
+        }();
+        return result;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from a device ID.
  */
-Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
+Device::Device(int id) : id_{id}
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
@@ -157,7 +194,7 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 #    endif
 
     DevicePropT props;
-    CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
+    CELER_DEVICE_API_CALL(GetDeviceProperties(&props, id));
 
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
@@ -213,10 +250,12 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     {
         threshold = std::stoul(var);
     }
-    CELER_DEVICE_PREFIX(MemPool_t) mempool;
-    CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
-    CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
-        mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
+    CELER_DEVICE_API_SYMBOL(MemPool_t) mempool;
+    CELER_DEVICE_API_CALL(DeviceGetDefaultMemPool(&mempool, id_));
+    CELER_DEVICE_API_CALL(MemPoolSetAttribute(
+        mempool,
+        CELER_DEVICE_API_SYMBOL(MemPoolAttrReleaseThreshold),
+        &threshold));
 #endif
 
     // See DeviceRuntimeApi.hh
@@ -234,25 +273,23 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
  */
 StreamId::size_type Device::num_streams() const
 {
-    if (!streams_)
-        return 0;
-    return streams_->size();
+    return streams_.size();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Allocate the given number of streams.
- *
- * If no streams have been created, the default stream will be used.
  */
 void Device::create_streams(unsigned int num_streams) const
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(streams_);
     CELER_EXPECT(num_streams > 0);
 
+    // TODO: const correctness for Device is weird
+    auto& streams = const_cast<Device*>(this)->streams_;
+
     CELER_LOG(info) << "Creating " << num_streams << " device streams";
-    *streams_ = detail::StreamStorage(num_streams);
+    streams.resize(num_streams);
 }
 
 //---------------------------------------------------------------------------//
@@ -262,41 +299,22 @@ void Device::create_streams(unsigned int num_streams) const
  * Depending on initialization order, CUDA may be shut down (or shutting down)
  * by the time the destructor for the global Device fires.
  *
+ * Note that this is used in the constructor to initialize a single global
+ * stream for the device. The `streams_` vector is only empty when the device
+ * is `false`.
+ *
  * \todo Const correctness for create_ and destroy_ streams is wrong; we should
  * probably make the global device non-const (and thread-local?) and then
  * activate it on "move".
  */
 void Device::destroy_streams() const
 {
-    if (streams_)
+    if (!streams_.empty())
     {
         CELER_LOG(debug) << "Destroying streams";
-        *streams_ = {};
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access a stream.
- *
- * This returns the default stream if no streams were allocated.
- */
-Stream& Device::stream(StreamId id) const
-{
-    CELER_EXPECT(streams_);
-
-    return streams_->get(id);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * External deleter for stream storage.
- *
- * This is for the PIMPL idiom with unique pointers.
- */
-void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
-{
-    delete p;
+    auto& streams = const_cast<Device*>(this)->streams_;
+    streams.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -326,9 +344,8 @@ void activate_device(Device&& device)
     static std::mutex m;
     std::lock_guard<std::mutex> scoped_lock{m};
     Device& d = global_device();
-    CELER_VALIDATE(!d,
-                   << "celeritas::activate_device may be called only once per "
-                      "application");
+    CELER_VALIDATE(
+        !d, << R"(activate_device may be called only once per application)");
 
     if (!device)
         return;
@@ -356,11 +373,11 @@ void activate_device(Device&& device)
                            << Device::num_devices();
 
     ScopedTimeLog scoped_time(&self_logger(), 1.0);
-    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
+    CELER_DEVICE_API_CALL(SetDevice(device.device_id()));
     d = std::move(device);
 
     // Call cudaFree to wake up the device, making other timers more accurate
-    CELER_DEVICE_CALL_PREFIX(Free(nullptr));
+    CELER_DEVICE_API_CALL(Free(nullptr));
 }
 
 //---------------------------------------------------------------------------//
@@ -400,7 +417,7 @@ void activate_device_local()
     if (d)
     {
         CELER_LOG_LOCAL(debug) << "Activating device " << d.device_id();
-        CELER_DEVICE_CALL_PREFIX(SetDevice(d.device_id()));
+        CELER_DEVICE_API_CALL(SetDevice(d.device_id()));
     }
 }
 
@@ -434,15 +451,16 @@ void set_cuda_stack_size(int limit)
     CELER_EXPECT(limit > 0);
     if (!celeritas::device())
     {
-        CELER_LOG(warning) << "Ignoring call to set_cuda_stack_size: no "
-                              "device is available";
+        CELER_LOG(warning)
+            << R"(Ignoring call to set_cuda_stack_size: no device is available)";
         return;
     }
     if constexpr (CELERITAS_USE_CUDA)
     {
         CELER_LOG(debug) << "Setting CUDA stack size to " << limit << "B";
     }
-    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
+    CELER_DEVICE_API_CALL(
+        DeviceSetLimit(CELER_DEVICE_API_SYMBOL(LimitStackSize), limit));
 }
 
 //---------------------------------------------------------------------------//
@@ -458,15 +476,16 @@ void set_cuda_heap_size(int limit)
     CELER_EXPECT(limit > 0);
     if (!celeritas::device())
     {
-        CELER_LOG(warning) << "Ignoring call to set_cuda_stack_size: no "
-                              "device is available";
+        CELER_LOG(warning)
+            << R"(Ignoring call to set_cuda_heap_size: no device is available)";
         return;
     }
     if constexpr (CELERITAS_USE_CUDA)
     {
         CELER_LOG(debug) << "Setting CUDA heap size to " << limit << "B";
     }
-    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitMallocHeapSize, limit));
+    CELER_DEVICE_API_CALL(
+        DeviceSetLimit(CELER_DEVICE_API_SYMBOL(LimitMallocHeapSize), limit));
 }
 
 //---------------------------------------------------------------------------//

@@ -64,7 +64,8 @@ class CombinedBremTest : public InteractorHostTestBase
                 pdg::electron(),
                 pdg::gamma(),
                 ImportProcessClass::e_brems,
-                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm});
+                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
+                {{0, 1e3}, {1e3, 1e12}});
             ImportProcess ip_positron = ip_electron;
             ip_positron.particle_pdg = pdg::positron().get();
             this->set_imported_processes(

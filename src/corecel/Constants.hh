@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Types.hh"
 #include "math/Constant.hh"
 
 namespace celeritas

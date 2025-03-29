@@ -68,7 +68,7 @@
 @CELERITAS_DEPENDENCY_VERSIONS@
 
 // Configurations of software dependencies
-#cmakedefine01 CELERITAS_VECGEOM_SURFACE
+@CELERITAS_VECGEOM_CONFIG@
 
 //---------------------------------------------------------------------------//
 // Detailed CMake configuration information

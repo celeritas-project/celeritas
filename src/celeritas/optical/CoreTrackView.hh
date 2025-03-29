@@ -12,6 +12,7 @@
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
 #include "ParticleTrackView.hh"
+#include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
 
@@ -59,6 +60,9 @@ class CoreTrackView
 
     // Return a particle view
     inline CELER_FUNCTION ParticleTrackView particle() const;
+
+    // Return a physics view
+    inline CELER_FUNCTION PhysicsTrackView physics() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -126,7 +130,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
     this->particle()
         = ParticleTrackView::Initializer{init.energy, init.polarization};
 
-    //! \todo Add physics view and clear physics state
+    // Initialize the physics state
+    this->physics() = PhysicsTrackView::Initializer{};
 
     return *this;
 }
@@ -169,6 +174,18 @@ CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 {
     return ParticleTrackView{states_.particle, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
+{
+    OpticalMaterialId mat_id = this->material_record().material_id();
+    CELER_ASSERT(mat_id);
+    return PhysicsTrackView{
+        params_.physics, states_.physics, mat_id, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

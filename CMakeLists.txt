@@ -32,6 +32,7 @@ if(NOT CELERITAS_USE_CUDA)
 endif()
 
 # Optional dependencies
+# NOTE: when adding a new dependency, update the CMakeConfig "COMPONENTS"
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
@@ -275,9 +276,14 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
+# NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
+# and check the dependency code in the CMakeConfig setup at the bottom of this
+# file
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)
+
+celeritas_find_or_builtin_package(CLI11 2.4)
 
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
@@ -496,68 +502,8 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# BUILTINS
-#----------------------------------------------------------------------------#
-
-include(CudaRdcUtils)
-
-if(CELERITAS_BUILTIN)
-  include(FetchContent)
-  add_subdirectory(external)
-endif()
-
-#----------------------------------------------------------------------------#
-# LIBRARY
-#----------------------------------------------------------------------------#
-
-include(CeleritasLibraryUtils)
-
-# Define an interface library for propagating include paths for GPU compilers.
-# This allow API calls, so long as the compiler or linker implicitly bring in
-# the correct CUDA/ROCM libraries. Those libraries are *not* explicitly linked
-# because mistakenly linking against both cudart and cudart_static (one of which
-# might come from upstream libraries such as vecgeom) can cause nasty link- and
-# run-time errors.
-add_library(celeritas_device_toolkit INTERFACE)
-add_library(Celeritas::DeviceToolkit ALIAS celeritas_device_toolkit)
-
-if(CELERITAS_USE_CUDA)
-  target_link_libraries(celeritas_device_toolkit INTERFACE CUDA::toolkit)
-elseif(CELERITAS_USE_HIP)
-  if(CMAKE_HIP_COMPILER_ROCM_ROOT)
-    # Undocumented CMake variable
-    set(ROCM_PATH "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
-  else()
-    # This hack works on Crusher as of ROCm 5.1.0
-    set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
-  endif()
-  target_include_directories(celeritas_device_toolkit
-    SYSTEM INTERFACE "${ROCM_PATH}/include"
-  )
-  find_library(ROCTX_LIBRARY roctx64)
-  if(ROCTX_LIBRARY)
-    set(CELERITAS_HAVE_ROCTX ON)
-    target_link_libraries(celeritas_device_toolkit INTERFACE "${ROCTX_LIBRARY}")
-  endif()
-  if(NOT BUILD_SHARED_LIBS)
-    # Downstream libs don't link against correct HIP dependencies when using
-    # static libraries, and even though the code below propagates the library
-    # names (-lamdhip64) CMake fails to include the link directories
-    # (/opt/rocm/lib)
-    target_link_libraries(celeritas_device_toolkit
-      INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_LIBRARIES}>"
-    )
-    target_link_directories(celeritas_device_toolkit
-      INTERFACE "$<INSTALL_INTERFACE:${CMAKE_HIP_IMPLICIT_LINK_DIRECTORIES}>"
-    )
-  endif()
-endif()
-
-install(TARGETS celeritas_device_toolkit
-  EXPORT celeritas-targets
-)
-
-#----------------------------------------------------------------------------#
+# System property: availability of sincospi and related functions:
+# All of: `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
 if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
   foreach(_prefix "__" "_" "")
     try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
@@ -576,6 +522,31 @@ if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
 endif()
 
 #----------------------------------------------------------------------------#
+# BUILTINS
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILTIN)
+  include(FetchContent)
+  add_subdirectory(external)
+endif()
+
+#----------------------------------------------------------------------------#
+# RDC SUPPORT FOR VECGEOM+CUDA
+#----------------------------------------------------------------------------#
+
+# Load our local copy in case a dependency hasn't loaded a newer one
+# and install it alongside CeleritasConfig (see further below)
+set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
+include("${_LOCAL_RDCUTILS_FILENAME}")
+
+# NOTE: include library utils after RDC
+include(CeleritasLibrary)
+include(CeleritasLibraryUtils)
+
+#----------------------------------------------------------------------------#
+# LIBRARY
+#----------------------------------------------------------------------------#
+
 # Add the main libraries
 add_subdirectory(src)
 
@@ -611,17 +582,13 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  # DEPRECATED: remove in v1.0
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
+  # TODO: in the future, don't include or distribute RdcUtils.
+  # For now, include in case downstream projects do `include(CudaRdcUtils)`.
+  "${_LOCAL_RDCUTILS_FILENAME}"
 )
-if(NOT CELERITAS_USE_VecGeom OR VecGeom_VERSION VERSION_LESS 1.2.10)
-  # Only install RDC utils if not available through vecgeom
-  list(APPEND _cmake_files
-    "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
-  )
-endif()
-foreach(_dep Geant4 HepMC3 ROOT Thrust VecGeom)
-  if(CELERITAS_USE_${_dep})
+foreach(_dep CLI11 Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+  if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
 endforeach()
@@ -684,7 +651,7 @@ list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
   Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
-  VecCore_DIR VecGeom_DIR
+  VecCore_DIR VecGeom_DIR G4VG_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
   VDT_INCLUDE_DIR VDT_LIBRARY
@@ -695,13 +662,11 @@ foreach(_key
     set(_cache_val "$CACHE{${_key}}")
     if(_cache_val)
       list(APPEND CELERITAS_EXPORT_VARIABLES
-        "set(${_key} \"${_cache_val}\" CACHE PATH \"Set by CeleritasConfig.cmake\")"
+        "_celer_set_cache_default(${_key} \"${_cache_val}\" PATH \"Set by CeleritasConfig.cmake\")"
       )
     else()
     list(APPEND CELERITAS_EXPORT_VARIABLES
-      "if(NOT DEFINED ${_key})"
-      "  set(${_key} \"${_val}\")"
-      "endif()"
+      "_celer_set_local_default(${_key} \"${_val}\")"
     )
   endif()
   endif()
@@ -758,6 +723,9 @@ message(WARNING \"The Celeritas version was not detected during configuration.
   This will result in the installation having incorrect version metadata and
   will interfere with downstream CMake version requirements and may obscure
   provenance data in output results.\")
+message(WARNING \"If using a git checkout, please run
+  `git fetch --all --tags`, rebuild with `cmake --build ${CMAKE_BINARY_DIR}`,
+  and install with `cmake --install ${CMAKE_BINARY_DIR}`.\")
 ")
 endif()
 if(CELERITAS_USE_HIP AND NOT BUILD_SHARED_LIBS)

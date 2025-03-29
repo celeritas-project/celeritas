@@ -75,6 +75,7 @@
 
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
+#include "TimeOutput.hh"
 
 #include "detail/OffloadWriter.hh"
 
@@ -230,6 +231,10 @@ SharedParams::SharedParams(SetupOptions const& options)
         output_reg_ = std::make_shared<OutputRegistry>();
         output_filename_ = options.output_file;
 
+        // Create the timing output
+        timer_
+            = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
+
         if (!output_filename_.empty())
         {
             CELER_LOG(debug)
@@ -248,11 +253,13 @@ SharedParams::SharedParams(SetupOptions const& options)
                     "environ",
                     celeritas::environment()));
             output_reg_->insert(std::make_shared<BuildOutput>());
+            output_reg_->insert(timer_);
         }
 
         return;
     }
 
+    // Construct input and then build the problem setup
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
@@ -288,6 +295,10 @@ SharedParams::SharedParams(SetupOptions const& options)
 
     // Create streams
     this->set_num_streams(params_->max_streams());
+
+    // Add timing output
+    timer_ = std::make_shared<TimeOutput>(params_->max_streams());
+    output_reg_->insert(timer_);
 
     if (output_filename_ != "-")
     {

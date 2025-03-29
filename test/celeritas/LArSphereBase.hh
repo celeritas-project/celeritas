@@ -29,6 +29,14 @@ class LArSphereBase : public GeantTestBase
         return "lar-sphere";
     }
 
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto result = GeantTestBase::build_geant_options();
+        result.optical.absorption = true;
+        result.optical.rayleigh_scattering = true;
+        return result;
+    }
+
     ProcessBuilderOptions build_process_options() const override
     {
         auto result = GeantTestBase::build_process_options();

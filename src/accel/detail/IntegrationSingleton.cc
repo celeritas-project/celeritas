@@ -12,8 +12,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/Logger.hh"
+#include "accel/SetupOptionsMessenger.hh"
+#include "accel/TimeOutput.hh"
 
 namespace celeritas
 {
@@ -50,12 +53,14 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
-            CELER_VALIDATE(opts,
-                           << R"(SetOptions called with incomplete input)");
             options_ = std::move(opts);
-            CELER_ENSURE(options_);
         },
         ExceptionConverter{"celer.setup"});
+    if (!options_)
+    {
+        CELER_LOG(warning)
+            << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -100,7 +105,7 @@ void IntegrationSingleton::initialize_shared_params()
             {
                 CELER_VALIDATE(
                     options_,
-                    << R"(SetOptions was not called before BeginRun)");
+                    << R"(SetOptions or UI entries were not completely set before BeginRun)");
                 CELER_VALIDATE(
                     !params_,
                     << R"(BeginOfRunAction cannot be called more than once)");
@@ -206,6 +211,7 @@ void IntegrationSingleton::finalize_local_transporter()
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be finalized more than once");
+            params_.timer()->RecordActionTime(lt.GetActionTime());
             lt.Finalize();
         },
         ExceptionConverter("celer.finalize.local"));
@@ -229,9 +235,20 @@ void IntegrationSingleton::finalize_shared_params()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct and set up options messenger.
+ * Construct and set up the singleton.
+ *
+ * Using unique pointers for MPI and messenger allow us to catch errors they
+ * may throw during construction.
  */
-IntegrationSingleton::IntegrationSingleton() = default;
+IntegrationSingleton::IntegrationSingleton()
+{
+    CELER_TRY_HANDLE(
+        {
+            scoped_mpi_ = std::make_unique<ScopedMpiInit>();
+            messenger_ = std::make_unique<SetupOptionsMessenger>(&options_);
+        },
+        ExceptionConverter{"celer.init.singleton"});
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

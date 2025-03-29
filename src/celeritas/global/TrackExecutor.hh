@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/track/SimFunctors.hh"
+#include "celeritas/track/TrackFunctors.hh"
 
 #include "CoreTrackData.hh"
 #include "CoreTrackDataFwd.hh"
@@ -122,7 +122,7 @@ class ConditionalTrackExecutor
     {
         CELER_EXPECT(thread < state_->size());
         CoreTrackView track(*params_, *state_, thread);
-        if (!applies_(track.sim()))
+        if (!applies_(track))
         {
             return;
         }

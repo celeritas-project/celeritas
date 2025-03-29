@@ -39,7 +39,7 @@ void test_initialize(ParamsRef<MemSpace::device> const& params,
                      StateRef<MemSpace::device> const& state)
 {
     CELER_LAUNCH_KERNEL(initialize, state.size(), 0, params, state);
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

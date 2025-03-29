@@ -192,6 +192,16 @@ enum class NuclearFormFactorType
 };
 
 //---------------------------------------------------------------------------//
+//! Cylindrical coordinates indices
+enum class CylAxis
+{
+    r = 0,
+    phi,
+    z,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take

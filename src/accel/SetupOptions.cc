@@ -12,7 +12,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
-#include "celeritas/Quantities.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
@@ -97,6 +97,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
         return c;
     }();
 
+    if (so.max_num_events)
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
+                              "be an error in v0.7";
+    }
+
     p.tracking.limits = [this] {
         inp::TrackingLimits tl;
         tl.steps = so.max_steps;
@@ -113,7 +119,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (celeritas::Device::num_devices())
     {
         inp::DeviceDebug dd;
-        dd.default_stream = so.default_stream;
         dd.sync_stream = so.action_times;
 
         p.control.device_debug = std::move(dd);
@@ -128,20 +133,22 @@ void ProblemSetup::operator()(inp::Problem& p) const
 
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
-        // Convert from native to Tesla, check if magnitude is zero
-        UniformFieldParams params = u->get_field();
-        for (real_type& v : params.field)
-        {
-            v = native_value_to<units::FieldTesla>(v).value();
-        }
-        auto field_val = norm(params.field);
+        // Check if magnitude is zero
+        auto field = u->get_field();
+        auto field_val = norm(field.strength);
         if (field_val > 0)
         {
-            CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
-            inp::UniformField field;
-            field.units = UnitSystem::si;
-            field.strength = params.field;
-            field.driver_options = params.options;
+            auto msg = CELER_LOG(info);
+            msg << "Using a uniform field: " << field_val << " [T] in ";
+            if (field.volumes.empty())
+            {
+                msg << "all";
+            }
+            else
+            {
+                msg << field.volumes.size();
+            }
+            msg << " volumes";
             p.field = std::move(field);
         }
         else
@@ -152,6 +159,11 @@ void ProblemSetup::operator()(inp::Problem& p) const
     else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting RZ map field";
+        p.field = u->get_field();
+    }
+    else if (auto* u = so.make_along_step.target<CylMapFieldAlongStepFactory>())
+    {
+        CELER_LOG(debug) << "Getting Cyl map field";
         p.field = u->get_field();
     }
     else
@@ -173,6 +185,9 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.diagnostics.slot = inp::SlotDiagnostic{so.slot_diagnostic_prefix};
     }
+
+    // Custom user actions
+    p.diagnostics.add_user_actions = so.add_user_actions;
 }
 
 //---------------------------------------------------------------------------//

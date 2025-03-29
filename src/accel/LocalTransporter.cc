@@ -38,6 +38,7 @@
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/ActionSequence.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -459,6 +460,30 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
         }
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access core state data for user diagnostics.
+ */
+CoreStateInterface const& LocalTransporter::GetState() const
+{
+    CELER_EXPECT(*this);
+
+    return step_->state();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access core state data for user diagnostics.
+ */
+CoreStateInterface& LocalTransporter::GetState()
+{
+    CELER_EXPECT(*this);
+
+    // NOTE: the Stepper will be removed in the near term in a major refactor
+    // of the shared params and state, so we allow this as a convenience hack
+    return const_cast<CoreStateInterface&>(step_->state());
 }
 
 //---------------------------------------------------------------------------//

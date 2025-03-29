@@ -78,13 +78,13 @@ make_aux_state(ParamsDataInterface<P> const& params,
 {
     if (m == MemSpace::host)
     {
-        return std::make_unique<AuxStateData<S, MemSpace::host>>(
-            params.host_ref(), stream_id, size);
+        using ASD = AuxStateData<S, MemSpace::host>;
+        return std::make_unique<ASD>(params.host_ref(), stream_id, size);
     }
     else if (m == MemSpace::device)
     {
-        return std::make_unique<AuxStateData<S, MemSpace::device>>(
-            params.host_ref(), stream_id, size);
+        using ASD = AuxStateData<S, MemSpace::device>;
+        return std::make_unique<ASD>(params.host_ref(), stream_id, size);
     }
     CELER_ASSERT_UNREACHABLE();
 }

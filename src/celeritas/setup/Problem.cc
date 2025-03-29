@@ -56,6 +56,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -138,16 +139,6 @@ auto build_physics_processes(inp::EmPhysics const& em,
     if (em.brems)
     {
         opts.brem_combined = em.brems->combined_model;
-        opts.brems_selection = [&brems = *em.brems] {
-            if (brems.rel && brems.sb)
-                return BremsModelSelection::all;
-            else if (brems.rel)
-                return BremsModelSelection::relativistic;
-            else if (brems.sb)
-                return BremsModelSelection::seltzer_berger;
-            else
-                return BremsModelSelection::none;
-        }();
     }
 
     ProcessBuilder build_process(
@@ -292,32 +283,22 @@ auto build_along_step(inp::Field const& var_field,
                     next_id, *params.material, *params.particle, msc, eloss);
             },
             [&](inp::UniformField const& field) {
-                UniformFieldParams field_params;
-
-                if (field.units != UnitSystem::si)
-                {
-                    CELER_NOT_IMPLEMENTED("field units in other unit systems");
-                }
-                field_params.field = field.strength;
-                field_params.options = field.driver_options;
-
-                // Interpret input in units of Tesla
-                for (real_type& v : field_params.field)
-                {
-                    v = native_value_from(units::FieldTesla{v});
-                }
-
                 return AlongStepUniformMscAction::from_params(
                     params.action_reg->next_id(),
+                    *params.geometry,
                     *params.material,
                     *params.particle,
-                    field_params,
+                    field,
                     msc,
                     eloss);
             },
             [](inp::RZMapField const&)
                 -> std::shared_ptr<CoreStepActionInterface> {
                 CELER_NOT_IMPLEMENTED("building RZ map field through input");
+            },
+            [](inp::CylMapField const&)
+                -> std::shared_ptr<CoreStepActionInterface> {
+                CELER_NOT_IMPLEMENTED("building Cyl map field through input");
             },
         }),
         var_field);
@@ -352,6 +333,18 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+
+    // Import models
+    optical::ModelImporter importer{
+        imported, oc_inp.material, params.material()};
+    for (auto const& model : imported.optical_models)
+    {
+        if (auto builder = importer(model.model_class))
+        {
+            oc_inp.model_builders.push_back(*builder);
+        }
+    }
+
     CELER_ASSERT(oc_inp);
 
     return std::make_shared<OpticalCollector>(params, std::move(oc_inp));
@@ -440,10 +433,9 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     params.init = build_track_init(p.control, num_streams);
 
     // Set up streams
-    if (p.control.device_debug && !p.control.device_debug->default_stream
-        && p.control.num_streams > 1 && celeritas::device())
+    if (auto& device = celeritas::device())
     {
-        celeritas::device().create_streams(num_streams);
+        device.create_streams(num_streams);
     }
 
     // Number of tracks per stream
@@ -482,6 +474,21 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     {
         SlotDiagnostic::make_and_insert(*core_params,
                                         p.diagnostics.slot->basename);
+    }
+
+    if (auto& apply = p.diagnostics.add_user_actions)
+    {
+        try
+        {
+            // Apply custom user actions
+            apply(*core_params);
+        }
+        catch (...)
+        {
+            CELER_LOG(critical)
+                << R"(Failed to set up user-specified diagnostics)";
+            throw;
+        }
     }
 
     //// EXPORT FILES ////

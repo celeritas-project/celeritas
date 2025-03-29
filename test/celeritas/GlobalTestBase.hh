@@ -48,6 +48,7 @@ namespace optical
 {
 class CherenkovParams;
 class MaterialParams;
+class PhysicsParams;
 class ScintillationParams;
 }  // namespace optical
 
@@ -88,6 +89,7 @@ class GlobalTestBase : public Test
 
     using SPConstCherenkov = SP<optical::CherenkovParams const>;
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
+    using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
     using SPConstScintillation = SP<optical::ScintillationParams const>;
 
     using SPConstPrimariesAction = SP<ExtendFromPrimariesAction const>;
@@ -120,6 +122,7 @@ class GlobalTestBase : public Test
     inline SPConstCore const& core();
     inline SPConstCherenkov const& cherenkov();
     inline SPConstOpticalMaterial const& optical_material();
+    inline SPConstOpticalPhysics const& optical_physics();
     inline SPConstScintillation const& scintillation();
 
     inline SPConstGeo const& geometry() const;
@@ -138,6 +141,7 @@ class GlobalTestBase : public Test
     inline SPConstCore const& core() const;
     inline SPConstCherenkov const& cherenkov() const;
     inline SPConstOpticalMaterial const& optical_material() const;
+    inline SPConstOpticalPhysics const& optical_physics() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
 
@@ -165,6 +169,7 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
     [[nodiscard]] virtual SPConstCherenkov build_cherenkov() = 0;
     [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
+    [[nodiscard]] virtual SPConstOpticalPhysics build_optical_physics() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
     // Do not insert StatusChecker
@@ -194,6 +199,7 @@ class GlobalTestBase : public Test
     SPOutputRegistry output_reg_;
     SPConstCherenkov cherenkov_;
     SPConstOpticalMaterial optical_material_;
+    SPConstOpticalPhysics optical_physics_;
     SPConstScintillation scintillation_;
 
     SPConstPrimariesAction primaries_action_;
@@ -235,6 +241,7 @@ DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCherenkov, cherenkov)
 DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
+DEF_GTB_ACCESSORS(SPConstOpticalPhysics, optical_physics)
 DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
 auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&
 {

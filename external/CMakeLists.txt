@@ -20,6 +20,23 @@ macro(celer_fetch_external name url sha)
 endmacro()
 
 #-----------------------------------------------------------------------------#
+# CLI11
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILTIN_CLI11)
+  celer_fetch_external(
+    CLI11
+    "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.5.0.tar.gz"
+    17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55
+  )
+
+  set(CLI11_BUILD_EXAMPLES OFF)
+  set(CLI11_BUILD_DOCS OFF)
+  set(CLI11_BUILD_TESTS OFF)
+  set(CLI11_PRECOMPILED ON)
+endif()
+
+#-----------------------------------------------------------------------------#
 # GTest
 #-----------------------------------------------------------------------------#
 
@@ -72,11 +89,11 @@ endif()
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
     G4VG
-    "https://github.com/celeritas-project/g4vg/releases/download/v1.0.3/g4vg-1.0.3.tar.gz"
-    6f0920a9ad2e04a701bec636f117d4093be1e50761f091ec507efd078b659bcd
+    "https://github.com/celeritas-project/g4vg/releases/download/v1.0.4/g4vg-1.0.4.tar.gz"
+    ac38878aedaf9fe628f498290cf4fa6cdd21980b7b83663ce8ef3c8f3ff31cb2
   )
   foreach(_var BUILD_TESTS DEBUG)
-    set(G4VG_${_var} CELERITAS_${_var})
+    set(G4VG_${_var} ${CELERITAS_${_var}})
   endforeach()
 endif()
 
@@ -116,10 +133,27 @@ endforeach()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
-  set(Perfetto_INCLUDE_DIR ${perfetto_SOURCE_DIR}/sdk)
-  add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
-  add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
-  target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
+  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}/sdk")
+  add_library(perfetto STATIC "${Perfetto_INCLUDE_DIR}/perfetto.cc")
+  target_include_directories(perfetto
+    INTERFACE "$<BUILD_INTERFACE:${Perfetto_INCLUDE_DIR}>"
+  )
+  add_library(Celeritas::perfetto ALIAS perfetto)
+  install(TARGETS perfetto
+    EXPORT celeritas-targets
+    COMPONENT runtime
+  )
+endif()
+
+if(CELERITAS_BUILTIN_CLI11)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # __cplusplus: use standard-compliant C++ version macro
+    # preprocessor: use standard-compliant preprocessor
+    # EHsc: enable standard C++ exception handling
+    target_compile_options(CLI11 PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
+    )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

@@ -6,24 +6,19 @@
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
-#include <fstream>
 #include <utility>
 #include <G4GenericMessenger.hh>
 #include <G4UImanager.hh>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/RootFileManager.hh"
-#include "celeritas/field/RZMapFieldInput.hh"
-#include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
-#include "HepMC3PrimaryGeneratorAction.hh"
-#include "RootIO.hh"
 #include "RunInputIO.json.hh"
 
 namespace celeritas
@@ -47,9 +42,6 @@ GlobalSetup* GlobalSetup::Instance()
 //---------------------------------------------------------------------------//
 /*!
  * Set configurable properties from the UI.
- *
- * \deprecated Macro support for celer-g4 is deprecated: it will only take JSON
- * in the future.
  */
 GlobalSetup::GlobalSetup()
 {
@@ -107,82 +99,63 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read input from macro or JSON.
+ * Read input from JSON.
  */
 void GlobalSetup::ReadInput(std::string const& filename)
 {
-    bool is_json_file = ends_with(filename, ".json");
-    if (is_json_file || filename == "-")
+    CELER_VALIDATE(!ends_with(filename, ".mac"),
+                   << "macro input for celer-g4 was removed in Celeritas 0.6");
+    FileOrStdin instream(filename);
+    CELER_LOG(status) << "Reading JSON input from '" << instream.filename()
+                      << "'";
+    nlohmann::json::parse(instream).get_to(input_);
+
+    if (input_.cuda_stack_size != RunInput::unspecified)
     {
-        CELER_LOG(status) << "Reading JSON input from '"
-                          << (is_json_file ? filename : "<stdin>") << "'";
-        std::istream* instream{nullptr};
-        std::ifstream infile;
-        if (is_json_file)
-        {
-            instream = &infile;
-            infile.open(filename);
-            CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
-        }
-        else
-        {
-            instream = &std::cin;
-        }
-        CELER_ASSERT(instream);
-        nlohmann::json::parse(*instream).get_to(input_);
-
-        if (input_.cuda_stack_size != RunInput::unspecified)
-        {
-            options_->cuda_stack_size = input_.cuda_stack_size;
-        }
-        if (input_.cuda_heap_size != RunInput::unspecified)
-        {
-            options_->cuda_heap_size = input_.cuda_heap_size;
-        }
-        celeritas::environment().merge(input_.environ);
-
-        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
-            auto const& filename = celeritas::getenv(fi_hack_envname);
-            if (!filename.empty())
-            {
-                CELER_LOG(warning)
-                    << "Using a temporary, unsupported, and dangerous hack to "
-                       "override the ORANGE geometry file: "
-                    << fi_hack_envname << "='" << filename << "'";
-                options_->geometry_file = filename;
-            }
-        }
-
-        // Output options
-        options_->output_file = input_.output_file;
-        options_->physics_output_file = input_.physics_output_file;
-        options_->offload_output_file = input_.offload_output_file;
-
-        // Apply Celeritas \c SetupOptions commands
-        options_->max_num_tracks = input_.num_track_slots;
-        CELER_VALIDATE(input_.primary_options || !input_.event_file.empty(),
-                       << "no event input file nor primary options were "
-                          "specified");
-        options_->max_steps = input_.max_steps;
-        options_->initializer_capacity = input_.initializer_capacity;
-        options_->secondary_stack_factor = input_.secondary_stack_factor;
-        options_->auto_flush = input_.auto_flush;
-
-        options_->max_field_substeps = input_.field_options.max_substeps;
-
-        options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
-        options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
-
-        options_->action_times = input_.action_times;
-        options_->default_stream = input_.default_stream;
-        options_->track_order = input_.track_order;
+        options_->cuda_stack_size = input_.cuda_stack_size;
     }
-    else if (ends_with(filename, ".mac"))
+    if (input_.cuda_heap_size != RunInput::unspecified)
     {
-        input_.macro_file = filename;
+        options_->cuda_heap_size = input_.cuda_heap_size;
     }
+    celeritas::environment().merge(input_.environ);
+
+    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
+        auto const& filename = celeritas::getenv(fi_hack_envname);
+        if (!filename.empty())
+        {
+            CELER_LOG(warning)
+                << "Using a temporary, unsupported, and dangerous hack to "
+                   "override the ORANGE geometry file: "
+                << fi_hack_envname << "='" << filename << "'";
+            options_->geometry_file = filename;
+        }
+    }
+
+    // Output options
+    options_->output_file = input_.output_file;
+    options_->physics_output_file = input_.physics_output_file;
+    options_->offload_output_file = input_.offload_output_file;
+
+    // Apply Celeritas \c SetupOptions commands
+    options_->max_num_tracks = input_.num_track_slots;
+    CELER_VALIDATE(input_.primary_options || !input_.event_file.empty(),
+                   << "no event input file nor primary options were "
+                      "specified");
+    options_->max_steps = input_.max_steps;
+    options_->initializer_capacity = input_.initializer_capacity;
+    options_->secondary_stack_factor = input_.secondary_stack_factor;
+    options_->auto_flush = input_.auto_flush;
+
+    options_->max_field_substeps = input_.field_options.max_substeps;
+
+    options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
+    options_->slot_diagnostic_prefix = input_.slot_diagnostic_prefix;
+
+    options_->action_times = input_.action_times;
+    options_->track_order = input_.track_order;
 
     // Execute macro for Geant4 commands (e.g. to set verbosity)
     if (!input_.macro_file.empty())

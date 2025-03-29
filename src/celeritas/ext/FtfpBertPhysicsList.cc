@@ -8,7 +8,6 @@
 
 #include <memory>
 #include <G4DecayPhysics.hh>
-#include <G4EmExtraPhysics.hh>
 #include <G4EmStandardPhysics.hh>
 #include <G4HadronElasticPhysics.hh>
 #include <G4HadronPhysicsFTFP_BERT.hh>
@@ -51,8 +50,7 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
     // Muon and hadrom EM standard physics not supported in Celeritas
     detail::emplace_physics<detail::MuHadEmStandardPhysics>(*this, verbosity);
 
-    // Synchroton radiation & GN physics
-    detail::emplace_physics<G4EmExtraPhysics>(*this, verbosity);
+    // TODO: Add a physics constructor equivalent to G4EmExtraPhysics
 
     // Decays
     detail::emplace_physics<G4DecayPhysics>(*this, verbosity);

@@ -583,7 +583,7 @@ TEST_F(ProcessBuilderTest, mu_ionization)
     auto models = process->build_models(ActionIdIter{});
     // Note that newer versions of Geant4 use the \c G4MuBetheBloch model for
     // all energies above 200 so will only have three models
-    ASSERT_EQ(4, models.size());
+    ASSERT_EQ(3, models.size());
     ASSERT_TRUE(models[0]);
     EXPECT_EQ("ioni-icru73qo", models[0]->label());
     EXPECT_EQ(1, models[0]->applicability().size());
@@ -591,11 +591,8 @@ TEST_F(ProcessBuilderTest, mu_ionization)
     EXPECT_EQ("ioni-bragg", models[1]->label());
     EXPECT_EQ(1, models[1]->applicability().size());
     ASSERT_TRUE(models[2]);
-    EXPECT_EQ("ioni-bethe-bloch", models[2]->label());
-    EXPECT_EQ(2, models[2]->applicability().size());
-    ASSERT_TRUE(models[3]);
-    EXPECT_EQ("ioni-mu-bethe-bloch", models[3]->label());
-    auto all_applic = models[3]->applicability();
+    EXPECT_EQ("ioni-mu-bethe-bloch", models[2]->label());
+    auto all_applic = models[2]->applicability();
     ASSERT_EQ(2, all_applic.size());
 
     for (auto mat_id : range(MaterialId{this->material()->num_materials()}))

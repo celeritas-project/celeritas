@@ -177,7 +177,6 @@ inp::Problem load_problem(RunnerInput const& ri)
         {
             p.control.device_debug = [&ri] {
                 inp::DeviceDebug dd;
-                dd.default_stream = ri.default_stream;
                 dd.sync_stream = ri.action_times;
                 return dd;
             }();

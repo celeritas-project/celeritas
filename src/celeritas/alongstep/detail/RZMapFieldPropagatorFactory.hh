@@ -10,6 +10,7 @@
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/RZMapField.hh"  // IWYU pragma: associated
 #include "celeritas/field/RZMapFieldData.hh"  // IWYU pragma: associated
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {
