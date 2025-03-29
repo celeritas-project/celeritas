@@ -4,6 +4,76 @@
 Series 0.5
 ==========
 
+.. _release_v0.5.2:
+
+Version 0.5.2
+-------------
+
+*Released 2025/03/29*
+
+Version 0.5.2 is a minor update to Celeritas featuring improved diagnostic
+output, improved CMake integration for VecGeom+CUDA, and several bug fixes.
+
+
+New features
+^^^^^^^^^^^^
+
+* Improve diagnostic output when offloading *(@sethrj, #1589)*
+* Output diagnostic information about core sizes *(@sethrj, #1591)*
+* Simplify and add to system config diagnostics *(@sethrj, #1590)*
+* Add hit manager output diagnostic *(@sethrj, #1596)*
+* Write out optical size diagnostic *(@sethrj, #1597)*
+* Default downstream CUDA/HIP architectures *(@sethrj, #1669)*
+* By default load CudaRdcUtils and print config message *(@sethrj, #1676)*
+* Add Celeritas cmake command wrappers for downstream code *(@sethrj, #1678)*
+
+Bug fixes
+^^^^^^^^^
+
+* Set step length and other data in reconstructed tracks *(@sethrj, #1595)*
+* Fix CUDA+VecGeom linking with Ubuntu *(@pcanal, #1618)*
+* Fix link errors with CUDA RDC and ``--as-needed`` flag *(@pcanal, #1661)*
+* Fix ``getenv_flag`` *(@amandalund, #1647)*
+* Fix static builds and CI reporting *(@sethrj, #1680)*
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Add example offloading template *(@stognini, #1573)*
+* Update core advisors *(@sethrj, #1598)*
+* Add comment directing to CMake doc of feature being used *(@pcanal, #1619)*
+* Increase ccache size for asanlite job *(@sethrj, #1646)*
+* Hotfix: remove Ubuntu 20 from CI configuration *(@sethrj, #1651)*
+* Hotfix: prevent vecgeom 2.0 in regular builds *(@sethrj, #1655)*
+
+Minor internal changes
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Use external G4VG *(@sethrj, #1605)*
+* Update perfetto to v49.0 *(@esseivaju, #1608)*
+* Flush perfetto TrackEvents *(@esseivaju, #1630)*
+* Add perfetto track counters to accel LocalTransporter *(@esseivaju, #1634)*
+* Rename ``EXTERNAL`` CMake variable *(@sethrj, #1621)*
+* Update externals and enforce G4VG version *(@sethrj, #1641)*
+* Update cmake-git-version *(@sethrj, #1643)*
+* Fix downstream RDC linking and add versioning *(@pcanal, #1665)*
+* Extend CudaRdc compatibility *(@pcanal, #1671)*
+* Update CudaRdcUtils to v3 *(@pcanal, #1679)*
+* Drastically speed up CudaRdcUtils *(@pcanal, #1683)*
+
+Reviewers
+^^^^^^^^^
+
+- Seth R. Johnson *(@sethrj)*: 12
+- Philippe Canal *(@pcanal)*: 6
+- Amanda Lund *(@amandalund)*: 5
+- Julien Esseiva *(@esseivaju)*: 4
+- Stefano Tognini *(@stognini)*: 1
+- Paul Romano *(@paulromano)*: 1
+- Ben Morgan *(@drbenmorgan)*: 1
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.5.1...v0.5.2
+
 .. _release_v0.5.1:
 
 Version 0.5.1
