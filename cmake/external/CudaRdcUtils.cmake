@@ -930,7 +930,9 @@ function(cuda_rdc_target_link_libraries target)
       get_target_property(_final_target_type ${_finallibs} TYPE)
 
       get_target_property(_final_runtime ${_finallibs} CUDA_RUNTIME_LIBRARY)
+      set(_cuda_runtime_target CUDA::cudart_static)
       if(_final_runtime STREQUAL "Shared")
+        set(_cuda_runtime_target CUDA::cudart)
         set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
       endif()
 
@@ -953,8 +955,8 @@ function(cuda_rdc_target_link_libraries target)
         endforeach()
         set(_reverse_flat_list_linked_libs ${_short_flat_list_linked_libs})
         list(REVERSE _reverse_flat_list_linked_libs)
-        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_reverse_flat_list_linked_libs} ${_short_flat_list_linked_libs} ${_finallibs} ${_current_link_libraries})
-     else()
+        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_reverse_flat_list_linked_libs} ${_short_flat_list_linked_libs} ${_finallibs} ${_current_link_libraries} ${_cuda_runtime_target})
+      else()
         # We could have used:
         #    target_link_libraries(${target} PUBLIC ${_finallibs})
         # but target_link_libraries must used either all plain arguments or all plain
@@ -964,7 +966,7 @@ function(cuda_rdc_target_link_libraries target)
         #     if(ARGV1 MATCHES "^(PRIVATE|PUBLIC|INTERFACE)$")
         # or simply keep the following:
         get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
-        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} "$<LINK_LIBRARY:rdc_no_as_needed,${_finallibs}>" )
+        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} "$<LINK_LIBRARY:rdc_no_as_needed,${_finallibs}>" ${_cuda_runtime_target})
       endif()
     elseif(${_final_count} GREATER 1)
       # turn into CUDA executable.
