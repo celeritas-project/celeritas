@@ -723,6 +723,9 @@ message(WARNING \"The Celeritas version was not detected during configuration.
   This will result in the installation having incorrect version metadata and
   will interfere with downstream CMake version requirements and may obscure
   provenance data in output results.\")
+message(WARNING \"If using a git checkout, please run
+  `git fetch --all --tags`, rebuild with `cmake --build ${CMAKE_BINARY_DIR}`,
+  and install with `cmake --install ${CMAKE_BINARY_DIR}`.\")
 ")
 endif()
 if(CELERITAS_USE_HIP AND NOT BUILD_SHARED_LIBS)

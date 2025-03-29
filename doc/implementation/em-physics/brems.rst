@@ -13,14 +13,20 @@ Models
 .. doxygenclass:: celeritas::SeltzerBergerInteractor
 .. doxygenclass:: celeritas::MuBremsstrahlungInteractor
 
+The exiting electron energies from the interaction are calculated with a shared
+helper function:
+
+.. doxygenclass:: celeritas::detail::BremFinalStateHelper
+
 Cross sections
 --------------
 
-The Seltzer--Berger interactions are sampled with the help of an energy
-distribution and cross section correction:
+The bremsstrahlung interactions are sampled using cross sections and adjustment factors:
 
 .. doxygenclass:: celeritas::SBEnergyDistribution
 .. doxygenclass:: celeritas::detail::SBPositronXsCorrector
+
+.. doxygenclass:: celeritas::RBDiffXsCalculator
 
 Relativistic bremsstrahlung and relativistic Bethe-Heitler sampling both use a
 helper class to calculate a suppression factor that reduces the differential
@@ -36,6 +42,9 @@ rejection sampling.
 Distributions
 -------------
 
+.. doxygenclass:: celeritas::detail::SBEnergySampler
+.. doxygenclass:: celeritas::detail::RBEnergySampler
+
 A simple distribution is used to sample exiting polar angles from electron
 bremsstrahlung (and gamma conversion).
 
@@ -45,5 +54,4 @@ Muon bremsstrahlung and pair production use a simple distribution to sample the
 exiting polar angles.
 
 .. doxygenclass:: celeritas::MuAngularDistribution
-
 
