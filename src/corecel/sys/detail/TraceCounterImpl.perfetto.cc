@@ -18,15 +18,7 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-/*!
- * Simple performance tracing counter.
- * \tparam T Arithmetic counter type
- *
- * Records a named value at the current timestamp which
- * can then be displayed on a timeline.
- *
- * See https://perfetto.dev/docs/instrumentation/track-events#counters
- */
+//! Implement NVTX counters for Perfetto
 template<class T>
 void trace_counter_impl(char const* name, T value)
 {

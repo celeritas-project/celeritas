@@ -39,13 +39,7 @@ nvtxEventAttributes_t make_base_attributes(char const* name)
 }  // namespace
 
 //---------------------------------------------------------------------------//
-/*!
- * Simple performance tracing counter.
- * \tparam T Arithmetic counter type
- *
- * Records a named value at the current timestamp which
- * can then be displayed on a timeline.
- */
+//! Implement NVTX counters for CUDA
 template<class T>
 void trace_counter_impl(char const* name, T value)
 {

@@ -24,7 +24,8 @@ namespace celeritas
  * \tparam T Arithmetic counter type
  *
  * Records a named value at the current timestamp which
- * can then be displayed on a timeline.
+ * can then be displayed on a timeline. This is implemented for Perfetto and
+ * CUDA NVTX.
  *
  * See https://perfetto.dev/docs/instrumentation/track-events#counters
  */
@@ -35,14 +36,7 @@ inline void trace_counter(char const* name, T value)
                   "Only numeric counters are supported");
     if ((CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA) && use_profiling())
     {
-        // On some platform size_t is equivalent to uint64_t, which would cause
-        // duplicate template instantiation
-        using counter_type = std::conditional_t<
-            std::is_same_v<T, std::size_t>,
-            std::conditional_t<sizeof(std::size_t) == sizeof(std::uint64_t),
-                               std::uint64_t,
-                               std::uint32_t>,
-            T>;
+        using counter_type = detail::trace_counter_type;
         detail::trace_counter_impl<counter_type>(name, value);
     }
 }
