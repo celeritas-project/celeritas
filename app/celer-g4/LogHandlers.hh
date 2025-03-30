@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/LocalLogger.hh
+//! \file celer-g4/LogHandlers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,13 +17,14 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Celeritas-style multithreaded logger that writes to std::clog.
+ * Celeritas-style multithreaded log handle that writes to std::clog.
  */
-class LocalLogger
+class SelfLogHandler
 {
   public:
     //! Construct from number of threads
-    explicit LocalLogger(unsigned int num_threads) : num_threads_(num_threads)
+    explicit SelfLogHandler(unsigned int num_threads)
+        : num_threads_(num_threads)
     {
         CELER_EXPECT(num_threads_ > 0);
     }
@@ -34,6 +35,12 @@ class LocalLogger
   private:
     unsigned int num_threads_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Celeritas-style multithreaded logger that writes to std::clog.
+ */
+void handle_world_log(LogProvenance prov, LogLevel lev, std::string msg);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

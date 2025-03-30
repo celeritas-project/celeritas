@@ -13,7 +13,7 @@ if(CELERITAS_USE_Geant4)
     GeantDiagnostics.cc
     GlobalSetup.cc
     HepMC3PrimaryGeneratorAction.cc
-    LocalLogger.cc
+    LogHandlers.cc
     PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
