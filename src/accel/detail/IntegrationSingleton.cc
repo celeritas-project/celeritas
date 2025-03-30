@@ -76,7 +76,8 @@ void IntegrationSingleton::initialize_logger()
                            << "logger cannot be set up before run manager");
             CELER_VALIDATE(!params_,
                            << "logger cannot be set up after shared params");
-            celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
+            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
+            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
         },
         ExceptionConverter{"celer.init.logger"});
 }
