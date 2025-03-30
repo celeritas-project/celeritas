@@ -64,5 +64,7 @@ int main(int argc, char* argv[])
         auto* ui = G4UImanager::GetUIpointer();
         ui->ApplyCommand("/control/execute " + std::string(argv[1]));
     }
+
+    std::cout << "Done!" << std::endl;
     return EXIT_SUCCESS;
 }

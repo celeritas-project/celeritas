@@ -37,6 +37,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
@@ -387,6 +388,17 @@ void LocalTransporter::Flush()
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
+
+    if (hit_processor_)
+    {
+        auto num_hits = hit_processor_->get_and_reset_num_hits();
+        if (num_hits > 0)
+        {
+            CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
+                                   << " hits for event " << event_id_.get();
+            run_accum_.hits += num_hits;
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -406,7 +418,8 @@ void LocalTransporter::Finalize()
     CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << run_accum_.steps
                           << " steps from " << run_accum_.primaries
                           << " offloaded tracks over " << run_accum_.events
-                          << " events";
+                          << " events, generating " << run_accum_.hits
+                          << " hits";
     if (run_accum_.lost_primaries > 0)
     {
         CELER_LOG_LOCAL(warning)
