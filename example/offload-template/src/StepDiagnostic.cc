@@ -103,7 +103,8 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
         // Whether the given state is device/host
         constexpr MemSpace M
             = std::remove_reference_t<decltype(derived)>::memspace;
-        CELER_LOG(debug) << "Copying step diagnostics from " << to_cstring(M);
+        CELER_LOG_LOCAL(debug)
+            << "Copying step diagnostics from " << to_cstring(M);
 
         // Get the step data from the core state
         auto& step_state = derived.template aux_data<StepStateData>(aux_id_);

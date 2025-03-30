@@ -416,7 +416,7 @@ void SharedParams::Finalize()
     this->try_output();
 
     // Reset all data
-    CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
+    CELER_LOG(debug) << "Resetting shared parameters";
     *this = {};
 
     // Reset streams before the static destructor does
@@ -470,7 +470,7 @@ auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
         std::lock_guard scoped_lock{updating_mutex()};
         if (!geant_geo_)
         {
-            CELER_LOG_LOCAL(debug) << "Constructing GeantGeoParams wrapper";
+            CELER_LOG(debug) << "Constructing GeantGeoParams wrapper";
 
             auto geo_params = std::make_shared<GeantGeoParams>(
                 GeantImporter::get_world_volume());
@@ -760,8 +760,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
     }
     else
     {
-        CELER_LOG_LOCAL(debug)
-            << "Setting number of streams to " << num_streams;
+        CELER_LOG(debug) << "Setting number of streams to " << num_streams;
     }
 
     states_.resize(num_streams);

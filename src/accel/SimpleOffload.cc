@@ -70,7 +70,7 @@ void SimpleOffload::BeginOfRunAction(G4Run const*)
 
     if (local_)
     {
-        CELER_LOG_LOCAL(status) << "Constructing local state";
+        CELER_LOG(status) << "Constructing local state";
         CELER_TRY_HANDLE(local_->Initialize(*setup_, *params_),
                          ExceptionConverter{"celer.init.local"});
     }
@@ -139,7 +139,7 @@ void SimpleOffload::EndOfRunAction(G4Run const*)
 {
     CELER_EXPECT(params_);
 
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+    CELER_LOG(status) << "Finalizing Celeritas";
 
     if (local_)
     {

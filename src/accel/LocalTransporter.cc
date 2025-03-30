@@ -158,7 +158,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
         && G4Threading::IsMultithreadedApplication())
     {
-        auto msg = CELER_LOG_LOCAL(warning);
+        auto msg = CELER_LOG(warning);
         msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
                "parallelism";
         if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
@@ -422,7 +422,6 @@ void LocalTransporter::Finalize()
             step_->sp_state());
         CELER_ASSERT(state);
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-        CELER_LOG_LOCAL(debug) << "Deallocating navigation states";
         state->ref().geometry.reset();
 #endif
     }
@@ -431,7 +430,6 @@ void LocalTransporter::Finalize()
     flush_tracing();
 
     // Reset all data
-    CELER_LOG_LOCAL(debug) << "Resetting local transporter";
     *this = {};
 
     CELER_ENSURE(!*this);

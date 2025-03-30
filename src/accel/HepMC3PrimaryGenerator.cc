@@ -197,10 +197,10 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
     }
     insert_primary();
 
-    CELER_LOG_LOCAL(info) << "Loaded " << g4_event->GetNumberOfPrimaryVertex()
-                          << " real vertices with " << num_primaries
-                          << " real primaries for event "
-                          << g4_event->GetEventID();
+    CELER_LOG_LOCAL(debug) << "Loaded " << g4_event->GetNumberOfPrimaryVertex()
+                           << " real vertices with " << num_primaries
+                           << " real primaries for event "
+                           << g4_event->GetEventID();
 
     // Check world solid
     if (CELERITAS_DEBUG)
