@@ -253,7 +253,7 @@ set(_profiling_sources
 )
 if(CELERITAS_USE_Perfetto)
   list(APPEND _profiling_sources
-    sys/TraceCounter.perfetto.cc
+    sys/detail/TraceCounterImpl.perfetto.cc
     sys/TracingSession.perfetto.cc
   )
 endif()
@@ -280,6 +280,8 @@ endif()
 if(CELERITAS_USE_CUDA)
   # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
+    sys/detail/NvtxUtils.cc
+    sys/detail/TraceCounterImpl.cuda.cc
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
