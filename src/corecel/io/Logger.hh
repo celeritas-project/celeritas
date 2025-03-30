@@ -86,6 +86,9 @@ class MpiCommunicator;
  * When using with MPI, the \c world_logger global objects are different on
  * each process: rank 0 will have a handler that outputs to screen, and the
  * other ranks will have a "null" handler that suppresses all log output.
+ *
+ * \todo For v1.0, replace the back-end with \c spdlog to reduce maintenance
+ * burden and improve flexibility.
  */
 class Logger
 {
@@ -99,8 +102,11 @@ class Logger
     //! Get the default log level
     static constexpr LogLevel default_level() { return LogLevel::status; }
 
-    // Construct with default celeritas communicator
-    explicit Logger(LogHandler handle);
+    // Create a logger from a handle and level environment variable
+    static Logger from_handle_env(LogHandler&& handle, std::string const& key);
+
+    // Construct from an our put handle
+    explicit Logger(LogHandler&& handle);
 
     // Create a logger that flushes its contents when it destructs
     inline Message operator()(LogProvenance&& prov, LogLevel lev);
