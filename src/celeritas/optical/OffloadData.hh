@@ -51,6 +51,7 @@ struct OpticalAccumStats
 
     size_type steps{0};
     size_type step_iters{0};
+    size_type flushes{0};
 };
 
 //---------------------------------------------------------------------------//

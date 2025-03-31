@@ -237,6 +237,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     // Update statistics
     offload_state.accum.steps += num_steps;
     offload_state.accum.step_iters += num_step_iters;
+    ++offload_state.accum.flushes;
 
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here

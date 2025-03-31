@@ -151,6 +151,9 @@ void LArSphereOffloadTest::RunResult::print_expected() const
          << this->accum.step_iters
          << ", result.accum.step_iters);\n"
             "EXPECT_EQ("
+         << this->accum.flushes
+         << ", result.accum.flushes);\n"
+            "EXPECT_EQ("
          << this->accum.generators.cherenkov
          << ", result.accum.generators.cherenkov);\n"
             "EXPECT_EQ("
@@ -533,6 +536,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
         // No steps ran
         EXPECT_EQ(0, result.accum.steps);
         EXPECT_EQ(0, result.accum.step_iters);
+        EXPECT_EQ(16, result.accum.flushes);
         EXPECT_EQ(0, result.accum.generators.cherenkov);
         EXPECT_EQ(0, result.accum.generators.scintillation);
         EXPECT_EQ(0, result.accum.generators.photons);
@@ -572,6 +576,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
         EXPECT_EQ(1028, result.accum.steps);
         EXPECT_EQ(33, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
         EXPECT_EQ(0, result.accum.generators.cherenkov);
         EXPECT_EQ(2, result.accum.generators.scintillation);
         EXPECT_EQ(1028, result.accum.generators.photons);
@@ -607,6 +612,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
         EXPECT_EQ(324193, result.accum.steps);
         EXPECT_EQ(2, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
         EXPECT_EQ(4, result.accum.generators.cherenkov);
         EXPECT_EQ(4, result.accum.generators.scintillation);
         EXPECT_EQ(324193, result.accum.generators.photons);
