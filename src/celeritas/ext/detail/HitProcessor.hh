@@ -105,8 +105,8 @@ class HitProcessor
     // Access thread-local SD corresponding to an ID
     inline G4VSensitiveDetector* detector(DetectorId) const;
 
-    // Exchange hits counted (generally once per event)
-    inline size_type get_and_reset_num_hits();
+    // Get and reset the hits counted (generally once per event)
+    inline size_type exchange_hits();
 
   private:
     //! Detector volumes for navigation updating
@@ -162,7 +162,7 @@ G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
 /*!
  * Get and reset number of hits counted (generally once per event).
  */
-size_type HitProcessor::get_and_reset_num_hits()
+size_type HitProcessor::exchange_hits()
 {
     return std::exchange(num_hits_, size_type{0});
 }

@@ -391,7 +391,7 @@ void LocalTransporter::Flush()
 
     if (hit_processor_)
     {
-        auto num_hits = hit_processor_->get_and_reset_num_hits();
+        auto num_hits = hit_processor_->exchange_hits();
         if (num_hits > 0)
         {
             CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
