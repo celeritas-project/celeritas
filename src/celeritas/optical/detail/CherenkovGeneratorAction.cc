@@ -133,6 +133,10 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
                            << " Cherenkov photons from " << buffer_size
                            << " distributions";
 
+    // Update cumulative statistics
+    offload_state.accum.generators.cherenkov += buffer_size;
+    offload_state.accum.generators.photons += count;
+
     photons += count;
     num_new_photons -= count;
     buffer_size = 0;

@@ -62,7 +62,7 @@ struct OpticalOffloadStateBase : public AuxStateInterface
     //! Buffer sizes to be sent to GPU
     OpticalOffloadCounters<size_type> buffer_size;
     //! Counts accumulated over the event for diagnostics
-    OpticalOffloadCounters<std::size_t> accum;
+    OpticalAccumStats accum;
 };
 
 //---------------------------------------------------------------------------//

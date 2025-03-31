@@ -96,7 +96,9 @@ void ScintGeneratorAction::step_impl(CoreParams const& core_params,
     auto& num_new_photons = offload_state.buffer_size.photons;
 
     if (photons + num_new_photons < auto_flush_)
+    {
         return;
+    }
 
     auto initializers_size = optical_state.ref().init.initializers.size();
     CELER_VALIDATE(photons + num_new_photons <= initializers_size,
@@ -125,6 +127,10 @@ void ScintGeneratorAction::step_impl(CoreParams const& core_params,
     CELER_LOG_LOCAL(debug) << "Generated " << count
                            << " Scintillation photons from " << buffer_size
                            << " distributions";
+
+    // Update cumulative statistics
+    offload_state.accum.generators.scintillation += buffer_size;
+    offload_state.accum.generators.photons += count;
 
     photons += count;
     num_new_photons -= count;

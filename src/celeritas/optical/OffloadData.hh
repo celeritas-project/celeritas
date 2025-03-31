@@ -42,6 +42,17 @@ struct OpticalOffloadCounters
     size_type photons{0};
 };
 
+//! Cumulative statistics of optical tracking
+struct OpticalAccumStats
+{
+    using size_type = std::size_t;
+
+    OpticalOffloadCounters<size_type> generators;
+
+    size_type steps{0};
+    size_type step_iters{0};
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Setup options for optical generation.

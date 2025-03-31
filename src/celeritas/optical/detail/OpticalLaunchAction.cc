@@ -234,6 +234,10 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         CELER_LOG_LOCAL(debug) << "No optical steps taken";
     }
 
+    // Update statistics
+    offload_state.accum.steps += num_steps;
+    offload_state.accum.step_iters += num_step_iters;
+
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here
     counters.num_generated = 0;

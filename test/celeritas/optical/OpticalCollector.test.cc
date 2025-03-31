@@ -64,6 +64,7 @@ class LArSphereOffloadTest : public LArSphereBase
         size_type num_photons{0};
         OffloadResult cherenkov;
         OffloadResult scintillation;
+        OpticalAccumStats accum;
 
         // Step iteration at which the optical tracking loop launched
         size_type optical_launch_step{0};
@@ -143,6 +144,21 @@ void LArSphereOffloadTest::RunResult::print_expected() const
          << ";\n"
             "EXPECT_VEC_EQ(expected_scintillation_charge, "
             "result.scintillation.charge);\n"
+            "EXPECT_EQ("
+         << this->accum.steps
+         << ", result.accum.steps);\n"
+            "EXPECT_EQ("
+         << this->accum.step_iters
+         << ", result.accum.step_iters);\n"
+            "EXPECT_EQ("
+         << this->accum.generators.cherenkov
+         << ", result.accum.generators.cherenkov);\n"
+            "EXPECT_EQ("
+         << this->accum.generators.scintillation
+         << ", result.accum.generators.scintillation);\n"
+            "EXPECT_EQ("
+         << this->accum.generators.photons
+         << ", result.accum.generators.photons);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -314,6 +330,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     get_result(result.cherenkov, state.cherenkov, sizes.cherenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
     result.num_photons = sizes.photons;
+
+    result.accum = collector_->exchange_counters(step.sp_state()->aux());
 
     return result;
 }
@@ -511,6 +529,13 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     {
         EXPECT_EQ(1639326, result.scintillation.total_num_photons);
         EXPECT_EQ(53, result.scintillation.num_photons.size());
+
+        // No steps ran
+        EXPECT_EQ(0, result.accum.steps);
+        EXPECT_EQ(0, result.accum.step_iters);
+        EXPECT_EQ(0, result.accum.generators.cherenkov);
+        EXPECT_EQ(0, result.accum.generators.scintillation);
+        EXPECT_EQ(0, result.accum.generators.photons);
     }
     else
     {
@@ -544,6 +569,12 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+
+        EXPECT_EQ(1028, result.accum.steps);
+        EXPECT_EQ(33, result.accum.step_iters);
+        EXPECT_EQ(0, result.accum.generators.cherenkov);
+        EXPECT_EQ(2, result.accum.generators.scintillation);
+        EXPECT_EQ(1028, result.accum.generators.photons);
     }
     static char const* const expected_log_levels[]
         = {"status", "status", "debug", "debug", "debug", "debug"};
@@ -573,6 +604,12 @@ TEST_F(LArSphereOffloadTest, host_generate)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+
+        EXPECT_EQ(324193, result.accum.steps);
+        EXPECT_EQ(2, result.accum.step_iters);
+        EXPECT_EQ(4, result.accum.generators.cherenkov);
+        EXPECT_EQ(4, result.accum.generators.scintillation);
+        EXPECT_EQ(324193, result.accum.generators.photons);
     }
     static char const* const expected_log_levels[]
         = {"status", "status", "debug", "debug", "debug", "debug"};
@@ -593,6 +630,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::device>(1, num_track_slots_, 16);
+    result.print_expected();
+
     static char const* const expected_log_levels[] = {"status", "status"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 

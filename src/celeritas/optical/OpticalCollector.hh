@@ -18,6 +18,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class AuxStateVec;
 class CoreParams;
 
 namespace optical
@@ -110,6 +111,9 @@ class OpticalCollector
 
     // Aux ID for optical state data
     AuxId optical_aux_id() const;
+
+    // Get and reset cumulative statistics on optical tracks from a state
+    OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
 
   private:
     //// TYPES ////
