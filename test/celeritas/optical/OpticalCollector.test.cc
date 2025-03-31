@@ -64,6 +64,7 @@ class LArSphereOffloadTest : public LArSphereBase
         size_type num_photons{0};
         OffloadResult cherenkov;
         OffloadResult scintillation;
+        OpticalAccumStats accum;
 
         // Step iteration at which the optical tracking loop launched
         size_type optical_launch_step{0};
@@ -143,6 +144,24 @@ void LArSphereOffloadTest::RunResult::print_expected() const
          << ";\n"
             "EXPECT_VEC_EQ(expected_scintillation_charge, "
             "result.scintillation.charge);\n"
+            "EXPECT_EQ("
+         << this->accum.steps
+         << ", result.accum.steps);\n"
+            "EXPECT_EQ("
+         << this->accum.step_iters
+         << ", result.accum.step_iters);\n"
+            "EXPECT_EQ("
+         << this->accum.flushes
+         << ", result.accum.flushes);\n"
+            "EXPECT_EQ("
+         << this->accum.generators.cherenkov
+         << ", result.accum.generators.cherenkov);\n"
+            "EXPECT_EQ("
+         << this->accum.generators.scintillation
+         << ", result.accum.generators.scintillation);\n"
+            "EXPECT_EQ("
+         << this->accum.generators.photons
+         << ", result.accum.generators.photons);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -273,7 +292,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
-        if (!offload_state.buffer_size.num_photons)
+        if (!offload_state.buffer_size.photons)
         {
             result.optical_launch_step = step_iter;
 
@@ -313,7 +332,9 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     auto const& sizes = offload_state.buffer_size;
     get_result(result.cherenkov, state.cherenkov, sizes.cherenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
-    result.num_photons = sizes.num_photons;
+    result.num_photons = sizes.photons;
+
+    result.accum = collector_->exchange_counters(step.sp_state()->aux());
 
     return result;
 }
@@ -511,6 +532,14 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     {
         EXPECT_EQ(1639326, result.scintillation.total_num_photons);
         EXPECT_EQ(53, result.scintillation.num_photons.size());
+
+        // No steps ran
+        EXPECT_EQ(0, result.accum.steps);
+        EXPECT_EQ(0, result.accum.step_iters);
+        EXPECT_EQ(16, result.accum.flushes);
+        EXPECT_EQ(0, result.accum.generators.cherenkov);
+        EXPECT_EQ(0, result.accum.generators.scintillation);
+        EXPECT_EQ(0, result.accum.generators.photons);
     }
     else
     {
@@ -534,19 +563,23 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::debug};
     auto result = this->run<MemSpace::host>(4, 2, 2);
 
-    static char const* const expected_log_messages[] = {
-        "Celeritas optical state initialization complete",
-        "Celeritas core state initialization complete",
-        "No Cherenkov photons to generate",
-        "Generated 1028 Scintillation photons from 2 distributions",
-        R"(Generated 1028 optical photons which completed 1028 total steps over 33 iterations)",
-        "Deallocating host core state (stream 0)"};
+    static char const* const expected_log_messages[]
+        = {"Celeritas optical state initialization complete",
+           "Celeritas core state initialization complete",
+           "Deallocating host core state (stream 0)"};
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+
+        EXPECT_EQ(1028, result.accum.steps);
+        EXPECT_EQ(33, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
+        EXPECT_EQ(0, result.accum.generators.cherenkov);
+        EXPECT_EQ(2, result.accum.generators.scintillation);
+        EXPECT_EQ(1028, result.accum.generators.photons);
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "debug", "debug", "debug", "debug"};
+        = {"status", "status", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
@@ -565,17 +598,21 @@ TEST_F(LArSphereOffloadTest, host_generate)
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        "Generated 4258 Cherenkov photons from 4 distributions",
-        "Generated 319935 Scintillation photons from 4 distributions",
-        R"(Generated 324193 optical photons which completed 324193 total steps over 2 iterations)",
         "Deallocating host core state (stream 0)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+
+        EXPECT_EQ(324193, result.accum.steps);
+        EXPECT_EQ(2, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
+        EXPECT_EQ(4, result.accum.generators.cherenkov);
+        EXPECT_EQ(4, result.accum.generators.scintillation);
+        EXPECT_EQ(324193, result.accum.generators.photons);
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "debug", "debug", "debug", "debug"};
+        = {"status", "status", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(2, result.optical_launch_step);
@@ -593,6 +630,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::device>(1, num_track_slots_, 16);
+    result.print_expected();
+
     static char const* const expected_log_levels[] = {"status", "status"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 

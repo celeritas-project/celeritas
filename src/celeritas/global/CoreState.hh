@@ -54,6 +54,9 @@ class CoreStateInterface
     //! Access auxiliary state data
     virtual AuxStateVec const& aux() const = 0;
 
+    //! Access mutable auxiliary state data
+    virtual AuxStateVec& aux() = 0;
+
   protected:
     CoreStateInterface() = default;
     CELER_DEFAULT_COPY_MOVE(CoreStateInterface);
@@ -138,7 +141,7 @@ class CoreState final : public CoreStateInterface
     AuxStateVec const& aux() const final { return aux_state_; }
 
     //! Access auxiliary state data (mutable)
-    AuxStateVec& aux() { return aux_state_; }
+    AuxStateVec& aux() final { return aux_state_; }
 
     // Convenience function to access auxiliary "collection group" data
     template<template<Ownership, MemSpace> class S>

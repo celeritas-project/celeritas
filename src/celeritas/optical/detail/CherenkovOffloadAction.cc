@@ -101,7 +101,7 @@ void CherenkovOffloadAction::step_impl(CoreParams const& core_params,
 
     // Count the number of optical photons that would be generated from the
     // distributions created in this step
-    state.buffer_size.num_photons += count_num_photons(
+    state.buffer_size.photons += count_num_photons(
         buffer, start, buffer_size, core_state.stream_id());
 }
 

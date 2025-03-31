@@ -209,8 +209,8 @@ CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 /*!
  * Return a particle view of another particle type.
  */
-CELER_FUNCTION auto CoreTrackView::particle_record(ParticleId pid) const
-    -> ParticleView
+CELER_FUNCTION auto
+CoreTrackView::particle_record(ParticleId pid) const -> ParticleView
 {
     return ParticleView{params_.particles, pid};
 }

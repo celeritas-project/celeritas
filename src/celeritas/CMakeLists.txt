@@ -135,6 +135,7 @@ list(APPEND SOURCES
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
   setup/Events.cc
+  setup/FrameworkInput.cc
   setup/Import.cc
   setup/Problem.cc
   setup/StandaloneInput.cc
