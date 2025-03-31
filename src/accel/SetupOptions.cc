@@ -140,15 +140,18 @@ void ProblemSetup::operator()(inp::Problem& p) const
         auto field_val = norm(field.strength);
         if (field_val > 0)
         {
+            auto volumes = u->get_volumes();
             auto msg = CELER_LOG(info);
             msg << "Using a uniform field: " << field_val << " [T] in ";
-            if (field.volumes.empty())
+            if (volumes.empty())
             {
                 msg << "all";
             }
             else
             {
-                msg << field.volumes.size();
+                msg << volumes.size();
+                field.volumes = inp::UniformField::SetVolume{volumes.begin(),
+                                                             volumes.end()};
             }
             msg << " volumes";
             p.field = std::move(field);
