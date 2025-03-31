@@ -222,18 +222,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         }
     }
 
-    if (num_step_iters > 0)
-    {
-        CELER_LOG_LOCAL(debug)
-            << "Generated " << counters.num_generated
-            << " optical photons which completed " << num_steps
-            << " total steps over " << num_step_iters << " iterations";
-    }
-    else
-    {
-        CELER_LOG_LOCAL(debug) << "No optical steps taken";
-    }
-
     // Update statistics
     offload_state.accum.steps += num_steps;
     offload_state.accum.step_iters += num_step_iters;

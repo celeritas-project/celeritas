@@ -115,7 +115,6 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
     if (buffer_size == 0)
     {
         // No new cherenkov photons: perhaps tracks are all subluminal
-        CELER_LOG_LOCAL(debug) << "No Cherenkov photons to generate";
         return;
     }
 
@@ -128,10 +127,6 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
 
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);
-
-    CELER_LOG_LOCAL(debug) << "Generated " << count
-                           << " Cherenkov photons from " << buffer_size
-                           << " distributions";
 
     // Update cumulative statistics
     offload_state.accum.generators.cherenkov += buffer_size;

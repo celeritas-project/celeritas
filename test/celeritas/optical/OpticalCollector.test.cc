@@ -566,9 +566,6 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        "No Cherenkov photons to generate",
-        "Generated 1028 Scintillation photons from 2 distributions",
-        R"(Generated 1028 optical photons which completed 1028 total steps over 33 iterations)",
         "Deallocating host core state (stream 0)"};
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
@@ -582,7 +579,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
         EXPECT_EQ(1028, result.accum.generators.photons);
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "debug", "debug", "debug", "debug"};
+        = {"status", "status", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
@@ -601,9 +598,6 @@ TEST_F(LArSphereOffloadTest, host_generate)
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        "Generated 4258 Cherenkov photons from 4 distributions",
-        "Generated 319935 Scintillation photons from 4 distributions",
-        R"(Generated 324193 optical photons which completed 324193 total steps over 2 iterations)",
         "Deallocating host core state (stream 0)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -618,7 +612,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
         EXPECT_EQ(324193, result.accum.generators.photons);
     }
     static char const* const expected_log_levels[]
-        = {"status", "status", "debug", "debug", "debug", "debug"};
+        = {"status", "status", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(2, result.optical_launch_step);
