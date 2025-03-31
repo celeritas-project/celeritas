@@ -23,13 +23,23 @@ namespace celeritas
 /*!
  * Current sizes of the buffers of distribution data.
  *
- * These sizes are updated by value on the host at each core step.
+ * These sizes are updated by value on the host at each core step. To allow
+ * accumulation over many steps which each may have many photons, the type is
+ * templated.
  */
-struct OffloadBufferSize
+template<class T = ::celeritas::size_type>
+struct OpticalOffloadCounters
 {
+    using size_type = T;
+
+    //!@{
+    //! Number of generators
     size_type cherenkov{0};
     size_type scintillation{0};
-    size_type num_photons{0};
+    //!@}
+
+    //! Number of generated tracks
+    size_type photons{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -108,6 +118,8 @@ struct OffloadPreStepData
  * indexed by the current buffer size plus the track slot ID. The data is
  * compacted at the end of each step by removing all invalid distributions. The
  * order of the distributions in the buffers is guaranteed to be reproducible.
+ *
+ * This class is attached to the core state using \c OpticalOffloadState .
  */
 template<Ownership W, MemSpace M>
 struct OffloadStateData

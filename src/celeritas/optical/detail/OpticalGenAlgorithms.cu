@@ -35,7 +35,7 @@ struct GetNumPhotons
     CELER_FUNCTION size_type
     operator()(celeritas::optical::GeneratorDistributionData const& data) const
     {
-        return data.num_photons;
+        return data.photons;
     }
 };
 

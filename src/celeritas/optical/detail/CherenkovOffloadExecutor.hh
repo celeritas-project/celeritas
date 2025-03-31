@@ -30,7 +30,7 @@ struct CherenkovOffloadExecutor
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<celeritas::optical::CherenkovData> const cherenkov;
     NativeRef<OffloadStateData> const state;
-    OffloadBufferSize size;
+    OpticalOffloadCounters<> size;
 };
 
 //---------------------------------------------------------------------------//

@@ -273,7 +273,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
-        if (!offload_state.buffer_size.num_photons)
+        if (!offload_state.buffer_size.photons)
         {
             result.optical_launch_step = step_iter;
 
@@ -313,7 +313,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     auto const& sizes = offload_state.buffer_size;
     get_result(result.cherenkov, state.cherenkov, sizes.cherenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
-    result.num_photons = sizes.num_photons;
+    result.num_photons = sizes.photons;
 
     return result;
 }
