@@ -65,7 +65,18 @@ Runner::Runner(RunnerInput const& old_inp)
 
     use_device_ = old_inp.use_device;
 
-    this->build_transporter_input(old_inp);
+    CELER_VALIDATE(old_inp.max_steps > 0,
+                   << "nonpositive max_steps=" << old_inp.max_steps);
+    transporter_input_ = std::make_shared<TransporterInput>();
+    transporter_input_->optical = std::move(loaded.problem.optical_collector);
+    transporter_input_->params = core_params_;
+
+    transporter_input_->max_steps = old_inp.max_steps;
+    transporter_input_->store_track_counts = old_inp.write_track_counts;
+    transporter_input_->store_step_times = old_inp.write_step_times;
+    transporter_input_->action_times = old_inp.action_times;
+    transporter_input_->log_progress = old_inp.log_progress;
+
     transporters_.resize(this->num_streams());
 
     CELER_ENSURE(core_params_);
@@ -159,24 +170,6 @@ auto Runner::get_action_times() const -> MapStrDouble
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct transporter input parameters.
- */
-void Runner::build_transporter_input(RunnerInput const& inp)
-{
-    CELER_VALIDATE(inp.max_steps > 0,
-                   << "nonpositive max_steps=" << inp.max_steps);
-
-    transporter_input_ = std::make_shared<TransporterInput>();
-    transporter_input_->max_steps = inp.max_steps;
-    transporter_input_->store_track_counts = inp.write_track_counts;
-    transporter_input_->store_step_times = inp.write_step_times;
-    transporter_input_->action_times = inp.action_times;
-    transporter_input_->params = core_params_;
-    transporter_input_->log_progress = inp.log_progress;
 }
 
 //---------------------------------------------------------------------------//

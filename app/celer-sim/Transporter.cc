@@ -25,6 +25,7 @@
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "StepTimer.hh"
@@ -59,7 +60,8 @@ TransporterBase::~TransporterBase() = default;
  */
 template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp)
-    : max_steps_(inp.max_steps)
+    : optical_{std::move(inp.optical)}
+    , max_steps_(inp.max_steps)
     , num_streams_(inp.params->max_streams())
     , log_progress_(inp.log_progress)
     , store_track_counts_(inp.store_track_counts)
@@ -196,6 +198,29 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
         // Reset the state data for the next event if the stepping loop was
         // aborted early
         step.reset_state();
+    }
+
+    // Get optical counters
+    if (optical_)
+    {
+        auto counters
+            = optical_->exchange_counters(stepper_->sp_state()->aux());
+        auto const& gen = counters.generators;
+
+        OpticalCounts oc{
+            /* tracks = */ gen.photons,
+            /* generators = */ gen.cherenkov + gen.scintillation,
+            /* steps = */ counters.steps,
+            /* step_iters = */ counters.step_iters,
+            /* flushes = */ counters.flushes,
+        };
+        CELER_LOG_LOCAL(debug)
+            << "Tracked " << oc.tracks << " photons from " << oc.generators
+            << " distributions for " << oc.steps << " steps, using "
+            << counters.step_iters << " step iterations over " << oc.flushes
+            << " flushes";
+
+        result.num_optical = std::move(oc);
     }
 
     return result;
