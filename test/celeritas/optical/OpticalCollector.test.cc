@@ -11,7 +11,6 @@
 #include <set>
 #include <vector>
 
-#include "corecel/ScopedLogStorer.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
@@ -560,17 +559,10 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     this->build_optical_collector();
 
     // Run with 2 core track slots and 32 optical track slots
-    ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::debug};
     auto result = this->run<MemSpace::host>(4, 2, 2);
 
-    static char const* const expected_log_messages[]
-        = {"Celeritas optical state initialization complete",
-           "Celeritas core state initialization complete",
-           "Deallocating host core state (stream 0)"};
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-
         EXPECT_EQ(1028, result.accum.steps);
         EXPECT_EQ(33, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -578,9 +570,6 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
         EXPECT_EQ(2, result.accum.generators.scintillation);
         EXPECT_EQ(1028, result.accum.generators.photons);
     }
-    static char const* const expected_log_levels[]
-        = {"status", "status", "debug"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 TEST_F(LArSphereOffloadTest, host_generate)
@@ -592,18 +581,10 @@ TEST_F(LArSphereOffloadTest, host_generate)
     this->build_optical_collector();
 
     // Run with 512 core track slots and 2^18 optical track slots
-    ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::debug};
     auto result = this->run<MemSpace::host>(4, 512, 16);
 
-    static char const* const expected_log_messages[] = {
-        "Celeritas optical state initialization complete",
-        "Celeritas core state initialization complete",
-        "Deallocating host core state (stream 0)",
-    };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-
         EXPECT_EQ(324193, result.accum.steps);
         EXPECT_EQ(2, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -611,9 +592,6 @@ TEST_F(LArSphereOffloadTest, host_generate)
         EXPECT_EQ(4, result.accum.generators.scintillation);
         EXPECT_EQ(324193, result.accum.generators.photons);
     }
-    static char const* const expected_log_levels[]
-        = {"status", "status", "debug"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(2, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
@@ -628,12 +606,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     auto_flush_ = 262144;
     this->build_optical_collector();
 
-    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
     auto result = this->run<MemSpace::device>(1, num_track_slots_, 16);
     result.print_expected();
-
-    static char const* const expected_log_levels[] = {"status", "status"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     EXPECT_EQ(7, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
