@@ -229,6 +229,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here
+    // TODO: is this correct if we abort the tracking loop early?
     counters.num_generated = 0;
 }
 

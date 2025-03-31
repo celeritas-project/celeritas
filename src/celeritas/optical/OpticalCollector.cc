@@ -158,4 +158,16 @@ OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get info on the number of tracks in the buffer.
+ */
+auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
+    -> OpticalBufferSize const&
+{
+    auto& state = dynamic_cast<detail::OpticalOffloadStateBase const&>(
+        aux.at(this->offload_aux_id()));
+    return state.buffer_size;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

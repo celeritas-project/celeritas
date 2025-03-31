@@ -203,22 +203,34 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     // Get optical counters
     if (optical_)
     {
-        auto counters
-            = optical_->exchange_counters(stepper_->sp_state()->aux());
+        auto& aux = stepper_->sp_state()->aux();
+        auto counters = optical_->exchange_counters(aux);
         auto const& gen = counters.generators;
 
-        OpticalCounts oc{
-            /* tracks = */ gen.photons,
-            /* generators = */ gen.cherenkov + gen.scintillation,
-            /* steps = */ counters.steps,
-            /* step_iters = */ counters.step_iters,
-            /* flushes = */ counters.flushes,
-        };
+        OpticalCounts oc;
+        oc.tracks = gen.photons;
+        oc.generators = gen.cherenkov + gen.scintillation;
+        oc.steps = counters.steps;
+        oc.step_iters = counters.step_iters;
+        oc.flushes = counters.flushes;
+
         CELER_LOG_LOCAL(debug)
             << "Tracked " << oc.tracks << " photons from " << oc.generators
             << " distributions for " << oc.steps << " steps, using "
             << counters.step_iters << " step iterations over " << oc.flushes
             << " flushes";
+
+        auto const& buffer_counts = optical_->buffer_counts(aux);
+        if (!buffer_counts.empty())
+        {
+            CELER_LOG_LOCAL(warning)
+                << "Not all optical photons were tracked "
+                   "at the end of the stepping loop: "
+                << buffer_counts.photons << " queued photons from "
+                << buffer_counts.cherenkov << " Cherenkov distributions and "
+                << buffer_counts.scintillation
+                << " scintillation distributions";
+        }
 
         result.num_optical = std::move(oc);
     }

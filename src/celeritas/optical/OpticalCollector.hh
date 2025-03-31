@@ -68,6 +68,7 @@ class OpticalCollector
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     using SPConstScintillation
         = std::shared_ptr<optical::ScintillationParams const>;
+    using OpticalBufferSize = OpticalOffloadCounters<size_type>;
     //!@}
 
     struct Input
@@ -114,6 +115,9 @@ class OpticalCollector
 
     // Get and reset cumulative statistics on optical tracks from a state
     OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
+
+    // Get queued buffer sizes
+    OpticalBufferSize const& buffer_counts(AuxStateVec const& aux) const;
 
   private:
     //// TYPES ////

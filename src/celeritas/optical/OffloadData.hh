@@ -40,6 +40,12 @@ struct OpticalOffloadCounters
 
     //! Number of generated tracks
     size_type photons{0};
+
+    //! True if any queued generators/tracks exist
+    CELER_FUNCTION bool empty() const
+    {
+        return cherenkov == 0 && scintillation == 0 && photons == 0;
+    }
 };
 
 //! Cumulative statistics of optical tracking
