@@ -24,7 +24,7 @@ if(CELERITAS_USE_Geant4)
   )
   set(LIBRARIES
     Celeritas::accel
-    Celeritas::ExtOpenMP
+    Celeritas::ExtMPI
     nlohmann_json::nlohmann_json
   )
   if(CELERITAS_USE_ROOT)
