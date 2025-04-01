@@ -243,6 +243,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         {
             // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
             xmean_ = std::exp(-tau_);
+            // NOTE: tau_big~8 -> ~0.0003 < xmean < 1
             x2mean_ = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
 
             // MSC "true path" step limit
@@ -397,14 +398,27 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
         return max(result, real_type(1.9));
     }();
 
-    real_type ea = std::exp(-xsi);
+    // ea = std::exp(-xsi);
+    // invea_m1 = 1/ea - 1 = exp(xsi) - 1
+    // so 0 < ea < ~0.15, so no need to use expm1
+    // and 1/ea - 1 is positive and possibly large (rapidly grows with xsi)
+
     // Mean of cos\theta computed from the distribution g_1(cos\theta)
     // small theta => x = theta0^2
-    // large xsi => xmean_1 = 1 - x
+    // large xsi => xmean_1 = 1
     // small tau => xmean = 1
     real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
-    real_type xmean_1 = 1 - x * (1 - (1 + xsi) * ea) / (1 - ea);
+    // Calculate intermediate values for the mean of cos(theta)
+    // 1 - x * (1 - (1 + xsi) * ea)/ (1 - ea);
+    // 1 - x * (1/ea - (1 + xsi)) / (1/ea - 1);
+    // 1 - x * (1/ea - 1 - xsi) / (1/ea - 1);
+    // 1 - x * (invea_m1 - xsi) / (invea_m1);
+    // 1 - x * (1 - xsi / invea_m1);
+    // 1 - x * (1 - xsi / (exp(xsi) - 1));
+    // NOTE: the expression in parens is in [0, ~0.33]
+    real_type xmean_1 = 1 - x * (1 - xsi / (std::exp(xsi) - 1));
 
+    // 0.0003 (max tau before assuming isotropic scattering) < xmean < 1
     if (xmean_1 <= real_type(0.999) * xmean_)
     {
         return this->simple_scattering(rng);
@@ -429,8 +443,12 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     // Mean of cos\theta computed from the distribution g_2(cos\theta)
     real_type xmean_2 = (x0 + d - (c * x - b1 * d) / (c - 2)) / (1 - d);
 
-    real_type f2x0 = (c - 1) / (c * (1 - d));
-    real_type prob = f2x0 / (ea / (1 - ea) + f2x0);
+    real_type prob = [xsi, c, d] {
+        real_type f2x0 = (c - 1) / (c * (1 - d));
+        // Note: ea_invm1 is always greater than ~0.9
+        real_type ea_invm1 = std::exp(xsi) - 1;
+        return 1 / (1 + 1 / (f2x0 * ea_invm1));
+    }();
 
     // Eq. 8.14 in the PRM: note that can be greater than 1
     real_type qprob = xmean_ / (prob * xmean_1 + (1 - prob) * xmean_2);
@@ -445,7 +463,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     if (generate_canonical(rng) < prob)
     {
         // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
-        UniformRealDistribution<real_type> sample_inner(ea, 1);
+        UniformRealDistribution<real_type> sample_inner(std::exp(-xsi), 1);
         return 1 + std::log(sample_inner(rng)) * x;
     }
     else
