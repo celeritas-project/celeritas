@@ -8,6 +8,8 @@
 
 #include "corecel/Macros.hh"
 
+#include "Types.hh"
+
 class G4Run;
 
 namespace celeritas
@@ -34,6 +36,9 @@ class CoreParams;
 class IntegrationBase
 {
   public:
+    // Access whether celeritas is set up, enabled, or uninitialized
+    OffloadMode GetMode() const;
+
     // Set options before starting the run
     void SetOptions(SetupOptions&& opts);
 

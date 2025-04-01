@@ -13,6 +13,8 @@
 #include "corecel/Assert.hh"
 #include "geocel/BoundingBox.hh"
 
+#include "Types.hh"
+
 class G4ParticleDefinition;
 class G4VPhysicalVolume;
 
@@ -62,17 +64,8 @@ class SharedParams
     using SPParams = std::shared_ptr<CoreParams>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
+    using Mode = OffloadMode;
     //!@}
-
-    //! Setup for Celeritas usage
-    enum class Mode
-    {
-        uninitialized,
-        disabled,
-        kill_offload,
-        enabled,
-        size_
-    };
 
   public:
     //!@{
