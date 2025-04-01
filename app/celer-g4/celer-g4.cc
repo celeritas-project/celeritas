@@ -16,7 +16,6 @@
 #include <FTFP_BERT.hh>
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
-#include <G4UIExecutive.hh>
 #include <G4Version.hh>
 
 #if G4VERSION_NUMBER >= 1100
@@ -75,8 +74,6 @@ void print_usage(std::string_view exec_name)
     // clang-format off
     std::cerr << "usage: " << exec_name << " {input}.json\n"
                  "       " << exec_name << " -\n"
-                 "       " << exec_name << " {commands}.mac\n"
-                 "       " << exec_name << " --interactive\n"
                  "       " << exec_name << " [--help|-h]\n"
                  "       " << exec_name << " --version\n"
                  "       " << exec_name << " --dump-default\n"
@@ -148,16 +145,9 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
 
     // Read user input
     std::string_view filename{argv[1]};
-    if (filename == "--interactive")
-    {
-        G4UIExecutive exec(argc, argv);
-        exec.SessionStart();
-        return;
-    }
-    else
-    {
-        setup.ReadInput(std::string(filename));
-    }
+    CELER_VALIDATE(filename != "--interactive",
+                   << "Interactive celer-g4 was removed in v0.6");
+    setup.ReadInput(std::string(filename));
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
     setup.SetIgnoreProcesses(ignore_processes);
