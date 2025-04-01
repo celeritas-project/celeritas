@@ -558,6 +558,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                                                     *core_params->particle(),
                                                     *p.scoring.sd,
                                                     core_params->max_streams());
+        step_interfaces.push_back(result.geant_sd);
     }
 
     if (p.scoring.simple_calo)
