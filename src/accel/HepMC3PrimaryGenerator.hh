@@ -73,6 +73,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     std::mutex read_mutex_;
     std::deque<SPHepEvt> event_buffer_;
     size_type start_event_{0};
+    bool warned_mismatched_events_{false};
 
     // Read
     SPHepEvt read_event(size_type event_id);

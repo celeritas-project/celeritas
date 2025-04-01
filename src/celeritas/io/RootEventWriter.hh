@@ -64,6 +64,7 @@ class RootEventWriter : public EventWriterInterface
     size_type event_id_;  // Contiguous event id
     UPRootTreeWritable ttree_;
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
+    bool warned_mismatched_events_{false};
 
     //// HELPER FUNCTIONS ////
 
