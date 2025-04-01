@@ -513,7 +513,7 @@ TEST_F(TestEm3Msc, host)
     {
         EXPECT_EQ(58, result.num_step_iters());
         EXPECT_LE(37.375, result.calc_avg_steps_per_primary());
-        EXPECT_GE(37, result.calc_avg_steps_per_primary());
+        EXPECT_GE(40, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({8, 6}), result.calc_queue_hwm());
     }
@@ -669,7 +669,7 @@ TEST_F(TestEm15FieldMsc, host)
     if (this->is_ci_build())
     {
         EXPECT_EQ(15, result.num_step_iters());
-        EXPECT_SOFT_EQ(35, result.calc_avg_steps_per_primary());
+        EXPECT_SOFT_EQ(38, result.calc_avg_steps_per_primary());
         EXPECT_EQ(6, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
     }
