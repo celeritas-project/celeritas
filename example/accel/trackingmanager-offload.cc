@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
+#include <atomic>
 #include <iterator>
 #include <type_traits>
 
@@ -67,6 +68,7 @@ class SensitiveDetector final : public G4VSensitiveDetector
 
 // Simple (not best practice) way of accessing SD
 G4ThreadLocal SensitiveDetector const* global_sd{nullptr};
+bool all_nonzero_energy{true};
 
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
@@ -104,14 +106,14 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
-// Generate 200 MeV pi+
+// Generate 200 MeV electron
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction()
     {
         auto* g4particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(211);
+            = G4ParticleTable::GetParticleTable()->FindParticle(11);
         gun_.SetParticleDefinition(g4particle_def);
         gun_.SetParticleEnergy(200 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
@@ -155,10 +157,18 @@ class EventAction final : public G4UserEventAction
             CELER_LOG_LOCAL(info)
                 << "Total energy deposited for event " << event->GetEventID()
                 << ": " << (global_sd->edep() / CLHEP::MeV) << " MeV";
+
+            if (global_sd->edep() == 0)
+            {
+                // We should always deposit energy; mark the global as false to
+                // fail the test
+                all_nonzero_energy = false;
+            }
         }
         else
         {
             CELER_LOG_LOCAL(error) << "Global SD was not set";
+            all_nonzero_energy = false;
         }
     }
 };
@@ -233,6 +243,12 @@ int main()
 
     run_manager->Initialize();
     run_manager->BeamOn(2);
+
+    if (!all_nonzero_energy)
+    {
+        CELER_LOG(critical) << "Some or all events resulted in zero energy";
+        return 1;
+    }
 
     return 0;
 }
