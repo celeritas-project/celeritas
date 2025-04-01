@@ -119,6 +119,8 @@ void write_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
 {
     if (G4Threading::G4GetThreadId() > 0)
     {
+        // Most "CELER_LOG" messages should be during setup, not on a worker,
+        // so this should rarely return
         return;
     }
 

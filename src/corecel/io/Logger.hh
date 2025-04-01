@@ -33,7 +33,7 @@
  *
  * Return a LogMessage object for streaming into at the given level. The
  * regular \c CELER_LOG call is for code paths that happen uniformly in
- * parallel.
+ * parallel, approximately the same message from every thread and task.
  *
  * The logger will only format and print messages. It is not responsible
  * for cleaning up the state or exiting an app.
@@ -52,7 +52,9 @@
  * \def CELER_LOG_LOCAL
  *
  * Like \c CELER_LOG but for code paths that may only happen on a single
- * process or thread. Use sparingly.
+ * process or thread. Use sparingly because this can be very verbose. This is
+ * typically used only for error messages coming from an a event or
+ * track at runtime.
  */
 #define CELER_LOG_LOCAL(LEVEL)                        \
     ::celeritas::self_logger()(CELER_CODE_PROVENANCE, \
