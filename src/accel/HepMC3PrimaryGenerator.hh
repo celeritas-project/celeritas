@@ -84,9 +84,13 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
 inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const&)
 {
     CELER_NOT_CONFIGURED("HepMC3");
+    CELER_DISCARD(num_events_);
     CELER_DISCARD(world_solid_);
     CELER_DISCARD(reader_);
     CELER_DISCARD(read_mutex_);
+    CELER_DISCARD(event_buffer_);
+    CELER_DISCARD(start_event_);
+    CELER_DISCARD(warned_mismatched_events_);
 }
 
 inline void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event*)

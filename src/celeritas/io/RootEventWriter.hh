@@ -81,6 +81,7 @@ inline RootEventWriter::RootEventWriter(SPRootFileManager, SPConstParticles)
     CELER_DISCARD(event_id_);
     CELER_DISCARD(ttree_);
     CELER_DISCARD(primary_);
+    CELER_DISCARD(warned_mismatched_events_);
     CELER_NOT_CONFIGURED("ROOT");
 }
 
