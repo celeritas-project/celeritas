@@ -134,9 +134,11 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     }();
     CELER_ASSERT(run_manager);
 
-    world_logger() = Logger::from_handle_env(handle_world_log, "CELER_LOG");
+    // Set up loggers
+    world_logger() = Logger::from_handle_env(make_world_handler(), "CELER_LOG");
     self_logger() = Logger::from_handle_env(
-        SelfLogHandler{params->num_streams()}, "CELER_LOG_LOCAL");
+        make_self_handler(get_geant_num_threads(*run_manager)),
+        "CELER_LOG_LOCAL");
 
     // Redirect Geant4 output and exceptions through Celeritas objects
     ScopedGeantLogger scoped_logger;

@@ -22,7 +22,11 @@ if(CELERITAS_USE_Geant4)
     SensitiveHit.cc
     TrackingAction.cc
   )
-  set(LIBRARIES Celeritas::accel nlohmann_json::nlohmann_json)
+  set(LIBRARIES
+    Celeritas::accel
+    Celeritas::ExtOpenMP
+    nlohmann_json::nlohmann_json
+  )
   if(CELERITAS_USE_ROOT)
     list(APPEND SOURCES
       RootIO.cc

@@ -22,25 +22,25 @@ namespace app
 class SelfLogHandler
 {
   public:
-    //! Construct from number of threads
-    explicit SelfLogHandler(unsigned int num_threads)
-        : num_threads_(num_threads)
-    {
-        CELER_EXPECT(num_threads_ > 0);
-    }
+    // Construct from number of threads and global comm
+    explicit SelfLogHandler(int num_threads);
 
     // Write a log message
     void operator()(LogProvenance prov, LogLevel lev, std::string msg);
 
   private:
-    unsigned int num_threads_;
+    int rank_{};
+    int size_{};
+    int num_threads_{};
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Celeritas-style multithreaded logger that writes to std::clog.
- */
-void handle_world_log(LogProvenance prov, LogLevel lev, std::string msg);
+
+// Create a handler for "everyone logs the same" messages
+LogHandler make_world_handler();
+
+// Create a handler for thread-local messages
+LogHandler make_self_handler(int num_threads);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

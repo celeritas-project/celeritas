@@ -11,6 +11,9 @@
 
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/LogHandlers.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "geocel/GeantUtils.hh"
 
 namespace celeritas
 {
@@ -35,7 +38,48 @@ void write_msg(std::ostringstream&& os,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write a log message when only a single thread.
+ */
+void handle_serial(LogProvenance prov, LogLevel lev, std::string msg)
+{
+    return write_msg(std::ostringstream{}, prov, lev, msg);
+}
+
+//---------------------------------------------------------------------------//
+//! Tag a singular output with worker/master: should usually be master
+void handle_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
+{
+    if (G4Threading::G4GetThreadId() > 0)
+    {
+        // Most "CELER_LOG" messages should be during setup, not on a worker,
+        // so this should rarely return
+        return;
+    }
+
+    std::ostringstream os;
+    os << color_code('W') << (G4Threading::IsMasterThread() ? "[M] " : "[W] ")
+       << color_code(' ');
+
+    return write_msg(std::move(os), prov, lev, msg);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from number of threads.
+ */
+SelfLogHandler::SelfLogHandler(int num_threads) : num_threads_(num_threads)
+{
+    CELER_EXPECT(num_threads_ > 0);
+    if (auto& comm = comm_world())
+    {
+        rank_ = comm.rank();
+        size_ = comm.size();
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -50,6 +94,11 @@ void SelfLogHandler::operator()(LogProvenance prov,
 
     int local_thread = G4Threading::G4GetThreadId();
     os << color_code('W') << '[';
+    if (size_ > 0)
+    {
+        // Print MPI rank
+        os << rank_ + 1 << '/' << size_ << ':';
+    }
     if (local_thread >= 0)
     {
         os << local_thread + 1;
@@ -65,16 +114,46 @@ void SelfLogHandler::operator()(LogProvenance prov,
 
 //---------------------------------------------------------------------------//
 /*!
- * Write a "world"-level log message.
+ * Create a handler for "everyone logs the same" messages.
+ *
+ * - If MPI and not the head process, return no handler to silence logging.
+ * - If not using Geant4 MT, don't annotate threads.
+ * - If using MT and CELER_LOG_ALL_LOCAL is set, print the thread-annotated
+ *   global messages from every thread.
+ * - Otherwise, only a single thread logs. If it's a worker thread logging, it
+ *   gets a W prefix, else M.
  */
-void handle_world_log(LogProvenance prov, LogLevel lev, std::string msg)
+LogHandler make_world_handler()
 {
-    // Write preamble to a buffer first
-    std::ostringstream os;
+    if (auto& comm = comm_world())
+    {
+        if (comm.rank() != 0)
+        {
+            // Do not log from any process but the first
+            return {};
+        }
+    }
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        return handle_serial;
+    }
+    if (getenv_flag("CELER_LOG_ALL_LOCAL", false).value)
+    {
+        // Every thread lets you know it's being called
+        return SelfLogHandler{get_geant_num_threads()};
+    }
 
-    os << color_code('W') << "[W] " << color_code(' ');
+    // Only master and the first worker write
+    return handle_mt_world;
+}
 
-    return write_msg(std::move(os), prov, lev, msg);
+LogHandler make_self_handler(int num_threads)
+{
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        return SelfLogHandler{num_threads};
+    }
+    return handle_serial;
 }
 
 //---------------------------------------------------------------------------//

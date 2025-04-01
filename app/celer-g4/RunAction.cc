@@ -136,7 +136,7 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (params_->mode() == SharedParams::Mode::enabled)
     {
-        CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+        CELER_LOG(status) << "Finalizing Celeritas";
 
         if (transport_)
         {
