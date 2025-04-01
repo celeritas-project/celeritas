@@ -33,6 +33,7 @@
 #include <accel/AlongStepFactory.hh>
 #include <accel/LocalTransporter.hh>
 #include <accel/SetupOptions.hh>
+#include <accel/SharedParams.hh>
 #include <accel/TrackingManagerConstructor.hh>
 #include <accel/TrackingManagerIntegration.hh>
 #include <corecel/Assert.hh>
@@ -67,6 +68,7 @@ class SensitiveDetector final : public G4VSensitiveDetector
 
 // Simple (not best practice) way of accessing SD
 G4ThreadLocal SensitiveDetector const* global_sd{nullptr};
+bool expected_nonzero_energy{true};
 bool all_nonzero_energy{true};
 
 //---------------------------------------------------------------------------//
@@ -135,7 +137,14 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        celeritas::TrackingManagerIntegration::Instance().BeginOfRunAction(run);
+        auto& tmi = celeritas::TrackingManagerIntegration::Instance();
+        tmi.BeginOfRunAction(run);
+
+        using Mode = celeritas::OffloadMode;
+        if (tmi.GetMode() == Mode::kill_offload)
+        {
+            expected_nonzero_energy = false;
+        }
     }
     void EndOfRunAction(G4Run const* run) final
     {
@@ -241,11 +250,22 @@ int main()
     tmi.SetOptions(MakeOptions());
 
     run_manager->Initialize();
+
     run_manager->BeamOn(2);
 
-    if (!all_nonzero_energy)
+    if (all_nonzero_energy != expected_nonzero_energy)
     {
-        CELER_LOG(critical) << "Some or all events resulted in zero energy";
+        if (expected_nonzero_energy)
+        {
+            CELER_LOG(critical) << "Some or all events resulted in zero "
+                                   "energy: SDs may not be correctly enabled";
+        }
+        else
+        {
+            CELER_LOG(critical) << "No events should have returned any "
+                                   "energy: maybe offload is not connected "
+                                   "(or your primary is a hadron)";
+        }
         return 1;
     }
 
