@@ -41,8 +41,9 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
     {
         if (auto* run_man = G4RunManager::GetRunManager())
         {
-            // Initialize multithread logger if run manager exists
-            celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
+            // Initialize loggers if run manager exists
+            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
+            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
         }
     }
 }

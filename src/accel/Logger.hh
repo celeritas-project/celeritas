@@ -22,7 +22,8 @@ Logger MakeMTSelfLogger(G4RunManager const&);
 Logger MakeMTWorldLogger(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
-//! Manually create a multithread-friendly logger (DEPRECATED: remove in v1.0)
+//! Manually create a multithread-friendly logger
+//! \deprecated Remove in v1.0; replaced by MakeMTSelfLogger
 [[deprecated]] inline Logger MakeMTLogger(G4RunManager const& rm)
 {
     return MakeMTSelfLogger(rm);
