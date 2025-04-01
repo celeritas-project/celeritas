@@ -21,9 +21,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access whether celeritas is set up, enabled, or uninitialized.
- *
- * This can be alled at any time.
+ * Access whether Celeritas is set up, enabled, or uninitialized.
  */
 OffloadMode IntegrationBase::GetMode() const
 {
