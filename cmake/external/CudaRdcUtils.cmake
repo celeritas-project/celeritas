@@ -120,6 +120,21 @@ relocatable device code and most importantly linking against those libraries.
 
   See ``set_target_properties`` for additional detail.
 
+.. command:: cuda_rdc_target_sources
+
+    Add sources to a target.
+
+     ::
+    cuda_rdc_target_sources(<target>
+         <INTERFACE|PUBLIC|PRIVATE> [items1...]
+         [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  In the case that the new list of sources contains CUDA code, turns the target
+  to an RDC target.  Otherwise decays to ``target_sources``
+
+  See ``target_sources`` for additional detail.
+
+
 #]=======================================================================]
 
 set(_CUDA_RDC_VERSION 10)
@@ -1086,6 +1101,55 @@ function(cuda_rdc_target_link_libraries target)
     endif()
   endif()
 
+endfunction()
+
+#-----------------------------------------------------------------------------#
+#
+# Replacement for the target_sources function that is aware of the 3 libraries
+# (static, middle, final) libraries needed for a separatable CUDA library
+# and can update the library type to RDC if needed
+#
+function(cuda_rdc_target_sources target)
+  if(NOT CMAKE_CUDA_COMPILER)
+    target_sources(${ARGV})
+    return()
+  endif()
+
+  # Note: alias target are not supported by target_sources
+  cuda_rdc_lib_contains_cuda(_contains_cuda ${target})
+
+  if(_contains_cuda)
+    get_target_property(_targettype ${target} CUDA_RDC_LIBRARY_TYPE)
+    if(_targettype)
+      get_target_property(_target_object ${target} CUDA_RDC_OBJECT_LIBRARY)
+      if (_target_object)
+        target_sources(${_target_object} ${ARGN})
+        return()
+      endif()
+    endif()
+  endif()
+
+  target_sources(${target} ${ARGN})
+  # Try again with the new sources
+  cuda_rdc_lib_contains_cuda(_contains_cuda ${target})
+  if(_contains_cuda)
+    # Because _contains_cuda, CUDA_RDC_LIBRARY_TYPE or CUDA_RDC_OBJECT_LIBRARY was not
+    # set, we know the target is not yet a separatable CUDA library/executable.
+
+    get_target_property(_target_type ${target} TYPE)
+    if(_target_type STREQUAL "EXECUTABLE")
+      # If we have a source file, we need to turn the target into a CUDA target
+      # to be able to use the CUDA compiler.
+      set_target_properties(${target} PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_RESOLVE_DEVICE_SYMBOLS ON
+      )
+    else()
+      message(FATAL_ERROR "The target ${target} is a ${_target_type} and we can not add"
+        " CUDA sources through `target_sources`.  Add the CUDA sources at the initial"
+        " creation, for example at the time of the `add_library`")
+    endif()
+  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#
