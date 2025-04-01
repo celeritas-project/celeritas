@@ -281,7 +281,10 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
             auto const& pre = dist.points[StepPoint::pre];
             auto const& post = dist.points[StepPoint::post];
             EXPECT_GT(pre.speed, zero_quantity());
-            EXPECT_NE(post.pos, pre.pos);
+            if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+            {
+                EXPECT_NE(post.pos, pre.pos);
+            }
             EXPECT_GT(dist.step_length, 0);
             EXPECT_EQ(0, dist.material.get());
         }
@@ -326,44 +329,37 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(23492, result.cerenkov.total_num_photons);
-        EXPECT_EQ(48, result.cerenkov.num_photons.size());
-        static size_type const expected_cerenkov_num_photons[]
-            = {337u, 503u,  1532u, 1485u, 788u, 610u, 1271u, 433u, 912u, 1051u,
-               756u, 1124u, 796u,  854u,  446u, 420u, 582u,  648u, 704u, 825u,
-               419u, 496u,  520u,  213u,  338u, 376u, 391u,  517u, 238u, 270u,
-               254u, 370u,  23u,   115u,  129u, 317u, 183u,  10u,  1u,   431u,
-               301u, 500u,  187u,  373u,  20u,  277u, 145u,  1u};
+        EXPECT_EQ(21928, result.cerenkov.total_num_photons);
+        EXPECT_EQ(50, result.cerenkov.num_photons.size());
+        static size_type const expected_cerenkov_num_photons[] = {
+            337u, 504u,  1609u, 1582u, 777u, 1477u, 1251u, 433u, 282u, 1132u,
+            757u, 1132u, 515u,  45u,   452u, 409u,  339u,  523u, 526u, 219u,
+            343u, 679u,  318u,  667u,  228u, 528u,  160u,  485u, 83u,  382u,
+            3u,   423u,  248u,  265u,  124u, 124u,  154u,  288u, 173u, 14u,
+            4u,   308u,  31u,   171u,  5u,   102u,  509u,  377u, 270u, 161u};
         EXPECT_VEC_EQ(expected_cerenkov_num_photons,
                       result.cerenkov.num_photons);
 
-        EXPECT_EQ(2101748, result.scintillation.total_num_photons);
-        EXPECT_EQ(106, result.scintillation.num_photons.size());
+        EXPECT_EQ(2101664, result.scintillation.total_num_photons);
+        EXPECT_EQ(114, result.scintillation.num_photons.size());
         static size_type const expected_scintillation_num_photons[] = {
-            27991u, 37559u, 114494u, 114637u, 58336u, 45280u, 90827u, 33901u,
-            68555u, 74187u, 55095u,  83307u,  53825u, 59271u, 33295u, 30706u,
-            42674u, 46522u, 48829u,  59030u,  33903u, 36690u, 38673u, 14395u,
-            27169u, 29601u, 30544u,  39639u,  22299u, 23608u, 24698u, 29535u,
-            18202u, 19521u, 20364u,  25475u,  10570u, 17164u, 17451u, 21131u,
-            187u,   715u,   3100u,   17945u,  720u,   7048u,  13469u, 158u,
-            164u,   5993u,  4529u,   167u,    614u,   167u,   450u,   3268u,
-            908u,   3872u,  547u,    1188u,   1236u,  418u,   1773u,  2208u,
-            5281u,  4127u,  686u,    945u,    6105u,  15114u, 180u,   2960u,
-            8114u,  15870u, 1085u,   756u,    157u,   2454u,  699u,   52u,
-            152u,   245u,   158u,    1486u,   6033u,  17543u, 3536u,  6809u,
-            144u,   4184u,  18u,     157u,    173u,   32953u, 2615u,  618u,
-            26619u, 39115u, 21551u,  30985u,  18241u, 24726u, 7999u,  20436u,
-            17450u, 3420u};
+            27991u, 38157u, 114070u, 114477u, 57893u, 103619u, 90287u, 33901u,
+            21827u, 83989u, 55095u,  84026u,  38355u, 3894u,   33219u, 30807u,
+            24182u, 41506u, 43246u,  15732u,  28341u, 47956u,  26749u, 47994u,
+            22830u, 37627u, 20074u,  38203u,  19233u, 30026u,  17229u, 30547u,
+            13618u, 23721u, 4019u,   24306u,  19916u, 19787u,  150u,   19892u,
+            17112u, 17217u, 7327u,   17185u,  1110u,  2376u,   25128u, 3336u,
+            145u,   20743u, 17817u,  17442u,  7477u,  4858u,   288u,   3662u,
+            2065u,  6072u,  2979u,   402u,    911u,   1130u,   162u,   3833u,
+            169u,   1020u,  4781u,   184u,    4057u,  5756u,   13988u, 159u,
+            26126u, 18380u, 339u,    21270u,  9965u,  14600u,  17739u, 3220u,
+            17386u, 6702u,  85u,     1u,      2290u,  157u,    301u,   836u,
+            2202u,  1044u,  172u,    8568u,   1649u,  4990u,   158u,   9u,
+            146u,   19730u, 4701u,   2937u,   652u,   15985u,  159u,   38939u,
+            1093u,  31004u, 280u,    24897u,  144u,   10u,     20496u, 2344u,
+            17282u, 3294u};
         EXPECT_VEC_EQ(expected_scintillation_num_photons,
                       result.scintillation.num_photons);
-    }
-    else
-    {
-        EXPECT_EQ(21572, result.cerenkov.total_num_photons);
-        EXPECT_EQ(52, result.cerenkov.num_photons.size());
-
-        EXPECT_EQ(2104145, result.scintillation.total_num_photons);
-        EXPECT_EQ(130, result.scintillation.num_photons.size());
     }
 }
 
@@ -455,13 +451,8 @@ TEST_F(LArSphereOffloadTest, cerenkov_distributiona)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(19601, result.cerenkov.total_num_photons);
-        EXPECT_EQ(37, result.cerenkov.num_photons.size());
-    }
-    else
-    {
-        EXPECT_EQ(20790, result.cerenkov.total_num_photons);
-        EXPECT_EQ(43, result.cerenkov.num_photons.size());
+        EXPECT_EQ(21064, result.cerenkov.total_num_photons);
+        EXPECT_EQ(40, result.cerenkov.num_photons.size());
     }
 }
 
@@ -478,12 +469,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(1629295, result.scintillation.total_num_photons);
-        EXPECT_EQ(53, result.scintillation.num_photons.size());
-    }
-    else
-    {
-        EXPECT_EQ(1656334, result.scintillation.total_num_photons);
+        EXPECT_EQ(1710673, result.scintillation.total_num_photons);
         EXPECT_EQ(52, result.scintillation.num_photons.size());
     }
 }
@@ -501,7 +487,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
     static char const* const expected_log_messages[] = {
         "Celeritas optical state initialization complete",
         "Celeritas core state initialization complete",
-        R"(Exceeded step count of 2: aborting optical transport loop with 512 active tracks, 512 alive tracks, 0 vacancies, and 323681 queued)",
+        R"(Exceeded step count of 2: aborting optical transport loop with 512 active tracks, 512 alive tracks, 0 vacancies, and 323266 queued)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {

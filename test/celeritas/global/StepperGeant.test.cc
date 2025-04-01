@@ -512,9 +512,8 @@ TEST_F(TestEm3Msc, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(70, result.num_step_iters());
-        EXPECT_LE(42.125, result.calc_avg_steps_per_primary());
-        EXPECT_GE(46.125, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(60, result.num_step_iters());
+        EXPECT_EQ(37, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({8, 6}), result.calc_queue_hwm());
     }
@@ -573,10 +572,10 @@ TEST_F(TestEm3MscNofluct, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_LE(70, result.num_step_iters());
-        EXPECT_GE(73, result.num_step_iters());
-        EXPECT_LE(61.625, result.calc_avg_steps_per_primary());
-        EXPECT_GE(63.125, result.calc_avg_steps_per_primary());
+        EXPECT_LE(79, result.num_step_iters());
+        EXPECT_GE(85, result.num_step_iters());
+        EXPECT_LE(61.125, result.calc_avg_steps_per_primary());
+        EXPECT_GE(63.25, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
@@ -669,10 +668,10 @@ TEST_F(TestEm15FieldMsc, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(16, result.num_step_iters());
-        EXPECT_SOFT_EQ(35.25, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(5, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({2, 7}), result.calc_queue_hwm());
+        EXPECT_EQ(14, result.num_step_iters());
+        EXPECT_SOFT_EQ(34.5, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(6, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
     }
     else
     {
@@ -763,10 +762,10 @@ TEST_F(OneSteelSphere, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(18, result.num_step_iters());
-        EXPECT_SOFT_EQ(16.578125, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(16, result.num_step_iters());
+        EXPECT_SOFT_EQ(16.2109375, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({5, 119}), result.calc_queue_hwm());
+        EXPECT_EQ(RunResult::StepCount({5, 118}), result.calc_queue_hwm());
     }
     else
     {

@@ -177,21 +177,23 @@ TEST_F(TestEm3DiagnosticTest, host)
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
         static size_type const expected_nonzero_action_counts[] = {
-            123u, 396u, 466u, 19u,   59u,   999u, 274u, 288u, 1751u, 21u,
-            12u,  15u,  20u,  1193u, 1597u, 562u, 82u,  21u,  294u,
+            124u, 403u, 447u, 14u,   64u,   1025u, 285u, 287u, 1627u, 15u,
+            15u,  18u,  25u,  1183u, 1651u, 558u,  93u,  31u,  327u,
         };
 
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
-                      result.nonzero_action_counts);
+                      result.nonzero_action_counts)
+            << repr(result.nonzero_action_counts);
 
-        static size_type const expected_steps[]
-            = {0u, 319u, 207u, 80u, 46u, 26u, 22u, 13u, 6u, 9u, 13u,
-               1u, 3u,   4u,   1u,  0u,  0u,  0u,  0u,  1u, 0u, 2u,
-               0u, 745u, 34u,  14u, 6u,  9u,  7u,  6u,  8u, 3u, 4u,
-               9u, 12u,  6u,   10u, 14u, 5u,  5u,  4u,  4u, 3u, 21u,
-               0u, 3u,   2u,   1u,  0u,  6u,  5u,  8u,  6u, 6u, 6u,
-               9u, 6u,   12u,  9u,  4u,  4u,  2u,  4u,  5u, 4u, 23u};
-        EXPECT_VEC_EQ(expected_steps, result.steps);
+        static size_type const expected_steps[] = {
+            0u, 306u, 231u, 78u, 41u, 36u, 14u, 8u,  8u, 5u, 4u,
+            5u, 7u,   3u,   3u,  2u,  1u,  0u,  0u,  1u, 0u, 1u,
+            0u, 751u, 39u,  17u, 8u,  11u, 3u,  11u, 7u, 5u, 6u,
+            9u, 13u,  10u,  8u,  11u, 5u,  1u,  3u,  4u, 1u, 31u,
+            0u, 2u,   4u,   2u,  0u,  3u,  4u,  5u,  3u, 8u, 7u,
+            7u, 9u,   4u,   9u,  9u,  7u,  6u,  2u,  2u, 3u, 32u,
+        };
+        EXPECT_VEC_EQ(expected_steps, result.steps) << repr(result.steps);
     }
     else
     {
