@@ -182,8 +182,8 @@ TEST_F(TestEm3DiagnosticTest, host)
         static size_type const expected_steps[] = {
             0u, 290u, 234u, 85u, 44u, 31u, 24u, 14u, 8u, 7u, 6u,
             2u, 0u,   3u,   1u,  2u,  3u,  0u,  1u,  0u, 0u, 2u,
-            0u, 734u, 39u,  9u,  10u, 13u, 6u,  4u,  9u, 3u, 3u,
-            8u, 13u,  6u,   9u,  13u, 4u,  5u,  5u,  5u, 3u, 21u,
+            0u, 734u, 39u,  9u,  10u, 13u, 2u,  9u,  8u, 4u, 8u,
+            7u, 11u,  9u,   8u,  11u, 5u,  1u,  3u,  4u, 1u, 31u,
             0u, 4u,   1u,   1u,  1u,  4u,  5u,  4u,  6u, 6u, 11u,
             5u, 8u,   7u,   12u, 4u,  6u,  6u,  1u,  2u, 3u, 32u,
         };
