@@ -100,7 +100,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
     CELER_EXPECT(geo);
 
-    CELER_LOG(debug) << "Setting up hit processor for "
+    // Even though this is created locally, all threads should be doing the
+    // same thing
+    CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
 
     // Create step and step-owned structures
