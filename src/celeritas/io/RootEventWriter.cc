@@ -82,7 +82,7 @@ void RootEventWriter::operator()(VecPrimary const& primaries)
         if (!warned_mismatched_events_ && p.event_id.get() != event_id_)
         {
             CELER_LOG_LOCAL(warning)
-                << R"(Event IDs will not match ROOT output: this is a known issue)";
+                << R"(Event IDs will not match output: this is a known issue)";
             warned_mismatched_events_ = true;
         }
 
