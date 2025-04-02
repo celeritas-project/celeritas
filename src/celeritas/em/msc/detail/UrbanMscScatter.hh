@@ -438,6 +438,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     // Eq. 8.14 in the PRM: note that can be greater than 1
     real_type qprob = xmean / (prob * xmean_1 + (1 - prob) * xmean_2);
+
     // Sampling of cos(theta)
     if (generate_canonical(rng) >= qprob)
     {
@@ -535,7 +536,7 @@ UrbanMscScatter::compute_theta0(ParticleTrackView const& particle) const
     // Very small path lengths can result in a negative e- scattering
     // correction: clamp to zero so that too-small paths result in no change
     // in angle
-    return max<real_type>(theta0, 0);
+    return clamp_to_nonneg(theta0);
 }
 
 //---------------------------------------------------------------------------//

@@ -49,3 +49,8 @@ The nuclear form factors used by this distribution are:
 .. doxygenclass:: celeritas::ExpNuclearFormFactor
 .. doxygenclass:: celeritas::GaussianNuclearFormFactor
 .. doxygenclass:: celeritas::UUNuclearFormFactor
+
+Multiple scattering uses distributions for the exiting polar angles:
+
+.. doxygenclass:: celeritas::UrbanLargeAngleDistribution
+

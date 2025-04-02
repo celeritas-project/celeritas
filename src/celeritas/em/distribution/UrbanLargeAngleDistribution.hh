@@ -20,32 +20,63 @@ namespace celeritas
 /*!
  * Sample the large-angle MSC scattering cosine.
  *
- * The Goudsmit and Saunderson moments for the expected angular deflection \f$
-\theta \f$ over a true path length \f$ t \f$, are:
+ * \citet{urban-msc-2006,
+ * https://cds.cern.ch/record/1004190/} proposes a convex combination of three
+ * probability distribution functions:
  * \f[
-\langle \mu \rangle = \exp\left[-\frac{t}{\lambda_1}\right]
-\f]
-and
-\f[
- \langle \cos^2 \theta \rangle =
-\frac{1}{3}\left(1 + 2 \left[-\frac{t}{\lambda_2}\right]\right)
- \f]
+ * \begin{aligned}
+ *  g_0(\mu) &\sim \exp(-a(1 - \mu)), \\
+ *  g_1(\mu) &\sim (b - \mu)^{-d}, \\
+ *  g_2(\mu) &\sim 1
+ * \end{aligned}
+ * \f]
+ * which have normalizing constants and sum to
+ * \f[
+ * g(\mu) = p_1 p_2 g_0(\mu) + p_1(1-p_2) g_1(\mu) + (1-p_1) g_2(\mu).
+ * \f]
+ *
+ * In this distribution for large angles, \f$ p_2 = 1 \f$ so only the
+ * exponential and constant terms are sampled.
+ *
+ *
+ * The Goudsmit-Saunderson moments for the expected angular deflection
+ * \f$ \theta \f$ over a physical path length \f$ s \f$ are:
+ * \f[
+ *  \langle \cos \theta \rangle
+ *   \equiv \langle \mu \rangle
+ *   = \ee^{-s/\lambda_1} \ ,
+ * \f] and \f[
+ *  \langle \cos^2 \theta \rangle
+ *    \equiv \langle \mu^2 \rangle
+ *    = \frac{1}{3}\left(1 + 2 \ee^{-s / \lambda_2}\right) \ ,
+ * \f]
  * where \f$ \lambda_l \f$ are transport mean free paths from the elastic cross
-section scattering angular moments.
-
-* Given the number of mean free paths \f[
-\tau \equiv \frac{t}{\lambda_1}
-\f]
-* and from
-\citet{kawrakow-condensedhistory-1998,https://doi.org/10.1016/S0168-583X(98)00274-2}
-that for  kinetic energies between a few keV and infinity, \f[ 2 <
-\frac{\lambda_2}{\lambda_1} < \infty
-\f]
-* this calculates the mean scattering angle and approximates the second moment
-of the scattering cosine using \f$ \lambda_2 \approx 2.5 \lambda_1 \f$.
-*
-* Using these moments, \citet{urban-msc-2006,
-https://cds.cern.ch/record/1004190/} proposes
+ * section scattering angular moments (see Eqs. 15-16 from
+ * \citet{fernandez-msc-1993, https://doi.org/10.1016/0168-583X(93)95827-R}
+ * ).
+ *
+ * Given the number of mean free paths \f[
+ *  \tau \equiv \frac{s}{\lambda_1} \ ,
+ * \f]
+ * and from \citet{kawrakow-condensedhistory-1998,
+ * https://doi.org/10.1016/S0168-583X(98)00274-2} that for kinetic energies
+ * between a few keV and infinity,
+ * \f[
+ * 2 < \frac{\lambda_2}{\lambda_1} < \infty \ ,
+ * \f]
+ * this class calculates the mean scattering angle and approximates the second
+ * moment of the scattering cosine using
+ * \f$ \lambda_2 \approx 2.5 \lambda_1 \f$.
+ *
+ * Using these moments, Urban calculates: \f[
+ * \f[
+ * a = \frac{2\langle \mu \rangle + 9\langle \mu^2 \rangle - 3}
+ *          {2\langle \mu \rangle - 3\langle \mu^2 \rangle + 1}
+ * \f]
+ * and
+ * \f[
+ * p_1 = \frac{(a + 2)\langle \mu \rangle}{a} \,.
+ * \f]
  */
 class UrbanLargeAngleDistribution
 {
