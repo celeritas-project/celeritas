@@ -146,7 +146,7 @@ OrientedBoundingZone::OrientedBoundingZone(
  *
  * Case 2: the point is inside both the inner and outer boxes, in which case
  * the safety distance is the minimum distance from the given point to any
- * point on the outer box. This is calculated by finding the minimum of the
+ * point on the inner box. This is calculated by finding the minimum of the
  * distances to each half width.
  */
 CELER_FUNCTION real_type
@@ -162,18 +162,18 @@ OrientedBoundingZone::calc_safety_inside(Real3 const& pos)
         return 0;
     }
 
-    // Case 2: outside outer box
-    auto outer_offset_pos = this->apply_offset(trans_pos, BBoxType::outer);
-    auto outer_hw = this->get_hw(BBoxType::outer);
+    // Case 2: inside outer box
+    auto inner_offset_pos = this->apply_offset(trans_pos, BBoxType::inner);
+    auto inner_hw = this->get_hw(BBoxType::inner);
 
     fast_real_type min_dist = numeric_limits<real_type>::infinity();
     for (auto ax : range(Axis::size_))
     {
         min_dist = celeritas::min(
             min_dist,
-            outer_hw[int(ax)]
+            inner_hw[int(ax)]
                 - static_cast<fast_real_type>(
-                    outer_offset_pos.pos[celeritas::to_int(ax)]));
+                    inner_offset_pos.pos[celeritas::to_int(ax)]));
     }
 
     return static_cast<real_type>(min_dist);
@@ -190,7 +190,7 @@ OrientedBoundingZone::calc_safety_inside(Real3 const& pos)
  *
  * Case 2: the point is outside both the inner and outer boxes, in which case
  * the safety distance is the minimum distance from the given point to any
- * point on the inner box. This can be calculated as:
+ * point on the outer box. This can be calculated as:
  *
  * \f[
  * d = \sqrt(\max(0, p_x - h_x)^2 + max(0, p_y - h_y)^2 + max(0, p_z - h_z)^2)
@@ -213,8 +213,8 @@ OrientedBoundingZone::calc_safety_outside(Real3 const& pos)
     }
 
     // Case 2: outside outer box
-    auto inner_offset_pos = this->apply_offset(trans_pos, BBoxType::inner);
-    auto inner_hw = this->get_hw(BBoxType::inner);
+    auto outer_offset_pos = this->apply_offset(trans_pos, BBoxType::outer);
+    auto outer_hw = this->get_hw(BBoxType::outer);
 
     fast_real_type min_squared = 0;
     for (auto ax : range(Axis::size_))
@@ -222,8 +222,8 @@ OrientedBoundingZone::calc_safety_outside(Real3 const& pos)
         auto temp
             = celeritas::max(fast_real_type{0},
                              static_cast<fast_real_type>(
-                                 inner_offset_pos.pos[celeritas::to_int(ax)])
-                                 - inner_hw[celeritas::to_int(ax)]);
+                                 outer_offset_pos.pos[celeritas::to_int(ax)])
+                                 - outer_hw[celeritas::to_int(ax)]);
         min_squared += ipow<2>(temp);
     }
 
