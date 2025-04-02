@@ -56,8 +56,6 @@ enum class PhysicsListSelection
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
- *
- * TODO: field type should be std::variant
  */
 struct RunInput
 {

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -24,6 +25,7 @@ struct Primary;
 template<MemSpace M>
 class Stepper;
 class CoreParams;
+class OpticalCollector;
 }  // namespace celeritas
 
 namespace celeritas
@@ -36,6 +38,7 @@ struct TransporterInput
 {
     // Stepper input
     std::shared_ptr<CoreParams const> params;
+    std::shared_ptr<OpticalCollector const> optical;
     bool action_times{false};  //!< Whether to synchronize device between
                                //!< actions for timing
 
@@ -55,6 +58,19 @@ struct TransporterInput
 };
 
 //---------------------------------------------------------------------------//
+//! Tallied optical photons
+struct OpticalCounts
+{
+    using size_type = std::size_t;
+
+    size_type steps{};
+    size_type tracks{};
+    size_type generators{};
+
+    size_type step_iters{};
+    size_type flushes{};
+};
+
 /*!
  * Tallied result and timing from transporting a single event.
  */
@@ -76,6 +92,9 @@ struct TransporterResult
     size_type num_tracks{};  //!< Total number of tracks
     size_type num_aborted{};  //!< Number of unconverged tracks
     size_type max_queued{};  //!< Maximum track initializer count
+
+    // Optical photons
+    std::optional<OpticalCounts> num_optical;
 };
 
 //---------------------------------------------------------------------------//
@@ -135,6 +154,10 @@ class Transporter final : public TransporterBase
 
   private:
     std::shared_ptr<Stepper<M>> stepper_;
+    std::shared_ptr<OpticalCollector const> optical_;
+
+    OpticalCounts optical_count_;
+
     size_type max_steps_;
     size_type num_streams_;
     size_type log_progress_;

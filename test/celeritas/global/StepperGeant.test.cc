@@ -511,9 +511,9 @@ TEST_F(TestEm3Msc, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(57, result.num_step_iters());
-        EXPECT_LE(40, result.calc_avg_steps_per_primary());
-        EXPECT_GE(40.625, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(58, result.num_step_iters());
+        EXPECT_LE(37.375, result.calc_avg_steps_per_primary());
+        EXPECT_GE(40, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({8, 6}), result.calc_queue_hwm());
     }
@@ -668,10 +668,10 @@ TEST_F(TestEm15FieldMsc, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(14, result.num_step_iters());
-        EXPECT_SOFT_EQ(35.5, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(5, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({2, 7}), result.calc_queue_hwm());
+        EXPECT_EQ(15, result.num_step_iters());
+        EXPECT_SOFT_EQ(38, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(6, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
     }
     else
     {
@@ -762,10 +762,10 @@ TEST_F(OneSteelSphere, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(18, result.num_step_iters());
-        EXPECT_SOFT_EQ(16.421875, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(16, result.num_step_iters());
+        EXPECT_SOFT_EQ(16.265625, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({5, 115}), result.calc_queue_hwm());
+        EXPECT_EQ(RunResult::StepCount({4, 116}), result.calc_queue_hwm());
     }
     else
     {

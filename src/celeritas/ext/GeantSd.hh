@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/EnumArray.hh"
 #include "geocel/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
@@ -130,5 +132,38 @@ class GeantSd final : public StepInterface
     HitProcessor& get_local_hit_processor(StreamId);
 };
 
+#if !CELERITAS_USE_GEANT4
+
+inline GeantSd::GeantSd(SPConstGeo,
+                        ParticleParams const&,
+                        Input const&,
+                        StreamId::size_type)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline GeantSd::~GeantSd() = default;
+
+inline GeantSd::SPProcessor GeantSd::make_local_processor(StreamId)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline GeantSd::Filters GeantSd::filters() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void GeantSd::process_steps(HostStepState)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void GeantSd::process_steps(DeviceStepState)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

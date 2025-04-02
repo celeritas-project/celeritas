@@ -33,7 +33,7 @@ struct ScintOffloadExecutor
 
     NativeCRef<celeritas::optical::ScintillationData> const scintillation;
     NativeRef<OffloadStateData> const state;
-    OffloadBufferSize size;
+    OpticalOffloadCounters<> size;
 };
 
 //---------------------------------------------------------------------------//

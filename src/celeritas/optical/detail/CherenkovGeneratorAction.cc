@@ -96,26 +96,25 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
     auto& optical_state
         = get<optical::CoreState<M>>(core_state.aux(), optical_id_);
 
-    auto& num_photons = optical_state.counters().num_initializers;
-    auto& num_new_photons = offload_state.buffer_size.num_photons;
+    auto& photons = optical_state.counters().num_initializers;
+    auto& num_new_photons = offload_state.buffer_size.photons;
 
-    if (num_photons + num_new_photons < auto_flush_)
+    if (photons + num_new_photons < auto_flush_)
         return;
 
     auto initializers_size = optical_state.ref().init.initializers.size();
-    CELER_VALIDATE(num_photons + num_new_photons <= initializers_size,
+    CELER_VALIDATE(photons + num_new_photons <= initializers_size,
                    << "insufficient capacity (" << initializers_size
                    << ") for optical photon initializers (total capacity "
                       "requirement of "
-                   << num_photons + num_new_photons << " and current size "
-                   << num_photons << ")");
+                   << photons + num_new_photons << " and current size "
+                   << photons << ")");
 
     auto& offload = offload_state.store.ref();
     auto& buffer_size = offload_state.buffer_size.cherenkov;
     if (buffer_size == 0)
     {
         // No new cherenkov photons: perhaps tracks are all subluminal
-        CELER_LOG_LOCAL(debug) << "No Cherenkov photons to generate";
         return;
     }
 
@@ -129,11 +128,11 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
     // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);
 
-    CELER_LOG_LOCAL(debug) << "Generated " << count
-                           << " Cherenkov photons from " << buffer_size
-                           << " distributions";
+    // Update cumulative statistics
+    offload_state.accum.generators.cherenkov += buffer_size;
+    offload_state.accum.generators.photons += count;
 
-    num_photons += count;
+    photons += count;
     num_new_photons -= count;
     buffer_size = 0;
 }

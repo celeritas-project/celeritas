@@ -43,9 +43,9 @@ export CMAKE_PREFIX_PATH=${_worldwork}/opt-view:${CMAKE_PREFIX_PATH}
 export MODULEPATH=${_worldwork}/share/lmod/linux-sles15-x86_64/Core:${MODULEPATH}
 
 # Set up Geant4 data 
-# module load geant4-data/11.3
-# test -n "${G4ENSDFSTATEDATA}" || fail_missing_var G4ENSDFSTATEDATA
-# test -e "${G4ENSDFSTATEDATA}" || fail_bad_path G4ENSDFSTATEDATA
+module load geant4-data/11.3
+test -n "${G4ENSDFSTATEDATA}" || fail_missing_var G4ENSDFSTATEDATA
+test -e "${G4ENSDFSTATEDATA}" || fail_bad_path G4ENSDFSTATEDATA
 
 # Make llvm available
 test -n "${ROCM_PATH}" || fail_missing_var ROCM_PATH

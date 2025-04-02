@@ -2,16 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/setup/StandaloneInput.hh
+//! \file celeritas/setup/FrameworkInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
-#include <vector>
-
-#include "celeritas/phys/Primary.hh"
 
 #include "Problem.hh"
+
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -19,26 +18,23 @@ class CoreParams;
 
 namespace inp
 {
-struct StandaloneInput;
+struct FrameworkInput;
 }
 namespace setup
 {
 //---------------------------------------------------------------------------//
 //! Result from loaded standalone input to be used in front-end apps
-struct StandaloneLoaded
+struct FrameworkLoaded
 {
-    using VecPrimary = std::vector<Primary>;
-    using VecEvent = std::vector<VecPrimary>;
-
-    //! Problem setup
+    //! Loaded problem
     ProblemLoaded problem;
-    //! Events to be run
-    VecEvent events;
+    //! Geant4 world volume
+    G4VPhysicalVolume const* world{nullptr};
 };
 
 //---------------------------------------------------------------------------//
-// Completely set up a Celeritas problem from a standalone input
-StandaloneLoaded standalone_input(inp::StandaloneInput& si);
+// Completely set up a Celeritas problem from a framework input
+FrameworkLoaded framework_input(inp::FrameworkInput& fi);
 
 //---------------------------------------------------------------------------//
 }  // namespace setup

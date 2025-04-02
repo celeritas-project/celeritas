@@ -34,7 +34,7 @@ struct ScintGeneratorExecutor
     NativeCRef<celeritas::optical::ScintillationData> const scintillation;
     NativeRef<OffloadStateData> const offload_state;
     RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
-    OffloadBufferSize size;
+    OpticalOffloadCounters<> size;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
