@@ -403,7 +403,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     // large xsi => xmean_1 = 1 - x
     // small tau => xmean = 1
     real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
-    real_type xmean_1 = 1 - x * (1 + (xsi * ea) / (1 - ea));
+    real_type xmean_1 = 1 - x * (1 - (1 + xsi) * ea) / (1 - ea);
 
     if (xmean_1 <= real_type(0.999) * xmean_)
     {
