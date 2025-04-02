@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "SetupOptions.hh"
 
+#include <CLHEP/Random/Random.h>
+
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
@@ -75,8 +77,16 @@ void ProblemSetup::operator()(inp::Problem& p) const
     }
     p.diagnostics.output_file = so.output_file;
 
-    p.control.num_streams = so.get_num_streams();
+    p.control.num_streams = [&so = this->so] {
+        if (so.get_num_streams)
+        {
+            return so.get_num_streams();
+        }
+        return celeritas::get_geant_num_threads();
+    }();
 
+    // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
+    // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
         inp::CoreStateCapacity c;
         c.tracks = so.max_num_tracks * num_streams;
@@ -86,6 +96,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
         c.primaries = so.auto_flush;
         return c;
     }();
+
+    if (so.max_num_events)
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
+                              "be an error in v0.7";
+    }
 
     p.tracking.limits = [this] {
         inp::TrackingLimits tl;
@@ -107,6 +123,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
 
         p.control.device_debug = std::move(dd);
     }
+
+    p.control.seed = CLHEP::HepRandom::getTheSeed();
 
     if (so.sd.enabled)
     {
@@ -227,7 +245,10 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     inp::FrameworkInput result;
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
-    result.adjuster = ProblemSetup{so};
+    result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
+    result.geant.data_selection.processes = GeantImportDataSelection::em_basic;
+
+    result.adjust = ProblemSetup{so};
     return result;
 }
 

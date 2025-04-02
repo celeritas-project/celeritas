@@ -9,8 +9,6 @@
 #include <cmath>
 
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/NumericLimits.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"

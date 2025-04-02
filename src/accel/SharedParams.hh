@@ -13,7 +13,10 @@
 #include "corecel/Assert.hh"
 #include "geocel/BoundingBox.hh"
 
+#include "Types.hh"
+
 class G4ParticleDefinition;
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -61,17 +64,8 @@ class SharedParams
     using SPParams = std::shared_ptr<CoreParams>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
+    using Mode = OffloadMode;
     //!@}
-
-    //! Setup for Celeritas usage
-    enum class Mode
-    {
-        uninitialized,
-        disabled,
-        kill_offload,
-        enabled,
-        size_
-    };
 
   public:
     //!@{
@@ -171,10 +165,11 @@ class SharedParams
     // Created during initialization
     Mode mode_{Mode::uninitialized};
     std::shared_ptr<CoreParams> params_;
-    std::shared_ptr<GeantSd> hit_manager_;
+    std::shared_ptr<GeantSd> geant_sd_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
+    G4VPhysicalVolume const* world_{nullptr};
     SPOffloadWriter offload_writer_;
     std::vector<std::shared_ptr<CoreStateInterface>> states_;
     SPOutputRegistry output_reg_;
@@ -186,7 +181,6 @@ class SharedParams
 
     //// HELPER FUNCTIONS ////
 
-    void initialize_core(SetupOptions const& options);
     void set_num_streams(unsigned int num_streams);
     void try_output() const;
 };
@@ -245,7 +239,7 @@ auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 auto SharedParams::hit_manager() const -> SPGeantSd const&
 {
     CELER_EXPECT(*this);
-    return hit_manager_;
+    return geant_sd_;
 }
 
 //---------------------------------------------------------------------------//

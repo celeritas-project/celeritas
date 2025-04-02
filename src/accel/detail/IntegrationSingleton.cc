@@ -53,12 +53,14 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
-            CELER_VALIDATE(opts,
-                           << R"(SetOptions called with incomplete input)");
             options_ = std::move(opts);
-            CELER_ENSURE(options_);
         },
         ExceptionConverter{"celer.setup"});
+    if (!options_)
+    {
+        CELER_LOG(warning)
+            << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -103,7 +105,7 @@ void IntegrationSingleton::initialize_shared_params()
             {
                 CELER_VALIDATE(
                     options_,
-                    << R"(SetOptions was not called before BeginRun)");
+                    << R"(SetOptions or UI entries were not completely set before BeginRun)");
                 CELER_VALIDATE(
                     !params_,
                     << R"(BeginOfRunAction cannot be called more than once)");

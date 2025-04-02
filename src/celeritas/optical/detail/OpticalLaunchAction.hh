@@ -110,7 +110,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
-    // TODO: local end run to flush initializers??
+    // TODO: local end event to flush initializers??
 
     //!@{
     //! \name Accessors

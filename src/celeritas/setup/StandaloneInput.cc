@@ -86,13 +86,23 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         },
         si.physics_import);
 
+    if (si.geant_data)
+    {
+        CELER_NOT_IMPLEMENTED("loading data directly into celeritas::inp");
+    }
+
+    if (si.update)
+    {
+        CELER_NOT_IMPLEMENTED("updating input problem from external file");
+    }
+
     StandaloneLoaded result;
 
     // Set up core params
-    result.core_params = setup::problem(*problem, imported);
+    result.problem = setup::problem(*problem, imported);
 
     // Load events
-    result.events = events(si.events, result.core_params->particle());
+    result.events = events(si.events, result.problem.core_params->particle());
 
     auto const& ctl = problem->control;
     if (ctl.capacity.events && ctl.num_streams > result.events.size())

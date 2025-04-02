@@ -53,7 +53,7 @@ set(SOURCES
 polysource_append(SOURCES src/StepDiagnostic)
 
 add_executable(run-offload
-  main.cc
+  run-offload.cc
   ${SOURCES}
 )
 

@@ -281,7 +281,6 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         si.geant_setup = ri.physics_options;
         si.physics_import = inp::GeantImport{};
     }
-    si.geant_data = inp::GeantDataImport{};
     si.events = load_events(ri);
 
     // Load actual number of events, needed to contruct core state before

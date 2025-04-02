@@ -89,11 +89,11 @@ endif()
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
     G4VG
-    "https://github.com/celeritas-project/g4vg/releases/download/v1.0.3/g4vg-1.0.3.tar.gz"
-    6f0920a9ad2e04a701bec636f117d4093be1e50761f091ec507efd078b659bcd
+    "https://github.com/celeritas-project/g4vg/releases/download/v1.0.4/g4vg-1.0.4.tar.gz"
+    ac38878aedaf9fe628f498290cf4fa6cdd21980b7b83663ce8ef3c8f3ff31cb2
   )
   foreach(_var BUILD_TESTS DEBUG)
-    set(G4VG_${_var} CELERITAS_${_var})
+    set(G4VG_${_var} ${CELERITAS_${_var}})
   endforeach()
 endif()
 

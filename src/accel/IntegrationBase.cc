@@ -21,6 +21,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Access whether Celeritas is set up, enabled, or uninitialized.
+ */
+OffloadMode IntegrationBase::GetMode() const
+{
+    return IntegrationSingleton::instance().shared_params().mode();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Set options before starting the run.
  *
  * This captures the input to indicate that options cannot be modified after

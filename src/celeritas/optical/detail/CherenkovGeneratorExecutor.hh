@@ -35,7 +35,7 @@ struct CherenkovGeneratorExecutor
     NativeCRef<celeritas::optical::CherenkovData> const cherenkov;
     NativeRef<OffloadStateData> const offload_state;
     RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
-    OffloadBufferSize size;
+    OpticalOffloadCounters<> size;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
