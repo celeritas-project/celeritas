@@ -16,6 +16,7 @@ class G4coutDestination;
 
 namespace celeritas
 {
+class Logger;
 //---------------------------------------------------------------------------//
 /*!
  * Install a Geant output destination during this class's lifetime.
@@ -27,15 +28,17 @@ namespace celeritas
 class ScopedGeantLogger
 {
   public:
-    // Construct exception handler
+    // Construct with pointer to the Celeritas logger instance
+    explicit ScopedGeantLogger(Logger&);
+
+    // Construct using world logger
     ScopedGeantLogger();
 
     // Clear on destruction
     ~ScopedGeantLogger();
-    //!@{
+
     //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedGeantLogger);
-    //!@}
 
   private:
 #if CELERITAS_USE_GEANT4
@@ -46,6 +49,7 @@ class ScopedGeantLogger
 #if !CELERITAS_USE_GEANT4
 //!@{
 //! Do nothing if Geant4 is disabled (source file will not be compiled)
+inline ScopedGeantLogger::ScopedGeantLogger(Logger&) {}
 inline ScopedGeantLogger::ScopedGeantLogger() {}
 inline ScopedGeantLogger::~ScopedGeantLogger() {}
 //!@}
