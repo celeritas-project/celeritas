@@ -193,12 +193,37 @@ G4int GeantLoggerAdapter::ReceiveG4cerr(G4String const& str)
 }
 
 //---------------------------------------------------------------------------//
-//! Thread-local flag for "ownership" of the Geant4 logger
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-G4ThreadLocal bool g_adapter_active_{false};
+//! Thread-local flags for ownership/usability of the Geant4 logger
+enum class SGLState
+{
+    inactive,
+    active,
+    disabled
+};
+
+SGLState& sgl_state()
+{
+    G4ThreadLocal SGLState result{SGLState::inactive};
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+//! Enable and disable to avoid recursion with accel/Logger
+//!@{
+bool ScopedGeantLogger::enabled()
+{
+    return sgl_state() != SGLState::disabled;
+}
+
+void ScopedGeantLogger::enabled(bool)
+{
+    CELER_EXPECT(sgl_state() != SGLState::active);
+    sgl_state() = SGLState::disabled;
+}
+//!@}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -209,9 +234,10 @@ G4ThreadLocal bool g_adapter_active_{false};
  */
 ScopedGeantLogger::ScopedGeantLogger(Logger& celer_log)
 {
-    if (!g_adapter_active_)
+    auto& state = sgl_state();
+    if (state == SGLState::inactive)
     {
-        g_adapter_active_ = true;
+        state = SGLState::active;
         logger_ = std::make_unique<GeantLoggerAdapter>(celer_log);
     }
 }
@@ -231,11 +257,12 @@ ScopedGeantLogger::ScopedGeantLogger()
  */
 ScopedGeantLogger::~ScopedGeantLogger()
 {
-    if (logger_)
+    auto& state = sgl_state();
+    if (state == SGLState::active)
     {
-        logger_.reset();
-        g_adapter_active_ = false;
+        state = SGLState::inactive;
     }
+    logger_.reset();
 }
 
 //---------------------------------------------------------------------------//

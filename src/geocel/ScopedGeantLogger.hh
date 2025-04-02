@@ -28,6 +28,10 @@ class Logger;
 class ScopedGeantLogger
 {
   public:
+    // Enable and disable to avoid recursion with accel/Logger
+    static bool enabled();
+    static void enabled(bool);
+
     // Construct with pointer to the Celeritas logger instance
     explicit ScopedGeantLogger(Logger&);
 

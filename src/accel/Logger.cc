@@ -23,6 +23,7 @@
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/ScopedGeantLogger.hh"
 
 namespace celeritas
 {
@@ -156,6 +157,10 @@ void write_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
  */
 Logger MakeMTWorldLogger(G4RunManager const& runman)
 {
+    // Assuming the user activates this logger, avoid redirecting future
+    // Geant4 messages to avoid recursion
+    ScopedGeantLogger::enabled(false);
+
     LogHandler handle{write_serial};
     if (G4Threading::IsMultithreadedApplication())
     {
@@ -191,6 +196,10 @@ Logger MakeMTWorldLogger(G4RunManager const& runman)
  */
 Logger MakeMTSelfLogger(G4RunManager const& runman)
 {
+    // Assuming the user activates this logger, avoid redirecting future
+    // Geant4 messages to avoid recursion
+    ScopedGeantLogger::enabled(false);
+
     LogHandler handle{write_serial};
     if (G4Threading::IsMultithreadedApplication())
     {
