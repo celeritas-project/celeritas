@@ -14,6 +14,7 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 set(_harness_sources
   Test.cc
+  SampleStats.cc
   testdetail/JsonComparer.json.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/TestMacrosImpl.cc
