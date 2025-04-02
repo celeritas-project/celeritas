@@ -16,6 +16,12 @@
 // MACROS
 //---------------------------------------------------------------------------//
 
+//! Custom comparison for Celeritas test result types
+#define EXPECT_REF_EQ(EXPECTED, ACTUAL) \
+    EXPECT_PRED_FORMAT2(::celeritas::test::IsRefEqual, EXPECTED, ACTUAL)
+#define EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL) \
+    EXPECT_PRED_FORMAT3(::celeritas::test::IsRefEqual, EXPECTED, ACTUAL, TOL)
+
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsVecEq, expected, actual)
