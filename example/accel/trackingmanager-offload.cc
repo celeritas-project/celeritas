@@ -40,6 +40,8 @@
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
+using TMI = celeritas::TrackingManagerIntegration;
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -68,8 +70,9 @@ class SensitiveDetector final : public G4VSensitiveDetector
 
 // Simple (not best practice) way of accessing SD
 G4ThreadLocal SensitiveDetector const* global_sd{nullptr};
-bool expected_nonzero_energy{true};
-bool all_nonzero_energy{true};
+
+std::atomic<int> expected_nonzero_energy{0};
+std::atomic<int> actual_nonzero_energy{0};
 
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
@@ -137,18 +140,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        auto& tmi = celeritas::TrackingManagerIntegration::Instance();
-        tmi.BeginOfRunAction(run);
-
-        using Mode = celeritas::OffloadMode;
-        if (tmi.GetMode() == Mode::kill_offload)
-        {
-            expected_nonzero_energy = false;
-        }
+        TMI::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        celeritas::TrackingManagerIntegration::Instance().EndOfRunAction(run);
+        TMI::Instance().EndOfRunAction(run);
     }
 };
 
@@ -156,7 +152,14 @@ class RunAction final : public G4UserRunAction
 class EventAction final : public G4UserEventAction
 {
   public:
-    void BeginOfEventAction(G4Event const*) final {}
+    void BeginOfEventAction(G4Event const*) final
+    {
+        using Mode = celeritas::OffloadMode;
+        if (TMI::Instance().GetMode() != Mode::kill_offload)
+        {
+            ++expected_nonzero_energy;
+        }
+    }
     void EndOfEventAction(G4Event const* event) final
     {
         // Log total energy deposition
@@ -166,17 +169,14 @@ class EventAction final : public G4UserEventAction
                 << "Total energy deposited for event " << event->GetEventID()
                 << ": " << (global_sd->edep() / CLHEP::MeV) << " MeV";
 
-            if (global_sd->edep() == 0)
+            if (global_sd->edep() != 0)
             {
-                // We should always deposit energy; mark the global as false to
-                // fail the test
-                all_nonzero_energy = false;
+                ++actual_nonzero_energy;
             }
         }
         else
         {
             CELER_LOG_LOCAL(error) << "Global SD was not set";
-            all_nonzero_energy = false;
         }
     }
 };
@@ -187,7 +187,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        celeritas::TrackingManagerIntegration::Instance().BuildForMaster();
+        TMI::Instance().BuildForMaster();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -195,7 +195,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
     void Build() const final
     {
-        celeritas::TrackingManagerIntegration::Instance().Build();
+        TMI::Instance().Build();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -238,7 +238,7 @@ int main()
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
-    auto& tmi = celeritas::TrackingManagerIntegration::Instance();
+    auto& tmi = TMI::Instance();
 
     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
@@ -253,19 +253,12 @@ int main()
 
     run_manager->BeamOn(2);
 
-    if (all_nonzero_energy != expected_nonzero_energy)
+    if (actual_nonzero_energy != expected_nonzero_energy)
     {
-        if (expected_nonzero_energy)
-        {
-            CELER_LOG(critical) << "Some or all events resulted in zero "
-                                   "energy: SDs may not be correctly enabled";
-        }
-        else
-        {
-            CELER_LOG(critical) << "No events should have returned any "
-                                   "energy: maybe offload is not connected "
-                                   "(or your primary is a hadron)";
-        }
+        CELER_LOG(critical) << "Expected number of nonzero energy events ("
+                            << expected_nonzero_energy
+                            << ") did not match actual nonzero events ("
+                            << actual_nonzero_energy << ")";
         return 1;
     }
 
