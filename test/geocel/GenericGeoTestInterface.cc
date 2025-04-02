@@ -49,12 +49,12 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     return tol;
 }
 
-::testing::AssertionResult IsResultEqual(char const* expr1,
-                                         char const* expr2,
-                                         char const*,
-                                         GenericGeoTrackingResult const& val1,
-                                         GenericGeoTrackingResult const& val2,
-                                         GenericGeoTrackingTolerance const& tol)
+::testing::AssertionResult IsRefEqual(char const* expr1,
+                                      char const* expr2,
+                                      char const*,
+                                      GenericGeoTrackingResult const& val1,
+                                      GenericGeoTrackingResult const& val2,
+                                      GenericGeoTrackingTolerance const& tol)
 {
     using ::celeritas::testdetail::IsVecEq;
     using ::celeritas::testdetail::IsVecSoftEquiv;
@@ -125,11 +125,10 @@ void GenericGeoVolumeStackResult::print_expected()
     // clang-format on
 }
 
-::testing::AssertionResult
-IsResultEqual(char const* expr1,
-              char const* expr2,
-              GenericGeoVolumeStackResult const& val1,
-              GenericGeoVolumeStackResult const& val2)
+::testing::AssertionResult IsRefEqual(char const* expr1,
+                                      char const* expr2,
+                                      GenericGeoVolumeStackResult const& val1,
+                                      GenericGeoVolumeStackResult const& val2)
 {
     // TODO: refine this and reuse in other cases
     auto result = ::testing::AssertionSuccess();
