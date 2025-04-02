@@ -94,7 +94,7 @@ inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
         {
             // There is no useful way of defining the midpoint between a finite
             // and infinite value
-            CELER_ASSERT(isinf(bbox.lower()[ax]) && isinf(bbox.upper()[ax]));
+            CELER_EXPECT(isinf(bbox.lower()[ax]) && isinf(bbox.upper()[ax]));
 
             // Fully infinite in this dimension, center can be set to 0
             center[ax] = 0;
