@@ -17,11 +17,11 @@
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/distribution/UrbanLargeAngleDistribution.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -98,8 +98,6 @@ class UrbanMscScatter
     bool skip_sampling_;
     real_type end_energy_;
     real_type tau_{0};
-    real_type xmean_{0};
-    real_type x2mean_{0};
     real_type theta0_{-1};
 
     //// COMMON PROPERTIES ////
@@ -241,11 +239,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
 
         if (tau_ < shared_.params.tau_big)
         {
-            // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
-            xmean_ = std::exp(-tau_);
-            // NOTE: tau_big~8 -> ~0.0003 < xmean < 1
-            x2mean_ = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
-
             // MSC "true path" step limit
             if (CELER_UNLIKELY(limit_min_ == 0))
             {
@@ -378,8 +371,6 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 {
-    CELER_EXPECT(xmean_ > 0 && x2mean_ > 0);
-
     // Evaluate parameters for the tail distribution
     real_type xsi = [this] {
         using PolyQuad = PolyEvaluator<real_type, 2>;
@@ -398,28 +389,23 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
         return max(result, real_type(1.9));
     }();
 
-    // ea = std::exp(-xsi);
-    // invea_m1 = 1/ea - 1 = exp(xsi) - 1
-    // so 0 < ea < ~0.15, so no need to use expm1
-    // and 1/ea - 1 is positive and possibly large (rapidly grows with xsi)
-
     // Mean of cos\theta computed from the distribution g_1(cos\theta)
     // small theta => x = theta0^2
     // large xsi => xmean_1 = 1
     // small tau => xmean = 1
     real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
+
     // Calculate intermediate values for the mean of cos(theta)
-    // 1 - x * (1 - (1 + xsi) * ea)/ (1 - ea);
-    // 1 - x * (1/ea - (1 + xsi)) / (1/ea - 1);
-    // 1 - x * (1/ea - 1 - xsi) / (1/ea - 1);
-    // 1 - x * (invea_m1 - xsi) / (invea_m1);
-    // 1 - x * (1 - xsi / invea_m1);
-    // 1 - x * (1 - xsi / (exp(xsi) - 1));
-    // NOTE: the expression in parens is in [0, ~0.33]
+    // Since xsi is not near zero (thanks to max), no need to use expm1
+    // The expression in outer parens is in [~0.666, 1]
     real_type xmean_1 = 1 - x * (1 - xsi / (std::exp(xsi) - 1));
 
+    // Mean scattering cosine from GS legendre moments: see
+    // fernandez-varea-crosssections-1993
+    real_type xmean = std::exp(-tau_);
+
     // 0.0003 (max tau before assuming isotropic scattering) < xmean < 1
-    if (xmean_1 <= real_type(0.999) * xmean_)
+    if (xmean_1 <= real_type(0.999) * xmean)
     {
         return this->simple_scattering(rng);
     }
@@ -451,7 +437,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     }();
 
     // Eq. 8.14 in the PRM: note that can be greater than 1
-    real_type qprob = xmean_ / (prob * xmean_1 + (1 - prob) * xmean_2);
+    real_type qprob = xmean / (prob * xmean_1 + (1 - prob) * xmean_2);
     // Sampling of cos(theta)
     if (generate_canonical(rng) >= qprob)
     {
@@ -482,7 +468,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
         }
     }
 }
-
 //---------------------------------------------------------------------------//
 /*!
  * Sample the large angle scattering using 2 model functions.
@@ -492,19 +477,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
 {
-    real_type a = (2 * xmean_ + 9 * x2mean_ - 3)
-                  / (2 * xmean_ - 3 * x2mean_ + 1);
-    BernoulliDistribution sample_pow{(a + 2) * xmean_ / a};
-
-    // Sample cos(theta)
-    real_type result{};
-    do
-    {
-        real_type rdm = generate_canonical(rng);
-        result = 2 * (sample_pow(rng) ? fastpow(rdm, 1 / (a + 1)) : rdm) - 1;
-    } while (std::fabs(result) > 1);
-
-    return result;
+    UrbanLargeAngleDistribution dist(tau_);
+    return dist(rng);
 }
 
 //---------------------------------------------------------------------------//
