@@ -217,7 +217,7 @@ TEST_F(TestEm3SlotTest, host)
     // Some results change slightly as a function of architecture/build flags,
     // and they can change dramatically based on Geant4 cross sections etc.
     auto max_check_count
-        = (this->is_ci_build() && !using_vecgeom_surface ? 52 : 6);
+        = (this->is_ci_build() && !using_vecgeom_surface ? 37 : 6);
     ASSERT_LE(max_check_count, expected_slots.size());
     ASSERT_LE(max_check_count, result.slots.size());
 
@@ -226,10 +226,7 @@ TEST_F(TestEm3SlotTest, host)
         s->erase(s->begin() + max_check_count, s->end());
     }
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-    {
-        EXPECT_VEC_EQ(expected_slots, result.slots) << repr(result.slots);
-    }
+    EXPECT_VEC_EQ(expected_slots, result.slots) << repr(result.slots);
 }
 
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))

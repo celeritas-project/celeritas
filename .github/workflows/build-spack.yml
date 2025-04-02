@@ -260,7 +260,7 @@ jobs:
             || matrix.geometry == 'vecgeom2'
           }}
         run: |
-          if ${{matrix.geant == '11.0'
+          if ${{matrix.geant == '11.3'
                 && matrix.geometry != 'vecgeom2'}}; then
             # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
