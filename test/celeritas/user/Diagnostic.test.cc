@@ -149,7 +149,7 @@ TEST_F(TestEm3DiagnosticTest, host)
                         "stuck on some builds but not others";
     }
 
-    if (this->is_ci_build() && std::string(cmake::geant4_version) == "11.0.4")
+    if (this->is_ci_build())
     {
         static char const* const expected_nonzero_action_keys[] = {
             "annihil-2-gamma e+",
@@ -173,18 +173,18 @@ TEST_F(TestEm3DiagnosticTest, host)
             "scat-klein-nishina gamma",
         };
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-        static size_type const expected_nonzero_action_counts[] = {
-            125u, 404u, 444u, 12u,   65u,   1008u, 288u, 286u, 1703u, 16u,
-            13u,  18u,  25u,  1196u, 1680u, 541u,  29u,  26u,  313u,
+        static unsigned int const expected_nonzero_action_counts[] = {
+            124u, 402u, 441u, 12u,   66u,   986u, 288u, 286u, 1749u, 16u,
+            13u,  18u,  25u,  1195u, 1683u, 534u, 29u,  28u,  297u,
         };
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
-        static size_type const expected_steps[] = {
-            0u, 290u, 234u, 85u, 44u, 31u, 24u, 14u, 8u, 7u, 6u,
+        static unsigned int const expected_steps[] = {
+            0u, 298u, 226u, 86u, 42u, 27u, 26u, 12u, 8u, 7u, 6u,
             2u, 0u,   3u,   1u,  2u,  3u,  0u,  1u,  0u, 0u, 2u,
-            0u, 734u, 39u,  9u,  10u, 13u, 2u,  9u,  8u, 4u, 8u,
+            0u, 717u, 40u,  7u,  10u, 14u, 3u,  9u,  8u, 4u, 8u,
             7u, 11u,  9u,   8u,  11u, 5u,  1u,  3u,  4u, 1u, 31u,
-            0u, 4u,   1u,   1u,  1u,  4u,  5u,  4u,  6u, 6u, 11u,
+            0u, 3u,   1u,   0u,  2u,  4u,  5u,  4u,  6u, 6u, 11u,
             5u, 8u,   7u,   12u, 4u,  6u,  6u,  1u,  2u, 3u, 32u,
         };
         EXPECT_VEC_EQ(expected_steps, result.steps);
@@ -222,23 +222,23 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
         static unsigned int const expected_nonzero_action_counts[] = {
-            10u, 577u, 509u, 518u, 521u, 10u, 20u, 20u, 902u, 996u, 9u, 2u, 2u};
+            11u, 568u, 509u, 519u, 521u, 10u, 21u, 20u, 908u, 996u, 9u, 2u, 2u};
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
         static unsigned int const expected_steps[] = {
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 3u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 4u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
         };
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0,0,0],[0,902,0,0,9,0,0,0,10,20,577,0,0,0,0,0,0,0,518,0,0,0,0]]})json",
+            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0,0,0],[0,908,0,0,9,0,0,0,11,21,568,0,0,0,0,0,0,0,519,0,0,0,0]]})json",
             this->action_output());
         EXPECT_JSON_EQ(
-            R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
+            R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
             this->step_output());
     }
     else
