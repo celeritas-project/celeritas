@@ -107,7 +107,7 @@ class Logger
     // Create a logger from a handle and level environment variable
     static Logger from_handle_env(LogHandler&& handle, std::string const& key);
 
-    // Construct from an our put handle
+    // Construct from an output handle
     explicit Logger(LogHandler&& handle);
 
     // Create a logger that flushes its contents when it destructs

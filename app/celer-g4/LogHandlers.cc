@@ -22,7 +22,7 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
-//! Finalize the message, including
+//! Print the message and flush atomically to stderr
 void write_msg(std::ostringstream&& os,
                LogProvenance const& prov,
                LogLevel const& lev,
@@ -34,7 +34,7 @@ void write_msg(std::ostringstream&& os,
     // Lock after building the message while writing
     static std::mutex log_mutex;
     std::lock_guard scoped_lock{log_mutex};
-    std::clog << std::move(os).str();
+    std::clog << std::move(os).str() << std::flush;
 }
 
 //---------------------------------------------------------------------------//
