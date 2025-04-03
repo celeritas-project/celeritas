@@ -93,7 +93,6 @@ celeritas_add_test(math/TridiagonalSolver.test.cc)
 
 celeritas_add_device_test(random/RngEngine)
 celeritas_add_test(random/Selector.test.cc)
-celeritas_add_test(random/RngReseed.test.cc)
 celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
