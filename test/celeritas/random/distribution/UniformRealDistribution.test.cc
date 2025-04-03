@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/UniformRealDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 
 #include <random>
 

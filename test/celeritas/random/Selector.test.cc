@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/Selector.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/Selector.hh"
+#include "corecel/random/distribution/Selector.hh"
 
 #include "corecel/OpaqueId.hh"
 

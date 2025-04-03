@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/PoissonDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/PoissonDistribution.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
 
 #include <map>
 

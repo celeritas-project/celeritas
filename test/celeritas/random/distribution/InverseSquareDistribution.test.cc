@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/InverseSquareDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/InverseSquareDistribution.hh"
+#include "corecel/random/distribution/InverseSquareDistribution.hh"
 
 #include "celeritas_test.hh"
 

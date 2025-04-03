@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/NormalDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/NormalDistribution.hh"
+#include "corecel/random/distribution/NormalDistribution.hh"
 
 #include <random>
 

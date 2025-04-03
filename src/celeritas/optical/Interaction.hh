@@ -9,7 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
 #include "geocel/Types.hh"
-#include "celeritas/optical/TrackInitializer.hh"
+
+#include "TrackInitializer.hh"
 
 namespace celeritas
 {

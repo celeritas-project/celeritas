@@ -2,19 +2,17 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/XorwowRngEngine.hh
+//! \file corecel/random/engine/XorwowRngEngine.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/random/data/XorwowRngData.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/detail/GenerateCanonical32.hh"
 #include "corecel/sys/ThreadId.hh"
-
-#include "XorwowRngData.hh"
-#include "distribution/GenerateCanonical.hh"
-
-#include "detail/GenerateCanonical32.hh"
 
 namespace celeritas
 {

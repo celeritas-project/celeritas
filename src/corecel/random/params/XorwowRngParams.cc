@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/XorwowRngParams.cc
+//! \file corecel/random/params/XorwowRngParams.cc
 //---------------------------------------------------------------------------//
 #include "XorwowRngParams.hh"
 
@@ -10,8 +10,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
-
-#include "XorwowRngData.hh"
+#include "corecel/random/data/XorwowRngData.hh"
 
 namespace celeritas
 {

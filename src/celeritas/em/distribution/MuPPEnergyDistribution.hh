@@ -14,13 +14,13 @@
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuPairProductionData.hh"
 #include "celeritas/grid/InverseCdfFinder.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {

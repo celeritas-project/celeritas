@@ -16,8 +16,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/random/RngParams.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/params/RngParams.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "SequenceEngine.hh"

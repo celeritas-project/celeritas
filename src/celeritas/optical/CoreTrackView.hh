@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/engine/RngEngine.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/random/RngEngine.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"

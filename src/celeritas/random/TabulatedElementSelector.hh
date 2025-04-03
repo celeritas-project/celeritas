@@ -2,17 +2,17 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mat/TabulatedElementSelector.hh
+//! \file celeritas/random/TabulatedElementSelector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/phys/PhysicsData.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
 
 namespace celeritas
 {

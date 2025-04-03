@@ -2,15 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/CuHipRngParams.cc
+//! \file corecel/random/params/CuHipRngParams.cc
 //---------------------------------------------------------------------------//
 #include "CuHipRngParams.hh"
 
 #include <utility>
 
 #include "corecel/Assert.hh"
-
-#include "CuHipRngData.hh"
+#include "corecel/random/data/CuHipRngData.hh"
 
 namespace celeritas
 {

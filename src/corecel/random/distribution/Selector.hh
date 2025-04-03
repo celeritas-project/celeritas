@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/Selector.hh
+//! \file corecel/random/distribution/Selector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 
-#include "distribution/GenerateCanonical.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {

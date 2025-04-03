@@ -13,10 +13,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "accel/ExceptionConverter.hh"
-#include "accel/Logger.hh"
-#include "accel/SetupOptionsMessenger.hh"
-#include "accel/TimeOutput.hh"
+
+#include "../ExceptionConverter.hh"
+#include "../Logger.hh"
+#include "../SetupOptionsMessenger.hh"
+#include "../TimeOutput.hh"
 
 namespace celeritas
 {

@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/XorwowRngEngine.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/XorwowRngEngine.hh"
+#include "corecel/random/engine/XorwowRngEngine.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -15,8 +15,8 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/detail/ReprImpl.hh"
-#include "celeritas/random/XorwowRngParams.hh"
-#include "celeritas/random/detail/GenerateCanonical32.hh"
+#include "corecel/random/distribution/detail/GenerateCanonical32.hh"
+#include "corecel/random/params/XorwowRngParams.hh"
 
 #include "HexRepr.hh"
 #include "RngTally.hh"

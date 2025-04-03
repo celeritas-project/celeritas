@@ -10,11 +10,11 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/OffloadData.hh"
-#include "celeritas/optical/ScintillationGenerator.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "OpticalUtils.hh"
+#include "../OffloadData.hh"
+#include "../ScintillationGenerator.hh"
 
 namespace celeritas
 {

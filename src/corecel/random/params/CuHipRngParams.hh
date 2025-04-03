@@ -2,14 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/CuHipRngParams.hh
+//! \file corecel/random/params/CuHipRngParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-
-#include "CuHipRngData.hh"
+#include "corecel/random/data/CuHipRngData.hh"
 
 namespace celeritas
 {

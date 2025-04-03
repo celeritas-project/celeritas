@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/IsotropicDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 
 #include <random>
 

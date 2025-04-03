@@ -15,6 +15,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Quantity.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
@@ -27,7 +28,6 @@
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/random/distribution/PoissonDistribution.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "OpticalTestBase.hh"

@@ -10,7 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/random/RngData.hh"
+#include "corecel/random/data/RngData.hh"
 
 namespace celeritas
 {

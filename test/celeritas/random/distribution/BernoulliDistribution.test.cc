@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/BernoulliDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 
 #include <random>
 

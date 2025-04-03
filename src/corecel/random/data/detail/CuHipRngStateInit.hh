@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/detail/CuHipRngStateInit.hh
+//! \file corecel/random/data/detail/CuHipRngStateInit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,9 +10,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/random/engine/CuHipRngEngine.hh"
 
 #include "../CuHipRngData.hh"
-#include "../CuHipRngEngine.hh"
 
 namespace celeritas
 {

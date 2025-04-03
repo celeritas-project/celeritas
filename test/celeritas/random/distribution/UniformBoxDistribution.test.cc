@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/UniformBoxDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/UniformBoxDistribution.hh"
+#include "geocel/random/UniformBoxDistribution.hh"
 
 #include <random>
 

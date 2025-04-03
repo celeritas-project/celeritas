@@ -3,16 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/CuHipRngEngine.hh
+//! \file corecel/random/engine/CuHipRngEngine.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
+#include "corecel/random/data/CuHipRngData.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/sys/ThreadId.hh"
-
-#include "CuHipRngData.hh"
-#include "distribution/GenerateCanonical.hh"
 
 namespace celeritas
 {

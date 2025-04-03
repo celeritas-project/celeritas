@@ -9,9 +9,10 @@
 #include <memory>
 
 #include "corecel/sys/Stopwatch.hh"
-#include "accel/LocalTransporter.hh"
-#include "accel/SetupOptions.hh"
-#include "accel/SharedParams.hh"
+
+#include "../LocalTransporter.hh"
+#include "../SetupOptions.hh"
+#include "../SharedParams.hh"
 
 namespace celeritas
 {

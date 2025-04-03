@@ -14,15 +14,15 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/PhysicsParams.hh"
-#include "celeritas/optical/TrackInitParams.hh"
-#include "celeritas/optical/action/ActionGroups.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
 #include "OpticalSizes.json.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../PhysicsParams.hh"
+#include "../TrackInitParams.hh"
+#include "../action/ActionGroups.hh"
 
 namespace celeritas
 {

@@ -9,8 +9,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/CherenkovOffload.hh"
-#include "celeritas/optical/OffloadData.hh"
+
+#include "../CherenkovOffload.hh"
+#include "../OffloadData.hh"
 
 namespace celeritas
 {

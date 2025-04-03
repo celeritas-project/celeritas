@@ -8,14 +8,14 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/mat/ElementSelector.hh"
 #include "celeritas/mat/ElementView.hh"
-#include "celeritas/mat/IsotopeSelector.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
 #include "celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/random/ElementSelector.hh"
+#include "celeritas/random/IsotopeSelector.hh"
 
 namespace celeritas
 {

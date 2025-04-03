@@ -8,6 +8,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
 #include "celeritas/em/msc/detail/MscStepToGeo.hh"
@@ -22,7 +23,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "MscTestBase.hh"
 #include "celeritas_test.hh"

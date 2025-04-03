@@ -11,12 +11,12 @@
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/phys/InteractionUtils.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 namespace celeritas
 {

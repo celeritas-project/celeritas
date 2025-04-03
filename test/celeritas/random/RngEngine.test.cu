@@ -6,7 +6,7 @@
 //! \file celeritas/random/RngEngine.test.cu
 //---------------------------------------------------------------------------//
 
-#include "celeritas/random/RngEngine.hh"
+#include "corecel/random/engine/RngEngine.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>

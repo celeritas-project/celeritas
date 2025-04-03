@@ -19,6 +19,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
+#include "corecel/random/params/RngParams.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
@@ -45,7 +46,6 @@
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/detail/TrackingCutAction.hh"
-#include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"

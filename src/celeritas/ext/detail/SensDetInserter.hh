@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/SensDetInserter.hh
+//! \file celeritas/ext/detail/SensDetInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,7 +13,8 @@
 #include "corecel/Assert.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsInterface.hh"
-#include "celeritas/ext/GeantVolumeMapper.hh"
+
+#include "../GeantVolumeMapper.hh"
 
 class G4LogicalVolume;
 class G4VSensitiveDetector;

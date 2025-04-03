@@ -28,12 +28,12 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
 #include "LevelTouchableUpdater.hh"
 #include "NaviTouchableUpdater.hh"
+#include "../GeantUnits.hh"
 
 namespace celeritas
 {

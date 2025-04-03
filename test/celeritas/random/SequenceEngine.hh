@@ -14,7 +14,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
 
 namespace celeritas
 {

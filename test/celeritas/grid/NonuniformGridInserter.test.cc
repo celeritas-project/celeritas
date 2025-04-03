@@ -9,7 +9,7 @@
 #include <array>
 
 #include "corecel/OpaqueId.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

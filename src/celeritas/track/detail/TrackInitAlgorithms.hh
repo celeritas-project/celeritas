@@ -12,10 +12,10 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/track/CoreStateCounters.hh"
-#include "celeritas/track/TrackInitData.hh"
 
 #include "Utils.hh"
+#include "../CoreStateCounters.hh"
+#include "../TrackInitData.hh"
 
 namespace celeritas
 {

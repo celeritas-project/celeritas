@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/XorwowRngData.hh
+//! \file corecel/random/data/XorwowRngData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

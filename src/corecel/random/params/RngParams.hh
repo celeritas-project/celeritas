@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/RngParams.hh
+//! \file corecel/random/params/RngParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

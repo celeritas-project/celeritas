@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/ReciprocalDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
+#include "corecel/random/distribution/ReciprocalDistribution.hh"
 
 #include "corecel/cont/Range.hh"
 

@@ -16,7 +16,8 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
+
+#include "ImportPhysicsVector.hh"
 
 namespace celeritas
 {

@@ -11,7 +11,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-#include "geocel/rasterize/ImageIO.json.hh"
+#include "ImageIO.json.hh"
 
 #include "detail/SafetyCalculator.hh"
 

@@ -2,16 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mat/IsotopeSelector.hh
+//! \file celeritas/random/IsotopeSelector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
-
-#include "ElementView.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "celeritas/mat/ElementView.hh"
 
 namespace celeritas
 {

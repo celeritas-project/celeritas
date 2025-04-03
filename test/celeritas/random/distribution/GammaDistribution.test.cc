@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/GammaDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/GammaDistribution.hh"
+#include "corecel/random/distribution/GammaDistribution.hh"
 
 #include "corecel/cont/Range.hh"
 

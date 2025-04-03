@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/detail/CuHipRngStateInit.cu
+//! \file corecel/random/data/detail/CuHipRngStateInit.cu
 //---------------------------------------------------------------------------//
 #include "CuHipRngStateInit.hh"
 

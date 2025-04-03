@@ -8,9 +8,10 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "orange/OrangeData.hh"
-#include "orange/OrangeTypes.hh"
-#include "orange/transform/TransformVisitor.hh"
+
+#include "../OrangeData.hh"
+#include "../OrangeTypes.hh"
+#include "../transform/TransformVisitor.hh"
 
 namespace celeritas
 {

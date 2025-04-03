@@ -4,11 +4,11 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/RejectionSampler.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 
 #include <random>
 
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/distribution/IsotropicDistribution.hh
+//! \file geocel/random/IsotropicDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +11,8 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Constants.hh"
-
-#include "UniformRealDistribution.hh"
 
 namespace celeritas
 {

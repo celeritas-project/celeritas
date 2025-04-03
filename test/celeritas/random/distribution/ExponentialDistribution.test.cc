@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/ExponentialDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/ExponentialDistribution.hh"
+#include "corecel/random/distribution/ExponentialDistribution.hh"
 
 #include <random>
 

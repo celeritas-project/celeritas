@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/mat/IsotopeSelector.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/mat/IsotopeSelector.hh"
+#include "celeritas/random/IsotopeSelector.hh"
 
 #include <memory>
 #include <random>

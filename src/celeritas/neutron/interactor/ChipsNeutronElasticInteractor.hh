@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/mat/IsotopeView.hh"
@@ -16,7 +17,6 @@
 #include "celeritas/phys/FourVector.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "detail/MomentumTransferSampler.hh"
 

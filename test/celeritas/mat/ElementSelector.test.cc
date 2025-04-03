@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/mat/ElementSelector.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/mat/ElementSelector.hh"
+#include "celeritas/random/ElementSelector.hh"
 
 #include <memory>
 #include <random>

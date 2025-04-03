@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/CuHipRngData.hh
+//! \file corecel/random/data/CuHipRngData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -49,7 +49,7 @@
 #    define CELER_RNG_PREFIX(TOK) hip##TOK
 #else
 // CuHipRng is invalid
-#    include "detail/mockrand.hh"
+#    include "detail/MockRand.hh"
 
 #    define CELER_RNG_PREFIX(TOK) mock##TOK
 #endif

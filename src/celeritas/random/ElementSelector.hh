@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mat/ElementSelector.hh
+//! \file celeritas/random/ElementSelector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,10 +11,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
-
-#include "MaterialView.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 namespace celeritas
 {

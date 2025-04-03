@@ -13,10 +13,10 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/random/data/RngData.hh"
 #include "geocel/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/random/RngData.hh"
 
 namespace celeritas
 {

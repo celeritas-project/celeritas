@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/random/distribution/RadialDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/random/distribution/RadialDistribution.hh"
+#include "corecel/random/distribution/RadialDistribution.hh"
 
 #include <random>
 

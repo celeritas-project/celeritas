@@ -15,14 +15,14 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/CoreTrackData.hh"
-#include "celeritas/optical/ScintillationParams.hh"
 
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
 #include "ScintGeneratorExecutor.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../CoreTrackData.hh"
+#include "../ScintillationParams.hh"
 
 namespace celeritas
 {

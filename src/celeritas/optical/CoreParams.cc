@@ -7,11 +7,11 @@
 #include "CoreParams.hh"
 
 #include "corecel/io/Logger.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
