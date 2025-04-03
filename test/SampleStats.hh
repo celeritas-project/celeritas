@@ -57,9 +57,9 @@ void SampleStatsAccumulator::operator()(real_type value)
     min_ = std::min(min_, value);
     max_ = std::max(max_, value);
     real_type value_pow = value;
-    for (size_type i = 1; i < num_moments; ++i)
+    for (size_type i = 0; i < num_moments - 1; ++i)
     {
-        moments_[i - 1] += value_pow;
+        moments_[i] += value_pow;
         value_pow *= value;
     }
     ++count_;

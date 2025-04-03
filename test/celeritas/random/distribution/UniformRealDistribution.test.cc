@@ -8,8 +8,8 @@
 
 #include <random>
 
-#include "corecel/cont/Range.hh"
-
+#include "DiagnosticRngEngine.hh"
+#include "SampleStats.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -18,13 +18,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class UniformRealDistributionTest : public Test
-{
-  protected:
-    std::mt19937 rng;
-};
-
-TEST_F(UniformRealDistributionTest, constructors)
+TEST(UniformRealDistributionTest, constructors)
 {
     {
         UniformRealDistribution<> sample_uniform{};
@@ -43,26 +37,25 @@ TEST_F(UniformRealDistributionTest, constructors)
     }
 }
 
-TEST_F(UniformRealDistributionTest, bin)
+TEST(UniformRealDistributionTest, distribution)
 {
-    int num_samples = 10000;
-
     double min = 0.0;
     double max = 5.0;
-    UniformRealDistribution<double> sample_uniform{min, max};
+    unsigned int num_samples = 10000;
 
-    std::vector<int> counters(5);
-    for ([[maybe_unused]] int i : range(num_samples))
-    {
-        double r = sample_uniform(rng);
-        ASSERT_GE(r, min);
-        ASSERT_LE(r, max);
-        counters[int(r)] += 1;
-    }
+    DiagnosticRngEngine<std::mt19937> rng;
+    auto stats = sample_distribution(
+        UniformRealDistribution<double>{min, max}, rng, num_samples);
+    // stats.print_expected();
 
-    // PRINT_EXPECTED(counters);
-    int const expected_counters[] = {2071, 1955, 1991, 2013, 1970};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    // Exact reference stats for a uniform distribution on [0,5]:
+    // - Mean should be 2.5
+    // - Standard deviation should be 5/sqrt(12) ≈ 1.443
+    SampleStats ref(min, max, 2.5, 5.0 / std::sqrt(12.0), 1000000);
+
+    // Compare sample stats to reference
+    EXPECT_REF_EQ(ref, stats);
+    EXPECT_EQ(20000, rng.exchange_count());
 }
 
 //---------------------------------------------------------------------------//

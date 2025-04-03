@@ -25,7 +25,7 @@ SampleStats::SampleStats(SampleStatsAccumulator acc)
     , count_(acc.count())
 {
     real_type n = acc.moment(0);
-    stdev_ = std::sqrt((acc.moment(2) - ipow<2>(acc.moment(1) / n)) / n);
+    stdev_ = std::sqrt((acc.moment(2) - ipow<2>(acc.moment(1)) / n) / n);
 }
 
 //---------------------------------------------------------------------------//
