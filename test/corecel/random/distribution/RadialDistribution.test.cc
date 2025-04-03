@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/distribution/RadialDistribution.test.cc
+//! \file corecel/random/distribution/RadialDistribution.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/random/distribution/RadialDistribution.hh"
 

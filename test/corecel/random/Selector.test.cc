@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/Selector.test.cc
+//! \file corecel/random/Selector.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/random/distribution/Selector.hh"
 

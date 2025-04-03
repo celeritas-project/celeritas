@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/XorwowRngEngine.test.cc
+//! \file corecel/random/XorwowRngEngine.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/random/engine/XorwowRngEngine.hh"
 

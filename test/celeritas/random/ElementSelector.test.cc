@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mat/ElementSelector.test.cc
+//! \file celeritas/random/ElementSelector.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/random/ElementSelector.hh"
 

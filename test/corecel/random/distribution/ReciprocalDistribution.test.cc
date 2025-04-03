@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/distribution/ReciprocalDistribution.test.cc
+//! \file corecel/random/distribution/ReciprocalDistribution.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/random/distribution/ReciprocalDistribution.hh"
 

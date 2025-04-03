@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/RngEngine.test.cu
+//! \file corecel/random/RngEngine.test.cu
 //---------------------------------------------------------------------------//
 
 #include "corecel/random/engine/RngEngine.hh"
