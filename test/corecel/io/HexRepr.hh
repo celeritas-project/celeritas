@@ -6,6 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iomanip>
+#include <iostream>
+
+#include "corecel/io/ScopedStreamFormat.hh"
+
 namespace celeritas
 {
 namespace test
