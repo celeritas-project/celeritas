@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -52,6 +53,31 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     // TODO: ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
     ref.init = get_ref<M>(*p.init);
+
+    // // Map detector labels to volume IDs
+    std::vector<Label> const& labels = p.detector_labels;
+    std::vector<std::reference_wrapper<Label const>> missing;
+    std::vector<VolumeId> detector_ids;
+    detector_ids.resize(labels.size());
+
+    auto geo = p.geometry;
+    GeoVolumeFinder find_volume(*geo);
+    for (auto i : range(labels.size()))
+    {
+        detector_ids[i] = find_volume(labels[i]);
+        if (!detector_ids[i])
+        {
+            missing.emplace_back(labels[i]);
+        }
+    }
+
+    CELER_VALIDATE(missing.empty(),
+                   << "failed to find " << celeritas_core_geo
+                   << " volume(s) for labels '"
+                   << join(missing.begin(), missing.end(), "', '"));
+
+    auto temp_coll = CollectionBuilder{ref.detector}.insert_back(
+        detector_ids.begin(), detector_ids.end());
 
     CELER_ENSURE(ref);
     return ref;
@@ -134,7 +160,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
 
-    // Map detector labels to volume IDs
+    // // Map detector labels to volume IDs
     VecLabel const& labels = detector_labels();
     std::vector<std::reference_wrapper<Label const>> missing;
     detector_ids_.resize(labels.size());

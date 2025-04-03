@@ -25,6 +25,7 @@ namespace optical
 CaloAction::CaloAction(ActionId aid)
     : StaticConcreteAction(aid, "track-calo", "contribute to detector")
 {
+    CELER_LOG(status) << "Creating Calo action";
 }
 
 //---------------------------------------------------------------------------//
@@ -33,11 +34,9 @@ CaloAction::CaloAction(ActionId aid)
  */
 void CaloAction::step(CoreParams const& params, CoreStateHost& state) const
 {
-    auto detector_ids = params.detector_ids();
+    CELER_LOG(status) << "Performing CaloAction Step";
     auto detect_and_update
-        = [](CoreTrackView& track, std::vector<VolumeId>& detector_ids) {
-              detail::CaloExecutor{}(track, detector_ids);
-          };
+        = [](CoreTrackView& track) { detail::CaloExecutor{}(track); };
     auto execute = make_active_thread_executor(
         params.ptr<MemSpace::native>(), state.ptr(), detect_and_update);
     return launch_action(state, execute);

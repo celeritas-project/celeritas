@@ -60,7 +60,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
         SPActionRegistry action_reg;
 
-        VecLabel detector_labels;
+        VecLabel detector_labels{};
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};

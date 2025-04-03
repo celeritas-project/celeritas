@@ -99,6 +99,7 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
             input.initializer_capacity);
         inp.action_reg = std::make_shared<ActionRegistry>();
         inp.max_streams = core.max_streams();
+        inp.detector_labels = input.detector_labels;
         CELER_ENSURE(inp);
         return inp;
     }());

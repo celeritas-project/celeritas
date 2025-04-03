@@ -86,6 +86,8 @@ struct CoreParamsData
     RngParamsData<W, M> rng;
     TrackInitParamsData<W, M> init;
 
+    Collection<DetectorId, W, M, VolumeId> detector;
+
     CoreScalars scalars;
 
     //! True if all params are assigned
@@ -105,6 +107,7 @@ struct CoreParamsData
         rng = other.rng;
         init = other.init;
         scalars = other.scalars;
+        detector = other.detector;
         return *this;
     }
 };

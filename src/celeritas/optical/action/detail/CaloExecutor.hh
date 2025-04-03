@@ -29,15 +29,20 @@ namespace detail
 struct CaloExecutor
 {
     inline CELER_FUNCTION void
-    operator()(CoreTrackView& track, std::vector<VolumeId>& detector_ids);
+    operator()(CoreTrackView& track);  //, std::vector<VolumeId>&
+                                       // detector_ids);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void
-CaloExecutor::operator()(CoreTrackView& track,
-                         std::vector<VolumeId>& detector_ids)
+CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
 {
     auto sim = track.sim();
+
+    auto geo = track.geometry();
+    auto v_id = geo.volume_id();
+
+    CELER_LOG(status) << "volume id is " << v_id.get();
+
     // If track previously killed in step, don't contribute
     if (sim.status() == TrackStatus::killed)
     {
@@ -51,18 +56,20 @@ CaloExecutor::operator()(CoreTrackView& track,
         auto geo = track.geometry();
         auto v_id = geo.volume_id();
 
+        CELER_LOG(status) << "volume id is " << v_id.get();
+
         // check for track geometry in optical detector list
         // TODO:: fix below pseudo-code
-        for (auto det_id : range(detector_ids.size()))
-        {
-            if (v_id == detector_ids[det_id])
-            {
-                auto energy = track.particle().energy().value();
-                std::cout << "Killing track in Volume " << v_id.get()
-                          << " with energy " << energy << std::endl;
-                sim.status(TrackStatus::killed);
-            }
-        }
+        // for (auto det_id : range(detector_ids.size()))
+        // {
+        //     if (v_id == detector_ids[det_id])
+        //     {
+        //         auto energy = track.particle().energy().value();
+        //         std::cout << "Killing track in Volume " << v_id.get()
+        //                   << " with energy " << energy << std::endl;
+        //         sim.status(TrackStatus::killed);
+        //     }
+        // }
 
         // If found, print energy, print volume, and kill track
     }

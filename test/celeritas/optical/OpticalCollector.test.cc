@@ -15,6 +15,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
@@ -88,6 +89,7 @@ class LArSphereOffloadTest : public LArSphereBase
     using SizeId = ItemId<size_type>;
     using DistId = ItemId<GeneratorDistributionData>;
     using DistRange = ItemRange<GeneratorDistributionData>;
+    using VecLabel = std::vector<Label>;
 
     // Optical collector options
     bool use_scintillation_{true};
@@ -97,6 +99,7 @@ class LArSphereOffloadTest : public LArSphereBase
     size_type initializer_capacity_{8192};
     size_type auto_flush_{4096};
     units::MevEnergy primary_energy_{10.0};
+    VecLabel detector_labels_{};
 
     std::shared_ptr<OpticalCollector> collector_;
     StreamId stream_{0};
@@ -254,6 +257,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
+        CELER_LOG(status) << "Running step " << step_iter;
         if (!offload_state.buffer_size.num_photons)
         {
             result.optical_launch_step = step_iter;
@@ -509,6 +513,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     buffer_capacity_ = 4096;
     initializer_capacity_ = 4096;
     auto_flush_ = 1;
+    // detector_labels_.push_back(Label{});
     this->build_optical_collector();
 
     // Run with 2 core track slots and 32 optical track slots
@@ -548,8 +553,9 @@ TEST_F(LArSphereOffloadTest, host_generate)
         "Celeritas core state initialization complete",
         "Generated 4258 Cherenkov photons from 4 distributions",
         "Generated 319935 Scintillation photons from 4 distributions",
-        R"(Generated 324193 optical photons which completed 324193 total steps over 2 iterations)",
-        "Deallocating host core state (stream 0)",
+        R"(Generated 324193 optical photons which completed 324193 total
+        steps over 2 iterations)", "Deallocating host core state (stream
+        0)",
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
