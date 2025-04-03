@@ -4,6 +4,7 @@
 #-----------------------------------------------------------------------------#
 
 celeritas_add_test_library(testcel_core
+  StringSimplifier.cc
   ScopedLogStorer.cc
   random/Histogram.cc
 )
@@ -21,6 +22,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # TESTS
 #-----------------------------------------------------------------------------#
+celeritas_add_test(StringSimplifier.test.cc)
+
 celeritas_add_test(Assert.test.cc
   ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
 )
