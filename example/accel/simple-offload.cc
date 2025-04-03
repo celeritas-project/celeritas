@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/user-action-offload.cc
+//! \file accel/simple-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file offload-template/main.cc
+//! \file offload-template/run-offload.cc
 //! \brief Minimal Geant4 application with Celeritas offloading
 //---------------------------------------------------------------------------//
 #include <iostream>
