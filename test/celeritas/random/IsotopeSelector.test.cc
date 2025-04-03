@@ -9,10 +9,10 @@
 #include <memory>
 #include <random>
 
+#include "corecel/random/SequenceEngine.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/random/SequenceEngine.hh"
+#include "celeritas/mat/MaterialTestBase.hh"
 
-#include "MaterialTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

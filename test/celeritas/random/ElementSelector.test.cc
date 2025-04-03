@@ -10,9 +10,9 @@
 #include <random>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/random/SequenceEngine.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/random/SequenceEngine.hh"
 
 #include "celeritas_test.hh"
 

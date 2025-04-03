@@ -14,11 +14,11 @@
 #include <type_traits>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/HexRepr.hh"
 #include "corecel/io/detail/ReprImpl.hh"
 #include "corecel/random/distribution/detail/GenerateCanonical32.hh"
 #include "corecel/random/params/XorwowRngParams.hh"
 
-#include "HexRepr.hh"
 #include "RngTally.hh"
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
