@@ -11,6 +11,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
@@ -33,6 +34,15 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+auto const geant4_version = celeritas::Version::from_string(
+    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -395,7 +405,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.phys_mfp = 100;
 
             auto result = this->run(inp, num_tracks);
-            if (is_ci_build())
+            if (geant4_version < Version(11, 2, 0))
             {
                 EXPECT_SOFT_EQ(0.0099999992401263, result.eloss);
             }
@@ -676,8 +686,8 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         auto result = this->run(inp, num_tracks);
         if (is_ci_build())
         {
-            // Range = 6.41578930992857482e-06
-            EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
+            // Range = 6.4161473386016025e-06
+            EXPECT_SOFT_EQ(6.4161473386016025e-06, result.step);
         }
         else
         {
@@ -733,7 +743,7 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        if (is_ci_build())
+        if (geant4_version < Version(11, 2, 0))
         {
             EXPECT_SOFT_EQ(6.113290482072715e-07, result.displacement);
         }
