@@ -8,9 +8,9 @@
 
 #include <random>
 
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

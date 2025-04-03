@@ -7,6 +7,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -19,7 +20,6 @@
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "OpticalTestBase.hh"
 #include "celeritas_test.hh"
 

@@ -12,6 +12,10 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/random/IsotropicDistribution.hh"
+#include "celeritas/LeadBoxTestBase.hh"
+#include "celeritas/OneSteelSphereBase.hh"
+#include "celeritas/TestEm15Base.hh"
+#include "celeritas/TestEm3Base.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -24,10 +28,6 @@
 
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
-#include "../LeadBoxTestBase.hh"
-#include "../OneSteelSphereBase.hh"
-#include "../TestEm15Base.hh"
-#include "../TestEm3Base.hh"
 
 using celeritas::units::MevEnergy;
 

@@ -7,8 +7,8 @@
 #include "corecel/random/distribution/GammaDistribution.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

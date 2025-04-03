@@ -20,7 +20,10 @@
 #include "corecel/sys/Version.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantImportVolumeResult.hh"
+#include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoParamsOutput.hh"
+#include "geocel/GeoTests.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "geocel/vg/VecgeomData.hh"
@@ -29,9 +32,6 @@
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
-#include "../GeantImportVolumeResult.hh"
-#include "../GenericGeoParameterizedTest.hh"
-#include "../GeoTests.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>

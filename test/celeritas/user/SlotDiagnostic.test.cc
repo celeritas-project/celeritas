@@ -11,12 +11,12 @@
 
 #include "corecel/io/Repr.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/TestEm3Base.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "SimpleLoopTestBase.hh"
 #include "celeritas_test.hh"
-#include "../TestEm3Base.hh"
 
 namespace celeritas
 {

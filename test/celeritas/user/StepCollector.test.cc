@@ -12,6 +12,9 @@
 #include "corecel/io/LogContextException.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/SimpleTestBase.hh"
+#include "celeritas/TestEm15Base.hh"
+#include "celeritas/TestEm3Base.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -26,9 +29,6 @@
 #include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
-#include "../SimpleTestBase.hh"
-#include "../TestEm15Base.hh"
-#include "../TestEm3Base.hh"
 
 using celeritas::units::MevEnergy;
 

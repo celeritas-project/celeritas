@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
@@ -23,7 +24,6 @@
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
