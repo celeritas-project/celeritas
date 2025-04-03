@@ -11,8 +11,11 @@
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/UnitTypes.hh"
+#include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
@@ -97,6 +100,13 @@ struct FromId
         auto const& params = *this->params->geometry();
         return params.volumes().at(id);
     }
+
+    //! Transform to a material label
+    nlohmann::json convert_impl(MaterialId id) const
+    {
+        auto const& params = *this->params->material();
+        return params.id_to_label(id);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -121,6 +131,23 @@ void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
     if (!view.is_outside())
     {
         ASSIGN_TRANSFORMED(volume_id, from_id);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// Create JSON from particle view, using host metadata if possible
+void to_json_impl(nlohmann::json& j,
+                  GeoMaterialView const& view,
+                  GeoTrackView const& geo,
+                  FromId from_id)
+{
+    if (!geo.is_outside())
+    {
+        j = from_id(view.material_id(geo.volume_id()));
+    }
+    else
+    {
+        j = nullptr;
     }
 }
 
@@ -175,6 +202,7 @@ void to_json(nlohmann::json& j, CoreTrackView const& view)
     }
 
     to_json_impl(j["geo"], view.geometry(), from_id);
+    to_json_impl(j["mat"], view.geo_material(), view.geometry(), from_id);
     to_json_impl(j["particle"], view.particle(), from_id);
 }
 
