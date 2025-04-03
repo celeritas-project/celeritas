@@ -83,9 +83,9 @@ TEST_F(MultiExceptionHandlerTest, multi_nested)
     DebugErrorDetails deets{DebugErrorType::internal, "false", "test.cc", 2};
     for (auto i = 0; i < 4; ++i)
     {
-    CELER_TRY_HANDLE_CONTEXT(throw DebugError(std::move(deets)),
-                             capture_exception,
-                             MockContextException{});
+        CELER_TRY_HANDLE_CONTEXT(throw DebugError(std::move(deets)),
+                                 capture_exception,
+                                 MockContextException{});
     }
 
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)),
