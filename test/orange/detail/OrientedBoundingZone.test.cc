@@ -11,8 +11,8 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
+#include "geocel/Types.hh"
 #include "orange/detail/TransformRecordInserter.hh"
-#include "celeritas/Types.hh"
 
 #include "celeritas_test.hh"
 
