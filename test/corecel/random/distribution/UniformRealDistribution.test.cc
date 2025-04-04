@@ -52,7 +52,7 @@ TEST_F(UniformRealDistributionTest, bin)
     double max = 5.0;
     UniformRealDistribution<double> sample_uniform{min, max};
 
-    Histogram histogram(5, {min, max});
+    Histogram histogram(5, {0, 5});
     for ([[maybe_unused]] int i : range(num_samples))
     {
         double r = sample_uniform(rng);
