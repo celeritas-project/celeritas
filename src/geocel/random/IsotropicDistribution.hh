@@ -8,11 +8,11 @@
 
 #include <cmath>
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "celeritas/Constants.hh"
 
 namespace celeritas
 {
