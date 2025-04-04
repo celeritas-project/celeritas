@@ -45,6 +45,9 @@ class ScopedLogStorer
     //!@}
 
   public:
+    //! Round floats to this many digits
+    static constexpr int float_digits{4};
+
     // Construct reference to log to temporarily replace
     ScopedLogStorer(Logger* orig, LogLevel min_level);
 
