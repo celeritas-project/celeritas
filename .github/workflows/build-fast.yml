@@ -83,8 +83,8 @@ jobs:
 
       ### BUILD ###
 
-      - name: Cache ccache
-        uses: actions/cache@v4
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
@@ -102,6 +102,12 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Save ccache
+        if: ${{always() && steps.build.outcome == 'success'}}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
 
       ### TEST ###
 
@@ -169,13 +175,13 @@ jobs:
 
       ### BUILD ###
 
-      - name: Cache ccache
-        uses: actions/cache@v4
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-fast-windows-${{github.run_id}}
           restore-keys: |
-            ccache-fast
+            ccache-fast-windows
       - name: Zero ccache stats
         run: |
           ccache -z
@@ -188,6 +194,12 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Save ccache
+        if: ${{always() && steps.build.outcome == 'success'}}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-fast-windows-${{github.run_id}}
 
       ### TEST ###
 
