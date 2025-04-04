@@ -23,7 +23,6 @@
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
-#include "celeritas/Constants.hh"
 
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"

@@ -14,7 +14,6 @@
 #include "corecel/cont/Range.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeTrackView.hh"
-#include "celeritas/Types.hh"
 
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"

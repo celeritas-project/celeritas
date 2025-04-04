@@ -11,8 +11,8 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "geocel/Types.hh"
 #include "orange/detail/BIHData.hh"
-#include "celeritas/Types.hh"
 
 #include "celeritas_test.hh"
 
