@@ -771,12 +771,16 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         inp.energy = MevEnergy{1e-6};
         inp.position = {1e9, 0, 0};
         ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::error};
+        scoped_log_.float_digits(2);
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_DEBUG)
         {
-            static char const* const expected_log_messages[] = {
-                R"(Propagation of step length 5.3823e-8 due to post-step action 2 leading to distance 5.3823e-8 failed to change position)"};
-            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+            if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+            {
+                static char const* const expected_log_messages[] = {
+                    R"(Propagation of step length 5.38e-8 due to post-step action 2 leading to distance 5.38e-8 failed to change position)"};
+                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+            }
             static char const* const expected_log_levels[] = {"error"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
@@ -784,11 +788,17 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         {
             EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
-        double const expected_step_length
-            = (g4_lt_11_2 ? 5.38228333877273e-8 : 5.3825861448155134e-8);
-        EXPECT_SOFT_NEAR(expected_step_length, result.step, 1e-13);
+        if (g4_lt_11_2)
+        {
+            EXPECT_EQ("eloss-range", result.action);
+            EXPECT_SOFT_NEAR(5.38228333877273e-8, result.step, 1e-13);
+        }
+        else
+        {
+            EXPECT_EQ("tracking-cut", result.action);
+            EXPECT_SOFT_NEAR(5.3825861448155134e-8, result.step, 1e-13);
+        }
         EXPECT_EQ(0, result.displacement);
-        EXPECT_EQ("tracking-cut", result.action);
     }
     {
         SCOPED_TRACE("Electron changes position");

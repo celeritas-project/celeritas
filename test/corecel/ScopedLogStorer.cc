@@ -73,7 +73,7 @@ void ScopedLogStorer::operator()(LogProvenance, LogLevel lev, std::string msg)
         return;
     }
 
-    StringSimplifier simplify{float_digits};
+    StringSimplifier simplify{float_digits_};
     messages_.push_back(simplify(std::move(msg)));
     levels_.push_back(to_cstring(lev));
 }

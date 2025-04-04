@@ -1520,10 +1520,8 @@ TEST_F(CmseTest, coarse)
         expected_num_step = {10001, 6462, 3236, 1303};
         expected_num_intercept = {30419, 19551, 16170, 9956};
         expected_num_integration = {80659, 58282, 41914, 26114};
-        static char const* const expected_log_messages[]
-            = {"Moved internally from boundary but safety didn't increase: "
-               "volume 18 from {10.3161,-6.56495,796.923} to "
-               "{10.3162,-6.56497,796.923} (distance: 0.0001)"};
+        static char const* const expected_log_messages[] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.3161, -6.5649, 796.9228} to {10.3162, -6.5650, 796.9229} (distance: 1.0000e-4))"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
             << scoped_log_;
     }
