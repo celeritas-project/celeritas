@@ -15,16 +15,15 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/cont/detail/VariantUtilsImpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/Constant.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
@@ -32,7 +31,9 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/RootExporter.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
@@ -55,6 +56,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -64,6 +66,7 @@
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
+#include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
@@ -136,26 +139,23 @@ auto build_physics_processes(inp::EmPhysics const& em,
     if (em.brems)
     {
         opts.brem_combined = em.brems->combined_model;
-        opts.brems_selection = [&brems = *em.brems] {
-            if (brems.rel && brems.sb)
-                return BremsModelSelection::all;
-            else if (brems.rel)
-                return BremsModelSelection::relativistic;
-            else if (brems.sb)
-                return BremsModelSelection::seltzer_berger;
-            else
-                return BremsModelSelection::none;
-        }();
     }
 
-    // TODO: add callback for user processes
     ProcessBuilder build_process(
-        imported, params.particle, params.material, opts);
+        imported, params.particle, params.material, em.user_processes, opts);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));
-        CELER_ASSERT(result.back());
+        if (!result.back())
+        {
+            // Deliberately ignored process
+            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
+            result.pop_back();
+        }
     }
+
+    CELER_VALIDATE(!result.empty(),
+                   << "no supported physics processes were found");
     return result;
 }
 
@@ -226,8 +226,10 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
                    << "nonpositive capacity.events=" << *c.capacity.events);
     // NOTE: if the following assertion fails, a placeholder "event
     // count" should have been changed elsewhere
-    CELER_EXPECT(c.capacity.events
-                 != std::numeric_limits<decltype(c.capacity.events)>::max());
+    CELER_EXPECT(
+        !c.capacity.events
+        || c.capacity.events
+               != std::numeric_limits<decltype(c.capacity.events)>::max());
     TrackInitParams::Input input;
     input.capacity = ceil_div(c.capacity.initializers, num_streams);
     if (c.capacity.events)
@@ -281,32 +283,22 @@ auto build_along_step(inp::Field const& var_field,
                     next_id, *params.material, *params.particle, msc, eloss);
             },
             [&](inp::UniformField const& field) {
-                UniformFieldParams field_params;
-
-                if (field.units != UnitSystem::si)
-                {
-                    CELER_NOT_IMPLEMENTED("field units in other unit systems");
-                }
-                field_params.field = field.strength;
-                field_params.options = field.driver_options;
-
-                // Interpret input in units of Tesla
-                for (real_type& v : field_params.field)
-                {
-                    v = native_value_from(units::FieldTesla{v});
-                }
-
                 return AlongStepUniformMscAction::from_params(
                     params.action_reg->next_id(),
+                    *params.geometry,
                     *params.material,
                     *params.particle,
-                    field_params,
+                    field,
                     msc,
                     eloss);
             },
             [](inp::RZMapField const&)
                 -> std::shared_ptr<CoreStepActionInterface> {
                 CELER_NOT_IMPLEMENTED("building RZ map field through input");
+            },
+            [](inp::CylMapField const&)
+                -> std::shared_ptr<CoreStepActionInterface> {
+                CELER_NOT_IMPLEMENTED("building Cyl map field through input");
             },
         }),
         var_field);
@@ -341,11 +333,21 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+
+    // Import models
+    optical::ModelImporter importer{
+        imported, oc_inp.material, params.material()};
+    for (auto const& model : imported.optical_models)
+    {
+        if (auto builder = importer(model.model_class))
+        {
+            oc_inp.model_builders.push_back(*builder);
+        }
+    }
+
     CELER_ASSERT(oc_inp);
 
-    // TODO: optical collector really just *builds* the optical setup: it's
-    // ok that it immediately goes out of scope
-    OpticalCollector(params, std::move(oc_inp));
+    return std::make_shared<OpticalCollector>(params, std::move(oc_inp));
 }
 
 //---------------------------------------------------------------------------//
@@ -361,8 +363,7 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
  * \todo Migrate the class "Input"/"Option" code into the class itself, using
  * the \c inp namespace definition.
  */
-std::shared_ptr<CoreParams>
-problem(inp::Problem const& p, ImportData const& imported)
+ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
@@ -431,6 +432,12 @@ problem(inp::Problem const& p, ImportData const& imported)
     // Construct track initialization params
     params.init = build_track_init(p.control, num_streams);
 
+    // Set up streams
+    if (auto& device = celeritas::device())
+    {
+        device.create_streams(num_streams);
+    }
+
     // Number of tracks per stream
     auto tracks = p.control.capacity.tracks;
     CELER_VALIDATE(tracks > 0,
@@ -440,11 +447,22 @@ problem(inp::Problem const& p, ImportData const& imported)
     // Construct core
     auto core_params = std::make_shared<CoreParams>(std::move(params));
 
+    ProblemLoaded result;
+    result.core_params = core_params;
+
     //// DIAGNOSTICS ////
+
+    result.output_file = p.diagnostics.output_file;
 
     if (p.diagnostics.action)
     {
         ActionDiagnostic::make_and_insert(*core_params);
+    }
+
+    if (p.diagnostics.status_checker)
+    {
+        // Add detailed debugging of track states
+        StatusChecker::make_and_insert(*core_params);
     }
 
     if (p.diagnostics.step)
@@ -458,10 +476,64 @@ problem(inp::Problem const& p, ImportData const& imported)
                                         p.diagnostics.slot->basename);
     }
 
+    if (auto& apply = p.diagnostics.add_user_actions)
+    {
+        try
+        {
+            // Apply custom user actions
+            apply(*core_params);
+        }
+        catch (...)
+        {
+            CELER_LOG(critical)
+                << R"(Failed to set up user-specified diagnostics)";
+            throw;
+        }
+    }
+
+    //// EXPORT FILES ////
+
+    {
+        auto& ef = p.diagnostics.export_files;
+
+        if (!ef.physics.empty())
+        {
+            try
+            {
+                RootExporter export_root(ef.physics.c_str());
+                export_root(imported);
+            }
+            catch (RuntimeError const& e)
+            {
+                CELER_LOG(debug) << e.what();
+                CELER_LOG(error)
+                    << "Ignoring ExportFiles.physics: " << e.details().what;
+            }
+        }
+
+        if (!ef.geometry.empty())
+        {
+            if (auto* geo
+                = std::get_if<G4VPhysicalVolume const*>(&p.model.geometry))
+            {
+                save_gdml(*geo, ef.geometry);
+            }
+            else
+            {
+                CELER_LOG(error) << "Ignoring ExportFiles.geometry because "
+                                    "the Geant4 geometry has not been loaded";
+            }
+        }
+
+        // TODO: this is only implemented in accel::SharedParams, not in
+        // celeritas core: should hook this into the to-be-updated
+        // "primary" mechanism
+        result.offload_file = ef.offload;
+    }
+
     //// STEP COLLECTORS ////
 
     StepCollector::VecInterface step_interfaces;
-    std::shared_ptr<RootFileManager> root_manager;
     if (p.diagnostics.mctruth)
     {
         CELER_VALIDATE(num_streams == 1,
@@ -469,15 +541,24 @@ problem(inp::Problem const& p, ImportData const& imported)
                        << num_streams << " requested)");
 
         // Initialize ROOT file
-        root_manager = std::make_shared<RootFileManager>(
+        result.root_manager = std::make_shared<RootFileManager>(
             p.diagnostics.mctruth->output_file.c_str());
 
         // Create root step writer
         step_interfaces.push_back(std::make_shared<RootStepWriter>(
-            root_manager,
+            result.root_manager,
             core_params->particle(),
             StepSelection::all(),
             make_write_filter(p.diagnostics.mctruth->filter)));
+    }
+
+    if (p.scoring.sd)
+    {
+        result.geant_sd = std::make_shared<GeantSd>(core_params->geometry(),
+                                                    *core_params->particle(),
+                                                    *p.scoring.sd,
+                                                    core_params->max_streams());
+        step_interfaces.push_back(result.geant_sd);
     }
 
     if (p.scoring.simple_calo)
@@ -495,25 +576,23 @@ problem(inp::Problem const& p, ImportData const& imported)
 
     if (!step_interfaces.empty())
     {
-        // TODO: step collector really just *builds* the actions: it's ok that
-        // it immediately goes out of scope
-        StepCollector(core_params->geometry(),
-                      std::move(step_interfaces),
-                      core_params->aux_reg().get(),
-                      core_params->action_reg().get());
+        // NOTE: step collector primarily *builds* the actions
+        result.step_collector = StepCollector::make_and_insert(
+            *core_params, std::move(step_interfaces));
     }
 
     if (p.control.optical_capacity)
     {
-        build_optical_offload(
+        result.optical_collector = build_optical_offload(
             *p.control.optical_capacity, *core_params, imported);
     }
 
-    if (root_manager)
+    if (result.root_manager)
     {
-        write_to_root(*core_params->action_reg(), root_manager.get());
+        write_to_root(*core_params->action_reg(), result.root_manager.get());
     }
-    return core_params;
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

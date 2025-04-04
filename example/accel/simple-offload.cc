@@ -107,7 +107,27 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        UserActionIntegration::Instance().BeginOfRunAction(run);
+        auto& uai = UserActionIntegration::Instance();
+        uai.BeginOfRunAction(run);
+
+        // Demonstrate offload mode query
+        using Mode = celeritas::OffloadMode;
+        auto msg = CELER_LOG(info);
+        msg << "Celeritas is ";
+        switch (uai.GetMode())
+        {
+            case Mode::disabled:
+                msg << "disabled: only Geant4 is tracking";
+                break;
+            case Mode::kill_offload:
+                msg << "killing EM tracks";
+                break;
+            case Mode::enabled:
+                msg << "active: EM tracks are sent from Geant4";
+                break;
+            default:
+                msg << "misbehaving, mode is unexpected!";
+        }
     }
     void EndOfRunAction(G4Run const* run) final
     {

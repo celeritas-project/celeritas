@@ -10,6 +10,7 @@
 #include <numeric>
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
@@ -162,6 +163,10 @@ class TrackInitTest : public TrackInitTestBase
     //! Create mutable state data
     void build_states(size_type num_tracks)
     {
+        if constexpr (M == MemSpace::device)
+        {
+            device().create_streams(1);
+        }
         // Allocate state data
         state_ = std::make_unique<CoreState<M>>(
             *this->core(), StreamId{0}, num_tracks);

@@ -44,6 +44,9 @@ class OrientedBoundingZoneTest : public ::celeritas::test::Test
 
 TEST_F(OrientedBoundingZoneTest, basic)
 {
+    // Set up OBZ such that the bboxes are:
+    // inner = BBox({9, 19, 29}, {11, 21, 31})
+    // outer = BBox({8.1, 18.1, 30.1}, {12.1, 22.1, 32.1})
     FastReal3 inner_hw = {1., 1., 1.};
     FastReal3 outer_hw = {2., 2., 2.};
 
@@ -72,13 +75,15 @@ TEST_F(OrientedBoundingZoneTest, basic)
 
     // Test safety distance functions
     EXPECT_SOFT_NEAR(
-        1.53, obz.calc_safety_inside({10.12, 20.09, 30.57}), 1.e-5);
-    EXPECT_SOFT_NEAR(1.2, obz.calc_safety_outside({10.1, 20.1, 32.2}), 1.e-5);
-    EXPECT_SOFT_NEAR(std::hypot(0.2, 1.2),
-                     obz.calc_safety_outside({10.1, 18.8, 32.2}),
-                     1.e-5);
-    EXPECT_SOFT_NEAR(std::hypot(0.3, 0.2, 1.2),
-                     obz.calc_safety_outside({11.3, 18.8, 32.2}),
+        0.43, obz.calc_safety_inside({10.12, 20.09, 30.57}), 1.e-5);
+
+    EXPECT_SOFT_NEAR(0.1, obz.calc_safety_outside({10.1, 20.1, 32.2}), 1.e-5);
+
+    EXPECT_SOFT_NEAR(
+        std::hypot(1, 0.2), obz.calc_safety_outside({10.1, 17.1, 32.3}), 1.e-5);
+
+    EXPECT_SOFT_NEAR(std::hypot(0.2, 1, 0.2),
+                     obz.calc_safety_outside({12.3, 17.1, 32.3}),
                      1.e-5);
 
     // Check that we get zeros for points between the inner and outer boxes

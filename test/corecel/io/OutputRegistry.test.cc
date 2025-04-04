@@ -13,7 +13,6 @@
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/sys/TypeDemangler.hh"
 
 #include "celeritas_test.hh"
 
@@ -129,7 +128,7 @@ TEST_F(OutputRegistryTest, build_output)
     OutputRegistry reg;
     reg.insert(std::make_shared<celeritas::BuildOutput>());
     std::string result = this->to_string(reg);
-    EXPECT_TRUE(result.find("CELERITAS_BUILD_TYPE") != std::string::npos)
+    EXPECT_TRUE(result.find(R"("build_type":)") != std::string::npos)
         << "actual output: " << result;
 }
 

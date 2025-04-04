@@ -20,6 +20,7 @@
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
+#include "PhysicsParams.hh"
 #include "TrackInitParams.hh"
 #include "action/AlongStepAction.hh"
 #include "action/BoundaryAction.hh"
@@ -50,34 +51,36 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.scalars = scalars;
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
-    // TODO: ref.physics = get_ref<M>(*p.physics);
+    ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
     ref.init = get_ref<M>(*p.init);
 
     // // Map detector labels to volume IDs
     std::vector<Label> const& labels = p.detector_labels;
     std::vector<std::reference_wrapper<Label const>> missing;
-    std::vector<VolumeId> detector_ids;
-    detector_ids.resize(labels.size());
+    std::vector<VolumeId> volume_ids;
+    volume_ids.resize(labels.size());
 
     auto geo = p.geometry;
     GeoVolumeFinder find_volume(*geo);
+    std::map<VolumeId, DetectorId> detector_ids;
     for (auto i : range(labels.size()))
     {
-        detector_ids[i] = find_volume(labels[i]);
-        if (!detector_ids[i])
+        volume_ids[i] = find_volume(labels[i]);
+        detector_ids.emplace(std::make_pair(volume_ids[i], DetectorId{i}));
+        if (!detector_ids[volume_ids[i]])
         {
             missing.emplace_back(labels[i]);
         }
     }
 
     CELER_VALIDATE(missing.empty(),
-                   << "failed to find " << celeritas_core_geo
+                   << "failed to find " << cmake::core_geo
                    << " volume(s) for labels '"
                    << join(missing.begin(), missing.end(), "', '"));
 
-    auto temp_coll = CollectionBuilder{ref.detector}.insert_back(
-        detector_ids.begin(), detector_ids.end());
+    // CollectionBuilder{ref.detector}.insert_back(detector_ids.begin(),
+    //                                             detector_ids.end());
 
     CELER_ENSURE(ref);
     return ref;
@@ -143,7 +146,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
                    << "optical core input is missing " << #MEMBER << " data")
     CP_VALIDATE_INPUT(geometry);
     CP_VALIDATE_INPUT(material);
-    // TODO: CP_VALIDATE_INPUT(physics);
+    CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
@@ -177,7 +180,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     }
 
     CELER_VALIDATE(missing.empty(),
-                   << "failed to find " << celeritas_core_geo
+                   << "failed to find " << cmake::core_geo
                    << " volume(s) for labels '"
                    << join(missing.begin(), missing.end(), "', '"));
 

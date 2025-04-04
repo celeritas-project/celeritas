@@ -132,7 +132,7 @@ TEST_F(SimpleCmsTest, no_change)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
             this->get_diagnostics(man));
     }
 }
@@ -165,7 +165,7 @@ TEST_F(SimpleCmsTest, delete_one)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[3]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[3]})json",
             this->get_diagnostics(man));
     }
 }
@@ -186,23 +186,21 @@ TEST_F(SimpleCmsTest, add_duplicate)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         static char const* const expected_log_messages[] = {
-            "Mapped sensitive detector \"em_calorimeter\" on logical volume "
-            "\"em_calorimeter\"@0x0 (ID=2) to VecGeom volume "
-            "\"em_calorimeter\" (ID=2)",
-            "Mapped sensitive detector \"had_calorimeter\" on logical volume "
-            "\"had_calorimeter\"@0x0 (ID=3) to VecGeom volume "
-            "\"had_calorimeter\" (ID=3)",
-            "Ignored duplicate logical volume \"em_calorimeter\"@0x0 (ID=2)"};
+            R"(Mapped sensitive detector "em_calorimeter" on logical volume "em_calorimeter"@0x0 (ID=2) to VecGeom volume "em_calorimeter" (ID=2))",
+            R"(Mapped sensitive detector "had_calorimeter" on logical volume "had_calorimeter"@0x0 (ID=3) to VecGeom volume "had_calorimeter" (ID=3))",
+            "Ignored duplicate logical volume \"em_calorimeter\"@0x0 (ID=2)",
+            "Setting up thread-local hit processor for 2 sensitive detectors",
+        };
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[]
-            = {"debug", "debug", "debug"};
+            = {"debug", "debug", "debug", "debug"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
             this->get_diagnostics(man));
     }
 }
@@ -227,7 +225,7 @@ TEST_F(SimpleCmsTest, add_one)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":true,"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3,4]})json",
+            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3,4]})json",
             this->get_diagnostics(man));
     }
 }

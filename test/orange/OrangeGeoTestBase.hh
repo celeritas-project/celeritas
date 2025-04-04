@@ -68,9 +68,6 @@ class OrangeGeoTestBase : public OrangeTestBase
     // Override base class to *not* try geometry during SetUp
     void SetUp() override;
 
-    // Load `test/geocel/data/{filename}` GDML input using Geant4
-    void build_gdml_geometry(std::string const& filename);
-
     // Load `test/orange/data/{filename}` JSON input
     void build_geometry(std::string const& filename);
 
@@ -124,8 +121,8 @@ class OrangeGeoTestBase : public OrangeTestBase
 
     //// GenericGeoTestBase ////
 
-    // Return the geometry that was created
-    SPConstGeo build_geometry() final;
+    // Return the geometry that was created (via gdml or input)
+    SPConstGeo build_geometry() override;
 
   private:
     //// TYPES ////

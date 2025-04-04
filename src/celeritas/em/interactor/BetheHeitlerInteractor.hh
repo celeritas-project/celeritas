@@ -40,13 +40,10 @@ namespace celeritas
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4PairProductionRelModel, as documented in sections 6.5 (gamma conversion)
- * and 10.2.2 (LPM effect) of the Geant4 Physics Reference Manual (release
- * 10.7)
+ * and 10.2.2 (LPM effect) of \cite{g4prm} (release 10.7)
  *
- * For additional context on the derivation see:
- *     Butcher, J.C., and H. Messel. “Electron Number Distribution in
- *     Electron-Photon Showers in Air and Aluminium Absorbers.” Nuclear Physics
- *     20 (October 1960): 15–128. https://doi.org/10.1016/0029-5582(60)90162-0.
+ * For additional context on the derivation see \citet{butcher-electron-1960,
+ * https://doi.org/10.1016/0029-5582(60)90162-0} .
  */
 class BetheHeitlerInteractor
 {

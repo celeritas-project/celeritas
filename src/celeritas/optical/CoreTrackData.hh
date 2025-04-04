@@ -15,6 +15,7 @@
 #include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"
 #include "ParticleData.hh"
+#include "PhysicsData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
@@ -23,36 +24,6 @@ namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-// XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
-// IMPLEMENT ME!
-
-template<Ownership W, MemSpace M>
-struct PhysicsParamsData
-{
-    explicit CELER_FUNCTION operator bool() const { return true; }
-};
-template<Ownership W, MemSpace M>
-struct PhysicsStateData
-{
-    explicit CELER_FUNCTION operator bool() const { return true; }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    PhysicsStateData& operator=(PhysicsStateData<W2, M2>&)
-    {
-        return *this;
-    }
-};
-
-template<MemSpace M>
-inline void resize(PhysicsStateData<Ownership::value, M>*,
-                   HostCRef<PhysicsParamsData> const&,
-                   size_type)
-{
-}
-
-// XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
 //---------------------------------------------------------------------------//
 /*!
  * Memspace-independent core variables.

@@ -426,6 +426,16 @@ TEST_F(EllipsoidTest, errors)
     EXPECT_THROW(Ellipsoid({1, 0, 2}), RuntimeError);
 }
 
+TEST_F(EllipsoidTest, encloses)
+{
+    Ellipsoid ellipsoid({1, 2, 3});
+    EXPECT_TRUE(ellipsoid.encloses(Ellipsoid({1, 2, 3})));
+    EXPECT_TRUE(ellipsoid.encloses(Ellipsoid({0.5, 1.5, 2.5})));
+    EXPECT_FALSE(ellipsoid.encloses(Ellipsoid({0.5, 1.5, 3.5})));
+    EXPECT_FALSE(ellipsoid.encloses(Ellipsoid({0.5, 2.5, 2.5})));
+    EXPECT_FALSE(ellipsoid.encloses(Ellipsoid({5.5, 1.5, 2.5})));
+}
+
 TEST_F(EllipsoidTest, standard)
 {
     auto result = this->test(Ellipsoid({3, 2, 1}));
@@ -444,6 +454,113 @@ TEST_F(EllipsoidTest, standard)
         result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-3, -2, -1}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{3, 2, 1}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+// ELLIPTICAL CYLINDER
+//---------------------------------------------------------------------------//
+using EllipticalCylinderTest = IntersectRegionTest;
+
+TEST_F(EllipticalCylinderTest, errors)
+{
+    EXPECT_THROW(EllipticalCylinder({1, -1}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCylinder({1, 2}, -2), RuntimeError);
+}
+
+TEST_F(EllipticalCylinderTest, encloses)
+{
+    EllipticalCylinder ec({1, 2}, 3);
+    EXPECT_TRUE(ec.encloses(EllipticalCylinder({1, 2}, 3)));
+    EXPECT_FALSE(ec.encloses(EllipticalCylinder({1.1, 2.1}, 3.1)));
+    EXPECT_FALSE(ec.encloses(EllipticalCylinder({1.1, 2}, 3)));
+    EXPECT_FALSE(ec.encloses(EllipticalCylinder({1, 2.1}, 3)));
+    EXPECT_FALSE(ec.encloses(EllipticalCylinder({1, 2}, 3.1)));
+}
+
+TEST_F(EllipticalCylinderTest, standard)
+{
+    auto result = this->test(EllipticalCylinder({3, 2}, 0.5));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-0.5", "Plane: z=0.5", "SQuadric: {4,9,0} {0,0,0} -36"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-2.1213203435596424, -1.414213562373095, -0.5}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2.1213203435596424, 1.414213562373095, 0.5}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-3, -2, -0.5}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{3, 2, 0.5}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+// ELLIPTICAL CONE
+//---------------------------------------------------------------------------//
+using EllipticalConeTest = IntersectRegionTest;
+
+TEST_F(EllipticalConeTest, errors)
+{
+    // Negatives
+    EXPECT_THROW(EllipticalCone({-1, 5}, {1, 3}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({1, -5}, {1, 3}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({1, 3}, {-1, 5}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({1, 3}, {1, -5}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({1, 3}, {1, 5}, -2), RuntimeError);
+
+    // Partial zeros
+    EXPECT_THROW(EllipticalCone({0, 5}, {1, 3}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({1, 0}, {1, 3}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({3, 1}, {0, 3}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({3, 1}, {1, 0}, 2), RuntimeError);
+
+    // Mismatched aspect ratios
+    EXPECT_THROW(EllipticalCone({1, 3}, {1, 5}, 2), RuntimeError);
+    EXPECT_THROW(EllipticalCone({1, 3}, {5, 1}, 2), RuntimeError);
+
+    // Elliptical cylinder
+    EXPECT_THROW(EllipticalCone({1, 3}, {1, 3}, 2), RuntimeError);
+}
+
+TEST_F(EllipticalConeTest, encloses)
+{
+    EllipticalCone ec({1, 2}, {3, 6}, 5);
+    EXPECT_TRUE(ec.encloses(EllipticalCone({1, 2}, {3, 6}, 5)));
+    EXPECT_TRUE(ec.encloses(EllipticalCone({0.5, 1.5}, {1, 3}, 5)));
+    EXPECT_FALSE(ec.encloses(EllipticalCone({1, 2}, {3.1, 6.2}, 5)));
+    EXPECT_FALSE(ec.encloses(EllipticalCone({0.8, 2}, {3, 7.5}, 5)));
+    EXPECT_FALSE(ec.encloses(EllipticalCone({1, 2}, {3, 6}, 5.1)));
+}
+
+TEST_F(EllipticalConeTest, standard)
+{
+    auto result = this->test(EllipticalCone({1, 3}, {2, 6}, 3));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3", "Plane: z=3", "SQuadric: {36,4,-1} {0,0,-18} -81"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -6, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 6, 3}), result.exterior.upper());
+}
+
+TEST_F(EllipticalConeTest, vertex)
+{
+    auto result = this->test(EllipticalCone({0, 0}, {2, 4}, 4));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-4", "Plane: z=4", "SQuadric: {16,4,-1} {0,0,-8} -16"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -4, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 4, 4}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
@@ -1200,6 +1317,33 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+//---------------------------------------------------------------------------//
+// INFSLAB
+//---------------------------------------------------------------------------//
+using InfSlabTest = IntersectRegionTest;
+
+TEST_F(InfSlabTest, errors)
+{
+    EXPECT_THROW(InfSlab(1.0, 1.0), RuntimeError);
+    EXPECT_THROW(InfSlab(2.0, 1.0), RuntimeError);
+}
+
+TEST_F(InfSlabTest, basic)
+{
+    auto inf = std::numeric_limits<real_type>::infinity();
+    auto result = this->test(InfSlab(-5.5, 6.6));
+    static char const expected_node[] = "all(+0, -1)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-5.5", "Plane: z=6.6"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

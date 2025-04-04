@@ -62,8 +62,7 @@ class MaterialView
     inline CELER_FUNCTION ElementComponentId::size_type num_elements() const;
 
     // Element properties for a material-specific index
-    inline CELER_FUNCTION ElementView
-    make_element_view(ElementComponentId id) const;
+    inline CELER_FUNCTION ElementView element_record(ElementComponentId id) const;
 
     // ID of a component element in this material
     inline CELER_FUNCTION ElementId element_id(ElementComponentId id) const;
@@ -184,8 +183,7 @@ CELER_FUNCTION ElementComponentId::size_type MaterialView::num_elements() const
 /*!
  * Get element properties from a material-specific index.
  */
-CELER_FUNCTION ElementView
-MaterialView::make_element_view(ElementComponentId id) const
+CELER_FUNCTION ElementView MaterialView::element_record(ElementComponentId id) const
 {
     CELER_EXPECT(id < this->material_def().elements.size());
     return ElementView(params_, this->element_id(id));

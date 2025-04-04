@@ -37,17 +37,16 @@ CELER_FUNCTION Interaction
 CombinedBremExecutor::operator()(CoreTrackView const& track)
 {
     // Select material track view
-    auto material = track.make_material_view().make_material_view();
+    auto material = track.material().material_record();
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material.num_elements() == 1);
     ElementComponentId const selected_element{0};
 
-    auto particle = track.make_particle_view();
-    auto const& dir = track.make_geo_view().dir();
-    auto allocate_secondaries
-        = track.make_physics_step_view().make_secondary_allocator();
-    auto cutoff = track.make_cutoff_view();
+    auto particle = track.particle();
+    auto const& dir = track.geometry().dir();
+    auto allocate_secondaries = track.physics_step().make_secondary_allocator();
+    auto cutoff = track.cutoff();
 
     CombinedBremInteractor interact(params,
                                     particle,
@@ -57,7 +56,7 @@ CombinedBremExecutor::operator()(CoreTrackView const& track)
                                     material,
                                     selected_element);
 
-    auto rng = track.make_rng_engine();
+    auto rng = track.rng();
     return interact(rng);
 }
 

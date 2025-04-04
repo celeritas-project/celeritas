@@ -77,7 +77,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(state.action);
 
     auto tsid = track.track_slot_id();
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
 
     if (state.order > StepActionOrder::start
         && state.order < StepActionOrder::end)
@@ -126,7 +126,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         CELER_FAIL_IF(!sim.along_step_action(), "missing along-step action");
 
         // All 'alive' tracks should be inside the geometry
-        CELER_FAIL_IF(track.make_geo_view().is_outside(),
+        CELER_FAIL_IF(track.geometry().is_outside(),
                       "track is outside the geometry but still 'alive'");
     }
 

@@ -54,6 +54,9 @@ class CoreStateInterface
     //! Access auxiliary state data
     virtual AuxStateVec const& aux() const = 0;
 
+    //! Access mutable auxiliary state data
+    virtual AuxStateVec& aux() = 0;
+
   protected:
     CoreStateInterface() = default;
     CELER_DEFAULT_COPY_MOVE(CoreStateInterface);
@@ -66,8 +69,6 @@ class CoreStateInterface
  * When the state lives on the device, we maintain a separate copy of the
  * device "ref" in device memory: otherwise we'd have to copy the entire state
  * in launch arguments and access it through constant memory.
- *
- * \todo Encapsulate all the action management accessors in a helper class.
  */
 template<MemSpace M>
 class CoreState final : public CoreStateInterface
@@ -81,6 +82,9 @@ class CoreState final : public CoreStateInterface
     using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
     //!@}
+
+    //! Memory space
+    static constexpr MemSpace memspace = M;
 
   public:
     // Construct from CoreParams
@@ -137,7 +141,7 @@ class CoreState final : public CoreStateInterface
     AuxStateVec const& aux() const final { return aux_state_; }
 
     //! Access auxiliary state data (mutable)
-    AuxStateVec& aux() { return aux_state_; }
+    AuxStateVec& aux() final { return aux_state_; }
 
     // Convenience function to access auxiliary "collection group" data
     template<template<Ownership, MemSpace> class S>

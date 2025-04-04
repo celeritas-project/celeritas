@@ -26,22 +26,33 @@ namespace celeritas
  * Calculate the Landau-Pomeranchuk-Migdal (LPM) suppression functions.
  *
  * The LPM effect is the suppression of low-energy photon production due to
- * electron multiple scattering. At high energies and in high density
- * materials, the cross sections for pair production and bremsstrahlung are
- * reduced. The differential cross sections accounting for the LPM effect are
- * expressed in terms of the LPM suppression functions \f$ xi(s) \f$, \f$ G(s)
- * \f$, and \f$ \phi(s) \f$.
+ * electron multiple scattering \cite{landau-limits-1953},
+ * \citep{migdal-brems-1956, https://doi.org/10.1103/PhysRev.103.1811} . At
+ * high energies and in high density materials, the cross sections for pair
+ * production and bremsstrahlung are reduced. The differential cross sections
+ * accounting for the LPM effect are expressed in terms of the LPM suppression
+ * functions
+ * \f$ \xi(s) \f$, \f$ G(s) \f$, and \f$ \phi(s) \f$.
  *
- * Here \f$ \epsilon \f$ is the ratio of the  electron (or positron) energy to
- * the photon energy, \f$ \epsilon = E / k \f$.
+ * Here \f$ \epsilon \f$ is the ratio of the electron (or positron) energy to
+ * the photon energy, \f$ \epsilon = E / k \f$. As \f$ \epsilon \to 0 \f$, the
+ * suppression factors all approach unity.
  *
- * For small energies, the suppression factors all approach unity.
+ * The suppression variable \f$ s' \f$ is
+ * \f[ s' = \sqrt{\frac{E_\textrm{LPM} k}{8 E \abs{E - k}}} \quad , \f]
+ * where \f$ k < E \f$ for bremsstrahlung and \f$ E < k \f$ for pair
+ * production, and
+ * \f[ E_\textrm{LPM} \sim 61.5 L \frac{\mathrm{TeV}}{\mathrm{cm}} \f]
+ * is approximately the energy (using the radiation length \em L ) above which
+ * the LPM effect is significant.
  *
- * See section 10.2.2 of the Geant4 Physics Reference Manual and
- * ComputeLPMfunctions and GetLPMFunctions in G4eBremsstrahlungRelModel and
- * G4PairProductionRelModel. Also see T. Stanev, Ch. Vankov, Development of
- * ultrahigh-energy electromagnetic cascades in water and lead including the
- * Landau-Pomeranchuk-Migdal effect, Phys. Rev. D, 25 (1982), p. 1291.
+ * Calculations of  \f$ \xi(s') \f$ and \f$ s = \frac{s'}{\sqrt{\xi(s')}} \f$
+ * are functional approximations from Eq. 21 in \citet{stanev-lpm-1982,
+ * https://doi.org/10.1103/PhysRevD.25.1291} .
+ *
+ * \note See also section 10.2.2 of \cite{g4prm} which describes  \c
+ * G4eBremsstrahlungRelModel::ComputeLPMfunctions and \c
+ * G4PairProductionRelModel::GetLPMFunctions .
  */
 class LPMCalculator
 {
@@ -111,17 +122,13 @@ LPMCalculator::LPMCalculator(MaterialView const& material,
  */
 CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
 {
-    // Suppression variable \f$ s' \f$. For bremsstrahlung \f$ s' =
-    // \sqrt{\frac{E_\textrm{LPM} k}{8 E (E - k)}} \f$, and for pair production
-    // \f$ s' = \sqrt{\frac{E_\textrm{LPM} k}{8 E (k - E)}} \f$, where \f$ k \$
-    // is the photon energy and \f$ E \f$ is the electon (or positron) energy
     real_type const s_prime = std::sqrt(
         lpm_energy_ / (8 * epsilon * gamma_energy_ * std::fabs(epsilon - 1)));
 
+    // Stanev Eq 17, constant revised down from 191
     real_type const s1 = ipow<2>(element_.cbrt_z() / real_type(184.15));
 
-    // Calculate \f$ \xi(s') \f$ and \f$ s = \frac{s'}{\sqrt{\xi(s')}} \f$ (Eq.
-    // 21 in Stanev)
+    // Stanev Eq 21
     real_type xi = 2;
     if (s_prime > 1)
     {

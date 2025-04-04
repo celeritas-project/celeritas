@@ -61,6 +61,14 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
     // Save particle properties
     host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();
 
+    // Set the model low energy limit
+    host_ref.low_energy_limit
+        = imported_.low_energy_limit(host_ref.ids.electron);
+    CELER_VALIDATE(host_ref.low_energy_limit
+                       == imported_.low_energy_limit(host_ref.ids.positron),
+                   << "Relativistic bremsstrahlung energy grid bounds are "
+                      "inconsistent across particles");
+
     // Set the LPM flag (true by default)
     host_ref.enable_lpm = enable_lpm;
 
@@ -78,15 +86,15 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
  */
 auto RelativisticBremModel::applicability() const -> SetApplicability
 {
-    Applicability electron_brem;
-    electron_brem.particle = this->host_ref().ids.electron;
-    electron_brem.lower = detail::seltzer_berger_upper_limit();
-    electron_brem.upper = detail::high_energy_limit();
+    Applicability electron;
+    electron.particle = this->host_ref().ids.electron;
+    electron.lower = this->host_ref().low_energy_limit;
+    electron.upper = detail::high_energy_limit();
 
-    Applicability positron_brem = electron_brem;
-    positron_brem.particle = this->host_ref().ids.positron;
+    Applicability positron = electron;
+    positron.particle = this->host_ref().ids.positron;
 
-    return {electron_brem, positron_brem};
+    return {electron, positron};
 }
 
 //---------------------------------------------------------------------------//

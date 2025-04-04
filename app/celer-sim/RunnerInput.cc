@@ -147,6 +147,7 @@ inp::Problem load_problem(RunnerInput const& ri)
         }
         d.counters.step = ri.write_track_counts;
         d.counters.event = ri.transporter_result;
+        d.status_checker = ri.status_checker;
     }
 
     // Control
@@ -176,7 +177,6 @@ inp::Problem load_problem(RunnerInput const& ri)
         {
             p.control.device_debug = [&ri] {
                 inp::DeviceDebug dd;
-                dd.default_stream = ri.default_stream;
                 dd.sync_stream = ri.action_times;
                 return dd;
             }();
@@ -281,7 +281,6 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         si.geant_setup = ri.physics_options;
         si.physics_import = inp::GeantImport{};
     }
-    si.geant_data = inp::GeantDataImport{};
     si.events = load_events(ri);
 
     // Load actual number of events, needed to contruct core state before

@@ -15,8 +15,6 @@
 #include "accel/GeantStepDiagnostic.hh"
 #include "accel/SharedParams.hh"
 
-#include "TimerOutput.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -44,7 +42,6 @@ class GeantDiagnostics
     using SPMultiExceptionHandler = std::shared_ptr<MultiExceptionHandler>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPStepDiagnostic = std::shared_ptr<GeantStepDiagnostic>;
-    using SPTimerOutput = std::shared_ptr<TimerOutput>;
     using VecOutputInterface = std::vector<SPConstOutput>;
     //!@}
 
@@ -67,21 +64,16 @@ class GeantDiagnostics
     // Access the step diagnostic
     inline SPStepDiagnostic const& step_diagnostic() const;
 
-    // Access the timer output
-    inline SPTimerOutput const& timer() const;
-
     // Access the exception handler
     inline SPMultiExceptionHandler const& multi_exception_handler() const;
 
     //! Whether this instance is initialized
-    explicit operator bool() const { return static_cast<bool>(timer_output_); }
+    explicit operator bool() const { return static_cast<bool>(meh_); }
 
   private:
     //// DATA ////
 
-    SPOutputRegistry output_reg_;
     SPStepDiagnostic step_diagnostic_;
-    SPTimerOutput timer_output_;
     SPMultiExceptionHandler meh_;
 
     static VecOutputInterface& queued_output();
@@ -104,17 +96,6 @@ auto GeantDiagnostics::step_diagnostic() const -> SPStepDiagnostic const&
 {
     CELER_EXPECT(*this);
     return step_diagnostic_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the timer output.
- */
-auto GeantDiagnostics::timer() const -> SPTimerOutput const&
-{
-    CELER_EXPECT(*this);
-    CELER_EXPECT(timer_output_);
-    return timer_output_;
 }
 
 //---------------------------------------------------------------------------//

@@ -15,15 +15,9 @@ The ``celer-sim`` application is the primary means of running EM test problems
 for independent validation and performance analysis. See
 :ref:`example_celer_sim` for an example.
 
-Usage::
+Usage:
 
-   usage: celer-sim {input}.json
-          celer-sim [--help|-h]
-          celer-sim --version
-          celer-sim --config
-          celer-sim --device
-          celer-sim --dump-default
-
+.. literalinclude:: _usage/celer-sim.txt
 
 - :file:`{input}.json` is the path to the input file, or ``-`` to read the
   JSON from ``stdin``.
@@ -67,12 +61,9 @@ sensitive detectors marked via an ``auxiliary`` annotation. The input particles
 must be specified with a HepMC3-compatible file or with a JSON-specified
 "particle gun." See :ref:`example_celer_g4` for an example.
 
-Usage::
+Usage:
 
-  celer-g4 {input}.json
-           {commands}.mac
-           --interactive
-           --dump-default
+.. literalinclude:: _usage/celer-g4.txt
 
 Input
 ^^^^^

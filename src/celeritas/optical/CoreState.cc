@@ -54,8 +54,7 @@ CoreState<M>::CoreState(CoreParams const& params,
         ptr_ = make_observer(&this->ref());
     }
 
-    CELER_LOG_LOCAL(status) << "Celeritas optical state initialization "
-                               "complete";
+    CELER_LOG(status) << "Initialized Celeritas optical state";
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
 }

@@ -12,7 +12,7 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/sys/Device.hh"
+#include "corecel/io/Logger.hh"
 
 #include "SetupOptions.hh"
 
@@ -199,33 +199,47 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "maxFieldSubsteps",
             "Limit on substeps in the field propagator");
 
+    add_cmd(&options->slot_diagnostic_prefix,
+            "slotDiagnosticPrefix",
+            "Filename base for slot diagnostics");
+
     directories_.emplace_back(new CelerDirectory(
         "/celer/detector/", "Celeritas sensitive detector setup options"));
     add_cmd(&options->sd.enabled,
             "enabled",
             "Call back to Geant4 sensitive detectors");
 
-    if (Device::num_devices() > 0)
-    {
-        directories_.emplace_back(new CelerDirectory(
-            "/celer/cuda/", "Celeritas CUDA setup options"));
-        add_cmd(&options->cuda_stack_size,
-                "stackSize",
-                "Set the CUDA per-thread stack size for VecGeom");
-        add_cmd(&options->cuda_heap_size,
-                "heapSize",
-                "Set the CUDA per-thread heap size for VecGeom");
-        add_cmd(&options->action_times,
-                "actionTimes",
-                "Add timers around every action (may reduce performance)");
-        add_cmd(&options->default_stream,
-                "defaultStream",
-                "Launch all kernels on the default stream");
-    }
+    // TODO: add conditional on (CELERITAS_USE_CUDA)
+    directories_.emplace_back(new CelerDirectory(
+        "/celer/cuda/",
+        R"(Celeritas CUDA setup options (DEPRECATED: moved to /celer/device)"));
+    add_cmd(&options->cuda_stack_size,
+            "stackSize",
+            "Set the CUDA per-thread stack size for VecGeom");
+    add_cmd(&options->cuda_heap_size,
+            "heapSize",
+            "Set the CUDA per-thread heap size for VecGeom");
+    add_cmd(&options->action_times,
+            "actionTimes",
+            "Add timers around every action (may reduce performance)");
+    add_cmd(&options->default_stream,
+            "defaultStream",
+            "Launch all kernels on the default stream (REMOVED)");
 
-    add_cmd(&options->slot_diagnostic_prefix,
-            "slotDiagnosticPrefix",
-            "Filename base for slot diagnostics");
+    // TODO: add conditional on (CELERITAS_USE_CUDA || CELERITAS_USE_HIP)
+    directories_.emplace_back(
+        new CelerDirectory("/celer/device/", "Celeritas device setup"));
+    // TODO: add conditional on (CELERITAS_CORE_GEO ==
+    // CELERITAS_CORE_GEO_VECGEOM)
+    add_cmd(&options->cuda_stack_size,
+            "stackSize",
+            "Set the CUDA per-thread stack size for VecGeom");
+    add_cmd(&options->cuda_heap_size,
+            "heapSize",
+            "Set the CUDA per-thread heap size for VecGeom");
+    add_cmd(&options->action_times,
+            "actionTimes",
+            "Add timers around every action (may reduce performance)");
 }
 
 //---------------------------------------------------------------------------//
@@ -240,6 +254,8 @@ void SetupOptionsMessenger::SetNewValue(G4UIcommand* cmd, G4String val)
     CELER_EXPECT(celer_cmd);
 
     celer_cmd->apply(val);
+    CELER_LOG(debug) << "Set " << cmd->GetCommandPath() << " to "
+                     << celer_cmd->get();
 }
 
 //---------------------------------------------------------------------------//

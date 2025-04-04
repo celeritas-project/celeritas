@@ -16,9 +16,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/TrackInitParams.hh"
 #include "celeritas/optical/action/ActionGroups.hh"
-#include "celeritas/optical/action/BoundaryAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OffloadParams.hh"
@@ -100,6 +100,14 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         inp.action_reg = std::make_shared<ActionRegistry>();
         inp.max_streams = core.max_streams();
         inp.detector_labels = input.detector_labels;
+        {
+            optical::PhysicsParams::Input phys_input;
+            phys_input.model_builders = std::move(input.model_builders);
+            phys_input.materials = inp.material;
+            phys_input.action_registry = inp.action_reg.get();
+            inp.physics = std::make_shared<optical::PhysicsParams>(
+                std::move(phys_input));
+        }
         CELER_ENSURE(inp);
         return inp;
     }());
@@ -134,8 +142,9 @@ std::string_view OpticalLaunchAction::description() const
 /*!
  * Build state data for a stream.
  */
-auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) const
-    -> UPState
+auto OpticalLaunchAction::create_state(MemSpace m,
+                                       StreamId sid,
+                                       size_type) const -> UPState
 {
     if (m == MemSpace::host)
     {
@@ -214,20 +223,14 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         }
     }
 
-    if (num_step_iters > 0)
-    {
-        CELER_LOG_LOCAL(debug)
-            << "Generated " << counters.num_generated
-            << " optical photons which completed " << num_steps
-            << " total steps over " << num_step_iters << " iterations";
-    }
-    else
-    {
-        CELER_LOG_LOCAL(debug) << "No optical steps taken";
-    }
+    // Update statistics
+    offload_state.accum.steps += num_steps;
+    offload_state.accum.step_iters += num_step_iters;
+    ++offload_state.accum.flushes;
 
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here
+    // TODO: is this correct if we abort the tracking loop early?
     counters.num_generated = 0;
 }
 

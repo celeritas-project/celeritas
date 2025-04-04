@@ -11,6 +11,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
@@ -20,7 +21,7 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
-#include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/field/UniformFieldParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -33,6 +34,15 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+auto const geant4_version = celeritas::Version::from_string(
+    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -51,12 +61,12 @@ class MockAlongStepFieldTest : public MockAlongStepTest
     SPConstAction build_along_step() override
     {
         // Note that default track direction is {0,0,1}
-        UniformFieldParams field_params;
-        field_params.field = {static_cast<real_type>(4 * units::tesla), 0, 0};
+        UniformFieldParams::Input field_inp;
+        field_inp.strength = {4, 0, 0};
 
         auto& action_reg = *this->action_reg();
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr, nullptr);
+            action_reg.next_id(), *this->geometry(), field_inp, nullptr, nullptr);
         action_reg.insert(result);
         return result;
     }
@@ -97,15 +107,54 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
     SPConstAction build_along_step() override
     {
         auto& action_reg = *this->action_reg();
-        UniformFieldParams field_params;
-        field_params.field = {0, 0, static_cast<real_type>(1 * units::tesla)};
+        UniformFieldParams::Input field_inp;
+        field_inp.strength = {0, 0, 1};
 
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr, msc);
+            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
+        action_reg.insert(result);
+        return result;
+    }
+
+    size_type bpd_{14};
+    bool msc_{true};
+    bool fluct_{false};
+};
+
+#define SimpleCmsFieldVolAlongStepTest \
+    TEST_IF_CELERITAS_GEANT(SimpleCmsFieldVolAlongStepTest)
+class SimpleCmsFieldVolAlongStepTest : public SimpleCmsAlongStepTest
+{
+  public:
+    SPConstAction build_along_step() override
+    {
+        auto find = [&](std::string name) {
+            return this->geometry()->volumes().find_unique(name);
+        };
+
+        auto& action_reg = *this->action_reg();
+        UniformFieldParams::Input field_inp;
+        field_inp.strength = {0, 0, 1};
+
+        // No field in muon chambers or world volume
+        field_inp.volumes = {
+            find("vacuum_tube"),
+            find("si_tracker"),
+            find("em_calorimeter"),
+            find("had_calorimeter"),
+            find("sc_solenoid"),
+        };
+
+        auto msc = UrbanMscParams::from_import(
+            *this->particle(), *this->material(), this->imported_data());
+        CELER_ASSERT(msc);
+
+        auto result = std::make_shared<AlongStepUniformMscAction>(
+            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
         action_reg.insert(result);
         return result;
     }
@@ -356,7 +405,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.phys_mfp = 100;
 
             auto result = this->run(inp, num_tracks);
-            if (is_ci_build())
+            if (geant4_version < Version(11, 2, 0))
             {
                 EXPECT_SOFT_EQ(0.0099999992401263, result.eloss);
             }
@@ -491,13 +540,79 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
     }
 }
 
-TEST_F(SimpleCmsAlongStepTest, msc_field)
+TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
 {
+    // Inputs are the same as the test with a global field. Here all volumes
+    // have a field except the world volume and muon chambers.
+    real_type const tol = 1e-10;
     size_type num_tracks = 128;
     Input inp;
     {
-        // This track takes ~150k substeps in the field propagator before
-        // reaching a boundary.
+        // Electron in world volume
+        SCOPED_TRACE("electron taking large step in vacuum without field");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{0.697421113579829943};
+        inp.phys_mfp = 0.0493641564748481393;
+        inp.position = {-33.3599681684743388, 1.43414625226707426, -700.000001};
+        inp.direction = {-0.680265923322200705,
+                         0.731921125057842015,
+                         -0.0391118941072485030};
+
+        // Without field in the world volume electron reaches a boundary
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(1364.3080101955252, result.step);
+        EXPECT_EQ(0, result.eloss);
+        EXPECT_EQ(0, result.mfp);
+        EXPECT_EQ("geo-boundary", result.action);
+        EXPECT_REAL_EQ(1, result.alive);
+    }
+    {
+        // Electron inside muon chambers
+        SCOPED_TRACE("electron in muon chambers without field");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{10};
+        inp.phys_mfp = 2;
+        inp.position = {350, 350, 0};
+        inp.direction = {0, -1, 0};
+
+        // Without a field the electron has the same step length but a larger
+        // displacement
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_NEAR(0.28064807889290933, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.68629076604678063, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
+        EXPECT_EQ("eloss-range", result.action);
+        EXPECT_REAL_EQ(1, result.alive);
+    }
+    {
+        // Electron inside solenoid
+        SCOPED_TRACE("electron in solenoid");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{10};
+        inp.phys_mfp = 2;
+        inp.position = {250, 250, 0};
+        inp.direction = {0, -1, 0};
+
+        // This volume has a field, so results match global field test. Without
+        // a field the displacement = 0.42381079389420506 and angle =
+        // 0.76833209617735942
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_NEAR(0.42355220700686919, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.7454707400628271, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.47856565916792532, result.step, tol);
+        EXPECT_EQ("eloss-range", result.action);
+        EXPECT_REAL_EQ(1, result.alive);
+    }
+}
+
+TEST_F(SimpleCmsAlongStepTest, msc_field)
+{
+    real_type const tol = 1e-10;
+    size_type num_tracks = 128;
+    Input inp;
+    {
+        // If allowed to continue propagating, this track takes ~150k substeps
+        // in the field propagator before reaching a boundary.
         SCOPED_TRACE("electron taking large step in vacuum");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{0.697421113579829943};
@@ -506,12 +621,45 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         inp.direction = {-0.680265923322200705,
                          0.731921125057842015,
                          -0.0391118941072485030};
+
         // Step limited by distance to interaction = 2.49798914193346685e21
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(2.7199323076809536, result.step);
         EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
         EXPECT_EQ("geo-propagation-limit", result.action);
+        EXPECT_REAL_EQ(1, result.alive);
+    }
+    {
+        // Electron inside muon chambers
+        SCOPED_TRACE("electron in muon chambers");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{10};
+        inp.phys_mfp = 2;
+        inp.position = {350, 350, 0};
+        inp.direction = {0, -1, 0};
+
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_NEAR(0.28057298212898418, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.6882027184831665, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
+        EXPECT_EQ("eloss-range", result.action);
+        EXPECT_REAL_EQ(1, result.alive);
+    }
+    {
+        // Electron inside solenoid
+        SCOPED_TRACE("electron in solenoid");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{10};
+        inp.phys_mfp = 2;
+        inp.position = {250, 250, 0};
+        inp.direction = {0, -1, 0};
+
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_NEAR(0.42355220700686919, result.displacement, tol);
+        EXPECT_SOFT_NEAR(0.7454707400628271, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.47856565916792532, result.step, tol);
+        EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
 }
@@ -538,8 +686,8 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         auto result = this->run(inp, num_tracks);
         if (is_ci_build())
         {
-            // Range = 6.41578930992857482e-06
-            EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
+            // Range = 6.4161473386016025e-06
+            EXPECT_SOFT_EQ(6.4161473386016025e-06, result.step);
         }
         else
         {
@@ -595,7 +743,7 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        if (is_ci_build())
+        if (geant4_version < Version(11, 2, 0))
         {
             EXPECT_SOFT_EQ(6.113290482072715e-07, result.displacement);
         }

@@ -11,9 +11,12 @@
 #include <G4Threading.hh>
 
 #include "corecel/io/Join.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 
 #include "ExceptionConverter.hh"
+#include "TimeOutput.hh"
 #include "TrackingManager.hh"
 #include "TrackingManagerConstructor.hh"
 
@@ -47,7 +50,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     bool all_attached_correctly{true};
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
-        auto msg = CELER_LOG_LOCAL(error);
+        auto msg = CELER_LOG(error);
         msg << "Particle " << PrintablePD{p} << ": tracking manager";
         return msg;
     };
@@ -136,6 +139,8 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
  */
 void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 {
+    Stopwatch get_setup_time;
+
     auto& singleton = detail::IntegrationSingleton::instance();
 
     if (G4Threading::IsMasterThread())
@@ -148,7 +153,7 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
     if (enable_offload)
     {
         // Set tracking manager on workers when Celeritas is not fully disabled
-        CELER_LOG_LOCAL(debug) << "Verifying tracking manager";
+        CELER_LOG(debug) << "Verifying tracking manager";
 
         CELER_TRY_HANDLE(
             verify_tracking_managers(
@@ -157,6 +162,12 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
                 singleton.shared_params(),
                 singleton.local_transporter()),
             ExceptionConverter{"celer.init.verify"});
+    }
+
+    if (G4Threading::IsMasterThread())
+    {
+        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
+        singleton.start_timer();
     }
 }
 

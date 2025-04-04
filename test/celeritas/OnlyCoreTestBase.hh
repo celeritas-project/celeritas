@@ -27,6 +27,10 @@ class OnlyCoreTestBase : virtual public GlobalTestBase
     {
         CELER_ASSERT_UNREACHABLE();
     }
+    SPConstOpticalPhysics build_optical_physics() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
     SPConstScintillation build_scintillation() override
     {
         CELER_ASSERT_UNREACHABLE();

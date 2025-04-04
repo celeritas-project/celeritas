@@ -7,8 +7,6 @@ cmake_minimum_required(VERSION 3.18)
 project(CeleritasAccelExample VERSION 0.0.1 LANGUAGES CXX)
 cmake_policy(VERSION 3.12...3.30)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
-
 find_package(Celeritas 0.6 REQUIRED)
 find_package(Geant4 REQUIRED)
 
@@ -17,10 +15,8 @@ if(NOT CELERITAS_USE_Geant4)
     "to be enabled in Celeritas")
 endif()
 
-include(CudaRdcUtils)
-
 add_executable(simple-offload simple-offload.cc)
-cuda_rdc_target_link_libraries(simple-offload
+celeritas_target_link_libraries(simple-offload
   Celeritas::accel
   ${Geant4_LIBRARIES}
 )
@@ -30,7 +26,7 @@ if(Geant4_VERSION VERSION_LESS 11.1)
 endif()
 
 add_executable(fastsim-offload fastsim-offload.cc)
-cuda_rdc_target_link_libraries(fastsim-offload
+celeritas_target_link_libraries(fastsim-offload
   Celeritas::accel
   ${Geant4_LIBRARIES}
 )
@@ -39,7 +35,7 @@ if(Geant4_VERSION VERSION_LESS 11.0)
   message(WARNING "G4VTrackingManager offload requires Geant4 11.0 or higher")
 else()
   add_executable(trackingmanager-offload trackingmanager-offload.cc)
-  cuda_rdc_target_link_libraries(trackingmanager-offload
+  celeritas_target_link_libraries(trackingmanager-offload
     Celeritas::accel
     ${Geant4_LIBRARIES}
   )

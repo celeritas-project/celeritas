@@ -15,8 +15,6 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/Primary.hh"
 
 class G4Track;
@@ -33,6 +31,9 @@ class OffloadWriter;
 
 struct SetupOptions;
 class SharedParams;
+class ParticleParams;
+class CoreStateInterface;
+class StepperInterface;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -89,6 +90,12 @@ class LocalTransporter
     // Number of buffered tracks
     size_type GetBufferSize() const { return buffer_.size(); }
 
+    // Access core state data for user diagnostics
+    CoreStateInterface const& GetState() const;
+
+    // Access core state data for user diagnostics
+    CoreStateInterface& GetState();
+
     //! Whether the class instance is initialized
     explicit operator bool() const { return static_cast<bool>(step_); }
 
@@ -111,6 +118,7 @@ class LocalTransporter
         std::size_t primaries{0};
         std::size_t steps{0};
         std::size_t lost_primaries{0};
+        std::size_t hits{0};
     };
 
     //// DATA ////

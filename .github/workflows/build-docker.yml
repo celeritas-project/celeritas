@@ -35,7 +35,7 @@ jobs:
             buildtype: "reldeb"
             image: "rocky-cuda"
     env:
-      CELER_TEST_STRICT: 1
+      CELER_TEST_STRICT: 0 # TODO: enable with Geant4 v11.3
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
@@ -63,40 +63,28 @@ jobs:
         with:
           fetch-depth: 383
           fetch-tags: true
+
+      ### CONFIGURE ###
+
       - name: Configure Celeritas
         run: |
           git config --global --add safe.directory ${PWD}
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
+
+      ### BUILD ###
+
       - name: Build Celeritas
         working-directory: build
         run: |
           ninja
+
+      ### TEST ###
+
       - name: Test Celeritas
         id: test
         run: |
           ctest --preset=base
-      - name: Install Celeritas
-        working-directory: build
-        run: |
-          cmake --install .
-      - name: Check installation
-        working-directory: install
-        run: |
-          for exe in orange-update celer-export-geant celer-dump-data \
-            celer-sim celer-g4; do
-            test -x "bin/${exe}"
-          done
-          ./bin/celer-sim --version
-      - name: Build examples
-        # TODO: rocm+ndebug fails to propagate HIP library link
-        if: >-
-          ${{
-            !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
-          }}
-        run: |
-          . /etc/profile
-          ./scripts/ci/test-examples.sh
       - name: Upload test results
         if: >-
           ${{
@@ -110,5 +98,35 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+
+      ### INSTALL ###
+
+      - name: Install Celeritas
+        working-directory: build
+        run: |
+          cmake --install .
+      - name: Check installation
+        working-directory: install
+        run: |
+          for exe in orange-update celer-export-geant celer-dump-data \
+            celer-sim celer-g4; do
+            test -x "bin/${exe}"
+          done
+          ./bin/celer-sim --config
+      - name: Build examples
+        # TODO: rocm+ndebug fails to propagate HIP library link
+        if: >-
+          ${{
+            !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
+          }}
+        run: |
+          . /etc/profile
+          # Get Geant4 version number for use by script
+          export G4VERSION_NUMBER=$(
+            grep -E '^\s*#define\s+G4VERSION_NUMBER' \
+              /opt/view/include/Geant4/G4Version.hh \
+              | awk '{print $3}'
+          )
+          ./scripts/ci/test-examples.sh
 
 # vim: set nowrap tw=100:

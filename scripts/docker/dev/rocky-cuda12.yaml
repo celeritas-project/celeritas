@@ -1,5 +1,6 @@
 spack:
   specs:
+  - cli11
   - cmake
   - "g4vg@1.0.2:"
   - "geant4@11.0 cxxstd=20"

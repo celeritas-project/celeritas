@@ -274,7 +274,7 @@ TEST_F(MaterialTest, element_view)
         std::vector<int> atomic_mass_numbers;
         for (auto id : range(el.num_isotopes()))
         {
-            auto iso_view = el.make_isotope_view(IsotopeComponentId{id});
+            auto iso_view = el.isotope_record(IsotopeComponentId{id});
             atomic_mass_numbers.push_back(iso_view.atomic_mass_number().get());
         }
         static int const expected_atomic_mass_numbers[] = {27, 28};

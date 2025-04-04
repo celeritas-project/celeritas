@@ -107,12 +107,12 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
         }()};
 
     // Initialize the simulation state and particle attributes
-    vacancy.make_sim_view() = init.sim;
-    vacancy.make_particle_view() = init.particle;
+    vacancy.sim() = init.sim;
+    vacancy.particle() = init.particle;
 
     // Initialize the geometry
     {
-        auto geo = vacancy.make_geo_view();
+        auto geo = vacancy.geometry();
         auto parent_id = [&] {
             if (!(tid < counters.num_secondaries))
             {
@@ -156,8 +156,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
         }
 
         // Initialize the material
-        auto matid
-            = vacancy.make_geo_material_view().material_id(geo.volume_id());
+        auto matid = vacancy.geo_material().material_id(geo.volume_id());
         if (CELER_UNLIKELY(!matid))
         {
 #if !CELER_DEVICE_COMPILE
@@ -166,11 +165,11 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             vacancy.apply_errored();
             return;
         }
-        vacancy.make_material_view() = {matid};
+        vacancy.material() = {matid};
     }
 
     // Initialize the physics state
-    vacancy.make_physics_view() = {};
+    vacancy.physics() = {};
 }
 
 //---------------------------------------------------------------------------//

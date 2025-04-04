@@ -33,7 +33,7 @@
  *
  * Return a LogMessage object for streaming into at the given level. The
  * regular \c CELER_LOG call is for code paths that happen uniformly in
- * parallel.
+ * parallel, approximately the same message from every thread and task.
  *
  * The logger will only format and print messages. It is not responsible
  * for cleaning up the state or exiting an app.
@@ -52,7 +52,9 @@
  * \def CELER_LOG_LOCAL
  *
  * Like \c CELER_LOG but for code paths that may only happen on a single
- * process or thread. Use sparingly.
+ * process or thread. Use sparingly because this can be very verbose. This is
+ * typically used only for error messages coming from an a event or
+ * track at runtime.
  */
 #define CELER_LOG_LOCAL(LEVEL)                        \
     ::celeritas::self_logger()(CELER_CODE_PROVENANCE, \
@@ -86,6 +88,9 @@ class MpiCommunicator;
  * When using with MPI, the \c world_logger global objects are different on
  * each process: rank 0 will have a handler that outputs to screen, and the
  * other ranks will have a "null" handler that suppresses all log output.
+ *
+ * \todo For v1.0, replace the back-end with \c spdlog to reduce maintenance
+ * burden and improve flexibility.
  */
 class Logger
 {
@@ -99,8 +104,11 @@ class Logger
     //! Get the default log level
     static constexpr LogLevel default_level() { return LogLevel::status; }
 
-    // Construct with default celeritas communicator
-    explicit Logger(LogHandler handle);
+    // Create a logger from a handle and level environment variable
+    static Logger from_handle_env(LogHandler&& handle, std::string const& key);
+
+    // Construct from an output handle
+    explicit Logger(LogHandler&& handle);
 
     // Create a logger that flushes its contents when it destructs
     inline Message operator()(LogProvenance&& prov, LogLevel lev);

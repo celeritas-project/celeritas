@@ -13,12 +13,13 @@
       },
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations -fdiagnostics-color=always",
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer -mfma",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512",
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings  -Wno-deprecated-gpu-targets",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
@@ -69,16 +70,25 @@
       "displayName": "Debug with VecGeom",
       "inherits": [".debug", ".base"],
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "vgsurf",
+      "displayName": "Debug with VecGeom+surface",
+      "inherits": ["vecgeom"],
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view"
       }
     },
     {
       "name": "clhep",
       "displayName": "Debug with VecGeom and clhep units",
-      "inherits": [".debug", ".base"],
+      "inherits": ["vecgeom"],
       "cacheVariables": {
-        "CELERITAS_UNITS": "CLHEP",
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_UNITS": "CLHEP"
       }
     },
     {
@@ -97,6 +107,11 @@
       "inherits": [".reldeb", "single"]
     },
     {
+      "name": "reldeb-vgsurf",
+      "displayName": "Everything in release mode with debug symbols and assertions",
+      "inherits": [".reldeb", "vgsurf"]
+    },
+    {
       "name": "reldeb-vecgeom",
       "displayName": "Everything in release mode with debug symbols and assertions",
       "inherits": [".reldeb", "vecgeom"]
@@ -105,6 +120,20 @@
       "name": "ndebug-vecgeom",
       "displayName": "Everything in release mode",
       "inherits": [".ndebug", "vecgeom"]
+    },
+    {
+      "name": "ndebug-vgsurf",
+      "displayName": "Everything in release mode with debug symbols and assertions",
+      "inherits": [".ndebug", "vgsurf"]
+    },
+    {
+      "name": "vecgeom-v1",
+      "displayName": "Ndebug with VecGeom v1",
+      "inherits": [".ndebug", "vecgeom"],
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-old/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-old/.spack-env/view"
+      }
     },
     {
       "name": "reldeb-serial",

@@ -3,18 +3,49 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+# Print extra information about downloading: hash failures, for example, are
+# silent otherwise
+set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
+
+# Download the package and add to a list
 set(_celer_builtin_packages)
+macro(celer_fetch_external name url sha)
+  FetchContent_Declare(
+    "${name}"
+    URL "${url}"
+    URL_HASH SHA256=${sha}
+    DOWNLOAD_NO_PROGRESS TRUE
+  )
+  list(APPEND _celer_builtin_packages "${name}")
+endmacro()
+
+#-----------------------------------------------------------------------------#
+# CLI11
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILTIN_CLI11)
+  celer_fetch_external(
+    CLI11
+    "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.5.0.tar.gz"
+    17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55
+  )
+
+  set(CLI11_BUILD_EXAMPLES OFF)
+  set(CLI11_BUILD_DOCS OFF)
+  set(CLI11_BUILD_TESTS OFF)
+  set(CLI11_PRECOMPILED ON)
+endif()
 
 #-----------------------------------------------------------------------------#
 # GTest
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_GTest)
-  FetchContent_Declare(
+  celer_fetch_external(
     GTest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+    "https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz"
+    7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
   )
-  list(APPEND _celer_builtin_packages GTest)
 
   set(BUILD_GMOCK OFF) # For compatibility
   set(INSTALL_GTEST OFF)
@@ -27,11 +58,11 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_nlohmann_json)
-  FetchContent_Declare(
+  celer_fetch_external(
     nlohmann_json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    "https://github.com/nlohmann/json/archive/v3.11.3.tar.gz"
+    0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
   )
-  list(APPEND _celer_builtin_packages nlohmann_json)
 
   set(JSON_Install ON)
 endif()
@@ -42,13 +73,13 @@ endif()
 
 if(CELERITAS_BUILTIN_Perfetto)
   if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
-    set(FETCHCONTENT_SOURCE_DIR_PERFETTO ${PERFETTO_ROOT})
+    set(FETCHCONTENT_SOURCE_DIR_PERFETTO "${PERFETTO_ROOT}")
   endif()
-  FetchContent_Declare(
+  celer_fetch_external(
     Perfetto
-    URL https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz
+    "https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz"
+    0871a92a162ac5655b7d724f9359b15a75c4e92472716edbc4227a64a4680be4
   )
-  list(APPEND _celer_builtin_packages Perfetto)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -56,13 +87,13 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_G4VG)
-  FetchContent_Declare(
+  celer_fetch_external(
     G4VG
-    URL https://github.com/celeritas-project/g4vg/releases/download/v1.0.2/g4vg-1.0.2.tar.gz
+    "https://github.com/celeritas-project/g4vg/releases/download/v1.0.4/g4vg-1.0.4.tar.gz"
+    ac38878aedaf9fe628f498290cf4fa6cdd21980b7b83663ce8ef3c8f3ff31cb2
   )
-  list(APPEND _celer_builtin_packages G4VG)
   foreach(_var BUILD_TESTS DEBUG)
-    set(G4VG_${_var} CELERITAS_${_var})
+    set(G4VG_${_var} ${CELERITAS_${_var}})
   endforeach()
 endif()
 
@@ -102,10 +133,27 @@ endforeach()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
-  set(Perfetto_INCLUDE_DIR ${perfetto_SOURCE_DIR}/sdk)
-  add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
-  add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
-  target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
+  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}/sdk")
+  add_library(perfetto STATIC "${Perfetto_INCLUDE_DIR}/perfetto.cc")
+  target_include_directories(perfetto
+    INTERFACE "$<BUILD_INTERFACE:${Perfetto_INCLUDE_DIR}>"
+  )
+  add_library(Celeritas::perfetto ALIAS perfetto)
+  install(TARGETS perfetto
+    EXPORT celeritas-targets
+    COMPONENT runtime
+  )
+endif()
+
+if(CELERITAS_BUILTIN_CLI11)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # __cplusplus: use standard-compliant C++ version macro
+    # preprocessor: use standard-compliant preprocessor
+    # EHsc: enable standard C++ exception handling
+    target_compile_options(CLI11 PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
+    )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

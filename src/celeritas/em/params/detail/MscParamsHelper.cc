@@ -52,9 +52,6 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
         {
             // Save mapping of particle ID to index in cross section table
             pid_to_xs_[pid.get()] = MscParticleId(xs_tables_.size());
-            CELER_LOG(debug) << "found " << to_cstring(imm.model_class)
-                             << " physics data for particle "
-                             << particles_.id_to_label(pid);
         }
         else
         {

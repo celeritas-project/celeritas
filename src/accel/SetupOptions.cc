@@ -6,10 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "SetupOptions.hh"
 
+#include <CLHEP/Random/Random.h>
+
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
@@ -74,8 +77,16 @@ void ProblemSetup::operator()(inp::Problem& p) const
     }
     p.diagnostics.output_file = so.output_file;
 
-    p.control.num_streams = so.get_num_streams();
+    p.control.num_streams = [&so = this->so] {
+        if (so.get_num_streams)
+        {
+            return so.get_num_streams();
+        }
+        return celeritas::get_geant_num_threads();
+    }();
 
+    // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
+    // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
         inp::CoreStateCapacity c;
         c.tracks = so.max_num_tracks * num_streams;
@@ -85,6 +96,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
         c.primaries = so.auto_flush;
         return c;
     }();
+
+    if (so.max_num_events)
+    {
+        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
+                              "be an error in v0.7";
+    }
 
     p.tracking.limits = [this] {
         inp::TrackingLimits tl;
@@ -102,11 +119,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (celeritas::Device::num_devices())
     {
         inp::DeviceDebug dd;
-        dd.default_stream = so.default_stream;
         dd.sync_stream = so.action_times;
 
         p.control.device_debug = std::move(dd);
     }
+
+    p.control.seed = CLHEP::HepRandom::getTheSeed();
 
     if (so.sd.enabled)
     {
@@ -116,14 +134,21 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
         // Check if magnitude is zero
-        UniformFieldParams params = u->get_field();
-        auto field_val = norm(params.field);
+        auto field = u->get_field();
+        auto field_val = norm(field.strength);
         if (field_val > 0)
         {
-            CELER_LOG(info) << "Using a uniform field: " << field_val << " [T]";
-            inp::UniformField field;
-            field.strength = params.field;
-            field.driver_options = params.options;
+            auto msg = CELER_LOG(info);
+            msg << "Using a uniform field: " << field_val << " [T] in ";
+            if (field.volumes.empty())
+            {
+                msg << "all";
+            }
+            else
+            {
+                msg << field.volumes.size();
+            }
+            msg << " volumes";
             p.field = std::move(field);
         }
         else
@@ -134,6 +159,11 @@ void ProblemSetup::operator()(inp::Problem& p) const
     else if (auto* u = so.make_along_step.target<RZMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting RZ map field";
+        p.field = u->get_field();
+    }
+    else if (auto* u = so.make_along_step.target<CylMapFieldAlongStepFactory>())
+    {
+        CELER_LOG(debug) << "Getting Cyl map field";
         p.field = u->get_field();
     }
     else
@@ -155,6 +185,9 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.diagnostics.slot = inp::SlotDiagnostic{so.slot_diagnostic_prefix};
     }
+
+    // Custom user actions
+    p.diagnostics.add_user_actions = so.add_user_actions;
 }
 
 //---------------------------------------------------------------------------//
@@ -190,10 +223,11 @@ inp::GeantSd to_inp(SDSetupOptions const& sd)
     result.ignore_zero_deposition = sd.ignore_zero_deposition;
     result.energy_deposition = sd.energy_deposition;
     result.step_length = sd.step_length;
-    result.locate_touchable = sd.locate_touchable;
     result.track = sd.track;
-    result.pre = to_inp(sd.pre);
-    result.post = to_inp(sd.post);
+    result.points[StepPoint::pre] = to_inp(sd.pre);
+    result.points[StepPoint::pre].touchable = sd.locate_touchable;
+    result.points[StepPoint::post] = to_inp(sd.post);
+    result.points[StepPoint::post].touchable = sd.locate_touchable_post;
     result.force_volumes = sd.force_volumes;
     result.skip_volumes = sd.skip_volumes;
 
@@ -211,7 +245,10 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     inp::FrameworkInput result;
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
-    result.adjuster = ProblemSetup{so};
+    result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
+    result.geant.data_selection.processes = GeantImportDataSelection::em_basic;
+
+    result.adjust = ProblemSetup{so};
     return result;
 }
 

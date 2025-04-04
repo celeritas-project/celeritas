@@ -2,16 +2,18 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitProcessor.hh
+//! \file celeritas/ext/detail/HitProcessor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <G4TouchableHandle.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
@@ -20,8 +22,9 @@
 #include "TouchableUpdaterInterface.hh"
 
 class G4LogicalVolume;
-class G4Step;
 class G4ParticleDefinition;
+class G4Step;
+class G4StepPoint;
 class G4Track;
 class G4VSensitiveDetector;
 
@@ -69,6 +72,7 @@ class HitProcessor
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
+    using StepPointBool = EnumArray<StepPoint, bool>;
     //!@}
 
   public:
@@ -77,7 +81,7 @@ class HitProcessor
                  SPConstGeo const& geo,
                  VecParticle const& particles,
                  StepSelection const& selection,
-                 bool locate_touchable);
+                 StepPointBool const& locate_touchable);
 
     // Log on destruction
     ~HitProcessor();
@@ -92,11 +96,17 @@ class HitProcessor
     // Generate and call hits from a detector output (for testing)
     void operator()(DetectorStepOutput const& out) const;
 
+    // Generate and call hits from a single detector hit
+    void operator()(DetectorStepOutput const& out, size_type i) const;
+
     // Access detector volume corresponding to an ID
     inline G4LogicalVolume const* detector_volume(DetectorId) const;
 
     // Access thread-local SD corresponding to an ID
     inline G4VSensitiveDetector* detector(DetectorId) const;
+
+    // Get and reset the hits counted (generally once per event)
+    inline size_type exchange_hits();
 
   private:
     //! Detector volumes for navigation updating
@@ -108,15 +118,20 @@ class HitProcessor
 
     //! Temporary step
     std::unique_ptr<G4Step> step_;
+    //! Step points
+    EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
     //! Tracks for each particle type
     std::vector<std::unique_ptr<G4Track>> tracks_;
+
     //! Geant4 reference-counted pointer to a G4VTouchable
-    G4TouchableHandle touch_handle_;
+    EnumArray<StepPoint, G4TouchableHandle> touch_handle_;
     //! Navigator for finding points
     std::unique_ptr<TouchableUpdaterInterface> update_touchable_;
+    //! Whether geometry-related step status can be updated
+    bool step_post_status_{false};
 
-    //! Post-step selection for copying to track
-    StepPointSelection post_step_selection_;
+    //! Accumulated number of hits
+    size_type num_hits_;
 
     void update_track(ParticleId id) const;
 };
@@ -141,6 +156,15 @@ G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
 {
     CELER_EXPECT(did < detectors_.size());
     return detectors_[did.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get and reset number of hits counted (generally once per event).
+ */
+size_type HitProcessor::exchange_hits()
+{
+    return std::exchange(num_hits_, size_type{0});
 }
 
 //---------------------------------------------------------------------------//

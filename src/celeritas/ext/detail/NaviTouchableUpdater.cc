@@ -59,6 +59,7 @@ NaviTouchableUpdater::~NaviTouchableUpdater() = default;
  */
 bool NaviTouchableUpdater::operator()(DetectorStepOutput const& out,
                                       size_type i,
+                                      StepPoint step_point,
                                       GeantTouchableBase* touchable)
 {
     CELER_EXPECT(i < out.size());
@@ -71,7 +72,7 @@ bool NaviTouchableUpdater::operator()(DetectorStepOutput const& out,
     G4LogicalVolume const* lv
         = (*detector_volumes_)[out.detector[i].unchecked_get()];
 
-    auto const& point = out.points[StepPoint::pre];
+    auto const& point = out.points[step_point];
     return (*this)(point.pos[i], point.dir[i], lv, touchable);
 }
 
@@ -103,7 +104,11 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
 
     // Check whether physical and logical volumes are consistent
     G4VPhysicalVolume* pv = touchable->GetVolume(0);
-    CELER_ASSERT(pv);
+    if (!pv)
+    {
+        // Exiting the world
+        return true;
+    }
     if (pv->GetLogicalVolume() == lv)
     {
         return true;
@@ -131,7 +136,7 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
         else if (g4step > g4max_quiet_step)
         {
             // Warn since the step is nontrivial
-            CELER_LOG_LOCAL(warning)
+            CELER_LOG_LOCAL(debug)
                 << "Bumping navigation state by " << repr(g4step)
                 << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
                 << " from " << PrintableNavHistory{touchable->GetHistory()}
@@ -155,12 +160,6 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
 
         if (g4step > g4max_quiet_step)
         {
-            CELER_LOG_LOCAL(diagnostic)
-                << "...bumped to "
-                << PrintableNavHistory{touchable->GetHistory()};
-        }
-        else if (pv->GetLogicalVolume() == lv)
-        {
             CELER_LOG_LOCAL(debug)
                 << "Bumped navigation state by " << repr(g4step) << " to "
                 << repr(g4pos) << " to enter "
@@ -174,11 +173,6 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     find_next_step();
     if (g4safety * 2 < g4step)
     {
-        CELER_LOG_LOCAL(debug)
-            << "Flipping search direction: safety " << g4safety
-            << " [mm] is less than half of step " << g4step << " from "
-            << PrintableLV{pv->GetLogicalVolume()} << " while trying to reach "
-            << PrintableLV{lv};
         // Step forward is more than twice the known distance to boundary:
         // we're likely heading away from the closest intersection, so try that
         // first

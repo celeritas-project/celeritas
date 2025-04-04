@@ -41,8 +41,9 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
     {
         if (auto* run_man = G4RunManager::GetRunManager())
         {
-            // Initialize multithread logger if run manager exists
-            celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
+            // Initialize loggers if run manager exists
+            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
+            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
         }
     }
 }
@@ -70,7 +71,7 @@ void SimpleOffload::BeginOfRunAction(G4Run const*)
 
     if (local_)
     {
-        CELER_LOG_LOCAL(status) << "Constructing local state";
+        CELER_LOG(status) << "Constructing local state";
         CELER_TRY_HANDLE(local_->Initialize(*setup_, *params_),
                          ExceptionConverter{"celer.init.local"});
     }
@@ -139,7 +140,7 @@ void SimpleOffload::EndOfRunAction(G4Run const*)
 {
     CELER_EXPECT(params_);
 
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+    CELER_LOG(status) << "Finalizing Celeritas";
 
     if (local_)
     {

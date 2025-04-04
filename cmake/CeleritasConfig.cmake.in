@@ -30,6 +30,24 @@ if(((@PROJECT_NAME@_FIND_VERSION_MAJOR EQUAL 0
 endif()
 
 #-----------------------------------------------------------------------------#
+# Configuration macros
+#-----------------------------------------------------------------------------#
+
+macro(_celer_set_local_default var val)
+  if(NOT DEFINED ${var})
+    message(VERBOSE "Celeritas: set ${var}=${val}")
+    set(${var} "${val}")
+  endif()
+endmacro()
+
+macro(_celer_set_cache_default var val)
+  if(NOT DEFINED ${var})
+    message(STATUS "Celeritas: set cache ${var}=${val}")
+    set(${var} "${val}" CACHE ${ARGN})
+  endif()
+endmacro()
+
+#-----------------------------------------------------------------------------#
 # Variables
 #-----------------------------------------------------------------------------#
 
@@ -45,6 +63,13 @@ include(CMakeFindDependencyMacro)
 
 if(CELERITAS_USE_CUDA)
   find_dependency(CUDAToolkit REQUIRED)
+
+  # Set cache variable if needed *before* checking CUDA
+  _celer_set_cache_default(
+    CMAKE_CUDA_ARCHITECTURES
+    "${CELERITAS_CMAKE_CUDA_ARCHITECTURES}"
+    STRING "CUDA architectures"
+  )
 
   if(NOT CMAKE_CUDA_COMPILER_LOADED)
     # enable_language only really works in top-level CMake directory, not even subprojects
@@ -65,6 +90,11 @@ if(CELERITAS_USE_CUDA)
     endif()
   endif()
 elseif(CELERITAS_USE_HIP)
+  _celer_set_cache_default(
+    CMAKE_HIP_ARCHITECTURES
+    "${CELERITAS_CMAKE_HIP_ARCHITECTURES}"
+    STRING "HIP architectures"
+  )
   find_dependency(hip REQUIRED QUIET)
 endif()
 
@@ -94,6 +124,10 @@ if(CELERITAS_USE_OpenMP)
   find_dependency(OpenMP REQUIRED)
 endif()
 
+if(CELERITAS_USE_Perfetto AND NOT CELERITAS_BUILTIN_Perfetto)
+  find_dependency(Perfetto REQUIRED)
+endif()
+
 if(CELERITAS_USE_PNG)
   find_dependency(PNG REQUIRED)
 endif()
@@ -120,17 +154,9 @@ if(CELERITAS_USE_VecGeom)
       "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
     )
   endif()
-endif()
 
-if(CELERITAS_BUILD_TESTS)
-  if(CMAKE_VERSION VERSION_LESS 3.20)
-    # First look for standard CMake installation
-    # (automatically done for CMake >= 3.20)
-    find_dependency(GTest @GTest_VERSION@ NO_MODULE)
-  endif()
-  if(NOT GTest_FOUND)
-    # If not found, try again
-    find_dependency(GTest)
+  if(CELERITAS_USE_Geant4 AND NOT CELERITAS_BUILTIN_G4VG)
+    find_dependency(G4VG @G4VG_VERSION@ REQUIRED)
   endif()
 endif()
 
@@ -141,17 +167,35 @@ cmake_policy(POP)
 #-----------------------------------------------------------------------------#
 
 if(NOT TARGET celeritas)
+  # Load Celeritas-distributed RDC utils after potential older version
+  # in dependencies
+  # TODO: in the future, rely on its inclusion via upstream VecGeom, and only
+  # include here if VecGeom+CUDA are enabled.
+  include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake" OPTIONAL)
+
+  # Load Celeritas library wrappers
+  include("${CELERITAS_CMAKE_DIR}/CeleritasLibrary.cmake")
+  
+  # Load targets created by `install(EXPORT celeritas-targets`
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 endif()
 
 #-----------------------------------------------------------------------------#
+# Set components for use by the caller
 
 foreach(_dep
     CUDA HIP # Languages
-    Geant4 HepMC3 JSON MPI OpenMP ROOT VecGeom # Packages
+    Geant4 HepMC3 PNG MPI OpenMP Perfetto ROOT VecGeom # Packages
   )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
 unset(_dep)
+
+#-----------------------------------------------------------------------------#
+# Print a pretty message if the caller doesn't have a FindCeleritas.cmake
+
+include(FindPackageHandleStandardArgs)
+set(${CMAKE_FIND_PACKAGE_NAME}_CONFIG "${CMAKE_CURRENT_LIST_FILE}")
+find_package_handle_standard_args(@PROJECT_NAME@ CONFIG_MODE)
 
 #-----------------------------------------------------------------------------#

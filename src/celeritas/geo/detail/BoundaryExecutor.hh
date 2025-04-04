@@ -41,12 +41,12 @@ CELER_FUNCTION void
 BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
 {
     CELER_EXPECT([track] {
-        auto sim = track.make_sim_view();
+        auto sim = track.sim();
         return sim.post_step_action() == track.boundary_action()
                && sim.status() == TrackStatus::alive;
     }());
 
-    auto geo = track.make_geo_view();
+    auto geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
     // Particle entered a new volume before reaching the interaction point
@@ -59,7 +59,7 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
     else if (!geo.is_outside())
     {
         // Update the material in the new region
-        auto geo_mat = track.make_geo_material_view();
+        auto geo_mat = track.geo_material();
         auto matid = geo_mat.material_id(geo.volume_id());
         if (CELER_UNLIKELY(!matid))
         {
@@ -70,14 +70,14 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
             track.apply_errored();
             return;
         }
-        auto mat = track.make_material_view();
+        auto mat = track.material();
         mat = {matid};
 
         CELER_ENSURE(geo.is_on_boundary());
     }
     else
     {
-        auto sim = track.make_sim_view();
+        auto sim = track.sim();
         sim.status(TrackStatus::killed);
     }
 }

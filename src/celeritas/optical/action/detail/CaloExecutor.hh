@@ -41,7 +41,7 @@ CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
     auto geo = track.geometry();
     auto v_id = geo.volume_id();
 
-    CELER_LOG(status) << "volume id is " << v_id.get();
+    CELER_LOG(status) << "old volume id is " << v_id.get();
 
     // If track previously killed in step, don't contribute
     if (sim.status() == TrackStatus::killed)
@@ -56,7 +56,7 @@ CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
         auto geo = track.geometry();
         auto v_id = geo.volume_id();
 
-        CELER_LOG(status) << "volume id is " << v_id.get();
+        CELER_LOG(status) << "alive volume id is " << v_id.get();
 
         // check for track geometry in optical detector list
         // TODO:: fix below pseudo-code

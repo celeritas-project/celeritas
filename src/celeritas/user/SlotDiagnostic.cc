@@ -35,10 +35,7 @@ struct SlotDiagnostic::State final : AuxStateInterface
     State() = default;
     // NOLINTNEXTLINE(performance-noexcept-move-constructor)
     CELER_DEFAULT_MOVE_DELETE_COPY(State);
-    ~State() final
-    {
-        CELER_LOG_LOCAL(debug) << "Closing slot diagnostic file";
-    }
+    ~State() final { CELER_LOG(debug) << "Closing slot diagnostic file"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -136,7 +133,7 @@ void SlotDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
                               detail::SlotDiagnosticExecutor{
                                   ObserverPtr{buffer.data()}}});
 
-    // Write IDs to
+    // Write IDs to the file
     this->write_buffer(state.aux());
 }
 

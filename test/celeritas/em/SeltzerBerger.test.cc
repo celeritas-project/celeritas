@@ -72,7 +72,8 @@ class SeltzerBergerTest : public InteractorHostTestBase
                 pdg::electron(),
                 pdg::gamma(),
                 ImportProcessClass::e_brems,
-                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm});
+                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
+                {{0, 1e3}, {1e3, 1e12}});
             ImportProcess ip_positron = ip_electron;
             ip_positron.particle_pdg = pdg::positron().get();
             this->set_imported_processes(
@@ -315,7 +316,7 @@ TEST_F(SeltzerBergerTest, basic)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
+    auto material_view = this->material_track().material_record();
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
@@ -378,7 +379,7 @@ TEST_F(SeltzerBergerTest, stress_test)
 
     // Views
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
-    auto material_view = this->material_track().make_material_view();
+    auto material_view = this->material_track().material_record();
 
     // Loop over a set of incident gamma energies
     for (auto particle : {pdg::electron(), pdg::positron()})

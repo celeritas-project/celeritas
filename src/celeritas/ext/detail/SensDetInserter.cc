@@ -31,7 +31,7 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv,
     {
         CELER_LOG(debug) << "Mapped sensitive detector \"" << sd->GetName()
                          << "\" on logical volume " << PrintableLV{lv}
-                         << " to " << celeritas_core_geo << " volume \""
+                         << " to " << cmake::core_geo << " volume \""
                          << geo_.volumes().at(id)
                          << "\" (ID=" << id.unchecked_get() << ')';
     }
@@ -48,7 +48,7 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv)
     if (VolumeId id = insert_impl(lv))
     {
         CELER_LOG(debug) << "Mapped unspecified detector on logical volume "
-                         << PrintableLV{lv} << " to " << celeritas_core_geo
+                         << PrintableLV{lv} << " to " << cmake::core_geo
                          << " volume \"" << geo_.volumes().at(id)
                          << "\" (ID=" << id.unchecked_get() << ')';
     }
@@ -68,7 +68,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
     auto id = lv ? g4_to_celer_(*lv) : VolumeId{};
     if (!id)
     {
-        CELER_LOG(error) << "Failed to find " << celeritas_core_geo
+        CELER_LOG(error) << "Failed to find " << cmake::core_geo
                          << " volume corresponding to Geant4 volume "
                          << PrintableLV{lv};
         missing_->push_back(lv);

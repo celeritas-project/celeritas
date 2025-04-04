@@ -26,7 +26,7 @@ build_local() {
   printf "\e[32mTesting in ${PWD}\e[m\n"
   mkdir build
   cd build
-  cmake -G Ninja \
+  cmake -G Ninja --log-level=verbose \
     -D CMAKE_INSTALL_PREFIX=${EXAMPLE_INSTALL} \
     ..
   ninja
@@ -41,17 +41,25 @@ build_local
 
 # Run Geant4 app examples
 if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
+  if [ -z "${G4VERSION_NUMBER}" ]; then
+    # Get the geant4 version 11.2.3, failing if config isn't found
+    _vers=$(geant4-config --version)
+    # Replace . with ' ' and convert to MMmp (major/minor/patch)
+    G4VERSION_NUMBER=$(echo "${_vers}" | tr '.' ' ' | xargs printf '%d%01d%01d')
+    echo "Set G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\""
+  fi
+
   # Run small accel examples
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error
 
-  if [ "$(echo $CELER_GEANT4_VERSION | awk -F. '{print $1*100 + $2}')" \
-      -ge 1100 ]; then
+  if [ "${G4VERSION_NUMBER}" -ge 1100 ]; then
     # Run offload-template only on Geant4 v11
     cd "${CELER_SOURCE_DIR}/example/offload-template"
     build_local
-    ./run-offload
+    G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT \
+      ./run-offload
   fi
 else
   printf "\e[31mSkipping 'accel' tests due to insufficient requirements\e[m\n"

@@ -103,7 +103,7 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     : shared_(shared)
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , element_(material.make_element_view(elcomp_id))
+    , element_(material.element_record(elcomp_id))
     , particle_(particle)
     , calc_dcs_(
           element_, particle.energy(), particle.mass(), shared.electron_mass)

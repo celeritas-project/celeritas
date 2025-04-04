@@ -66,7 +66,6 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
                                Options options)
     : input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
-    , selection_(options.brems_selection)
     , brem_combined_(options.brem_combined)
     , enable_lpm_(data.em_params.lpm)
     , use_integral_xs_(data.em_params.integral_approach)
@@ -176,7 +175,6 @@ auto ProcessBuilder::build_eioni() -> SPProcess
 auto ProcessBuilder::build_ebrems() -> SPProcess
 {
     BremsstrahlungProcess::Options options;
-    options.selection = selection_;
     options.combined_model = brem_combined_;
     options.enable_lpm = enable_lpm_;
     options.use_integral_xs = use_integral_xs_;

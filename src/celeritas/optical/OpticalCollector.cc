@@ -7,6 +7,7 @@
 #include "OpticalCollector.hh"
 
 #include "corecel/data/AuxParamsRegistry.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -105,6 +106,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // Create launch action with optical params+state and access to gen data
     detail::OpticalLaunchAction::Input la_inp;
+    la_inp.model_builders = std::move(inp.model_builders);
     la_inp.material = inp.material;
     la_inp.offload = offload_params_;
     la_inp.num_track_slots = inp.num_track_slots;
@@ -143,6 +145,29 @@ AuxId OpticalCollector::offload_aux_id() const
 AuxId OpticalCollector::optical_aux_id() const
 {
     return launch_action_->aux_id();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get and reset cumulative statistics on optical generation from a state.
+ */
+OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
+{
+    auto& state = dynamic_cast<detail::OpticalOffloadStateBase&>(
+        aux.at(this->offload_aux_id()));
+    return std::exchange(state.accum, {});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get info on the number of tracks in the buffer.
+ */
+auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
+    -> OpticalBufferSize const&
+{
+    auto& state = dynamic_cast<detail::OpticalOffloadStateBase const&>(
+        aux.at(this->offload_aux_id()));
+    return state.buffer_size;
 }
 
 //---------------------------------------------------------------------------//

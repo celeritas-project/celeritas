@@ -70,7 +70,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     for (auto tid : range(ThreadId{num_tracks}))
     {
         CoreTrackView track{core_params, core_states, tid};
-        auto phys = track.make_physics_view();
+        auto phys = track.physics();
         phys.interaction_mfp(inp.phys_mfp);
         if (inp.msc_range)
         {
@@ -92,10 +92,10 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     for (auto tid : range(ThreadId{num_tracks}))
     {
         CoreTrackView track{core_params, core_states, tid};
-        auto sim = track.make_sim_view();
-        auto particle = track.make_particle_view();
-        auto geo = track.make_geo_view();
-        auto phys = track.make_physics_view();
+        auto sim = track.sim();
+        auto particle = track.particle();
+        auto geo = track.geometry();
+        auto phys = track.physics();
 
         result.eloss += value_as<MevEnergy>(inp.energy)
                         - value_as<MevEnergy>(particle.energy());
@@ -134,10 +134,11 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
                   actions.end(),
                   ", ",
                   [&action_id_label, norm](std::ostream& os, auto const& kv) {
-                      os << '"' << action_id_label(kv.first)
-                         << "\": " << kv.second * norm;
+                      os << action_id_label(kv.first) << ": "
+                         << kv.second * norm;
                   })
            << '}';
+        result.action = os.str();
     }
 
     return result;

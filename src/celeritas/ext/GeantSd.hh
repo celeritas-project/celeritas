@@ -9,6 +9,9 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/Config.hh"
+
+#include "corecel/cont/EnumArray.hh"
 #include "geocel/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -59,6 +62,7 @@ class GeantSd final : public StepInterface
     using SPConstGeo = std::shared_ptr<GeoParams const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
+    using StepPointBool = EnumArray<StepPoint, bool>;
     using Input = inp::GeantSd;
     //!@}
 
@@ -101,7 +105,7 @@ class GeantSd final : public StepInterface
     VecParticle const& geant_particles() const { return particles_; }
 
     //! Whether detailed volume information is reconstructed
-    bool locate_touchable() const { return locate_touchable_; }
+    StepPointBool const& locate_touchable() const { return locate_touchable_; }
 
   private:
     using VecLV = std::vector<G4LogicalVolume const*>;
@@ -114,7 +118,7 @@ class GeantSd final : public StepInterface
     SPConstVecLV geant_vols_;
     VecParticle particles_;
     StepSelection selection_;
-    bool locate_touchable_{};
+    StepPointBool locate_touchable_{};
 
     std::vector<std::weak_ptr<HitProcessor>> processor_weakptrs_;
     std::vector<HitProcessor*> processors_;
@@ -128,5 +132,38 @@ class GeantSd final : public StepInterface
     HitProcessor& get_local_hit_processor(StreamId);
 };
 
+#if !CELERITAS_USE_GEANT4
+
+inline GeantSd::GeantSd(SPConstGeo,
+                        ParticleParams const&,
+                        Input const&,
+                        StreamId::size_type)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline GeantSd::~GeantSd() = default;
+
+inline GeantSd::SPProcessor GeantSd::make_local_processor(StreamId)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline GeantSd::Filters GeantSd::filters() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void GeantSd::process_steps(HostStepState)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void GeantSd::process_steps(DeviceStepState)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

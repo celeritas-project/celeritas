@@ -19,7 +19,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -28,7 +27,6 @@
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "MscStepFromGeo.hh"
 #include "UrbanMscHelper.hh"
 #include "UrbanPositronCorrector.hh"
 
@@ -42,8 +40,8 @@ namespace detail
  * scattering model.
 
  * \note This code performs the same method as in
- * G4VMultipleScattering::AlongStepDoIt and G4UrbanMscModel::SampleScattering
- * of the Geant4 10.7 release.
+ * \c G4VMultipleScattering::AlongStepDoIt
+ * and \c G4UrbanMscModel::SampleScattering of the Geant4 10.7 release.
  */
 class UrbanMscScatter
 {
@@ -405,7 +403,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     // large xsi => xmean_1 = 1 - x
     // small tau => xmean = 1
     real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
-    real_type xmean_1 = 1 - x * (1 + (xsi * ea) / (1 - ea));
+    real_type xmean_1 = 1 - x * (1 - (1 + xsi) * ea) / (1 - ea);
 
     if (xmean_1 <= real_type(0.999) * xmean_)
     {
