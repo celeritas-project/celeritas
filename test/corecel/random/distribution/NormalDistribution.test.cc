@@ -11,6 +11,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 
+#include "Histogram.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -26,26 +27,14 @@ TEST(NormalDistributionTest, normal)
 
     NormalDistribution<double> sample_normal{/* mean = */ 0.0,
                                              /* stddev = */ 1.0};
-    std::vector<int> counters(6);
+    Histogram histogram(8, {-4, 4});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double x = sample_normal(rng);
-        if (x < -2.0)
-            ++counters[0];
-        else if (x < -1.0)
-            ++counters[1];
-        else if (x < 0.0)
-            ++counters[2];
-        else if (x < 1.0)
-            ++counters[3];
-        else if (x < 2.0)
-            ++counters[4];
-        else
-            ++counters[5];
+        histogram(sample_normal(rng));
     }
-
-    int const expected_counters[] = {235, 1379, 3397, 3411, 1352, 226};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    static unsigned int const expected_counts[]
+        = {17, 218, 1379, 3397, 3411, 1352, 211, 15};
+    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
     EXPECT_EQ(2 * num_samples, rng.count());
 }
 

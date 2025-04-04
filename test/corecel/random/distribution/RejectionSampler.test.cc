@@ -11,6 +11,7 @@
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
+#include "Histogram.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -52,18 +53,17 @@ TEST(RejectionSamplerTest, sample)
 
     TargetSampler sample_target;
 
-    std::vector<int> counters(4);
+    Histogram histogram(4, {0, 2});
     for ([[maybe_unused]] int i : range(num_samples))
     {
         double x = sample_target(rng);
         ASSERT_GE(x, 0);
         ASSERT_LT(x, 2);
-        auto idx = static_cast<std::size_t>((x / 2.0) * counters.size());
-        counters.at(idx) += 1;
+        histogram(x);
     }
 
-    int const expected_counters[] = {3942, 7996, 2034, 2028};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    static unsigned int const expected_counts[] = {3942, 7996, 2034, 2028};
+    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
 
     EXPECT_EQ(127408, rng.count());
 }
