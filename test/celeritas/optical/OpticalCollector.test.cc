@@ -592,15 +592,6 @@ TEST_F(LArSphereOffloadTest, host_generate)
     // Run with 512 core track slots and 2^18 optical track slots
     auto result = this->run<MemSpace::host>(4, 512, 16);
 
-    static char const* const expected_log_messages[] = {
-        "Celeritas optical state initialization complete",
-        "Celeritas core state initialization complete",
-        "Generated 4258 Cherenkov photons from 4 distributions",
-        "Generated 319935 Scintillation photons from 4 distributions",
-        R"(Generated 324193 optical photons which completed 324193 total
-        steps over 2 iterations)", "Deallocating host core state (stream
-        0)",
-    };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_EQ(323778, result.accum.steps);
