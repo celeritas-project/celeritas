@@ -317,6 +317,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsFieldVolAlongStepTest.msc_field"
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
+    "LeadBoxAlongStepTest.*"
   )
   set(_stepper_filter
     "-TestEm*:LeadBox*"

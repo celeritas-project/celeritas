@@ -770,31 +770,22 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         SCOPED_TRACE("Electron with no change in position after propagation");
         inp.energy = MevEnergy{1e-6};
         inp.position = {1e9, 0, 0};
-        ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::error};
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
-        static double const expected_step_length
-            = (g4_lt_11_2 ? 5.38228333877273e-8 : 5.3825861448155134e-8);
         if (CELERITAS_DEBUG)
         {
-            static double const expected_distance = expected_step_length;
-            std::stringstream ss;
-            ss << "Propagation of step length "
-               << repr(from_cm(expected_step_length))
-               << " due to post-step action 2 leading to distance "
-               << repr(from_cm(expected_distance))
-               << " failed to change position";
-            if (!scoped_log.empty()
-                && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-            {
-                EXPECT_EQ(ss.str(), scoped_log.messages().front());
-            }
+            static char const* const expected_log_messages[] = {
+                R"(Propagation of step length 5.3823e-8 due to post-step action 2 leading to distance 5.3823e-8 failed to change position)"};
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
             static char const* const expected_log_levels[] = {"error"};
-            EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
         else
         {
-            EXPECT_TRUE(scoped_log.empty()) << scoped_log;
+            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
+        double const expected_step_length
+            = (g4_lt_11_2 ? 5.38228333877273e-8 : 5.3825861448155134e-8);
         EXPECT_SOFT_NEAR(expected_step_length, result.step, 1e-13);
         EXPECT_EQ(0, result.displacement);
         EXPECT_EQ("tracking-cut", result.action);
