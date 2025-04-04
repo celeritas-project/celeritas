@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/Geometry.test.cc
 //---------------------------------------------------------------------------//
-#include <regex>
-
 #include "corecel/Config.hh"
 
 #include "corecel/StringSimplifier.hh"
@@ -315,13 +313,12 @@ TEST_F(SimpleCmsTest, output)
     StringSimplifier simplify_str(1);
     auto s = simplify_str(to_string(out));
 
-    // If using JSON loader (e.g. "lite" CI) we can't construct '@' labels
-    std::regex repl_re{"@[a-z.]+"};
-    s = std::regex_replace(s, repl_re, "");
-
-    EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box","world_box","world_box","world_box","world_box","world_box","crystal_em_calorimeter","crystal_em_calorimeter","lhc_vacuum_tube","crystal_em_calorimeter","crystal_em_calorimeter","hadron_calorimeter","iron_muon_chambers","iron_muon_chambers"]},"volumes":{"label":["[EXTERIOR]","vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
-        s);
+    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE || CELERITAS_USE_GEANT4)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box@mx","world_box@px","world_box@my","world_box@py","world_box@mz","world_box@pz","crystal_em_calorimeter@excluded.mz","crystal_em_calorimeter@excluded.pz","lhc_vacuum_tube@cz","crystal_em_calorimeter@excluded.cz","crystal_em_calorimeter@interior.cz","hadron_calorimeter@interior.cz","iron_muon_chambers@excluded.cz","iron_muon_chambers@interior.cz"]},"volumes":{"label":["[EXTERIOR]@world","vacuum_tube@world","si_tracker@world","em_calorimeter@world","had_calorimeter@world","sc_solenoid@world","fe_muon_chambers@world","world@world"]}})json",
+            s);
+    }
 }
 
 //---------------------------------------------------------------------------//
