@@ -133,7 +133,7 @@ TEST_F(MuPairProductionTest, distribution)
 
     RandomEngine& rng = InteractorHostBase::rng();
 
-    std::vector<real_type> log_pdf;
+    std::vector<real_type> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     std::vector<real_type> avg_energy;
@@ -162,14 +162,14 @@ TEST_F(MuPairProductionTest, distribution)
             energy_fraction += value_as<MevEnergy>(e.electron) / e_pair;
         }
         auto density = histogram.density();
-        log_pdf.insert(log_pdf.end(), density.begin(), density.end());
+        loge_pdf.insert(loge_pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);
         avg_energy.push_back(sum_energy / num_samples);
         avg_energy_fraction.push_back(energy_fraction / num_samples);
     }
 
-    static double const expected_log_pdf[] = {
+    static double const expected_loge_pdf[] = {
         0.0486, 0.2855, 0.3831, 0.2029, 0.0631, 0.015,  0.0016, 0.0002,
         0.0639, 0.2435, 0.3676, 0.2433, 0.0685, 0.0112, 0.002,  0,
         0.053,  0.2099, 0.3242, 0.267,  0.1219, 0.0215, 0.0023, 0.0002,
@@ -204,7 +204,7 @@ TEST_F(MuPairProductionTest, distribution)
         0.50543111979394,
         0.50102592402615,
     };
-    EXPECT_VEC_SOFT_EQ(expected_log_pdf, log_pdf);
+    EXPECT_VEC_SOFT_EQ(expected_loge_pdf, loge_pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);

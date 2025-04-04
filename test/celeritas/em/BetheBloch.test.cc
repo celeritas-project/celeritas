@@ -112,7 +112,7 @@ TEST_F(BetheBlochTest, distribution)
 
     MevEnergy cutoff{0.001};
 
-    std::vector<real_type> pdf;
+    std::vector<real_type> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     for (real_type energy : {0.2, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5, 1e7})
@@ -125,29 +125,29 @@ TEST_F(BetheBlochTest, distribution)
         real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
         real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
 
-        Histogram histogram(num_bins, {min, max});
+        Histogram histogram(num_bins, {std::log(min), std::log(max)});
         for ([[maybe_unused]] int i : range(num_samples))
         {
             auto e = value_as<MevEnergy>(sample(rng));
             ASSERT_GE(e, min);
             ASSERT_LE(e, max);
-            histogram(e);
+            histogram(std::log(e));
         }
         auto density = histogram.density();
-        pdf.insert(pdf.end(), density.begin(), density.end());
+        loge_pdf.insert(loge_pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);
     }
 
-    static double const expected_pdf[] = {
-        0.35336, 0.20788, 0.13664, 0.09695, 0.06983, 0.05577, 0.04362, 0.03595,
-        0.735,   0.13078, 0.05559, 0.03001, 0.01837, 0.01287, 0.00959, 0.00779,
-        0.96755, 0.01824, 0.00622, 0.00341, 0.00189, 0.00124, 0.0009,  0.00055,
-        0.99793, 0.0014,  0.0004,  0.00011, 7e-05,   2e-05,   5e-05,   2e-05,
-        0.99996, 2e-05,   1e-05,   1e-05,   0,       0,       0,       0,
-        1,       0,       0,       0,       0,       0,       0,       0,
-        1,       0,       0,       0,       0,       0,       0,       0,
-        1,       0,       0,       0,       0,       0,       0,       0,
+    static double const expected_loge_pdf[] = {
+        0.21102, 0.17532, 0.14959, 0.12703, 0.10743, 0.08865, 0.0766,  0.06436,
+        0.3261,  0.22573, 0.15646, 0.10732, 0.07309, 0.05184, 0.03477, 0.02469,
+        0.48816, 0.25256, 0.12858, 0.06676, 0.03342, 0.01717, 0.00899, 0.00436,
+        0.63067, 0.23317, 0.0869,  0.03117, 0.01182, 0.00451, 0.00149, 0.00027,
+        0.76451, 0.17936, 0.04247, 0.01055, 0.00245, 0.0005,  0.00014, 2e-05,
+        0.8538,  0.1244,  0.01866, 0.00267, 0.00043, 4e-05,   0,       0,
+        0.89839, 0.09094, 0.0097,  0.00085, 0.00012, 0,       0,       0,
+        0.9437,  0.05315, 0.00295, 0.0002,  0,       0,       0,       0,
     };
     static double const expected_min_energy[]
         = {0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
@@ -161,7 +161,7 @@ TEST_F(BetheBlochTest, distribution)
         90256.629501068,
         9989193.9209199,
     };
-    EXPECT_VEC_SOFT_EQ(expected_pdf, pdf);
+    EXPECT_VEC_SOFT_EQ(expected_loge_pdf, loge_pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
 }

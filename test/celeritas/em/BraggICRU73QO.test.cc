@@ -122,7 +122,7 @@ TEST_F(BraggICRU73QOTest, distribution)
 
     MevEnergy cutoff{1e-6};
 
-    std::vector<real_type> pdf;
+    std::vector<real_type> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     for (real_type energy : {1e-4, 1e-3, 1e-2, 0.1, 0.2, 0.5, 1.0})
@@ -137,28 +137,28 @@ TEST_F(BraggICRU73QOTest, distribution)
         real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
         real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
 
-        Histogram histogram(num_bins, {min, max});
+        Histogram histogram(num_bins, {std::log(min), std::log(max)});
         for ([[maybe_unused]] int i : range(num_samples))
         {
             auto e = value_as<MevEnergy>(sample(rng));
             ASSERT_GE(e, min);
             ASSERT_LE(e, max);
-            histogram(e);
+            histogram(std::log(e));
         }
         auto density = histogram.density();
-        pdf.insert(pdf.end(), density.begin(), density.end());
+        loge_pdf.insert(loge_pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);
     }
 
-    static double const expected_pdf[] = {
-        0.21655, 0.17314, 0.14515, 0.12303, 0.10505, 0.08867, 0.07907, 0.06934,
-        0.73304, 0.13129, 0.05583, 0.03042, 0.01872, 0.01303, 0.00971, 0.00796,
-        0.96448, 0.01941, 0.007,   0.00375, 0.00221, 0.00142, 0.00101, 0.00072,
-        0.99631, 0.00219, 0.0007,  0.0003,  0.00016, 0.00015, 0.00013, 6e-05,
-        0.99819, 0.00109, 0.00028, 0.00017, 8e-05,   0.00012, 5e-05,   2e-05,
-        0.99932, 0.00035, 0.00014, 7e-05,   8e-05,   2e-05,   1e-05,   1e-05,
-        0.99964, 0.00019, 0.0001,  4e-05,   1e-05,   1e-05,   1e-05,   0,
+    static double const expected_loge_pdf[] = {
+        0.16383, 0.14923, 0.1391,  0.12796, 0.11911, 0.10873, 0.09946, 0.09258,
+        0.3253,  0.22528, 0.15634, 0.1074,  0.07328, 0.05221, 0.03516, 0.02503,
+        0.48418, 0.25151, 0.12926, 0.06777, 0.0345,  0.01796, 0.00978, 0.00504,
+        0.61151, 0.23758, 0.09262, 0.03546, 0.01392, 0.00597, 0.00217, 0.00077,
+        0.6446,  0.22814, 0.08244, 0.02836, 0.01075, 0.00392, 0.00132, 0.00047,
+        0.68246, 0.21631, 0.06879, 0.02195, 0.00735, 0.00229, 0.00063, 0.00022,
+        0.70907, 0.20633, 0.05943, 0.01746, 0.00565, 0.00152, 0.00039, 0.00015,
     };
     static double const expected_min_energy[]
         = {1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06};
@@ -171,7 +171,7 @@ TEST_F(BraggICRU73QOTest, distribution)
         0.0096020089408745,
         0.019248476995285,
     };
-    EXPECT_VEC_SOFT_EQ(expected_pdf, pdf);
+    EXPECT_VEC_SOFT_EQ(expected_loge_pdf, loge_pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
 }
