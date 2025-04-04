@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/Histogram.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
@@ -107,11 +108,11 @@ class MuBetheBlochTest : public InteractorHostTestBase
 TEST_F(MuBetheBlochTest, distribution)
 {
     int num_samples = 100000;
-    int num_bins = 12;
+    int num_bins = 8;
 
     MevEnergy cutoff{0.001};
 
-    std::vector<int> counters;
+    std::vector<real_type> pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     for (real_type energy : {0.2, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5, 1e7})
@@ -124,30 +125,29 @@ TEST_F(MuBetheBlochTest, distribution)
         real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
         real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
 
-        std::vector<int> count(num_bins);
+        Histogram histogram(num_bins, {min, max});
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            auto r = value_as<MevEnergy>(sample(rng));
-            ASSERT_GE(r, min);
-            ASSERT_LE(r, max);
-            int bin = int((1 / r - 1 / min) / (1 / max - 1 / min) * num_bins);
-            CELER_ASSERT(bin >= 0 && bin < num_bins);
-            ++count[bin];
+            auto e = value_as<MevEnergy>(sample(rng));
+            ASSERT_GE(e, min);
+            ASSERT_LE(e, max);
+            histogram(e);
         }
-        counters.insert(counters.end(), count.begin(), count.end());
+        auto density = histogram.density();
+        pdf.insert(pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);
     }
 
-    static int const expected_counters[] = {
-        8273, 8487, 8379, 8203, 8303, 8419, 8249, 8422, 8366, 8265, 8334, 8300,
-        8281, 8499, 8383, 8211, 8309, 8428, 8256, 8435, 8371, 8263, 8320, 8244,
-        8294, 8514, 8391, 8225, 8326, 8440, 8269, 8446, 8391, 8279, 8321, 8104,
-        8283, 8499, 8389, 8211, 8312, 8427, 8257, 8440, 8380, 8278, 8340, 8184,
-        8272, 8488, 8374, 8191, 8308, 8410, 8232, 8419, 8370, 8281, 8338, 8317,
-        8278, 8490, 8370, 8191, 8311, 8404, 8246, 8413, 8371, 8255, 8335, 8336,
-        8308, 8467, 8361, 8164, 8309, 8404, 8226, 8442, 8359, 8296, 8330, 8334,
-        8353, 8428, 8388, 8264, 8315, 8312, 8227, 8499, 8323, 8280, 8266, 8345,
+    static double const expected_pdf[] = {
+        0.35336, 0.20788, 0.13664, 0.09695, 0.06983, 0.05577, 0.04362, 0.03595,
+        0.735,   0.13078, 0.05559, 0.03001, 0.01837, 0.01287, 0.00959, 0.00779,
+        0.96755, 0.01824, 0.00622, 0.00341, 0.00189, 0.00124, 0.0009,  0.00055,
+        0.99793, 0.0014,  0.0004,  0.00011, 7e-05,   2e-05,   5e-05,   2e-05,
+        0.99996, 2e-05,   1e-05,   1e-05,   0,       0,       0,       0,
+        1,       0,       0,       0,       0,       0,       0,       0,
+        1,       0,       0,       0,       0,       0,       0,       0,
+        1,       0,       0,       0,       0,       0,       0,       0,
     };
     static double const expected_min_energy[]
         = {0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
@@ -161,7 +161,7 @@ TEST_F(MuBetheBlochTest, distribution)
         90256.629501068,
         9989193.9209199,
     };
-    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_SOFT_EQ(expected_pdf, pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
 }

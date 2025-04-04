@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/Histogram.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/BraggICRU73QOEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
@@ -117,11 +118,11 @@ class BraggICRU73QOTest : public InteractorHostTestBase
 TEST_F(BraggICRU73QOTest, distribution)
 {
     int num_samples = 100000;
-    int num_bins = 12;
+    int num_bins = 8;
 
     MevEnergy cutoff{1e-6};
 
-    std::vector<int> counters;
+    std::vector<real_type> pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     for (real_type energy : {1e-4, 1e-3, 1e-2, 0.1, 0.2, 0.5, 1.0})
@@ -136,29 +137,28 @@ TEST_F(BraggICRU73QOTest, distribution)
         real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
         real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
 
-        std::vector<int> count(num_bins);
+        Histogram histogram(num_bins, {min, max});
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            auto r = value_as<MevEnergy>(sample(rng));
-            ASSERT_GE(r, min);
-            ASSERT_LE(r, max);
-            int bin = int((1 / r - 1 / min) / (1 / max - 1 / min) * num_bins);
-            CELER_ASSERT(bin >= 0 && bin < num_bins);
-            ++count[bin];
+            auto e = value_as<MevEnergy>(sample(rng));
+            ASSERT_GE(e, min);
+            ASSERT_LE(e, max);
+            histogram(e);
         }
-        counters.insert(counters.end(), count.begin(), count.end());
+        auto density = histogram.density();
+        pdf.insert(pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);
     }
 
-    static int const expected_counters[] = {
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
+    static double const expected_pdf[] = {
+        0.21655, 0.17314, 0.14515, 0.12303, 0.10505, 0.08867, 0.07907, 0.06934,
+        0.73304, 0.13129, 0.05583, 0.03042, 0.01872, 0.01303, 0.00971, 0.00796,
+        0.96448, 0.01941, 0.007,   0.00375, 0.00221, 0.00142, 0.00101, 0.00072,
+        0.99631, 0.00219, 0.0007,  0.0003,  0.00016, 0.00015, 0.00013, 6e-05,
+        0.99819, 0.00109, 0.00028, 0.00017, 8e-05,   0.00012, 5e-05,   2e-05,
+        0.99932, 0.00035, 0.00014, 7e-05,   8e-05,   2e-05,   1e-05,   1e-05,
+        0.99964, 0.00019, 0.0001,  4e-05,   1e-05,   1e-05,   1e-05,   0,
     };
     static double const expected_min_energy[]
         = {1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06};
@@ -171,7 +171,7 @@ TEST_F(BraggICRU73QOTest, distribution)
         0.0096020089408745,
         0.019248476995285,
     };
-    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_SOFT_EQ(expected_pdf, pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
 }
