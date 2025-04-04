@@ -7,6 +7,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <iosfwd>
 #include <limits>
 #include <gtest/gtest.h>
