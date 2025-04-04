@@ -13,7 +13,6 @@ file(TO_CMAKE_PATH "${PROJECT_SOURCE_DIR}" CELERITAS_SOURCE_DIR)
 configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 set(_harness_sources
-  Histogram.cc
   Test.cc
   testdetail/JsonComparer.json.cc
   testdetail/NonMasterResultPrinter.cc

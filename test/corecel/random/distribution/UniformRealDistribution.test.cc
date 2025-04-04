@@ -9,8 +9,8 @@
 #include <random>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/random/Histogram.hh"
 
-#include "Histogram.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -63,7 +63,7 @@ TEST_F(UniformRealDistributionTest, bin)
 
     static unsigned int const expected_counts[]
         = {2071, 1955, 1991, 2013, 1970};
-    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
 }
 
 //---------------------------------------------------------------------------//

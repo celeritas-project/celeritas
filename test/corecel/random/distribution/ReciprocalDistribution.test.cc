@@ -7,8 +7,8 @@
 #include "corecel/random/distribution/ReciprocalDistribution.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/random/Histogram.hh"
 
-#include "Histogram.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -37,7 +37,7 @@ TEST(ReciprocalDistributionTest, bin)
 
     static unsigned int const expected_counts[]
         = {0, 2601, 1905, 1324, 974, 771, 747, 630, 582, 466};
-    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
 }
 
 //---------------------------------------------------------------------------//

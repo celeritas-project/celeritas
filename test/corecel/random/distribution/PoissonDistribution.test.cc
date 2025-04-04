@@ -8,8 +8,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/Histogram.hh"
 
-#include "Histogram.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -35,7 +35,7 @@ TEST(PoissonDistributionTest, bin_small)
     }
     static unsigned int const expected_counts[] = {
         177, 762, 1444, 1971, 1950, 1586, 1054, 562, 286, 125, 55, 18, 5, 1, 3, 1};
-    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(99684, rng.count());
 }
 
@@ -59,7 +59,7 @@ TEST(PoissonDistributionTest, bin_large)
            389, 442, 454, 470, 508, 502, 490, 504, 438, 456, 410, 363,
            337, 301, 239, 220, 187, 160, 161, 114, 95,  65,  57,  38,
            34,  22,  11,  8,   8,   6,   6,   1,   2,   2,   0,   1};
-    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(2 * num_samples, rng.count());
 }
 

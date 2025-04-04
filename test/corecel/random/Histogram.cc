@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "Histogram.hh"
 
+#include <numeric>
+
 #include "corecel/Assert.hh"
 
 namespace celeritas
@@ -38,6 +40,25 @@ void Histogram::operator()(real_type value)
     auto index = static_cast<size_type>((value - range_[0]) / width_);
     CELER_ASSERT(index < counts_.size());
     ++counts_[index];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the result as a probability desnity.
+ */
+auto Histogram::density() const -> VecReal
+{
+    VecReal result;
+    result.reserve(counts_.size());
+
+    auto norm = real_type(1)
+                / std::accumulate(counts_.begin(), counts_.end(), size_type(0));
+
+    for (auto count : counts_)
+    {
+        result.push_back(count * norm);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

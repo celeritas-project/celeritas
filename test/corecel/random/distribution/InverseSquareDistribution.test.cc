@@ -6,7 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/random/distribution/InverseSquareDistribution.hh"
 
-#include "Histogram.hh"
+#include "corecel/random/Histogram.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -35,7 +36,7 @@ TEST(InverseSquareDistributionTest, bin)
 
     static unsigned int const expected_counts[]
         = {0, 944, 1043, 959, 972, 1027, 1045, 981, 1009, 1020};
-    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
 }
 
 //---------------------------------------------------------------------------//

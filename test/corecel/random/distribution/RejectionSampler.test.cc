@@ -9,9 +9,9 @@
 #include <random>
 
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/Histogram.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
-#include "Histogram.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -63,7 +63,7 @@ TEST(RejectionSamplerTest, sample)
     }
 
     static unsigned int const expected_counts[] = {3942, 7996, 2034, 2028};
-    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
 
     EXPECT_EQ(127408, rng.count());
 }

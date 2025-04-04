@@ -26,6 +26,7 @@ class Histogram
     //! \name Type aliases
     using Real2 = Array<real_type, 2>;
     using VecCount = std::vector<size_type>;
+    using VecReal = std::vector<real_type>;
     //!@}
 
   public:
@@ -36,7 +37,10 @@ class Histogram
     void operator()(real_type value);
 
     // Get the histogram
-    VecCount const& get_counts() const { return counts_; }
+    VecCount const& counts() const { return counts_; }
+
+    // Get the result as a probability density
+    VecReal density() const;
 
   private:
     Real2 range_;

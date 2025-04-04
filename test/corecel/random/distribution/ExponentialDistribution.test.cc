@@ -10,8 +10,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/Histogram.hh"
 
-#include "Histogram.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -33,7 +33,7 @@ TEST(ExponentialDistributionTest, all)
     }
     static unsigned int const expected_counts[]
         = {3897u, 2411u, 1368u, 897u, 587u, 354u, 184u, 127u};
-    EXPECT_VEC_EQ(expected_counts, histogram.get_counts());
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(2 * num_samples, rng.count());
 }
 
