@@ -20,6 +20,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/TimeOutput.hh"
@@ -92,6 +94,15 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_ASSERT(*transport_);
     }
 
+    if (transport_)
+    {
+        // Set up local logger; "master" thread in MT already has
+        // logging/exception set through celer-g4 main
+        scoped_log_
+            = std::make_unique<ScopedGeantLogger>(celeritas::self_logger());
+        scoped_except_ = std::make_unique<ScopedGeantExceptionHandler>();
+    }
+
     // Create a G4VExceptionHandler that dispatches to the shared
     // MultiException
     orig_eh_ = G4StateManager::GetStateManager()->GetExceptionHandler();
@@ -136,7 +147,7 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (params_->mode() == SharedParams::Mode::enabled)
     {
-        CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+        CELER_LOG(status) << "Finalizing Celeritas";
 
         if (transport_)
         {
@@ -155,6 +166,9 @@ void RunAction::EndOfRunAction(G4Run const*)
         // Clear shared data (if any) and write output (if any)
         CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
+
+    scoped_log_.reset();
+    scoped_except_.reset();
 }
 
 //---------------------------------------------------------------------------//

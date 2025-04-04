@@ -10,6 +10,8 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/SimpleTestBase.hh"
+#include "celeritas/TestEm3Base.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -21,8 +23,6 @@
 #include "DiagnosticTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
-#include "../SimpleTestBase.hh"
-#include "../TestEm3Base.hh"
 
 using celeritas::units::MevEnergy;
 

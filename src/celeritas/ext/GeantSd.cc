@@ -23,10 +23,11 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/ParticleParams.hh"
+
+#include "GeantSetup.hh"
 
 #include "detail/HitProcessor.hh"
 #include "detail/SensDetInserter.hh"

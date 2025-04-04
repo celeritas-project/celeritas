@@ -18,10 +18,10 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/random/RngParams.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 

@@ -11,15 +11,15 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/Selector.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/Selector.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 namespace celeritas
 {

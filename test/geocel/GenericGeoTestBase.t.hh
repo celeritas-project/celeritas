@@ -14,10 +14,10 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "geocel/UnitUtils.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "TestMacros.hh"
+#include "UnitUtils.hh"
 
 namespace celeritas
 {

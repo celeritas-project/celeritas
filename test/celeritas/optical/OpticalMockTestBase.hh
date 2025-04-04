@@ -6,11 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
-
-#include "../GlobalTestBase.hh"
 
 namespace celeritas
 {

@@ -8,6 +8,7 @@
 
 #include <G4ExceptionSeverity.hh>
 #include <G4StateManager.hh>
+#include <G4Threading.hh>
 #include <G4Types.hh>
 #include <G4VExceptionHandler.hh>
 
@@ -69,10 +70,17 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
         case EventMustBeAborted:
             // Severe or initialization error
             throw err;
-        case JustWarning:
-            // Display a message
-            CELER_LOG_LOCAL(error) << err.what();
+        case JustWarning: {
+            // Display a message: log destination depends on whether this
+            // thread is a manager or worker
+            auto& log = (G4Threading::IsMultithreadedApplication()
+                         && G4Threading::IsMasterThread())
+                            ? celeritas::world_logger()
+                            : celeritas::self_logger();
+            log(CELER_CODE_PROVENANCE, ::celeritas::LogLevel::error)
+                << err.what();
             break;
+        }
         default:
             CELER_ASSERT_UNREACHABLE();
     }

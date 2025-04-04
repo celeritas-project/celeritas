@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/alongstep.test.cc
+//! \file celeritas/global/AlongStep.test.cc
 //---------------------------------------------------------------------------//
 #include <fstream>
 
@@ -14,7 +14,9 @@
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LeadBoxTestBase.hh"
+#include "celeritas/MockTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/SimpleTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
@@ -27,8 +29,6 @@
 
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
-#include "../MockTestBase.hh"
-#include "../SimpleTestBase.hh"
 
 namespace celeritas
 {

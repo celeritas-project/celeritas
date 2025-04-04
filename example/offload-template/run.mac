@@ -1,4 +1,4 @@
 /celer/maxNumTracks 1024
 /celer/maxInitializers 10000
 /run/initialize
-/run/beamOn 1
+/run/beamOn 4

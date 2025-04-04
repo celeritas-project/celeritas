@@ -84,7 +84,7 @@ inp::Problem load_problem(RunInput const& ri)
     // Field setup
     if (ri.field_type == "rzmap")
     {
-        CELER_LOG_LOCAL(info) << "Loading RZMapField from " << ri.field_file;
+        CELER_LOG(info) << "Loading RZMapField from " << ri.field_file;
         std::ifstream inp(ri.field_file);
         CELER_VALIDATE(inp,
                        << "failed to open field map file at '" << ri.field_file
@@ -107,8 +107,7 @@ inp::Problem load_problem(RunInput const& ri)
         auto field_val = norm(field.strength);
         if (field_val > 0)
         {
-            CELER_LOG_LOCAL(info)
-                << "Using a uniform field " << field_val << " [T]";
+            CELER_LOG(info) << "Using a uniform field " << field_val << " [T]";
             field.driver_options = ri.field_options;
             p.field = std::move(field);
         }

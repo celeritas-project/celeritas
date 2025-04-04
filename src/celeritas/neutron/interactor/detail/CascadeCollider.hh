@@ -14,12 +14,12 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/InverseCdfFinder.hh"
 #include "celeritas/phys/FourVector.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CascadeParticle.hh"
 

@@ -10,17 +10,17 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/ImportedMaterials.hh"
+#include "celeritas/optical/InteractionApplier.hh"
+#include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/MfpBuilder.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "RayleighExecutor.hh"
 #include "RayleighMfpCalculator.hh"
-#include "../CoreParams.hh"
-#include "../CoreState.hh"
-#include "../ImportedMaterials.hh"
-#include "../InteractionApplier.hh"
-#include "../MaterialParams.hh"
-#include "../MfpBuilder.hh"
 
 namespace celeritas
 {

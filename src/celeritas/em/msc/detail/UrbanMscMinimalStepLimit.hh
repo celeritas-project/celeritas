@@ -11,11 +11,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/NormalDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/random/distribution/NormalDistribution.hh"
 
 #include "UrbanMscHelper.hh"
 

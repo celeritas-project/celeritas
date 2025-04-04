@@ -172,13 +172,7 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
     SPHepEvt evt
         = this->read_event(static_cast<size_type>(g4_event->GetEventID()));
     CELER_ASSERT(evt && evt->particles().size() > 0);
-    CELER_LOG_LOCAL(debug) << "Processing " << evt->vertices().size()
-                           << " vertices with " << evt->particles().size()
-                           << " primaries from HepMC event ID "
-                           << evt->event_number() << " into Geant4 event ID "
-                           << g4_event->GetEventID();
 
-    int num_primaries{0};
     PrimaryInserter insert_primary{g4_event, *evt};
 
     for (auto const& par : evt->particles())
@@ -192,15 +186,9 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
             // tree of generated particles
             continue;
         }
-        ++num_primaries;
         insert_primary(*par);
     }
     insert_primary();
-
-    CELER_LOG_LOCAL(info) << "Loaded " << g4_event->GetNumberOfPrimaryVertex()
-                          << " real vertices with " << num_primaries
-                          << " real primaries for event "
-                          << g4_event->GetEventID();
 
     // Check world solid
     if (CELERITAS_DEBUG)
@@ -256,9 +244,12 @@ auto HepMC3PrimaryGenerator::read_event(size_type event_id) -> SPHepEvt
         ++start_event_;
     }
 
-    CELER_LOG_LOCAL(debug) << "Reading to event " << event_id
-                           << ": buffer has [" << start_event_ << ", "
-                           << start_event_ + event_buffer_.size() << ")";
+    if (event_id < start_event_ + event_buffer_.size())
+    {
+        CELER_LOG_LOCAL(debug) << "Reading to event " << event_id
+                               << ": buffer has [" << start_event_ << ", "
+                               << start_event_ + event_buffer_.size() << ")";
+    }
 
     // Read new events until we get to the requested one
     while (event_id >= start_event_ + event_buffer_.size())
@@ -271,11 +262,13 @@ auto HepMC3PrimaryGenerator::read_event(size_type event_id) -> SPHepEvt
         CELER_VALIDATE(!reader_->failed(),
                        << "event " << expected_id << " could not be read");
 
-        if (static_cast<size_type>(read_evt_id) != expected_id)
+        if (!warned_mismatched_events_
+            && static_cast<size_type>(read_evt_id) != expected_id)
         {
-            CELER_LOG(warning)
-                << "HepMC3 event IDs are not consecutive from zero: read ID "
-                << read_evt_id << " but expected ID " << expected_id;
+            CELER_LOG_LOCAL(warning)
+                << "HepMC3 event IDs are not consecutive from zero: Celeritas "
+                   "currently assumes this but will change in the future";
+            warned_mismatched_events_ = true;
         }
     }
 

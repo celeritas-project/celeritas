@@ -33,6 +33,7 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -66,7 +67,6 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
-#include "celeritas/random/RngParams.hh"
 #include "celeritas/setup/FrameworkInput.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -364,7 +364,7 @@ void SharedParams::Finalize()
     this->try_output();
 
     // Reset all data
-    CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
+    CELER_LOG(debug) << "Resetting shared parameters";
     *this = {};
 
     // Reset streams before the static destructor does
@@ -429,7 +429,7 @@ auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
         std::lock_guard scoped_lock{updating_mutex()};
         if (!geant_geo_)
         {
-            CELER_LOG_LOCAL(debug) << "Constructing GeantGeoParams wrapper";
+            CELER_LOG(debug) << "Constructing GeantGeoParams wrapper";
             auto world = world_;
             if (!world)
             {
@@ -465,8 +465,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
     }
     else
     {
-        CELER_LOG_LOCAL(debug)
-            << "Setting number of streams to " << num_streams;
+        CELER_LOG(debug) << "Setting number of streams to " << num_streams;
     }
 
     states_.resize(num_streams);

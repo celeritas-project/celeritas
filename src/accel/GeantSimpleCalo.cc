@@ -122,10 +122,10 @@ auto GeantSimpleCalo::MakeSensitiveDetector() -> UPSensitiveDetector
     // Attach SD to LVs
     for (auto const& lv_idx : storage_->volume_to_index)
     {
-        CELER_LOG_LOCAL(debug)
-            << "Attaching '" << storage_->name << "'@" << detector.get()
-            << " to '" << lv_idx.first->GetName() << "'@"
-            << static_cast<void const*>(lv_idx.first);
+        CELER_LOG(debug) << "Attaching '" << storage_->name << "'@"
+                         << detector.get() << " to '"
+                         << lv_idx.first->GetName() << "'@"
+                         << static_cast<void const*>(lv_idx.first);
         lv_idx.first->SetSensitiveDetector(detector.get());
     }
     return detector;

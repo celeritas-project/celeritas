@@ -8,11 +8,11 @@
 
 #include <random>
 
+#include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/SampleStats.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 
-#include "DiagnosticRngEngine.hh"
-#include "SampleStats.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

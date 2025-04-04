@@ -23,9 +23,9 @@
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/setup/Problem.hh"
 
 #include "Events.hh"
+#include "Problem.hh"
 #include "System.hh"
 
 namespace celeritas

@@ -98,7 +98,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         CELER_ASSERT(run_manager_);
     }
 
-    ScopedGeantLogger scoped_logger;
+    ScopedGeantLogger scoped_logger(celeritas::world_logger());
     ScopedGeantExceptionHandler scoped_exceptions;
 
     {

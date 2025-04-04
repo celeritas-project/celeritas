@@ -9,7 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/user/StepData.hh"
+
+#include "../StepData.hh"
 
 namespace celeritas
 {

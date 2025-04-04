@@ -8,10 +8,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/random/distribution/NormalDistribution.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/NormalDistribution.hh"
-#include "celeritas/random/distribution/PoissonDistribution.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "GeneratorDistributionData.hh"

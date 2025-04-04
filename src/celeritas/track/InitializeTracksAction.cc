@@ -15,7 +15,8 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/track/TrackInitParams.hh"
+
+#include "TrackInitParams.hh"
 
 #include "detail/InitTracksExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"

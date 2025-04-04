@@ -13,12 +13,12 @@
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "CoreParams.hh"
+#include "CoreTrackView.hh"
 #include "Debug.hh"
 
 using celeritas::units::NativeTraits;

@@ -11,7 +11,8 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/Types.hh"
+
+#include "Types.hh"
 
 namespace celeritas
 {

@@ -15,6 +15,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/SimpleTestBase.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -23,7 +24,6 @@
 
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
-#include "../SimpleTestBase.hh"
 
 using celeritas::units::MevEnergy;
 
