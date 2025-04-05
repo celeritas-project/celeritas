@@ -8,7 +8,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Conference papers
 
-- *[gnu-parallel-2024]*: K. Maheshwari, W. Arndt, A. M. Karimi, J. Yin, F. Suter, *et al*. "GNU Parallel: Enabling Low-Overhead HT-HPC Workflows at Extreme Scale". Atlanta, GA, Nov 2024.
+- *[gnu-parallel-2024]*: K. Maheshwari, W. Arndt, A. M. Karimi, J. Yin, F. Suter, *et al*. "GNU Parallel: Enabling Low-Overhead HT-HPC Workflows at Extreme Scale". Atlanta, GA, Nov 2024. [10.1109/SCW63240.2024.00257](https://doi.org/10.1109/SCW63240.2024.00257)
 - *[celer-chep-2024]*: S. R. Johnson, A. Lund, P. Canal, S. C. Tognini, J. Esseiva, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Apr 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - S. C. Tognini, P. Canal, T. M. Evans, G. Lima, A. L. Lund, *et al*. "Celeritas: GPU-accelerated particle transport for detector simulation in High Energy Physics experiments". in *Snowmass white papers*, Mar 2022. [10.48550/arXiv.2203.09467](https://doi.org/10.48550/arXiv.2203.09467)
 - *[celer-chep-2021]*: S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Apr 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
@@ -83,7 +83,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code [presentation]". *vCHEP 2021*, 19 May 2021. [presentation](https://indico.cern.ch/event/948465/contributions/4324114/)
 - S. R. Johnson. "Celeritas: Status and Plans". *HSF Detector Simulation Working Group Meeting*, 12 Apr 2021. [presentation](https://indico.cern.ch/event/1019940/#4-celeritas-status-plans)
 - W. Pokorski. "Geant4 R&D: activities for 2021". *Geant4 Technical Forum R&D update*, 11 Mar 2021. [presentation](https://indico.cern.ch/event/1011728/contributions/4252276/)
-- T. Evans. "Celeritas: toward GPU-based particle transport for detector simulations  in HEP experiments". *HSF-WLCG Workshop*, 23 Nov 2020.
+- T. Evans. "Celeritas: toward GPU-based particle transport for detector simulations in HEP experiments". *HSF-WLCG Workshop*, 23 Nov 2020.
 - T. Evans. "Monte Carlo neutron transport in the ECP Coupled Monte Carlo Neutronics and Fluid Flow Simulation of Small Modular Reactor (ExaSMR) project". *Geant4 R&D Task Force Meeting*, 14 Apr 2020.
 - T. Evans. "Celeritas: toward GPU-based particle transport for detector simulations in HEP experiments". *Geant4 R&D Task Force Meeting*, 14 Apr 2020.
 
