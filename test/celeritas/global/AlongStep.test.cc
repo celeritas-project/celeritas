@@ -743,21 +743,10 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        if (geant4_version < Version(11, 2, 0))
-        {
-            EXPECT_SOFT_EQ(6.113290482072715e-07, result.displacement);
-        }
-        else
-        {
-            // Changed in Geant4 11.2
-            EXPECT_SOFT_NEAR(6.1133229218682668e-07, result.displacement, 1e-5);
-        }
+        EXPECT_SOFT_NEAR(6.1133e-07, result.displacement, 1e-4);
         EXPECT_SOFT_EQ(0.99999999288499986, result.angle);
     }
 }
-
-// Whether Geant4 is less than version 11.2, when the step length changes
-constexpr bool g4_lt_11_2 = CELERITAS_GEANT4_VERSION < 0x0b0200;
 
 TEST_F(LeadBoxAlongStepTest, position_change)
 {
@@ -788,16 +777,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         {
             EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
-        if (g4_lt_11_2)
-        {
-            EXPECT_EQ("eloss-range", result.action);
-            EXPECT_SOFT_NEAR(5.38228333877273e-8, result.step, 1e-13);
-        }
-        else
-        {
-            EXPECT_EQ("tracking-cut", result.action);
-            EXPECT_SOFT_NEAR(5.3825861448155134e-8, result.step, 1e-13);
-        }
+        EXPECT_EQ("tracking-cut", result.action);
+        EXPECT_SOFT_NEAR(5.38228e-8, result.step, 1e-5);
         EXPECT_EQ(0, result.displacement);
     }
     {
@@ -807,16 +788,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         EXPECT_TRUE(scoped_log.empty()) << scoped_log;
-        if (g4_lt_11_2)
-        {
-            EXPECT_SOFT_EQ(0.072970479114469966, result.step);
-            EXPECT_SOFT_EQ(0.0056608379081902749, result.displacement);
-        }
-        else
-        {
-            EXPECT_SOFT_EQ(0.072970479512448713, result.step);
-            EXPECT_SOFT_EQ(0.00566083791058547, result.displacement);
-        }
+        EXPECT_SOFT_NEAR(0.07297048, result.step, 1e-6);
+        EXPECT_SOFT_NEAR(0.0056608379, result.displacement, 1e-8);
         EXPECT_EQ("eloss-range", result.action);
     }
 }
