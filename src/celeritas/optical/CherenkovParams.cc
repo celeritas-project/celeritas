@@ -13,7 +13,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/CdfUtils.hh"
+#include "corecel/math/PdfUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"

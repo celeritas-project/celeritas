@@ -2,9 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/CdfUtils.test.cc
+//! \file corecel/math/PdfUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/CdfUtils.hh"
+#include "corecel/math/PdfUtils.hh"
+
+#include <cmath>
+
+#include "corecel/grid/VectorUtils.hh"
 
 #include "celeritas_test.hh"
 
@@ -14,22 +18,28 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class CdfUtilsTest : public ::celeritas::test::Test
+class PdfUtilsTest : public ::celeritas::test::Test
 {
   protected:
     void SetUp() override {}
 };
 
-TEST_F(CdfUtilsTest, segment_integrators)
+TEST_F(PdfUtilsTest, segment_integrators)
 {
     using Arr2 = Array<double, 2>;
-    EXPECT_SOFT_EQ(
-        3.0, PostRectangleSegmentIntegrator{}(Arr2{-1, 0.5}, Arr2{5, 12345}));
-    EXPECT_SOFT_EQ(2.0,
-                   TrapezoidSegmentIntegrator{}(Arr2{1, 0.5}, Arr2{3, 1.5}));
+    {
+        PostRectangleSegmentIntegrator integrate{};
+        EXPECT_SOFT_EQ(3.0, integrate(Arr2{-1, 0.5}, Arr2{5, 12345}));
+        EXPECT_SOFT_EQ(-1, integrate.x_eval(Arr2{-1, 0.5}, Arr2{5, 12345}));
+    }
+    {
+        TrapezoidSegmentIntegrator integrate{};
+        EXPECT_SOFT_EQ(2.0, integrate(Arr2{1, 0.5}, Arr2{3, 1.5}));
+        EXPECT_SOFT_EQ(2.0, integrate.x_eval(Arr2{1, 0.5}, Arr2{3, 1.5}));
+    }
 }
 
-TEST_F(CdfUtilsTest, integrate_segments)
+TEST_F(PdfUtilsTest, integrate_segments)
 {
     static double const x[] = {-1, 0, 1, 3, 6};
     static double const f[] = {1, 0, 2, 1, 0};
@@ -55,7 +65,41 @@ TEST_F(CdfUtilsTest, integrate_segments)
     }
 }
 
-TEST_F(CdfUtilsTest, normalize_cdf)
+TEST_F(PdfUtilsTest, calc_moments)
+{
+    // Uniform distribution with (a, b) = (3, 7): mean = (a + b) / 2 = 5,
+    // variance = (b - a)^2 / 12 = 4/3
+    std::vector<double> const x_coarse{3, 3.5, 4.25, 5, 6.75, 7};
+    std::vector<double> const f_coarse{1, 1, 1, 1, 1, 1};
+
+    std::vector<double> const x_fine = linspace(3, 7, 1000);
+    std::vector<double> const f_fine(1000, 1);
+
+    {
+        MomentCalculator calc_moments{PostRectangleSegmentIntegrator{}};
+
+        auto result = calc_moments(make_span(x_coarse), make_span(f_coarse));
+        EXPECT_SOFT_EQ(4.4375, result.mean);
+        EXPECT_SOFT_EQ(0.90234375, result.variance);
+
+        result = calc_moments(make_span(x_fine), make_span(f_fine));
+        EXPECT_SOFT_EQ(4.9979979979980023, result.mean);
+        EXPECT_SOFT_EQ(1.333331997329303, result.variance);
+    }
+    {
+        MomentCalculator calc_moments{TrapezoidSegmentIntegrator{}};
+
+        auto result = calc_moments(make_span(x_coarse), make_span(f_coarse));
+        EXPECT_SOFT_EQ(5, result.mean);
+        EXPECT_SOFT_EQ(1.201171875, result.variance);
+
+        result = calc_moments(make_span(x_fine), make_span(f_fine));
+        EXPECT_SOFT_EQ(5, result.mean);
+        EXPECT_SOFT_EQ(1.3333319973293456, result.variance);
+    }
+}
+
+TEST_F(PdfUtilsTest, normalize_cdf)
 {
     std::vector<double> cdf = {1, 2, 4, 4, 8};
 

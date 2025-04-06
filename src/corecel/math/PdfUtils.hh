@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/CdfUtils.hh
+//! \file corecel/math/PdfUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,6 +11,8 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+
+#include "Algorithms.hh"
 
 namespace celeritas
 {
@@ -27,6 +29,12 @@ struct PostRectangleSegmentIntegrator
     {
         return (hi[0] - lo[0]) * lo[1];
     }
+
+    template<class T>
+    T x_eval(Array<T, 2> lo, Array<T, 2>) const
+    {
+        return lo[0];
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -39,6 +47,12 @@ struct TrapezoidSegmentIntegrator
     T operator()(Array<T, 2> lo, Array<T, 2> hi) const
     {
         return T(0.5) * (hi[0] - lo[0]) * (hi[1] + lo[1]);
+    }
+
+    template<class T>
+    T x_eval(Array<T, 2> lo, Array<T, 2> hi) const
+    {
+        return T(0.5) * (hi[0] + lo[0]);
     }
 };
 
@@ -80,6 +94,60 @@ class SegmentIntegrator
             dst[i] = init;
             prev = cur;
         }
+    }
+
+  private:
+    I integrate_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Estimate the mean and variance of a tabulated PDF.
+ */
+template<class I>
+class MomentCalculator
+{
+  public:
+    template<class T>
+    struct Result
+    {
+        T mean{};
+        T variance{};
+    };
+
+  public:
+    //! Construct with integrator
+    explicit MomentCalculator(I&& integrate)
+        : integrate_{std::forward<I>(integrate)}
+    {
+    }
+
+    //! Estimate the mean and variance
+    template<class T>
+    Result<T> operator()(Span<T const> x, Span<T const> f)
+    {
+        CELER_EXPECT(x.size() == f.size());
+        CELER_EXPECT(x.size() >= 2);
+
+        using Array2 = Array<T, 2>;
+
+        T integral{};
+        T mean{};
+        T variance{};
+        Array2 prev{x[0], f[0]};
+        for (auto i : range(std::size_t{1}, x.size()))
+        {
+            Array2 cur{x[i], f[i]};
+            auto area = integrate_(prev, cur);
+            auto x_eval = integrate_.x_eval(prev, cur);
+            integral += area;
+            mean += area * x_eval;
+            variance += area * ipow<2>(x_eval);
+            prev = cur;
+        }
+        mean /= integral;
+        variance = variance / integral - ipow<2>(mean);
+        return {mean, variance};
     }
 
   private:

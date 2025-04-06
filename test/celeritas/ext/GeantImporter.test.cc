@@ -1649,6 +1649,7 @@ TEST_F(OneSteelSphereGG, physics)
 
 TEST_F(LarSphere, optical)
 {
+    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::warning};
     auto&& imported = this->imported_data();
     ASSERT_EQ(3, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
@@ -1666,8 +1667,6 @@ TEST_F(LarSphere, optical)
     EXPECT_EQ("lAr", imported.geo_materials[1].name);
     ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
-    real_type const tol = this->comparison_tolerance();
-
     // Most optical properties in the geometry are pulled from the Geant4
     // example examples/advanced/CaTS/gdml/LArTPC.gdml
 
@@ -1675,6 +1674,7 @@ TEST_F(LarSphere, optical)
     auto const& optical = imported.optical_materials[0];
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
+
     // Material scintillation
     EXPECT_REAL_EQ(1, scint.resolution_scale);
     EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
@@ -1688,13 +1688,27 @@ TEST_F(LarSphere, optical)
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
-    // clang-format off
-    static double const expected_components[]
-        = {3, 1.28e-05, 1e-06, 1e-08, 6e-09,
-           1, 1.28e-05, 1e-06, 1e-08, 1.5e-06,
-           1, 2e-05,    2e-06, 1e-08, 3e-06};
-    // clang-format on
-    EXPECT_VEC_NEAR(expected_components, components, tol);
+    static double const expected_components[] = {
+        3,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        6e-09,
+        1,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        1.5e-06,
+        1,
+        2e-05,
+        2.0099589626834e-06,
+        1e-08,
+        3e-06,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_components, components);
+    static std::string const expected_messages[] = {
+        R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)"};
+    EXPECT_VEC_EQ(expected_messages, scoped_log.messages());
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());
