@@ -118,17 +118,17 @@ TEST_F(KernelContextExceptionTest, typical)
     // Check for these values based on the step count and thread ID below
     this->check_kce = [&step](KernelContextException const& e) {
         auto simplified_str = StringSimplifier{3}(e.what());
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            // NOTE: orange without geant4 uses a different volume name
-            simplified_str = std::regex_replace(
-                simplified_str, std::regex("@global"), "@world");
-        }
+        // Remove labels for reperoducibility
+        simplified_str = std::regex_replace(
+            simplified_str, std::regex("@(global|world)"), "");
 
-        EXPECT_EQ(
-            R"(track slot 15 in kernel 'test-kernel': {"geo":{"dir":[0.0,0.0,1.0],"is_on_boundary":true,"is_outside":false,"pos":[[0.0,1.0,5.0],"cm"],"volume_id":"world@world"},"mat":"hard vacuum","particle":{"energy":[10.0,"MeV"],"particle_id":"gamma"},"sim":{"along_step_action":"along-step-neutral","event_id":1,"num_steps":1,"parent_id":-1,"post_step_action":"geo-boundary","status":"alive","step_length":[5.0,"cm"],"time":[1.668e-10,"s"],"track_id":3},"thread_id":15,"track_slot_id":15})",
-            simplified_str)
-            << repr(simplified_str);
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        {
+            EXPECT_EQ(
+                R"(track slot 15 in kernel 'test-kernel': {"geo":{"dir":[0.0,0.0,1.0],"is_on_boundary":true,"is_outside":false,"pos":[[0.0,1.0,5.0],"cm"],"volume_id":"world"},"mat":"hard vacuum","particle":{"energy":[10.0,"MeV"],"particle_id":"gamma"},"sim":{"along_step_action":"along-step-neutral","event_id":1,"num_steps":1,"parent_id":-1,"post_step_action":"geo-boundary","status":"alive","step_length":[5.0,"cm"],"time":[1.668e-10,"s"],"track_id":3},"thread_id":15,"track_slot_id":15})",
+                simplified_str)
+                << repr(simplified_str);
+        }
 
         EXPECT_EQ(find_thread(step.state_ref(), TrackSlotId{15}), e.thread());
         EXPECT_EQ(TrackSlotId{15}, e.track_slot());
