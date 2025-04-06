@@ -25,16 +25,18 @@ namespace test
 class StringSimplifier
 {
   public:
-    // Construct with defaults
-    inline StringSimplifier(int float_digits = 3);
+    // Construct with number of digit of precision
+    inline StringSimplifier(int precision);
+    StringSimplifier() = default;
 
     // Simplify
     [[nodiscard]] std::string operator()(std::string const& old) const;
 
   private:
-    int float_digits_;
+    int precision_{4};
 
-    std::string simplify_float(std::string&& s) const;
+    std::string simplify_sci(std::string s) const;
+    std::string simplify_float(std::string s) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -43,10 +45,9 @@ class StringSimplifier
 /*!
  * Construct with defaults.
  */
-StringSimplifier::StringSimplifier(int float_digits)
-    : float_digits_{float_digits}
+StringSimplifier::StringSimplifier(int precision) : precision_{precision}
 {
-    CELER_EXPECT(float_digits_ >= 0);
+    CELER_EXPECT(precision_ > 0);
 }
 
 //---------------------------------------------------------------------------//
