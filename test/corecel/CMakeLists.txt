@@ -4,7 +4,9 @@
 #-----------------------------------------------------------------------------#
 
 celeritas_add_test_library(testcel_core
+  StringSimplifier.cc
   ScopedLogStorer.cc
+  random/Histogram.cc
 )
 celeritas_target_link_libraries(testcel_core
   PRIVATE testcel_harness Celeritas::corecel
@@ -20,6 +22,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # TESTS
 #-----------------------------------------------------------------------------#
+celeritas_add_test(StringSimplifier.test.cc)
+
 celeritas_add_test(Assert.test.cc
   ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
 )
@@ -88,6 +92,25 @@ celeritas_add_test(math/BisectionRootFinder.test.cc)
 celeritas_add_test(math/IllinoisRootFinder.test.cc)
 celeritas_add_test(math/TridiagonalSolver.test.cc)
 
+#-----------------------------------------------------------------------------#
+# Random
+
+celeritas_add_device_test(random/RngEngine)
+celeritas_add_test(random/Selector.test.cc)
+celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
+
+celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
+celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)
+celeritas_add_test(random/distribution/GammaDistribution.test.cc)
+celeritas_add_test(random/distribution/InverseSquareDistribution.test.cc)
+celeritas_add_test(random/distribution/NormalDistribution.test.cc)
+celeritas_add_test(random/distribution/PoissonDistribution.test.cc)
+celeritas_add_test(random/distribution/RadialDistribution.test.cc)
+celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
+celeritas_add_test(random/distribution/RejectionSampler.test.cc)
+celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
+
+#-----------------------------------------------------------------------------#
 # Sys
 celeritas_add_test(sys/ActionRegistry.test.cc)
 celeritas_add_test(sys/Device.test.cc GPU

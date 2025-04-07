@@ -28,8 +28,7 @@ namespace app
  */
 void GeantDiagnostics::register_output(VecOutputInterface&& output)
 {
-    CELER_LOG_LOCAL(debug) << "Registering " << output.size()
-                           << " output interfaces";
+    CELER_LOG(debug) << "Registering " << output.size() << " output interfaces";
 
     auto& q = queued_output();
     if (q.empty())
@@ -59,7 +58,7 @@ auto GeantDiagnostics::queued_output() -> VecOutputInterface&
 GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
     CELER_EXPECT(params);
-    CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
+    CELER_LOG(status) << "Initializing Geant4 diagnostics";
 
     // Get output registry
     auto const& output_reg = params.output_reg();
@@ -115,7 +114,7 @@ void GeantDiagnostics::Finalize()
     }
 
     // Reset all data
-    CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
+    CELER_LOG(debug) << "Resetting diagnostics";
     if (meh_)
     {
         log_and_rethrow(std::move(*meh_));

@@ -317,6 +317,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsFieldVolAlongStepTest.msc_field"
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
+    "LeadBoxAlongStepTest.*"
   )
   set(_stepper_filter
     "-TestEm*:LeadBox*"
@@ -410,8 +411,6 @@ celeritas_add_test(optical/Physics.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
-celeritas_add_test(mat/IsotopeSelector.test.cc)
-celeritas_add_test(mat/ElementSelector.test.cc)
 celeritas_add_device_test(mat/Material)
 
 #-----------------------------------------------------------------------------#
@@ -434,24 +433,9 @@ celeritas_add_test(phys/ProcessBuilder.test.cc ${_needs_root}
 
 #-----------------------------------------------------------------------------#
 # Random
-
-celeritas_add_device_test(random/RngEngine)
-celeritas_add_test(random/Selector.test.cc)
+celeritas_add_test(random/ElementSelector.test.cc)
+celeritas_add_test(random/IsotopeSelector.test.cc)
 celeritas_add_test(random/RngReseed.test.cc)
-celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
-
-celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
-celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)
-celeritas_add_test(random/distribution/GammaDistribution.test.cc)
-celeritas_add_test(random/distribution/InverseSquareDistribution.test.cc)
-celeritas_add_test(random/distribution/IsotropicDistribution.test.cc)
-celeritas_add_test(random/distribution/NormalDistribution.test.cc)
-celeritas_add_test(random/distribution/PoissonDistribution.test.cc)
-celeritas_add_test(random/distribution/RadialDistribution.test.cc)
-celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
-celeritas_add_test(random/distribution/RejectionSampler.test.cc)
-celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
-celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Track

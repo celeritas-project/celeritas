@@ -9,7 +9,8 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "orange/OrangeTypes.hh"
+
+#include "../OrangeTypes.hh"
 
 namespace celeritas
 {

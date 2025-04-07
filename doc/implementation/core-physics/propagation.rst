@@ -23,6 +23,8 @@ Propagator
   the field lines, satisfying constraints (see :ref:`field driver
   options<api_field_data>`) for the maximum geometry error.
 
+.. _api_propagation:
+
 Propagation
 -----------
 

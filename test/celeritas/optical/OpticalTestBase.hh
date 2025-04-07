@@ -9,13 +9,13 @@
 #include <memory>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/track/SimData.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "Test.hh"
 
 namespace celeritas

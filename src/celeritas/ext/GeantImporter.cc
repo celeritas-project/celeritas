@@ -896,8 +896,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             G4VProcess const& process = *process_list[j];
             if (!include_process(process.GetProcessType()))
             {
-                CELER_LOG(debug)
-                    << "Filtered process '" << process.GetProcessName() << "'";
                 continue;
             }
 
@@ -927,8 +925,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                 G4VProcess const& process = *process_list[j];
                 if (!include_process(process.GetProcessType()))
                 {
-                    CELER_LOG(debug) << "Filtered process '"
-                                     << process.GetProcessName() << "'";
                     continue;
                 }
 

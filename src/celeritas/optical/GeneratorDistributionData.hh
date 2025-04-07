@@ -11,7 +11,8 @@
 #include "corecel/cont/EnumArray.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/Types.hh"
+
+#include "Types.hh"
 
 namespace celeritas
 {

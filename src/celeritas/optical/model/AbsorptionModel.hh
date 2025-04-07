@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../ImportedModelAdapter.hh"
-#include "../Model.hh"
-#include "../Types.hh"
+#include "celeritas/optical/ImportedModelAdapter.hh"
+#include "celeritas/optical/Model.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {

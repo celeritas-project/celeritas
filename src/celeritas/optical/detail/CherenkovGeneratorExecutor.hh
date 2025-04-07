@@ -9,12 +9,12 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/CherenkovGenerator.hh"
-#include "celeritas/optical/OffloadData.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "OpticalUtils.hh"
+#include "../CherenkovGenerator.hh"
+#include "../CoreTrackView.hh"
+#include "../OffloadData.hh"
 
 namespace celeritas
 {
@@ -35,7 +35,7 @@ struct CherenkovGeneratorExecutor
     NativeCRef<celeritas::optical::CherenkovData> const cherenkov;
     NativeRef<OffloadStateData> const offload_state;
     RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
-    OffloadBufferSize size;
+    OpticalOffloadCounters<> size;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////

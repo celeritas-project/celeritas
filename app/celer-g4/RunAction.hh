@@ -18,6 +18,9 @@ class G4VExceptionHandler;
 
 namespace celeritas
 {
+class ScopedGeantLogger;
+class ScopedGeantExceptionHandler;
+
 namespace app
 {
 class ExceptionHandler;
@@ -63,6 +66,10 @@ class RunAction final : public G4UserRunAction
     bool init_shared_;
     Stopwatch get_transport_time_;
     G4VExceptionHandler* orig_eh_{nullptr};
+
+    // Thread-local Geant4 logging and exception redirect
+    std::unique_ptr<ScopedGeantLogger> scoped_log_;
+    std::unique_ptr<ScopedGeantExceptionHandler> scoped_except_;
 };
 
 //---------------------------------------------------------------------------//

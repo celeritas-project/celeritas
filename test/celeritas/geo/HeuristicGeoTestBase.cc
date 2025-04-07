@@ -17,8 +17,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/ScopedStreamFormat.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/random/RngParams.hh"
 
 #include "HeuristicGeoExecutor.hh"
 #include "TestMacros.hh"

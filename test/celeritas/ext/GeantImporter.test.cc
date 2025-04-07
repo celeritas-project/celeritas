@@ -14,13 +14,13 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
-#include "../GeantTestBase.hh"
 
 namespace celeritas
 {

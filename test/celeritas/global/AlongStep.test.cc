@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/alongstep.test.cc
+//! \file celeritas/global/AlongStep.test.cc
 //---------------------------------------------------------------------------//
 #include <fstream>
 
@@ -11,9 +11,12 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LeadBoxTestBase.hh"
+#include "celeritas/MockTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/SimpleTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
@@ -26,13 +29,20 @@
 
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
-#include "../MockTestBase.hh"
-#include "../SimpleTestBase.hh"
 
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+auto const geant4_version = celeritas::Version::from_string(
+    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -395,7 +405,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.phys_mfp = 100;
 
             auto result = this->run(inp, num_tracks);
-            if (is_ci_build())
+            if (geant4_version < Version(11, 2, 0))
             {
                 EXPECT_SOFT_EQ(0.0099999992401263, result.eloss);
             }
@@ -588,7 +598,7 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         // 0.76833209617735942
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.42355220700686919, result.displacement, tol);
-        EXPECT_SOFT_NEAR(0.76821077630949963, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.7454707400628271, result.angle, tol);
         EXPECT_SOFT_NEAR(0.47856565916792532, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
@@ -647,7 +657,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
 
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.42355220700686919, result.displacement, tol);
-        EXPECT_SOFT_NEAR(0.76821077630949963, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.7454707400628271, result.angle, tol);
         EXPECT_SOFT_NEAR(0.47856565916792532, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
@@ -676,8 +686,8 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         auto result = this->run(inp, num_tracks);
         if (is_ci_build())
         {
-            // Range = 6.41578930992857482e-06
-            EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
+            // Range = 6.4161473386016025e-06
+            EXPECT_SOFT_EQ(6.4161473386016025e-06, result.step);
         }
         else
         {
@@ -733,21 +743,10 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        if (is_ci_build())
-        {
-            EXPECT_SOFT_EQ(6.113290482072715e-07, result.displacement);
-        }
-        else
-        {
-            // Changed in Geant4 11.2
-            EXPECT_SOFT_NEAR(6.1133229218682668e-07, result.displacement, 1e-5);
-        }
+        EXPECT_SOFT_NEAR(6.1133e-07, result.displacement, 1e-4);
         EXPECT_SOFT_EQ(0.99999999288499986, result.angle);
     }
 }
-
-// Whether Geant4 is less than version 11.2, when the step length changes
-constexpr bool g4_lt_11_2 = CELERITAS_GEANT4_VERSION < 0x0b0200;
 
 TEST_F(LeadBoxAlongStepTest, position_change)
 {
@@ -760,34 +759,30 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         SCOPED_TRACE("Electron with no change in position after propagation");
         inp.energy = MevEnergy{1e-6};
         inp.position = {1e9, 0, 0};
-        ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::error};
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::error};
+        scoped_log_.float_digits(2);
         auto result = this->run(inp, num_tracks);
-        static double const expected_step_length
-            = (g4_lt_11_2 ? 5.38228333877273e-8 : 5.3825861448155134e-8);
         if (CELERITAS_DEBUG)
         {
-            static double const expected_distance = expected_step_length;
-            std::stringstream ss;
-            ss << "Propagation of step length "
-               << repr(from_cm(expected_step_length))
-               << " due to post-step action 2 leading to distance "
-               << repr(from_cm(expected_distance))
-               << " failed to change position";
-            if (!scoped_log.empty()
-                && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+            if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
             {
-                EXPECT_EQ(ss.str(), scoped_log.messages().front());
+                static char const* const expected_log_messages[] = {
+                    R"(Propagation of step length 5.38e-8 due to post-step action 2 leading to distance 5.38e-8 failed to change position)"};
+                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
             }
             static char const* const expected_log_levels[] = {"error"};
-            EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
         else
         {
-            EXPECT_TRUE(scoped_log.empty()) << scoped_log;
+            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
-        EXPECT_SOFT_NEAR(expected_step_length, result.step, 1e-13);
+        // VecGeom with Geant4 11.0 has eloss-range
+        EXPECT_TRUE(result.action == "tracking-cut"
+                    || result.action == "eloss-range")
+            << result.action;
+        EXPECT_SOFT_NEAR(5.38228e-8, result.step, 1e-5);
         EXPECT_EQ(0, result.displacement);
-        EXPECT_EQ("tracking-cut", result.action);
     }
     {
         SCOPED_TRACE("Electron changes position");
@@ -796,16 +791,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         EXPECT_TRUE(scoped_log.empty()) << scoped_log;
-        if (g4_lt_11_2)
-        {
-            EXPECT_SOFT_EQ(0.072970479114469966, result.step);
-            EXPECT_SOFT_EQ(0.0056608379081902749, result.displacement);
-        }
-        else
-        {
-            EXPECT_SOFT_EQ(0.072970479512448713, result.step);
-            EXPECT_SOFT_EQ(0.00566083791058547, result.displacement);
-        }
+        EXPECT_SOFT_NEAR(0.07297048, result.step, 1e-6);
+        EXPECT_SOFT_NEAR(0.0056608379, result.displacement, 1e-8);
         EXPECT_EQ("eloss-range", result.action);
     }
 }

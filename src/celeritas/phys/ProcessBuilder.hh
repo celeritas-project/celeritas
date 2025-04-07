@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/inp/ProcessBuilder.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/ImportSBTable.hh"
 
@@ -68,18 +69,11 @@ class ProcessBuilder
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
-    //! Input argument for user-provided process construction
-    struct UserBuildInput
-    {
-        SPConstMaterial material;
-        SPConstParticle particle;
-        SPConstImported imported;
-    };
-
     //!@{
     //! \name User builder type aliases
-    using UserBuildFunction = std::function<SPProcess(UserBuildInput const&)>;
-    using UserBuildMap = std::unordered_map<IPC, UserBuildFunction>;
+    using UserBuildInput = inp::ProcessBuilderInput;
+    using UserBuildFunction = inp::ProcessBuilderFunction;
+    using UserBuildMap = inp::ProcessBuilderMap;
     //!@}
 
   public:

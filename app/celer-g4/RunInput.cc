@@ -13,6 +13,7 @@
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "accel/SharedParams.hh"
@@ -49,15 +50,18 @@ inp::Problem load_problem(RunInput const& ri)
     // Model definition
     p.model.geometry = ri.geometry_file;
 
-    // Control
-    p.control.capacity = [&ri] {
-        inp::CoreStateCapacity capacity;
-        capacity.tracks = ri.num_track_slots;
-        capacity.initializers = ri.initializer_capacity;
-        capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
-                                                      * ri.num_track_slots);
-        capacity.primaries = ri.auto_flush;
-        return capacity;
+    p.control.num_streams = get_geant_num_threads();
+
+    // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
+    // *integrated* over streams
+    p.control.capacity = [&ri, num_streams = p.control.num_streams] {
+        inp::CoreStateCapacity c;
+        c.tracks = ri.num_track_slots * num_streams;
+        c.initializers = ri.initializer_capacity * num_streams;
+        c.secondaries = static_cast<size_type>(
+            ri.secondary_stack_factor * ri.num_track_slots * num_streams);
+        c.primaries = ri.auto_flush;
+        return c;
     }();
 
     if (celeritas::Device::num_devices())
@@ -80,7 +84,7 @@ inp::Problem load_problem(RunInput const& ri)
     // Field setup
     if (ri.field_type == "rzmap")
     {
-        CELER_LOG_LOCAL(info) << "Loading RZMapField from " << ri.field_file;
+        CELER_LOG(info) << "Loading RZMapField from " << ri.field_file;
         std::ifstream inp(ri.field_file);
         CELER_VALIDATE(inp,
                        << "failed to open field map file at '" << ri.field_file
@@ -103,8 +107,7 @@ inp::Problem load_problem(RunInput const& ri)
         auto field_val = norm(field.strength);
         if (field_val > 0)
         {
-            CELER_LOG_LOCAL(info)
-                << "Using a uniform field " << field_val << " [T]";
+            CELER_LOG(info) << "Using a uniform field " << field_val << " [T]";
             field.driver_options = ri.field_options;
             p.field = std::move(field);
         }

@@ -77,12 +77,13 @@ void RootEventWriter::operator()(VecPrimary const& primaries)
     // Increment contiguous event id
     event_id_++;
 
-    std::set<EventId::size_type> mismatched_events;
     for (auto const& p : primaries)
     {
-        if (p.event_id.get() != event_id_)
+        if (!warned_mismatched_events_ && p.event_id.get() != event_id_)
         {
-            mismatched_events.insert(p.event_id.unchecked_get());
+            CELER_LOG_LOCAL(warning)
+                << R"(Event IDs will not match output: this is a known issue)";
+            warned_mismatched_events_ = true;
         }
 
         primary_.event_id = event_id_;
@@ -92,13 +93,6 @@ void RootEventWriter::operator()(VecPrimary const& primaries)
         primary_.pos = real3_to_array(p.position);
         primary_.dir = real3_to_array(p.direction);
         ttree_->Fill();
-    }
-
-    if (!mismatched_events.empty())
-    {
-        CELER_LOG_LOCAL(warning)
-            << "Overwriting primary event IDs with " << event_id_ << ": "
-            << join(mismatched_events.begin(), mismatched_events.end(), ", ");
     }
 
     scoped_root_error.throw_if_errors();

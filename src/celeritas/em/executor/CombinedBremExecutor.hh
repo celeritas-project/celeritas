@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/random/engine/RngEngine.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/CombinedBremData.hh"
 #include "celeritas/em/interactor/CombinedBremInteractor.hh"
@@ -16,7 +17,6 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
-#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {

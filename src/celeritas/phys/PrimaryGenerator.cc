@@ -10,11 +10,11 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/random/distribution/DeltaDistribution.hh"
+#include "geocel/random/IsotropicDistribution.hh"
+#include "geocel/random/UniformBoxDistribution.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/inp/Events.hh"
-#include "celeritas/random/distribution/DeltaDistribution.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include "ParticleParams.hh"
 #include "Primary.hh"

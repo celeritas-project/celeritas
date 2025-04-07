@@ -12,12 +12,12 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "Test.hh"
 
 namespace celeritas

@@ -8,8 +8,9 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/phys/ParticleData.hh"
-#include "celeritas/phys/ParticleParams.hh"
+
+#include "../ParticleData.hh"
+#include "../ParticleParams.hh"
 
 namespace celeritas
 {

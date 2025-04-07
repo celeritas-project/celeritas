@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "Types.hh"
 
-#include "corecel/io/EnumStringMapper.hh"
-#include "corecel/io/StringEnumMapper.hh"
+#include "io/EnumStringMapper.hh"
+#include "io/StringEnumMapper.hh"
 
 namespace celeritas
 {

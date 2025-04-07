@@ -17,7 +17,6 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/detail/PolygonUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
@@ -27,6 +26,8 @@
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
+
+#include "detail/PolygonUtils.hh"
 
 namespace celeritas
 {

@@ -2,12 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitProcessor.hh
+//! \file celeritas/ext/detail/HitProcessor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <G4TouchableHandle.hh>
 
@@ -104,6 +105,9 @@ class HitProcessor
     // Access thread-local SD corresponding to an ID
     inline G4VSensitiveDetector* detector(DetectorId) const;
 
+    // Get and reset the hits counted (generally once per event)
+    inline size_type exchange_hits();
+
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
@@ -125,6 +129,9 @@ class HitProcessor
     std::unique_ptr<TouchableUpdaterInterface> update_touchable_;
     //! Whether geometry-related step status can be updated
     bool step_post_status_{false};
+
+    //! Accumulated number of hits
+    size_type num_hits_;
 
     void update_track(ParticleId id) const;
 };
@@ -149,6 +156,15 @@ G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
 {
     CELER_EXPECT(did < detectors_.size());
     return detectors_[did.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get and reset number of hits counted (generally once per event).
+ */
+size_type HitProcessor::exchange_hits()
+{
+    return std::exchange(num_hits_, size_type{0});
 }
 
 //---------------------------------------------------------------------------//

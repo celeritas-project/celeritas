@@ -55,13 +55,24 @@ class OffloadParams final : public AuxParamsInterface,
 
 //---------------------------------------------------------------------------//
 /*!
- * Manage optical generation states.
+ * Manage counters for optical generation states.
+ */
+struct OpticalOffloadStateBase : public AuxStateInterface
+{
+    //! Buffer sizes to be sent to GPU
+    OpticalOffloadCounters<size_type> buffer_size;
+    //! Counts accumulated over the event for diagnostics
+    OpticalAccumStats accum;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store optical generation states in aux data.
  */
 template<MemSpace M>
-struct OpticalOffloadState : public AuxStateInterface
+struct OpticalOffloadState : public OpticalOffloadStateBase
 {
     CollectionStateStore<OffloadStateData, M> store;
-    OffloadBufferSize buffer_size;
 
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }

@@ -5,13 +5,13 @@
 //! \file celeritas/optical/OpticalRootImport.test.cc
 //---------------------------------------------------------------------------//
 
+#include "celeritas/LArSphereBase.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 
 #include "celeritas_test.hh"
-#include "../LArSphereBase.hh"
-#include "../RootTestBase.hh"
 
 namespace celeritas
 {

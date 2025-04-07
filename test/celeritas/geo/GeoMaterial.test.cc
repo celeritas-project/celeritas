@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/GeantTestBase.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
@@ -14,8 +16,6 @@
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "celeritas_test.hh"
-#include "../GeantTestBase.hh"
-#include "../RootTestBase.hh"
 
 namespace celeritas
 {

@@ -61,7 +61,7 @@ void FastSimulationIntegration::BeginOfRunAction(G4Run const*)
     if (enable_offload)
     {
         // Set tracking manager on workers when Celeritas is not fully disabled
-        CELER_LOG_LOCAL(debug) << "Verifying fast simulation";
+        CELER_LOG(debug) << "Verifying fast simulation";
 
         CELER_TRY_HANDLE(verify_fast_sim(),
                          ExceptionConverter{"celer.init.verify"});

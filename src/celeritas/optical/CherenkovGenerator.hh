@@ -14,10 +14,10 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CherenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"

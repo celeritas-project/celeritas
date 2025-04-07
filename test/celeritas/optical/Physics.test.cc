@@ -9,13 +9,13 @@
 #include <random>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/PhysicsStepUtils.hh"
 #include "celeritas/optical/PhysicsTrackView.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "OpticalMockModels.hh"
 #include "OpticalMockTestBase.hh"
 #include "celeritas_test.hh"

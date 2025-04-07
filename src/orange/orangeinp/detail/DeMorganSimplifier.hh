@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
-#include "orange/orangeinp/CsgTree.hh"
-#include "orange/orangeinp/CsgTypes.hh"
+#include "../CsgTree.hh"
+#include "../CsgTypes.hh"
 
 namespace celeritas
 {

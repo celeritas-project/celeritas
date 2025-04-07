@@ -77,7 +77,7 @@ CoreState<M>::CoreState(CoreParams const& params,
         offsets_.resize(params.action_reg()->num_actions() + 1);
     }
 
-    CELER_LOG_LOCAL(status) << "Celeritas core state initialization complete";
+    CELER_LOG(status) << "Celeritas core state initialization complete";
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
 }
@@ -91,9 +91,9 @@ CoreState<M>::~CoreState()
 {
     try
     {
-        CELER_LOG_LOCAL(debug)
-            << "Deallocating " << to_cstring(M) << " core state (stream "
-            << this->stream_id().unchecked_get() << ')';
+        CELER_LOG(debug) << "Deallocating " << to_cstring(M)
+                         << " core state (stream "
+                         << this->stream_id().unchecked_get() << ')';
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {

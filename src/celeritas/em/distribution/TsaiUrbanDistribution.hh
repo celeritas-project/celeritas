@@ -9,8 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
 
 namespace celeritas
 {

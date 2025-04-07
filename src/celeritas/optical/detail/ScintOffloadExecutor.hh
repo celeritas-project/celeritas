@@ -9,8 +9,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/OffloadData.hh"
-#include "celeritas/optical/ScintillationOffload.hh"
+
+#include "../OffloadData.hh"
+#include "../ScintillationOffload.hh"
 
 namespace celeritas
 {
@@ -33,7 +34,7 @@ struct ScintOffloadExecutor
 
     NativeCRef<celeritas::optical::ScintillationData> const scintillation;
     NativeRef<OffloadStateData> const state;
-    OffloadBufferSize size;
+    OpticalOffloadCounters<> size;
 };
 
 //---------------------------------------------------------------------------//

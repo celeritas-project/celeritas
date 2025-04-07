@@ -71,7 +71,7 @@ RootIO::RootIO()
     if (G4Threading::IsWorkerThread()
         || !G4Threading::IsMultithreadedApplication())
     {
-        CELER_LOG_LOCAL(info)
+        CELER_LOG_LOCAL(debug)
             << "Creating ROOT event output file at '" << file_name_ << "'";
 
         file_.reset(TFile::Open(file_name_.c_str(), "recreate"));
@@ -219,8 +219,8 @@ void RootIO::Merge()
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);
 
-    CELER_LOG_LOCAL(info) << "Merging hit root files from " << nthreads
-                          << " threads into \"" << file_name_ << "\"";
+    CELER_LOG(info) << "Merging hit root files from " << nthreads
+                    << " threads into \"" << file_name_ << "\"";
 
     for (int i = 0; i < nthreads; ++i)
     {

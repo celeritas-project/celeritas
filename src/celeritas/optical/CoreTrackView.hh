@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/engine/RngEngine.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/random/RngEngine.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
@@ -150,8 +150,8 @@ CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
 /*!
  * Return a material view.
  */
-CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
-    -> MaterialView
+CELER_FORCEINLINE_FUNCTION auto
+CoreTrackView::material_record() const -> MaterialView
 {
     return this->material_record(this->geometry());
 }
