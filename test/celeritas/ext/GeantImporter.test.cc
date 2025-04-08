@@ -1676,6 +1676,7 @@ TEST_F(LarSphere, optical)
     EXPECT_TRUE(scint);
 
     // Material scintillation
+    constexpr auto tol = SoftEqual<real_type>{}.rel();
     EXPECT_REAL_EQ(1, scint.resolution_scale);
     EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
     EXPECT_EQ(3, scint.material.components.size());
@@ -1705,10 +1706,13 @@ TEST_F(LarSphere, optical)
         1e-08,
         3e-06,
     };
-    EXPECT_VEC_SOFT_EQ(expected_components, components);
-    static std::string const expected_messages[] = {
-        R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)"};
-    EXPECT_VEC_EQ(expected_messages, scoped_log.messages());
+    EXPECT_VEC_NEAR(expected_components, components, tol);
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        static std::string const expected_messages[] = {
+            R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)"};
+        EXPECT_VEC_EQ(expected_messages, scoped_log.messages());
+    }
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());
