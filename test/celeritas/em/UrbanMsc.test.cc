@@ -45,7 +45,8 @@ constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
                                        && CELERITAS_CORE_GEO
                                               == CELERITAS_CORE_GEO_VECGEOM;
 
-void extend_from_histogram(std::vector<double>& v, Histogram const& h)
+template<class T>
+void extend_from_histogram(std::vector<T>& v, Histogram const& h)
 {
     auto dens = h.calc_density();
     v.insert(v.end(), dens.begin(), dens.end());
