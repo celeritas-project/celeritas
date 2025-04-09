@@ -7,7 +7,6 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -35,17 +34,6 @@ namespace celeritas
 {
 namespace detail
 {
-
-static int total_msc_bits{0};
-#define MSC_LOG_LINE                                                        \
-    {                                                                       \
-        static bool const first_call = [] {                                 \
-            std::cout << __LINE__ << ": " << ++total_msc_bits << std::endl; \
-            return true;                                                    \
-        }();                                                                \
-        CELER_ASSERT(first_call);                                           \
-    }
-
 //---------------------------------------------------------------------------//
 /*!
  * Sample angular change and lateral displacement with the Urban multiple
@@ -201,7 +189,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         {
             // Range-limited step (particle stops)
             // TODO: probably redundant with low 'end energy'
-            MSC_LOG_LINE;
             return true;
         }
         if (true_path_ < shared_.params.geom_limit)
@@ -209,7 +196,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             // Very small step (NOTE: with the default values in UrbanMscData,
             // this is redundant witih the tau_small comparison below if MFP >=
             // 0.005 cm)
-            MSC_LOG_LINE;
             return true;
         }
 
@@ -219,16 +205,13 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         if (Energy{end_energy_} < shared_.params.min_sampling_energy())
         {
             // Ending energy is very low
-            MSC_LOG_LINE;
             return true;
         }
         if (true_path_ <= helper_.msc_mfp() * shared_.params.tau_small)
         {
             // Very small MFP travelled
-            MSC_LOG_LINE;
             return true;
         }
-        MSC_LOG_LINE;
         return false;
     }();
 
@@ -251,10 +234,8 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             {
                 // Cross section is almost constant over the step: avoid
                 // numerical explosion
-                MSC_LOG_LINE;
                 return helper_.msc_mfp();
             }
-            MSC_LOG_LINE;
             return (lambda - lambda_end) / std::log(lambda / lambda_end);
         }();
 
@@ -271,7 +252,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                 // UrbanMscStepLimit
                 CELER_ASSERT(!is_displaced_);
                 limit_min_ = UrbanMscParameters::limit_min();
-                MSC_LOG_LINE;
             }
             limit_min_ = min(limit_min_, physics.scalars().lambda_limit);
 
@@ -288,13 +268,11 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                 {
                     // No angular sampling and no displacement => no change
                     skip_sampling_ = true;
-                    MSC_LOG_LINE;
                 }
                 else
                 {
                     theta0_ = 0;
                 }
-                MSC_LOG_LINE;
             }
         }
     }
@@ -311,7 +289,6 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     if (skip_sampling_)
     {
         // Do not sample scattering at the last or at a small step
-        MSC_LOG_LINE;
         return {inc_direction_, {0, 0, 0}, MscInteraction::Action::unchanged};
     }
 
@@ -320,25 +297,21 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         if (theta0_ <= 0)
         {
             // Very small outgoing angular distribution
-            MSC_LOG_LINE;
             return real_type{1};
         }
         if (tau_ >= shared_.params.tau_big)
         {
             // Long mean free path: exiting direction is isotropic
             UniformRealDistribution<real_type> sample_isotropic(-1, 1);
-            MSC_LOG_LINE;
             return sample_isotropic(rng);
         }
         if (2 * end_energy_ < inc_energy_ || theta0_ > constants::pi / 6)
         {
             // Large energy loss over the step or large angle distribution
             // width
-            MSC_LOG_LINE;
             return this->simple_scattering(rng);
         }
         // No special cases match:
-        MSC_LOG_LINE;
         return this->sample_cos_theta(rng);
     }();
     CELER_ASSERT(std::fabs(costheta) <= 1);
@@ -367,14 +340,11 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
             result.displacement = this->sample_displacement_dir(rng, phi);
             result.displacement *= length;
             result.action = MscInteraction::Action::displaced;
-            MSC_LOG_LINE;
         }
-        MSC_LOG_LINE;
     }
 
     // Calculate direction and return
     result.direction = rotate(from_spherical(costheta, phi), inc_direction_);
-    MSC_LOG_LINE;
     return result;
 }
 
@@ -437,7 +407,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     if (xmean_1 <= real_type(0.999) * xmean_)
     {
-        MSC_LOG_LINE;
         return this->simple_scattering(rng);
     }
 
@@ -445,15 +414,12 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     real_type c = [xsi] {
         if (std::fabs(xsi - 3) < real_type(0.001))
         {
-            MSC_LOG_LINE;
             return real_type(3.001);
         }
         else if (std::fabs(xsi - 2) < real_type(0.001))
         {
-            MSC_LOG_LINE;
             return real_type(2.001);
         }
-        MSC_LOG_LINE;
         return xsi;
     }();
     real_type b1 = 2 + (c - xsi) * x;
@@ -472,7 +438,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     if (generate_canonical(rng) >= qprob)
     {
         // Sample \f$ \cos\theta \f$ from \f$ g_3(\cos\theta) \f$
-        MSC_LOG_LINE;
         return UniformRealDistribution<real_type>(-1, 1)(rng);
     }
 
@@ -481,7 +446,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     {
         // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
         UniformRealDistribution<real_type> sample_inner(ea, 1);
-        MSC_LOG_LINE;
         return 1 + std::log(sample_inner(rng)) * x;
     }
     else
@@ -491,13 +455,11 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
         if (var < real_type(0.01) * d)
         {
             var /= (d * (c - 1));
-            MSC_LOG_LINE;
             return -1
                    + var * (1 - real_type(0.5) * var * c) * (2 + (c - xsi) * x);
         }
         else
         {
-            MSC_LOG_LINE;
             return x * (c - xsi - c * fastpow(var + d, -1 / (c - 1))) + 1;
         }
     }
@@ -556,7 +518,6 @@ UrbanMscScatter::compute_theta0(ParticleTrackView const& particle) const
     {
         detail::UrbanPositronCorrector calc_correction{material_.zeff()};
         y *= calc_correction(std::sqrt(inc_energy_ * end_energy_) / mass);
-        MSC_LOG_LINE;
     }
     CELER_ASSERT(y > 0);
 
@@ -577,7 +538,6 @@ UrbanMscScatter::compute_theta0(ParticleTrackView const& particle) const
     {
         // Apply correction if true path is very small
         theta0 *= std::sqrt(true_path_ / limit_min_);
-        MSC_LOG_LINE;
     }
 
     // Very small path lengths can result in a negative e- scattering
