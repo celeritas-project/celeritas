@@ -220,7 +220,7 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
 class TestEm3MscNoIntegral : public TestEm3Msc
 {
   public:
-    //! Make 100 MeV electrons along +x
+    //! Make 10 MeV electrons along +x
     std::vector<Primary> make_primaries(size_type count) const override
     {
         return this->make_primaries_with_energy(count, MevEnergy{10});
