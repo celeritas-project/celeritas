@@ -205,6 +205,9 @@ celeritas::SetupOptions MakeOptions()
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
+    // Save GDML file
+    opts.geometry_output_file = "simple-offload.gdml";
+
     opts.output_file = "simple-offload.out.json";
     return opts;
 }
