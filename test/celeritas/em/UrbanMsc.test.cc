@@ -587,7 +587,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         tstep_frac.push_back(true_path / this_pstep);
 
         // Reset RNG from the one sample
-        avg_engine_samples.push_back(rng.exchange_count());
+        avg_engine_samples.push_back(static_cast<double>(rng.exchange_count()));
 
         // Convert physical step limit to geometrical step
         MscStep step_result = [&] {
