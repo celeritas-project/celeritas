@@ -67,12 +67,15 @@ $ spack install celeritas +cuda cuda_arch=80
 ```
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 
 # Integrating into a Geant4 app
 
-In the simplest case, integration requires a small change to your project's
-CMake file:
+In the simplest case, integration requires a few small changes to your user
+applications, with many more details described in
+[integration overview][integration].
+
+You first need to find Celeritas in your project's CMake file, and change
+library calls to support VecGeom's use of CUDA RDC:
 ```diff
 +find_package(Celeritas 0.6 REQUIRED)
  find_package(Geant4 REQUIRED)
@@ -84,7 +87,7 @@ CMake file:
      ${Geant4_LIBRARIES}
 ```
 
-a few includes:
+A few includes expose Celeritas classes to the user code:
 ```diff
 --- example/accel/trackingmanager-offload.cc
 +++ example/accel/trackingmanager-offload.cc
@@ -101,7 +104,7 @@ a few includes:
  namespace
 ```
 
-minor additions to the user actions:
+Celeritas uses the build/run actions to set up and tear down cleanly:
 ```diff
 --- example/accel/trackingmanager-offload.cc
 +++ example/accel/trackingmanager-offload.cc
@@ -122,7 +125,9 @@ minor additions to the user actions:
 +        TMI::Instance().Build();
      }
 ```
-and addition to the physics list:
+
+And integrates into the tracking loop primarily using the `G4TrackingManager`
+interface:
 ```diff
 --- example/accel/trackingmanager-offload.cc
 +++ example/accel/trackingmanager-offload.cc
@@ -136,13 +141,13 @@ and addition to the physics list:
 +        new celeritas::TrackingManagerConstructor(&tmi));
 ```
 
-See the "Software library" section of the [installation
-documentation][install] for details of using Celeritas in your application or framework.
+
+[integration]: https://celeritas-project.github.io/celeritas/user/usage/integration.html
 
 # Installation for developers
 
-Since Celeritas is still under heavy development, you may be installing it
-for development purposes. The [installation documentation][install] has a
+Since Celeritas is still under very active development, you may be installing it
+for development purposes. The [installation documentation][installation] has a
 complete description of the code's dependencies and installation process for
 development.
 
@@ -203,8 +208,8 @@ other compilers *should* work.
 The full set of configurations is viewable on CI platform [GitHub Actions][gha]).
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
+[installation]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 [spack]: https://github.com/spack/spack
-[install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development

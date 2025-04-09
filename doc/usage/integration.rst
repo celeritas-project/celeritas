@@ -8,8 +8,15 @@
 Software library
 ================
 
-Using Celeritas in a downstream Geant4 application is meant to be as easy
-possible.
+The main current use case for Celeritas as a library is to integrate with user
+Geant4 applications. The interface for Geant4 integration is quite stable, and
+additional lower level code, described in :ref:`api`, is also stable.
+
+Usage overview
+--------------
+
+This describes the main points of integrating using the tracking interface,
+recommended for all applications that support Geant4 11.0 or higher.
 
 1. Find and link in your CMake project:
 
@@ -37,12 +44,6 @@ The changes for a simple application look like:
 
 .. literalinclude:: ../../example/accel/add-celer.diff
    :language: diff
-
-More details of integration are described below.
-
-The most stable part of Celeritas is the high-level :ref:`api_g4_interface`.
-Other components of the API are stable and documented in the :code:`api`
-section.
 
 CMake integration
 -----------------
