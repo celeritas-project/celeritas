@@ -46,8 +46,8 @@ class Histogram
     VecDbl calc_density() const;
 
   private:
-    Dbl2 range_;
-    double width_;
+    double offset_;
+    double inv_width_;
     VecCount counts_;
     size_type total_counts_{0};
 };
@@ -62,11 +62,12 @@ class Histogram
 void Histogram::operator()(double value)
 {
     ++total_counts_;
-    if (value < range_[0] || value >= range_[1])
+    double frac = (value - offset_) * inv_width_;
+    if (frac < 0.0 || frac >= 1.0)
     {
         return;
     }
-    auto index = static_cast<size_type>((value - range_[0]) / width_);
+    auto index = static_cast<size_type>(frac * counts_.size());
     CELER_ASSERT(index < counts_.size());
     ++counts_[index];
 }

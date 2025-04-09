@@ -19,7 +19,9 @@ namespace test
  * Contruct with the number of bins and range.
  */
 Histogram::Histogram(size_type num_bins, Dbl2 range)
-    : range_(range), width_((range[1] - range[0]) / num_bins), counts_(num_bins)
+    : offset_{range[0]}
+    , inv_width_(1 / (range[1] - range[0]))
+    , counts_(num_bins)
 {
     CELER_EXPECT(num_bins > 0);
     CELER_EXPECT(range[0] < range[1]);
