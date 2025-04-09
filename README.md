@@ -66,11 +66,78 @@ If you need to set a default configuration
 $ spack install celeritas +cuda cuda_arch=80
 ```
 
-Then see the "Software library" section of the [installation
-documentation][install] for how to use Celeritas in your application or framework.
-
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
 [install]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
+
+# Integrating into a Geant4 app
+
+In the simplest case, integration requires a small change to your project's
+CMake file:
+```diff
++find_package(Celeritas 0.6 REQUIRED)
+ find_package(Geant4 REQUIRED)
+@@ -36,3 +37,4 @@ else()
+   add_executable(trackingmanager-offload trackingmanager-offload.cc)
+-  target_link_libraries(trackingmanager-offload
++  celeritas_target_link_libraries(trackingmanager-offload
++    Celeritas::accel
+     ${Geant4_LIBRARIES}
+```
+
+a few includes:
+```diff
+--- example/accel/trackingmanager-offload.cc
++++ example/accel/trackingmanager-offload.cc
+@@ -36,2 +36,10 @@
+
++// Celeritas
++#include <accel/AlongStepFactory.hh>
++#include <accel/SetupOptions.hh>
++#include <accel/TrackingManagerConstructor.hh>
++#include <accel/TrackingManagerIntegration.hh>
++
++using TMI = celeritas::TrackingManagerIntegration;
++
+ namespace
+```
+
+minor additions to the user actions:
+```diff
+--- example/accel/trackingmanager-offload.cc
++++ example/accel/trackingmanager-offload.cc
+@@ -134,2 +142,3 @@ class RunAction final : public G4UserRunAction
+     void BeginOfRunAction(G4Run const* run) final {
++        TMI::Instance().BeginOfRunAction(run);
+     }
+@@ -137,2 +146,3 @@ class RunAction final : public G4UserRunAction
+     void EndOfRunAction(G4Run const* run) final {
++        TMI::Instance().EndOfRunAction(run);
+     }
+@@ -179,2 +189,3 @@ class ActionInitialization final : public G4VUserActionInitialization
+      void BuildForMaster() const final {
++        TMI::Instance().BuildForMaster();
+     }
+@@ -185,2 +197,3 @@ class ActionInitialization final : public G4VUserActionInitialization
+     void Build() const final{
++        TMI::Instance().Build();
+     }
+```
+and addition to the physics list:
+```diff
+--- example/accel/trackingmanager-offload.cc
++++ example/accel/trackingmanager-offload.cc
+@@ -203,4 +235,8 @@ int main()
+
++    auto& tmi = TMI::Instance();
++
+     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
+     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
++    physics_list->RegisterPhysics(
++        new celeritas::TrackingManagerConstructor(&tmi));
+```
+
+See the "Software library" section of the [installation
+documentation][install] for details of using Celeritas in your application or framework.
 
 # Installation for developers
 
