@@ -325,6 +325,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
+    "TestEm3MscNoIntegral.*"
     "TestEm15FieldMsc.*"
   )
   if(Geant4_VERSION VERSION_LESS 11.0)
