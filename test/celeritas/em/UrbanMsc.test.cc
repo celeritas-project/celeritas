@@ -628,9 +628,7 @@ TEST_F(UrbanMscTest, msc_scattering)
             MscInteraction interaction = scatter(rng);
 
             // Bin change in angle from +z
-            bin_angle(interaction.action != Action::unchanged
-                          ? interaction.direction[2]
-                          : 1);
+            bin_angle(interaction.direction[2]);
             // Bin isotropic displacement distance as fraction of geo path
             avg_displacement += (interaction.action == Action::displaced
                                      ? norm(interaction.displacement) / safety
