@@ -1,0 +1,82 @@
+diff --git example/accel/CMakeLists.txt example/accel/CMakeLists.txt
+index 6534685d8..7f68a5f26 100644
+--- example/accel/CMakeLists.txt
++++ example/accel/CMakeLists.txt
+@@ -9,2 +9,3 @@ cmake_policy(VERSION 3.12...3.30)
+ 
++find_package(Celeritas 0.6 REQUIRED)
+ find_package(Geant4 REQUIRED)
+@@ -36,3 +37,4 @@ else()
+   add_executable(trackingmanager-offload trackingmanager-offload.cc)
+-  target_link_libraries(trackingmanager-offload
++  celeritas_target_link_libraries(trackingmanager-offload
++    Celeritas::accel
+     ${Geant4_LIBRARIES}
+diff --git example/accel/trackingmanager-offload.cc example/accel/trackingmanager-offload.cc
+index 8d25b1160..47fc4521e 100644
+--- example/accel/trackingmanager-offload.cc
++++ example/accel/trackingmanager-offload.cc
+@@ -36,2 +36,10 @@
+ 
++// Celeritas
++#include <accel/AlongStepFactory.hh>
++#include <accel/SetupOptions.hh>
++#include <accel/TrackingManagerConstructor.hh>
++#include <accel/TrackingManagerIntegration.hh>
++
++using TMI = celeritas::TrackingManagerIntegration;
++
+ namespace
+@@ -134,2 +142,3 @@ class RunAction final : public G4UserRunAction
+     {
++        TMI::Instance().BeginOfRunAction(run);
+     }
+@@ -137,2 +146,3 @@ class RunAction final : public G4UserRunAction
+     {
++        TMI::Instance().EndOfRunAction(run);
+     }
+@@ -179,2 +189,4 @@ class ActionInitialization final : public G4VUserActionInitialization
+     {
++        TMI::Instance().BuildForMaster();
++
+         CELER_LOG_LOCAL(status) << "Constructing user actions";
+@@ -185,2 +197,4 @@ class ActionInitialization final : public G4VUserActionInitialization
+     {
++        TMI::Instance().Build();
++
+         CELER_LOG_LOCAL(status) << "Constructing user actions";
+@@ -193,2 +207,20 @@ class ActionInitialization final : public G4VUserActionInitialization
+ 
++celeritas::SetupOptions MakeOptions()
++{
++    celeritas::SetupOptions opts;
++    // NOTE: these numbers are appropriate for CPU execution and can be set
++    // through the UI using `/celer/
++    opts.max_num_tracks = 2024;
++    opts.initializer_capacity = 2024 * 128;
++    // Celeritas does not support EmStandard MSC physics above 200 MeV
++    opts.ignore_processes = {"CoulombScat"};
++
++    // Use a uniform (zero) magnetic field
++    opts.make_along_step = celeritas::UniformAlongStepFactory();
++
++    // Save diagnostic file to a unique name
++    opts.output_file = "trackingmanager-offload.out.json";
++    return opts;
++}
++
+ //---------------------------------------------------------------------------//
+@@ -203,4 +235,8 @@ int main()
+ 
++    auto& tmi = TMI::Instance();
++
+     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
+     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
++    physics_list->RegisterPhysics(
++        new celeritas::TrackingManagerConstructor(&tmi));
+     run_manager->SetUserInitialization(physics_list);
+@@ -208,2 +244,4 @@ int main()
+ 
++    tmi.SetOptions(MakeOptions());
++
+     run_manager->Initialize();

@@ -130,12 +130,8 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 class RunAction final : public G4UserRunAction
 {
   public:
-    void BeginOfRunAction(G4Run const* run) final
-    {
-    }
-    void EndOfRunAction(G4Run const* run) final
-    {
-    }
+    void BeginOfRunAction(G4Run const* run) final {}
+    void EndOfRunAction(G4Run const* run) final {}
 };
 
 //---------------------------------------------------------------------------//

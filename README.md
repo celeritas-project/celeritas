@@ -66,8 +66,7 @@ If you need to set a default configuration
 $ spack install celeritas +cuda cuda_arch=80
 ```
 
-
-Then see the "Downstream usage as a library" section of the [installation
+Then see the "Software library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
@@ -75,9 +74,8 @@ documentation][install] for how to use Celeritas in your application or framewor
 
 # Installation for developers
 
-Since Celeritas is still under heavy development and is not yet full-featured
-for downstream integration, you are likely installing it for development
-purposes. The [installation documentation][install] has a
+Since Celeritas is still under heavy development, you may be installing it
+for development purposes. The [installation documentation][install] has a
 complete description of the code's dependencies and installation process for
 development.
 
