@@ -49,14 +49,12 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
     echo "Set G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\""
   fi
 
-  # Run small accel examples
+  # Run small accel examples, ensuring the documentation diff is still valid
   cd "${CELER_SOURCE_DIR}/example/accel"
-  build_local
-  ctest -V --no-tests=error
-
-  # Ensure the diff is still valid
   patch -p2 -R < add-celer.diff
   patch -p2 < add-celer.diff
+  build_local
+  ctest -V --no-tests=error
 
   if [ "${G4VERSION_NUMBER}" -ge 1100 ]; then
     # Run offload-template only on Geant4 v11
