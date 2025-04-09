@@ -21,6 +21,10 @@ namespace celeritas
  * Calculate the integral of a piecewise rectangular function.
  *
  * The value at the left point is taken for the interval.
+ *
+ * \todo Remove rectangular integrator (currently and likely always unused) and
+ * possibly add higher-order integration methods if needed (e.g. for cross
+ * section generation)
  */
 struct PostRectangleSegmentIntegrator
 {
@@ -28,12 +32,6 @@ struct PostRectangleSegmentIntegrator
     T operator()(Array<T, 2> lo, Array<T, 2> hi) const
     {
         return (hi[0] - lo[0]) * lo[1];
-    }
-
-    template<class T>
-    T x_eval(Array<T, 2> lo, Array<T, 2>) const
-    {
-        return lo[0];
     }
 };
 
@@ -47,12 +45,6 @@ struct TrapezoidSegmentIntegrator
     T operator()(Array<T, 2> lo, Array<T, 2> hi) const
     {
         return T(0.5) * (hi[0] - lo[0]) * (hi[1] + lo[1]);
-    }
-
-    template<class T>
-    T x_eval(Array<T, 2> lo, Array<T, 2> hi) const
-    {
-        return T(0.5) * (hi[0] + lo[0]);
     }
 };
 
@@ -104,7 +96,6 @@ class SegmentIntegrator
 /*!
  * Estimate the mean and variance of a tabulated PDF.
  */
-template<class I>
 class MomentCalculator
 {
   public:
@@ -116,12 +107,6 @@ class MomentCalculator
     };
 
   public:
-    //! Construct with integrator
-    explicit MomentCalculator(I&& integrate)
-        : integrate_{std::forward<I>(integrate)}
-    {
-    }
-
     //! Estimate the mean and variance
     template<class T>
     Result<T> operator()(Span<T const> x, Span<T const> f)
@@ -131,6 +116,8 @@ class MomentCalculator
 
         using Array2 = Array<T, 2>;
 
+        TrapezoidSegmentIntegrator integrate;
+
         T integral{};
         T mean{};
         T variance{};
@@ -138,8 +125,8 @@ class MomentCalculator
         for (auto i : range(std::size_t{1}, x.size()))
         {
             Array2 cur{x[i], f[i]};
-            auto area = integrate_(prev, cur);
-            auto x_eval = integrate_.x_eval(prev, cur);
+            auto area = integrate(prev, cur);
+            auto x_eval = T(0.5) * (cur[0] + prev[0]);
             integral += area;
             mean += area * x_eval;
             variance += area * ipow<2>(x_eval);
@@ -149,9 +136,6 @@ class MomentCalculator
         variance = variance / integral - ipow<2>(mean);
         return {mean, variance};
     }
-
-  private:
-    I integrate_;
 };
 
 //---------------------------------------------------------------------------//

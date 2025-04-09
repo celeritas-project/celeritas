@@ -27,16 +27,10 @@ class PdfUtilsTest : public ::celeritas::test::Test
 TEST_F(PdfUtilsTest, segment_integrators)
 {
     using Arr2 = Array<double, 2>;
-    {
-        PostRectangleSegmentIntegrator integrate{};
-        EXPECT_SOFT_EQ(3.0, integrate(Arr2{-1, 0.5}, Arr2{5, 12345}));
-        EXPECT_SOFT_EQ(-1, integrate.x_eval(Arr2{-1, 0.5}, Arr2{5, 12345}));
-    }
-    {
-        TrapezoidSegmentIntegrator integrate{};
-        EXPECT_SOFT_EQ(2.0, integrate(Arr2{1, 0.5}, Arr2{3, 1.5}));
-        EXPECT_SOFT_EQ(2.0, integrate.x_eval(Arr2{1, 0.5}, Arr2{3, 1.5}));
-    }
+    EXPECT_SOFT_EQ(
+        3.0, PostRectangleSegmentIntegrator{}(Arr2{-1, 0.5}, Arr2{5, 12345}));
+    EXPECT_SOFT_EQ(2.0,
+                   TrapezoidSegmentIntegrator{}(Arr2{1, 0.5}, Arr2{3, 1.5}));
 }
 
 TEST_F(PdfUtilsTest, integrate_segments)
@@ -69,31 +63,21 @@ TEST_F(PdfUtilsTest, calc_moments)
 {
     // Uniform distribution with (a, b) = (3, 7): mean = (a + b) / 2 = 5,
     // variance = (b - a)^2 / 12 = 4/3
-    std::vector<double> const x_coarse{3, 3.5, 4.25, 5, 6.75, 7};
-    std::vector<double> const f_coarse{1, 1, 1, 1, 1, 1};
-
-    std::vector<double> const x_fine = linspace(3, 7, 1000);
-    std::vector<double> const f_fine(1000, 1);
-
     {
-        MomentCalculator calc_moments{PostRectangleSegmentIntegrator{}};
+        // Coarse grid
+        std::vector<double> const x{3, 3.5, 4.25, 5, 6.75, 7};
+        std::vector<double> const f{1, 1, 1, 1, 1, 1};
 
-        auto result = calc_moments(make_span(x_coarse), make_span(f_coarse));
-        EXPECT_SOFT_EQ(4.4375, result.mean);
-        EXPECT_SOFT_EQ(0.90234375, result.variance);
-
-        result = calc_moments(make_span(x_fine), make_span(f_fine));
-        EXPECT_SOFT_EQ(4.9979979979980023, result.mean);
-        EXPECT_SOFT_EQ(1.333331997329303, result.variance);
-    }
-    {
-        MomentCalculator calc_moments{TrapezoidSegmentIntegrator{}};
-
-        auto result = calc_moments(make_span(x_coarse), make_span(f_coarse));
+        auto result = MomentCalculator()(make_span(x), make_span(f));
         EXPECT_SOFT_EQ(5, result.mean);
         EXPECT_SOFT_EQ(1.201171875, result.variance);
+    }
+    {
+        // Fine grid
+        std::vector<double> const x = linspace(3, 7, 1000);
+        std::vector<double> const f(1000, 1);
 
-        result = calc_moments(make_span(x_fine), make_span(f_fine));
+        auto result = MomentCalculator()(make_span(x), make_span(f));
         EXPECT_SOFT_EQ(5, result.mean);
         EXPECT_SOFT_EQ(1.3333319973293456, result.variance);
     }

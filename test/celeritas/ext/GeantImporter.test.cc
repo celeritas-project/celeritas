@@ -1649,7 +1649,7 @@ TEST_F(OneSteelSphereGG, physics)
 
 TEST_F(LarSphere, optical)
 {
-    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::warning};
+    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
     ASSERT_EQ(3, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
@@ -1709,9 +1709,9 @@ TEST_F(LarSphere, optical)
     EXPECT_VEC_NEAR(expected_components, components, tol);
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        static std::string const expected_messages[] = {
-            R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)"};
-        EXPECT_VEC_EQ(expected_messages, scoped_log.messages());
+        static std::string const expected_messages
+            = R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
+        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1]);
     }
 
     // Particle scintillation

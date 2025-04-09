@@ -235,13 +235,12 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                         &pv, name, {ImportUnits::len, ImportUnits::unitless}))
                 {
                     auto const& pv_cref = pv;
-                    auto moments
-                        = MomentCalculator{TrapezoidSegmentIntegrator{}}(
-                            make_span(pv_cref.x), make_span(pv_cref.y));
+                    auto moments = MomentCalculator{}(make_span(pv_cref.x),
+                                                      make_span(pv_cref.y));
                     comp.lambda_mean = moments.mean;
                     comp.lambda_sigma = std::sqrt(moments.variance);
 
-                    CELER_LOG(warning)
+                    CELER_LOG(info)
                         << "Estimated custom properties " << prefix
                         << "LAMBDAMEAN" << comp_idx << "=" << comp.lambda_mean
                         << " and " << prefix << "LAMBDASIGMA" << comp_idx
