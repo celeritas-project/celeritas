@@ -8,7 +8,9 @@ Download publications from the Zotero database.
 
 import json
 import os
+import re
 import sys
+from datetime import datetime
 from urllib.parse import urlparse
 
 from itertools import chain
@@ -31,6 +33,17 @@ def log(text):
 def data_from(iterable):
     for entry in iterable:
         yield entry['data']
+
+
+DEFAULT_DATETIME = datetime(year=2000, month=1, day=1)
+YEAR_RE = re.compile(r"^\s*\d+\s*$")
+
+def parse_date_as(datestr, format):
+    date = parse_date(datestr, default=DEFAULT_DATETIME)
+    if YEAR_RE.match(datestr):
+        # Only put year
+        format = "%Y"
+    return date.strftime(format)
 
 
 def cached_collections(zot):
@@ -75,8 +88,15 @@ def format_name(c):
     return f"{first} {last}"
 
 
+CREATOR_ORDERING = {'author': 0, 'programmer': 1, 'presenter': 2, 'contributor': 3}
+
+
+def creator_order(cdict):
+    return CREATOR_ORDERING.get(cdict['creatorType'], 3)
+
+
 def format_names(creators, limit=1):
-    creators = [c for c in creators if c['creatorType'] != "contributor"]
+    creators = sorted(creators, key=creator_order)
     if len(creators) < limit:
         return ", ".join(format_name(c) for c in creators)
     formatted_creators = [format_name(c) for c in creators[:limit]]
@@ -103,8 +123,7 @@ def format_presentation(e):
     if (meeting := e.get('meetingName')):
         bits.append(f"*{meeting}*,")
 
-    date = parse_date(e['date'])
-    bits.append(date.strftime("%d %b %Y."))
+    bits.append(parse_date_as(e['date'], "%d %b %Y") + ".")
 
     if (url := e.get('url')):
         pt = e.get('presentationType', "").lower() or "presentation"
@@ -130,8 +149,7 @@ def format_paper(e):
     if (place := e.get('place')):
         bits.append(f"{place},")
 
-    date = parse_date(e['date'])
-    bits.append(date.strftime("%b %Y.").lstrip())
+    bits.append(parse_date_as(e['date'], "%b %Y") + ".")
 
     if (doi := e.get('DOI')):
         bits.append(f"[{doi}](https://doi.org/{doi})")
@@ -154,8 +172,7 @@ def format_software(e):
         title = f"[{title}]({url})"
     bits.append(f"\"{title}\".")
 
-    date = parse_date(e['date'])
-    bits.append(date.strftime("%b %Y.").lstrip())
+    bits.append(parse_date_as(e['date'], "%b %Y") + ".")
 
     return " ".join(bits)
 
