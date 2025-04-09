@@ -34,14 +34,6 @@
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
-// Celeritas
-#include <accel/AlongStepFactory.hh>
-#include <accel/SetupOptions.hh>
-#include <accel/TrackingManagerConstructor.hh>
-#include <accel/TrackingManagerIntegration.hh>
-
-using TMI = celeritas::TrackingManagerIntegration;
-
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -140,11 +132,9 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        TMI::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        TMI::Instance().EndOfRunAction(run);
     }
 };
 
@@ -187,16 +177,12 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        TMI::Instance().BuildForMaster();
-
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
         this->SetUserAction(new RunAction{});
     }
     void Build() const final
     {
-        TMI::Instance().Build();
-
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
         this->SetUserAction(new PrimaryGeneratorAction{});
@@ -204,24 +190,6 @@ class ActionInitialization final : public G4VUserActionInitialization
         this->SetUserAction(new EventAction{});
     }
 };
-
-celeritas::SetupOptions MakeOptions()
-{
-    celeritas::SetupOptions opts;
-    // NOTE: these numbers are appropriate for CPU execution and can be set
-    // through the UI using `/celer/
-    opts.max_num_tracks = 2024;
-    opts.initializer_capacity = 2024 * 128;
-    // Celeritas does not support EmStandard MSC physics above 200 MeV
-    opts.ignore_processes = {"CoulombScat"};
-
-    // Use a uniform (zero) magnetic field
-    opts.make_along_step = celeritas::UniformAlongStepFactory();
-
-    // Save diagnostic file to a unique name
-    opts.output_file = "trackingmanager-offload.out.json";
-    return opts;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -233,16 +201,10 @@ int main()
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
-    auto& tmi = TMI::Instance();
-
     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
-    physics_list->RegisterPhysics(
-        new celeritas::TrackingManagerConstructor(&tmi));
     run_manager->SetUserInitialization(physics_list);
     run_manager->SetUserInitialization(new ActionInitialization());
-
-    tmi.SetOptions(MakeOptions());
 
     run_manager->Initialize();
 
