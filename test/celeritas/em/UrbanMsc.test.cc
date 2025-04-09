@@ -9,6 +9,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/Histogram.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "geocel/UnitUtils.hh"
@@ -31,11 +32,59 @@
 
 namespace celeritas
 {
+namespace test
+{
+//---------------------------------------------------------------------------//
+template<class T>
+void extend_from_histogram(std::vector<T>& v, Histogram const& h)
+{
+    auto dens = h.calc_density();
+    v.insert(v.end(), dens.begin(), dens.end());
+}
+
+TEST(Distributions, UrbanLargeAngleDistribution)
+{
+    constexpr int num_samples{10000};
+    std::vector<double> angle_dist;
+
+    DiagnosticRngEngine<std::mt19937> rng;
+    for (auto tau : {1e-14, 1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
+    {
+        Histogram bin_angle(9, {-1, 1});
+
+        UrbanLargeAngleDistribution sample_angle{tau};
+        for (int i = 0; i < num_samples; ++i)
+        {
+            bin_angle(sample_angle(rng));
+        }
+        extend_from_histogram(angle_dist, bin_angle);
+        // Rejection is never hit
+        EXPECT_EQ(4 * num_samples, rng.exchange_count());
+    }
+
+    static double const expected_angle_dist[] = {
+        0,      0,      0,      0,      0,      0,      0,      0,      0.9838,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0.0005, 0.0002, 0.0004, 0,      0.0004, 0,      0.0002, 0.0005, 0.9978,
+        0.0032, 0.002,  0.0031, 0.0023, 0.0028, 0.0031, 0.0048, 0.0436, 0.9351,
+        0.0136, 0.0147, 0.0173, 0.0233, 0.0393, 0.0715, 0.1359, 0.2501, 0.4343,
+        0.0315, 0.0374, 0.0466, 0.0645, 0.0887, 0.1168, 0.1561, 0.2001, 0.2583,
+        0.0712, 0.0789, 0.0885, 0.102,  0.1094, 0.1228, 0.1318, 0.1413, 0.1541,
+        0.1146, 0.1067, 0.1139, 0.1184, 0.1139, 0.1022, 0.1059, 0.1118, 0.1126,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_angle_dist, angle_dist);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace test
+
 namespace detail
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
+using celeritas::test::extend_from_histogram;
 using celeritas::test::from_cm;
 using celeritas::test::Histogram;
 using celeritas::test::to_cm;
@@ -45,15 +94,8 @@ constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
                                        && CELERITAS_CORE_GEO
                                               == CELERITAS_CORE_GEO_VECGEOM;
 
-template<class T>
-void extend_from_histogram(std::vector<T>& v, Histogram const& h)
-{
-    auto dens = h.calc_density();
-    v.insert(v.end(), dens.begin(), dens.end());
-}
-
 //---------------------------------------------------------------------------//
-TEST(UrbanPositronCorrectorTest, all)
+TEST(Details, UrbanPositronCorrector)
 {
     UrbanPositronCorrector calc_h{1.0};  // Hydrogen
     UrbanPositronCorrector calc_w{74.0};  // Tungsten
