@@ -84,6 +84,7 @@ TEST(UrbanPositronCorrectorTest, all)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
+#define UrbanMscTest TEST_IF_CELERITAS_USE_ROOT(UrbanMscTest)
 class UrbanMscTest : public ::celeritas::test::MscTestBase
 {
   protected:
