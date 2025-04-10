@@ -82,6 +82,10 @@ class LArSphereOffloadTest : public LArSphereBase
     VecPrimary make_primaries(size_type count);
 
     template<MemSpace M>
+    void generate_and_run_optical_tracks(size_type const num_track_slots,
+                                         size_type const num_steps);
+
+    template<MemSpace M>
     RunResult run(size_type num_primaries,
                   size_type num_track_slots,
                   size_type num_steps);
@@ -253,6 +257,50 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
         result[i].particle_id = particles[i % particles.size()];
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate a vector of optical photons and run the optical tracking loop.
+ */
+template<MemSpace M>
+void LArSphereOffloadTest::generate_and_run_optical_tracks(
+    size_type const num_track_slots, size_type const num_steps)
+{
+    using InitId = ItemId<celeritas::optical::TrackInitializer>;
+    std::vector<optical::TrackInitializer> init_tracks;
+
+    // Create the core stepper
+    StepperInput step_inp;
+    step_inp.params = this->core();
+    step_inp.stream_id = StreamId{0};
+    step_inp.num_track_slots = num_track_slots;
+    Stepper<M> step(step_inp);
+    // LogContextException log_context{this->output_reg().get()};
+
+    // Access the optical offload data
+    // auto const& offload_state = get<OpticalOffloadState<M>>(
+    //     step.state().aux(), collector_->offload_aux_id());
+    auto const& optical_state = get<optical::CoreState<M>>(
+        step.state().aux(), collector_->optical_aux_id());
+
+    auto optical_state_data = optical_state.ref();
+    for (auto tr_id : range(num_track_slots))
+    {
+        optical::TrackInitializer photon;
+        // photon.direction =
+        photon.energy = units::MevEnergy(tr_id + 1.0);
+        photon.time = 1.0;
+        // photon.position
+        // photon.polorization
+        init_tracks.push_back(photon);
+    }
+
+    for (auto tr_id : range(num_track_slots))
+    {
+        size_type idx = tr_id * optical_state.size();
+        optical_state_data.init.initializers[InitId(idx)] = init_tracks[tr_id];
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -621,6 +669,19 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     EXPECT_EQ(7, result.optical_launch_step);
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
+}
+
+TEST_F(LArSphereOffloadTest, host_detector_small)
+{
+    primary_energy_ = units::MevEnergy{0.01};
+    num_track_slots_ = 32;
+    buffer_capacity_ = 4096;
+    initializer_capacity_ = 4096;
+    auto_flush_ = 1;
+    // detector_labels_.push_back(Label{});
+    this->build_optical_collector();
+
+    this->generate_and_run_optical_tracks<MemSpace::host>(num_track_slots_, 5);
 }
 
 //---------------------------------------------------------------------------//
