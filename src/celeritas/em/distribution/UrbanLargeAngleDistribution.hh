@@ -42,42 +42,39 @@ namespace celeritas
  *
  *
  * The Goudsmit-Saunderson moments for the expected angular deflection
- * \f$ \theta \f$ over a physical path length \f$ s \f$ are:
- * \f[
- *  \langle \cos \theta \rangle
- *   \equiv \langle \mu \rangle
- *   = \ee^{-s/\lambda_1} \ ,
+ * \f$ \theta \f$ over a physical path length \f$ s \f$ are: \f[
+    \langle \cos \theta \rangle
+     \equiv \langle \mu \rangle
+     = \ee^{-s/\lambda_1} \ ,
  * \f] and \f[
- *  \langle \cos^2 \theta \rangle
- *    \equiv \langle \mu^2 \rangle
- *    = \frac{1}{3}\left(1 + 2 \ee^{-s / \lambda_2}\right) \ ,
+    \langle \cos^2 \theta \rangle
+      \equiv \langle \mu^2 \rangle
+      = \frac{1}{3}\left(1 + 2 \ee^{-s / \lambda_2}\right) \ ,
  * \f]
- * where \f$ \lambda_l \f$ are transport mean free paths from the elastic cross
- * section scattering angular moments (see Eqs. 15-16 from
- * \citet{fernandez-msc-1993, https://doi.org/10.1016/0168-583X(93)95827-R}
+ * where the transport mean free paths \f$ \lambda_l \f$ are related to the
+ * \f$ l \f$th angular moment of the elastic cross section scattering  (see
+ * Eqs. 6-8, 15-16 from \citet{fernandez-msc-1993,
+ * https://doi.org/10.1016/0168-583X(93)95827-R}
  * ).
  *
  * Given the number of mean free paths \f[
- *  \tau \equiv \frac{s}{\lambda_1} \ ,
+    \tau \equiv \frac{s}{\lambda_1} \ ,
  * \f]
  * and from \citet{kawrakow-condensedhistory-1998,
  * https://doi.org/10.1016/S0168-583X(98)00274-2} that for kinetic energies
- * between a few keV and infinity,
- * \f[
- * 2 < \frac{\lambda_2}{\lambda_1} < \infty \ ,
+ * between a few keV and infinity, \f[
+   2 < \frac{\lambda_2}{\lambda_1} < \infty \ ,
  * \f]
  * this class calculates the mean scattering angle and approximates the second
  * moment of the scattering cosine using
  * \f$ \lambda_2 \approx 2.5 \lambda_1 \f$.
  *
  * Using these moments, Urban calculates: \f[
+   a = \frac{2\langle \mu \rangle + 9\langle \mu^2 \rangle - 3}
+            {2\langle \mu \rangle - 3\langle \mu^2 \rangle + 1}
+ * \f] and
  * \f[
- * a = \frac{2\langle \mu \rangle + 9\langle \mu^2 \rangle - 3}
- *          {2\langle \mu \rangle - 3\langle \mu^2 \rangle + 1}
- * \f]
- * and
- * \f[
- * p_1 = \frac{(a + 2)\langle \mu \rangle}{a} \,.
+   p_1 = \frac{(a + 2)\langle \mu \rangle}{a} \,.
  * \f]
  */
 class UrbanLargeAngleDistribution
