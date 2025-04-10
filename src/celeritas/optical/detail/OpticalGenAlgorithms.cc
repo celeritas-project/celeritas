@@ -69,7 +69,16 @@ count_num_photons(GeneratorDistributionRef<MemSpace::host> const& buffer,
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the inclusive prefix sum of the number of optical photons.
+ * Takes the first `size` generators from `buffer` and fills the corresponding
+ * elements in the offsets array with the total number of photons generated up
+ * to and including that point.
  *
+ * \verbatim
+ * buffer = {1, 2, 3, 4}
+ * size = 3
+ * -> offsets = {1,3,6}
+ * return 6
+ * \endverbatim
  * \return Total accumulated value
  */
 size_type inclusive_scan_photons(
