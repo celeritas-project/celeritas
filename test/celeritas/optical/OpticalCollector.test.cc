@@ -82,8 +82,7 @@ class LArSphereOffloadTest : public LArSphereBase
     VecPrimary make_primaries(size_type count);
 
     template<MemSpace M>
-    void generate_and_run_optical_tracks(size_type const num_track_slots,
-                                         size_type const num_steps);
+    void generate_and_run_optical_tracks(size_type const num_track_slots);
 
     template<MemSpace M>
     RunResult run(size_type num_primaries,
@@ -265,7 +264,7 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
  */
 template<MemSpace M>
 void LArSphereOffloadTest::generate_and_run_optical_tracks(
-    size_type const num_track_slots, size_type const num_steps)
+    size_type const num_track_slots)
 {
     using InitId = ItemId<celeritas::optical::TrackInitializer>;
     std::vector<optical::TrackInitializer> init_tracks;
@@ -681,7 +680,7 @@ TEST_F(LArSphereOffloadTest, host_detector_small)
     // detector_labels_.push_back(Label{});
     this->build_optical_collector();
 
-    this->generate_and_run_optical_tracks<MemSpace::host>(num_track_slots_, 5);
+    this->generate_and_run_optical_tracks<MemSpace::host>(num_track_slots_);
 }
 
 //---------------------------------------------------------------------------//
