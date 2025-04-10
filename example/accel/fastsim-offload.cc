@@ -35,7 +35,7 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
-#if G4VERSION_NUMBER >= 1200
+#if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
 #    include <G4MTRunManager.hh>
@@ -182,7 +182,7 @@ celeritas::SetupOptions MakeOptions()
 int main()
 {
     auto run_manager = [] {
-#if G4VERSION_NUMBER >= 1200
+#if G4VERSION_NUMBER >= 1100
         return std::unique_ptr<G4RunManager>{
             G4RunManagerFactory::CreateRunManager()};
 #else
