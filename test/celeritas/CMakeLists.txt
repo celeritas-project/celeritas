@@ -166,8 +166,7 @@ celeritas_add_test(em/RelativisticBrem.test.cc ${_needs_double})
 celeritas_add_test(em/SeltzerBerger.test.cc ${_needs_double})
 celeritas_add_test(em/CoulombScattering.test.cc ${_fixme_single})
 
-celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
-  ${_optional_geant4_env})
+celeritas_add_test(em/UrbanMsc.test.cc ${_optional_geant4_env})
 celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
@@ -325,6 +324,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
+    "TestEm3MscNoIntegral.*"
     "TestEm15FieldMsc.*"
   )
   if(Geant4_VERSION VERSION_LESS 11.0)

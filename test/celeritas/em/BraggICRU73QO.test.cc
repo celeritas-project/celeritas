@@ -145,7 +145,7 @@ TEST_F(BraggICRU73QOTest, distribution)
             ASSERT_LE(e, max);
             histogram(std::log(e));
         }
-        auto density = histogram.density();
+        auto density = histogram.calc_density();
         loge_pdf.insert(loge_pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);
