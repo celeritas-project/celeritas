@@ -42,7 +42,7 @@ recommended for all applications that support Geant4 11.0 or higher.
 
 The changes for a simple application look like:
 
-.. literalinclude:: ../../example/accel/add-celer.diff
+.. literalinclude:: ../../example/geant4/add-celer.diff
    :language: diff
 
 CMake integration
