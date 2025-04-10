@@ -33,17 +33,23 @@ class Histogram
     //!@}
 
   public:
-    // Construct with number of bins and range
-    Histogram(size_type num_bins, Dbl2 range);
+    // Construct with number of bins and domain
+    Histogram(size_type num_bins, Dbl2 domain);
 
     // Update the histogram with a value
     inline void operator()(double value);
 
-    // Get the histogram
+    //! Get the histogram
     VecCount const& counts() const { return counts_; }
+
+    //! Get the total number of times tallied
+    size_type samples() const { return total_counts_; }
 
     // Get the result as a probability density
     VecDbl calc_density() const;
+
+    // Calculate the total number of samples within the domain
+    size_type calc_valid_samples() const;
 
   private:
     double offset_;
@@ -56,8 +62,8 @@ class Histogram
 /*!
  * Update the histogram with a value.
  *
- * Values outside of \c range are allowable and will show as a deficit in the
- * resulting tally.
+ * Values outside of the input \c domain are allowable and will show as a
+ * deficit in the resulting tally.
  */
 void Histogram::operator()(double value)
 {
