@@ -13,7 +13,6 @@
 
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/inp/Field.hh"
 
 class G4LogicalVolume;
 
@@ -28,6 +27,11 @@ class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
+
+namespace inp
+{
+struct UniformField;
+}
 
 //---------------------------------------------------------------------------//
 /*!

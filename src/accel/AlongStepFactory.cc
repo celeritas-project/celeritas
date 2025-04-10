@@ -23,6 +23,7 @@
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/io/ImportData.hh"
 
 namespace celeritas
