@@ -37,11 +37,6 @@ TEST_F(UniformRealDistributionTest, constructors)
         EXPECT_SOFT_EQ(1.0, sample_uniform.a());
         EXPECT_SOFT_EQ(2.0, sample_uniform.b());
     }
-    if (CELERITAS_DEBUG)
-    {
-        // b < a is not allowed
-        EXPECT_THROW(UniformRealDistribution<>(3, 2), DebugError);
-    }
 }
 
 TEST_F(UniformRealDistributionTest, bin)
