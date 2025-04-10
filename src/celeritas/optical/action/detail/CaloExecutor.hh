@@ -28,9 +28,7 @@ namespace detail
  */
 struct CaloExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(CoreTrackView& track);  //, std::vector<VolumeId>&
-                                       // detector_ids);
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
@@ -40,6 +38,8 @@ CELER_FUNCTION void CaloExecutor::operator()(CoreTrackView& track)
 
     auto geo = track.geometry();
     auto v_id = geo.volume_id();
+
+    auto detectors = track.params().detector;
 
     CELER_LOG(status) << "old volume id is " << v_id.get();
 

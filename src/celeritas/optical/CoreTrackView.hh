@@ -73,6 +73,8 @@ class CoreTrackView
     // Action ID for encountering a geometry boundary
     inline CELER_FUNCTION ActionId boundary_action() const;
 
+    inline CELER_FUNCTION ParamsRef params() const;
+
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
 
@@ -150,8 +152,8 @@ CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
 /*!
  * Return a material view.
  */
-CELER_FORCEINLINE_FUNCTION auto
-CoreTrackView::material_record() const -> MaterialView
+CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
+    -> MaterialView
 {
     return this->material_record(this->geometry());
 }
@@ -222,6 +224,15 @@ CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
 {
     return params_.scalars.boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * return the reference to the core params data.
+ */
+CELER_FUNCTION NativeCRef<CoreParamsData> CoreTrackView::params() const
+{
+    return params_;
 }
 
 //---------------------------------------------------------------------------//
