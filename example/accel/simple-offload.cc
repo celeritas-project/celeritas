@@ -206,7 +206,16 @@ celeritas::SetupOptions MakeOptions()
     opts.ignore_processes = {"CoulombScat"};
 
     // Save GDML file
-    opts.geometry_output_file = "simple-offload.gdml";
+    if (G4VERSION_NUMBER >= 1070)
+    {
+        opts.geometry_output_file = "simple-offload.gdml";
+    }
+    else
+    {
+        CELER_LOG(info) << "Not setting simple offload: older versions of "
+                           "Geant4 may fail on CI due to files stepping on "
+                           "each other";
+    }
 
     opts.output_file = "simple-offload.out.json";
     return opts;
