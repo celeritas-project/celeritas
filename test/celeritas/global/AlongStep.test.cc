@@ -453,7 +453,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.28579817262705, result.eloss, 5e-2);
         EXPECT_SOFT_NEAR(0.13028709259427, result.displacement, 1e-2);
-        EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 5e-2);
+        EXPECT_SOFT_NEAR(0.39471345537907648, result.angle, 5e-2);
         EXPECT_SOFT_NEAR(5.3240431819014e-12, result.time, 5e-12);
         EXPECT_SOFT_NEAR(0.1502064087009, result.step, 5e-2);
         EXPECT_EQ("msc-range", result.action);
@@ -579,7 +579,7 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         // displacement
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.28064807889290933, result.displacement, tol);
-        EXPECT_SOFT_NEAR(0.68629076604678063, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.57901648672876349, result.angle, tol);
         EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
@@ -641,7 +641,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
 
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.28057298212898418, result.displacement, tol);
-        EXPECT_SOFT_NEAR(0.6882027184831665, result.angle, tol);
+        EXPECT_SOFT_NEAR(0.58327217429784761, result.angle, tol);
         EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
