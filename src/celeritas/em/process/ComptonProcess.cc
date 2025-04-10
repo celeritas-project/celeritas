@@ -21,15 +21,10 @@ namespace celeritas
  * Construct from particles and imported Geant data.
  */
 ComptonProcess::ComptonProcess(SPConstParticles particles,
-                               SPConstImported process_data,
-                               Options options)
+                               SPConstImported process_data)
     : particles_(std::move(particles))
-    , imported_(process_data,
-                particles_,
-                ImportProcessClass::compton,
-                {pdg::gamma()},
-                options.interpolation)
-    , options_(options)
+    , imported_(
+          process_data, particles_, ImportProcessClass::compton, {pdg::gamma()})
 {
     CELER_EXPECT(particles_);
 }

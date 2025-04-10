@@ -10,7 +10,6 @@
 
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/model/CoulombScatteringModel.hh"
-#include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
@@ -33,20 +32,11 @@ class CoulombScatteringProcess : public Process
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
-    struct Options
-    {
-        //! Whether to use integral method to sample interaction length
-        bool use_integral_xs{true};
-        //! Interpolation method
-        inp::Interpolation interpolation;
-    };
-
   public:
     //! Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
                              SPConstMaterials materials,
-                             SPConstImported process_data,
-                             Options const& options);
+                             SPConstImported process_data);
 
     //! Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -54,8 +44,8 @@ class CoulombScatteringProcess : public Process
     //! Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return true; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return imported_.applies_at_rest(); }
@@ -67,7 +57,6 @@ class CoulombScatteringProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    Options options_;
 };
 
 //---------------------------------------------------------------------------//

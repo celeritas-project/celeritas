@@ -23,16 +23,13 @@ namespace celeritas
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
                                            SPConstMaterials materials,
                                            SPConstImported process_data,
-                                           Options options,
                                            ReadData load_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::photoelectric,
-                {pdg::gamma()},
-                options.interpolation)
-    , options_(options)
+                {pdg::gamma()})
     , load_pe_(std::move(load_data))
 {
     CELER_EXPECT(particles_);
@@ -47,7 +44,7 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
 auto PhotoelectricProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
     return {std::make_shared<LivermorePEModel>(
-        *start_id++, *particles_, *materials_, load_pe_, options_.interpolation)};
+        *start_id++, *particles_, *materials_, load_pe_)};
 }
 
 //---------------------------------------------------------------------------//

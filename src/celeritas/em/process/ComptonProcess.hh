@@ -8,7 +8,6 @@
 
 #include <memory>
 
-#include "celeritas/inp/Physics.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -29,18 +28,9 @@ class ComptonProcess : public Process
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
-    // Options for Compton scattering
-    struct Options
-    {
-        //! Interpolation method
-        inp::Interpolation interpolation;
-    };
-
   public:
     // Construct from imported data
-    ComptonProcess(SPConstParticles particles,
-                   SPConstImported process_data,
-                   Options options);
+    ComptonProcess(SPConstParticles particles, SPConstImported process_data);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -48,8 +38,8 @@ class ComptonProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability applic) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final { return false; }
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return false; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return imported_.applies_at_rest(); }
@@ -60,7 +50,6 @@ class ComptonProcess : public Process
   private:
     SPConstParticles particles_;
     ImportedProcessAdapter imported_;
-    Options options_;
 };
 
 //---------------------------------------------------------------------------//

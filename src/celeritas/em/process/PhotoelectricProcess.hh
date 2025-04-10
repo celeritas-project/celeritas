@@ -9,7 +9,6 @@
 #include <functional>
 #include <memory>
 
-#include "celeritas/inp/Physics.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -36,19 +35,11 @@ class PhotoelectricProcess : public Process
     using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
     //!@}
 
-    // Options for photoelectric process
-    struct Options
-    {
-        //! Interpolation method
-        inp::Interpolation interpolation;
-    };
-
   public:
     // Construct from Livermore photoelectric data
     PhotoelectricProcess(SPConstParticles particles,
                          SPConstMaterials materials,
                          SPConstImported process_data,
-                         Options options,
                          ReadData load_data);
 
     // Construct the models associated with this process
@@ -57,8 +48,8 @@ class PhotoelectricProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final { return false; }
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return false; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return imported_.applies_at_rest(); }
@@ -70,7 +61,6 @@ class PhotoelectricProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    Options options_;
     ReadData load_pe_;
 };
 

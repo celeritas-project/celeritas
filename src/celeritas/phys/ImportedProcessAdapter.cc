@@ -14,8 +14,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
@@ -117,11 +115,8 @@ auto ImportedProcesses::find(key_type particle_process) const -> ImportProcessId
 ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
                                                SPConstParticles const& particles,
                                                ImportProcessClass process_class,
-                                               SpanConstPDG pdg_numbers,
-                                               inp::Interpolation interpolation)
-    : imported_(std::move(imported))
-    , process_class_(process_class)
-    , interpolation_(interpolation)
+                                               SpanConstPDG pdg_numbers)
+    : imported_(std::move(imported)), process_class_(process_class)
 {
     CELER_EXPECT(particles);
     CELER_EXPECT(!pdg_numbers.empty());
@@ -189,13 +184,11 @@ ImportedProcessAdapter::ImportedProcessAdapter(
     SPConstImported imported,
     SPConstParticles const& particles,
     ImportProcessClass process_class,
-    std::initializer_list<PDGNumber> pdg_numbers,
-    inp::Interpolation interpolation)
+    std::initializer_list<PDGNumber> pdg_numbers)
     : ImportedProcessAdapter(std::move(imported),
                              particles,
                              std::move(process_class),
-                             {pdg_numbers.begin(), pdg_numbers.end()},
-                             interpolation)
+                             {pdg_numbers.begin(), pdg_numbers.end()})
 {
 }
 
@@ -240,24 +233,6 @@ auto ImportedProcessAdapter::step_limits_impl(
 
     StepLimitBuilders builders;
 
-    auto get_interp = [&](ImportPhysicsVector const& pv, std::string grid) {
-        inp::Interpolation interp = interpolation_;
-        if (!pv.spline)
-        {
-            // Disable spline interpolation if it's not used for this process
-            // and grid type in Geant4
-            interp.type = InterpolationType::linear;
-        }
-        if (applic.material.get() == 0)
-        {
-            // Will be the same for all materials; just print for one
-            CELER_LOG(debug)
-                << "Using " << to_cstring(interp.type) << " interpolation for "
-                << to_cstring(process_class_) << " " << grid << " grid";
-        }
-        return interp;
-    };
-
     // Construct cross section tables
     if (import_process.process_class == ImportProcessClass::msc)
     {
@@ -266,42 +241,28 @@ auto ImportedProcessAdapter::step_limits_impl(
     else if (ids.lambda && ids.lambda_prim)
     {
         // Both unscaled and scaled values are present
-        auto const& lo = get_vector(ids.lambda);
-        CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
-        auto const& hi = get_vector(ids.lambda_prim);
-        CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs]
-            = ValueGridXsBuilder::from_geant(make_span(lo.x),
-                                             make_span(lo.y),
-                                             get_interp(lo, "lambda"),
-                                             make_span(hi.x),
-                                             make_span(hi.y),
-                                             get_interp(hi, "lambda prime"));
+        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_geant(
+            get_vector(ids.lambda), get_vector(ids.lambda_prim));
     }
     else if (ids.lambda_prim)
     {
         // Only high-energy (energy-scale) cross sections are presesnt
-        auto const& pv = get_vector(ids.lambda_prim);
-        CELER_ASSERT(pv.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_scaled(
-            make_span(pv.x), make_span(pv.y), get_interp(pv, "lambda prime"));
+        builders[ValueGridType::macro_xs]
+            = ValueGridXsBuilder::from_scaled(get_vector(ids.lambda_prim));
     }
     else if (ids.lambda)
     {
-        // Only low-energy cross sections are presesnt
-        auto const& pv = get_vector(ids.lambda);
-        CELER_ASSERT(pv.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
-            make_span(pv.x), make_span(pv.y), get_interp(pv, "lambda"));
+        builders[ValueGridType::macro_xs]
+            = ValueGridLogBuilder::from_geant(get_vector(ids.lambda));
     }
+
+    // Construct slowing-down data
     if (ids.dedx)
     {
-        // Construct slowing-down data
-        auto const& pv = get_vector(ids.dedx);
-        CELER_ASSERT(pv.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::energy_loss] = ValueGridLogBuilder::from_geant(
-            make_span(pv.x), make_span(pv.y), get_interp(pv, "energy loss"));
+        builders[ValueGridType::energy_loss]
+            = ValueGridLogBuilder::from_geant(get_vector(ids.dedx));
     }
+
     return builders;
 }
 

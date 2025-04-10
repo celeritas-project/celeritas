@@ -18,7 +18,6 @@
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportProcess.hh"
 
@@ -106,15 +105,13 @@ class ImportedProcessAdapter
     ImportedProcessAdapter(SPConstImported imported,
                            SPConstParticles const& particles,
                            ImportProcessClass process_class,
-                           SpanConstPDG pdg_numbers,
-                           inp::Interpolation interpolation);
+                           SpanConstPDG pdg_numbers);
 
     // Construct from shared table data
     ImportedProcessAdapter(SPConstImported imported,
                            SPConstParticles const& particles,
                            ImportProcessClass process_class,
-                           std::initializer_list<PDGNumber> pdg_numbers,
-                           inp::Interpolation interpolation);
+                           std::initializer_list<PDGNumber> pdg_numbers);
 
     // Construct step limits from the given particle/material type
     StepLimitBuilders step_limits(Applicability const& applic) const;
@@ -147,7 +144,6 @@ class ImportedProcessAdapter
     SPConstImported imported_;
     ImportProcessClass process_class_;
     std::map<ParticleId, ParticleProcessIds> ids_;
-    inp::Interpolation interpolation_;
 
     // Construct step limits from the given particle/material type
     StepLimitBuilders step_limits_impl(Applicability const& applic) const;

@@ -24,16 +24,13 @@ namespace celeritas
  * Construct from host data.
  */
 EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
-                                                   SPConstImported process_data,
-                                                   Options options)
+                                                   SPConstImported process_data)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
-    , options_(options)
     , applies_at_rest_(ImportedProcessAdapter(process_data,
                                               particles_,
                                               ImportProcessClass::annihilation,
-                                              {pdg::positron()},
-                                              {})
+                                              {pdg::positron()})
                            .applies_at_rest())
 {
     CELER_EXPECT(particles_);

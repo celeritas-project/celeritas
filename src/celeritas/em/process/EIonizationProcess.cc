@@ -21,15 +21,12 @@ namespace celeritas
  * Construct process from host data.
  */
 EIonizationProcess::EIonizationProcess(SPConstParticles particles,
-                                       SPConstImported process_data,
-                                       Options options)
+                                       SPConstImported process_data)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::e_ioni,
-                {pdg::electron(), pdg::positron()},
-                options.interpolation)
-    , options_(options)
+                {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(particles_);
 }
