@@ -63,14 +63,15 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 /*!
  * Construct from a GDML input.
  *
- * This assumes that Celeritas is driving and will manage Geant4 exceptions
- * etc.
+ * This assumes that Celeritas is driving and will manage Geant4 logging
+ * and exceptions.
  */
 GeantGeoParams::GeantGeoParams(std::string const& filename)
 {
     ScopedMem record_mem("GeantGeoParams.construct");
 
-    scoped_logger_ = std::make_unique<ScopedGeantLogger>();
+    scoped_logger_
+        = std::make_unique<ScopedGeantLogger>(celeritas::world_logger());
     scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
 
     disable_geant_signal_handler();

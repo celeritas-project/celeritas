@@ -8,10 +8,10 @@
 
 #include <cmath>
 
+#include "geocel/MockGeoTrackView.hh"
 #include "geocel/rasterize/Image.hh"
 
 #include "celeritas_test.hh"
-#include "../MockGeoTrackView.hh"
 
 namespace celeritas
 {

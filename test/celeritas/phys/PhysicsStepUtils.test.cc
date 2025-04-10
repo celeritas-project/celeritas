@@ -7,6 +7,7 @@
 #include "celeritas/phys/PhysicsStepUtils.hh"
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/Quantities.hh"
@@ -14,7 +15,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "MockProcess.hh"
 #include "celeritas_test.hh"
 

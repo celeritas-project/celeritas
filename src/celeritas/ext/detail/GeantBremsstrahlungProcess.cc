@@ -132,7 +132,7 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
         em_model->SetLPMFlag(false);
 #endif
         G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
-        CELER_LOG(debug) << "Added G4SeltzerBergerModel from " << energy_min
+        CELER_LOG(debug) << "Using G4SeltzerBergerModel from " << energy_min
                          << " to " << sb_limit_ << " MeV";
 
         ++model_index;
@@ -157,7 +157,7 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
             em_model->SetLPMFlag(em_parameters->LPM());
 #endif
             G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
-            CELER_LOG(debug) << "Added G4eBremsstrahlungRelModel from "
+            CELER_LOG(debug) << "Using G4eBremsstrahlungRelModel from "
                              << sb_limit_ << " to " << energy_max << " MeV";
         }
     }

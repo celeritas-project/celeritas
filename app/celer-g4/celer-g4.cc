@@ -57,7 +57,7 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
-#include "LocalLogger.hh"
+#include "LogHandlers.hh"
 #include "RunInputIO.json.hh"
 
 using namespace std::literals::string_view_literals;
@@ -134,14 +134,15 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
     }();
     CELER_ASSERT(run_manager);
 
+    // Set up loggers
+    world_logger() = Logger::from_handle_env(make_world_handler(), "CELER_LOG");
+    self_logger() = Logger::from_handle_env(
+        make_self_handler(get_geant_num_threads(*run_manager)),
+        "CELER_LOG_LOCAL");
+
+    // Redirect Geant4 output and exceptions through Celeritas objects
     ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;
-
-    self_logger() = [&params] {
-        Logger log{LocalLogger{params->num_streams()}};
-        log.level(log_level_from_env("CELER_LOG_LOCAL"));
-        return log;
-    }();
 
     CELER_LOG(info) << "Run manager type: "
                     << TypeDemangler<G4RunManager>{}(*run_manager);

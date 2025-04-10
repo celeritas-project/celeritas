@@ -88,7 +88,7 @@ void IntegrationBase::Build()
  */
 void IntegrationBase::EndOfRunAction(G4Run const*)
 {
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+    CELER_LOG(status) << "Finalizing Celeritas";
 
     auto& singleton = IntegrationSingleton::instance();
 

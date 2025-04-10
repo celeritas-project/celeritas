@@ -10,10 +10,10 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/io/Label.hh"
+#include "geocel/Types.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 #include "orange/OrangeTypes.hh"
-#include "celeritas/Types.hh"
 
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"

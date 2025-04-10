@@ -23,7 +23,8 @@
 #include "celeritas/phys/ParticleParams.hh"
 
 // Test helpers
-#include "DiagnosticRngEngine.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
+
 #include "Test.hh"
 
 namespace celeritas

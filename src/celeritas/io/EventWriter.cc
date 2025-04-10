@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "EventWriter.hh"
 
-#include <set>
 #include <HepMC3/GenParticle.h>
 #include <HepMC3/GenVertex.h>
 #include <HepMC3/Print.h>
@@ -102,8 +101,6 @@ void EventWriter::operator()(VecPrimary const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
 
-    std::set<EventId::size_type> mismatched_events;
-
     HepMC3::GenEvent evt(HepMC3::Units::MEV, HepMC3::Units::CM);
 
     EventId const event_id{event_count_++};
@@ -163,20 +160,16 @@ void EventWriter::operator()(VecPrimary const& primaries)
         mom.set_e(energy);
         par->set_momentum(mom);
 
-        if (CELER_UNLIKELY(p.event_id != event_id))
+        if (!warned_mismatched_events_ && p.event_id != event_id)
         {
-            mismatched_events.insert(p.event_id.unchecked_get());
+            CELER_LOG_LOCAL(warning)
+                << R"(Event IDs will not match output: this is a known issue)";
+            warned_mismatched_events_ = true;
         }
 
         // Note: primary's track ID is ignored
     }
 
-    if (CELER_UNLIKELY(!mismatched_events.empty()))
-    {
-        CELER_LOG_LOCAL(warning)
-            << "Overwriting primary event IDs with " << event_id.get() << ": "
-            << join(mismatched_events.begin(), mismatched_events.end(), ", ");
-    }
     evt.set_event_number(event_id.get());
 
     if (fmt_ == Format::hepevt)

@@ -9,6 +9,8 @@
 #include <cmath>
 
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/ReciprocalDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
@@ -17,8 +19,6 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "PhysicsConstants.hh"
 

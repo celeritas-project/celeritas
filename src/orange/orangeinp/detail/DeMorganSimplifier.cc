@@ -14,9 +14,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTree.hh"
-#include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/CsgTypes.hh"
+
+#include "../CsgTree.hh"
+#include "../CsgTreeUtils.hh"
+#include "../CsgTypes.hh"
 
 namespace celeritas
 {

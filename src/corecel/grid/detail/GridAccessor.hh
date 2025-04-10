@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file coreceel/grid/detail/GridAccessor.hh
+//! \file corecel/grid/detail/GridAccessor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,8 +10,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/grid/UniformGrid.hh"
-#include "corecel/grid/UniformGridData.hh"
+
+#include "../UniformGrid.hh"
+#include "../UniformGridData.hh"
 
 namespace celeritas
 {

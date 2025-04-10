@@ -11,13 +11,13 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/ScintillationParams.hh"
 
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
 #include "ScintGeneratorExecutor.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../ScintillationParams.hh"
 
 namespace celeritas
 {

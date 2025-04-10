@@ -9,10 +9,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "celeritas/global/ActionLauncher.device.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
+
+#include "../ActionLauncher.device.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../TrackExecutor.hh"
 
 namespace celeritas
 {

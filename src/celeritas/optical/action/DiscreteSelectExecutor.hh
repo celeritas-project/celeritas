@@ -8,13 +8,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/random/RngEngine.hh"
-
-#include "../CoreTrackView.hh"
-#include "../PhysicsData.hh"
-#include "../PhysicsStepUtils.hh"
-#include "../PhysicsTrackView.hh"
-#include "../SimTrackView.hh"
+#include "corecel/random/engine/RngEngine.hh"
+#include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/PhysicsData.hh"
+#include "celeritas/optical/PhysicsStepUtils.hh"
+#include "celeritas/optical/PhysicsTrackView.hh"
+#include "celeritas/optical/SimTrackView.hh"
 
 namespace celeritas
 {

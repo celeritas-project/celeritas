@@ -18,11 +18,11 @@
 #include "celeritas/grid/GridIdFinder.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
-#include "celeritas/mat/TabulatedElementSelector.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
-#include "celeritas/phys/MacroXsCalculator.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/random/TabulatedElementSelector.hh"
 
+#include "MacroXsCalculator.hh"
+#include "ParticleTrackView.hh"
 #include "PhysicsData.hh"
 
 namespace celeritas

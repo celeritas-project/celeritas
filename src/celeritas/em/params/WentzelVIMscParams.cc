@@ -11,9 +11,10 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "celeritas/em/params/detail/MscParamsHelper.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
+
+#include "detail/MscParamsHelper.hh"
 
 namespace celeritas
 {

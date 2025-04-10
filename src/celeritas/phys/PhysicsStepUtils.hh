@@ -12,6 +12,8 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
@@ -19,8 +21,6 @@
 #include "celeritas/grid/SplineCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/random/Selector.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "ParticleTrackView.hh"
 #include "PhysicsStepView.hh"

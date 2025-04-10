@@ -73,6 +73,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     std::mutex read_mutex_;
     std::deque<SPHepEvt> event_buffer_;
     size_type start_event_{0};
+    bool warned_mismatched_events_{false};
 
     // Read
     SPHepEvt read_event(size_type event_id);
@@ -83,9 +84,13 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
 inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const&)
 {
     CELER_NOT_CONFIGURED("HepMC3");
+    CELER_DISCARD(num_events_);
     CELER_DISCARD(world_solid_);
     CELER_DISCARD(reader_);
     CELER_DISCARD(read_mutex_);
+    CELER_DISCARD(event_buffer_);
+    CELER_DISCARD(start_event_);
+    CELER_DISCARD(warned_mismatched_events_);
 }
 
 inline void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event*)

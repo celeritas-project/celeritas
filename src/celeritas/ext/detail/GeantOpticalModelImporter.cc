@@ -89,7 +89,9 @@ GeantOpticalModelImporter::import_mfps(std::string const& mfp_property_name) con
     for (auto opt_idx : range(mfps.size()))
     {
         GeantMaterialPropertyGetter get_property{*opt_to_mat_[opt_idx]};
-        get_property(&mfps[opt_idx], mfp_property_name, ImportUnits::len);
+        get_property(&mfps[opt_idx],
+                     mfp_property_name,
+                     {ImportUnits::mev, ImportUnits::len});
     }
     return mfps;
 }

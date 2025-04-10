@@ -9,6 +9,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/random/distribution/ExponentialDistribution.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/optical/Interaction.hh"
@@ -16,10 +20,6 @@
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/WavelengthShiftData.hh"
 #include "celeritas/phys/InteractionUtils.hh"
-#include "celeritas/random/distribution/ExponentialDistribution.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/PoissonDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {

@@ -14,7 +14,8 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleView.hh"
-#include "celeritas/track/TrackInitData.hh"
+
+#include "../TrackInitData.hh"
 
 namespace celeritas
 {

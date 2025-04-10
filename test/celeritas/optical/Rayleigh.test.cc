@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalRayleigh.test.cc
+//! \file celeritas/optical/Rayleigh.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/interactor/RayleighInteractor.hh"
 #include "celeritas/optical/model/RayleighMfpCalculator.hh"

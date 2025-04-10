@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "AbsorptionModel.hh"
 
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/InteractionApplier.hh"
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "AbsorptionExecutor.hh"
-#include "../CoreParams.hh"
-#include "../CoreState.hh"
-#include "../InteractionApplier.hh"
 
 namespace celeritas
 {

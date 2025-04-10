@@ -46,6 +46,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/Turn.hh"
+#include "geocel/random/UniformBoxDistribution.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/g4org/Scaler.hh"
 #include "orange/g4org/Transformer.hh"
@@ -54,7 +55,6 @@
 #include "orange/orangeinp/ObjectTestBase.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
-#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include "celeritas_test.hh"
 

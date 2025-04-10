@@ -13,10 +13,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "accel/ExceptionConverter.hh"
-#include "accel/Logger.hh"
-#include "accel/SetupOptionsMessenger.hh"
-#include "accel/TimeOutput.hh"
+
+#include "../ExceptionConverter.hh"
+#include "../Logger.hh"
+#include "../SetupOptionsMessenger.hh"
+#include "../TimeOutput.hh"
 
 namespace celeritas
 {
@@ -76,7 +77,8 @@ void IntegrationSingleton::initialize_logger()
                            << "logger cannot be set up before run manager");
             CELER_VALIDATE(!params_,
                            << "logger cannot be set up after shared params");
-            celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
+            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
+            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
         },
         ExceptionConverter{"celer.init.logger"});
 }
@@ -100,7 +102,7 @@ void IntegrationSingleton::initialize_shared_params()
 
     if (G4Threading::IsMasterThread())
     {
-        CELER_LOG_LOCAL(debug) << "Initializing shared params";
+        CELER_LOG(debug) << "Initializing shared params";
         CELER_TRY_HANDLE(
             {
                 CELER_VALIDATE(
@@ -115,7 +117,7 @@ void IntegrationSingleton::initialize_shared_params()
     }
     else
     {
-        CELER_LOG_LOCAL(debug) << "Initializing worker";
+        CELER_LOG(debug) << "Initializing worker";
         CELER_TRY_HANDLE(
             {
                 CELER_ASSERT(G4Threading::IsMultithreadedApplication());
@@ -145,7 +147,7 @@ bool IntegrationSingleton::initialize_local_transporter()
 
     if (params_.mode() == celeritas::SharedParams::Mode::disabled)
     {
-        CELER_LOG_LOCAL(debug)
+        CELER_LOG(debug)
             << R"(Skipping state construction since Celeritas is completely disabled)";
         return false;
     }
@@ -163,12 +165,13 @@ bool IntegrationSingleton::initialize_local_transporter()
     if (params_.mode() == celeritas::SharedParams::Mode::kill_offload)
     {
         // When "kill offload", we still need to intercept tracks
-        CELER_LOG_LOCAL(debug)
+        CELER_LOG(debug)
             << R"(Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately)";
         return true;
     }
 
-    CELER_LOG_LOCAL(debug) << "Constructing local state";
+    CELER_LOG(debug) << "Constructing local state";
+
     CELER_TRY_HANDLE(
         {
             auto& lt = IntegrationSingleton::local_transporter();
@@ -202,7 +205,7 @@ void IntegrationSingleton::finalize_local_transporter()
         return;
     }
 
-    CELER_LOG_LOCAL(debug) << "Destroying local state";
+    CELER_LOG(debug) << "Destroying local state";
 
     CELER_TRY_HANDLE(
         {
@@ -223,7 +226,7 @@ void IntegrationSingleton::finalize_local_transporter()
  */
 void IntegrationSingleton::finalize_shared_params()
 {
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+    CELER_LOG(status) << "Finalizing Celeritas";
     CELER_TRY_HANDLE(
         {
             CELER_VALIDATE(params_,

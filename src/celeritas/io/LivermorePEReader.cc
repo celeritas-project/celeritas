@@ -56,8 +56,6 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     CELER_EXPECT(atomic_number && atomic_number < AtomicNumber{101});
 
     std::string z_str = std::to_string(atomic_number.unchecked_get());
-    CELER_LOG(debug) << "Reading Livermore PE data for Z=" << z_str;
-
     result_type result;
 
     // Read photoelectric effect total cross section above K-shell energy but

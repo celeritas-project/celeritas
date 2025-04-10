@@ -11,9 +11,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/em/data/FluctuationData.hh"
-#include "celeritas/random/distribution/PoissonDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "EnergyLossGaussianDistribution.hh"
 #include "EnergyLossHelper.hh"

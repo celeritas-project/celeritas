@@ -42,8 +42,6 @@ EventAction::EventAction(SPConstParams params,
  */
 void EventAction::BeginOfEventAction(G4Event const* event)
 {
-    CELER_LOG_LOCAL(debug) << "Starting event " << event->GetEventID();
-
     get_event_time_ = {};
 
     if (params_->mode() != SharedParams::Mode::enabled)
@@ -78,8 +76,6 @@ void EventAction::EndOfEventAction(G4Event const* event)
 
     // Record the time for this event
     params_->timer()->RecordEventTime(get_event_time_());
-
-    CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
 }
 
 //---------------------------------------------------------------------------//

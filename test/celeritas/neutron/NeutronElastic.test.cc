@@ -12,12 +12,12 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/neutron/NeutronTestBase.hh"
 #include "celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh"
 #include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
 #include "celeritas/phys/MacroXsCalculator.hh"
 
+#include "NeutronTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

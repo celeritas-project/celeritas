@@ -12,7 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/random/distribution/NormalDistribution.hh"
+#include "corecel/random/distribution/NormalDistribution.hh"
 
 #include "EnergyLossHelper.hh"
 

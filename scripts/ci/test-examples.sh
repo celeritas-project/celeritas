@@ -49,8 +49,10 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
     echo "Set G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\""
   fi
 
-  # Run small accel examples
+  # Run small accel examples, ensuring the documentation diff is still valid
   cd "${CELER_SOURCE_DIR}/example/accel"
+  patch -p2 -R < add-celer.diff
+  patch -p2 < add-celer.diff
   build_local
   ctest -V --no-tests=error
 

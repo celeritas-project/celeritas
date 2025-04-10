@@ -6,13 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "BuildIntersectRegion.hh"
 
-#include "orange/orangeinp/IntersectRegion.hh"
-#include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 #include "orange/surf/FaceNamer.hh"
 
 #include "CsgUnitBuilder.hh"
 #include "IntersectSurfaceState.hh"
 #include "VolumeBuilder.hh"
+#include "../IntersectRegion.hh"
+#include "../IntersectSurfaceBuilder.hh"
 
 namespace celeritas
 {

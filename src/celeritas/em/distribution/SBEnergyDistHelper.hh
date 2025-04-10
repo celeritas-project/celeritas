@@ -11,9 +11,9 @@
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/grid/TwodSubgridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/ReciprocalDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
 namespace celeritas
 {

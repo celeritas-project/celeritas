@@ -8,9 +8,42 @@
 Software library
 ================
 
-The most stable part of Celeritas is, at the present time, the high-level
-:ref:`api_g4_interface`. However, many other
-components of the API are stable and documented in the :code:`api` section.
+The main current use case for Celeritas as a library is to integrate with user
+Geant4 applications. The interface for Geant4 integration is quite stable, and
+additional lower level code, described in :ref:`api`, is also stable.
+
+Usage overview
+--------------
+
+This describes the main points of integrating using the tracking interface,
+recommended for all applications that support Geant4 11.0 or higher.
+
+1. Find and link in your CMake project:
+
+   - Find the Celeritas package.
+   - Link ``Celeritas::accel`` .
+   - Use ``celeritas_target_link_libraries`` instead of
+     ``target_link_libraries`` when both VecGeom and CUDA are enabled.
+
+2. Set up physics offloading in your "main" function.
+
+   - Register the ``TrackingManagerConstructor``, which tells Geant4 to send EM
+     tracks to Celeritas rather than the main tracking loop.
+   - Tweak the ``SetupOptions`` based on problem requirements, or use the
+     :ref:`g4_ui_macros`.
+
+3. Add hooks to safely set up and tear down Celeritas and its GPU code.
+
+   - Initialize logging in ``UserActionInitialization``, using
+     ``BuildForMaster`` (MT mode) or ``Build`` (serial).
+   - In ``UserRunAction``, ``BeginOfRunAction`` initializes problem data
+     (master or serial) and local state (worker or serial), and
+     ``EndOfRunAction`` safely deallocates everything.
+
+The changes for a simple application look like:
+
+.. literalinclude:: ../../example/accel/add-celer.diff
+   :language: diff
 
 CMake integration
 -----------------
@@ -44,7 +77,8 @@ The special ``cuda_rdc_`` commands are needed when Celeritas is built with both
 CUDA and the current version of VecGeom, which uses a special but messy feature
 called CUDA Relocatable Device Code (RDC).
 As the ``cuda_rdc_...`` functions decay to the wrapped CMake commands if CUDA
-and VecGeom are disabled, you can directly use them to safely build and link nearly all targets
+and VecGeom are disabled, you can directly use them to safely build and link
+nearly all targets
 consuming Celeritas in your project, but the ``celeritas_`` versions will
 result in a slightly faster (and possibly safer) configuration when VecGeom or
 CUDA are disabled.
@@ -113,6 +147,9 @@ setting up:
 - "Global" data structures for shared problem data such as geometry (see
   :cpp:class:`celeritas::SharedParams`)
 - Per-worker (i.e., ``G4ThreadLocal`` using Geant4 manager/worker semantics)
-  data structures that hold the track states (see :cpp:class:`celeritas::LocalTransporter`).
+  data structures that hold the track states (see
+  :cpp:class:`celeritas::LocalTransporter`).
 
-See :ref:`example_geant` for examples of integrating Geant4, and :ref:`api_g4_interface` for detailed documentation of the Geant4 integration interface.
+See :ref:`example_geant` for examples of integrating Geant4, and
+:ref:`api_g4_interface` for detailed documentation of the Geant4 integration
+interface.

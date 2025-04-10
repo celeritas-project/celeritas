@@ -13,7 +13,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/grid/UniformGrid.hh"
+
+#include "UniformGrid.hh"
 
 #include "detail/GridAccessor.hh"
 

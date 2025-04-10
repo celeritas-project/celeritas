@@ -18,6 +18,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -26,7 +27,9 @@
 #include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
@@ -64,7 +67,6 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
-#include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -280,26 +282,37 @@ auto build_along_step(inp::Field const& var_field,
     return std::visit(
         return_as<std::shared_ptr<CoreStepActionInterface>>(Overload{
             [&](inp::NoField const&) {
-                return AlongStepGeneralLinearAction::from_params(
+                using ASA = AlongStepGeneralLinearAction;
+                return ASA::from_params(
                     next_id, *params.material, *params.particle, msc, eloss);
             },
             [&](inp::UniformField const& field) {
-                return AlongStepUniformMscAction::from_params(
-                    params.action_reg->next_id(),
-                    *params.geometry,
-                    *params.material,
-                    *params.particle,
-                    field,
-                    msc,
-                    eloss);
+                using ASA = AlongStepUniformMscAction;
+                return ASA::from_params(next_id,
+                                        *params.geometry,
+                                        *params.material,
+                                        *params.particle,
+                                        field,
+                                        msc,
+                                        eloss);
             },
-            [](inp::RZMapField const&)
-                -> std::shared_ptr<CoreStepActionInterface> {
-                CELER_NOT_IMPLEMENTED("building RZ map field through input");
+            [&](inp::RZMapField const& field) {
+                using ASA = AlongStepRZMapFieldMscAction;
+                return ASA::from_params(next_id,
+                                        *params.material,
+                                        *params.particle,
+                                        field,
+                                        msc,
+                                        eloss);
             },
-            [](inp::CylMapField const&)
-                -> std::shared_ptr<CoreStepActionInterface> {
-                CELER_NOT_IMPLEMENTED("building Cyl map field through input");
+            [&](inp::CylMapField const& field) {
+                using ASA = AlongStepCylMapFieldMscAction;
+                return ASA::from_params(next_id,
+                                        *params.material,
+                                        *params.particle,
+                                        field,
+                                        msc,
+                                        eloss);
             },
         }),
         var_field);
