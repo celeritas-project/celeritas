@@ -21,12 +21,13 @@ recommended for all applications that support Geant4 11.0 or higher.
 1. Find and link in your CMake project:
 
    - Find the Celeritas package.
-   - Link ``Celeritas::accel`` .
+   - Link ``Celeritas::G4`` .
    - Use ``celeritas_target_link_libraries`` instead of
      ``target_link_libraries`` when both VecGeom and CUDA are enabled.
 
 2. Set up physics offloading in your "main" function.
 
+   - Include ``<CeleritasG4.hh>``
    - Register the ``TrackingManagerConstructor``, which tells Geant4 to send EM
      tracks to Celeritas rather than the main tracking loop.
    - Tweak the ``SetupOptions`` based on problem requirements, or use the
