@@ -18,8 +18,10 @@ namespace test
 /*!
  * Contruct with the number of bins and range.
  */
-Histogram::Histogram(size_type num_bins, Real2 range)
-    : range_(range), width_((range[1] - range[0]) / num_bins), counts_(num_bins)
+Histogram::Histogram(size_type num_bins, Dbl2 range)
+    : offset_{range[0]}
+    , inv_width_(1 / (range[1] - range[0]))
+    , counts_(num_bins)
 {
     CELER_EXPECT(num_bins > 0);
     CELER_EXPECT(range[0] < range[1]);
@@ -27,33 +29,14 @@ Histogram::Histogram(size_type num_bins, Real2 range)
 
 //---------------------------------------------------------------------------//
 /*!
- * Update the histogram with a value.
- *
- * Values outside of \c range will be ignored.
- */
-void Histogram::operator()(real_type value)
-{
-    if (value < range_[0] || value >= range_[1])
-    {
-        return;
-    }
-    auto index = static_cast<size_type>((value - range_[0]) / width_);
-    CELER_ASSERT(index < counts_.size());
-    ++counts_[index];
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the result as a probability desnity.
  */
-auto Histogram::density() const -> VecReal
+auto Histogram::calc_density() const -> VecDbl
 {
-    VecReal result;
+    VecDbl result;
     result.reserve(counts_.size());
 
-    auto norm = real_type(1)
-                / std::accumulate(counts_.begin(), counts_.end(), size_type(0));
-
+    auto norm = 1 / static_cast<double>(total_counts_);
     for (auto count : counts_)
     {
         result.push_back(count * norm);

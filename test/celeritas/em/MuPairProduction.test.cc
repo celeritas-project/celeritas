@@ -161,7 +161,7 @@ TEST_F(MuPairProductionTest, distribution)
             sum_energy += e_pair;
             energy_fraction += value_as<MevEnergy>(e.electron) / e_pair;
         }
-        auto density = histogram.density();
+        auto density = histogram.calc_density();
         loge_pdf.insert(loge_pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);

@@ -8,6 +8,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/Histogram.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
@@ -34,23 +36,21 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
-struct InvCentimeter
-{
-    static CELER_CONSTEXPR_FUNCTION Constant value()
-    {
-        return 1 / units::centimeter;
-    }
-    static char const* label() { return "1/cm"; }
-};
-
-using InvCmAlpha = RealQuantity<InvCentimeter>;
 using celeritas::test::from_cm;
+using celeritas::test::Histogram;
 using celeritas::test::to_cm;
 using units::MevEnergy;
 
 constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
                                        && CELERITAS_CORE_GEO
                                               == CELERITAS_CORE_GEO_VECGEOM;
+
+template<class T>
+void extend_from_histogram(std::vector<T>& v, Histogram const& h)
+{
+    auto dens = h.calc_density();
+    v.insert(v.end(), dens.begin(), dens.end());
+}
 
 //---------------------------------------------------------------------------//
 TEST(UrbanPositronCorrectorTest, all)
@@ -85,6 +85,7 @@ TEST(UrbanPositronCorrectorTest, all)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
+#define UrbanMscTest TEST_IF_CELERITAS_USE_ROOT(UrbanMscTest)
 class UrbanMscTest : public ::celeritas::test::MscTestBase
 {
   protected:
@@ -468,90 +469,109 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
     }
 }
 
-constexpr double step_is_range = -1;
+// NOTE: these have to live outside the function due to bugs in MSVC's
+// lambda handling
+constexpr int num_samples = 10000;
+constexpr real_type step_is_range = -1;
 
-TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
+TEST_F(UrbanMscTest, msc_scattering)
 {
-    // Test energies
-    static real_type const energy[] = {51.0231,
-                                       10.0564,
-                                       5.05808,
-                                       1.01162,
-                                       0.501328,
-                                       0.102364,
-                                       0.0465336,
-                                       0.00708839};
-    constexpr auto nsamples = std::size(energy);
+    // Test energies (MeV)
+    static real_type const energy[] = {
+        51.0231,
+        10.0564,
+        10.0,
+        5.05808,
+        1.01162,
+        1.01,
+        1.01,
+        0.501328,
+        0.102364,
+        0.0465336,
+        0.00708839,
+    };
+    constexpr auto num_energy = std::size(energy);
 
-    // Calculate range instead of hardcoding to ensure step and range values
-    // are bit-for-bit identical when range limits the step. The first three
-    // steps are not limited by range
-    std::vector<double> step = {0.00279169, 0.412343, 0.0376414};  // [cm]
-    step.resize(nsamples, step_is_range);
+    // Instead of hardcoding range, ensure step and range values
+    // are bit-for-bit identical when range limits the step using a sentinel.
+    std::vector<real_type> step = {
+        0.00279169,
+        0.412343,
+        step_is_range,
+        0.0376414,
+        step_is_range,
+        1e-4,
+        1e-7,
+    };
+    step.resize(num_energy, step_is_range);
+    ASSERT_EQ(num_energy, step.size());
 
-    ASSERT_EQ(nsamples, step.size());
+    auto const get_pstep = [&step](int i, PhysicsTrackView const& phys) {
+        CELER_EXPECT(static_cast<size_type>(i) < step.size());
+        if (step[i] == step_is_range)
+        {
+            return phys.dedx_range();
+        }
+        real_type const pstep = from_cm(step[i]);
+        CELER_VALIDATE(pstep <= phys.dedx_range(),
+                       << "unit test input pstep=" << pstep
+                       << " exceeds physics range " << phys.dedx_range());
+        return pstep;
+    };
 
     RandomEngine& rng = this->rng();
+
     // Input and helper data
-    std::vector<double> pstep;  // [cm]
-    std::vector<double> range;  // [cm]
-    std::vector<double> lambda;  // [cm]
+    std::vector<real_type> lambda_cm;  // [cm]
+    std::vector<real_type> pstep_mfp;
+    std::vector<real_type> range_mfp;
 
     // Step limit
-    std::vector<double> tstep;  // [cm]
-    std::vector<double> gstep;  // [cm]
-    std::vector<double> alpha;
-    std::vector<double> msc_range_limit;  // [cm]
+    std::vector<real_type> msc_range_mfp;
+    std::vector<real_type> tstep_frac;  // fraction of physics step
+    std::vector<real_type> gstep_frac;  // fraction of true path
+    std::vector<real_type> alpha_over_mfp;
 
-    // Scatter
-    std::vector<double> angle;
-    std::vector<double> displace;  // [cm]
-    std::vector<char> action;
+    // Binned scattering results
+    std::vector<real_type> angle;
+    std::vector<real_type> displace_frac;  // fraction of safety
+    std::vector<real_type> action;
 
-    // Total RNG count (we only sample once per particle/energy so count and
-    // average are the same)
-    std::vector<int> avg_engine_samples;
+    // Average RNG per scatter
+    std::vector<real_type> avg_engine_samples;
 
     auto const& msc_params = msc_params_->host_ref();
 
-    auto sample_one = [&](PDGNumber ptype, int i) {
-        real_type radius = from_cm(i * 2 - real_type(1e-4));
-
+    auto run_particle = [&](PDGNumber ptype, int i, real_type safety_mfp) {
+        // Set up state; geometry is arbitrary, direction is +z
         auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
         auto phys = this->make_phys_view(
             par, "G4_STAINLESS-STEEL", this->physics()->host_ref());
-        auto geo = this->make_geo_view(radius);
+        auto geo = this->make_geo_view(from_cm(i * 2 - real_type(1e-4)));
         MaterialView mat = this->material()->get(phys.material_id());
-        rng = this->rng();
+        real_type this_pstep = get_pstep(i, phys);
 
+        // MSC parameters
         UrbanMscHelper helper(msc_params, par, phys);
-        range.push_back(to_cm(phys.dedx_range()));
-        lambda.push_back(to_cm(helper.msc_mfp()));
-
-        real_type const this_pstep = [i, &phys, &step] {
-            if (step[i] == step_is_range)
-            {
-                return phys.dedx_range();
-            }
-            real_type const pstep = from_cm(step[i]);
-            CELER_VALIDATE(pstep <= phys.dedx_range(),
-                           << "unit test input pstep=" << pstep
-                           << " exceeds physics range " << phys.dedx_range());
-            return pstep;
-        }();
-        pstep.push_back(to_cm(this_pstep));
+        real_type const mfp = helper.msc_mfp();
+        lambda_cm.push_back(to_cm(mfp));
+        pstep_mfp.push_back(this_pstep / mfp);
+        range_mfp.push_back(phys.dedx_range() / mfp);
 
         // Calculate physical step limit due to MSC
-        real_type safety = geo.find_safety();
-        auto [true_path, displaced] = [&]() -> std::pair<real_type, bool> {
+        real_type const safety = safety_mfp * mfp;
+        real_type true_path;
+        bool displaced;
+        std::tie(true_path, displaced) = [&]() -> std::pair<real_type, bool> {
             EXPECT_FALSE(phys.msc_range());
             if (this_pstep < msc_params.params.limit_min_fix()
                 || safety >= helper.max_step())
             {
                 // Small step or far from boundary
-                msc_range_limit.push_back(-1);
+                msc_range_mfp.push_back(-1);
                 return {this_pstep, false};
             }
+
             UrbanMscSafetyStepLimit calc_limit(msc_params,
                                                helper,
                                                par,
@@ -563,270 +583,564 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
 
             // MSC range should be updated during construction of the limit
             // calculator
-            msc_range_limit.push_back(to_cm(phys.msc_range().limit_min));
-
+            msc_range_mfp.push_back(phys.msc_range().limit_min / mfp);
             return {calc_limit(rng), true};
         }();
-        tstep.push_back(to_cm(true_path));
+        tstep_frac.push_back(true_path / this_pstep);
+
+        // Reset RNG from the one sample
+        avg_engine_samples.push_back(static_cast<double>(rng.exchange_count()));
 
         // Convert physical step limit to geometrical step
-        MscStepToGeo calc_geom_path(msc_params,
-                                    helper,
-                                    par.energy(),
-                                    helper.msc_mfp(),
-                                    phys.dedx_range());
-        auto gp = calc_geom_path(true_path);
-        gstep.push_back(to_cm(gp.step));
-        alpha.push_back(native_value_to<InvCmAlpha>(gp.alpha).value());
-
-        MscStep step_result;
-        step_result.true_path = true_path;
-        step_result.geom_path = gp.step;
-        step_result.alpha = gp.alpha;
-        step_result.is_displaced = displaced;
+        MscStep step_result = [&] {
+            MscStepToGeo calc_geom_path(msc_params,
+                                        helper,
+                                        par.energy(),
+                                        helper.msc_mfp(),
+                                        phys.dedx_range());
+            // Note: alpha units are 1/len, so we multiply by mfp
+            auto gp = calc_geom_path(true_path);
+            gstep_frac.push_back(gp.step / true_path);
+            alpha_over_mfp.push_back(gp.alpha * mfp);
+            MscStep result;
+            result.true_path = true_path;
+            result.geom_path = gp.step;
+            result.alpha = gp.alpha;
+            result.is_displaced = displaced;
+            return result;
+        }();
 
         // No geo->phys conversion needed because we don't test for the
         // geo-limited case here (see the geo->true tests above)
         UrbanMscScatter scatter(
             msc_params, helper, par, phys, mat, geo.dir(), safety, step_result);
-        MscInteraction sample_result = scatter(rng);
 
-        angle.push_back(sample_result.action != Action::unchanged
-                            ? sample_result.direction[0]
-                            : 0);
-        displace.push_back(sample_result.action == Action::displaced
-                               ? to_cm(sample_result.displacement[0])
-                               : 0);
-        action.push_back(sample_result.action == Action::displaced   ? 'd'
-                         : sample_result.action == Action::scattered ? 's'
-                                                                     : 'u');
-        avg_engine_samples.push_back(rng.count());
+        // Angle is the change in angle (original was +z)
+        Histogram bin_angle(9, {-1, 1});
+        // Fraction of safety
+        real_type avg_displacement{0};
+        // Interaction type: unchanged, scattered, displaced
+        static_assert(static_cast<int>(MscInteraction::Action::size_) == 3);
+        Histogram bin_action(3, {-0.5, 2.5});
+
+        for (int i = 0; i < num_samples; ++i)
+        {
+            MscInteraction interaction = scatter(rng);
+
+            // Bin change in angle from +z
+            bin_angle(interaction.direction[2]);
+            // Bin isotropic displacement distance as fraction of geo path
+            avg_displacement += (interaction.action == Action::displaced
+                                     ? norm(interaction.displacement) / safety
+                                     : 0);
+            bin_action(static_cast<real_type>(interaction.action));
+        }
+
+        extend_from_histogram(angle, bin_angle);
+        displace_frac.push_back(avg_displacement / num_samples);
+        extend_from_histogram(action, bin_action);
+        avg_engine_samples.push_back(
+            static_cast<real_type>(rng.exchange_count())
+            / static_cast<real_type>(num_samples));
     };
 
     for (auto ptype : {pdg::electron(), pdg::positron()})
     {
-        for (auto i : celeritas::range(nsamples))
+        for (auto i : range(num_energy))
         {
-            sample_one(ptype, i);
-            if (i == 1 || i == 9)
+            for (auto safety_mfp : {0.1, 1.0, 10.0})
             {
-                // Test original RNG stream
-                celeritas::generate_canonical(rng);
+                run_particle(ptype, i, safety_mfp);
             }
         }
     }
 
-    static double const expected_pstep[] = {
-        0.00279169,
-        0.412343,
-        0.0376414,
-        0.07816386744463,
-        0.031624623366637,
-        0.0027792891324765,
-        0.0007421564286833,
-        3.1163288786189e-05,
-        0.00279169,
-        0.412343,
-        0.0376414,
-        0.078778123988169,
-        0.031303585136774,
-        0.0026015196588089,
-        0.00067599187481117,
-        2.6048657211831e-05,
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        PRINT_EXPECTED(lambda_cm);
+        PRINT_EXPECTED(pstep_mfp);
+        PRINT_EXPECTED(range_mfp);
+
+        PRINT_EXPECTED(msc_range_mfp);
+        PRINT_EXPECTED(tstep_frac);
+        PRINT_EXPECTED(gstep_frac);
+        PRINT_EXPECTED(alpha_over_mfp);
+
+        PRINT_EXPECTED(angle);
+        PRINT_EXPECTED(displace_frac);
+        PRINT_EXPECTED(action);
+
+        PRINT_EXPECTED(avg_engine_samples);
+
+        GTEST_SKIP() << "Not tested for single precision";
+    }
+
+    static double const expected_lambda_cm[] = {
+        20.538835907703,     20.538835907703,     20.538835907703,
+        1.0971140774006,     1.0971140774006,     1.0971140774006,
+        1.0881394271966,     1.0881394271966,     1.0881394271966,
+        0.33351871980427,    0.33351871980427,    0.33351871980427,
+        0.025445778924487,   0.025445778924487,   0.025445778924487,
+        0.025382026214404,   0.025382026214404,   0.025382026214404,
+        0.025382026214404,   0.025382026214404,   0.025382026214404,
+        0.0087509389402756,  0.0087509389402756,  0.0087509389402756,
+        0.00066694512451,    0.00066694512451,    0.00066694512451,
+        0.00017137575823624, 0.00017137575823624, 0.00017137575823624,
+        6.8484179743242e-06, 6.8484179743242e-06, 6.8484179743242e-06,
+        20.538835907703,     20.538835907703,     20.538835907703,
+        1.2024899663097,     1.2024899663097,     1.2024899663097,
+        1.1946931635418,     1.1946931635418,     1.1946931635418,
+        0.36938283004206,    0.36938283004206,    0.36938283004206,
+        0.028834889384336,   0.028834889384336,   0.028834889384336,
+        0.0287633310895,     0.0287633310895,     0.0287633310895,
+        0.0287633310895,     0.0287633310895,     0.0287633310895,
+        0.0099285992018056,  0.0099285992018056,  0.0099285992018056,
+        0.00075519594407854, 0.00075519594407854, 0.00075519594407854,
+        0.0001990403696419,  0.0001990403696419,  0.0001990403696419,
+        9.8568978271595e-06, 9.8568978271595e-06, 9.8568978271595e-06,
     };
-    static double const expected_range[] = {
-        4.5639217208474,
-        0.91101485322907,
-        0.45387592065389,
-        0.07816386744463,
-        0.031624623366637,
-        0.0027792891324765,
-        0.0007421564286833,
-        3.1163288786189e-05,
-        4.6052228038519,
-        0.93344757374528,
-        0.46823131622043,
-        0.078778123988169,
-        0.031303585136774,
-        0.0026015196588089,
-        0.00067599187481117,
-        2.6048657211831e-05,
+    static double const expected_pstep_mfp[] = {
+        0.00013592250371663, 0.00013592250371663, 0.00013592250371663,
+        0.37584332248929,    0.37584332248929,    0.37584332248929,
+        0.83253192820357,    0.83253192820357,    0.83253192820357,
+        0.11286143105278,    0.11286143105278,    0.11286143105278,
+        3.0717812835123,     3.0717812835123,     3.0717812835123,
+        0.0039397957891655,  0.0039397957891655,  0.0039397957891655,
+        3.9397957891655e-06, 3.9397957891655e-06, 3.9397957891655e-06,
+        3.6138548768849,     3.6138548768849,     3.6138548768849,
+        4.1671931173025,     4.1671931173025,     4.1671931173025,
+        4.3305799858826,     4.3305799858826,     4.3305799858826,
+        4.5504361595664,     4.5504361595664,     4.5504361595664,
+        0.00013592250371663, 0.00013592250371663, 0.00013592250371663,
+        0.34290764293478,    0.34290764293478,    0.34290764293478,
+        0.77700919805933,    0.77700919805933,    0.77700919805933,
+        0.10190349127953,    0.10190349127953,    0.10190349127953,
+        2.7320418309273,     2.7320418309273,     2.7320418309273,
+        0.0034766487820496,  0.0034766487820496,  0.0034766487820496,
+        3.4766487820496e-06, 3.4766487820496e-06, 3.4766487820496e-06,
+        3.1528702589869,     3.1528702589869,     3.1528702589869,
+        3.444827371237,      3.444827371237,      3.444827371237,
+        3.3962551216488,     3.3962551216488,     3.3962551216488,
+        2.6426830904199,     2.6426830904199,     2.6426830904199,
     };
-    static double const expected_lambda[] = {
-        20.538835907703,
-        1.0971140774006,
-        0.33351871980427,
-        0.025445778924487,
-        0.0087509389402756,
-        0.00066694512451,
-        0.00017137575823624,
-        6.8484179743242e-06,
-        20.538835907703,
-        1.2024899663097,
-        0.36938283004206,
-        0.028834889384336,
-        0.0099285992018056,
-        0.00075519594407854,
-        0.0001990403696419,
-        9.8568978271595e-06,
+    static double const expected_range_mfp[] = {
+        0.22220936675071, 0.22220936675071, 0.22220936675071, 0.83037386174787,
+        0.83037386174787, 0.83037386174787, 0.83253192820357, 0.83253192820357,
+        0.83253192820357, 1.3608709008006,  1.3608709008006,  1.3608709008006,
+        3.0717812835123,  3.0717812835123,  3.0717812835123,  3.073482730317,
+        3.073482730317,   3.073482730317,   3.073482730317,   3.073482730317,
+        3.073482730317,   3.6138548768849,  3.6138548768849,  3.6138548768849,
+        4.1671931173025,  4.1671931173025,  4.1671931173025,  4.3305799858826,
+        4.3305799858826,  4.3305799858826,  4.5504361595664,  4.5504361595664,
+        4.5504361595664,  0.22422024425078, 0.22422024425078, 0.22422024425078,
+        0.77626225573414, 0.77626225573414, 0.77626225573414, 0.77700919805933,
+        0.77700919805933, 0.77700919805933, 1.267604442164,   1.267604442164,
+        1.267604442164,   2.7320418309273,  2.7320418309273,  2.7320418309273,
+        2.7333853405003,  2.7333853405003,  2.7333853405003,  2.7333853405003,
+        2.7333853405003,  2.7333853405003,  3.1528702589869,  3.1528702589869,
+        3.1528702589869,  3.444827371237,   3.444827371237,   3.444827371237,
+        3.3962551216488,  3.3962551216488,  3.3962551216488,  2.6426830904199,
+        2.6426830904199,  2.6426830904199,
     };
-    static double const expected_tstep[] = {
-        0.00279169,
-        0.15497550035228,
-        0.02893427493639,
-        0.07816386744463,
-        0.0011122660575717,
-        0.00011596861898845,
-        0.0007421564286833,
-        3.1163288786189e-05,
-        0.00279169,
-        0.18632233731664,
-        0.031954244286546,
-        0.078778123988169,
-        0.0011915432720176,
-        0.00010300856437122,
-        0.00067599187481117,
-        2.6048657211831e-05,
-    };
-    static double const expected_gstep[] = {
-        0.0027915002818486,
-        0.14348626259532,
-        0.027673334586517,
-        0.019196479870158,
-        0.0010444821609262,
-        0.00010644611831056,
-        0.00013922620627564,
-        5.6145657548872e-06,
-        0.0027915002818486,
-        0.17098608910208,
-        0.030562519433186,
-        0.021108585476009,
-        0.0011228204355752,
-        9.6292200670304e-05,
-        0.00015376538806457,
-        7.1509534497628e-06,
-    };
-    static double const expected_alpha[] = {
-        0,
-        1.7708716862051,
-        3.4676312226412,
-        12.793635124418,
-        0,
-        0,
-        1347.4248303342,
-        32089.039345654,
-        0,
-        1.709956627379,
-        3.3376672103125,
-        12.693879333179,
-        0,
-        0,
-        1479.3077213825,
-        38389.694788022,
-    };
-    static double const expected_msc_range_limit[] = {
-        3.5686548881735e-05,
-        4.0510166112733e-05,
-        4.0073894011965e-05,
-        -1,
-        2.5270068437103e-05,
-        1.0695397351015e-05,
+    static double const expected_msc_range_mfp[] = {
+        1.7375156528881e-06,
         -1,
         -1,
-        1.6703727150203e-05,
-        2.0782727059196e-05,
-        2.0774322573966e-05,
-        -1,
-        1.3419878391705e-05,
-        5.6685934033174e-06,
+        3.6924297069194e-05,
         -1,
         -1,
+        3.7296268117771e-05,
+        -1,
+        -1,
+        0.0001201548567813,
+        -1,
+        -1,
+        0.0012395873865631,
+        0.0012395873865631,
+        -1,
+        0.0012421038812226,
+        0.0012421038812226,
+        -1,
+        0.0012421038812226,
+        0.0012421038812226,
+        -1,
+        0.0028876979498507,
+        0.0028876979498507,
+        -1,
+        0.016036397835388,
+        0.016036397835388,
+        -1,
+        0.035782778085125,
+        0.035782778085125,
+        -1,
+        0.2261621076249,
+        0.2261621076249,
+        -1,
+        8.1327526181451e-07,
+        -1,
+        -1,
+        1.7283077315793e-05,
+        -1,
+        -1,
+        1.7457185014573e-05,
+        -1,
+        -1,
+        5.6240628649686e-05,
+        -1,
+        -1,
+        0.000580211035609,
+        0.000580211035609,
+        -1,
+        0.00058138892592017,
+        0.00058138892592017,
+        -1,
+        0.00058138892592017,
+        0.00058138892592017,
+        -1,
+        0.0013516386469972,
+        0.0013516386469972,
+        -1,
+        0.007506122679504,
+        0.007506122679504,
+        -1,
+        0.016748768949078,
+        0.016748768949078,
+        -1,
+        0.10585921743233,
+        0.10585921743233,
+        -1,
+    };
+    static double const expected_tstep_frac[] = {
+        1,
+        1,
+        1,
+        0.42818528370817,
+        1,
+        1,
+        0.13149182096846,
+        1,
+        1,
+        0.81290883531309,
+        1,
+        1,
+        0.030487038712218,
+        0.23758713960221,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0.038635618762528,
+        0.16306418435324,
+        1,
+        0.04222137550473,
+        0.15389074354047,
+        1,
+        0.03711207636575,
+        0.13020806080187,
+        1,
+        0.049701193400867,
+        0.12778216243367,
+        1,
+        1,
+        1,
+        1,
+        0.41900712918057,
+        1,
+        1,
+        0.1858976449189,
+        1,
+        1,
+        0.82822166142046,
+        1,
+        1,
+        0.036194051101378,
+        0.20393678514156,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0.041205130690638,
+        0.17629883432799,
+        1,
+        0.043144964461046,
+        0.1857764715861,
+        1,
+        0.048534823151177,
+        0.18337917281357,
+        1,
+        0.040057477120919,
+        0.23001362050101,
+        1,
+    };
+    static double const expected_gstep_frac[] = {
+        0.99993204182719, 0.99993204182719, 0.99993204182719, 0.9149832761553,
+        0.78950804632155, 0.78950804632155, 0.9431472456918,  0.54569308431111,
+        0.54569308431111, 0.95390209023009, 0.94323702606103, 0.94323702606103,
+        0.95460335692577, 0.68724333161564, 0.24559275913204, 0.99803268655784,
+        0.99803268655784, 0.99803268655784, 0.99999803010469, 0.99999803010469,
+        0.99999803010469, 0.93332704289517, 0.74451829500646, 0.21673850320042,
+        0.91696792030158, 0.72726011451891, 0.19352866775029, 0.92377901839277,
+        0.75583209294663, 0.18759684736903, 0.89498283406445, 0.74979249304054,
+        0.18016602141734, 0.99993204182719, 0.99993204182719, 0.99993204182719,
+        0.92400720850874, 0.80628421156603, 0.80628421156603, 0.92352120903801,
+        0.56274328860655, 0.56274328860655, 0.95751458288491, 0.94863624356558,
+        0.94863624356558, 0.95214832929963, 0.75033857465424, 0.26794983692654,
+        0.99826368837371, 0.99826368837371, 0.99826368837371, 0.99999826167762,
+        0.99999826167762, 0.99999826167762, 0.93776670670548, 0.75546138776458,
+        0.24079731309592, 0.92923535389169, 0.72526458967012, 0.22498061600122,
+        0.92192956951975, 0.73133464761437, 0.22746632584529, 0.94888968703467,
+        0.73291272677833, 0.27452292037975,
+    };
+    static double const expected_alpha_over_mfp[] = {
+        0,
+        0,
+        0,
+        1.9277474758756,
+        1.7131733429566,
+        1.7131733429566,
+        1.9720311051209,
+        1.2011551342635,
+        1.2011551342635,
+        1.1554033248142,
+        1.1506479671636,
+        1.1506479671636,
+        0,
+        0.38647414398987,
+        0.3255440110165,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.27671282717971,
+        0.27671282717971,
+        0,
+        0.23996968027422,
+        0.23996968027422,
+        0,
+        0.23091595196485,
+        0.23091595196485,
+        0,
+        0.21975915383357,
+        0.21975915383357,
+        0,
+        0,
+        0,
+        2.0653101912806,
+        1.8433611195965,
+        1.8433611195965,
+        2.0784963895716,
+        1.2869860517708,
+        1.2869860517708,
+        1.2333984353282,
+        1.2290495735821,
+        1.2290495735821,
+        0,
+        0.42942115017057,
+        0.36602660643032,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.31717131307564,
+        0.31717131307564,
+        0,
+        0.29029030840547,
+        0.29029030840547,
+        0,
+        0.29444195567809,
+        0.29444195567809,
+        0,
+        0.37840329914137,
+        0.37840329914137,
     };
     static double const expected_angle[] = {
-        0.00031474130607916,
-        0.79003683103899,
-        0.19855028226389,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0.0023, 0.0037, 0.0037, 0.0082, 0.011,  0.0206, 0.0509, 0.1731, 0.7265,
+        0.0208, 0.0187, 0.0221, 0.0307, 0.0516, 0.0898, 0.1481, 0.2403, 0.3779,
+        0.0175, 0.0182, 0.023,  0.0305, 0.0525, 0.0903, 0.1439, 0.2443, 0.3798,
+        0.0009, 0.0016, 0.0015, 0.0034, 0.0068, 0.0107, 0.0261, 0.0964, 0.8526,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.001,  0.0009, 0.0017, 0.003,  0.0041, 0.0064, 0.016,  0.0655, 0.9014,
+        0.001,  0.0014, 0.0023, 0.0032, 0.006,  0.0101, 0.0229, 0.0855, 0.8676,
+        0.0011, 0.0015, 0.0015, 0.0031, 0.0055, 0.0091, 0.023,  0.0888, 0.8664,
+        0.0008, 0.0016, 0.0019, 0.0021, 0.003,  0.0089, 0.0173, 0.0621, 0.9023,
+        0.0251, 0.0292, 0.0362, 0.0545, 0.0759, 0.1182, 0.1631, 0.2154, 0.2824,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0,      0,      0,      0,      0.0001, 0.0004, 0,      0.0004, 0.9991,
+        0,      0.0001, 0,      0,      0.0001, 0,      0.0002, 0.0007, 0.9989,
+        0,      0,      0,      0,      0.0001, 0.0001, 0.0001, 0.0009, 0.9988,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0.0021, 0.0031, 0.0038, 0.0051, 0.0079, 0.0127, 0.0309, 0.0991, 0.8353,
+        0.0196, 0.0218, 0.0268, 0.0341, 0.0563, 0.091,  0.1552, 0.2426, 0.3526,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.0031, 0.0035, 0.005,  0.0068, 0.01,   0.0183, 0.0393, 0.1157, 0.7983,
+        0.0226, 0.0225, 0.0296, 0.0416, 0.0571, 0.0983, 0.1618, 0.2428, 0.3237,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.0033, 0.0036, 0.0053, 0.0072, 0.0084, 0.0173, 0.0321, 0.1038, 0.819,
+        0.0168, 0.0192, 0.0204, 0.033,  0.05,   0.0915, 0.149,  0.2479, 0.3722,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.0067, 0.0071, 0.0091, 0.0119, 0.0154, 0.0234, 0.0426, 0.1209, 0.7629,
+        0.0163, 0.0167, 0.0232, 0.0357, 0.0524, 0.0948, 0.1482, 0.2465, 0.3662,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0,      0.0001, 0,      0,      0,      0,      0,      0,      0.9999,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0.0023, 0.0033, 0.004,  0.005,  0.011,  0.0162, 0.0444, 0.1615, 0.7523,
+        0.0136, 0.0163, 0.0177, 0.0244, 0.0438, 0.0884, 0.1436, 0.2526, 0.3996,
+        0.0143, 0.0144, 0.0166, 0.0249, 0.0433, 0.0779, 0.1457, 0.2601, 0.4028,
+        0.0023, 0.0027, 0.0046, 0.0058, 0.0091, 0.0192, 0.042,  0.1585, 0.7558,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.0005, 0.0014, 0.0014, 0.002,  0.0042, 0.0056, 0.0156, 0.059,  0.9103,
+        0.0013, 0.0014, 0.002,  0.0037, 0.0045, 0.0099, 0.021,  0.0831, 0.8731,
+        0.0011, 0.0012, 0.0023, 0.0028, 0.0063, 0.0092, 0.0213, 0.0814, 0.8744,
+        0.0013, 0.0017, 0.0018, 0.0026, 0.0046, 0.0093, 0.0168, 0.073,  0.8889,
+        0.0194, 0.0181, 0.0224, 0.0327, 0.0535, 0.0942, 0.1521, 0.2403, 0.3673,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0,      0,      0,      0.0001, 0.0001, 0.0001, 0.0002, 0.0007, 0.9988,
+        0,      0,      0,      0.0001, 0,      0.0001, 0,      0.0011, 0.9987,
+        0,      0,      0.0001, 0,      0.0001, 0.0001, 0.0002, 0.0006, 0.9989,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0,      0,      0,      0,      0,      0,      0,      0,      1,
+        0.0017, 0.0024, 0.0038, 0.0037, 0.0077, 0.0154, 0.0304, 0.0949, 0.84,
+        0.018,  0.018,  0.0222, 0.0352, 0.0536, 0.0897, 0.1505, 0.2467, 0.3661,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.0029, 0.0027, 0.0028, 0.0062, 0.0099, 0.016,  0.0345, 0.1028, 0.8222,
+        0.0201, 0.0238, 0.0281, 0.0439, 0.0649, 0.098,  0.1582, 0.2321, 0.3309,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.003,  0.0039, 0.0042, 0.0068, 0.0123, 0.016,  0.0369, 0.1041, 0.8128,
+        0.0199, 0.0224, 0.0291, 0.0403, 0.0626, 0.0959, 0.1568, 0.2363, 0.3367,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+        0.0013, 0.0027, 0.0025, 0.0038, 0.005,  0.0102, 0.0207, 0.0548, 0.899,
+        0.0221, 0.023,  0.026,  0.0415, 0.0598, 0.0988, 0.1547, 0.2309, 0.3432,
+        0,      0,      0,      0,      0,      0,      0,      0,      0,
+    };
+    static double const expected_displace_frac[] = {
+        1.1567584797188e-05,
         0,
-        0.1621867950722,
-        0.47514006563048,
+        0,
+        0.47401939442723,
         0,
         0,
-        0.010689973326661,
-        -0.22798069327496,
-        0.59468463817103,
+        0.26561408940866,
         0,
-        0.035407928579158,
-        0.36272875982918,
         0,
+        0.20100287631749,
+        0,
+        0,
+        0.20364304493707,
+        0.38701538357109,
+        0,
+        0.0018031615824536,
+        0.00018031615824542,
+        0,
+        0,
+        0,
+        0,
+        0.36593922352404,
+        0.2871903335796,
+        0,
+        0.51242374432424,
+        0.32131587609593,
+        0,
+        0.44926132990794,
+        0.26952098004841,
+        0,
+        0.73650464453294,
+        0.2808597866398,
+        0,
+        1.1567584797188e-05,
+        0,
+        0,
+        0.40106150935751,
+        0,
+        0,
+        0.4044286412699,
+        0,
+        0,
+        0.17767689446857,
+        0,
+        0,
+        0.22062379940867,
+        0.26887011219501,
+        0,
+        0.0014949405240841,
+        0.00014949405240842,
+        0,
+        0,
+        0,
+        0,
+        0.3293384162944,
+        0.26585679389823,
+        0,
+        0.40088629967887,
+        0.32163715148727,
+        0,
+        0.4661102348845,
+        0.3100769740721,
+        0,
+        0.24389305748632,
+        0.30188146067728,
         0,
     };
-    static double const expected_displace[] = {
-        8.1986203515053e-06,
-        9.7530617641316e-05,
-        4.8191245399216e-05,
-        0,
-        5.948204381332e-05,
-        3.9532158789002e-06,
-        0,
-        0,
-        2.2406571358849e-05,
-        -2.7281539943695e-05,
-        7.6790677851376e-05,
-        0,
-        -4.6740645216623e-06,
-        3.1463681655624e-06,
-        0,
-        0,
+    static double const expected_action[] = {
+        0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1,
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0,
+        0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1,
+        0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1,
+        0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0,
+        1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0,
+        0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0,
+        1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
     };
-    static char const expected_action[] = {
-        'd',
-        'd',
-        'd',
-        'u',
-        'd',
-        'd',
-        'u',
-        'u',
-        'd',
-        'd',
-        'd',
-        'u',
-        'd',
-        'd',
-        'u',
-        'u',
-    };
-    static int const expected_avg_engine_samples[] = {
-        12,
-        16,
-        16,
-        0,
-        16,
-        16,
-        0,
-        0,
-        12,
-        16,
-        16,
-        0,
-        16,
-        16,
-        0,
-        0,
+    static double const expected_avg_engine_samples[] = {
+        0, 12,      0, 8,  0, 7.9998,  4, 12, 0, 6,  0, 6,       4, 12,
+        0, 0,       0, 0,  4, 12,      0, 8,  0, 8,  4, 12,      4, 10,
+        0, 0,       0, 12, 0, 12,      0, 8,  0, 8,  0, 8,       0, 8,
+        4, 12,      4, 10, 0, 0,       4, 12, 4, 10, 0, 0,       4, 11.9994,
+        4, 10,      0, 0,  0, 11.9536, 4, 10, 0, 0,  0, 11.9998, 0, 8,
+        0, 8,       4, 12, 0, 6,       0, 6,  4, 12, 0, 0,       0, 0,
+        4, 12,      0, 8,  0, 8,       4, 12, 4, 10, 0, 0,       0, 12,
+        0, 12,      0, 8,  0, 8,       0, 8,  0, 8,  4, 12,      4, 10,
+        0, 0,       4, 12, 4, 10,      0, 0,  4, 12, 4, 10,      0, 0,
+        0, 11.9992, 4, 10, 0, 0,
     };
 
-    EXPECT_VEC_SOFT_EQ(expected_pstep, pstep);
-    EXPECT_VEC_SOFT_EQ(expected_range, range);
-    EXPECT_VEC_SOFT_EQ(expected_lambda, lambda);
-    EXPECT_VEC_SOFT_EQ(expected_tstep, tstep);
-    EXPECT_VEC_SOFT_EQ(expected_gstep, gstep);
-    EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
-    EXPECT_VEC_SOFT_EQ(expected_msc_range_limit, msc_range_limit);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_cm, lambda_cm);
+    EXPECT_VEC_SOFT_EQ(expected_pstep_mfp, pstep_mfp);
+    EXPECT_VEC_SOFT_EQ(expected_range_mfp, range_mfp);
+
+    EXPECT_VEC_SOFT_EQ(expected_msc_range_mfp, msc_range_mfp);
+    EXPECT_VEC_SOFT_EQ(expected_tstep_frac, tstep_frac);
+    EXPECT_VEC_SOFT_EQ(expected_gstep_frac, gstep_frac);
+    EXPECT_VEC_SOFT_EQ(expected_alpha_over_mfp, alpha_over_mfp);
+
     EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
-    EXPECT_VEC_NEAR(
-        expected_displace, displace, using_vecgeom_surface ? 1e-2 : 1e-12);
+    EXPECT_VEC_NEAR(expected_displace_frac,
+                    displace_frac,
+                    using_vecgeom_surface ? 1e-2 : 1e-12);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
+    CELER_DISCARD(using_vecgeom_surface);
 }
 
 //---------------------------------------------------------------------------//
