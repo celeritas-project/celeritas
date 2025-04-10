@@ -170,7 +170,7 @@ celeritas::SetupOptions MakeOptions()
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
     // Export a GDML file with the problem setup and SDs
-    opts.geometry_output_file = "simple-example.gdml";
+    opts.geometry_output_file = "fastsim-offload.gdml";
     // Save diagnostic file to a unique name
     opts.output_file = "fastsim-offload.out.json";
     return opts;
