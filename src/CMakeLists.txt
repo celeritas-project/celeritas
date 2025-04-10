@@ -141,6 +141,15 @@ if(CELERITAS_USE_Geant4)
   add_subdirectory(accel)
 endif()
 
+# Add alias for users as a bridge library
+# TODO: move to a separate library for just high level interfaces
+celeritas_add_interface_library(G4)
+if(CELERITAS_USE_Geant4)
+  celeritas_target_link_libraries(G4 INTERFACE Celeritas::accel)
+else()
+  celeritas_target_link_libraries(G4 INTERFACE Celeritas::BuildFlags)
+endif()
+
 # Install header files
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"

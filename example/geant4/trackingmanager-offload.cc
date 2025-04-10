@@ -2,32 +2,25 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/fastsim-offload.cc
+//! \file geant4/trackingmanager-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
+
+// Geant4
 #include <FTFP_BERT.hh>
 #include <G4Box.hh>
-#include <G4Electron.hh>
-#include <G4FastSimulationPhysics.hh>
-#include <G4Gamma.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4PVPlacement.hh>
-#include <G4ParticleDefinition.hh>
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
-#include <G4Positron.hh>
-#include <G4Region.hh>
-#include <G4RegionStore.hh>
+#include <G4RunManagerFactory.hh>
+#include <G4SDManager.hh>
 #include <G4SystemOfUnits.hh>
-#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
-#include <G4Track.hh>
-#include <G4TrackStatus.hh>
-#include <G4Types.hh>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
 #include <G4UserTrackingAction.hh>
@@ -35,23 +28,48 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
-#if G4VERSION_NUMBER >= 1100
-#    include <G4RunManagerFactory.hh>
-#else
-#    include <G4MTRunManager.hh>
-#endif
 
-#include <accel/AlongStepFactory.hh>
-#include <accel/FastSimulationIntegration.hh>
-#include <accel/FastSimulationModel.hh>
-#include <accel/SetupOptions.hh>
-#include <corecel/Macros.hh>
+// Celeritas
+#include <CeleritasG4.hh>
+
+// Celeritas convenience utils
+#include <corecel/Assert.hh>
 #include <corecel/io/Logger.hh>
 
-using celeritas::FastSimulationIntegration;
+using TMI = celeritas::TrackingManagerIntegration;
 
 namespace
 {
+//---------------------------------------------------------------------------//
+class SensitiveDetector final : public G4VSensitiveDetector
+{
+  public:
+    explicit SensitiveDetector(std::string name)
+        : G4VSensitiveDetector{std::move(name)}
+    {
+    }
+
+    double edep() const { return edep_; }
+
+  protected:
+    void Initialize(G4HCofThisEvent*) final { edep_ = 0; }
+    bool ProcessHits(G4Step* step, G4TouchableHistory*) final
+    {
+        CELER_ASSERT(step);
+        edep_ += step->GetTotalEnergyDeposit();
+        return true;
+    }
+
+  private:
+    double edep_{0};
+};
+
+// Simple (not best practice) way of accessing SD
+G4ThreadLocal SensitiveDetector const* global_sd{nullptr};
+
+std::atomic<int> expected_nonzero_energy{0};
+std::atomic<int> actual_nonzero_energy{0};
+
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
@@ -64,9 +82,10 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 
     G4VPhysicalVolume* Construct() final
     {
-        CELER_LOG_LOCAL(status) << "Setting up geometry";
+        CELER_LOG_LOCAL(status) << "Setting up detector";
         auto* box = new G4Box("world", 100 * cm, 100 * cm, 100 * cm);
         auto* lv = new G4LogicalVolume(box, aluminum_, "world");
+        world_lv_ = lv;
         auto* pv = new G4PVPlacement(
             0, G4ThreeVector{}, lv, "world", nullptr, false, 0);
         return pv;
@@ -74,28 +93,27 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 
     void ConstructSDandField() final
     {
-        CELER_LOG_LOCAL(status)
-            << R"(Creating FastSimulationModel for default region)";
-        G4Region* default_region = G4RegionStore::GetInstance()->GetRegion(
-            "DefaultRegionForTheWorld");
-        // Underlying GVFastSimulationModel constructor handles ownership, so
-        // we must ignore the returned pointer...
-        new celeritas::FastSimulationModel(default_region);
+        auto* sd_manager = G4SDManager::GetSDMpointer();
+        auto detector = std::make_unique<SensitiveDetector>("example-sd");
+        world_lv_->SetSensitiveDetector(detector.get());
+        global_sd = detector.get();
+        sd_manager->AddNewDetector(detector.release());
     }
 
   private:
-    G4Material* aluminum_;
+    G4Material* aluminum_{nullptr};
+    G4LogicalVolume* world_lv_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
-// Generate 200 MeV pi+
+// Generate 200 MeV electron
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction()
     {
-        auto g4particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(211);
+        auto* g4particle_def
+            = G4ParticleTable::GetParticleTable()->FindParticle(11);
         gun_.SetParticleDefinition(g4particle_def);
         gun_.SetParticleEnergy(200 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
@@ -118,11 +136,44 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        FastSimulationIntegration::Instance().BeginOfRunAction(run);
+        TMI::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        FastSimulationIntegration::Instance().EndOfRunAction(run);
+        TMI::Instance().EndOfRunAction(run);
+    }
+};
+
+//---------------------------------------------------------------------------//
+class EventAction final : public G4UserEventAction
+{
+  public:
+    void BeginOfEventAction(G4Event const*) final
+    {
+        using Mode = celeritas::OffloadMode;
+        if (TMI::Instance().GetMode() != Mode::kill_offload)
+        {
+            ++expected_nonzero_energy;
+        }
+    }
+    void EndOfEventAction(G4Event const* event) final
+    {
+        // Log total energy deposition
+        if (global_sd)
+        {
+            CELER_LOG_LOCAL(info)
+                << "Total energy deposited for event " << event->GetEventID()
+                << ": " << (global_sd->edep() / CLHEP::MeV) << " MeV";
+
+            if (global_sd->edep() != 0)
+            {
+                ++actual_nonzero_energy;
+            }
+        }
+        else
+        {
+            CELER_LOG_LOCAL(error) << "Global SD was not set";
+        }
     }
 };
 
@@ -135,33 +186,25 @@ class ActionInitialization final : public G4VUserActionInitialization
     {
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
+        this->SetUserAction(new EventAction{});
     }
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Construct options for Celeritas.
- */
 celeritas::SetupOptions MakeOptions()
 {
     celeritas::SetupOptions opts;
-    // NOTE: these numbers are appropriate for CPU execution
+    // NOTE: these numbers are appropriate for CPU execution and can be set
+    // through the UI using `/celer/`
     opts.max_num_tracks = 2024;
     opts.initializer_capacity = 2024 * 128;
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
-    // NOTE: since no SD is enabled, we must manually disable Celeritas hit
-    // processing
-    opts.sd.enabled = false;
-
     // Use a uniform (zero) magnetic field
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
-    // Export a GDML file with the problem setup and SDs
-    opts.geometry_output_file = "fastsim-offload.gdml";
     // Save diagnostic file to a unique name
-    opts.output_file = "fastsim-offload.out.json";
+    opts.output_file = "trackingmanager-offload.out.json";
     return opts;
 }
 
@@ -170,34 +213,34 @@ celeritas::SetupOptions MakeOptions()
 
 int main()
 {
-    auto run_manager = [] {
-#if G4VERSION_NUMBER >= 1100
-        return std::unique_ptr<G4RunManager>{
-            G4RunManagerFactory::CreateRunManager()};
-#else
-        return std::make_unique<G4RunManager>();
-#endif
-    }();
+    auto run_manager = std::unique_ptr<G4RunManager>{
+        G4RunManagerFactory::CreateRunManager()};
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
-    // We must add support for fast simulation models to the Physics List
-    // NOTE: we have to explicitly name the particles and this should be a
-    // superset of what Celeritas can offload
-    auto physics_list = new FTFP_BERT{/* verbosity = */ 0};
-    auto fast_physics = new G4FastSimulationPhysics();
-    fast_physics->ActivateFastSimulation("e-");
-    fast_physics->ActivateFastSimulation("e+");
-    fast_physics->ActivateFastSimulation("gamma");
-    physics_list->RegisterPhysics(fast_physics);
-    run_manager->SetUserInitialization(physics_list);
+    auto& tmi = TMI::Instance();
 
+    // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
+    auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
+    physics_list->RegisterPhysics(
+        new celeritas::TrackingManagerConstructor(&tmi));
+    run_manager->SetUserInitialization(physics_list);
     run_manager->SetUserInitialization(new ActionInitialization());
 
-    FastSimulationIntegration::Instance().SetOptions(MakeOptions());
+    tmi.SetOptions(MakeOptions());
 
     run_manager->Initialize();
+
     run_manager->BeamOn(2);
+
+    if (actual_nonzero_energy != expected_nonzero_energy)
+    {
+        CELER_LOG(critical) << "Expected number of nonzero energy events ("
+                            << expected_nonzero_energy
+                            << ") did not match actual nonzero events ("
+                            << actual_nonzero_energy << ")";
+        return 1;
+    }
 
     return 0;
 }
