@@ -655,7 +655,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         }
     }
 
-    if (false)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
         PRINT_EXPECTED(lambda_cm);
         PRINT_EXPECTED(pstep_mfp);
@@ -671,6 +671,8 @@ TEST_F(UrbanMscTest, msc_scattering)
         PRINT_EXPECTED(action);
 
         PRINT_EXPECTED(avg_engine_samples);
+
+        GTEST_SKIP() << "Not tested for single precision";
     }
 
     static double const expected_lambda_cm[] = {
