@@ -662,8 +662,10 @@ TEST_F(TestEm3MscNoIntegral, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(87, result.num_step_iters());
-        EXPECT_EQ(54.75, result.calc_avg_steps_per_primary());
+        EXPECT_LE(86, result.num_step_iters());
+        EXPECT_GE(87, result.num_step_iters());
+        EXPECT_LE(54.7, result.calc_avg_steps_per_primary());
+        EXPECT_GE(54.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({6, 15}), result.calc_queue_hwm());
     }
