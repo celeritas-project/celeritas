@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/PowerDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
@@ -86,11 +88,12 @@ class UrbanLargeAngleDistribution
 
     // Sample cos(theta)
     template<class Engine>
-    inline CELER_FUNCTION real_type operator()(Engine& rng) const;
+    inline CELER_FUNCTION real_type operator()(Engine& rng);
 
   private:
-    real_type a_{};
-    real_type pow_prob_{};
+    BernoulliDistribution select_pow_{0};
+    PowerDistribution<> sample_pow_{0};
+    UniformRealDistribution<> sample_uniform_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -105,11 +108,14 @@ UrbanLargeAngleDistribution::UrbanLargeAngleDistribution(real_type tau)
     CELER_EXPECT(tau > 0);
     // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
     real_type mumean = std::exp(-tau);
-    // NOTE: tau_big~8 -> ~0.0003 < xmean < 1
+    // NOTE: tau_big = 8 -> ~0.0003 < mumean < 1
     real_type musqmean = (1 + 2 * std::exp(real_type(-2.5) * tau)) / 3;
 
-    a_ = (2 * mumean + 9 * musqmean - 3) / (2 * mumean - 3 * musqmean + 1);
-    pow_prob_ = (a_ + 2) * mumean / a_;
+    real_type a = (2 * mumean + 9 * musqmean - 3)
+                  / (2 * mumean - 3 * musqmean + 1);
+    CELER_ASSERT(a >= 0);
+    select_pow_ = BernoulliDistribution{(a + 2) * mumean / a};
+    sample_pow_ = PowerDistribution<>{a};
 }
 
 //---------------------------------------------------------------------------//
@@ -117,17 +123,15 @@ UrbanLargeAngleDistribution::UrbanLargeAngleDistribution(real_type tau)
  * Sample from two parameters of the model function.
  */
 template<class Engine>
-CELER_FUNCTION real_type UrbanLargeAngleDistribution::operator()(Engine& rng) const
+CELER_FUNCTION real_type UrbanLargeAngleDistribution::operator()(Engine& rng)
 {
-    real_type result{};
-    BernoulliDistribution sample_pow{pow_prob_};
-    do
-    {
-        real_type rdm = generate_canonical(rng);
-        result = 2 * (sample_pow(rng) ? fastpow(rdm, 1 / (a_ + 1)) : rdm) - 1;
-    } while (std::fabs(result) > 1);
+    // Sample u = (cos \theta + 1)/ 2
+    real_type half_angle = select_pow_(rng) ? sample_pow_(rng)
+                                            : sample_uniform_(rng);
+    CELER_ASSERT(half_angle >= 0 && half_angle <= 1);
 
-    return result;
+    // Transform back to [-1, 1]
+    return 2 * half_angle - 1;
 }
 
 //---------------------------------------------------------------------------//
