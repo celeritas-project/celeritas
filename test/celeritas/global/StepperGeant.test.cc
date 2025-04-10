@@ -24,6 +24,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "StepperTestBase.hh"
@@ -233,10 +234,10 @@ class TestEm3MscNoIntegral : public TestEm3Msc
         return opts;
     }
 
-    GeantPhysicsOptions build_geant_options() const override
+    PhysicsParamsOptions build_physics_options() const override
     {
-        auto opts = TestEm3Base::build_geant_options();
-        opts.integral_approach = false;
+        auto opts = ImportedDataTestBase::build_physics_options();
+        opts.disable_integral_xs = true;
         return opts;
     }
 };

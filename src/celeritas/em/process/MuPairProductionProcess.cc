@@ -22,14 +22,12 @@ namespace celeritas
  */
 MuPairProductionProcess::MuPairProductionProcess(SPConstParticles particles,
                                                  SPConstImported process_data,
-                                                 Options options,
                                                  SPConstImportTable table)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::mu_pair_prod,
                 {pdg::mu_minus(), pdg::mu_plus()})
-    , options_(options)
     , table_(std::move(table))
 {
     CELER_EXPECT(particles_);

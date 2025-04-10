@@ -112,7 +112,6 @@ class ProcessBuilder
 
     bool brem_combined_;
     bool enable_lpm_;
-    bool use_integral_xs_;
 
     //// HELPER FUNCTIONS ////
 

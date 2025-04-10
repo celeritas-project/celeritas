@@ -89,9 +89,9 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
 }
 
 //---------------------------------------------------------------------------//
-bool MockProcess::use_integral_xs() const
+bool MockProcess::supports_integral_xs() const
 {
-    return data_.use_integral_xs;
+    return data_.supports_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

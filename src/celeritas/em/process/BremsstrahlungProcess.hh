@@ -39,12 +39,10 @@ class BremsstrahlungProcess : public Process
     // TODO: update options based on ImportData
     struct Options
     {
-        bool combined_model{false};  //!> Use a unified relativistic/SB
-                                     //! interactor
-        bool enable_lpm{true};  //!> Account for LPM effect at very high
-                                //! energies
-        bool use_integral_xs{true};  //!> Use integral method for sampling
-                                     //! discrete interaction length
+        //! Use a unified relativistic/SB interactor
+        bool combined_model{false};
+        //! Account for LPM effect at very high energies
+        bool enable_lpm{true};
     };
 
   public:
@@ -61,8 +59,8 @@ class BremsstrahlungProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final { return options_.use_integral_xs; }
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return true; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return imported_.applies_at_rest(); }
