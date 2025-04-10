@@ -104,7 +104,7 @@ A few includes expose Celeritas classes to the user code:
  namespace
 ```
 
-Celeritas uses the build/run actions to set up and tear down cleanly:
+Celeritas uses the run action to set up and tear down cleanly:
 ```diff
 --- example/accel/trackingmanager-offload.cc
 +++ example/accel/trackingmanager-offload.cc
@@ -115,14 +115,6 @@ Celeritas uses the build/run actions to set up and tear down cleanly:
 @@ -137,2 +146,3 @@ class RunAction final : public G4UserRunAction
      void EndOfRunAction(G4Run const* run) final {
 +        TMI::Instance().EndOfRunAction(run);
-     }
-@@ -179,2 +189,3 @@ class ActionInitialization final : public G4VUserActionInitialization
-      void BuildForMaster() const final {
-+        TMI::Instance().BuildForMaster();
-     }
-@@ -185,2 +197,3 @@ class ActionInitialization final : public G4VUserActionInitialization
-     void Build() const final{
-+        TMI::Instance().Build();
      }
 ```
 

@@ -130,20 +130,9 @@ class RunAction final : public G4UserRunAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final
-    {
-        FastSimulationIntegration::Instance().BuildForMaster();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
-        this->SetUserAction(new RunAction{});
-    }
+    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
-        FastSimulationIntegration::Instance().Build();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
     }

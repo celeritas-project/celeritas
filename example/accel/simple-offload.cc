@@ -164,20 +164,9 @@ class TrackingAction final : public G4UserTrackingAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final
-    {
-        UserActionIntegration::Instance().BuildForMaster();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
-        this->SetUserAction(new RunAction{});
-    }
+    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
-        UserActionIntegration::Instance().Build();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
         this->SetUserAction(new EventAction{});

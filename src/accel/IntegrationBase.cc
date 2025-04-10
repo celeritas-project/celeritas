@@ -42,48 +42,6 @@ void IntegrationBase::SetOptions(SetupOptions&& opts)
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize during ActionInitialization on non-worker thread in MT mode.
- */
-void IntegrationBase::BuildForMaster()
-{
-    CELER_TRY_HANDLE(
-        {
-            CELER_VALIDATE(
-                G4Threading::IsMasterThread()
-                    && G4Threading::IsMultithreadedApplication(),
-                << R"(BuildForMaster called from a worker thread or non-MT code)");
-        },
-        ExceptionConverter{"celer.build_master"});
-
-    IntegrationSingleton::instance().initialize_logger();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize during ActionInitialization on a worker thread or serial mode.
- *
- * We guard against \c Build being called from \c BuildForMaster since we might
- * add worker-specific code here.
- */
-void IntegrationBase::Build()
-{
-    if (G4Threading::IsMasterThread())
-    {
-        CELER_TRY_HANDLE(
-            {
-                CELER_VALIDATE(!G4Threading::IsMultithreadedApplication(),
-                               << "cannot call Integration::Build from worker "
-                                  "thread "
-                                  "in a multithreaded application");
-            },
-            ExceptionConverter{"celer.build"});
-
-        IntegrationSingleton::instance().initialize_logger();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * End the run.
  */
 void IntegrationBase::EndOfRunAction(G4Run const*)
@@ -142,6 +100,18 @@ CoreStateInterface& IntegrationBase::GetState()
         ExceptionConverter{"celer.get.state"});
 
     return singleton.local_transporter().GetState();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize logging on first access.
+ *
+ * Since this is done during static initialization, it is guaranteed to be
+ * thread safe.
+ */
+IntegrationBase::IntegrationBase()
+{
+    IntegrationSingleton::instance().initialize_logger();
 }
 
 //---------------------------------------------------------------------------//

@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include <accel/TrackingManagerIntegration.hh>
-
 #include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
@@ -29,9 +27,6 @@ ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
  */
 void ActionInitialization::BuildForMaster() const
 {
-    // Set up Celeritas integration
-    celeritas::TrackingManagerIntegration::Instance().BuildForMaster();
-
     // RunAction is responsible for initializing Celeritas
     this->SetUserAction(new RunAction());
 }
@@ -42,9 +37,6 @@ void ActionInitialization::BuildForMaster() const
  */
 void ActionInitialization::Build() const
 {
-    // Set up Celeritas integration
-    celeritas::TrackingManagerIntegration::Instance().Build();
-
     // Initialize Geant4 user actions
     this->SetUserAction(new RunAction());
     this->SetUserAction(new PrimaryGeneratorAction());

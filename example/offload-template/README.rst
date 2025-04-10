@@ -31,10 +31,6 @@ Example classes
 :cpp:class:`MakeCelerOptions`
   Build Celeritas integration options before the beginning of the run.
 
-:cpp:class:`ActionInitialization`
-  :cpp:class:`Build` and `BuildForMaster` construct the Celeritas integration
-  interface with user-defined options.
-
 :cpp:class:`RunAction`
   :cpp:class:`BeginOfRunAction` initializes Celeritas global shared data on
   master and worker threads, setting up a tracking manager under the hood.

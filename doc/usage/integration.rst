@@ -34,11 +34,10 @@ recommended for all applications that support Geant4 11.0 or higher.
 
 3. Add hooks to safely set up and tear down Celeritas and its GPU code.
 
-   - Initialize logging in ``UserActionInitialization``, using
-     ``BuildForMaster`` (MT mode) or ``Build`` (serial).
-   - In ``UserRunAction``, ``BeginOfRunAction`` initializes problem data
-     (master or serial) and local state (worker or serial), and
-     ``EndOfRunAction`` safely deallocates everything.
+   - Call ``BeginOfRunAction`` at the beginning of the run to initialize
+     problem data (master or serial) and local state (worker or serial).
+   - Call ``EndOfRunAction`` at the end of the run to safely deallocate
+     everything.
 
 The changes for a simple application look like:
 

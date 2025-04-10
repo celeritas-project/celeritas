@@ -185,20 +185,9 @@ class EventAction final : public G4UserEventAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final
-    {
-        TMI::Instance().BuildForMaster();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
-        this->SetUserAction(new RunAction{});
-    }
+    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
-        TMI::Instance().Build();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
         this->SetUserAction(new EventAction{});
@@ -209,7 +198,7 @@ celeritas::SetupOptions MakeOptions()
 {
     celeritas::SetupOptions opts;
     // NOTE: these numbers are appropriate for CPU execution and can be set
-    // through the UI using `/celer/
+    // through the UI using `/celer/`
     opts.max_num_tracks = 2024;
     opts.initializer_capacity = 2024 * 128;
     // Celeritas does not support EmStandard MSC physics above 200 MeV
