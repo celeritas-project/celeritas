@@ -391,7 +391,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     // Mean of cos\theta computed from the distribution g_1(cos\theta)
     // small theta => x = theta0^2
-    // large xsi => xmean_1 = 1
+    // large xsi => xmean_1 = 1 - x
     // small tau => xmean = 1
     real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
 
