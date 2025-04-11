@@ -48,7 +48,21 @@ TEST(Distributions, UrbanLargeAngleDistribution)
     std::vector<double> angle_dist;
 
     DiagnosticRngEngine<std::mt19937> rng;
-    for (real_type tau : {1e-14, 1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
+
+    // Separately sample tau = 1e-14 due to platform-dependent numerical issues
+    {
+        UrbanLargeAngleDistribution sample_angle{real_type(1e-14)};
+        for (int i = 0; i < num_samples; ++i)
+        {
+            auto mu = sample_angle(rng);
+            EXPECT_LT(real_type(0.9999), mu);
+            EXPECT_LE(mu, real_type(1));
+        }
+        EXPECT_EQ(4 * num_samples, rng.exchange_count());
+    }
+
+    // Sample larger tau
+    for (real_type tau : {1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
     {
         Histogram bin_angle(9, {-1, 1});
 
@@ -63,7 +77,6 @@ TEST(Distributions, UrbanLargeAngleDistribution)
     }
 
     static double const expected_angle_dist[] = {
-        0,      0,      0,      0,      0,      0,      0,      0,      0.9838,
         0,      0,      0,      0,      0,      0,      0,      0,      1,
         0,      0,      0,      0,      0,      0,      0,      0,      1,
         0.0005, 0.0002, 0.0004, 0,      0.0004, 0,      0.0002, 0.0005, 0.9978,
