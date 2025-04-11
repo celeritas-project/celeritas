@@ -75,6 +75,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/g4/VisitVolumes.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/LivermorePEReader.hh"
@@ -229,7 +230,7 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                 // If these custom-defined properties aren't found, try getting
                 // the Geant4-defined property and estimating the distribution
                 // parameters from the tabulated values.
-                ImportPhysicsVector pv;
+                inp::Grid pv;
                 auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
                 if (get_property(
                         &pv, name, {ImportUnits::len, ImportUnits::unitless}))

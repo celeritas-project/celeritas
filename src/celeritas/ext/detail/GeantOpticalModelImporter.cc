@@ -82,10 +82,10 @@ ImportOpticalModel GeantOpticalModelImporter::operator()(IMC imc) const
 /*!
  * Import MFP table with the given property name.
  */
-std::vector<ImportPhysicsVector>
+std::vector<inp::Grid>
 GeantOpticalModelImporter::import_mfps(std::string const& mfp_property_name) const
 {
-    std::vector<ImportPhysicsVector> mfps(opt_to_mat_.size());
+    std::vector<inp::Grid> mfps(opt_to_mat_.size());
     for (auto opt_idx : range(mfps.size()))
     {
         GeantMaterialPropertyGetter get_property{*opt_to_mat_[opt_idx]};

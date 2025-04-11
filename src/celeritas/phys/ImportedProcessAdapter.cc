@@ -242,9 +242,7 @@ auto ImportedProcessAdapter::step_limits_impl(
     {
         // Both unscaled and scaled values are present
         auto const& lo = get_vector(ids.lambda);
-        CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
         auto const& hi = get_vector(ids.lambda_prim);
-        CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_geant(
             make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
     }
@@ -252,7 +250,6 @@ auto ImportedProcessAdapter::step_limits_impl(
     {
         // Only high-energy (energy-scale) cross sections are presesnt
         auto const& vec = get_vector(ids.lambda_prim);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_scaled(
             make_span(vec.x), make_span(vec.y));
     }
@@ -260,7 +257,6 @@ auto ImportedProcessAdapter::step_limits_impl(
     {
         // Only low-energy cross sections are presesnt
         auto const& vec = get_vector(ids.lambda);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
 
         builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
             make_span(vec.x), make_span(vec.y));
@@ -270,7 +266,6 @@ auto ImportedProcessAdapter::step_limits_impl(
     if (ids.dedx)
     {
         auto const& vec = get_vector(ids.dedx);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::energy_loss] = ValueGridLogBuilder::from_geant(
             make_span(vec.x), make_span(vec.y));
     }
@@ -279,7 +274,6 @@ auto ImportedProcessAdapter::step_limits_impl(
     if (ids.range)
     {
         auto const& vec = get_vector(ids.range);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::range] = ValueGridLogBuilder::from_range(
             make_span(vec.x), make_span(vec.y));
     }

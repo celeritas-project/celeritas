@@ -15,7 +15,6 @@
 #include "corecel/sys/Environment.hh"
 
 #include "ImportLivermorePE.hh"
-#include "ImportPhysicsVector.hh"
 
 namespace celeritas
 {
@@ -67,9 +66,6 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                        << "failed to open '" << filename
                        << "' (should contain cross section data)");
 
-        // Set the physics vector type and the data type
-        result.xs_hi.vector_type = ImportPhysicsVectorType::free;
-
         // Read tabulated energies and cross sections
         double energy_min = 0.;
         double energy_max = 0.;
@@ -107,7 +103,6 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                            << "'");
             result.xs_lo.x.resize(size);
             result.xs_lo.y.resize(size);
-            result.xs_lo.vector_type = ImportPhysicsVectorType::free;
             for (int i = 0; i < size; ++i)
             {
                 CELER_ASSERT(infile);

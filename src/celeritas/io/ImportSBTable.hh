@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -21,7 +21,7 @@ namespace celeritas
  *
  * DEPRECATED: remove in v1.0.
  */
-using ImportSBTable = ImportPhysics2DVector;
+using ImportSBTable = inp::TwodGrid;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

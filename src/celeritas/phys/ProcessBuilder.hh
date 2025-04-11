@@ -107,7 +107,7 @@ class ProcessBuilder
     UserBuildMap user_build_map_;
     std::function<ImportSBTable(AtomicNumber)> read_sb_;
     std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
-    std::function<ImportPhysicsVector(AtomicNumber)> read_neutron_elastic_;
+    std::function<inp::Grid(AtomicNumber)> read_neutron_elastic_;
     std::shared_ptr<ImportMuPairProductionTable> mu_pairprod_table_;
 
     bool brem_combined_;

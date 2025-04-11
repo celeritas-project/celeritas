@@ -87,7 +87,6 @@ list(APPEND SOURCES
   io/ImportModel.cc
   io/ImportOpticalModel.cc
   io/ImportPhysicsTable.cc
-  io/ImportPhysicsVector.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc
@@ -240,11 +239,11 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportMaterial.hh"
     "celeritas/io/ImportParticle.hh"
     "celeritas/io/ImportPhysicsTable.hh"
-    "celeritas/io/ImportPhysicsVector.hh"
     "celeritas/io/ImportProcess.hh"
     "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
+    "celeritas/inp/Grid.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"

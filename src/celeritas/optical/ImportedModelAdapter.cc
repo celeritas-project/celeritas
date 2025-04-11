@@ -134,7 +134,7 @@ ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
 /*!
  * Get MFP table for the given optical material.
  */
-ImportPhysicsVector const& ImportedModelAdapter::mfp(OpticalMaterialId id) const
+inp::Grid const& ImportedModelAdapter::mfp(OpticalMaterialId id) const
 {
     CELER_EXPECT(id < this->model().mfp_table.size());
     return this->model().mfp_table[id.get()];

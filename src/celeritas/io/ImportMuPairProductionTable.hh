@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -31,7 +31,7 @@ struct ImportMuPairProductionTable
     //!@}
 
     std::vector<ZInt> atomic_number;
-    std::vector<ImportPhysics2DVector> physics_vectors;
+    std::vector<inp::TwodGrid> physics_vectors;
 
     explicit operator bool() const
     {

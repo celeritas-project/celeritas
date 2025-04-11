@@ -10,7 +10,6 @@
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 
 namespace celeritas
 {

@@ -9,7 +9,7 @@
 #include <iostream>
 #include <vector>
 
-#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/inp/Physics.hh"
 
 #include "celeritas_test.hh"
 
@@ -62,8 +62,7 @@ TEST_F(NonuniformGridBuilderTest, build_span)
 
 TEST_F(NonuniformGridBuilderTest, TEST_IF_CELERITAS_DOUBLE(build_vec))
 {
-    ImportPhysicsVector vect;
-    vect.vector_type = ImportPhysicsVectorType::free;
+    inp::Grid vect;
     vect.x = std::vector<double>(span_grid().begin(), span_grid().end());
     vect.y = std::vector<double>(span_values().begin(), span_values().end());
 

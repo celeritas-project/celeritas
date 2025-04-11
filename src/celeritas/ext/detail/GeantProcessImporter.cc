@@ -153,38 +153,6 @@ int get_secondary_pdg(T const& process)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert physics vector type from Geant4 to Celeritas IO.
- *
- * Geant4 v11 has a different set of G4PhysicsVectorType enums.
- */
-ImportPhysicsVectorType
-to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
-{
-    switch (g4_vector_type)
-    {
-#if G4VERSION_NUMBER < 1100
-        case T_G4PhysicsVector:
-            return ImportPhysicsVectorType::unknown;
-#endif
-        case T_G4PhysicsLinearVector:
-            return ImportPhysicsVectorType::linear;
-        case T_G4PhysicsLogVector:
-#if G4VERSION_NUMBER < 1100
-        case T_G4PhysicsLnVector:
-#endif
-            return ImportPhysicsVectorType::log;
-        case T_G4PhysicsFreeVector:
-#if G4VERSION_NUMBER < 1100
-        case T_G4PhysicsOrderedFreeVector:
-        case T_G4LPhysicsFreeVector:
-#endif
-            return ImportPhysicsVectorType::free;
-    }
-    CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Import data from a Geant4 physics table if available.
  */
 void append_table(G4PhysicsTable const* g4table,
@@ -412,15 +380,14 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 /*!
  * Import a physics vector with the given x, y units.
  */
-ImportPhysicsVector
+inp::Grid
 import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);
     double const y_scaling = native_value_from_clhep(units[1]);
 
-    ImportPhysicsVector import_vec;
-    import_vec.vector_type = to_import_physics_vector_type(g4v.GetType());
+    inp::Grid import_vec;
     import_vec.x.resize(g4v.GetVectorLength());
     import_vec.y.resize(import_vec.x.size());
 
@@ -441,8 +408,8 @@ import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
  * TwodSubgridCalculator expect the y grid values to be on the inner dimension,
  * the table is inverted during import so that the x and y grids are swapped.
  */
-ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
-                                              Array<ImportUnits, 3> units)
+inp::TwodGrid import_physics_2dvector(G4Physics2DVector const& g4pv,
+                                      Array<ImportUnits, 3> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);
@@ -453,7 +420,7 @@ ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
                              static_cast<size_type>(g4pv.GetLengthX())};
     HyperslabIndexer<2> index(dims);
 
-    ImportPhysics2DVector pv;
+    inp::TwodGrid pv;
     pv.x.resize(dims[0]);
     pv.y.resize(dims[1]);
     pv.value.resize(dims[0] * dims[1]);

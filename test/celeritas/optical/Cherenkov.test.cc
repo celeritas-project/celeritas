@@ -140,7 +140,6 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
         }
         water.refractive_index.y
             = {get_refractive_index().begin(), get_refractive_index().end()};
-        water.refractive_index.vector_type = ImportPhysicsVectorType::free;
 
         MaterialParams::Input input;
         input.properties.push_back(std::move(water));

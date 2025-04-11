@@ -264,22 +264,19 @@ void print_table(ImportPhysicsTable const& table)
 {
     cout << to_cstring(table.table_type) << ":\n\n";
 
-    cout << "| Type          | Size  | Endpoints ("
-         << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
-         << ") |"
+    cout << "| Size  | Endpoints (" << to_cstring(table.x_units) << ", "
+         << to_cstring(table.y_units) << ") |"
          << R"gfm(
-| ------------- | ----- | ------------------------------------------------------------ |
+| ----- | ------------------------------------------------------------ |
 )gfm";
 
     for (auto const& physvec : table.physics_vectors)
     {
-        cout << "| " << setw(13) << std::left
-             << to_cstring(physvec.vector_type) << " | " << setw(5)
-             << physvec.x.size() << " | (" << setprecision(3) << setw(12)
-             << physvec.x.front() << ", " << setprecision(3) << setw(12)
-             << physvec.y.front() << ") -> (" << setprecision(3) << setw(12)
-             << physvec.x.back() << ", " << setprecision(3) << setw(12)
-             << physvec.y.back() << ") |\n";
+        cout << "| " << setw(5) << physvec.x.size() << " | ("
+             << setprecision(3) << setw(12) << physvec.x.front() << ", "
+             << setprecision(3) << setw(12) << physvec.y.front() << ") -> ("
+             << setprecision(3) << setw(12) << physvec.x.back() << ", "
+             << setprecision(3) << setw(12) << physvec.y.back() << ") |\n";
     }
 }
 
@@ -826,7 +823,7 @@ class OpticalMfpHelper
     // MFP to print for the model
     struct MfpPrinter
     {
-        ImportPhysicsVector const& mfp;
+        inp::Grid const& mfp;
     };
 
     //! Construct helper for given model class out of the models
@@ -854,7 +851,7 @@ class OpticalMfpHelper
     }
 
   private:
-    std::vector<ImportPhysicsVector> const* mfps_{nullptr};
+    std::vector<inp::Grid> const* mfps_{nullptr};
 };
 
 /*!

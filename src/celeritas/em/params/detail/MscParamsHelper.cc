@@ -110,9 +110,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
             CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
 
             // Get the cross section data for this particle and material
-            ImportPhysicsVector const& pv
-                = xs_tables_[par_idx]->physics_vectors[mat_idx];
-            CELER_ASSERT(pv.vector_type == ImportPhysicsVectorType::log);
+            auto const& pv = xs_tables_[par_idx]->physics_vectors[mat_idx];
             CELER_ASSERT(pv.x.front() > 0 && pv.x.back() > pv.x.front());
             CELER_ASSERT(has_log_spacing(make_span(pv.x)));
 

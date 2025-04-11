@@ -14,7 +14,6 @@
 // IWYU pragma: begin_exports
 #include "ImportModel.hh"
 #include "ImportPhysicsTable.hh"
-#include "ImportPhysicsVector.hh"
 // IWYU pragma: end_exports
 
 namespace celeritas

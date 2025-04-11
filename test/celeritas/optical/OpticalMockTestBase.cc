@@ -41,18 +41,17 @@ struct MeterCubedPerMeV
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Helper function for converting hardcoded grids into \c ImportPhysicsVector.
+ * Helper function for converting hardcoded grids into \c inp::Grid.
  *
  * The grid energy is converted to units of MeV, while the values are converted
  * to native units.
  */
 template<class GridUnit, class ValueUnit>
-ImportPhysicsVector
+inp::Grid
 native_physics_vector_from(std::vector<double> xs, std::vector<double> ys)
 {
     CELER_EXPECT(xs.size() == ys.size());
-    ImportPhysicsVector v{
-        ImportPhysicsVectorType::free, std::move(xs), std::move(ys)};
+    inp::Grid v{std::move(xs), std::move(ys), inp::Interpolation{}};
     for (double& x : v.x)
     {
         x = value_as<units::MevEnergy>(native_value_to<units::MevEnergy>(
@@ -70,13 +69,13 @@ native_physics_vector_from(std::vector<double> xs, std::vector<double> ys)
 //---------------------------------------------------------------------------//
 /*!
  * Helper function for converting hardcoded tables (lists of grids) into
- * \c ImportPhysicsVector.
+ * \c inp::Grid.
  */
 template<class GridUnit, class ValueUnit>
-std::vector<ImportPhysicsVector> native_physics_table_from(
+std::vector<inp::Grid> native_physics_table_from(
     std::vector<std::tuple<std::vector<double>, std::vector<double>>> data)
 {
-    std::vector<ImportPhysicsVector> table;
+    std::vector<inp::Grid> table;
     table.reserve(data.size());
     for (auto&& arrs : data)
     {
