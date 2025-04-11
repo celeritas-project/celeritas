@@ -78,7 +78,9 @@ elseif(CELERITAS_USE_HIP)
   target_include_directories(ExtDeviceApi
     SYSTEM INTERFACE "${ROCM_PATH}/include"
   )
+  find_library(ROCTX_LIBRARY roctx64)
   if(ROCTX_LIBRARY)
+    set(CELERITAS_HAVE_ROCTX ON)
     target_link_libraries(ExtDeviceApi INTERFACE "${ROCTX_LIBRARY}")
   endif()
   if(NOT BUILD_SHARED_LIBS)
