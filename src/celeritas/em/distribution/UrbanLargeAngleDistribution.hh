@@ -15,6 +15,7 @@
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/PowerDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
+#include "corecel/random/engine/CachedRngEngine.hh"
 
 namespace celeritas
 {
@@ -118,13 +119,19 @@ UrbanLargeAngleDistribution::UrbanLargeAngleDistribution(real_type tau)
 //---------------------------------------------------------------------------//
 /*!
  * Sample from two parameters of the model function.
+ *
+ * \todo The cached RNG value is not necessary and is only for reproducing
+ * previous results. It should be deleted the next time a rebaselining is
+ * performed.
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanLargeAngleDistribution::operator()(Engine& rng)
 {
+    // Save the RNG result to preserve RNG stream from older Celeritas
+    auto temp_rng = cache_rng_values<real_type, 1>(rng);
     // Sample u = (cos \theta + 1)/ 2
-    real_type half_angle = select_pow_(rng) ? sample_pow_(rng)
-                                            : sample_uniform_(rng);
+    real_type half_angle = select_pow_(rng) ? sample_pow_(temp_rng)
+                                            : sample_uniform_(temp_rng);
     CELER_ASSERT(half_angle >= 0 && half_angle <= 1);
 
     // Transform back to [-1, 1]

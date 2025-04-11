@@ -14,10 +14,6 @@ namespace celeritas
 {
 namespace test
 {
-namespace
-{
-
-}
 //---------------------------------------------------------------------------//
 
 TEST(PowerDistributionTest, squared)
