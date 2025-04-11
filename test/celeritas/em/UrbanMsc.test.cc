@@ -48,7 +48,7 @@ TEST(Distributions, UrbanLargeAngleDistribution)
     std::vector<double> angle_dist;
 
     DiagnosticRngEngine<std::mt19937> rng;
-    for (auto tau : {1e-14, 1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
+    for (real_type tau : {1e-14, 1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
     {
         Histogram bin_angle(9, {-1, 1});
 
