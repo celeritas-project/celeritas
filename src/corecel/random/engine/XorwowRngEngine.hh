@@ -108,16 +108,17 @@ class XorwowRngEngine
  * Specialization of GenerateCanonical for XorwowRngEngine.
  */
 template<class RealType>
-class GenerateCanonical<XorwowRngEngine, RealType>
+struct GenerateCanonical<XorwowRngEngine, RealType>
 {
-  public:
     //!@{
     //! \name Type aliases
     using real_type = RealType;
     using result_type = RealType;
     //!@}
 
-  public:
+    //! Declare that we use the 32-bit canonical generator
+    static constexpr auto policy = GenerateCanonicalPolicy::builtin32;
+
     //! Sample a random number on [0, 1)
     CELER_FORCEINLINE_FUNCTION result_type operator()(XorwowRngEngine& rng)
     {
