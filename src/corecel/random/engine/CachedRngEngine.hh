@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/detail/GenerateCanonical32.hh"
 
@@ -18,10 +19,10 @@ namespace celeritas
 /*!
  * Store several PRNG engine results and return them.
  */
-template<class Engine, size_type Bytes>
+template<class Engine, size_type N>
 class CachedRngEngine
 {
-    static_assert(Bytes > 0);
+    static_assert(N > 0);
 
   public:
     //!@{
@@ -42,23 +43,15 @@ class CachedRngEngine
     inline CELER_FUNCTION result_type operator()();
 
     //! Get the total number of stored samples
-    static CELER_CONSTEXPR_FUNCTION size_type size() { return num_entries_; }
+    static CELER_CONSTEXPR_FUNCTION size_type size() { return N; }
 
     //! Get the number of remaining samples
-    CELER_CONSTEXPR_FUNCTION size_type remaining() const
-    {
-        return num_entries_ - next_;
-    }
+    CELER_CONSTEXPR_FUNCTION size_type remaining() const { return N - next_; }
 
   private:
-    static constexpr size_type num_entries_ = Bytes / sizeof(result_type);
-
-    static_assert(num_entries_ * sizeof(result_type) == Bytes,
-                  "number of bytes must be divisible by engine result size");
-
     /// DATA ///
 
-    Array<result_type, num_entries_> stored_;
+    Array<result_type, N> stored_;
     size_type next_{0};
 };
 
@@ -66,12 +59,12 @@ class CachedRngEngine
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Return an RNG with the given number of bytes cached.
+ * Return an RNG with the given number of calls cached.
  */
-template<size_type Bytes, class Engine>
-inline auto cache_rng_bytes(Engine& e)
+template<size_type N, class Engine>
+inline auto cache_rng_count(Engine& e)
 {
-    return CachedRngEngine<Engine, Bytes>{e};
+    return CachedRngEngine<Engine, N>{e};
 }
 
 //---------------------------------------------------------------------------//
@@ -81,7 +74,18 @@ inline auto cache_rng_bytes(Engine& e)
 template<class T, size_type Count, class Engine>
 inline auto cache_rng_values(Engine& e)
 {
-    return CachedRngEngine<Engine, sizeof(T) * Count>{e};
+    // Accout for the fact that some implementations uses 64-bit integers for
+    // RNGs that have return 32 bits of entropy
+    using result_type = typename Engine::result_type;
+    static_assert(sizeof(result_type) == 4 || sizeof(result_type) == 8,
+                  "only implemented for 32- and 64-bit integers");
+    constexpr size_type bytes_entropy
+        = sizeof(result_type) == 4                           ? 4
+          : Engine::max() <= numeric_limits<unsigned>::max() ? sizeof(unsigned)
+          : Engine::max() <= numeric_limits<unsigned long long>::max()
+              ? sizeof(unsigned long long)
+              : 0;
+    return CachedRngEngine<Engine, Count * sizeof(T) / bytes_entropy>{e};
 }
 
 //---------------------------------------------------------------------------//
