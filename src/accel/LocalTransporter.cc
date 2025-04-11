@@ -219,7 +219,6 @@ void LocalTransporter::InitializeEvent(int id)
 
     event_id_ = id_cast<UniqueEventId>(id);
     ++run_accum_.events;
-    trace_counter("event", event_id_.get());
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -329,7 +328,6 @@ void LocalTransporter::Flush()
     }
     CELER_ASSERT(event_id_);
 
-    trace_counter("flush", event_id_.get());
     if (celeritas::device())
     {
         CELER_LOG_LOCAL(debug)
@@ -377,11 +375,11 @@ void LocalTransporter::Flush()
 
     while (track_counts)
     {
-        CELER_VALIDATE_OR_KILL_ACTIVE(
-            step_iters < max_step_iters_,
-            << R"(number of step iterations exceeded the allowed maximum ()"
-            << max_step_iters_ << ")",
-            *step_);
+        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_step_iters_,
+                                      << "number of step iterations exceeded "
+                                         "the allowed maximum ("
+                                      << max_step_iters_ << ")",
+                                      *step_);
 
         track_counts = (*step_)();
         run_accum_.steps += track_counts.active;
