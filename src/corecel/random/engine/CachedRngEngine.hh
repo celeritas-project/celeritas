@@ -62,7 +62,7 @@ class CachedRngEngine
  * Return an RNG with the given number of calls cached.
  */
 template<size_type N, class Engine>
-inline auto cache_rng_count(Engine& e)
+inline CELER_FUNCTION auto cache_rng_count(Engine& e)
 {
     return CachedRngEngine<Engine, N>{e};
 }
@@ -72,7 +72,7 @@ inline auto cache_rng_count(Engine& e)
  * Return an RNG with enough space to return Count of type T.
  */
 template<class T, size_type Count, class Engine>
-inline auto cache_rng_values(Engine& e)
+inline CELER_FUNCTION auto cache_rng_values(Engine& e)
 {
     // Accout for the fact that some implementations uses 64-bit integers for
     // RNGs that have return 32 bits of entropy
