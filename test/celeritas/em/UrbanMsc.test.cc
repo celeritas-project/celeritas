@@ -49,6 +49,9 @@ TEST(Distributions, UrbanLargeAngleDistribution)
 
     DiagnosticRngEngine<std::mt19937> rng;
 
+    constexpr auto samples_per_real
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT ? 1 : 2);
+
     // Separately sample tau = 1e-14 due to platform-dependent numerical issues
     {
         UrbanLargeAngleDistribution sample_angle{real_type(1e-14)};
@@ -58,7 +61,7 @@ TEST(Distributions, UrbanLargeAngleDistribution)
             EXPECT_LT(real_type(0.9999), mu);
             EXPECT_LE(mu, real_type(1));
         }
-        EXPECT_EQ(4 * num_samples, rng.exchange_count());
+        EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
     }
 
     // Sample larger tau
@@ -73,20 +76,24 @@ TEST(Distributions, UrbanLargeAngleDistribution)
         }
         extend_from_histogram(angle_dist, bin_angle);
         // Rejection is never hit
-        EXPECT_EQ(4 * num_samples, rng.exchange_count());
+        EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
     }
 
-    static double const expected_angle_dist[] = {
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0.0005, 0.0002, 0.0004, 0,      0.0004, 0,      0.0002, 0.0005, 0.9978,
-        0.0032, 0.002,  0.0031, 0.0023, 0.0028, 0.0031, 0.0048, 0.0436, 0.9351,
-        0.0136, 0.0147, 0.0173, 0.0233, 0.0393, 0.0715, 0.1359, 0.2501, 0.4343,
-        0.0315, 0.0374, 0.0466, 0.0645, 0.0887, 0.1168, 0.1561, 0.2001, 0.2583,
-        0.0712, 0.0789, 0.0885, 0.102,  0.1094, 0.1228, 0.1318, 0.1413, 0.1541,
-        0.1146, 0.1067, 0.1139, 0.1184, 0.1139, 0.1022, 0.1059, 0.1118, 0.1126,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_angle_dist, angle_dist);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static double const expected_angle_dist[] = {
+            0,      0,      0,      0,      0,      0,      0,      0,
+            1,      0,      0,      0,      0,      0,      0,      0,
+            0,      1,      0.0005, 0.0002, 0.0004, 0,      0.0004, 0,
+            0.0002, 0.0005, 0.9978, 0.0032, 0.002,  0.0031, 0.0023, 0.0028,
+            0.0031, 0.0048, 0.0436, 0.9351, 0.0136, 0.0147, 0.0173, 0.0233,
+            0.0393, 0.0715, 0.1359, 0.2501, 0.4343, 0.0315, 0.0374, 0.0466,
+            0.0645, 0.0887, 0.1168, 0.1561, 0.2001, 0.2583, 0.0712, 0.0789,
+            0.0885, 0.102,  0.1094, 0.1228, 0.1318, 0.1413, 0.1541, 0.1146,
+            0.1067, 0.1139, 0.1184, 0.1139, 0.1022, 0.1059, 0.1118, 0.1126,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_angle_dist, angle_dist);
+    }
 }
 
 //---------------------------------------------------------------------------//

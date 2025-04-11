@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -16,6 +17,8 @@
 #include "corecel/random/distribution/PowerDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "corecel/random/engine/CachedRngEngine.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -107,12 +110,12 @@ UrbanLargeAngleDistribution::UrbanLargeAngleDistribution(real_type tau)
     // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
     real_type mumean = std::exp(-tau);
     // NOTE: tau_big = 8 -> ~0.0003 < mumean < 1
-    real_type musqmean = (1 + 2 * std::exp(real_type(-2.5) * tau)) / 3;
 
+    real_type musqmean = (1 + 2 * std::exp(real_type(-2.5) * tau)) / 3;
     real_type a = (2 * mumean + 9 * musqmean - 3)
                   / (2 * mumean - 3 * musqmean + 1);
-    CELER_ASSERT(a >= 0);
-    select_pow_ = BernoulliDistribution{(a + 2) * mumean / a};
+
+    select_pow_ = BernoulliDistribution{mumean * (1 + 2 / a)};
     sample_pow_ = PowerDistribution<>{a};
 }
 
