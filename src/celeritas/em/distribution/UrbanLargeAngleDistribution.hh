@@ -7,7 +7,6 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -17,8 +16,6 @@
 #include "corecel/random/distribution/PowerDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "corecel/random/engine/CachedRngEngine.hh"
-using std::cout;
-using std::endl;
 
 namespace celeritas
 {
