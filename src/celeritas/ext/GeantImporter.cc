@@ -230,14 +230,14 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                 // If these custom-defined properties aren't found, try getting
                 // the Geant4-defined property and estimating the distribution
                 // parameters from the tabulated values.
-                inp::Grid pv;
+                inp::Grid grid;
                 auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
                 if (get_property(
-                        &pv, name, {ImportUnits::len, ImportUnits::unitless}))
+                        &grid, name, {ImportUnits::len, ImportUnits::unitless}))
                 {
-                    auto const& pv_cref = pv;
-                    auto moments = MomentCalculator{}(make_span(pv_cref.x),
-                                                      make_span(pv_cref.y));
+                    auto const& grid_cref = grid;
+                    auto moments = MomentCalculator{}(make_span(grid_cref.x),
+                                                      make_span(grid_cref.y));
                     comp.lambda_mean = moments.mean;
                     comp.lambda_sigma = std::sqrt(moments.variance);
 

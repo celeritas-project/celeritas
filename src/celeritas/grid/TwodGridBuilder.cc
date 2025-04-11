@@ -43,10 +43,10 @@ auto TwodGridBuilder::operator()(SpanConstDbl grid_x,
 /*!
  * Add a grid from an imported physics vector.
  */
-auto TwodGridBuilder::operator()(inp::TwodGrid const& inp) -> TwodGrid
+auto TwodGridBuilder::operator()(inp::TwodGrid const& grid) -> TwodGrid
 {
     return this->insert_impl(
-        make_span(inp.x), make_span(inp.y), make_span(inp.value));
+        make_span(grid.x), make_span(grid.y), make_span(grid.value));
 }
 
 //---------------------------------------------------------------------------//

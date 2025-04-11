@@ -17,7 +17,6 @@ enum class ValueGridType
 {
     macro_xs,  //!< Interaction cross sections
     energy_loss,  //!< Energy loss per unit length
-    range,  //!< Particle range
     size_
 };
 

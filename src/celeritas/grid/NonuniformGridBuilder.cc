@@ -53,9 +53,9 @@ auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
 /*!
  * Add a grid from an imported physics vector.
  */
-auto NonuniformGridBuilder::operator()(inp::Grid const& inp) -> Grid
+auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
 {
-    return this->insert_impl(make_span(inp.x), make_span(inp.y));
+    return this->insert_impl(make_span(grid.x), make_span(grid.y));
 }
 
 //---------------------------------------------------------------------------//

@@ -60,7 +60,7 @@ class ValueGridBuilderTest : public Test
 TEST_F(ValueGridBuilderTest, xs_grid)
 {
     using Builder_t = ValueGridXsBuilder;
-    using GridInput = ValueGridXsBuilder::GridInput;
+    using GridInput = ValueGridBuilder::GridInput;
 
     VecBuilder entries;
     {
@@ -69,13 +69,14 @@ TEST_F(ValueGridBuilderTest, xs_grid)
             GridInput{1e2, 1e3, {0.2 * 1e2, 0.3 * 1e3}}));
     }
     {
-        double const lambda_energy[] = {1e-3, 1e-2, 1e-1};
-        double const lambda[] = {10, 1, .1};
-        double const lambda_prim_energy[] = {1e-1, 1e0, 10};
-        double const lambda_prim[] = {.1 * 1e-1, .01 * 1, .001 * 10};
+        inp::Grid lower;
+        lower.x = {1e-3, 1e-2, 1e-1};
+        lower.y = {10, 1, .1};
+        inp::Grid upper;
+        upper.x = {1e-1, 1e0, 10};
+        upper.y = {.1 * 1e-1, .01 * 1, .001 * 10};
 
-        entries.push_back(Builder_t::from_geant(
-            lambda_energy, lambda, lambda_prim_energy, lambda_prim));
+        entries.push_back(Builder_t::from_geant(lower, upper));
     }
     {
         entries.push_back(make_shared<Builder_t>(
@@ -106,10 +107,12 @@ TEST_F(ValueGridBuilderTest, xs_grid)
 TEST_F(ValueGridBuilderTest, log_grid)
 {
     using Builder_t = ValueGridLogBuilder;
+    using GridInput = ValueGridBuilder::GridInput;
 
     VecBuilder entries;
     {
-        entries.push_back(make_shared<Builder_t>(1e1, 1e3, VecDbl{.1, .2, .3}));
+        entries.push_back(
+            make_shared<Builder_t>(GridInput{1e1, 1e3, {.1, .2, .3}}));
     }
 
     // Build

@@ -87,10 +87,10 @@ NonuniformGridInserter<Index>::NonuniformGridInserter(Values* reals,
  * empty.
  */
 template<class Index>
-auto NonuniformGridInserter<Index>::operator()(inp::Grid const& inp) -> Index
+auto NonuniformGridInserter<Index>::operator()(inp::Grid const& grid) -> Index
 {
-    CELER_EXPECT(!inp.x.empty());
-    return grids_.push_back(grid_builder_(inp));
+    CELER_EXPECT(!grid.x.empty());
+    return grids_.push_back(grid_builder_(grid));
 }
 
 //---------------------------------------------------------------------------//

@@ -143,7 +143,6 @@ TEST_F(ProcessBuilderTest, compton)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -181,7 +180,6 @@ TEST_F(ProcessBuilderTest, e_ionization)
                 auto builders = process->step_limits(applic);
                 EXPECT_TRUE(builders[VGT::macro_xs]);
                 EXPECT_TRUE(builders[VGT::energy_loss]);
-                EXPECT_TRUE(builders[VGT::range]);
             }
 
             // Test micro xs
@@ -220,7 +218,6 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
                 auto builders = process->step_limits(applic);
                 EXPECT_TRUE(builders[VGT::macro_xs]);
                 EXPECT_FALSE(builders[VGT::energy_loss]);
-                EXPECT_FALSE(builders[VGT::range]);
             }
 
             // Test micro xs
@@ -258,7 +255,6 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -305,7 +301,6 @@ TEST_F(ProcessBuilderTest, photoelectric)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -350,12 +345,9 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
 
-            // Only the ionization process has energy loss and range tables.
-            // It's de/dx table is the sum of the ionization and bremsstrahlung
-            // energy loss, and the range table is calculated from the summed
-            // de/dx.
+            // Only the ionization process has and energy loss table, which is
+            // the sum of the ionization and bremsstrahlung energy loss
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -405,12 +397,9 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_combined_model)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
 
-            // Only the ionization process has energy loss and range tables.
-            // It's de/dx table is the sum of the ionization and bremsstrahlung
-            // energy loss, and the range table is calculated from the summed
-            // de/dx.
+            // Only the ionization process has and energy loss table, which is
+            // the sum of the ionization and bremsstrahlung energy loss
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -450,7 +439,6 @@ TEST_F(ProcessBuilderTest, rayleigh)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -499,7 +487,6 @@ TEST_F(ProcessBuilderTest, coulomb)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -558,7 +545,6 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
@@ -605,7 +591,6 @@ TEST_F(ProcessBuilderTest, mu_ionization)
                 auto builders = process->step_limits(applic);
                 EXPECT_TRUE(builders[VGT::macro_xs]);
                 EXPECT_TRUE(builders[VGT::energy_loss]);
-                EXPECT_TRUE(builders[VGT::range]);
             }
 
             // Test micro xs
@@ -643,9 +628,9 @@ TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
             applic.material = mat_id;
             auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
-            // Only the ionization process has energy loss and range tables.
+            // Only the ionization process has and energy loss table, which is
+            // the sum of the ionization and bremsstrahlung energy loss
             EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
