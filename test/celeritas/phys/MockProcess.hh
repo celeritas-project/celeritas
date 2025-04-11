@@ -73,7 +73,7 @@ class MockProcess : public Process
     {
         SPConstMaterials materials;
         std::string label;
-        bool use_integral_xs{true};
+        bool supports_integral_xs{true};
         bool applies_at_rest{false};
         VecApplicability applic;  //!< Applicablity per model
         ModelCallback interact;  //!< MockModel::interact callback
@@ -86,7 +86,7 @@ class MockProcess : public Process
 
     VecModel build_models(ActionIdIter start_id) const final;
     StepLimitBuilders step_limits(Applicability range) const final;
-    bool use_integral_xs() const final;
+    bool supports_integral_xs() const final;
     bool applies_at_rest() const final;
     std::string_view label() const final;
 
