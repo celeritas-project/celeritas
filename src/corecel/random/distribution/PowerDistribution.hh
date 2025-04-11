@@ -40,7 +40,9 @@ namespace celeritas
  * https://doi.org/10.2172/4589395} , with \f$ x \gets u \f$,
  * \f$ p \gets m - 1 \f$.
  *
- * \sa For \f$ p = -1 \f$ see \c ReciprocalDistribution .
+ * \note For \f$ p = -1 \f$ see \c ReciprocalDistribution ,
+ * and in the degenerate case of \f$ p = 0 \f$ this is mathematically
+ * equivalent to \c UniformRealDistribution .
  */
 template<class RealType = ::celeritas::real_type>
 class PowerDistribution
@@ -53,7 +55,7 @@ class PowerDistribution
     //!@}
 
   public:
-    // Construct on an the interval [0, 1]
+    // Construct on an the interval [0, 1)
     explicit inline CELER_FUNCTION PowerDistribution(real_type p);
 
     // Construct on an arbitrary interval
@@ -73,7 +75,7 @@ class PowerDistribution
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct on the interval (0, 1].
+ * Construct on the interval [0, 1).
  */
 template<class RealType>
 CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(real_type p)
@@ -84,7 +86,7 @@ CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(real_type p)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct on the interval (a, b].
+ * Construct on the interval [a, b).
  *
  * It is allowable for the two bounds to be out of order.
  *
@@ -98,7 +100,7 @@ CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(real_type p,
     : sample_before_exp_{fastpow(a, p + 1), fastpow(b, p + 1)}
     , exp_{1 / (p + 1)}
 {
-    CELER_EXPECT(p != -1 && p != 0);
+    CELER_EXPECT(p != -1);
     CELER_EXPECT(a >= 0);
     CELER_EXPECT(b >= 0);
 }
