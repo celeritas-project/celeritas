@@ -17,29 +17,38 @@ namespace detail
  * Generate random numbers in [0, 1) from a 32-bit generator.
  */
 template<class RealType = ::celeritas::real_type>
-struct GenerateCanonical32;
+class GenerateCanonical32;
 
 template<>
-struct GenerateCanonical32<float>
+class GenerateCanonical32<float>
 {
+  public:
+    //!@{
+    //! \name Type aliases
     using result_type = float;
+    //!@}
 
-    // Sample a random number with floating point precision
+  public:
+    //! Sample a random number with floating point precision
     template<class Generator>
-    inline CELER_FUNCTION float operator()(Generator& rng);
+    inline CELER_FUNCTION result_type operator()(Generator& rng);
 };
 
 template<>
-struct GenerateCanonical32<double>
+class GenerateCanonical32<double>
 {
+  public:
+    //!@{
+    //! \name Type aliases
     using result_type = double;
+    //!@}
 
-    // Sample a random number with floating point precision
+  public:
+    //! Sample a random number with floating point precision
     template<class Generator>
-    inline CELER_FUNCTION double operator()(Generator& rng);
+    inline CELER_FUNCTION result_type operator()(Generator& rng);
 };
 
-//! \cond
 //---------------------------------------------------------------------------//
 /*!
  * Generate a 32-bit float from one 32-bit sample.
@@ -81,7 +90,6 @@ CELER_FUNCTION double GenerateCanonical32<double>::operator()(Generator& rng)
                                  ^ static_cast<ull_int>(lower));
 }
 
-//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

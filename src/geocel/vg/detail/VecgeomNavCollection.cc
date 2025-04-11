@@ -17,7 +17,6 @@ namespace celeritas
 {
 namespace detail
 {
-//! \cond
 //---------------------------------------------------------------------------//
 // HOST VALUE
 //---------------------------------------------------------------------------//
@@ -108,7 +107,6 @@ auto VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
     return *this;
 }
 
-//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
