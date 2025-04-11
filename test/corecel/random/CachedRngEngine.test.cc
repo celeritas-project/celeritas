@@ -24,7 +24,7 @@ namespace test
 template<class T, class E>
 std::vector<T> sample(size_type count, E& engine)
 {
-    UniformRealDistribution sample_real;
+    UniformRealDistribution<T> sample_real;
     std::vector<T> result(count);
     for (auto& r : result)
     {
