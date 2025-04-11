@@ -45,8 +45,8 @@ class NeutronInelasticProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final { return false; }
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return false; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return false; }
