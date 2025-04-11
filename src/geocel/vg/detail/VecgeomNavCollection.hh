@@ -160,6 +160,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
     }
 };
 
+//! \cond
 //---------------------------------------------------------------------------//
 /*!
  * Get the navigation state at the given track slot.
@@ -178,6 +179,7 @@ VecgeomNavCollection<Ownership::reference, MemSpace::device>::at(
     return *const_cast<NavState*>((this->pool_view)[tid.get()]);
 }
 
+//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

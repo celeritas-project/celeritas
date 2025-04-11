@@ -69,7 +69,7 @@ struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
     std::vector<UPTouchHandle> touch_handles;
     std::vector<UPNavigator> navigators;
 
-    // Resize with a number of states on the given Geant4 thread ID
+    //! Resize with a number of states on the given Geant4 thread ID
     void resize(size_type size, G4VPhysicalVolume* world, StreamId sid);
 
     //! State size
@@ -109,9 +109,9 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     // Default assignment
     GeantGeoNavCollection& operator=(GeantGeoNavCollection const&) = default;
 
-    // Get the navigation state for a given track slot
+    //! Get the navigation state for a given track slot
     GeantTouchableHandle& touch_handle(TrackSlotId tid) const;
-    // Get the navigation state for a given track slot
+    //! Get the navigation state for a given track slot
     G4Navigator& navigator(TrackSlotId tid) const;
 
     //! State size

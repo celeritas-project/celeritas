@@ -28,6 +28,7 @@ void G4ExternDeleter<T>::operator()(T* ptr) noexcept
 template struct G4ExternDeleter<GeantTouchableHandle>;
 template struct G4ExternDeleter<G4Navigator>;
 
+//! \cond
 //---------------------------------------------------------------------------//
 /*!
  * Resize with a number of states.
@@ -108,6 +109,7 @@ void GeantGeoNavCollection<Ownership::reference, MemSpace::host>::reset()
     }
 }
 
+//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
