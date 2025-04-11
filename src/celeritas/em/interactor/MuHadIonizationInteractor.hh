@@ -11,6 +11,8 @@
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/InverseSquareDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuHadIonizationData.hh"
@@ -18,8 +20,6 @@
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/InverseSquareDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "detail/IoniFinalStateHelper.hh"
 #include "detail/PhysicsConstants.hh"

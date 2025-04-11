@@ -10,9 +10,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 #include "AtomicRelaxation.hh"
 

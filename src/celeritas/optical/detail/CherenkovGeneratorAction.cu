@@ -11,14 +11,14 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/CherenkovParams.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/MaterialParams.hh"
 
 #include "CherenkovGeneratorExecutor.hh"
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
+#include "../CherenkovParams.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../MaterialParams.hh"
 
 namespace celeritas
 {

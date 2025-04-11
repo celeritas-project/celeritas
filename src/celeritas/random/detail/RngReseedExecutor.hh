@@ -7,10 +7,10 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/random/data/RngData.hh"
+#include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/random/RngData.hh"
-#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {

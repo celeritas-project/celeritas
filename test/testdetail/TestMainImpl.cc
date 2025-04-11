@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file testdetail/TestMainImpl.cc
 //---------------------------------------------------------------------------//
-#include "testdetail/TestMainImpl.hh"
+#include "TestMainImpl.hh"
 
 #include <stdexcept>
 #include <string_view>

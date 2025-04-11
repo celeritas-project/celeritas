@@ -12,6 +12,7 @@
 #include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 
 namespace celeritas
@@ -57,7 +58,7 @@ struct UniformField
 /*!
  * Build a separable R-Z magnetic field from a file.
  *
- * \todo Move field input here
+ * \todo v0.7 Move field input here
  */
 using RZMapField = ::celeritas::RZMapFieldInput;
 using CylMapField = ::celeritas::CylMapFieldInput;

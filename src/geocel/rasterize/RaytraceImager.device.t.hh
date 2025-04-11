@@ -14,7 +14,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/rasterize/RaytraceImager.hh"
+#include "RaytraceImager.hh"
 
 #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ThreadId.hh"

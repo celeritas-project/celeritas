@@ -38,6 +38,7 @@ tell what variables are in use or may be useful.
  HEPMC3_VERBOSE          celeritas HepMC3 debug verbosity
  VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
  CELER_DISABLE           accel     Disable Celeritas offloading entirely
+ CELER_LOG_ALL_LOCAL     accel     Print log messages from all threads
  CELER_KILL_OFFLOAD      accel     Kill Celeritas-supported tracks in Geant4
  CELER_NONFATAL_FLUSH    accel     Instead of crashing, kill tracks [#nf]_
  CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output

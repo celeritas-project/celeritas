@@ -1345,9 +1345,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
 
             // This message comes from the CheckedGeoTrackView
-            static char const* const expected_log_messages[]
-                = {"Volume did not change from 3 when crossing boundary at "
-                   "{123.254,-20.8187,-40.8262}"};
+            static char const* const expected_log_messages[] = {
+                R"(Volume did not change from 3 when crossing boundary at {123.254,-20.8187,-40.8262})"};
             EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
             static char const* const expected_log_levels[] = {"warning"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
@@ -1358,6 +1357,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             CELER_LOG(warning) << "Reentry failed for " << cmake::core_geo
                                << " geometry: post-propagation volume is "
                                << this->volume_name(geo);
+        }
+        else
+        {
+            CELER_LOG(debug) << "Reentry succeeded: " << scoped_log_;
         }
     }
     {
@@ -1414,10 +1417,9 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             }
             else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
             {
-                static char const* const expected_log_messages[]
-                    = {"Moved internally from boundary but safety didn't "
-                       "increase: volume 6 from {123.254,-20.8187,-40.8262} "
-                       "to {123.254,-20.8187,-40.8262} (distance: 1e-06)"};
+                static char const* const expected_log_messages[] = {
+                    R"(Moved internally from boundary but safety didn't increase: volume 6 from {123.2541, -20.8187, -40.8262} to {123.2541, -20.8187, -40.8262} (distance: 1.0000e-6))",
+                };
                 EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
                 static char const* const expected_log_levels[] = {"warning"};
                 EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
@@ -1520,10 +1522,8 @@ TEST_F(CmseTest, coarse)
         expected_num_step = {10001, 6462, 3236, 1303};
         expected_num_intercept = {30419, 19551, 16170, 9956};
         expected_num_integration = {80659, 58282, 41914, 26114};
-        static char const* const expected_log_messages[]
-            = {"Moved internally from boundary but safety didn't increase: "
-               "volume 18 from {10.3161,-6.56495,796.923} to "
-               "{10.3162,-6.56497,796.923} (distance: 0.0001)"};
+        static char const* const expected_log_messages[] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.3161, -6.5649, 796.9228} to {10.3162, -6.5650, 796.9229} (distance: 1.0000e-4))"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
             << scoped_log_;
     }

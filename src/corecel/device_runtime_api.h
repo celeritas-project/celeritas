@@ -22,6 +22,6 @@
         "corecel/device_runtime_api.h is deprecated and should be replaced by \"corecel/DeviceRuntimeApi.hh\""
 #endif
 
-#include "corecel/DeviceRuntimeApi.hh"
+#include "DeviceRuntimeApi.hh"
 
 #endif /* CELERITAS_DEVICE_RUNTIME_API_H */

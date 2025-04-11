@@ -37,6 +37,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
@@ -158,7 +159,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
         && G4Threading::IsMultithreadedApplication())
     {
-        auto msg = CELER_LOG_LOCAL(warning);
+        auto msg = CELER_LOG(warning);
         msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
                "parallelism";
         if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
@@ -389,6 +390,17 @@ void LocalTransporter::Flush()
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
+
+    if (hit_processor_)
+    {
+        auto num_hits = hit_processor_->exchange_hits();
+        if (num_hits > 0)
+        {
+            CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
+                                   << " hits for event " << event_id_.get();
+            run_accum_.hits += num_hits;
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -408,7 +420,8 @@ void LocalTransporter::Finalize()
     CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << run_accum_.steps
                           << " steps from " << run_accum_.primaries
                           << " offloaded tracks over " << run_accum_.events
-                          << " events";
+                          << " events, generating " << run_accum_.hits
+                          << " hits";
     if (run_accum_.lost_primaries > 0)
     {
         CELER_LOG_LOCAL(warning)
@@ -424,7 +437,6 @@ void LocalTransporter::Finalize()
             step_->sp_state());
         CELER_ASSERT(state);
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-        CELER_LOG_LOCAL(debug) << "Deallocating navigation states";
         state->ref().geometry.reset();
 #endif
     }
@@ -433,7 +445,6 @@ void LocalTransporter::Finalize()
     flush_tracing();
 
     // Reset all data
-    CELER_LOG_LOCAL(debug) << "Resetting local transporter";
     *this = {};
 
     CELER_ENSURE(!*this);

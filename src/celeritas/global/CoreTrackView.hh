@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -14,7 +15,6 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/random/RngEngine.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "CoreTrackData.hh"
@@ -209,8 +209,8 @@ CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 /*!
  * Return a particle view of another particle type.
  */
-CELER_FUNCTION auto CoreTrackView::particle_record(ParticleId pid) const
-    -> ParticleView
+CELER_FUNCTION auto
+CoreTrackView::particle_record(ParticleId pid) const -> ParticleView
 {
     return ParticleView{params_.particles, pid};
 }

@@ -13,7 +13,7 @@ if(CELERITAS_USE_Geant4)
     GeantDiagnostics.cc
     GlobalSetup.cc
     HepMC3PrimaryGeneratorAction.cc
-    LocalLogger.cc
+    LogHandlers.cc
     PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
@@ -22,7 +22,11 @@ if(CELERITAS_USE_Geant4)
     SensitiveHit.cc
     TrackingAction.cc
   )
-  set(LIBRARIES Celeritas::accel nlohmann_json::nlohmann_json)
+  set(LIBRARIES
+    Celeritas::accel
+    Celeritas::ExtMPI
+    nlohmann_json::nlohmann_json
+  )
   if(CELERITAS_USE_ROOT)
     list(APPEND SOURCES
       RootIO.cc

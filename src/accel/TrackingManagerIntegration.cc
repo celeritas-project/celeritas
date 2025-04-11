@@ -50,7 +50,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     bool all_attached_correctly{true};
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
-        auto msg = CELER_LOG_LOCAL(error);
+        auto msg = CELER_LOG(error);
         msg << "Particle " << PrintablePD{p} << ": tracking manager";
         return msg;
     };
@@ -153,7 +153,7 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
     if (enable_offload)
     {
         // Set tracking manager on workers when Celeritas is not fully disabled
-        CELER_LOG_LOCAL(debug) << "Verifying tracking manager";
+        CELER_LOG(debug) << "Verifying tracking manager";
 
         CELER_TRY_HANDLE(
             verify_tracking_managers(

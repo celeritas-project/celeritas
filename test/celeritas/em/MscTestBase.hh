@@ -9,6 +9,7 @@
 #include <random>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -20,7 +21,6 @@
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "Test.hh"
 
 namespace celeritas

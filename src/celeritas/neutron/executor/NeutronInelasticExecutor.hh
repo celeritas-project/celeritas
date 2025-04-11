@@ -8,12 +8,12 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/mat/ElementSelector.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
 #include "celeritas/neutron/interactor/NeutronInelasticInteractor.hh"
 #include "celeritas/neutron/xs/NeutronInelasticMicroXsCalculator.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/random/ElementSelector.hh"
 
 namespace celeritas
 {

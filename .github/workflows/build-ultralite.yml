@@ -47,7 +47,7 @@ jobs:
           path: ${{env.CCACHE_DIR}}
           key: ccache-ultralite-ubuntu-${{github.run_id}}
           restore-keys: |
-            ccache-ultralite
+            ccache-ultralite-ubuntu
       - name: Zero ccache stats
         run: |
           ccache -z
@@ -57,15 +57,21 @@ jobs:
         run: |
           ninja
       - name: Show ccache stats
-        if: ${{!cancelled()}}
+        if: ${{always() && !cancelled()}}
         run: |
           ccache -s
+      - name: Save ccache
+        if: ${{always() && steps.build.outcome == 'success'}}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-ultralite-ubuntu-${{github.run_id}}
       - name: Upload ccache debug
         if: ${{env.CCACHE_DEBUG && !cancelled()}}
         uses: actions/upload-artifact@v4
         with:
           path: ${{env.CCACHE_DEBUGDIR}}
-          name: ccache-debug-${{github.job}}
+          name: debug-ccache-ubuntu-${{github.job}}
           overwrite: true
           retention-days: 7
 
@@ -133,13 +139,13 @@ jobs:
 
       ### BUILD ###
 
-      - name: Cache ccache
-        uses: actions/cache@v4
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-ultralite-windows-${{github.run_id}}
           restore-keys: |
-            ccache-ultralite
+            ccache-ultralite-windows
       - name: Zero ccache stats
         run: |
           ccache -z
@@ -147,15 +153,21 @@ jobs:
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET
       - name: Show ccache stats
-        if: ${{!cancelled()}}
+        if: ${{always() && !cancelled()}}
         run: |
           ccache -s
+      - name: Save ccache
+        if: ${{always() && steps.build.outcome == 'success'}}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-ultralite-windows-${{github.run_id}}
       - name: Upload ccache debug
         if: ${{env.CCACHE_DEBUG && !cancelled()}}
         uses: actions/upload-artifact@v4
         with:
           path: ${{env.CCACHE_DEBUGDIR}}
-          name: ccache-debug-${{github.job}}
+          name: debug-ccache-windows-${{github.run_id}}
           overwrite: true
           retention-days: 7
 

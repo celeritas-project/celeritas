@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/user-action-offload.cc
+//! \file accel/simple-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
@@ -32,7 +32,7 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
-#if G4VERSION_NUMBER >= 1200
+#if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
 #    include <G4MTRunManager.hh>
@@ -107,7 +107,27 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        UserActionIntegration::Instance().BeginOfRunAction(run);
+        auto& uai = UserActionIntegration::Instance();
+        uai.BeginOfRunAction(run);
+
+        // Demonstrate offload mode query
+        using Mode = celeritas::OffloadMode;
+        auto msg = CELER_LOG(info);
+        msg << "Celeritas is ";
+        switch (uai.GetMode())
+        {
+            case Mode::disabled:
+                msg << "disabled: only Geant4 is tracking";
+                break;
+            case Mode::kill_offload:
+                msg << "killing EM tracks";
+                break;
+            case Mode::enabled:
+                msg << "active: EM tracks are sent from Geant4";
+                break;
+            default:
+                msg << "misbehaving, mode is unexpected!";
+        }
     }
     void EndOfRunAction(G4Run const* run) final
     {
@@ -185,6 +205,18 @@ celeritas::SetupOptions MakeOptions()
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
+    // Save GDML file
+    if (G4VERSION_NUMBER >= 1070)
+    {
+        opts.geometry_output_file = "simple-offload.gdml";
+    }
+    else
+    {
+        CELER_LOG(info) << "Not setting simple offload: older versions of "
+                           "Geant4 may fail on CI due to files stepping on "
+                           "each other";
+    }
+
     opts.output_file = "simple-offload.out.json";
     return opts;
 }
@@ -195,7 +227,7 @@ celeritas::SetupOptions MakeOptions()
 int main()
 {
     auto run_manager = [] {
-#if G4VERSION_NUMBER >= 1200
+#if G4VERSION_NUMBER >= 1100
         return std::unique_ptr<G4RunManager>{
             G4RunManagerFactory::CreateRunManager()};
 #else

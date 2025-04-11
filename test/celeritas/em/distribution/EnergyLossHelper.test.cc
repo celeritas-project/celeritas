@@ -4,20 +4,21 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/distribution/EnergyLossHelper.test.cc
 //---------------------------------------------------------------------------//
+#include "celeritas/em/distribution/EnergyLossHelper.hh"
+
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/EnergyLossDeltaDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossGammaDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossGaussianDistribution.hh"
-#include "celeritas/em/distribution/EnergyLossHelper.hh"
 #include "celeritas/em/distribution/EnergyLossUrbanDistribution.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

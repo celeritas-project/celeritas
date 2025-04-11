@@ -21,14 +21,12 @@ namespace celeritas
  * Construct from host data.
  */
 MuBremsstrahlungProcess::MuBremsstrahlungProcess(SPConstParticles particles,
-                                                 SPConstImported process_data,
-                                                 Options options)
+                                                 SPConstImported process_data)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::mu_brems,
                 {pdg::mu_minus(), pdg::mu_plus()})
-    , options_(options)
 {
     CELER_EXPECT(particles_);
 }

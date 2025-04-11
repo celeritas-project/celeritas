@@ -8,8 +8,8 @@
 
 #include <string>
 
+#include "geocel/Types.hh"
 #include "orange/orangeinp/CsgTypes.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {

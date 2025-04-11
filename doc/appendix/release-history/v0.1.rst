@@ -27,7 +27,7 @@ in the 0.1.x series. Notably:
   miscalculation of the step length when slowing down near 10 MeV.
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix build documentation and issues with newer toolchains *(@sethrj, #571)*
 * Fix missing positron annihilation process and process diagnostic *(@amandalund, #625)*
@@ -68,7 +68,7 @@ This version fixes significant errors in along-step tracking when multiple
 scattering and/or magnetic fields are in use.
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix additional failures resulting from direction change on a boundary after crossing *(@amandalund, #517)*
 * Fix the true path length limit of UrbanMsc *(@whokion, #521)*
@@ -87,7 +87,7 @@ Version 0.1.3
 This patch fixes additional issues with tracking in a magnetic field.
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix near-infinite loop in field propagation *(@sethrj, #511)*
 * Allow tracks taking small steps to propagate in field *(@amandalund, #513)*
@@ -109,7 +109,7 @@ New features
 * Save JSON exception output if demo loop fails by *(@sethrj, #507)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix class name conflict, remove default initializers, and tweak field driver *(@sethrj, #504)*
 * Fix no-ROOT demo loop for 0.1.x and other summit changes by *(@sethrj, #508)*
@@ -129,7 +129,7 @@ New features
 * Add contributing guide and development docs by *(@sethrj, #502)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix uninitialized data access in primary generator by *(@sethrj, #472)*
 * Build processes based on exported data by *(@sethrj, #483)*

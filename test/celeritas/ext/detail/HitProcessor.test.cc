@@ -10,14 +10,14 @@
 
 #include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
-#include "celeritas/ext/SDTestBase.hh"
-#include "celeritas/ext/SimpleSensitiveDetector.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
 #include "celeritas_test.hh"
+#include "../SDTestBase.hh"
+#include "../SimpleSensitiveDetector.hh"
 
 using celeritas::test::from_cm;
 using celeritas::test::SimpleHitsResult;

@@ -130,11 +130,8 @@ list(APPEND SOURCES
   phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
-  random/CuHipRngData.cc
-  random/CuHipRngParams.cc
-  random/XorwowRngData.cc
-  random/XorwowRngParams.cc
   setup/Events.cc
+  setup/FrameworkInput.cc
   setup/Import.cc
   setup/Problem.cc
   setup/StandaloneInput.cc
@@ -340,7 +337,6 @@ celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)
 celeritas_polysource(random/RngReseed)
-celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
 celeritas_polysource(track/ExtendFromPrimariesAction)

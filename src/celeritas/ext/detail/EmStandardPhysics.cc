@@ -241,7 +241,7 @@ void EmStandardPhysics::add_gamma_processes()
         // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
         add_process(compton_scattering.release());
-        CELER_LOG(debug) << "Loaded Compton scattering with "
+        CELER_LOG(debug) << "Using Compton scattering with "
                             "G4KleinNishinaCompton";
     }
 
@@ -251,7 +251,7 @@ void EmStandardPhysics::add_gamma_processes()
         auto pe = std::make_unique<G4PhotoElectricEffect>();
         pe->SetEmModel(new G4LivermorePhotoElectricModel());
         add_process(pe.release());
-        CELER_LOG(debug) << "Loaded photoelectric effect with "
+        CELER_LOG(debug) << "Using photoelectric effect with "
                             "G4LivermorePhotoElectricModel";
     }
 
@@ -260,7 +260,7 @@ void EmStandardPhysics::add_gamma_processes()
         // Rayleigh: G4LivermoreRayleighModel
         auto rayl = std::make_unique<G4RayleighScattering>();
         add_process(rayl.release());
-        CELER_LOG(debug) << "Loaded Rayleigh scattering with "
+        CELER_LOG(debug) << "Using Rayleigh scattering with "
                             "G4LivermoreRayleighModel";
     }
 
@@ -270,7 +270,7 @@ void EmStandardPhysics::add_gamma_processes()
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
         gamma_conversion->SetEmModel(new G4PairProductionRelModel());
         add_process(gamma_conversion.release());
-        CELER_LOG(debug) << "Loaded gamma conversion with "
+        CELER_LOG(debug) << "Using gamma conversion with "
                             "G4PairProductionRelModel";
     }
 
@@ -310,7 +310,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         // e+e- annihilation: G4eeToTwoGammaModel
         physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
 
-        CELER_LOG(debug) << "Loaded pair annihilation with "
+        CELER_LOG(debug) << "Using pair annihilation with "
                             "G4eplusAnnihilation";
     }
 
@@ -321,7 +321,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         ionization->SetEmModel(new G4MollerBhabhaModel());
         physics_list->RegisterProcess(ionization.release(), p);
 
-        CELER_LOG(debug) << "Loaded ionization with G4MollerBhabhaModel";
+        CELER_LOG(debug) << "Using ionization with G4MollerBhabhaModel";
     }
 
     if (options_.brems != BremsModelSelection::none)
@@ -355,7 +355,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         }
 
         auto msg = CELER_LOG(debug);
-        msg << "Loaded Bremsstrahlung with ";
+        msg << "Using Bremsstrahlung with ";
         switch (options_.brems)
         {
             case BremsModelSelection::seltzer_berger:
@@ -402,7 +402,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
                 G4EmParameters::Instance()->SetMscThetaLimit(0);
             }
 
-            CELER_LOG(debug) << "Loaded single Coulomb scattering with "
+            CELER_LOG(debug) << "Using single Coulomb scattering with "
                                 "G4eCoulombScatteringModel from "
                              << model->LowEnergyLimit() << " MeV to "
                              << model->HighEnergyLimit() << " MeV";
@@ -425,7 +425,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
                 model->SetHighEnergyLimit(msc_energy_limit);
             }
 
-            CELER_LOG(debug) << "Loaded multiple scattering with "
+            CELER_LOG(debug) << "Using multiple scattering with "
                                 "G4UrbanMscModel from "
                              << model->LowEnergyLimit() << " MeV to "
                              << model->HighEnergyLimit() << " MeV";
@@ -442,7 +442,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
             {
                 model->SetLowEnergyLimit(msc_energy_limit);
             }
-            CELER_LOG(debug) << "Loaded multiple scattering with "
+            CELER_LOG(debug) << "Using multiple scattering with "
                                 "G4WentzelVIModel from "
                              << model->LowEnergyLimit() << " MeV to "
                              << model->HighEnergyLimit() << " MeV";
@@ -484,28 +484,28 @@ void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
     if (options_.muon.pair_production)
     {
         physics_list->RegisterProcess(new G4MuPairProduction(), p);
-        CELER_LOG(debug) << "Loaded muon pair production with "
+        CELER_LOG(debug) << "Using muon pair production with "
                             "G4MuPairProductionModel";
     }
 
     if (options_.muon.ionization)
     {
         physics_list->RegisterProcess(new G4MuIonisation(), p);
-        CELER_LOG(debug) << "Loaded muon ionization with G4ICRU73QOModel, "
+        CELER_LOG(debug) << "Using muon ionization with G4ICRU73QOModel, "
                             "G4BraggModel, and G4MuBetheBlochModel";
     }
 
     if (options_.muon.bremsstrahlung)
     {
         physics_list->RegisterProcess(new G4MuBremsstrahlung(), p);
-        CELER_LOG(debug) << "Loaded muon bremsstrahlung with "
+        CELER_LOG(debug) << "Using muon bremsstrahlung with "
                             "G4MuBremsstrahlungModel";
     }
 
     if (options_.muon.coulomb)
     {
         physics_list->RegisterProcess(new G4CoulombScattering(), p);
-        CELER_LOG(debug) << "Loaded muon Coulomb scattering with "
+        CELER_LOG(debug) << "Using muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
     }
 
@@ -515,13 +515,13 @@ void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
         if (options_.muon.msc == MscModelSelection::wentzelvi)
         {
             process->SetEmModel(new G4WentzelVIModel());
-            CELER_LOG(debug) << "Loaded muon multiple scattering with "
+            CELER_LOG(debug) << "Using muon multiple scattering with "
                                 "G4WentzelVIModel";
         }
         else if (options_.muon.msc == MscModelSelection::urban)
         {
             process->SetEmModel(new G4UrbanMscModel());
-            CELER_LOG(debug) << "Loaded muon multiple scattering with "
+            CELER_LOG(debug) << "Using muon multiple scattering with "
                                 "G4UrbanMscModel";
         }
         else
