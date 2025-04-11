@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/ProtoConstructor.hh"
 
+#include "corecel/StringSimplifier.hh"
 #include "corecel/io/Repr.hh"
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
@@ -18,6 +19,7 @@
 using namespace celeritas::orangeinp::test;
 using celeritas::orangeinp::UnitProto;
 using celeritas::orangeinp::detail::ProtoMap;
+using celeritas::test::StringSimplifier;
 
 namespace celeritas
 {
@@ -50,11 +52,13 @@ class ProtoConstructorTest : public GeantLoadTestBase
 
     auto get_proto_names(ProtoMap const& protos) const
     {
+        StringSimplifier simplify_str;
+
         std::vector<std::string> result;
         for (auto uid : range(UniverseId{protos.size()}))
         {
             result.push_back(
-                this->genericize_pointers(protos.at(uid)->label()));
+                simplify_str(std::string(protos.at(uid)->label())));
         }
         return result;
     }

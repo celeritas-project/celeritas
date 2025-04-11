@@ -50,12 +50,12 @@ std::string_view to_string_view(std::sub_match<T> const& cs)
 /*!
  * Log the actual message.
  */
-G4int log_impl(G4String const& str, LogLevel level)
+G4int log_impl(celeritas::Logger& log, G4String const& str, LogLevel level)
 {
+    // Try to guess the log level based on each line
     static std::regex const err_warn_regex{
         R"regex(^\W*(\w+)?\s*(warning|error|!+|\*+)\W+)regex",
         std::regex::icase};
-
     static std::regex const info_regex{R"regex(^(\w+):\s+)regex"};
 
     std::smatch m;
@@ -99,7 +99,7 @@ G4int log_impl(G4String const& str, LogLevel level)
     }
 
     // Output with dummy file/line
-    ::celeritas::world_logger()({source, 0}, level) << trim(msg);
+    log({source, 0}, level) << trim(msg);
 
     // 0 for success, -1 for failure
     return 0;
@@ -113,8 +113,8 @@ class GeantLoggerAdapter final : public G4coutDestination
 {
   public:
     // Assign to Geant handlers on construction
-    GeantLoggerAdapter();
-    CELER_DEFAULT_COPY_MOVE(GeantLoggerAdapter);
+    explicit GeantLoggerAdapter(Logger&);
+    CELER_DELETE_COPY_MOVE(GeantLoggerAdapter);
     ~GeantLoggerAdapter() final;
 
     // Handle error messages
@@ -122,6 +122,7 @@ class GeantLoggerAdapter final : public G4coutDestination
     G4int ReceiveG4cerr(G4String const& str) final;
 
   private:
+    Logger& celer_log_;
 #if CELER_G4SSBUF
     G4coutDestination* saved_cout_{nullptr};
     G4coutDestination* saved_cerr_{nullptr};
@@ -134,7 +135,8 @@ class GeantLoggerAdapter final : public G4coutDestination
  *
  * Note that all these buffers, and the UI pointers, are thread-local.
  */
-GeantLoggerAdapter::GeantLoggerAdapter()
+GeantLoggerAdapter::GeantLoggerAdapter(Logger& celer_log)
+    : celer_log_{celer_log}
 {
     // Make sure UI pointer has been instantiated, since its constructor
     // resets the cout destination
@@ -178,7 +180,7 @@ GeantLoggerAdapter::~GeantLoggerAdapter()
  */
 G4int GeantLoggerAdapter::ReceiveG4cout(G4String const& str)
 {
-    return log_impl(str, LogLevel::diagnostic);
+    return log_impl(celer_log_, str, LogLevel::diagnostic);
 }
 
 //---------------------------------------------------------------------------//
@@ -187,16 +189,41 @@ G4int GeantLoggerAdapter::ReceiveG4cout(G4String const& str)
  */
 G4int GeantLoggerAdapter::ReceiveG4cerr(G4String const& str)
 {
-    return log_impl(str, LogLevel::info);
+    return log_impl(celer_log_, str, LogLevel::info);
 }
 
 //---------------------------------------------------------------------------//
-//! Thread-local flag for "ownership" of the Geant4 logger
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-G4ThreadLocal bool g_adapter_active_{false};
+//! Thread-local flags for ownership/usability of the Geant4 logger
+enum class SGLState
+{
+    inactive,
+    active,
+    disabled
+};
+
+SGLState& sgl_state()
+{
+    G4ThreadLocal SGLState result{SGLState::inactive};
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+//! Enable and disable to avoid recursion with accel/Logger
+//!@{
+bool ScopedGeantLogger::enabled()
+{
+    return sgl_state() != SGLState::disabled;
+}
+
+void ScopedGeantLogger::enabled(bool)
+{
+    CELER_EXPECT(sgl_state() != SGLState::active);
+    sgl_state() = SGLState::disabled;
+}
+//!@}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -205,13 +232,23 @@ G4ThreadLocal bool g_adapter_active_{false};
  * A global flag allows multiple logger adapters to be nested without
  * consequence.
  */
-ScopedGeantLogger::ScopedGeantLogger()
+ScopedGeantLogger::ScopedGeantLogger(Logger& celer_log)
 {
-    if (!g_adapter_active_)
+    auto& state = sgl_state();
+    if (state == SGLState::inactive)
     {
-        g_adapter_active_ = true;
-        logger_ = std::make_unique<GeantLoggerAdapter>();
+        state = SGLState::active;
+        logger_ = std::make_unique<GeantLoggerAdapter>(celer_log);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Install the Celeritas Geant4 logger using the world logger.
+ */
+ScopedGeantLogger::ScopedGeantLogger()
+    : ScopedGeantLogger{celeritas::world_logger()}
+{
 }
 
 //---------------------------------------------------------------------------//
@@ -220,11 +257,12 @@ ScopedGeantLogger::ScopedGeantLogger()
  */
 ScopedGeantLogger::~ScopedGeantLogger()
 {
-    if (logger_)
+    auto& state = sgl_state();
+    if (state == SGLState::active)
     {
-        logger_.reset();
-        g_adapter_active_ = false;
+        state = SGLState::inactive;
     }
+    logger_.reset();
 }
 
 //---------------------------------------------------------------------------//

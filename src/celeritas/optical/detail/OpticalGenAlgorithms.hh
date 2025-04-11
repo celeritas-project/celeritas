@@ -9,7 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/optical/GeneratorDistributionData.hh"
+
+#include "../GeneratorDistributionData.hh"
 
 namespace celeritas
 {

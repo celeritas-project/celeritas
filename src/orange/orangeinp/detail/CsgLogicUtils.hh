@@ -14,8 +14,9 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTree.hh"
-#include "orange/orangeinp/CsgTypes.hh"
+
+#include "../CsgTree.hh"
+#include "../CsgTypes.hh"
 
 namespace celeritas
 {

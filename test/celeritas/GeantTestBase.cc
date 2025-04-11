@@ -62,8 +62,7 @@ bool GeantTestBase::is_ci_build()
            && (cstring_equal(cmake::clhep_version, "2.4.6.0")
                || cstring_equal(cmake::clhep_version, "2.4.6.4")
                || cstring_equal(cmake::clhep_version, "2.4.7.1"))
-           && (cstring_equal(cmake::geant4_version, "11.0.3")
-               || cstring_equal(cmake::geant4_version, "11.0.4"));
+           && cstring_equal(cmake::geant4_version, "11.3.0");
 }
 
 //---------------------------------------------------------------------------//

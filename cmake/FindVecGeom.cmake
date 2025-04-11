@@ -21,17 +21,21 @@ cmake_policy(POP)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
-if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
+# VecGeom::vecgeomcuda was in use in VecGeom v1.2.10 and older and
+# in early dev release of v2.0.0 (at least up to v2.0.0-rc3 and v2.0.0-surfacedev.2).
+if(VecGeom_FOUND AND (TARGET VecGeom::vecgeomcuda OR TARGET VecGeom::vecgeom_final))
   get_target_property(_vecgeom_lib_type VecGeom::vecgeom TYPE)
   if (_vecgeom_lib_type STREQUAL "STATIC_LIBRARY")
      set(_vecgeom_cuda_runtime "Static")
-     set(_vecgeom_middle_library_suffix "_static")
+     if(TARGET VecGeom::vecgeomcuda_static OR TARGET VecGeom::vecgeom_static)
+	set(_vecgeom_middle_library_suffix "_static")
+     endif()
   else()
      set(_vecgeom_cuda_runtime "Shared")
      set(_vecgeom_middle_library_suffix "")
   endif()
   get_target_property(_vecgeom_lib_rdc_final VecGeom::vecgeomcuda CUDA_RDC_FINAL_LIBRARY)
-  if(NOT _vecgeom_lib_rdc_final)
+  if(NOT TARGET VecGeom::vecgeom_final AND NOT _vecgeom_lib_rdc_final)
     set_target_properties(VecGeom::vecgeom PROPERTIES
       CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
       CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda${_vecgeom_middle_library_suffix}
@@ -46,16 +50,23 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
     )
   endif()
   # Suppress warnings from virtual function calls in RDC
-  foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
-    target_compile_options(${_lib}
-      INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
-    )
-    target_link_options(${_lib}
-      INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
-    )
+  if(TARGET VecGeom::vecgeom_final)
+    set(_vecgeom_cuda_libs VecGeom::vecgeom VecGeom::vecgeom_static)
+  else()
+    set(_vecgeom_cuda_libs VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
+  endif()
+  foreach(_lib ${_vecgeom_cuda_libs})
+    if(TARGET ${_lib})
+      target_compile_options(${_lib}
+        INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+      target_link_options(${_lib}
+        INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+    endif()
   endforeach()
 
-  if(NOT _vecgeom_lib_rdc_final)
+  if(NOT TARGET VecGeom::vecgeom_final AND NOT _vecgeom_lib_rdc_final)
     # Inform cuda_rdc_add_library code
     foreach(_lib VecGeom::vecgeom VecGeom::vecgeomcuda
         VecGeom::vecgeomcuda_static)

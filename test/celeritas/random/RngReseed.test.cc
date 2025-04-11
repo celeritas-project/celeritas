@@ -9,8 +9,8 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/random/RngEngine.hh"
-#include "celeritas/random/RngParams.hh"
+#include "corecel/random/engine/RngEngine.hh"
+#include "corecel/random/params/RngParams.hh"
 
 #include "celeritas_test.hh"
 

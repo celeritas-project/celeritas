@@ -13,6 +13,7 @@
 #include "corecel/io/LogContextException.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/TestEm3Base.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -26,7 +27,6 @@
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "celeritas_test.hh"
-#include "../TestEm3Base.hh"
 
 namespace celeritas
 {

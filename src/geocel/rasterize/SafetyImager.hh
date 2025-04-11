@@ -8,7 +8,8 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/GeoTraits.hh"
-#include "geocel/rasterize/Image.hh"
+
+#include "Image.hh"
 
 namespace celeritas
 {

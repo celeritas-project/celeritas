@@ -118,6 +118,7 @@ class LocalTransporter
         std::size_t primaries{0};
         std::size_t steps{0};
         std::size_t lost_primaries{0};
+        std::size_t hits{0};
     };
 
     //// DATA ////

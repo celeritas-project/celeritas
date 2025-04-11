@@ -96,10 +96,13 @@ struct ImportModel
 {
     ImportModelClass model_class{ImportModelClass::size_};
     std::vector<ImportModelMaterial> materials;
+    double low_energy_limit{0};
+    double high_energy_limit{0};
 
     explicit operator bool() const
     {
-        return model_class != ImportModelClass::size_ && !materials.empty();
+        return model_class != ImportModelClass::size_ && !materials.empty()
+               && low_energy_limit < high_energy_limit;
     }
 };
 

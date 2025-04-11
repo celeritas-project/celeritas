@@ -41,7 +41,7 @@ class NaviTouchableUpdater final : public TouchableUpdaterInterface
     //! Maximum step to try within the current volume [len]
     static constexpr double max_step() { return 1.0 * units::millimeter; }
 
-    //! Warn when the step is greater than this amount [len]
+    //! Print diagnostic when the step is greater than this amount [len]
     static constexpr double max_quiet_step()
     {
         return 1e-3 * units::millimeter;

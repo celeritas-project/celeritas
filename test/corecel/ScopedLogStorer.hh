@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/LoggerTypes.hh"
 
@@ -88,10 +89,21 @@ class ScopedLogStorer
     //! Change the level to record
     void level(LogLevel lev) { min_level_ = lev; }
 
+    //! Get the minimum level being recorded
+    int float_digits() const { return float_digits_; }
+
+    //! Change the level to record
+    void float_digits(int fd)
+    {
+        CELER_EXPECT(fd >= 0);
+        float_digits_ = fd;
+    }
+
   private:
     Logger* logger_{nullptr};
     std::unique_ptr<Logger> saved_logger_;
     LogLevel min_level_;
+    int float_digits_{4};
     VecString messages_;
     VecString levels_;
 };

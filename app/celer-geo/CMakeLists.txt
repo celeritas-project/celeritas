@@ -16,8 +16,11 @@ set(LIBRARIES
   nlohmann_json::nlohmann_json
   CLI11::CLI11
   celer_app_utils
+  Celeritas::ExtGeant4Geo
+  Celeritas::ExtVecGeom
 )
 
+# Add the executable
 celeritas_add_executable(celer-geo ${SOURCES})
 celeritas_target_link_libraries(celer-geo ${LIBRARIES})
 

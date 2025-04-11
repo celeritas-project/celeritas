@@ -76,17 +76,33 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 /*!
  * Calculate the center of a bounding box.
  *
- * \pre The bounding box cannot be null
+ * \pre The bounding box cannot be null, or "semi-infinite" (i.e., it may not
+ * have a finite lower/upper value in a particular dimension, with a
+ * corresponding infinite upper/lower value).
  */
 template<class T>
 inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
+    auto isinf = [](T value) { return std::isinf(value); };
+
     Array<T, 3> center;
     for (auto ax : range(to_int(Axis::size_)))
     {
-        center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
+        if (CELER_UNLIKELY(isinf(bbox.lower()[ax]) || isinf(bbox.upper()[ax])))
+        {
+            // There is no useful way of defining the midpoint between a finite
+            // and infinite value
+            CELER_EXPECT(isinf(bbox.lower()[ax]) && isinf(bbox.upper()[ax]));
+
+            // Fully infinite in this dimension, center can be set to 0
+            center[ax] = 0;
+        }
+        else
+        {
+            center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
+        }
     }
 
     return center;

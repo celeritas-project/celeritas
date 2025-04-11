@@ -8,10 +8,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/random/engine/RngEngine.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/random/RngEngine.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "../PhysicsData.hh"

@@ -28,8 +28,7 @@ namespace app
  */
 void GeantDiagnostics::register_output(VecOutputInterface&& output)
 {
-    CELER_LOG_LOCAL(debug) << "Registering " << output.size()
-                           << " output interfaces";
+    CELER_LOG(debug) << "Registering " << output.size() << " output interfaces";
 
     auto& q = queued_output();
     if (q.empty())
@@ -59,16 +58,12 @@ auto GeantDiagnostics::queued_output() -> VecOutputInterface&
 GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
     CELER_EXPECT(params);
-    CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
+    CELER_LOG(status) << "Initializing Geant4 diagnostics";
 
     // Get output registry
     auto const& output_reg = params.output_reg();
     CELER_ASSERT(output_reg);
     size_type num_threads = params.num_streams();
-
-    // Create the timer output and add to output registry
-    timer_output_ = std::make_shared<TimerOutput>(num_threads);
-    output_reg->insert(timer_output_);
 
     auto& global_setup = *GlobalSetup::Instance();
     if (global_setup.StepDiagnostic())
@@ -119,7 +114,7 @@ void GeantDiagnostics::Finalize()
     }
 
     // Reset all data
-    CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
+    CELER_LOG(debug) << "Resetting diagnostics";
     if (meh_)
     {
         log_and_rethrow(std::move(*meh_));

@@ -8,11 +8,10 @@
 
 #include "corecel/Macros.hh"
 #include "celeritas/geo/GeoFwd.hh"
+#include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/Interaction.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/interactor/RayleighInteractor.hh"
-
-#include "../CoreTrackView.hh"
-#include "../Interaction.hh"
-#include "../ParticleTrackView.hh"
 
 namespace celeritas
 {

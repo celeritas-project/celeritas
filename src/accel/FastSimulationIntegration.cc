@@ -8,7 +8,10 @@
 
 #include <G4Threading.hh>
 
+#include "corecel/sys/Stopwatch.hh"
+
 #include "ExceptionConverter.hh"
+#include "TimeOutput.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
@@ -44,6 +47,8 @@ FastSimulationIntegration& FastSimulationIntegration::Instance()
  */
 void FastSimulationIntegration::BeginOfRunAction(G4Run const*)
 {
+    Stopwatch get_setup_time;
+
     auto& singleton = detail::IntegrationSingleton::instance();
 
     if (G4Threading::IsMasterThread())
@@ -56,10 +61,16 @@ void FastSimulationIntegration::BeginOfRunAction(G4Run const*)
     if (enable_offload)
     {
         // Set tracking manager on workers when Celeritas is not fully disabled
-        CELER_LOG_LOCAL(debug) << "Verifying fast simulation";
+        CELER_LOG(debug) << "Verifying fast simulation";
 
         CELER_TRY_HANDLE(verify_fast_sim(),
                          ExceptionConverter{"celer.init.verify"});
+    }
+
+    if (G4Threading::IsMasterThread())
+    {
+        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
+        singleton.start_timer();
     }
 }
 

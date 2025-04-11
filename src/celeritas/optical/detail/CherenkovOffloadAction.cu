@@ -13,12 +13,12 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/CherenkovParams.hh"
-#include "celeritas/optical/MaterialParams.hh"
 
 #include "CherenkovOffloadExecutor.hh"
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
+#include "../CherenkovParams.hh"
+#include "../MaterialParams.hh"
 
 namespace celeritas
 {

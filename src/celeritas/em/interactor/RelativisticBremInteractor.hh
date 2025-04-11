@@ -115,7 +115,7 @@ RelativisticBremInteractor::RelativisticBremInteractor(
                  || particle.particle_id() == shared_.ids.positron);
 
     // Valid energy region of the relativistic e-/e+ Bremsstrahlung model
-    CELER_EXPECT(inc_energy_ >= detail::seltzer_berger_upper_limit());
+    CELER_EXPECT(inc_energy_ >= shared_.low_energy_limit);
 }
 
 //---------------------------------------------------------------------------//

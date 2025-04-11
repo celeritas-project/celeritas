@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/RootTestBase.hh"
+#include "corecel/random/Histogram.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/em/distribution/MuPPEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuPairProductionInteractor.hh"
 #include "celeritas/em/model/MuPairProductionModel.hh"
@@ -118,7 +119,7 @@ class MuPairProductionTest : public InteractorHostBase,  public RootTestBase
 TEST_F(MuPairProductionTest, distribution)
 {
     int num_samples = 10000;
-    int num_bins = 12;
+    int num_bins = 8;
 
     real_type two_me
         = 2 * value_as<units::MevMass>(model_->host_ref().electron_mass);
@@ -132,7 +133,7 @@ TEST_F(MuPairProductionTest, distribution)
 
     RandomEngine& rng = InteractorHostBase::rng();
 
-    std::vector<int> counters;
+    std::vector<real_type> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     std::vector<real_type> avg_energy;
@@ -148,33 +149,32 @@ TEST_F(MuPairProductionTest, distribution)
 
         real_type sum_energy = 0;
         real_type energy_fraction = 0;
-        std::vector<int> count(num_bins);
+        Histogram histogram(num_bins, {std::log(min), std::log(max)});
         for ([[maybe_unused]] int i : range(num_samples))
         {
             // TODO: test energy partition
-            auto energy = sample(rng);
-            auto r = value_as<MevEnergy>(energy.electron + energy.positron);
-            ASSERT_GE(r, min);
-            ASSERT_LE(r, max);
-            int bin = int(std::log(r / min) / std::log(max / min) * num_bins);
-            CELER_ASSERT(bin >= 0 && bin < num_bins);
-            ++count[bin];
-            sum_energy += r;
-            energy_fraction += value_as<MevEnergy>(energy.electron) / r;
+            auto e = sample(rng);
+            auto e_pair = value_as<MevEnergy>(e.electron + e.positron);
+            ASSERT_GE(e_pair, min);
+            ASSERT_LE(e_pair, max);
+            histogram(std::log(e_pair));
+            sum_energy += e_pair;
+            energy_fraction += value_as<MevEnergy>(e.electron) / e_pair;
         }
-        counters.insert(counters.end(), count.begin(), count.end());
+        auto density = histogram.calc_density();
+        loge_pdf.insert(loge_pdf.end(), density.begin(), density.end());
         min_energy.push_back(min);
         max_energy.push_back(max);
         avg_energy.push_back(sum_energy / num_samples);
         avg_energy_fraction.push_back(energy_fraction / num_samples);
     }
 
-    static int const expected_counters[] = {
-        162, 1066, 2154, 2691, 2020, 1115, 518,  196, 60,  13, 5, 0,
-        270, 931,  1869, 2496, 2103, 1514, 534,  212, 51,  15, 5, 0,
-        208, 811,  1608, 2146, 2099, 1668, 947,  387, 101, 20, 3, 2,
-        203, 782,  1564, 1987, 2015, 1717, 1058, 489, 161, 16, 8, 0,
-        197, 767,  1548, 1948, 1965, 1607, 1116, 605, 200, 43, 4, 0,
+    static double const expected_loge_pdf[] = {
+        0.0486, 0.2855, 0.3831, 0.2029, 0.0631, 0.015,  0.0016, 0.0002,
+        0.0639, 0.2435, 0.3676, 0.2433, 0.0685, 0.0112, 0.002,  0,
+        0.053,  0.2099, 0.3242, 0.267,  0.1219, 0.0215, 0.0023, 0.0002,
+        0.0522, 0.2027, 0.3008, 0.2712, 0.1369, 0.0338, 0.0022, 0.0002,
+        0.0533, 0.1979, 0.2939, 0.2582, 0.1485, 0.0435, 0.0046, 0.0001,
     };
     static double const expected_min_energy[] = {
         1.0219978922,
@@ -191,20 +191,20 @@ TEST_F(MuPairProductionTest, distribution)
         9999703.2353964,
     };
     static double const expected_avg_energy[] = {
-        11.551429194638,
-        42.5605253686,
-        216.32003549047,
-        1093.2367878798,
-        6041.1513546243,
+        11.634922704826,
+        42.584416898446,
+        216.27235630244,
+        1093.1529390214,
+        6041.4317155177,
     };
     static double const expected_avg_energy_fraction[] = {
-        0.50427974126835,
-        0.50112476955009,
-        0.49759901188728,
-        0.50543113944062,
-        0.50102592483879,
+        0.50427657004076,
+        0.5011248037151,
+        0.49759910105122,
+        0.50543111979394,
+        0.50102592402615,
     };
-    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_SOFT_EQ(expected_loge_pdf, loge_pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
@@ -257,10 +257,10 @@ TEST_F(MuPairProductionTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     static double const expected_pair_energy[] = {
-        5.1981351222035,
-        21.411122079708,
-        39.340205211007,
-        1.2067098240449,
+        5.1919218572645,
+        21.387748984268,
+        39.319289836649,
+        1.2066173678828,
     };
     static double const expected_costheta[] = {
         0.99992128683238,
@@ -348,22 +348,22 @@ TEST_F(MuPairProductionTest, stress_test)
     // Gold values for average number of calls to RNG
     static double const expected_avg_engine_samples[] = {10, 10, 10, 10, 10};
     static double const expected_avg_electron_energy[] = {
-        5.9452433822303,
-        20.776282536509,
-        98.201429477115,
-        555.92710681765,
-        2855.9810205079,
+        5.9874014528792,
+        20.788005133512,
+        98.175982053115,
+        555.88642035635,
+        2856.0867088461,
     };
     static double const expected_avg_positron_energy[] = {
-        5.8651456808897,
-        21.483133310816,
-        100.92564951414,
-        546.95048450797,
-        2824.7431627774,
+        5.9071340808566,
+        21.495722289587,
+        100.9012745799,
+        546.91384743321,
+        2824.8532482048,
     };
     static double const expected_avg_costheta[] = {
-        0.94178280008365,
-        0.99880165151034,
+        0.94178280002659,
+        0.99880165151033,
         0.99998776687485,
         0.99999983141391,
         0.99999999832285,

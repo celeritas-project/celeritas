@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {
@@ -167,9 +168,9 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
             CELER_LOG_LOCAL(warning)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
-                << this->volume_id().get() << " from " << orig_pos << " to "
-                << this->pos() << " (distance: " << distance(orig_pos, pos)
-                << ")";
+                << this->volume_id().get() << " from " << repr(orig_pos)
+                << " to " << repr(this->pos())
+                << " (distance: " << repr(distance(orig_pos, pos)) << ")";
         }
     }
 }

@@ -8,9 +8,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/random/data/RngData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/random/RngData.hh"
 
 #include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"

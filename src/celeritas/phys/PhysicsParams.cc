@@ -368,7 +368,12 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             CELER_VALIDATE(applic.particle < particles.size(),
                            << "invalid particle ID "
                            << applic.particle.unchecked_get());
-            CELER_ASSERT(applic.lower < applic.upper);
+            CELER_VALIDATE(applic.lower < applic.upper,
+                           << "expected lower energy limit ("
+                           << value_as<ModelGroup::Energy>(applic.lower)
+                           << " MeV) to be less than upper energy limit ("
+                           << value_as<ModelGroup::Energy>(applic.upper)
+                           << " MeV) for model " << m.label());
             particle_models[applic.particle.get()][process_id].push_back(
                 {value_as<ModelGroup::Energy>(applic.lower),
                  value_as<ModelGroup::Energy>(applic.upper),
@@ -565,7 +570,7 @@ void PhysicsParams::build_xs(Options const& opts,
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
             bool use_integral_xs = !opts.disable_integral_xs
-                                   && proc.use_integral_xs();
+                                   && proc.supports_integral_xs();
             if (use_integral_xs)
             {
                 energy_max_xs.resize(mats.size());

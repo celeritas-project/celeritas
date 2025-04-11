@@ -17,9 +17,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap (2-dimensional RZ map) grid data
+ * MapField (2-dimensional RZ map) grid data
  */
-struct FieldMapGridData
+struct MapFieldGridData
 {
     UniformGridData data_z;
     UniformGridData data_r;
@@ -27,9 +27,9 @@ struct FieldMapGridData
 
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap element
+ * MapField element
  */
-struct FieldMapElement
+struct MapFieldElement
 {
     real_type value_z;
     real_type value_r;
@@ -42,18 +42,18 @@ struct FieldMapElement
 template<Ownership W, MemSpace M>
 struct RZMapFieldParamsData
 {
-    //! Grids of FieldMap
-    FieldMapGridData grids;
+    //! Grids of MapField
+    MapFieldGridData grids;
 
     //! Options for FieldDriver
     FieldDriverOptions options;
 
-    //! Index of FieldMap Collection
+    //! Index of MapField Collection
     using ElementId = ItemId<size_type>;
 
     template<class T>
     using ElementItems = Collection<T, W, M, ElementId>;
-    ElementItems<FieldMapElement> fieldmap;
+    ElementItems<MapFieldElement> fieldmap;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const

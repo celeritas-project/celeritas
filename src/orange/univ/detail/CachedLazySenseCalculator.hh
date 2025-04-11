@@ -11,9 +11,9 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
-#include "orange/univ/detail/Types.hh"
 
 #include "LazySenseCalculator.hh"
+#include "Types.hh"
 #include "../VolumeView.hh"
 
 namespace celeritas

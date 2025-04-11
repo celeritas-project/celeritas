@@ -81,7 +81,8 @@ if celer_config['options']['breathe']:
     extensions.append('breathe')
     breathe_default_project = 'celeritas'
     breathe_projects = {
-        breathe_default_project: build_dir / 'xml'
+        # See CMakeLists.txt
+        breathe_default_project: build_dir / 'doxygen-xml'
     }
     breathe_default_members = ()
     breathe_show_include = False
@@ -150,6 +151,8 @@ mathjax3_config = {
         "macros": {
             "dif": r"\;\mathrm{d}",
             "difd": [r"\frac{\mathrm{d}#1}{\mathrm{d}#2}", 2],
+            "norm": [r"\|#1\|", 1],
+            "abs": [r"|#1|", 1],
         },
     },
     "loader": {"load": ["ui/lazy", "output/svg"]},

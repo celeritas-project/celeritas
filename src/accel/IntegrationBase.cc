@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 
 #include "ExceptionConverter.hh"
+#include "TimeOutput.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
@@ -18,6 +19,15 @@ using celeritas::detail::IntegrationSingleton;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Access whether Celeritas is set up, enabled, or uninitialized.
+ */
+OffloadMode IntegrationBase::GetMode() const
+{
+    return IntegrationSingleton::instance().shared_params().mode();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Set options before starting the run.
@@ -78,15 +88,19 @@ void IntegrationBase::Build()
  */
 void IntegrationBase::EndOfRunAction(G4Run const*)
 {
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+    CELER_LOG(status) << "Finalizing Celeritas";
 
     auto& singleton = IntegrationSingleton::instance();
+
+    // Record the run time
+    auto time = singleton.stop_timer();
 
     // Remove local transporter
     singleton.finalize_local_transporter();
 
     if (G4Threading::IsMasterThread())
     {
+        singleton.shared_params().timer()->RecordTotalTime(time);
         singleton.finalize_shared_params();
     }
 }

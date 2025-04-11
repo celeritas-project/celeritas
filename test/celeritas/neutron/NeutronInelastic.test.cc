@@ -14,7 +14,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/neutron/NeutronTestBase.hh"
 #include "celeritas/neutron/interactor/NeutronInelasticInteractor.hh"
 #include "celeritas/neutron/interactor/detail/CascadeCollider.hh"
 #include "celeritas/neutron/interactor/detail/CascadeParticle.hh"
@@ -24,6 +23,7 @@
 #include "celeritas/neutron/xs/NucleonNucleonXsCalculator.hh"
 #include "celeritas/phys/MacroXsCalculator.hh"
 
+#include "NeutronTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

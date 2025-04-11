@@ -14,13 +14,13 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
-#include "../GeantTestBase.hh"
 
 namespace celeritas
 {
@@ -256,7 +256,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -1649,6 +1649,7 @@ TEST_F(OneSteelSphereGG, physics)
 
 TEST_F(LarSphere, optical)
 {
+    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
     ASSERT_EQ(3, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
@@ -1666,8 +1667,6 @@ TEST_F(LarSphere, optical)
     EXPECT_EQ("lAr", imported.geo_materials[1].name);
     ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
-    real_type const tol = this->comparison_tolerance();
-
     // Most optical properties in the geometry are pulled from the Geant4
     // example examples/advanced/CaTS/gdml/LArTPC.gdml
 
@@ -1675,7 +1674,9 @@ TEST_F(LarSphere, optical)
     auto const& optical = imported.optical_materials[0];
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
+
     // Material scintillation
+    constexpr auto tol = SoftEqual<real_type>{}.rel();
     EXPECT_REAL_EQ(1, scint.resolution_scale);
     EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
     EXPECT_EQ(3, scint.material.components.size());
@@ -1688,13 +1689,30 @@ TEST_F(LarSphere, optical)
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
-    // clang-format off
-    static double const expected_components[]
-        = {3, 1.28e-05, 1e-06, 1e-08, 6e-09,
-           1, 1.28e-05, 1e-06, 1e-08, 1.5e-06,
-           1, 2e-05,    2e-06, 1e-08, 3e-06};
-    // clang-format on
+    static double const expected_components[] = {
+        3,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        6e-09,
+        1,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        1.5e-06,
+        1,
+        2e-05,
+        2.0099589626834e-06,
+        1e-08,
+        3e-06,
+    };
     EXPECT_VEC_NEAR(expected_components, components, tol);
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        static std::string const expected_messages
+            = R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
+        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1]);
+    }
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());

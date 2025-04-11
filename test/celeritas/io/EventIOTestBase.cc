@@ -160,7 +160,7 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
         ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         write_event(primaries);
         static char const* const expected_log_messages[]
-            = {"Overwriting primary event IDs with 2: 1"};
+            = {"Event IDs will not match output: this is a known issue"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[] = {"warning"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());

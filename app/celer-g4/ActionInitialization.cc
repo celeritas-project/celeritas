@@ -65,7 +65,7 @@ ActionInitialization::ActionInitialization(SPParams params)
  */
 void ActionInitialization::BuildForMaster() const
 {
-    CELER_LOG_LOCAL(status) << "Constructing user action on master thread";
+    CELER_LOG(status) << "Constructing user action on master thread";
 
     // Run action for 'master' has no track states and is responsible for
     // setting up celeritas
@@ -86,7 +86,7 @@ void ActionInitialization::BuildForMaster() const
  */
 void ActionInitialization::Build() const
 {
-    CELER_LOG_LOCAL(status) << "Constructing user action";
+    CELER_LOG(status) << "Constructing user action";
 
     // Primary generator emits source particles
     std::unique_ptr<G4VUserPrimaryGeneratorAction> generator_action;

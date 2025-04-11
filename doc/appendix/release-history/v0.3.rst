@@ -17,7 +17,7 @@ It also should provide better performance when running Celeritas
 through Geant4 with many threads sharing the same GPU.
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix sampling of secondary gamma energies in EPlusGGInteractor *(@whokion, #888)*
 * Fix unit conversion errors when reading from event file *(@amandalund, #916)*
@@ -89,7 +89,7 @@ New features
 Reviewers: @sethrj *(10)*, @amandalund *(3)*, @whokion *(3)*, @hhollenb *(1)*, @drbenmorgan *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix errors when building and loading Celeritas through CMSSW *(@sethrj, #821)*
 * Divide initializer capacity by number of streams in celer-sim *(@amandalund, #824)*
@@ -221,7 +221,7 @@ New features
 Reviewers: @sethrj *(21)*, @amandalund *(19)*, @pcanal *(4)*, @esseivaju *(4)*, @whokion *(4)*, @stognini *(2)*, @drbenmorgan *(1)*, @mrguilima *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix MSC cross section units *(@sethrj, #644)*
 * Fix SWIG and update requirements *(@sethrj, #657)*

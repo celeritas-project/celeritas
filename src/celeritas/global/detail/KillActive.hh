@@ -8,9 +8,10 @@
 
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
+
+#include "../CoreState.hh"
+#include "../CoreTrackView.hh"
 
 namespace celeritas
 {

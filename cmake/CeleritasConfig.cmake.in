@@ -124,6 +124,10 @@ if(CELERITAS_USE_OpenMP)
   find_dependency(OpenMP REQUIRED)
 endif()
 
+if(CELERITAS_USE_Perfetto AND NOT CELERITAS_BUILTIN_Perfetto)
+  find_dependency(Perfetto REQUIRED)
+endif()
+
 if(CELERITAS_USE_PNG)
   find_dependency(PNG REQUIRED)
 endif()
@@ -156,18 +160,6 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-if(CELERITAS_BUILD_TESTS)
-  if(CMAKE_VERSION VERSION_LESS 3.20)
-    # First look for standard CMake installation
-    # (automatically done for CMake >= 3.20)
-    find_dependency(GTest @GTest_VERSION@ NO_MODULE)
-  endif()
-  if(NOT GTest_FOUND)
-    # If not found, try again
-    find_dependency(GTest)
-  endif()
-endif()
-
 cmake_policy(POP)
 
 #-----------------------------------------------------------------------------#
@@ -177,8 +169,13 @@ cmake_policy(POP)
 if(NOT TARGET celeritas)
   # Load Celeritas-distributed RDC utils after potential older version
   # in dependencies
+  # TODO: in the future, rely on its inclusion via upstream VecGeom, and only
+  # include here if VecGeom+CUDA are enabled.
   include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake" OPTIONAL)
 
+  # Load Celeritas library wrappers
+  include("${CELERITAS_CMAKE_DIR}/CeleritasLibrary.cmake")
+  
   # Load targets created by `install(EXPORT celeritas-targets`
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 endif()

@@ -10,9 +10,10 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/OrangeData.hh"
-#include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/transform/TransformIO.hh"
 #include "orange/transform/TransformSimplifier.hh"
+
+#include "../CsgTreeUtils.hh"
 
 namespace celeritas
 {

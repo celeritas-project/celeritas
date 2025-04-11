@@ -6,33 +6,85 @@
 .. _library:
 
 Software library
-----------------
+================
 
-The most stable part of Celeritas is, at the present time, the high-level
-:ref:`api_g4_interface`. However, many other
-components of the API are stable and documented in the :code:`api` section.
+The main current use case for Celeritas as a library is to integrate with user
+Geant4 applications. The interface for Geant4 integration is quite stable, and
+additional lower level code, described in :ref:`api`, is also stable.
+
+Usage overview
+--------------
+
+This describes the main points of integrating using the tracking interface,
+recommended for all applications that support Geant4 11.0 or higher.
+
+1. Find and link in your CMake project:
+
+   - Find the Celeritas package.
+   - Link ``Celeritas::accel`` .
+   - Use ``celeritas_target_link_libraries`` instead of
+     ``target_link_libraries`` when both VecGeom and CUDA are enabled.
+
+2. Set up physics offloading in your "main" function.
+
+   - Register the ``TrackingManagerConstructor``, which tells Geant4 to send EM
+     tracks to Celeritas rather than the main tracking loop.
+   - Tweak the ``SetupOptions`` based on problem requirements, or use the
+     :ref:`g4_ui_macros`.
+
+3. Add hooks to safely set up and tear down Celeritas and its GPU code.
+
+   - Initialize logging in ``UserActionInitialization``, using
+     ``BuildForMaster`` (MT mode) or ``Build`` (serial).
+   - In ``UserRunAction``, ``BeginOfRunAction`` initializes problem data
+     (master or serial) and local state (worker or serial), and
+     ``EndOfRunAction`` safely deallocates everything.
+
+The changes for a simple application look like:
+
+.. literalinclude:: ../../example/accel/add-celer.diff
+   :language: diff
 
 CMake integration
-^^^^^^^^^^^^^^^^^
+-----------------
 
 The Celeritas library is most easily used when your downstream app is built with
-CMake. It should require a single line to initialize::
+CMake, demonstrated by the :ref:`example_minimal` and :ref:`example_cmake` examples. It should require a single line to initialize::
 
-   find_package(Celeritas REQUIRED CONFIG)
+   find_package(Celeritas REQUIRED)
 
 and a single line to link::
 
-   cuda_rdc_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
+   celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
-This special ``cuda_rdc_`` prefix, rather than the simpler native CMake command
-``target_link_libraries``, is needed in case Celeritas is built with both
+This special CMake command and its sisters wrap the CMake commands
+``add_library``, ``set_target_properties``
+``target_link_libraries``, ``target_include_directories``,
+``target_compile_options``, and ``install``. They are needed in case Celeritas
+uses both CUDA and VecGeom, forwarding to the ``CudaRdcUtils`` commands if so
+and forwarding to native CMake commands if not. (Note that ``add_executable``
+does not need wrapping, so the regular CMake command can be used.)
+
+CudaRdcUtils
+^^^^^^^^^^^^
+
+.. note:: Prior to Celeritas v0.6, obtaining the CudaRdc commands required the
+   user to include :file:`CudaRdcUtils.cmake` manually. Now it is included
+   automatically, but the use of the ``celeritas_`` macros is preferred for
+   readability (provenance) in the downstream application.
+
+The special ``cuda_rdc_`` commands are needed when Celeritas is built with both
 CUDA and the current version of VecGeom, which uses a special but messy feature
 called CUDA Relocatable Device Code (RDC).
 As the ``cuda_rdc_...`` functions decay to the wrapped CMake commands if CUDA
-and VecGeom are disabled, you can use them to safely build and link nearly all targets
-consuming Celeritas in your project. This provides tracking of the appropriate
-sequence of linking for the final application whether it uses CUDA code or not,
-and whether Celeritas is CPU-only or CUDA enabled::
+and VecGeom are disabled, you can directly use them to safely build and link
+nearly all targets
+consuming Celeritas in your project, but the ``celeritas_`` versions will
+result in a slightly faster (and possibly safer) configuration when VecGeom or
+CUDA are disabled.
+
+The CudaRdc commands track and propagate the appropriate sequence of linking
+for the final application::
 
   cuda_rdc_add_library(myconsumer SHARED ...)
   cuda_rdc_target_link_libraries(myconsumer PUBLIC Celeritas::celeritas)
@@ -56,7 +108,9 @@ and its device code counterpart::
 
   add_library(mybadplugin SHARED ...)
   # ... or myproject_add_library(mybadplugin ...)
-  target_link_libraries(mybadplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
+  target_link_libraries(mybadplugin
+    PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>
+  )
   # ... or otherwise declare the plugin as requiring linking to the two targets
 
 Celeritas device code counterpart target names are always the name of the
@@ -64,12 +118,25 @@ primary target appended with ``_final``. They are only present if Celeritas was
 built with CUDA support so it is recommended to use the CMake generator
 expression above to support CUDA or CPU-only builds transparently.
 
-The :ref:`example_minimal` and :ref:`example_cmake` examples demonstrate how to
-use Celeritas as a library with a short standalone CMake project and with
-Geant4.
+Targets
+^^^^^^^
+
+CMake targets exported by Celeritas live in the ``Celeritas::`` namespace.
+These targets are:
+
+- An interface lib ``BuildFlags`` that provides the include path to Celeritas,
+  language requirements, and warning overrides;
+- Wrapper interface libraries that provide links to optional dependencies if
+  enabled: ``ExtMPI``, ``ExtOpenMP``, ``ExtPerfetto``, ``ExtGeant4Geo``
+  (G4Geometry if available), and ``ExtDeviceApi`` (CUDA::toolkit if available,
+  ROCM/HIP libraries and includes, and roctx64 if available);
+- Code libraries described in :ref:`api`: corecel, geocel, orange,
+  celeritas, and accel;
+- Executables such as ``celer-sim`` and ``celer-geo``.
+
 
 App integration
-^^^^^^^^^^^^^^^
+---------------
 
 Integrating with Geant4 user applications and experiment frameworks requires
 setting up:
@@ -80,6 +147,9 @@ setting up:
 - "Global" data structures for shared problem data such as geometry (see
   :cpp:class:`celeritas::SharedParams`)
 - Per-worker (i.e., ``G4ThreadLocal`` using Geant4 manager/worker semantics)
-  data structures that hold the track states (see :cpp:class:`celeritas::LocalTransporter`).
+  data structures that hold the track states (see
+  :cpp:class:`celeritas::LocalTransporter`).
 
-See :ref:`example_geant` for examples of integrating Geant4, and :ref:`api_g4_interface` for detailed documentation of the Geant4 integration interface.
+See :ref:`example_geant` for examples of integrating Geant4, and
+:ref:`api_g4_interface` for detailed documentation of the Geant4 integration
+interface.

@@ -99,7 +99,6 @@ class Runner
 
     //// HELPER FUNCTIONS ////
 
-    void build_transporter_input(RunnerInput const&);
     TransporterBase& get_transporter(StreamId);
     TransporterBase const* get_transporter_ptr(StreamId) const;
 };

@@ -24,10 +24,12 @@ struct Problem;
  *
  * The order of initialization and loading follows the member declarations:
  * - System attributes (GPU activation etc.) are set
- * - Geant4 data is loaded
+ * - Geant4 data is imported
  * - External Geant4 data files (such as EM LOW) are loaded
  * - Optional control/diagnostic overrides are loaded
  * - Optional framework-defined adjustments are applied
+ *
+ * \todo Add an input option for kill_offload/disable
  */
 struct FrameworkInput
 {
@@ -36,13 +38,13 @@ struct FrameworkInput
 
     //! Configure what data to load from Geant4
     GeantImport geant;
-    //! Load external data files
+    //! Load external data files (NOT YET IMPLEMENTED)
     GeantDataImport geant_data;
     //! Optionally add diagnostics and control parameters from an external file
     std::optional<UpdateImport> update;
 
     //! User application/framework-defined adjustments
-    std::function<void(Problem&)> adjuster;
+    std::function<void(Problem&)> adjust;
 };
 
 //---------------------------------------------------------------------------//

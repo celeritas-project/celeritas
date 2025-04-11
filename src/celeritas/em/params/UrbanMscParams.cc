@@ -21,7 +21,6 @@
 #include "corecel/math/PolyEvaluator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/params/detail/MscParamsHelper.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -29,6 +28,8 @@
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+
+#include "detail/MscParamsHelper.hh"
 
 namespace celeritas
 {

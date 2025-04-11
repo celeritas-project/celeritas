@@ -151,7 +151,7 @@ auto DetectorConstruction::construct_field() const -> FieldData
                         FatalException,
                         "No field file was specified with /celerg4/fieldFile");
         }
-        CELER_LOG_LOCAL(info) << "Using RZMapField with " << map_filename;
+        CELER_LOG(info) << "Using RZMapField with " << map_filename;
 
         // Create celeritas::RZMapFieldParams from input
         auto rz_map = [&map_filename] {
@@ -178,8 +178,7 @@ auto DetectorConstruction::construct_field() const -> FieldData
         auto field_val = GlobalSetup::Instance()->GetMagFieldTesla();
         if (norm(field_val) > 0)
         {
-            CELER_LOG_LOCAL(info)
-                << "Using a uniform field " << field_val << " [T]";
+            CELER_LOG(info) << "Using a uniform field " << field_val << " [T]";
             g4field = std::make_shared<G4UniformMagField>(
                 convert_to_geant(field_val, CLHEP::tesla));
         }
@@ -229,13 +228,13 @@ void DetectorConstruction::ConstructSDandField()
 
     if (sd_type == SensitiveDetectorType::none)
     {
-        CELER_LOG_LOCAL(debug) << "No sensitive detectors requested";
+        CELER_LOG(debug) << "No sensitive detectors requested";
     }
     else if (sd_type == SensitiveDetectorType::simple_calo)
     {
         for (auto& calo : simple_calos_)
         {
-            CELER_LOG_LOCAL(status)
+            CELER_LOG(status)
                 << "Attaching simple calorimeter '" << calo->label() << '\'';
             // Create and attach SD
             auto detector = calo->MakeSensitiveDetector();
@@ -245,7 +244,7 @@ void DetectorConstruction::ConstructSDandField()
     }
     else if (sd_type == SensitiveDetectorType::event_hit)
     {
-        CELER_LOG_LOCAL(status) << "Creating SDs";
+        CELER_LOG(status) << "Creating SDs";
         this->foreach_detector([sd_manager](auto start, auto stop) {
             // Create one detector for all the volumes
             auto detector = std::make_unique<SensitiveDetector>(start->first);
@@ -253,7 +252,7 @@ void DetectorConstruction::ConstructSDandField()
             // Attach sensitive detectors
             for (auto iter = start; iter != stop; ++iter)
             {
-                CELER_LOG_LOCAL(debug)
+                CELER_LOG(debug)
                     << "Attaching '" << iter->first << "'@" << detector.get()
                     << " to '" << iter->second->GetName() << "'@"
                     << static_cast<void const*>(iter->second);

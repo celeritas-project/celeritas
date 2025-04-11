@@ -29,15 +29,18 @@
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
 
-// Celeritas
-#include <accel/AlongStepFactory.hh>
-#include <accel/LocalTransporter.hh>
-#include <accel/SetupOptions.hh>
-#include <accel/TrackingManagerConstructor.hh>
-#include <accel/TrackingManagerIntegration.hh>
+// Celeritas convenience utils
 #include <corecel/Assert.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
+
+// Celeritas
+#include <accel/AlongStepFactory.hh>
+#include <accel/SetupOptions.hh>
+#include <accel/TrackingManagerConstructor.hh>
+#include <accel/TrackingManagerIntegration.hh>
+
+using TMI = celeritas::TrackingManagerIntegration;
 
 namespace
 {
@@ -67,6 +70,9 @@ class SensitiveDetector final : public G4VSensitiveDetector
 
 // Simple (not best practice) way of accessing SD
 G4ThreadLocal SensitiveDetector const* global_sd{nullptr};
+
+std::atomic<int> expected_nonzero_energy{0};
+std::atomic<int> actual_nonzero_energy{0};
 
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
@@ -104,14 +110,14 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
-// Generate 200 MeV pi+
+// Generate 200 MeV electron
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction()
     {
         auto* g4particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(211);
+            = G4ParticleTable::GetParticleTable()->FindParticle(11);
         gun_.SetParticleDefinition(g4particle_def);
         gun_.SetParticleEnergy(200 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin
@@ -134,11 +140,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        celeritas::TrackingManagerIntegration::Instance().BeginOfRunAction(run);
+        TMI::Instance().BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        celeritas::TrackingManagerIntegration::Instance().EndOfRunAction(run);
+        TMI::Instance().EndOfRunAction(run);
     }
 };
 
@@ -146,7 +152,14 @@ class RunAction final : public G4UserRunAction
 class EventAction final : public G4UserEventAction
 {
   public:
-    void BeginOfEventAction(G4Event const*) final {}
+    void BeginOfEventAction(G4Event const*) final
+    {
+        using Mode = celeritas::OffloadMode;
+        if (TMI::Instance().GetMode() != Mode::kill_offload)
+        {
+            ++expected_nonzero_energy;
+        }
+    }
     void EndOfEventAction(G4Event const* event) final
     {
         // Log total energy deposition
@@ -155,6 +168,11 @@ class EventAction final : public G4UserEventAction
             CELER_LOG_LOCAL(info)
                 << "Total energy deposited for event " << event->GetEventID()
                 << ": " << (global_sd->edep() / CLHEP::MeV) << " MeV";
+
+            if (global_sd->edep() != 0)
+            {
+                ++actual_nonzero_energy;
+            }
         }
         else
         {
@@ -169,7 +187,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     void BuildForMaster() const final
     {
-        celeritas::TrackingManagerIntegration::Instance().BuildForMaster();
+        TMI::Instance().BuildForMaster();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -177,7 +195,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
     void Build() const final
     {
-        celeritas::TrackingManagerIntegration::Instance().Build();
+        TMI::Instance().Build();
 
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
@@ -187,14 +205,11 @@ class ActionInitialization final : public G4VUserActionInitialization
     }
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Construct options for Celeritas.
- */
 celeritas::SetupOptions MakeOptions()
 {
     celeritas::SetupOptions opts;
-    // NOTE: these numbers are appropriate for CPU execution
+    // NOTE: these numbers are appropriate for CPU execution and can be set
+    // through the UI using `/celer/
     opts.max_num_tracks = 2024;
     opts.initializer_capacity = 2024 * 128;
     // Celeritas does not support EmStandard MSC physics above 200 MeV
@@ -203,8 +218,6 @@ celeritas::SetupOptions MakeOptions()
     // Use a uniform (zero) magnetic field
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
-    // Export a GDML file with the problem setup and SDs
-    opts.geometry_output_file = "simple-example.gdml";
     // Save diagnostic file to a unique name
     opts.output_file = "trackingmanager-offload.out.json";
     return opts;
@@ -220,7 +233,7 @@ int main()
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
-    auto& tmi = celeritas::TrackingManagerIntegration::Instance();
+    auto& tmi = TMI::Instance();
 
     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
@@ -232,7 +245,17 @@ int main()
     tmi.SetOptions(MakeOptions());
 
     run_manager->Initialize();
+
     run_manager->BeamOn(2);
+
+    if (actual_nonzero_energy != expected_nonzero_energy)
+    {
+        CELER_LOG(critical) << "Expected number of nonzero energy events ("
+                            << expected_nonzero_energy
+                            << ") did not match actual nonzero events ("
+                            << actual_nonzero_energy << ")";
+        return 1;
+    }
 
     return 0;
 }

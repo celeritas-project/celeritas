@@ -8,9 +8,9 @@
 
 #include "corecel/grid/TwodSubgridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "SBEnergyDistHelper.hh"
 

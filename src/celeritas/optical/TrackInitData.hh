@@ -14,7 +14,8 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/TrackInitializer.hh"
+
+#include "TrackInitializer.hh"
 
 namespace celeritas
 {

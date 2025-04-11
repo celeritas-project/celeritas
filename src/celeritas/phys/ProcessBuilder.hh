@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/inp/ProcessBuilder.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/ImportSBTable.hh"
 
@@ -34,7 +35,6 @@ struct ImportMuPairProductionTable;
 struct ProcessBuilderOptions
 {
     bool brem_combined{false};
-    BremsModelSelection brems_selection{BremsModelSelection::all};
 };
 
 //---------------------------------------------------------------------------//
@@ -69,18 +69,11 @@ class ProcessBuilder
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
-    //! Input argument for user-provided process construction
-    struct UserBuildInput
-    {
-        SPConstMaterial material;
-        SPConstParticle particle;
-        SPConstImported imported;
-    };
-
     //!@{
     //! \name User builder type aliases
-    using UserBuildFunction = std::function<SPProcess(UserBuildInput const&)>;
-    using UserBuildMap = std::unordered_map<IPC, UserBuildFunction>;
+    using UserBuildInput = inp::ProcessBuilderInput;
+    using UserBuildFunction = inp::ProcessBuilderFunction;
+    using UserBuildMap = inp::ProcessBuilderMap;
     //!@}
 
   public:
@@ -117,10 +110,8 @@ class ProcessBuilder
     std::function<ImportPhysicsVector(AtomicNumber)> read_neutron_elastic_;
     std::shared_ptr<ImportMuPairProductionTable> mu_pairprod_table_;
 
-    BremsModelSelection selection_;
     bool brem_combined_;
     bool enable_lpm_;
-    bool use_integral_xs_;
 
     //// HELPER FUNCTIONS ////
 

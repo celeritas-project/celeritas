@@ -10,8 +10,8 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/random/RngParamsFwd.hh"
 
 #include "CoreTrackData.hh"
 

@@ -117,7 +117,6 @@ CombinedBremInteractor::CombinedBremInteractor(
     CELER_EXPECT(particle.particle_id() == shared.rb_data.ids.electron
                  || particle.particle_id() == shared.rb_data.ids.positron);
     CELER_EXPECT(gamma_cutoff_ > zero_quantity());
-    CELER_EXPECT(particle_.energy() > gamma_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
@@ -127,6 +126,15 @@ CombinedBremInteractor::CombinedBremInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 {
+    if (particle_.energy() <= gamma_cutoff_)
+    {
+        /*!
+         * \todo Remove and replace with an assertion once material-dependent
+         * model bounds are supported
+         */
+        return Interaction::from_unchanged();
+    }
+
     // Allocate space for the brems photon
     Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
@@ -137,7 +145,7 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 
     // Sample the bremsstrahlung photon energy
     Energy gamma_energy;
-    if (particle_.energy() >= detail::seltzer_berger_upper_limit())
+    if (particle_.energy() >= shared_.rb_data.low_energy_limit)
     {
         detail::RBEnergySampler sample_energy{
             shared_.rb_data, particle_, cutoffs_, material_, elcomp_id_};

@@ -13,9 +13,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/random/RngParamsFwd.hh"
 
 #include "Test.hh"
 
