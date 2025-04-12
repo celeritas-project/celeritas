@@ -4,6 +4,76 @@
 Series 0.5
 ==========
 
+.. _release_v0.5.2:
+
+Version 0.5.2
+-------------
+
+*Released 2025/03/29*
+
+Version 0.5.2 is a minor update to Celeritas featuring improved diagnostic
+output, improved CMake integration for VecGeom+CUDA, and several bug fixes.
+
+
+New features
+^^^^^^^^^^^^
+
+* Improve diagnostic output when offloading *(@sethrj, #1589)*
+* Output diagnostic information about core sizes *(@sethrj, #1591)*
+* Simplify and add to system config diagnostics *(@sethrj, #1590)*
+* Add hit manager output diagnostic *(@sethrj, #1596)*
+* Write out optical size diagnostic *(@sethrj, #1597)*
+* Default downstream CUDA/HIP architectures *(@sethrj, #1669)*
+* By default load CudaRdcUtils and print config message *(@sethrj, #1676)*
+* Add Celeritas cmake command wrappers for downstream code *(@sethrj, #1678)*
+
+Bug fixes
+^^^^^^^^^
+
+* Set step length and other data in reconstructed tracks *(@sethrj, #1595)*
+* Fix CUDA+VecGeom linking with Ubuntu *(@pcanal, #1618)*
+* Fix link errors with CUDA RDC and ``--as-needed`` flag *(@pcanal, #1661)*
+* Fix ``getenv_flag`` *(@amandalund, #1647)*
+* Fix static builds and CI reporting *(@sethrj, #1680)*
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Add example offloading template *(@stognini, #1573)*
+* Update core advisors *(@sethrj, #1598)*
+* Add comment directing to CMake doc of feature being used *(@pcanal, #1619)*
+* Increase ccache size for asanlite job *(@sethrj, #1646)*
+* Hotfix: remove Ubuntu 20 from CI configuration *(@sethrj, #1651)*
+* Hotfix: prevent vecgeom 2.0 in regular builds *(@sethrj, #1655)*
+
+Minor internal changes
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Use external G4VG *(@sethrj, #1605)*
+* Update perfetto to v49.0 *(@esseivaju, #1608)*
+* Flush perfetto TrackEvents *(@esseivaju, #1630)*
+* Add perfetto track counters to accel LocalTransporter *(@esseivaju, #1634)*
+* Rename ``EXTERNAL`` CMake variable *(@sethrj, #1621)*
+* Update externals and enforce G4VG version *(@sethrj, #1641)*
+* Update cmake-git-version *(@sethrj, #1643)*
+* Fix downstream RDC linking and add versioning *(@pcanal, #1665)*
+* Extend CudaRdc compatibility *(@pcanal, #1671)*
+* Update CudaRdcUtils to v3 *(@pcanal, #1679)*
+* Drastically speed up CudaRdcUtils *(@pcanal, #1683)*
+
+Reviewers
+^^^^^^^^^
+
+- Seth R. Johnson *(@sethrj)*: 12
+- Philippe Canal *(@pcanal)*: 6
+- Amanda Lund *(@amandalund)*: 5
+- Julien Esseiva *(@esseivaju)*: 4
+- Stefano Tognini *(@stognini)*: 1
+- Paul Romano *(@paulromano)*: 1
+- Ben Morgan *(@drbenmorgan)*: 1
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.5.1...v0.5.2
+
 .. _release_v0.5.1:
 
 Version 0.5.1
@@ -37,7 +107,7 @@ Notable bug fixes include:
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add optical "locate vacancies" and pre-step actions *(@amandalund, #1441)*
 * Extend debug utilities for stuck/errored tracks *(@sethrj, #1451)*
@@ -58,7 +128,7 @@ New features
 Reviewers: @amandalund *(6)*, @sethrj *(4)*, @pcanal *(4)*, @mrguilima *(2)*, @whokion *(1)*, @stognini *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Define a "unique event ID" different from event counter *(@sethrj, #1447)*
 * Fix optical import when unused materials are defined *(@sethrj, #1449)*
@@ -77,7 +147,7 @@ Bug fixes
 Reviewers: @pcanal *(6)*, @sethrj *(4)*, @amandalund *(3)*, @esseivaju *(2)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Improve XSCalculator documentation and tests *(@sethrj, #1450)*
 * Fix/standardize multi-level.gdml file and improve debug logging *(@sethrj, #1493)*
@@ -103,7 +173,7 @@ Documentation improvements
 Reviewers: @amandalund *(6)*, @sethrj *(6)*, @pcanal *(5)*, @esseivaju *(3)*, @mrguilima *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Give priority to existing environment variables for G4 data location *(@pcanal, #1457)*
 * Define ``id_cast`` helper function *(@sethrj, #1459)*
@@ -129,7 +199,7 @@ Minor internal changes
 Reviewers: @sethrj *(7)*, @amandalund *(6)*, @pcanal *(5)*, @esseivaju *(2)*, @drbenmorgan *(1)*
 
 Deprecation and removal
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 * Delete obsolete demonstration apps *(@sethrj, #1463)*
 * Remove curand performance test *(@sethrj, #1543)*
@@ -179,7 +249,7 @@ from v0.4.4.
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add Cerenkov distribution and generator *(@amandalund, #1080)*
 * Add specialized "permutation" transform *(@sethrj, #1077)*
@@ -306,7 +376,7 @@ New features
 Reviewers: @sethrj *(53)*, @elliottbiondo *(32)*, @amandalund *(25)*, @whokion *(12)*, @stognini *(8)*, @mrguilima *(7)*, @pcanal *(5)*, @esseivaju *(4)*, @drbenmorgan *(3)*, @hhollenb *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Change propagation fatal error to be recoverable *(@sethrj, #1090)*
 * Fix position check after propagating *(@amandalund, #1094)*
@@ -343,7 +413,7 @@ Bug fixes
 Reviewers: @sethrj *(14)*, @elliottbiondo *(8)*, @mrguilima *(5)*, @amandalund *(2)*, @pcanal *(2)*, @hhollenb *(1)*, @whokion *(1)*, @esseivaju *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Expand position check test and fix for other unit systems *(@amandalund, #1097)*
 * Prevent a PR with failed actions from being merged *(@sethrj, #1096)*
@@ -390,7 +460,7 @@ Documentation improvements
 Reviewers: @amandalund *(19)*, @sethrj *(10)*, @pcanal *(5)*, @esseivaju *(5)*, @stognini *(4)*, @elliottbiondo *(1)*, @drbenmorgan *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Remove unused data from ImportElement/Material *(@sethrj, #1089)*
 * Refactor Geant4 utilities in preparation for g4vg *(@sethrj, #1095)*

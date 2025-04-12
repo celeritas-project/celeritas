@@ -35,7 +35,7 @@ jobs:
             buildtype: "reldeb"
             image: "rocky-cuda"
     env:
-      CELER_TEST_STRICT: 1
+      CELER_TEST_STRICT: 0 # TODO: enable with Geant4 v11.3
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',

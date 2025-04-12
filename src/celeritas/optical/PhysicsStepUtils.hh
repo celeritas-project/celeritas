@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "celeritas/random/Selector.hh"
+#include "corecel/random/distribution/Selector.hh"
 
 #include "ParticleTrackView.hh"
 #include "PhysicsTrackView.hh"

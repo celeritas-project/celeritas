@@ -11,11 +11,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/NormalDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/random/distribution/NormalDistribution.hh"
 
 #include "UrbanMscHelper.hh"
 
@@ -28,8 +28,8 @@ namespace detail
  * Sample a step limit for the Urban MSC model using the "minimal" algorithm.
  *
  * \note This code performs the same method as in ComputeTruePathLengthLimit
- * of G4UrbanMscModel, as documented in section 8.1.6 of the Geant4 10.7
- * Physics Reference Manual or CERN-OPEN-2006-077 by L. Urban.
+ * of G4UrbanMscModel, as documented in section 8.1.6 of \cite{g4prm}
+ * or \citet{urban-msc-2006, https://cds.cern.ch/record/1004190/}.
  */
 class UrbanMscMinimalStepLimit
 {

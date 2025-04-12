@@ -28,11 +28,11 @@
 #include "detail/VecgeomCompatibility.hh"
 
 #ifdef VECGEOM_USE_SURF
-#    include "geocel/vg/detail/SurfNavigator.hh"
+#    include "detail/SurfNavigator.hh"
 #elif VECGEOM_VERSION >= 0x020000
 #    include <VecGeom/navigation/BVHNavigator.h>
 #else
-#    include "geocel/vg/detail/BVHNavigator.hh"
+#    include "detail/BVHNavigator.hh"
 #endif
 
 namespace celeritas

@@ -13,9 +13,8 @@
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/optical/MaterialView.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
-
-#include "../MaterialView.hh"
 
 namespace celeritas
 {

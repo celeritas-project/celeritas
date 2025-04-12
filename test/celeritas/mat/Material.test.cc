@@ -421,8 +421,7 @@ TEST_F(MaterialParamsImportTest, optical_materials)
         return pm;
     }());
     data.optical_materials.push_back([] {
-        ImportPhysicsVector pv;
-        pv.vector_type = ImportPhysicsVectorType::free;
+        inp::Grid pv;
         pv.x = {1.8785e-6, 1.0597e-5};
         pv.y = {1.222, 1.617};
 

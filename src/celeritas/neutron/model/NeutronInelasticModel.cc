@@ -12,7 +12,6 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/grid/TwodGridBuilder.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"

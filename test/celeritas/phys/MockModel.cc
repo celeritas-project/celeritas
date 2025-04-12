@@ -57,7 +57,8 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
             }
 
             builders[elcomp_idx] = std::make_unique<ValueGridLogBuilder>(
-                range.lower.value(), range.upper.value(), xs_grid);
+                ValueGridBuilder::GridInput{
+                    range.lower.value(), range.upper.value(), xs_grid});
         }
     }
     return builders;

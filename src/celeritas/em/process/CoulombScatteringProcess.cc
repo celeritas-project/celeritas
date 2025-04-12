@@ -20,15 +20,13 @@ namespace celeritas
  */
 CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
                                                    SPConstMaterials materials,
-                                                   SPConstImported process_data,
-                                                   Options const& options)
+                                                   SPConstImported process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::coulomb_scat,
                 {pdg::electron(), pdg::positron()})
-    , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
@@ -61,16 +59,6 @@ auto CoulombScatteringProcess::step_limits(Applicability applic) const
 std::string_view CoulombScatteringProcess::label() const
 {
     return "Coulomb scattering";
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether to use the integral method to sample interaction length.
- * May be controlled via options provided in the constructor.
- */
-bool CoulombScatteringProcess::use_integral_xs() const
-{
-    return options_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

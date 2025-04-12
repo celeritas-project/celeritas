@@ -1,7 +1,5 @@
 usage: ./celer-g4 {input}.json
        ./celer-g4 -
-       ./celer-g4 {commands}.mac
-       ./celer-g4 --interactive
        ./celer-g4 [--help|-h]
        ./celer-g4 --version
        ./celer-g4 --dump-default

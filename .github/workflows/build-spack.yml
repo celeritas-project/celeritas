@@ -39,11 +39,11 @@ jobs:
           - build_type: "reldeb"
             geometry: "orange"
             special: "float"
-            geant: "11.0"
+            geant: "11.3"
           - build_type: "ndebug"
             geometry: "orange"
             special: "static"
-            geant: "11.0"
+            geant: "11.3"
           - build_type: "reldebinfo"
             geometry: "orange"
             special: "asanlite"
@@ -51,19 +51,19 @@ jobs:
           - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clhep"
-            geant: "11.0"
+            geant: "11.3"
           - build_type: "reldeb"
             geometry: "vgsurf"
             special: null
-            geant: "11.0"
+            geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom2"
             special: null
-            geant: "11.0"
+            geant: "11.3"
           - build_type: "reldeb"
             geometry: "geant4"
             special: null
-            geant: "11.0"
+            geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clang-tidy"
@@ -260,7 +260,7 @@ jobs:
             || matrix.geometry == 'vecgeom2'
           }}
         run: |
-          if ${{matrix.geant == '11.0'
+          if ${{matrix.geant == '11.3'
                 && matrix.geometry != 'vecgeom2'}}; then
             # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
@@ -307,7 +307,7 @@ jobs:
             && matrix.special != 'clang-tidy'
           }}
         env:
-          CELER_DISABLE_ACCEL_EXAMPLES: 1 # Only run minimal example
+          CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
@@ -337,7 +337,7 @@ jobs:
           ./bin/celer-sim --config
       - name: Build examples
         env:
-          CELER_DISABLE_ACCEL_EXAMPLES: >-
+          CELER_DISABLE_G4_EXAMPLES: >-
             ${{(
               matrix.special == 'float'
               || !matrix.geant

@@ -27,8 +27,7 @@ void LogContextException::operator()(std::exception_ptr eptr)
     }
     catch (RichContextException const& e)
     {
-        CELER_LOG_LOCAL(critical)
-            << "The following error is from: " << e.what();
+        CELER_LOG_LOCAL(critical) << "The following error is from " << e.what();
         try
         {
             std::rethrow_if_nested(e);

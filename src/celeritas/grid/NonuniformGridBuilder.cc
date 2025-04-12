@@ -7,7 +7,6 @@
 #include "NonuniformGridBuilder.hh"
 
 #include "corecel/grid/VectorUtils.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 
 namespace celeritas
 {
@@ -54,10 +53,9 @@ auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
 /*!
  * Add a grid from an imported physics vector.
  */
-auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
+auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
 {
-    CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
-    return this->insert_impl(make_span(pvec.x), make_span(pvec.y));
+    return this->insert_impl(make_span(grid.x), make_span(grid.y));
 }
 
 //---------------------------------------------------------------------------//

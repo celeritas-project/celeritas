@@ -88,7 +88,6 @@ list(APPEND SOURCES
   io/ImportModel.cc
   io/ImportOpticalModel.cc
   io/ImportPhysicsTable.cc
-  io/ImportPhysicsVector.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc
@@ -131,11 +130,8 @@ list(APPEND SOURCES
   phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
-  random/CuHipRngData.cc
-  random/CuHipRngParams.cc
-  random/XorwowRngData.cc
-  random/XorwowRngParams.cc
   setup/Events.cc
+  setup/FrameworkInput.cc
   setup/Import.cc
   setup/Problem.cc
   setup/StandaloneInput.cc
@@ -244,11 +240,11 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportMaterial.hh"
     "celeritas/io/ImportParticle.hh"
     "celeritas/io/ImportPhysicsTable.hh"
-    "celeritas/io/ImportPhysicsVector.hh"
     "celeritas/io/ImportProcess.hh"
     "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
+    "celeritas/inp/Grid.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
@@ -341,7 +337,6 @@ celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)
 celeritas_polysource(random/RngReseed)
-celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
 celeritas_polysource(track/ExtendFromPrimariesAction)

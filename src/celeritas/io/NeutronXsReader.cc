@@ -16,7 +16,6 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 
 namespace celeritas
 {
@@ -70,9 +69,6 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain cross section data)");
-
-        // Set the physics vector type
-        result.vector_type = ImportPhysicsVectorType::free;
 
         // Read tabulated energies and cross sections
         double energy_min = 0.;

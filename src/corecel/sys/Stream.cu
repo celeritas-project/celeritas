@@ -12,7 +12,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Device.hh"
+
+#include "Device.hh"
 
 #include "detail/AsyncMemoryResource.device.hh"
 

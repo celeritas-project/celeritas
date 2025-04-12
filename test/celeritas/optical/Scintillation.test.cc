@@ -7,6 +7,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -19,7 +20,6 @@
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "OpticalTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -129,10 +129,9 @@ class ParticleScintillationTest : public ScintillationTestBase
     }
 
     //! Create particle yield vector
-    ImportPhysicsVector build_particle_yield()
+    inp::Grid build_particle_yield()
     {
-        ImportPhysicsVector vec;
-        vec.vector_type = ImportPhysicsVectorType::free;
+        inp::Grid vec;
         vec.x = {1e-6, 6};
         vec.y = {3750, 5000};
         return vec;

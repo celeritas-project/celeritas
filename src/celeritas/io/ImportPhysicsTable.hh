@@ -8,7 +8,8 @@
 
 #include <vector>
 
-#include "ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
+
 #include "ImportUnits.hh"
 
 namespace celeritas
@@ -47,7 +48,7 @@ struct ImportPhysicsTable
     ImportTableType table_type{ImportTableType::size_};
     ImportUnits x_units{ImportUnits::unitless};
     ImportUnits y_units{ImportUnits::unitless};
-    std::vector<ImportPhysicsVector> physics_vectors;
+    std::vector<inp::Grid> physics_vectors;
 
     explicit operator bool() const
     {

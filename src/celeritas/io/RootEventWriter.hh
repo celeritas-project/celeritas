@@ -64,6 +64,7 @@ class RootEventWriter : public EventWriterInterface
     size_type event_id_;  // Contiguous event id
     UPRootTreeWritable ttree_;
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
+    bool warned_mismatched_events_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -80,6 +81,7 @@ inline RootEventWriter::RootEventWriter(SPRootFileManager, SPConstParticles)
     CELER_DISCARD(event_id_);
     CELER_DISCARD(ttree_);
     CELER_DISCARD(primary_);
+    CELER_DISCARD(warned_mismatched_events_);
     CELER_NOT_CONFIGURED("ROOT");
 }
 

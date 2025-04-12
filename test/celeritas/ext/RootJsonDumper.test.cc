@@ -267,15 +267,25 @@ TEST_F(RootJsonDumperTest, all)
       "x_units" : 1,
       "y_units" : 4,
       "physics_vectors" : [{
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
+        "_typename" : "celeritas::inp::Grid",
         "x" : [100, 100000000],
-        "y" : [0, 2.30843109957244e-30]
+        "y" : [0, 2.30843109957244e-30],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }, {
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
+        "_typename" : "celeritas::inp::Grid",
         "x" : [100, 100000000],
-        "y" : [0, 7.63129425045843e-4]
+        "y" : [0, 7.63129425045843e-4],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }]
     }],
     "applies_at_rest" : false
@@ -290,15 +300,25 @@ TEST_F(RootJsonDumperTest, all)
       "x_units" : 1,
       "y_units" : 6,
       "physics_vectors" : [{
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
+        "_typename" : "celeritas::inp::Grid",
         "x" : [1e-4, 100],
-        "y" : [3.64953143614647e-27, 1.39709799580588e-25]
+        "y" : [3.64953143614647e-27, 1.39709799580588e-25],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }, {
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
+        "_typename" : "celeritas::inp::Grid",
         "x" : [1e-4, 100],
-        "y" : [0.0919755519795958, 128.588033594672]
+        "y" : [0.0919755519795958, 128.588033594672],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }]
     }
   }, {
@@ -311,15 +331,25 @@ TEST_F(RootJsonDumperTest, all)
       "x_units" : 1,
       "y_units" : 6,
       "physics_vectors" : [{
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
+        "_typename" : "celeritas::inp::Grid",
         "x" : [100, 100000000],
-        "y" : [1.5060677760307e-25, 1.59603068918702e-25]
+        "y" : [1.5060677760307e-25, 1.59603068918702e-25],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }, {
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
+        "_typename" : "celeritas::inp::Grid",
         "x" : [100, 100000000],
-        "y" : [114.932650722669, 116.590357663561]
+        "y" : [114.932650722669, 116.590357663561],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }]
     }
   }],
@@ -331,12 +361,12 @@ TEST_F(RootJsonDumperTest, all)
     "_typename" : "celeritas::ImportMuPairProductionTable",
     "atomic_number" : [1, 92],
     "physics_vectors" : [{
-      "_typename" : "celeritas::ImportPhysics2DVector",
+      "_typename" : "celeritas::inp::TwodGrid",
       "x" : [6.74523634948436, 18.4206807439524],
       "y" : [-6.03032981021759, 0],
       "value" : [0, 2.97408672967084e-28, 0, 2.43638436260564e-25]
     }, {
-      "_typename" : "celeritas::ImportPhysics2DVector",
+      "_typename" : "celeritas::inp::TwodGrid",
       "x" : [6.74523634948436, 18.4206807439524],
       "y" : [-6.03032981021759, 0],
       "value" : [0, 2.39787798860303e-24, 0, 7.93413967608236e-22]

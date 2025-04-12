@@ -13,7 +13,6 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/neutron/executor/ChipsNeutronElasticExecutor.hh"
 #include "celeritas/phys/InteractionApplier.hh"

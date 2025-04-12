@@ -7,12 +7,12 @@
 #include "celeritas/phys/PrimaryGenerator.hh"
 
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/DeltaDistribution.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
-#include "celeritas/random/distribution/DeltaDistribution.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 #include "celeritas_test.hh"
 

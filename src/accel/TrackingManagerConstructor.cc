@@ -78,12 +78,12 @@ void TrackingManagerConstructor::ConstructProcess()
 {
     if (SharedParams::GetMode() == SharedParams::Mode::disabled)
     {
-        CELER_LOG_LOCAL(debug)
+        CELER_LOG(debug)
             << R"(Skipping tracking manager since Celeritas is disabled)";
         return;
     }
 
-    CELER_LOG_LOCAL(debug) << "Activating tracking manager";
+    CELER_LOG(debug) << "Activating tracking manager";
 
     // Note that error checking occurs here to provide better error messages
     CELER_VALIDATE(

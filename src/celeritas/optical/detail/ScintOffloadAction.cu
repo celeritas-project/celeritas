@@ -13,11 +13,11 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/ScintillationParams.hh"
 
 #include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
 #include "ScintOffloadExecutor.hh"
+#include "../ScintillationParams.hh"
 
 namespace celeritas
 {

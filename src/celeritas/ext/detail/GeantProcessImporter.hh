@@ -11,10 +11,10 @@
 #include <vector>
 
 #include "corecel/cont/Array.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/ImportElement.hh"
 #include "celeritas/io/ImportMaterial.hh"
 #include "celeritas/io/ImportModel.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/io/ImportProcess.hh"
 
 class G4VProcess;
@@ -106,12 +106,12 @@ class GeantProcessImporter
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Import a physics vector with the given x, y units
-ImportPhysicsVector
+inp::Grid
 import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units);
 
 // Import a 2D physics vector
-ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
-                                              Array<ImportUnits, 3> units);
+inp::TwodGrid import_physics_2dvector(G4Physics2DVector const& g4pv,
+                                      Array<ImportUnits, 3> units);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

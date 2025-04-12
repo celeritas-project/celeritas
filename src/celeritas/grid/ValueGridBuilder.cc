@@ -12,6 +12,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "corecel/grid/VectorUtils.hh"
@@ -23,7 +24,7 @@ namespace celeritas
 {
 namespace
 {
-using SpanConstDbl = ValueGridXsBuilder::SpanConstDbl;
+using SpanConstDbl = Span<double const>;
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -56,28 +57,21 @@ ValueGridBuilder::~ValueGridBuilder() = default;
  * Construct XS arrays from imported data from Geant4.
  */
 std::unique_ptr<ValueGridXsBuilder>
-ValueGridXsBuilder::from_geant(SpanConstDbl lambda_energy,
-                               SpanConstDbl lambda,
-                               SpanConstDbl lambda_prim_energy,
-                               SpanConstDbl lambda_prim)
+ValueGridXsBuilder::from_geant(inp::Grid const& lower, inp::Grid const& upper)
 {
-    CELER_EXPECT(is_contiguous_increasing(lambda_energy, lambda_prim_energy));
-    CELER_EXPECT(has_log_spacing(lambda_energy)
-                 && has_log_spacing(lambda_prim_energy));
-    CELER_EXPECT(lambda.size() == lambda_energy.size());
-    CELER_EXPECT(lambda_prim.size() == lambda_prim_energy.size());
-    CELER_EXPECT(soft_equal(lambda.back(),
-                            lambda_prim.front() / lambda_prim_energy.front()));
-    CELER_EXPECT(is_nonnegative(lambda) && is_nonnegative(lambda_prim));
+    CELER_EXPECT(lower && upper);
+    CELER_EXPECT(
+        is_contiguous_increasing(make_span(lower.x), make_span(upper.x)));
+    CELER_EXPECT(has_log_spacing(make_span(lower.x))
+                 && has_log_spacing(make_span(upper.x)));
+    CELER_EXPECT(soft_equal(lower.y.back(), upper.y.front() / upper.x.front()));
+    CELER_EXPECT(is_nonnegative(make_span(lower.y))
+                 && is_nonnegative(make_span(upper.y)));
 
     // Construct the grid
     return std::make_unique<ValueGridXsBuilder>(
-        GridInput{lambda_energy.front(),
-                  lambda_prim_energy.front(),
-                  VecDbl{lambda.begin(), lambda.end()}},
-        GridInput{lambda_prim_energy.front(),
-                  lambda_prim_energy.back(),
-                  VecDbl{lambda_prim.begin(), lambda_prim.end()}});
+        GridInput{lower.x.front(), upper.x.front(), lower.y},
+        GridInput{upper.x.front(), upper.x.back(), upper.y});
 }
 
 //---------------------------------------------------------------------------//
@@ -85,38 +79,35 @@ ValueGridXsBuilder::from_geant(SpanConstDbl lambda_energy,
  * Construct XS arrays from scaled (*E) data from Geant4.
  */
 std::unique_ptr<ValueGridXsBuilder>
-ValueGridXsBuilder::from_scaled(SpanConstDbl lambda_prim_energy,
-                                SpanConstDbl lambda_prim)
+ValueGridXsBuilder::from_scaled(inp::Grid const& upper)
 {
-    CELER_EXPECT(lambda_prim.size() == lambda_prim_energy.size());
-    CELER_EXPECT(has_log_spacing(lambda_prim_energy));
-    CELER_EXPECT(is_nonnegative(lambda_prim));
+    CELER_EXPECT(upper.y.size() == upper.x.size());
+    CELER_EXPECT(has_log_spacing(make_span(upper.x)));
+    CELER_EXPECT(is_nonnegative(make_span(upper.y)));
 
     return std::make_unique<ValueGridXsBuilder>(
-        GridInput{lambda_prim_energy.front(), lambda_prim_energy.front(), {}},
-        GridInput{lambda_prim_energy.front(),
-                  lambda_prim_energy.back(),
-                  VecDbl{lambda_prim.begin(), lambda_prim.end()}});
+        GridInput{upper.x.front(), upper.x.front(), {}},
+        GridInput{upper.x.front(), upper.x.back(), upper.y});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
  */
-ValueGridXsBuilder::ValueGridXsBuilder(GridInput grid, GridInput grid_prime)
-    : lower_(std::move(grid)), upper_(std::move(grid_prime))
+ValueGridXsBuilder::ValueGridXsBuilder(GridInput lower, GridInput upper)
+    : lower_(std::move(lower)), upper_(std::move(upper))
 {
-    CELER_EXPECT((!lower_.xs.empty() || !upper_.xs.empty())
-                 && (lower_.xs.empty() || upper_.xs.empty()
+    CELER_EXPECT((!lower_.value.empty() || !upper_.value.empty())
+                 && (lower_.value.empty() || upper_.value.empty()
                      || lower_.emax == upper_.emin));
-    CELER_EXPECT(lower_.xs.empty()
+    CELER_EXPECT(lower_.value.empty()
                  || (lower_.emin > 0 && lower_.emax > lower_.emin
-                     && lower_.xs.size() >= 2));
-    CELER_EXPECT(upper_.xs.empty()
+                     && lower_.value.size() >= 2));
+    CELER_EXPECT(upper_.value.empty()
                  || (upper_.emin > 0 && upper_.emax > upper_.emin
-                     && upper_.xs.size() >= 2));
-    CELER_EXPECT(is_nonnegative(make_span(lower_.xs)));
-    CELER_EXPECT(is_nonnegative(make_span(upper_.xs)));
+                     && upper_.value.size() >= 2));
+    CELER_EXPECT(is_nonnegative(make_span(lower_.value)));
+    CELER_EXPECT(is_nonnegative(make_span(upper_.value)));
 }
 
 //---------------------------------------------------------------------------//
@@ -125,17 +116,18 @@ ValueGridXsBuilder::ValueGridXsBuilder(GridInput grid, GridInput grid_prime)
  */
 auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
-    auto lower = !lower_.xs.empty()
+    auto lower = !lower_.value.empty()
                      ? UniformGridData::from_bounds(std::log(lower_.emin),
                                                     std::log(lower_.emax),
-                                                    lower_.xs.size())
+                                                    lower_.value.size())
                      : UniformGridData{};
-    auto upper = !upper_.xs.empty()
+    auto upper = !upper_.value.empty()
                      ? UniformGridData::from_bounds(std::log(upper_.emin),
                                                     std::log(upper_.emax),
-                                                    upper_.xs.size())
+                                                    upper_.value.size())
                      : UniformGridData{};
-    return insert(lower, make_span(lower_.xs), upper, make_span(upper_.xs));
+    return insert(
+        lower, make_span(lower_.value), upper, make_span(upper_.value));
 }
 
 //---------------------------------------------------------------------------//
@@ -144,46 +136,41 @@ auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 /*!
  * Construct arrays from log-spaced geant data.
  */
-auto ValueGridLogBuilder::from_geant(SpanConstDbl energy,
-                                     SpanConstDbl value) -> UPLogBuilder
+auto ValueGridLogBuilder::from_geant(VecDbl const& x, VecDbl const& y)
+    -> UPLogBuilder
 {
-    CELER_EXPECT(!energy.empty());
-    CELER_EXPECT(has_log_spacing(energy));
-    CELER_EXPECT(value.size() == energy.size());
+    CELER_EXPECT(!x.empty());
+    CELER_EXPECT(has_log_spacing(make_span(x)));
+    CELER_EXPECT(y.size() == x.size());
 
     return std::make_unique<ValueGridLogBuilder>(
-        energy.front(), energy.back(), VecDbl{value.begin(), value.end()});
+        GridInput{x.front(), x.back(), y});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct XS arrays from log-spaced geant range data.
- *
- * Range data must be monotonically increasing, since it's the integral of the
- * (always nonnegative) stopping power -dE/dx . If not monotonic then the
- * inverse range cannot be calculated.
+ * Construct arrays from log-spaced geant data.
  */
-auto ValueGridLogBuilder::from_range(SpanConstDbl energy,
-                                     SpanConstDbl value) -> UPLogBuilder
+auto ValueGridLogBuilder::from_geant(inp::Grid const& grid) -> UPLogBuilder
 {
-    CELER_EXPECT(!energy.empty());
-    CELER_EXPECT(is_monotonic_increasing(value));
-    CELER_EXPECT(value.front() > 0);
-    return ValueGridLogBuilder::from_geant(energy, value);
+    CELER_EXPECT(!grid.x.empty());
+    CELER_EXPECT(has_log_spacing(make_span(grid.x)));
+    CELER_EXPECT(grid.y.size() == grid.x.size());
+
+    return std::make_unique<ValueGridLogBuilder>(
+        GridInput{grid.x.front(), grid.x.back(), grid.y});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
  */
-ValueGridLogBuilder::ValueGridLogBuilder(double emin, double emax, VecDbl value)
-    : log_emin_(std::log(emin))
-    , log_emax_(std::log(emax))
-    , value_(std::move(value))
+ValueGridLogBuilder::ValueGridLogBuilder(GridInput grid)
+    : grid_(std::move(grid))
 {
-    CELER_EXPECT(emin > 0);
-    CELER_EXPECT(emax > emin);
-    CELER_EXPECT(value_.size() >= 2);
+    CELER_EXPECT(grid_.emin > 0);
+    CELER_EXPECT(grid_.emax > grid_.emin);
+    CELER_EXPECT(grid_.value.size() >= 2);
 }
 
 //---------------------------------------------------------------------------//
@@ -192,18 +179,10 @@ ValueGridLogBuilder::ValueGridLogBuilder(double emin, double emax, VecDbl value)
  */
 auto ValueGridLogBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
-    return insert(
-        UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
-        this->value());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access values.
- */
-auto ValueGridLogBuilder::value() const -> SpanConstDbl
-{
-    return make_span(value_);
+    auto const& value = grid_.value;
+    return insert(UniformGridData::from_bounds(
+                      std::log(grid_.emin), std::log(grid_.emax), value.size()),
+                  make_span(value));
 }
 
 //---------------------------------------------------------------------------//

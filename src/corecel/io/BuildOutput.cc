@@ -72,13 +72,14 @@ void BuildOutput::output(JsonPimpl* j) const
     {                                                      \
         deps[#NAME] = std::string(cmake::LOWER##_version); \
     }
-            CO_ADD_COND_VERS(GEANT4, CLHEP, clhep);
-            CO_ADD_COND_VERS(GEANT4, Geant4, geant4);
             CO_ADD_COND_VERS(CUDA, CUDA, cuda);
             CO_ADD_COND_VERS(CUDA, Thrust, thrust);
+            CO_ADD_COND_VERS(GEANT4, CLHEP, clhep);
+            CO_ADD_COND_VERS(GEANT4, Geant4, geant4);
             CO_ADD_COND_VERS(HEPMC3, HepMC3, hepmc3);
             CO_ADD_COND_VERS(HIP, HIP, hip);
             CO_ADD_COND_VERS(ROOT, ROOT, root);
+            CO_ADD_COND_VERS(VECGEOM, G4VG, g4vg);
             CO_ADD_COND_VERS(VECGEOM, VecGeom, vecgeom);
 #undef CO_ADD_COND_VERS
             return deps;

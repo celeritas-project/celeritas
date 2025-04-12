@@ -15,7 +15,6 @@
 #include "corecel/sys/Environment.hh"
 
 #include "ImportLivermorePE.hh"
-#include "ImportPhysicsVector.hh"
 
 namespace celeritas
 {
@@ -56,8 +55,6 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     CELER_EXPECT(atomic_number && atomic_number < AtomicNumber{101});
 
     std::string z_str = std::to_string(atomic_number.unchecked_get());
-    CELER_LOG(debug) << "Reading Livermore PE data for Z=" << z_str;
-
     result_type result;
 
     // Read photoelectric effect total cross section above K-shell energy but
@@ -68,9 +65,6 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain cross section data)");
-
-        // Set the physics vector type and the data type
-        result.xs_hi.vector_type = ImportPhysicsVectorType::free;
 
         // Read tabulated energies and cross sections
         double energy_min = 0.;
@@ -109,7 +103,6 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                            << "'");
             result.xs_lo.x.resize(size);
             result.xs_lo.y.resize(size);
-            result.xs_lo.vector_type = ImportPhysicsVectorType::free;
             for (int i = 0; i < size; ++i)
             {
                 CELER_ASSERT(infile);

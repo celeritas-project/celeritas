@@ -46,7 +46,6 @@ Physics properties
 .. doxygenstruct:: celeritas::ImportMscModel
 .. doxygenstruct:: celeritas::ImportModelMaterial
 .. doxygenstruct:: celeritas::ImportPhysicsTable
-.. doxygenstruct:: celeritas::ImportPhysicsVector
 
 .. doxygenenum:: celeritas::ImportUnits
    :no-link:

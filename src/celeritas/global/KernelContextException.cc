@@ -134,25 +134,14 @@ void KernelContextException::initialize(CoreTrackView const& core)
             }
             surface_ = geo.surface_id();
         }
-
-        if (!celeritas::getenv("CELERITAS_EXCEPTION_DEBUG").empty())
-        {
-            // This shouldn't *really* be necessary for full functionality of
-            // the exception, but adding a direct reference to the
-            // "debug_print" symbol allows it to be accessed in downstream
-            // frameworks that use Celeritas, even if they use LTO and
-            // -Wl,--exclude-libs,ALL
-            debug_print(core);
-        }
     }
     {
         // Construct std::exception message
         std::ostringstream os;
-        os << "kernel context: track slot " << track_slot_ << " in '" << label_
-           << "'";
+        os << "track slot " << track_slot_ << " in kernel '" << label_ << "'";
         if (track_)
         {
-            os << ", track " << track_ << " of event " << event_;
+            os << ": " << StreamableTrack{core};
         }
         what_ = os.str();
     }

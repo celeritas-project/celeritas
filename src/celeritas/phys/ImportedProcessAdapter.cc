@@ -241,47 +241,26 @@ auto ImportedProcessAdapter::step_limits_impl(
     else if (ids.lambda && ids.lambda_prim)
     {
         // Both unscaled and scaled values are present
-        auto const& lo = get_vector(ids.lambda);
-        CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
-        auto const& hi = get_vector(ids.lambda_prim);
-        CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
         builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_geant(
-            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
+            get_vector(ids.lambda), get_vector(ids.lambda_prim));
     }
     else if (ids.lambda_prim)
     {
         // Only high-energy (energy-scale) cross sections are presesnt
-        auto const& vec = get_vector(ids.lambda_prim);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_scaled(
-            make_span(vec.x), make_span(vec.y));
+        builders[ValueGridType::macro_xs]
+            = ValueGridXsBuilder::from_scaled(get_vector(ids.lambda_prim));
     }
     else if (ids.lambda)
     {
-        // Only low-energy cross sections are presesnt
-        auto const& vec = get_vector(ids.lambda);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-
-        builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
+        builders[ValueGridType::macro_xs]
+            = ValueGridLogBuilder::from_geant(get_vector(ids.lambda));
     }
 
     // Construct slowing-down data
     if (ids.dedx)
     {
-        auto const& vec = get_vector(ids.dedx);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::energy_loss] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
-    }
-
-    // Construct range limiters
-    if (ids.range)
-    {
-        auto const& vec = get_vector(ids.range);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::range] = ValueGridLogBuilder::from_range(
-            make_span(vec.x), make_span(vec.y));
+        builders[ValueGridType::energy_loss]
+            = ValueGridLogBuilder::from_geant(get_vector(ids.dedx));
     }
 
     return builders;

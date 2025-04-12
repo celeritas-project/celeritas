@@ -79,7 +79,7 @@ class ImportedModelAdapter
     ImportedModelAdapter(ImportModelClass imc, SPConstImported imported);
 
     // Get MFP grid for the optical material
-    ImportPhysicsVector const& mfp(OpticalMaterialId id) const;
+    inp::Grid const& mfp(OpticalMaterialId id) const;
 
     // Get number of optical materials
     OpticalMaterialId::size_type num_materials() const;

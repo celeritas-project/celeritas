@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/random/engine/RngEngine.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/em/interactor/RayleighInteractor.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -16,7 +17,6 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
-#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {

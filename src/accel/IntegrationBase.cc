@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 
 #include "ExceptionConverter.hh"
+#include "TimeOutput.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
@@ -18,6 +19,15 @@ using celeritas::detail::IntegrationSingleton;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Access whether Celeritas is set up, enabled, or uninitialized.
+ */
+OffloadMode IntegrationBase::GetMode() const
+{
+    return IntegrationSingleton::instance().shared_params().mode();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Set options before starting the run.
@@ -32,61 +42,23 @@ void IntegrationBase::SetOptions(SetupOptions&& opts)
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize during ActionInitialization on non-worker thread in MT mode.
- */
-void IntegrationBase::BuildForMaster()
-{
-    CELER_TRY_HANDLE(
-        {
-            CELER_VALIDATE(
-                G4Threading::IsMasterThread()
-                    && G4Threading::IsMultithreadedApplication(),
-                << R"(BuildForMaster called from a worker thread or non-MT code)");
-        },
-        ExceptionConverter{"celer.build_master"});
-
-    IntegrationSingleton::instance().initialize_logger();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize during ActionInitialization on a worker thread or serial mode.
- *
- * We guard against \c Build being called from \c BuildForMaster since we might
- * add worker-specific code here.
- */
-void IntegrationBase::Build()
-{
-    if (G4Threading::IsMasterThread())
-    {
-        CELER_TRY_HANDLE(
-            {
-                CELER_VALIDATE(!G4Threading::IsMultithreadedApplication(),
-                               << "cannot call Integration::Build from worker "
-                                  "thread "
-                                  "in a multithreaded application");
-            },
-            ExceptionConverter{"celer.build"});
-
-        IntegrationSingleton::instance().initialize_logger();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * End the run.
  */
 void IntegrationBase::EndOfRunAction(G4Run const*)
 {
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+    CELER_LOG(status) << "Finalizing Celeritas";
 
     auto& singleton = IntegrationSingleton::instance();
+
+    // Record the run time
+    auto time = singleton.stop_timer();
 
     // Remove local transporter
     singleton.finalize_local_transporter();
 
     if (G4Threading::IsMasterThread())
     {
+        singleton.shared_params().timer()->RecordTotalTime(time);
         singleton.finalize_shared_params();
     }
 }
@@ -128,6 +100,18 @@ CoreStateInterface& IntegrationBase::GetState()
         ExceptionConverter{"celer.get.state"});
 
     return singleton.local_transporter().GetState();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize logging on first access.
+ *
+ * Since this is done during static initialization, it is guaranteed to be
+ * thread safe.
+ */
+IntegrationBase::IntegrationBase()
+{
+    IntegrationSingleton::instance().initialize_logger();
 }
 
 //---------------------------------------------------------------------------//

@@ -68,7 +68,6 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
     , user_build_map_(std::move(user_build))
     , brem_combined_(options.brem_combined)
     , enable_lpm_(data.em_params.lpm)
-    , use_integral_xs_(data.em_params.integral_approach)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.particle);
@@ -164,11 +163,8 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_eioni() -> SPProcess
 {
-    EIonizationProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
-    return std::make_shared<EIonizationProcess>(
-        this->particle(), this->imported(), options);
+    return std::make_shared<EIonizationProcess>(this->particle(),
+                                                this->imported());
 }
 
 //---------------------------------------------------------------------------//
@@ -177,7 +173,6 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
     BremsstrahlungProcess::Options options;
     options.combined_model = brem_combined_;
     options.enable_lpm = enable_lpm_;
-    options.use_integral_xs = use_integral_xs_;
 
     if (!read_sb_)
     {
@@ -238,51 +233,36 @@ auto ProcessBuilder::build_rayleigh() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_annihilation() -> SPProcess
 {
-    EPlusAnnihilationProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
-    return std::make_shared<EPlusAnnihilationProcess>(
-        this->particle(), this->imported(), options);
+    return std::make_shared<EPlusAnnihilationProcess>(this->particle(),
+                                                      this->imported());
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_coulomb() -> SPProcess
 {
-    CoulombScatteringProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
     return std::make_shared<CoulombScatteringProcess>(
-        this->particle(), this->material(), this->imported(), options);
+        this->particle(), this->material(), this->imported());
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_mubrems() -> SPProcess
 {
-    MuBremsstrahlungProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
-    return std::make_shared<MuBremsstrahlungProcess>(
-        this->particle(), this->imported(), options);
+    return std::make_shared<MuBremsstrahlungProcess>(this->particle(),
+                                                     this->imported());
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_muioni() -> SPProcess
 {
-    MuIonizationProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
     return std::make_shared<MuIonizationProcess>(
-        this->particle(), this->imported(), options);
+        this->particle(), this->imported(), MuIonizationProcess::Options{});
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_mupairprod() -> SPProcess
 {
-    MuPairProductionProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
     return std::make_shared<MuPairProductionProcess>(
-        this->particle(), this->imported(), options, mu_pairprod_table_);
+        this->particle(), this->imported(), mu_pairprod_table_);
 }
 
 //---------------------------------------------------------------------------//

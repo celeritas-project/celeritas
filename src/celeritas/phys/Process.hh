@@ -62,8 +62,8 @@ class Process
     //! Get the interaction cross sections for the given energy range
     virtual StepLimitBuilders step_limits(Applicability range) const = 0;
 
-    //! Whether to use the integral method to sample interaction length
-    virtual bool use_integral_xs() const = 0;
+    //! Whether the integral method can be used to sample interaction length
+    virtual bool supports_integral_xs() const = 0;
 
     //! Whether the process applies when the particle is stopped
     virtual bool applies_at_rest() const = 0;

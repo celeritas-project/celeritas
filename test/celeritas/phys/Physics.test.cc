@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
@@ -23,7 +24,6 @@
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -847,11 +847,8 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.options = this->build_physics_options();
     physics_inp.action_registry = this->action_reg().get();
 
-    EPlusAnnihilationProcess::Options epgg_options;
-    epgg_options.use_integral_xs = true;
-
     physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        physics_inp.particles, this->build_imported(), epgg_options));
+        physics_inp.particles, this->build_imported()));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 

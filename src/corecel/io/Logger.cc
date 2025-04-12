@@ -50,24 +50,28 @@ class LocalHandler
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 /*!
- * Set the log level from an environment variable, warn on failure.
+ * Create a logger from a handle and level environment variable.
  */
-void set_log_level_from_env(Logger* log, std::string const& level_env)
+Logger
+Logger::from_handle_env(LogHandler&& handle, std::string const& level_env)
 {
-    CELER_EXPECT(log);
+    Logger result{std::move(handle)};
+
     try
     {
-        log->level(log_level_from_env(level_env));
+        result.level(log_level_from_env(level_env));
     }
     catch (RuntimeError const& e)
     {
-        (*log)(CELER_CODE_PROVENANCE, LogLevel::warning) << e.details().what;
+        result(CELER_CODE_PROVENANCE, LogLevel::warning) << e.details().what;
     }
-}
 
-//---------------------------------------------------------------------------//
-}  // namespace
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -75,7 +79,7 @@ void set_log_level_from_env(Logger* log, std::string const& level_env)
  *
  * A null handler will silence the logger.
  */
-Logger::Logger(LogHandler handle) : handle_{std::move(handle)} {}
+Logger::Logger(LogHandler&& handle) : handle_{std::move(handle)} {}
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -128,11 +132,12 @@ LogLevel log_level_from_env(std::string const& level_env, LogLevel default_lev)
  */
 Logger make_default_world_logger()
 {
-    Logger log{celeritas::comm_world().rank() == 0
-                   ? LogHandler{StreamLogHandler{std::clog}}
-                   : nullptr};
-    set_log_level_from_env(&log, "CELER_LOG");
-    return log;
+    LogHandler handler;
+    if (celeritas::comm_world().rank() == 0)
+    {
+        handler = StreamLogHandler{std::clog};
+    }
+    return Logger::from_handle_env(std::move(handler), "CELER_LOG");
 }
 
 //---------------------------------------------------------------------------//
@@ -146,13 +151,13 @@ Logger make_default_world_logger()
  */
 Logger make_default_self_logger()
 {
-    auto const& comm = celeritas::comm_world();
-    auto handler = ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-                       ? LogHandler{MutexedStreamLogHandler{std::clog}}
-                       : LocalHandler{comm};
-    Logger log{std::move(handler)};
-    set_log_level_from_env(&log, "CELER_LOG_LOCAL");
-    return log;
+    LogHandler handler = LogHandler{MutexedStreamLogHandler{std::clog}};
+    if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
+    {
+        handler = LocalHandler{celeritas::comm_world()};
+    }
+
+    return Logger::from_handle_env(std::move(handler), "CELER_LOG_LOCAL");
 }
 
 //---------------------------------------------------------------------------//

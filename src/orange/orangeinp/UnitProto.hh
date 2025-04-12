@@ -11,9 +11,9 @@
 
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
+#include "CsgTypes.hh"
 #include "ProtoInterface.hh"
 
 namespace celeritas

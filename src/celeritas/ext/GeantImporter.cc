@@ -65,6 +65,8 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -73,6 +75,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/g4/VisitVolumes.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/LivermorePEReader.hh"
@@ -203,7 +206,7 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
     {
         bool any_found = false;
         auto get = [&](double* dst, std::string const& ext, ImportUnits u) {
-            any_found = get_property(dst, prefix + ext, comp_idx, u);
+            any_found |= get_property(dst, prefix + ext, comp_idx, u);
         };
 
         ImportScintComponent comp;
@@ -215,11 +218,38 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
 
         // Rise time is not defined for particle type in Geant4
         get(&comp.rise_time, "RISETIME", ImportUnits::time);
-
         get(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
 
         if (any_found)
         {
+            if (comp.lambda_mean == 0)
+            {
+                // Geant4 uses a tabulated distribution for the scintillation
+                // wavelength, while Celeritas samples from a Gaussian
+                // distribution with user-provided mean and standard deviation.
+                // If these custom-defined properties aren't found, try getting
+                // the Geant4-defined property and estimating the distribution
+                // parameters from the tabulated values.
+                inp::Grid grid;
+                auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
+                if (get_property(
+                        &grid, name, {ImportUnits::len, ImportUnits::unitless}))
+                {
+                    auto const& grid_cref = grid;
+                    auto moments = MomentCalculator{}(make_span(grid_cref.x),
+                                                      make_span(grid_cref.y));
+                    comp.lambda_mean = moments.mean;
+                    comp.lambda_sigma = std::sqrt(moments.variance);
+
+                    CELER_LOG(info)
+                        << "Estimated custom properties " << prefix
+                        << "LAMBDAMEAN" << comp_idx << "=" << comp.lambda_mean
+                        << " and " << prefix << "LAMBDASIGMA" << comp_idx
+                        << "=" << comp.lambda_sigma
+                        << " from Geant4-defined property " << name;
+                }
+            }
+
             // Note that the user may be missing some properties: in that case
             // (if Geant4 didn't warn/error/die already) then we will rely on
             // the downstream code to validate.
@@ -504,9 +534,10 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
         CELER_ASSERT(!optical);
 
         // Save common properties
-        bool has_rindex = get_property(&optical.properties.refractive_index,
-                                       "RINDEX",
-                                       ImportUnits::unitless);
+        bool has_rindex
+            = get_property(&optical.properties.refractive_index,
+                           "RINDEX",
+                           {ImportUnits::mev, ImportUnits::unitless});
         // Existence of RINDEX should correspond to GeoOpticalIdMap
         // construction
         CELER_ASSERT(has_rindex);
@@ -527,7 +558,7 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
             ImportScintData::IPSS scint_part_spec;
             get_property(&scint_part_spec.yield_vector,
                          prefix + "SCINTILLATIONYIELD",
-                         ImportUnits::inv_mev);
+                         {ImportUnits::mev, ImportUnits::inv_mev});
             scint_part_spec.components
                 = fill_vec_import_scint_comp(get_property, prefix);
 
@@ -552,8 +583,9 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
                      ImportUnits::unitless);
         get_property(
             &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
-        get_property(
-            &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
+        get_property(&optical.wls.component,
+                     "WLSCOMPONENT",
+                     {ImportUnits::mev, ImportUnits::unitless});
 
         CELER_ASSERT(optical);
     }
@@ -896,8 +928,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             G4VProcess const& process = *process_list[j];
             if (!include_process(process.GetProcessType()))
             {
-                CELER_LOG(debug)
-                    << "Filtered process '" << process.GetProcessName() << "'";
                 continue;
             }
 
@@ -927,8 +957,6 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                 G4VProcess const& process = *process_list[j];
                 if (!include_process(process.GetProcessType()))
                 {
-                    CELER_LOG(debug) << "Filtered process '"
-                                     << process.GetProcessName() << "'";
                     continue;
                 }
 

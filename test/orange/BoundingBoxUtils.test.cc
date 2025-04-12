@@ -64,12 +64,26 @@ TEST_F(BoundingBoxUtilsTest, is_degenerate)
 
 TEST_F(BoundingBoxUtilsTest, center)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
+
     BBox bbox = {{-10, -20, -30}, {1, 2, 3}};
     EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, -13.5}), calc_center(bbox));
 
     if (CELERITAS_DEBUG)
     {
         EXPECT_THROW(calc_center(BBox{}), DebugError);
+    }
+
+    bbox = BBox({{-10, -20, -inf}, {1, 2, inf}});
+    EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, 0}), calc_center(bbox));
+
+    if (CELERITAS_DEBUG)
+    {
+        bbox = BBox({{-10, -20, 5}, {1, 2, inf}});
+        EXPECT_THROW(calc_center(bbox), DebugError);
+
+        bbox = BBox({{-10, -20, -inf}, {1, 2, 5}});
+        EXPECT_THROW(calc_center(bbox), DebugError);
     }
 }
 

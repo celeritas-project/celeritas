@@ -53,7 +53,7 @@ set(SOURCES
 polysource_append(SOURCES src/StepDiagnostic)
 
 add_executable(run-offload
-  main.cc
+  run-offload.cc
   ${SOURCES}
 )
 
@@ -64,6 +64,6 @@ target_include_directories(run-offload PRIVATE
 # Use special linking macros to support CUDA+VecGeom when used
 celeritas_target_link_libraries(run-offload
   ${Geant4_LIBRARIES}
-  Celeritas::celeritas
-  Celeritas::accel
+  Celeritas::celeritas # for user action
+  Celeritas::G4
 )

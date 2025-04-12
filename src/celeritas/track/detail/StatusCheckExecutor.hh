@@ -10,7 +10,8 @@
 #include "corecel/Macros.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/track/SimTrackView.hh"
+
+#include "../SimTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"

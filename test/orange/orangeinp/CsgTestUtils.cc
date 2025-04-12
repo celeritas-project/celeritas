@@ -15,6 +15,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/StringSimplifier.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StreamableVariant.hh"
@@ -107,19 +108,20 @@ std::string tree_string(CsgUnit const& u)
 std::vector<std::string> md_strings(CsgUnit const& u)
 {
     std::vector<std::string> result;
+    ::celeritas::test::StringSimplifier simplify;
     for (auto const& md_set : u.metadata)
     {
-        result.push_back(to_string(join_stream(
-            md_set.begin(),
-            md_set.end(),
-            ',',
-            [](std::ostream& os, Label const& l) {
-                os << ::celeritas::test::Test::genericize_pointers(l.name);
-                if (!l.ext.empty())
-                {
-                    os << Label::default_sep << l.ext;
-                }
-            })));
+        result.push_back(to_string(
+            join_stream(md_set.begin(),
+                        md_set.end(),
+                        ',',
+                        [&simplify](std::ostream& os, Label const& l) {
+                            os << simplify(l.name);
+                            if (!l.ext.empty())
+                            {
+                                os << Label::default_sep << l.ext;
+                            }
+                        })));
     }
     return result;
 }

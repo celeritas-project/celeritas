@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "celeritas/Types.hh"
 
@@ -49,6 +50,7 @@ void RunnerOutput::output(JsonPimpl* j) const
     auto num_aborted = json::array();
     auto max_queued = json::array();
     auto step_times = json::array();
+    auto optical = json::array();
 
     for (auto const& event : result_.events)
     {
@@ -69,6 +71,19 @@ void RunnerOutput::output(JsonPimpl* j) const
         {
             step_times.push_back(event.step_times);
         }
+
+        if (event.num_optical)
+        {
+            auto& count = *event.num_optical;
+            optical.push_back(json::object({
+                CELER_JSON_PAIR(count, tracks),
+                CELER_JSON_PAIR(count, generators),
+
+                CELER_JSON_PAIR(count, steps),
+                CELER_JSON_PAIR(count, step_iters),
+                CELER_JSON_PAIR(count, flushes),
+            }));
+        }
     }
 
     if (active.empty())
@@ -84,6 +99,12 @@ void RunnerOutput::output(JsonPimpl* j) const
     {
         // Step time output is disabled
         step_times = nullptr;
+    }
+
+    if (optical.empty())
+    {
+        // No optical loop
+        optical = nullptr;
     }
 
     auto times = json::object({
@@ -105,6 +126,7 @@ void RunnerOutput::output(JsonPimpl* j) const
          {"num_tracks", std::move(num_tracks)},
          {"num_steps", std::move(num_steps)},
          {"num_aborted", std::move(num_aborted)},
+         {"optical", optical},
          {"max_queued", std::move(max_queued)},
          {"num_streams", result_.num_streams},
          {"time", std::move(times)}});

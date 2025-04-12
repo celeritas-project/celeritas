@@ -20,8 +20,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/TimeOutput.hh"
 
 #include "ExceptionHandler.hh"
 #include "GeantDiagnostics.hh"
@@ -73,7 +76,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
-        diagnostics_->timer()->RecordSetupTime(
+        params_->timer()->RecordSetupTime(
             GlobalSetup::Instance()->GetSetupTime());
         get_transport_time_ = {};
     }
@@ -89,6 +92,15 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
                          ExceptionConverter{"celer.init.local"});
         CELER_ASSERT(*transport_);
+    }
+
+    if (transport_)
+    {
+        // Set up local logger; "master" thread in MT already has
+        // logging/exception set through celer-g4 main
+        scoped_log_
+            = std::make_unique<ScopedGeantLogger>(celeritas::self_logger());
+        scoped_except_ = std::make_unique<ScopedGeantExceptionHandler>();
     }
 
     // Create a G4VExceptionHandler that dispatches to the shared
@@ -126,16 +138,16 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (transport_ && *transport_)
     {
-        diagnostics_->timer()->RecordActionTime(transport_->GetActionTime());
+        params_->timer()->RecordActionTime(transport_->GetActionTime());
     }
     if (init_shared_)
     {
-        diagnostics_->timer()->RecordTotalTime(get_transport_time_());
+        params_->timer()->RecordTotalTime(get_transport_time_());
     }
 
     if (params_->mode() == SharedParams::Mode::enabled)
     {
-        CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+        CELER_LOG(status) << "Finalizing Celeritas";
 
         if (transport_)
         {
@@ -154,6 +166,9 @@ void RunAction::EndOfRunAction(G4Run const*)
         // Clear shared data (if any) and write output (if any)
         CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
+
+    scoped_log_.reset();
+    scoped_except_.reset();
 }
 
 //---------------------------------------------------------------------------//

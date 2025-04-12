@@ -15,7 +15,9 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoParamsOutput.hh"
+#include "geocel/GeoTests.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
@@ -24,8 +26,6 @@
 
 #include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
-#include "../GenericGeoParameterizedTest.hh"
-#include "../GeoTests.hh"
 
 namespace celeritas
 {

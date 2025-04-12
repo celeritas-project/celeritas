@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/HitProcessor.cc
+//! \file celeritas/ext/detail/HitProcessor.cc
 //---------------------------------------------------------------------------//
 #include "HitProcessor.hh"
 
@@ -28,12 +28,12 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
 #include "LevelTouchableUpdater.hh"
 #include "NaviTouchableUpdater.hh"
+#include "../GeantUnits.hh"
 
 namespace celeritas
 {
@@ -100,9 +100,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
     CELER_EXPECT(geo);
 
-    CELER_LOG_LOCAL(debug) << "Setting up hit processor for "
-                           << detector_volumes_->size()
-                           << " sensitive detectors";
+    // Even though this is created locally, all threads should be doing the
+    // same thing
+    CELER_LOG(debug) << "Setting up thread-local hit processor for "
+                     << detector_volumes_->size() << " sensitive detectors";
 
     // Create step and step-owned structures
     step_ = std::make_unique<G4Step>();
@@ -217,7 +218,7 @@ HitProcessor::~HitProcessor()
 {
     try
     {
-        CELER_LOG_LOCAL(debug) << "Deallocating hit processor";
+        CELER_LOG(debug) << "Deallocating hit processor";
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {
@@ -234,6 +235,7 @@ void HitProcessor::operator()(StepStateHostRef const& states)
     copy_steps(&steps_, states);
     if (steps_)
     {
+        num_hits_ += steps_.size();
         (*this)(steps_);
     }
 }
@@ -247,6 +249,7 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
     copy_steps(&steps_, states);
     if (steps_)
     {
+        num_hits_ += steps_.size();
         (*this)(steps_);
     }
 }
@@ -263,9 +266,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 {
     ScopedProfiling profile_this{"process-hits"};
     trace_counter("process-hits", out.size());
-
-    CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
-
     for (auto i : range(out.size()))
     {
         (*this)(out, i);
