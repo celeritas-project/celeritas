@@ -12,7 +12,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 

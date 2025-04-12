@@ -307,7 +307,7 @@ jobs:
             && matrix.special != 'clang-tidy'
           }}
         env:
-          CELER_DISABLE_ACCEL_EXAMPLES: 1 # Only run minimal example
+          CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
@@ -337,7 +337,7 @@ jobs:
           ./bin/celer-sim --config
       - name: Build examples
         env:
-          CELER_DISABLE_ACCEL_EXAMPLES: >-
+          CELER_DISABLE_G4_EXAMPLES: >-
             ${{(
               matrix.special == 'float'
               || !matrix.geant

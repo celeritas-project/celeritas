@@ -141,6 +141,14 @@ if(CELERITAS_USE_Geant4)
   add_subdirectory(accel)
 endif()
 
+# Add alias as a bridge library: see cmake/CeleritasConfig.cmake.in
+# TODO: move to a separate library for just high level interfaces
+if(CELERITAS_USE_Geant4)
+  add_library(Celeritas::G4 ALIAS accel)
+else()
+  add_library(Celeritas::G4 ALIAS BuildFlags)
+endif()
+
 # Install header files
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"

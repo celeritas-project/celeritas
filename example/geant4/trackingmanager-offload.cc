@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/trackingmanager-offload.cc
+//! \file geant4/trackingmanager-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
@@ -29,16 +29,12 @@
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
 
+// Celeritas
+#include <CeleritasG4.hh>
+
 // Celeritas convenience utils
 #include <corecel/Assert.hh>
-#include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
-
-// Celeritas
-#include <accel/AlongStepFactory.hh>
-#include <accel/SetupOptions.hh>
-#include <accel/TrackingManagerConstructor.hh>
-#include <accel/TrackingManagerIntegration.hh>
 
 using TMI = celeritas::TrackingManagerIntegration;
 
@@ -185,20 +181,9 @@ class EventAction final : public G4UserEventAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final
-    {
-        TMI::Instance().BuildForMaster();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
-        this->SetUserAction(new RunAction{});
-    }
+    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
-        TMI::Instance().Build();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
         this->SetUserAction(new EventAction{});
@@ -209,7 +194,7 @@ celeritas::SetupOptions MakeOptions()
 {
     celeritas::SetupOptions opts;
     // NOTE: these numbers are appropriate for CPU execution and can be set
-    // through the UI using `/celer/
+    // through the UI using `/celer/`
     opts.max_num_tracks = 2024;
     opts.initializer_capacity = 2024 * 128;
     // Celeritas does not support EmStandard MSC physics above 200 MeV

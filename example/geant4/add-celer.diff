@@ -1,0 +1,37 @@
+diff --git example/geant4/trackingmanager-offload.cc example/geant4/trackingmanager-offload.cc
+index f11c900f0..8fda9cd09 100644
+--- example/geant4/trackingmanager-offload.cc
++++ example/geant4/trackingmanager-offload.cc
+@@ -31,2 +31,5 @@
+ 
++// Celeritas
++#include <CeleritasG4.hh>
++
+ // Celeritas convenience utils
+@@ -35,2 +38,4 @@
+ 
++using TMI = celeritas::TrackingManagerIntegration;
++
+ namespace
+@@ -133,2 +138,3 @@ class RunAction final : public G4UserRunAction
+     {
++        TMI::Instance().BeginOfRunAction(run);
+     }
+@@ -136,2 +142,3 @@ class RunAction final : public G4UserRunAction
+     {
++        TMI::Instance().EndOfRunAction(run);
+     }
+@@ -213,4 +220,8 @@ int main()
+ 
++    auto& tmi = TMI::Instance();
++
+     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
+     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
++    physics_list->RegisterPhysics(
++        new celeritas::TrackingManagerConstructor(&tmi));
+     run_manager->SetUserInitialization(physics_list);
+@@ -218,2 +229,4 @@ int main()
+ 
++    tmi.SetOptions(MakeOptions());
++
+     run_manager->Initialize();
