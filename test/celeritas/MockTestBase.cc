@@ -158,7 +158,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.materials = this->material();
         inp.interact = interact;
         inp.label = "scattering";
-        inp.use_integral_xs = false;
+        inp.supports_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
         inp.xs = {Barn{1.0}, Barn{1.0}, Barn{1.0}};
@@ -170,7 +170,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.materials = this->material();
         inp.interact = interact;
         inp.label = "absorption";
-        inp.use_integral_xs = false;
+        inp.supports_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100)};
         inp.xs = {Barn{2.0}, Barn{2.0}};
         inp.energy_loss = {};

@@ -23,6 +23,7 @@
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/io/ImportData.hh"
 
 namespace celeritas
@@ -103,10 +104,8 @@ auto UniformAlongStepFactory::operator()(
             *input.material,
             *input.particle,
             field,
-            celeritas::UrbanMscParams::from_import(*input.particle,
-                                                   *input.material,
-                                                   *input.imported,
-                                                   {input.interpolation}),
+            celeritas::UrbanMscParams::from_import(
+                *input.particle, *input.material, *input.imported),
             input.imported->em_params.energy_loss_fluct);
     }
     else
@@ -116,10 +115,8 @@ auto UniformAlongStepFactory::operator()(
             input.action_id,
             *input.material,
             *input.particle,
-            celeritas::UrbanMscParams::from_import(*input.particle,
-                                                   *input.material,
-                                                   *input.imported,
-                                                   {input.interpolation}),
+            celeritas::UrbanMscParams::from_import(
+                *input.particle, *input.material, *input.imported),
             input.imported->em_params.energy_loss_fluct);
     }
 }
@@ -168,10 +165,8 @@ auto RZMapFieldAlongStepFactory::operator()(
         *input.material,
         *input.particle,
         get_fieldmap_(),
-        celeritas::UrbanMscParams::from_import(*input.particle,
-                                               *input.material,
-                                               *input.imported,
-                                               {input.interpolation}),
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported),
         input.imported->em_params.energy_loss_fluct);
 }
 
@@ -210,10 +205,8 @@ auto CylMapFieldAlongStepFactory::operator()(
         *input.material,
         *input.particle,
         get_fieldmap_(),
-        celeritas::UrbanMscParams::from_import(*input.particle,
-                                               *input.material,
-                                               *input.imported,
-                                               {input.interpolation}),
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported),
         input.imported->em_params.energy_loss_fluct);
 }
 

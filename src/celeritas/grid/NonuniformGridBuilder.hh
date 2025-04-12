@@ -10,11 +10,11 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
-#include "celeritas/inp/Physics.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
-struct ImportPhysicsVector;
 //---------------------------------------------------------------------------//
 /*!
  * Construct a generic grid.
@@ -41,15 +41,8 @@ class NonuniformGridBuilder
     Grid operator()(SpanConstFlt grid, SpanConstFlt values);
     Grid operator()(SpanConstDbl grid, SpanConstDbl values);
 
-    // Add a grid of generic data with interpolation method
-    Grid operator()(SpanConstFlt grid, SpanConstFlt values, inp::Interpolation);
-    Grid operator()(SpanConstDbl grid, SpanConstDbl values, inp::Interpolation);
-
-    // Add a grid from an imported physics vector with linear interpolation
-    Grid operator()(ImportPhysicsVector const&);
-
-    // Add a grid from an imported physics vector with interpolation method
-    Grid operator()(ImportPhysicsVector const&, inp::Interpolation);
+    // Add a grid from an imported physics vector
+    Grid operator()(inp::Grid const&);
 
   private:
     Items<real_type> const& values_;

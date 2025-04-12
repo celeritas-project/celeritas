@@ -10,6 +10,7 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
@@ -19,7 +20,6 @@
 namespace celeritas
 {
 struct CascadeOptions;
-struct ImportPhysicsVector;
 class MaterialParams;
 class ParticleParams;
 
@@ -45,7 +45,7 @@ class NeutronInelasticModel final : public Model, public StaticConcreteAction
     //!@{
     using AtomicMassNumber = IsotopeView::AtomicMassNumber;
     using MevEnergy = units::MevEnergy;
-    using ReadData = std::function<ImportPhysicsVector(AtomicNumber)>;
+    using ReadData = std::function<inp::Grid(AtomicNumber)>;
     using HostRef = NeutronInelasticHostRef;
     using DeviceRef = NeutronInelasticDeviceRef;
     //!@}

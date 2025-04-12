@@ -75,6 +75,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/g4/VisitVolumes.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/LivermorePEReader.hh"
@@ -229,14 +230,14 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                 // If these custom-defined properties aren't found, try getting
                 // the Geant4-defined property and estimating the distribution
                 // parameters from the tabulated values.
-                ImportPhysicsVector pv;
+                inp::Grid grid;
                 auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
                 if (get_property(
-                        &pv, name, {ImportUnits::len, ImportUnits::unitless}))
+                        &grid, name, {ImportUnits::len, ImportUnits::unitless}))
                 {
-                    auto const& pv_cref = pv;
-                    auto moments = MomentCalculator{}(make_span(pv_cref.x),
-                                                      make_span(pv_cref.y));
+                    auto const& grid_cref = grid;
+                    auto moments = MomentCalculator{}(make_span(grid_cref.x),
+                                                      make_span(grid_cref.y));
                     comp.lambda_mean = moments.mean;
                     comp.lambda_sigma = std::sqrt(moments.variance);
 
@@ -803,7 +804,7 @@ std::vector<ImportRegion> import_regions()
 /*!
  * Return a populated \c ImportProcess vector.
  */
-auto import_processes(GeantImporter::DataSelection::Flags process_flags,
+auto import_processes(GeantImporter::DataSelection selected,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportPhysMaterial> const& materials,
@@ -812,8 +813,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                   std::vector<ImportMscModel>,
                   std::vector<ImportOpticalModel>>
 {
-    ParticleFilter include_particle{process_flags};
-    ProcessFilter include_process{process_flags};
+    ParticleFilter include_particle{selected.processes};
+    ProcessFilter include_process{selected.processes};
 
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
@@ -821,7 +822,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
-    detail::GeantProcessImporter import_process(materials, elements);
+    detail::GeantProcessImporter import_process(
+        materials, elements, selected.interpolation);
     detail::GeantOpticalModelImporter import_optical_model(geo_to_opt);
 
     auto append_process = [&](G4ParticleDefinition const& particle,
@@ -1231,7 +1233,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             std::tie(imported.processes,
                      imported.msc_models,
                      imported.optical_models)
-                = import_processes(selected.processes,
+                = import_processes(selected,
                                    imported.particles,
                                    imported.elements,
                                    imported.phys_materials,
@@ -1281,7 +1283,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (have_process(ImportProcessClass::photoelectric))
         {
-            imported.livermore_pe_data = load_data(LivermorePEReader{});
+            imported.livermore_pe_data
+                = load_data(LivermorePEReader{selected.interpolation});
         }
         if (G4EmParameters::Instance()->Fluo())
         {

@@ -15,16 +15,15 @@
 #include "corecel/sys/Environment.hh"
 
 #include "ImportLivermorePE.hh"
-#include "ImportPhysicsVector.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct the reader using the G4LEDATA environment variable to get the path
- * to the data.
+ * Construct using the G4LEDATA environment variable to get the data path.
  */
-LivermorePEReader::LivermorePEReader()
+LivermorePEReader::LivermorePEReader(inp::Interpolation interpolation)
+    : interpolation_(interpolation)
 {
     std::string const& dir = celeritas::getenv("G4LEDATA");
     CELER_VALIDATE(!dir.empty(),
@@ -37,7 +36,9 @@ LivermorePEReader::LivermorePEReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-LivermorePEReader::LivermorePEReader(char const* path) : path_(path)
+LivermorePEReader::LivermorePEReader(char const* path,
+                                     inp::Interpolation interpolation)
+    : path_(path), interpolation_(interpolation)
 {
     CELER_EXPECT(!path_.empty());
     if (path_.back() == '/')
@@ -67,9 +68,8 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                        << "failed to open '" << filename
                        << "' (should contain cross section data)");
 
-        // Set the physics vector type and the data type
-        result.xs_hi.vector_type = ImportPhysicsVectorType::free;
-        result.xs_hi.spline = true;
+        // Higher energy cross sections use spline interpolation if enabled
+        result.xs_hi.interpolation = interpolation_;
 
         // Read tabulated energies and cross sections
         double energy_min = 0.;
@@ -108,7 +108,6 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                            << "'");
             result.xs_lo.x.resize(size);
             result.xs_lo.y.resize(size);
-            result.xs_lo.vector_type = ImportPhysicsVectorType::free;
             for (int i = 0; i < size; ++i)
             {
                 CELER_ASSERT(infile);

@@ -10,10 +10,10 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/TwodGridData.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
-struct ImportPhysics2DVector;
 //---------------------------------------------------------------------------//
 /*!
  * Construct a generic 2D grid.
@@ -45,7 +45,7 @@ class TwodGridBuilder
     operator()(SpanConstDbl grid_x, SpanConstDbl grid_y, SpanConstDbl values);
 
     // Add a grid from an imported physics vector
-    TwodGrid operator()(ImportPhysics2DVector const&);
+    TwodGrid operator()(inp::TwodGrid const&);
 
   private:
     DedupeCollectionBuilder<real_type> reals_;

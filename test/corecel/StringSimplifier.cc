@@ -43,7 +43,7 @@ void erase_exp_zeros(std::string& s)
     s.erase(exp_iter, end_iter);
 }
 
-};  // namespace
+}  // namespace
 //---------------------------------------------------------------------------//
 /*!
  * Simplify.

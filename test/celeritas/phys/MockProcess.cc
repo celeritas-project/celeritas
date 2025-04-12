@@ -57,6 +57,7 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
     CELER_EXPECT(applic.particle);
 
     using VecDbl = std::vector<double>;
+    using GridInput = ValueGridBuilder::GridInput;
 
     MaterialView mat(data_.materials->host_ref(), applic.material);
     real_type numdens = mat.number_density();
@@ -71,10 +72,10 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
         }
         builders[ValueGridType::macro_xs]
             = std::make_unique<ValueGridLogBuilder>(
-                ValueGridBuilder::GridInput{applic.lower.value(),
-                                            applic.upper.value(),
-                                            xs_grid,
-                                            data_.interp});
+                GridInput{applic.lower.value(),
+                          applic.upper.value(),
+                          xs_grid,
+                          data_.interp});
     }
     if (data_.energy_loss > zero_quantity())
     {
@@ -83,19 +84,19 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
 
         builders[ValueGridType::energy_loss]
             = std::make_unique<ValueGridLogBuilder>(
-                ValueGridBuilder::GridInput{applic.lower.value(),
-                                            applic.upper.value(),
-                                            VecDbl(3, eloss_rate.value()),
-                                            data_.interp});
+                GridInput{applic.lower.value(),
+                          applic.upper.value(),
+                          VecDbl(3, eloss_rate.value()),
+                          data_.interp});
     }
 
     return builders;
 }
 
 //---------------------------------------------------------------------------//
-bool MockProcess::use_integral_xs() const
+bool MockProcess::supports_integral_xs() const
 {
-    return data_.use_integral_xs;
+    return data_.supports_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

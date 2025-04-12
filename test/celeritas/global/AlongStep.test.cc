@@ -111,7 +111,7 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
         field_inp.strength = {0, 0, 1};
 
         auto msc = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data(), {});
+            *this->particle(), *this->material(), this->imported_data());
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
@@ -150,7 +150,7 @@ class SimpleCmsFieldVolAlongStepTest : public SimpleCmsAlongStepTest
         };
 
         auto msc = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data(), {});
+            *this->particle(), *this->material(), this->imported_data());
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
@@ -183,7 +183,7 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
         auto& action_reg = *this->action_reg();
 
         auto msc = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data(), {});
+            *this->particle(), *this->material(), this->imported_data());
         CELER_ASSERT(msc);
 
         RZMapFieldInput field_map;

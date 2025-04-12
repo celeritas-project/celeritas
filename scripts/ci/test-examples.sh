@@ -40,7 +40,7 @@ build_local
 ./minimal
 
 # Run Geant4 app examples
-if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
+if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ]; then
   if [ -z "${G4VERSION_NUMBER}" ]; then
     # Get the geant4 version 11.2.3, failing if config isn't found
     _vers=$(geant4-config --version)
@@ -49,8 +49,8 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
     echo "Set G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\""
   fi
 
-  # Run small accel examples, ensuring the documentation diff is still valid
-  cd "${CELER_SOURCE_DIR}/example/accel"
+  # Run small Geant4 examples, ensuring the documentation diff is still valid
+  cd "${CELER_SOURCE_DIR}/example/geant4"
   patch -p2 -R < add-celer.diff
   patch -p2 < add-celer.diff
   build_local
@@ -64,5 +64,5 @@ if [ -z "${CELER_DISABLE_ACCEL_EXAMPLES}" ]; then
       ./run-offload
   fi
 else
-  printf "\e[31mSkipping 'accel' tests due to insufficient requirements\e[m\n"
+  printf "\e[31mSkipping Geant4 tests due to insufficient requirements\e[m\n"
 fi

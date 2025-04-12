@@ -2,12 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/simple-offload.cc
+//! \file geant4/simple-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
+
+// Geant4
 #include <FTFP_BERT.hh>
 #include <G4Box.hh>
 #include <G4Electron.hh>
@@ -38,12 +40,10 @@
 #    include <G4MTRunManager.hh>
 #endif
 
-#include <accel/AlongStepFactory.hh>
-#include <accel/LocalTransporter.hh>
-#include <accel/SetupOptions.hh>
-#include <accel/SharedParams.hh>
-#include <accel/UserActionIntegration.hh>
-#include <corecel/Macros.hh>
+// Celeritas
+#include <CeleritasG4.hh>
+
+// Utility includes
 #include <corecel/io/Logger.hh>
 
 using celeritas::UserActionIntegration;
@@ -164,20 +164,9 @@ class TrackingAction final : public G4UserTrackingAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final
-    {
-        UserActionIntegration::Instance().BuildForMaster();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
-        this->SetUserAction(new RunAction{});
-    }
+    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
-        UserActionIntegration::Instance().Build();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
         this->SetUserAction(new EventAction{});

@@ -69,7 +69,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         UniformFieldParams::Input field_inp;
         field_inp.strength = {0, 0, 1};
         auto msc = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data(), {});
+            *this->particle(), *this->material(), this->imported_data());
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
             action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);

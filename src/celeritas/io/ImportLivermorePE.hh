@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -27,8 +27,8 @@ struct ImportLivermoreSubshell
 
 struct ImportLivermorePE
 {
-    ImportPhysicsVector xs_lo;  //!< Low energy range tabulated xs [b]
-    ImportPhysicsVector xs_hi;  //!< High energy range tabulated xs [b]
+    inp::Grid xs_lo;  //!< Low energy range tabulated xs [b]
+    inp::Grid xs_hi;  //!< High energy range tabulated xs [b]
     double thresh_lo;  //!< Threshold for low energy fit [MeV]
     double thresh_hi;  //!< Threshold for high energy fit [MeV]
     std::vector<ImportLivermoreSubshell> shells;

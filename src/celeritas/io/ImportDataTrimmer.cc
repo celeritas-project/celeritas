@@ -231,7 +231,7 @@ void ImportDataTrimmer::operator()(ImportProcess& data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportPhysicsVector& data)
+void ImportDataTrimmer::operator()(inp::Grid& data)
 {
     (*this)(data.x);
     (*this)(data.y);
@@ -249,7 +249,7 @@ void ImportDataTrimmer::operator()(ImportPhysicsTable& data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
+void ImportDataTrimmer::operator()(inp::TwodGrid& data)
 {
     auto x_filter = this->make_filterer(data.x.size());
     auto y_filter = this->make_filterer(data.y.size());

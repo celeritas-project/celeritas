@@ -9,7 +9,8 @@
 #include <map>
 #include <vector>
 
-#include "ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
+
 #include "ImportUnits.hh"
 
 namespace celeritas
@@ -70,16 +71,12 @@ struct ImportParticleScintSpectrum
     static constexpr auto x_units{ImportUnits::mev};
     static constexpr auto y_units{ImportUnits::unitless};
 
-    ImportPhysicsVector yield_vector;  //!< Particle yield per energy bin
+    inp::Grid yield_vector;  //!< Particle yield per energy bin
     std::vector<ImportScintComponent> components;  //!< Scintillation
                                                    //!< components
 
     //! Whether all data are assigned and valid
-    explicit operator bool() const
-    {
-        return yield_vector
-               && yield_vector.vector_type == ImportPhysicsVectorType::free;
-    }
+    explicit operator bool() const { return static_cast<bool>(yield_vector); }
 };
 
 //---------------------------------------------------------------------------//
@@ -128,7 +125,7 @@ struct ImportOpticalRayleigh
  */
 struct ImportOpticalProperty
 {
-    ImportPhysicsVector refractive_index;
+    inp::Grid refractive_index;
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
@@ -149,7 +146,7 @@ struct ImportWavelengthShift
 {
     double mean_num_photons{};  //!< Mean number of re-emitted photons
     double time_constant{};  //!< Time delay between absorption and re-emission
-    ImportPhysicsVector component;  //!< Re-emission population [MeV, unitless]
+    inp::Grid component;  //!< Re-emission population [MeV, unitless]
 
     //! Whether all data are assigned and valid
     explicit operator bool() const

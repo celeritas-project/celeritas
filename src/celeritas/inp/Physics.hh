@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
@@ -22,24 +21,6 @@ namespace celeritas
 {
 namespace inp
 {
-//---------------------------------------------------------------------------//
-/*!
- * Interpolation options for the physics grids.
- *
- * \c order is only used for \c poly_spline interpolation and \c bc is only
- * used for \c cubic_spline interpolation.
- */
-struct Interpolation
-{
-    using BC = SplineDerivCalculator::BoundaryCondition;
-
-    InterpolationType type{InterpolationType::linear};
-    //! Polynomial order for spline interpolation
-    size_type order{1};
-    //! Boundary conditions for calculating cubic spline second derivatives
-    BC bc{BC::geant};
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Electromagnetic physics processes and options.
@@ -57,10 +38,7 @@ struct EmPhysics
     std::optional<PairProductionProcess> pair_production{std::in_place};
 
     //!@{
-    //! \name Physics grids
-
-    //! Interpolation method for cross section and slowing down grid
-    Interpolation interpolation;
+    //! \name Energy loss and slowing down
 
     // TODO: currently eloss fluctuations are set up via geant importer, then
     // read into ImportEmParams

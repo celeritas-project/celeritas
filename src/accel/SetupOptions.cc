@@ -131,11 +131,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
         p.scoring.sd = to_inp(so.sd);
     }
 
-    if (p.physics.em)
-    {
-        p.physics.em->interpolation = so.interpolation;
-    }
-
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
         // Check if magnitude is zero
@@ -252,6 +247,7 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     result.geant.ignore_processes = so.ignore_processes;
     result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
     result.geant.data_selection.processes = GeantImportDataSelection::em_basic;
+    result.geant.data_selection.interpolation = so.interpolation;
 
     result.adjust = ProblemSetup{so};
     return result;

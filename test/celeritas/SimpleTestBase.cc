@@ -119,12 +119,12 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambda.x_units = ImportUnits::mev;
         lambda.y_units = ImportUnits::len_inv;
         lambda.physics_vectors = {
-            {ImportPhysicsVectorType::log,
-             {1e-4, 1.0},  // energy
-             {1e1, 1e0}},  // lambda (detector)
-            {ImportPhysicsVectorType::log,
-             {1e-4, 1.0},  // energy
-             {1e-10, 1e-10}},  // lambda (world)
+            {{1e-4, 1.0},  // energy
+             {1e1, 1e0},  // lambda (detector)
+             inp::Interpolation{}},
+            {{1e-4, 1.0},  // energy
+             {1e-10, 1e-10},  // lambda (world)
+             inp::Interpolation{}},
         };
         compton_data.tables.push_back(std::move(lambda));
     }
@@ -134,12 +134,12 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambdap.x_units = ImportUnits::mev;
         lambdap.y_units = ImportUnits::len_mev_inv;
         lambdap.physics_vectors = {
-            {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},  // energy
-             {1e0, 1e-2, 1e-4}},  // lambda * energy (detector)
-            {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},  // energy
-             {1e-10, 1e-10, 1e-10}},  // lambda * energy (world)
+            {{1.0, 1e4, 1e8},  // energy
+             {1e0, 1e-2, 1e-4},  // lambda * energy (detector)
+             inp::Interpolation{}},
+            {{1.0, 1e4, 1e8},  // energy
+             {1e-10, 1e-10, 1e-10},  // lambda * energy (world)
+             inp::Interpolation{}},
         };
         compton_data.tables.push_back(std::move(lambdap));
     }
@@ -156,8 +156,8 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
 
     input.particles = this->particle();
     input.materials = this->material();
-    input.processes = {std::make_shared<ComptonProcess>(
-        input.particles, process_data, ComptonProcess::Options{})};
+    input.processes
+        = {std::make_shared<ComptonProcess>(input.particles, process_data)};
     input.action_registry = this->action_reg().get();
 
     return std::make_shared<PhysicsParams>(std::move(input));

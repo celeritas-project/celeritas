@@ -95,7 +95,7 @@ class UrbanMscTest : public ::celeritas::test::MscTestBase
     {
         // Load MSC data
         msc_params_ = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data(), {});
+            *this->particle(), *this->material(), this->imported_data());
         ASSERT_TRUE(msc_params_);
     }
 

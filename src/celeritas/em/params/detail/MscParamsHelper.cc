@@ -30,12 +30,10 @@ namespace detail
  */
 MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
                                  VecImportMscModel const& mdata,
-                                 ImportModelClass model_class,
-                                 inp::Interpolation interpolation)
+                                 ImportModelClass model_class)
     : particles_(particles)
     , model_class_(model_class)
     , pid_to_xs_(particles_.size())
-    , interpolation_(interpolation)
 {
     // Filter MSC data by model and particle type
     for (ImportMscModel const& imm : mdata)
@@ -112,29 +110,13 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
             CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
 
             // Get the cross section data for this particle and material
-            ImportPhysicsVector const& pv
-                = xs_tables_[par_idx]->physics_vectors[mat_idx];
-            CELER_ASSERT(pv.vector_type == ImportPhysicsVectorType::log);
+            auto const& pv = xs_tables_[par_idx]->physics_vectors[mat_idx];
             CELER_ASSERT(pv.x.front() > 0 && pv.x.back() > pv.x.front());
             CELER_ASSERT(has_log_spacing(make_span(pv.x)));
 
-            inp::Interpolation interp = interpolation_;
-            if (!pv.spline)
-            {
-                interp.type = InterpolationType::linear;
-            }
-            if (mat_idx == 0)
-            {
-                CELER_LOG(debug)
-                    << "Using " << to_cstring(interp.type)
-                    << " interpolation for "
-                    << particles_.id_to_label(ParticleId(par_ids_[par_idx]))
-                    << " " << to_cstring(model_class_)
-                    << " cross section grid";
-            }
             auto grid = UniformGridData::from_bounds(
                 std::log(pv.x.front()), std::log(pv.x.back()), pv.x.size());
-            auto grid_id = insert(grid, make_span(pv.y), interp);
+            auto grid_id = insert(grid, make_span(pv.y), pv.interpolation);
             CELER_ASSERT(grid_id.get() == xs.size());
 
             xs.push_back(grids[grid_id]);

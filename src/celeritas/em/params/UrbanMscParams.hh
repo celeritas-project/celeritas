@@ -11,7 +11,6 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/inp/Physics.hh"
 
 namespace celeritas
 {
@@ -36,26 +35,17 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
-    //! Urban multiple scattering options
-    struct Options
-    {
-        //! Interpolation method
-        inp::Interpolation interpolation;
-    };
-
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<UrbanMscParams>
     from_import(ParticleParams const& particles,
                 MaterialParams const& materials,
-                ImportData const& data,
-                Options options);
+                ImportData const& data);
 
     // Construct from process data
     UrbanMscParams(ParticleParams const& particles,
                    MaterialParams const& materials,
-                   VecImportMscModel const& mdata,
-                   Options options);
+                   VecImportMscModel const& mdata);
 
     // TODO: possible "applicability" interface used for constructing
     // along-step kernels?

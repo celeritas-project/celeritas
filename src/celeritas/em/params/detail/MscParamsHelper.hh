@@ -12,7 +12,6 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/CommonCoulombData.hh"
-#include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportModel.hh"
 
 namespace celeritas
@@ -44,8 +43,7 @@ class MscParamsHelper
 
     MscParamsHelper(ParticleParams const&,
                     VecImportMscModel const&,
-                    ImportModelClass,
-                    inp::Interpolation interpolation);
+                    ImportModelClass);
 
     void build_ids(CoulombIds*, IndexValues*) const;
     void build_xs(XsValues*, Values*) const;
@@ -60,7 +58,6 @@ class MscParamsHelper
     std::vector<MscParticleId> pid_to_xs_;
     std::vector<ParticleId> par_ids_;
     std::vector<ImportPhysicsTable const*> xs_tables_;
-    inp::Interpolation interpolation_;
 };
 
 //---------------------------------------------------------------------------//

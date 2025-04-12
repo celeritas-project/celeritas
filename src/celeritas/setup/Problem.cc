@@ -142,7 +142,6 @@ auto build_physics_processes(inp::EmPhysics const& em,
     {
         opts.brem_combined = em.brems->combined_model;
     }
-    opts.interpolation = em.interpolation;
 
     ProcessBuilder build_process(
         imported, params.particle, params.material, em.user_processes, opts);
@@ -191,6 +190,7 @@ auto build_physics(inp::Problem const& p,
         input.options.secondary_stack_factor = 2.0;
     }
     input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+    input.options.disable_integral_xs = !imported.em_params.integral_approach;
     input.options.light.lowest_energy
         = ParticleOptions::Energy(imported.em_params.lowest_electron_energy);
     input.options.heavy.lowest_energy
@@ -269,13 +269,12 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
  * Construct magnetic field from variant input.
  */
 auto build_along_step(inp::Field const& var_field,
-                      inp::Interpolation const& interpolation,
                       CoreParams::Input const& params,
                       ImportData const& imported)
 {
     bool const eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported, {interpolation});
+        *params.particle, *params.material, imported);
 
     CELER_ASSUME(!var_field.valueless_by_exception());
     auto next_id = params.action_reg->next_id();
@@ -424,10 +423,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     params.physics = build_physics(p, params, imported);
 
     CELER_ASSUME(!p.field.valueless_by_exception());
-    auto interp = p.physics.em ? p.physics.em->interpolation
-                               : inp::Interpolation{};
-    params.action_reg->insert(
-        build_along_step(p.field, interp, params, imported));
+    params.action_reg->insert(build_along_step(p.field, params, imported));
 
     // Construct RNG params
     params.rng = std::make_shared<RngParams>(p.control.seed);

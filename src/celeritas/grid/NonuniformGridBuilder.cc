@@ -9,7 +9,6 @@
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 
 namespace celeritas
 {
@@ -45,45 +44,12 @@ auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with interpolation method.
- */
-auto NonuniformGridBuilder::operator()(SpanConstFlt grid,
-                                       SpanConstFlt values,
-                                       inp::Interpolation interp) -> Grid
-{
-    return this->insert_impl(grid, values, interp);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of generic data with interpolation method.
- */
-auto NonuniformGridBuilder::operator()(SpanConstDbl grid,
-                                       SpanConstDbl values,
-                                       inp::Interpolation interp) -> Grid
-{
-    return this->insert_impl(grid, values, interp);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Add a grid from an imported physics vector.
  */
-auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
+auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
 {
-    CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
-    return this->insert_impl(make_span(pvec.x), make_span(pvec.y), {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from an imported physics vector.
- */
-auto NonuniformGridBuilder::operator()(ImportPhysicsVector const& pvec,
-                                       inp::Interpolation interp) -> Grid
-{
-    CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
-    return this->insert_impl(make_span(pvec.x), make_span(pvec.y), interp);
+    return this->insert_impl(
+        make_span(grid.x), make_span(grid.y), grid.interpolation);
 }
 
 //---------------------------------------------------------------------------//

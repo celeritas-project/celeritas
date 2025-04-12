@@ -13,8 +13,6 @@
 
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/inp/Physics.hh"
-#include "celeritas/inp/Field.hh"
 
 class G4LogicalVolume;
 
@@ -29,6 +27,11 @@ class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
+
+namespace inp
+{
+struct UniformField;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,7 +54,6 @@ struct AlongStepFactoryInput
     std::shared_ptr<CutoffParams const> cutoff;
     std::shared_ptr<PhysicsParams const> physics;
     std::shared_ptr<ImportData const> imported;
-    inp::Interpolation interpolation;
 
     //! True if all data is assigned
     explicit operator bool() const

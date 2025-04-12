@@ -40,7 +40,7 @@ class ValueGridBuilder
         double emin{0};
         double emax{0};
         VecDbl value;
-        Interpolation interpolation{};
+        inp::Interpolation interpolation{};
     };
 
   public:

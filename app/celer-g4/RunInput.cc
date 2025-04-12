@@ -81,11 +81,6 @@ inp::Problem load_problem(RunInput const& ri)
         limits.steps = ri.max_steps;
     }
 
-    // Physics
-    CELER_ASSERT(p.physics.em);
-    p.physics.em->interpolation.type = ri.interpolation;
-    p.physics.em->interpolation.order = ri.poly_spline_order;
-
     // Field setup
     if (ri.field_type == "rzmap")
     {
@@ -250,6 +245,8 @@ inp::StandaloneInput to_input(RunInput const& ri)
 
     inp::GeantImport geant_import;
     geant_import.ignore_processes.push_back("CoulombScat");
+    geant_import.data_selection.interpolation.type = ri.interpolation;
+    geant_import.data_selection.interpolation.order = ri.poly_spline_order;
     si.physics_import = std::move(geant_import);
 
     si.geant_data = inp::GeantDataImport{};

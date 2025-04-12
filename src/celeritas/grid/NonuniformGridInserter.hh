@@ -15,7 +15,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
 
 #include "NonuniformGridBuilder.hh"
 
@@ -57,7 +57,7 @@ class NonuniformGridInserter
     Index operator()(SpanConstDbl grid, SpanConstDbl values);
 
     // Add an imported physics vector as a grid
-    Index operator()(ImportPhysicsVector const& vec);
+    Index operator()(inp::Grid const&);
 
     // Add an empty grid (no data present)
     Index operator()();
@@ -87,11 +87,10 @@ NonuniformGridInserter<Index>::NonuniformGridInserter(Values* reals,
  * empty.
  */
 template<class Index>
-auto NonuniformGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
-    -> Index
+auto NonuniformGridInserter<Index>::operator()(inp::Grid const& grid) -> Index
 {
-    CELER_EXPECT(!vec.x.empty());
-    return grids_.push_back(grid_builder_(vec));
+    CELER_EXPECT(!grid.x.empty());
+    return grids_.push_back(grid_builder_(grid));
 }
 
 //---------------------------------------------------------------------------//

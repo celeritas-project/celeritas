@@ -28,7 +28,6 @@ struct SetupOptions;
  * to Celeritas:
  *
  * - Set up the \c Options before calling \c G4RunManager::Initialize
- * - Call \c Build and \c BuildForMaster from \c UserActionInitialization
  * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
  * - Call \c BeginOfEvent and  \c EndOfEvent from \c UserEventAction
  * - Call \c PreUserTrackingAction from your \c UserTrackingAction

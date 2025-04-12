@@ -847,11 +847,8 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.options = this->build_physics_options();
     physics_inp.action_registry = this->action_reg().get();
 
-    EPlusAnnihilationProcess::Options epgg_options;
-    epgg_options.use_integral_xs = true;
-
     physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        physics_inp.particles, this->build_imported(), epgg_options));
+        physics_inp.particles, this->build_imported()));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 

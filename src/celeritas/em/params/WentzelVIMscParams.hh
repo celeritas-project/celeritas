@@ -11,7 +11,6 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/em/data/WentzelVIMscData.hh"
-#include "celeritas/inp/Physics.hh"
 
 namespace celeritas
 {
@@ -34,24 +33,14 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
-    //! Wentzel VI multiple scattering options
-    struct Options
-    {
-        //! Interpolation method
-        inp::Interpolation interpolation;
-    };
-
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<WentzelVIMscParams>
-    from_import(ParticleParams const& particles,
-                ImportData const& data,
-                Options options);
+    from_import(ParticleParams const& particles, ImportData const& data);
 
     // Construct from process data
     WentzelVIMscParams(ParticleParams const& particles,
-                       VecImportMscModel const& mdata,
-                       Options options);
+                       VecImportMscModel const& mdata);
 
     //! Access Wentzel VI data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

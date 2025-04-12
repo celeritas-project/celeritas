@@ -24,6 +24,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "StepperTestBase.hh"
@@ -176,7 +177,7 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
         field_inp.strength = {0, 0, 1e-3};
 
         auto msc = UrbanMscParams::from_import(
-            *this->particle(), *this->material(), this->imported_data(), {});
+            *this->particle(), *this->material(), this->imported_data());
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
@@ -233,10 +234,10 @@ class TestEm3MscNoIntegral : public TestEm3Msc
         return opts;
     }
 
-    GeantPhysicsOptions build_geant_options() const override
+    PhysicsParamsOptions build_physics_options() const override
     {
-        auto opts = TestEm3Base::build_geant_options();
-        opts.integral_approach = false;
+        auto opts = ImportedDataTestBase::build_physics_options();
+        opts.disable_integral_xs = true;
         return opts;
     }
 };

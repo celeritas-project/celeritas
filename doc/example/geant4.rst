@@ -32,7 +32,7 @@ The key components are global :cpp:struct:`celeritas::SetupOptions` and
 CMake infrastructure
 --------------------
 
-.. literalinclude:: ../../example/accel/CMakeLists.txt
+.. literalinclude:: ../../example/geant4/CMakeLists.txt
    :language: cmake
    :start-at: project(
    :end-before: END EXAMPLE CODE
@@ -51,17 +51,17 @@ Offload using a concrete G4VTrackingManager
 The tracking manager is the preferred way of offloading tracks to Celeritas. It
 requires Geant4 11.0 or higher.
 
-.. literalinclude:: ../../example/accel/trackingmanager-offload.cc
+.. literalinclude:: ../../example/geant4/trackingmanager-offload.cc
    :start-at: #include
 
 Offload using a concrete G4UserTrackingAction
 ---------------------------------------------
 
-.. literalinclude:: ../../example/accel/simple-offload.cc
+.. literalinclude:: ../../example/geant4/simple-offload.cc
    :start-at: #include
 
 Offload using a concrete G4VFastSimulationModel
 -----------------------------------------------
 
-.. literalinclude:: ../../example/accel/fastsim-offload.cc
+.. literalinclude:: ../../example/geant4/fastsim-offload.cc
    :start-at: #include

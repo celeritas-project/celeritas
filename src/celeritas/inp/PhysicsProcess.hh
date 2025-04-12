@@ -26,8 +26,6 @@ struct BremsProcess
 
     //! Use a unified relativistic/SB interactor
     bool combined_model{false};
-    //! Use integral method for sampling discrete interaction length
-    bool integral_xs{true};
 };
 //---------------------------------------------------------------------------//
 /*!

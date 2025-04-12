@@ -40,8 +40,7 @@ namespace celeritas
 std::shared_ptr<UrbanMscParams>
 UrbanMscParams::from_import(ParticleParams const& particles,
                             MaterialParams const& materials,
-                            ImportData const& data,
-                            Options options)
+                            ImportData const& data)
 {
     if (!has_msc_model(data, ImportModelClass::urban_msc))
     {
@@ -49,7 +48,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
         return nullptr;
     }
     return std::make_shared<UrbanMscParams>(
-        particles, materials, data.msc_models, options);
+        particles, materials, data.msc_models);
 }
 
 //---------------------------------------------------------------------------//
@@ -58,8 +57,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
  */
 UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                MaterialParams const& materials,
-                               VecImportMscModel const& mdata_vec,
-                               Options options)
+                               VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
     using UrbanParMatId = UrbanMscParMatData::UrbanParMatId;
@@ -69,10 +67,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
     HostVal<UrbanMscData> host_data;
 
-    detail::MscParamsHelper helper(particles,
-                                   mdata_vec,
-                                   ImportModelClass::urban_msc,
-                                   options.interpolation);
+    detail::MscParamsHelper helper(
+        particles, mdata_vec, ImportModelClass::urban_msc);
     helper.build_ids(&host_data.ids, &host_data.pid_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
 
