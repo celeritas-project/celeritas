@@ -68,13 +68,13 @@ class ConvexHullFinder
     //! \name Type aliases
     using Points = std::vector<Real2>;
     using index_type = size_type;
-    using ConvexHull = std::vector<index_type>;
-    using PointRange = std::pair<index_type, index_type>;
-    using ConcaveRegions = std::vector<PointRange>;
+    using ConvexMask = std::vector<bool>;
+    using PointSpan = Span<Real2 const>;
+    using ConcaveRegions = std::vector<PointSpan>;
 
     struct Results
     {
-        ConvexHull convex_hull;
+        ConvexMask convex_mask;
         ConcaveRegions concave_regions;
     };
     //!@}
@@ -83,19 +83,32 @@ class ConvexHullFinder
     // Contruct with vector of ordered points
     explicit ConvexHullFinder(Points& points);
 
-    // Find the convex hull for the points within PointRange
-    Results operator()(PointRange point_range);
+    // Find the convex hull for the points within PointSpan
+    Results operator()(PointSpan points);
 
   private:
     using Index3 = std::array<index_type, 3>;
+
+    struct NextIndexCalculator
+    {
+      public:
+        NextIndexCalculator(index_type size) : size_(size) {};
+        index_type operator()(index_type i) { return (i + 1) % size_; };
+
+      private:
+        index_type size_;
+    };
 
   private:
     Points const& all_points_;
 
   private:
-    index_type min_element_idx(Span<Real2 const> const& point_span) const;
-    bool is_clockwise(Span<Real2 const> const& point_span,
-                      Index3 const& indices) const;
+    index_type min_element_idx(Span<Real2 const> const& points) const;
+    bool
+    is_clockwise(Span<Real2 const> const& points, Index3 const& indices) const;
+
+    ConcaveRegions find_concave_regions(PointSpan const& points,
+                                        ConvexMask const& mask) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -114,56 +127,58 @@ ConvexHullFinder<Real2>::ConvexHullFinder(ConvexHullFinder::Points& points)
  * Find the convex hull for the points within the supplied span.
  */
 template<class Real2>
-auto ConvexHullFinder<Real2>::operator()(PointRange point_range) -> Results
+auto ConvexHullFinder<Real2>::operator()(PointSpan points) -> Results
 {
-    auto& [first, last] = point_range;
-    Span<Real2 const> points(&all_points_[first], &all_points_[last]);
-    auto const n = points.size();
-
     Results results;
+    auto n = points.size();
 
     // Return early for trivial cases
     if (n < 4)
     {
-        results.convex_hull.resize(n);
-        std::iota(
-            results.convex_hull.begin(), results.convex_hull.end(), first);
+        results.convex_mask = ConvexMask(n, true);
         return results;
     }
 
-    auto calc_next = [n](index_type i) { return (i + 1) % n; };
-
-    ConvexHull hull;
-    index_type i = min_element_idx(points);
-    hull.push_back(i);
-    i = calc_next(i);
-
-    for ([[maybe_unused]] auto _ : range(n - 1))
+    // Find the indices of the points on the convex hull
+    std::vector<index_type> hull;
     {
-        index_type i_next = calc_next(i);
+        NextIndexCalculator calc_next(n);
+        index_type i = this->min_element_idx(points);
+        hull.push_back(i);
+        i = calc_next(i);
 
-        if (is_clockwise(points, {hull.back(), i, i_next}))
+        for ([[maybe_unused]] auto _ : range(n - 1))
         {
-            hull.push_back(i);
-        }
-        else
-        {
-            while (hull.size() > 1
-                   && !is_clockwise(
-                       points, {hull[hull.size() - 2], hull.back(), i_next}))
+            index_type i_next = calc_next(i);
+
+            if (this->is_clockwise(points, {hull.back(), i, i_next}))
             {
-                hull.pop_back();
+                hull.push_back(i);
             }
-        }
+            else
+            {
+                while (!this->is_clockwise(
+                    points, {hull[hull.size() - 2], hull.back(), i_next}))
+                {
+                    hull.pop_back();
+                }
+            }
 
-        i = i_next;
+            i = i_next;
+        }
     }
 
-    // Convert to global indicies
-    for (auto& idx : hull)
-        idx += first;
+    // Convert convex hull indices to a mask
+    results.convex_mask = ConvexMask(n, false);
+    for (auto h : hull)
+    {
+        results.convex_mask[h] = true;
+    }
 
-    results.convex_hull = std::move(hull);
+    // Add concave regions
+    results.concave_regions
+        = this->find_concave_regions(points, results.convex_mask);
+
     return results;
 }
 
@@ -174,28 +189,65 @@ auto ConvexHullFinder<Real2>::operator()(PointRange point_range) -> Results
  * Find the index of the element with the lowest y value.
  */
 template<class Real2>
-auto ConvexHullFinder<Real2>::min_element_idx(
-    Span<Real2 const> const& point_span) const -> index_type
+auto ConvexHullFinder<Real2>::min_element_idx(Span<Real2 const> const& points) const
+    -> index_type
 {
     auto starting_it = std::min_element(
-        point_span.begin(),
-        point_span.end(),
-        [](Real2 const& a, Real2 const& b) { return a[1] < b[1]; });
-    return std::distance(point_span.begin(), starting_it);
+        points.begin(), points.end(), [](Real2 const& a, Real2 const& b) {
+            return a[1] < b[1];
+        });
+    return std::distance(points.begin(), starting_it);
 };
 //---------------------------------------------------------------------------//
 /*!
  * Determine if three elements form a clockwise turn using the cross product.
+ *
+ * Colinear points are counted as clockwise.
  */
 template<class Real2>
 auto ConvexHullFinder<Real2>::is_clockwise(
-    Span<Real2 const> const& point_span,
+    Span<Real2 const> const& points,
     ConvexHullFinder<Real2>::Index3 const& indices) const -> bool
 {
-    auto const& a = point_span[indices[0]];
-    auto const& b = point_span[indices[1]];
-    auto const& c = point_span[indices[2]];
-    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]) < 0;
+    auto const& a = points[indices[0]];
+    auto const& b = points[indices[1]];
+    auto const& c = points[indices[2]];
+
+    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]) <= 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the concave regions
+ */
+template<class Real2>
+auto ConvexHullFinder<Real2>::find_concave_regions(
+    Span<Real2 const> const& points, ConvexMask const& mask) const
+    -> ConcaveRegions
+{
+    ConcaveRegions regions;
+    NextIndexCalculator calc_next(points.size());
+
+    // Start at 1, because the first point is gaurenteed to be on the hull
+    size_type i = 1;
+    while (i != 0)
+    {
+        if (mask[i])
+        {
+            i = calc_next(i);
+        }
+        else
+        {
+            index_type start = i - 1;
+            do
+            {
+                i = calc_next(i);
+            } while (!mask[i]);
+
+            regions.push_back(PointSpan(&points[start], &points[i + 1]));
+        }
+    }
+    return regions;
 }
 
 //---------------------------------------------------------------------------//
