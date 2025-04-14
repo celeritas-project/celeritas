@@ -151,13 +151,13 @@ TEST_F(FieldSubstepperTest, types)
     // Make sure object is holding things by value
     EXPECT_TRUE((std::is_same<FieldSubstepper<DormandPrinceIntegrator<
                                   MagFieldEquation<UniformZField>>>,
-                              decltype(driver)>::value));
+                              decltype(advance)>::value));
     // Size: field vector, q / c, reference to options
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_EQ(3 * sizeof(real_type) + sizeof(FieldDriverOptions*),
-                  sizeof(driver));
+                  sizeof(advance));
     }
 }
 
@@ -175,7 +175,7 @@ TEST_F(FieldSubstepperTest, unpleasant_field)
     // Vary by a factor of 1024 over the radius of curvature
     auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         ExpZField{field_strength, radius / 10}, units::ElementaryCharge{-1});
-    FieldSubstepper driver{driver_options, integrate};
+    FieldSubstepper advance{driver_options, integrate};
 
     OdeState state;
     state.pos = {radius, 0, 0};
@@ -185,7 +185,7 @@ TEST_F(FieldSubstepperTest, unpleasant_field)
     for (auto i : range(1, 6))
     {
         auto result = advance(from_cm(i), state);
-        distance += result.step;
+        distance += result.length;
         state = result.state;
     }
     EXPECT_EQ(20, integrate.count());
@@ -207,7 +207,7 @@ TEST_F(FieldSubstepperTest, horrible_field)
     auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         HorribleZField{field_strength, radius / 10},
         units::ElementaryCharge{-1});
-    FieldSubstepper driver{driver_options, integrate};
+    FieldSubstepper advance{driver_options, integrate};
 
     OdeState state;
     state.pos = {radius, 0, -radius / 5};
@@ -217,7 +217,7 @@ TEST_F(FieldSubstepperTest, horrible_field)
     for (int i = 1; i < 5; ++i)
     {
         auto result = advance(from_cm(0.05), state);
-        accum += result.step;
+        accum += result.length;
         state = result.state;
     }
     EXPECT_EQ(9, integrate.count());
@@ -251,7 +251,7 @@ TEST_F(FieldSubstepperTest, pathological_chord)
 
     DiagnosticIntegrator integrate{ZHelixIntegrator{MagFieldEquation{
         UniformZField{field_strength}, units::ElementaryCharge{-1}}}};
-    FieldSubstepper driver{driver_options, integrate};
+    FieldSubstepper advance{driver_options, integrate};
 
     std::vector<unsigned int> counts;
     std::vector<real_type> lengths;
@@ -261,7 +261,7 @@ TEST_F(FieldSubstepperTest, pathological_chord)
         integrate.reset_count();
         auto end = advance(rev * 2 * constants::pi * radius, state);
         counts.push_back(integrate.count());
-        lengths.push_back(end.step);
+        lengths.push_back(end.length);
     }
 
     static unsigned int const expected_counts[] = {1u, 6u, 4u, 4u, 4u};
@@ -300,7 +300,7 @@ TEST_F(FieldSubstepperTest, step_counts)
         state.pos = {radius, 0, 0};
         state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
 
-        FieldSubstepper driver{driver_options, integrate};
+        FieldSubstepper advance{driver_options, integrate};
         for (int log_len : range(-4, 3).step(2))
         {
             real_type step_len = std::pow(10.0, log_len);
@@ -308,7 +308,7 @@ TEST_F(FieldSubstepperTest, step_counts)
             auto end = advance(step_len * units::centimeter, state);
 
             counts.push_back(integrate.count());
-            lengths.push_back(end.step);
+            lengths.push_back(end.length);
         }
     }
 
@@ -366,7 +366,7 @@ TEST_F(RevolutionFieldSubstepperTest, advance)
         for ([[maybe_unused]] int j : range(test_params.nsteps))
         {
             auto end = advance(hstep, y);
-            total_step_length += end.step;
+            total_step_length += end.length;
             y = end.state;
         }
 
@@ -407,9 +407,9 @@ TEST_F(RevolutionFieldSubstepperTest, accurate_advance)
         // Travel hstep for num_steps times in the field
         for ([[maybe_unused]] int j : range(test_params.nsteps))
         {
-            auto end = driver.accurate_advance(hstep, y_accurate, .001);
+            auto end = advance.accurate_advance(hstep, y_accurate, .001);
 
-            total_curved_length += end.step;
+            total_curved_length += end.length;
             y_accurate = end.state;
         }
         // Check the total error and the state (position, momentum)

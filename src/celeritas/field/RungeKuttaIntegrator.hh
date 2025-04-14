@@ -47,7 +47,7 @@ class RungeKuttaIntegrator
   public:
     //!@{
     //! \name Type aliases
-    using result_type = FieldIntegratorResult;
+    using result_type = FieldIntegration;
     //!@}
 
   public:

@@ -80,7 +80,7 @@ class IntegratorsTest : public Test
     void run_integration(FieldT const& field)
     {
         // Construct a integrate for testing
-        auto integrate = make_mag_field_stepper<IntegratorT>(
+        auto integrate = make_mag_field_integrator<IntegratorT>(
             field, units::ElementaryCharge{-1});
         // Test parameters and the sub-step size
         real_type hstep = 2 * constants::pi * param.radius / param.nsteps;
@@ -104,7 +104,7 @@ class IntegratorsTest : public Test
                                     + i * real_type{1e-6};
                 for ([[maybe_unused]] int j : range(param.nsteps))
                 {
-                    FieldIntegratorResult result = integrate(hstep, y);
+                    FieldIntegration result = integrate(hstep, y);
                     y = result.end_state;
 
                     total_err2

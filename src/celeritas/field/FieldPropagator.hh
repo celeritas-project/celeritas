@@ -167,8 +167,8 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
         CELER_ASSERT(result.boundary == geo_.is_on_boundary());
 
         // Advance up to (but probably less than) the remaining step length
-        DriverResult substep = advance_(remaining, state_);
-        CELER_ASSERT(substep.step > 0 && substep.step <= remaining);
+        Substep substep = advance_(remaining, state_);
+        CELER_ASSERT(substep.length > 0 && substep.length <= remaining);
 
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
@@ -195,7 +195,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
         // the chord to the boundary. This value can be slightly larger than 1
         // because we search up a little past the endpoint (thanks to the delta
         // intersection).
-        real_type const update_length = substep.step * linear_step.distance
+        real_type const update_length = substep.length * linear_step.distance
                                         / chord.length;
 
         if (!linear_step.boundary)
@@ -208,7 +208,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
             // on a reentrant boundary crossing below.
             state_ = substep.state;
             result.boundary = false;
-            result.distance += substep.step;
+            result.distance += substep.length;
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
             --remaining_substeps;
@@ -220,7 +220,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again.
-            remaining = substep.step / 2;
+            remaining = substep.length / 2;
         }
         else if (update_length <= this->minimum_substep()
                  || detail::is_intercept_close(state_.pos,
@@ -259,7 +259,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
             // The update length can be slightly greater than the substep due
             // to the extra delta_intersection boost when searching. The
             // substep itself can be more than the requested step.
-            result.distance += celeritas::min(update_length, substep.step);
+            result.distance += celeritas::min(update_length, substep.length);
             state_.mom = substep.state.mom;
             remaining = 0;
         }

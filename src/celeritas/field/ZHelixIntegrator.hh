@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/ZHelixIntegration.hh
+//! \file celeritas/field/ZHelixIntegrator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,7 +24,7 @@ class UniformZField;
  * magnetic field along the z-direction.
  */
 template<class EquationT>
-class ZHelixIntegration
+class ZHelixIntegrator
 {
     static_assert(
         std::is_same<std::remove_cv_t<std::remove_reference_t<
@@ -40,7 +40,7 @@ class ZHelixIntegration
 
   public:
     //! Construct with the equation of motion
-    explicit CELER_FUNCTION ZHelixIntegration(EquationT&& eq)
+    explicit CELER_FUNCTION ZHelixIntegrator(EquationT&& eq)
         : calc_rhs_(::celeritas::forward<EquationT>(eq))
     {
     }
@@ -86,7 +86,7 @@ class ZHelixIntegration
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION ZHelixIntegration(EquationT&&) -> ZHelixIntegration<EquationT>;
+CELER_FUNCTION ZHelixIntegrator(EquationT&&) -> ZHelixIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -104,8 +104,8 @@ CELER_FUNCTION ZHelixIntegration(EquationT&&) -> ZHelixIntegration<EquationT>;
  */
 template<class E>
 CELER_FUNCTION auto
-ZHelixIntegration<E>::operator()(real_type step,
-                                 OdeState const& beg_state) const -> result_type
+ZHelixIntegrator<E>::operator()(real_type step,
+                                OdeState const& beg_state) const -> result_type
 {
     result_type result;
 
@@ -128,8 +128,8 @@ ZHelixIntegration<E>::operator()(real_type step,
     result.end_state = this->move(step, radius, helicity, beg_state, rhs);
 
     // Solutions are exact, but assign a tolerance for numerical treatments
-    result.err_state.pos.fill(ZHelixIntegration::tolerance());
-    result.err_state.mom.fill(ZHelixIntegration::tolerance());
+    result.err_state.pos.fill(ZHelixIntegrator::tolerance());
+    result.err_state.mom.fill(ZHelixIntegrator::tolerance());
 
     return result;
 }
@@ -159,11 +159,11 @@ ZHelixIntegration<E>::operator()(real_type step,
  * The solution for the parallel direction along the field is trivial.
  */
 template<class E>
-CELER_FUNCTION OdeState ZHelixIntegration<E>::move(real_type step,
-                                                   real_type radius,
-                                                   Helicity helicity,
-                                                   OdeState const& beg_state,
-                                                   OdeState const& rhs) const
+CELER_FUNCTION OdeState ZHelixIntegrator<E>::move(real_type step,
+                                                  real_type radius,
+                                                  Helicity helicity,
+                                                  OdeState const& beg_state,
+                                                  OdeState const& rhs) const
 {
     // Solution for position and momentum after moving delta_phi on the helix
     real_type del_phi = (helicity == Helicity::positive) ? step / radius
