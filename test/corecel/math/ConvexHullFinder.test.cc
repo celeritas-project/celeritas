@@ -2,15 +2,10 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/IllinoisRootFinder.test.cc
+//! \file corecel/math/ConvexHullFinder.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/math/ConvexHullFinder.hh"
 
-#include <cmath>
-#include <functional>
-
-#include "corecel/Constants.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
@@ -20,19 +15,47 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
+// Test harness for ConvexHullFinder
 //---------------------------------------------------------------------------//
-
 class ConvexHullFinderTest : public ::celeritas::test::Test
 {
   public:
     using Real2 = std::array<double, 2>;
-    using VecReal2 = std::vector<Real2>;
-    using VecIdx = std::vector<size_type>;
+    using CHF = ConvexHullFinder<Real2>;
+    using ConcaveRegions = CHF::ConcaveRegions;
+    using Points = CHF::Points;
+
+    void compare_convex_hulls(Points expected, Points actual)
+    {
+        EXPECT_EQ(expected.size(), actual.size());
+        for (auto i : range(expected.size()))
+        {
+            EXPECT_EQ(expected[i][0], actual[i][0]);
+            EXPECT_EQ(expected[i][1], actual[i][1]);
+        }
+    }
+
+    void compare_concave_regions(ConcaveRegions expected, ConcaveRegions actual)
+    {
+        EXPECT_EQ(expected.size(), actual.size());
+        for (auto i : range(expected.size()))
+        {
+            EXPECT_EQ(expected[i].size(), actual[i].size());
+
+            for (auto j : range(expected[i].size()))
+            {
+                EXPECT_EQ(expected[i][j][0], actual[i][j][0]);
+                EXPECT_EQ(expected[i][j][1], actual[i][j][1]);
+            }
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//
-// Test basic configuration with a single level of concavity
+// Test basic configuration with a single "level" of concavity.
+//
+// The starting point is point 5.
+//
 //    1 _______________________ 2
 //     |                      /
 //     |                    /
@@ -45,44 +68,111 @@ class ConvexHullFinderTest : public ::celeritas::test::Test
 //     |                      /
 //   0 |_____________________/ 5
 //---------------------------------------------------------------------------//
-
 TEST_F(ConvexHullFinderTest, basic)
 {
-    std::vector<Real2> points{
+    std::vector<Real2> p{
         {0, 0}, {0, 1}, {1, 1}, {0.8, 0.5}, {0.95, 0.2}, {0.9, 0}};
-    ConvexHullFinder<Real2> chf(points);
 
-    // Start from index 0
-    EXPECT_VEC_EQ(VecIdx({0}), chf({0, 1}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({0, 1}), chf({0, 2}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({0, 1, 2}), chf({0, 3}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({0, 1, 2, 3}), chf({0, 4}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({0, 1, 2, 4}), chf({0, 5}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({0, 1, 2, 4, 5}), chf({0, 6}).convex_hull);
+    // Compare convex hulls using 1--6 points
+    compare_convex_hulls(Points({p[0], p[1], p[2]}),
+                         CHF({p[0], p[1], p[2]}).convex_hull());
+    compare_convex_hulls(Points({p[0], p[1], p[2], p[3]}),
+                         CHF({p[0], p[1], p[2], p[3]}).convex_hull());
+    compare_convex_hulls(Points({p[0], p[1], p[2], p[4]}),
+                         CHF({p[0], p[1], p[2], p[4]}).convex_hull());
+    compare_convex_hulls(Points({p[0], p[1], p[2], p[4], p[5]}),
+                         CHF(p).convex_hull());
 
-    // Start from index 1; now our starting point (the point with the min y)
-    // changes.
-    EXPECT_VEC_EQ(VecIdx({1}), chf({1, 2}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({1, 2}), chf({1, 3}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({1, 2, 3}), chf({1, 4}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({4, 1, 2}), chf({1, 5}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({5, 1, 2, 4}), chf({1, 6}).convex_hull);
-
-    // Specify rotate the points, such that we start counting from 1
-    std::vector<Real2> points2{
-        {0, 1}, {1, 1}, {0.8, 0.5}, {0.95, 0.2}, {0.9, 0}, {0, 0}};
-    ConvexHullFinder<Real2> chf2(points2);
-
-    EXPECT_VEC_EQ(VecIdx({0}), chf2({0, 1}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({0, 1}), chf2({0, 2}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({0, 1, 2}), chf2({0, 3}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({3, 0, 1}), chf2({0, 4}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({4, 0, 1, 3}), chf2({0, 5}).convex_hull);
-    EXPECT_VEC_EQ(VecIdx({4, 5, 0, 1, 3}), chf2({0, 6}).convex_hull);
+    // Compare concave regions using all 6 points
+    compare_concave_regions(ConcaveRegions({{p[4], p[3], p[2]}}),
+                            CHF(p).calc_concave_regions());
+}
+//---------------------------------------------------------------------------//
+// Test case where the first point encountered is *not* part of the convex
+// hull.
+//
+// The starting point is point 2.
+//
+//  0 _______________ 1
+//    \              |
+//      \       3    |
+//        \    /\    |
+//          \/    \  |
+//           4      \|
+//                   2
+//---------------------------------------------------------------------------//
+TEST_F(ConvexHullFinderTest, first_concavity)
+{
+    std::vector<Real2> p{
+        {-0.3, 1}, {0.9, 1}, {0.8, 0.4}, {0.5, 0.7}, {0.15, 0.5}};
+    CHF chf(p);
+    compare_convex_hulls(Points({p[0], p[1], p[2], p[4]}), chf.convex_hull());
+    compare_concave_regions(ConcaveRegions({{p[4], p[3], p[2]}}),
+                            chf.calc_concave_regions());
 }
 
 //---------------------------------------------------------------------------//
-// Test with a triply nested concavity.
+// Test case where the last point encountered is *not* part of the convex hull.
+//
+// The starting point is point 4.
+//
+//  0 _______________ 1
+//    \              |
+//      \      3 ____|
+//        \    /     2
+//          \/
+//           4
+//
+//---------------------------------------------------------------------------//
+TEST_F(ConvexHullFinderTest, last_concavity)
+{
+    std::vector<Real2> p{{0, 0},  // 0
+                         {1, 0},  // 1
+                         {1, -0.5},  // 2
+                         {0.6, -0.5},  // 3
+                         {0.4, -0.8}};  // 4
+    CHF chf(p);
+    compare_convex_hulls(Points({p[0], p[1], p[2], p[4]}), chf.convex_hull());
+    compare_concave_regions(ConcaveRegions({{p[4], p[3], p[2]}}),
+                            chf.calc_concave_regions());
+}
+
+//---------------------------------------------------------------------------//
+// Test case with many colinear points, including the first and last points
+// encountered.
+//
+// The starting point is point 7.
+//
+//  0 _______1_______ 2
+//    \              |_3
+//      \     5 _____|
+//     8  \   /_6    4
+//          \/
+//           7
+//
+//---------------------------------------------------------------------------//
+TEST_F(ConvexHullFinderTest, colinear)
+{
+    std::vector<Real2> p{{0, 0},
+                         {0.5, 0},
+                         {1, 0},
+                         {1, -0.2},
+                         {1, -0.5},
+                         {0.6, -0.5},
+                         {0.5, -0.65},
+                         {0.4, -0.8},
+                         {0.2, -0.4}};
+    CHF chf(p);
+    compare_convex_hulls(Points({p[0], p[1], p[2], p[3], p[4], p[7], p[8]}),
+                         chf.convex_hull());
+    compare_concave_regions(ConcaveRegions({{p[7], p[6], p[5], p[4]}}),
+                            chf.calc_concave_regions());
+}
+
+//---------------------------------------------------------------------------//
+// Test case with a quadruply nested concavity.
+//
+// The starting point is point 9.
 //
 //                     7
 //   1                 |\
@@ -92,26 +182,58 @@ TEST_F(ConvexHullFinderTest, basic)
 //      \   \/   4  \  |    \ 8
 //       \   2        \|    /
 //        \            6   /
-//         \              /
-//          \____________/
-//          0            9
+//         \ 11           /
+//          \/\__________/
+//          0  10        9
 //---------------------------------------------------------------------------//
 TEST_F(ConvexHullFinderTest, nested_concavity)
 {
-    std::vector<Real2> points{{0, 0},
-                              {-0.3, 1},
-                              {0.15, 0.5},
-                              {0.4, 0.7},
-                              {0.45, 0.6},
-                              {0.5, 0.7},
-                              {0.8, 0.4},
-                              {0.9, 1.2},
-                              {1.2, 0.5},
-                              {1, 0}};
+    std::vector<Real2> p{{0.001, 0.001},
+                         {-0.3, 1},
+                         {0.15, 0.5},
+                         {0.4, 0.7},
+                         {0.45, 0.6},
+                         {0.5, 0.7},
+                         {0.8, 0.4},
+                         {0.9, 1.2},
+                         {1.2, 0.5},
+                         {1, 0},
+                         {0.1, 0},
+                         {0.05, 0.01}};
 
-    ConvexHullFinder<Real2> chf(points);
-    // Start from index 0
-    EXPECT_VEC_EQ(VecIdx({0, 1, 7, 8, 9}), chf({0, 10}).convex_hull);
+    // Test level 0
+    CHF chf0(p);
+    compare_convex_hulls(Points({p[0], p[1], p[7], p[8], p[9], p[10]}),
+                         chf0.convex_hull());
+    compare_concave_regions(
+        ConcaveRegions({{p[7], p[6], p[5], p[4], p[3], p[2], p[1]},
+                        {p[0], p[11], p[10]}}),
+        chf0.calc_concave_regions());
+
+    // Test level 1
+    auto level1_points = chf0.calc_concave_regions();
+
+    CHF chf1a(level1_points[0]);
+    compare_convex_hulls(Points({p[7], p[6], p[2], p[1]}), chf1a.convex_hull());
+    compare_concave_regions(ConcaveRegions({{p[2], p[3], p[4], p[5], p[6]}}),
+                            chf1a.calc_concave_regions());
+
+    CHF chf1b(level1_points[1]);
+    compare_convex_hulls(Points({p[0], p[11], p[10]}), chf1b.convex_hull());
+    compare_concave_regions(ConcaveRegions({}), chf1b.calc_concave_regions());
+
+    // Test level 2
+    auto level2_points = chf1a.calc_concave_regions()[0];
+    CHF chf2(level2_points);
+    compare_convex_hulls(Points({p[2], p[3], p[5], p[6]}), chf2.convex_hull());
+    compare_concave_regions(ConcaveRegions({{p[5], p[4], p[3]}}),
+                            chf2.calc_concave_regions());
+
+    // Test level 3
+    auto level3_points = chf2.calc_concave_regions()[0];
+    CHF chf3(level3_points);
+    compare_convex_hulls(Points({p[5], p[4], p[3]}), chf3.convex_hull());
+    compare_concave_regions(ConcaveRegions({}), chf3.calc_concave_regions());
 }
 
 }  // namespace test
