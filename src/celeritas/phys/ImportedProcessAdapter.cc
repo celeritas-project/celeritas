@@ -34,9 +34,9 @@ namespace
 bool is_contiguous_increasing(inp::UniformGrid const& lower,
                               inp::UniformGrid const& upper)
 {
-    return lower.y.size() >= 2 && upper.y.size() >= 2 && lower.xmin > 0
-           && lower.xmax > lower.xmin && upper.xmax > upper.xmin
-           && soft_equal(lower.xmax, upper.xmin);
+    return lower.y.size() >= 2 && upper.y.size() >= 2
+           && std::exp(lower.xmin) > 0 && lower.xmax > lower.xmin
+           && upper.xmax > upper.xmin && soft_equal(lower.xmax, upper.xmin);
 }
 
 //---------------------------------------------------------------------------//
@@ -214,24 +214,6 @@ ImportedProcessAdapter::ImportedProcessAdapter(
 auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
     -> StepLimitBuilders
 {
-    try
-    {
-        return this->step_limits_impl(applic);
-    }
-    catch (...)
-    {
-        std::throw_with_nested(IPAContextException(
-            applic.particle, process_class_, applic.material));
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the interaction cross sections for the given material and particle.
- */
-auto ImportedProcessAdapter::step_limits_impl(
-    Applicability const& applic) const -> StepLimitBuilders
-{
     CELER_EXPECT(ids_.count(applic.particle));
     CELER_EXPECT(applic.material);
 
@@ -259,7 +241,8 @@ auto ImportedProcessAdapter::step_limits_impl(
         auto lower = get_vector(ids.lambda);
         auto upper = get_vector(ids.lambda_prim);
         CELER_ASSERT(is_contiguous_increasing(lower, upper));
-        CELER_ASSERT(soft_equal(lower.y.back(), upper.y.front() / upper.xmin));
+        CELER_ASSERT(soft_equal(lower.y.back(),
+                                upper.y.front() / std::exp(upper.xmin)));
         lower.xmax = upper.xmin;
         builders[ValueGridType::macro_xs]
             = std::make_unique<ValueGridXsBuilder>(std::move(lower),

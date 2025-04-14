@@ -373,6 +373,8 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 //---------------------------------------------------------------------------//
 /*!
  * Import a uniform physics vector with the given x, y units.
+ *
+ * The x-grid is uniform in log(x);
  */
 inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
                                            Array<ImportUnits, 2> units)
@@ -383,8 +385,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
     auto size = pv.GetVectorLength();
 
     inp::UniformGrid grid;
-    grid.xmin = pv.Energy(0) * x_scaling;
-    grid.xmax = pv.Energy(size - 1) * x_scaling;
+    grid.xmin = std::log(pv.Energy(0) * x_scaling);
+    grid.xmax = std::log(pv.Energy(size - 1) * x_scaling);
     grid.y.resize(size);
 
     double delta

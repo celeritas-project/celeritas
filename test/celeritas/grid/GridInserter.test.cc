@@ -77,10 +77,13 @@ TEST_F(GridInserterTest, uniform)
     Collection<UniformGridRecord, Ownership::value, MemSpace::host> grids;
 
     UniformGridInserter insert(&reals, &grids);
-    VecDbl const values = {1, 2, 4, 6, 8};
 
-    auto idx = insert(UniformGridData::from_bounds(0.0, 10.0, 5),
-                      make_span(values));
+    inp::UniformGrid grid;
+    grid.xmin = 0.0;
+    grid.xmax = 10.0;
+    grid.y = {1, 2, 4, 6, 8};
+
+    auto idx = insert(grid);
     EXPECT_EQ(0, idx.unchecked_get());
     UniformGridRecord const& inserted = grids[idx];
     EXPECT_EQ(1, grids.size());
@@ -89,7 +92,7 @@ TEST_F(GridInserterTest, uniform)
     EXPECT_EQ(5, inserted.grid.size);
     EXPECT_EQ(0, inserted.grid.front);
     EXPECT_EQ(10, inserted.grid.back);
-    EXPECT_VEC_SOFT_EQ(values, reals[inserted.value]);
+    EXPECT_VEC_SOFT_EQ(grid.y, reals[inserted.value]);
 }
 
 TEST_F(GridInserterTest, nonuniform)

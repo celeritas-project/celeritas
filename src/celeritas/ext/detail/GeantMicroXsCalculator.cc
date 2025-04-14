@@ -51,8 +51,8 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
     result_xs->resize(elements.size());
     for (auto& grid : *result_xs)
     {
-        grid.xmin = energy_grid.front();
-        grid.xmax = energy_grid.back();
+        grid.xmin = std::log(energy_grid.front());
+        grid.xmax = std::log(energy_grid.back());
         grid.y.resize(energy_grid.size());
     }
 

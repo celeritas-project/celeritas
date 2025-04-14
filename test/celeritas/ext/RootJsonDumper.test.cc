@@ -257,8 +257,8 @@ TEST_F(RootJsonDumperTest, all)
         "energy_max" : 100000000,
         "micro_xs" : [{
           "_typename" : "celeritas::inp::UniformGrid",
-          "xmin" : 100,
-          "xmax" : 100000000,
+          "xmin" : 4.60517018598809,
+          "xmax" : 18.4206807439524,
           "y" : [1.44873278987692e-29, 3.86367883566152e-29],
           "interpolation" : {
             "_typename" : "celeritas::inp::Interpolation",
@@ -273,8 +273,8 @@ TEST_F(RootJsonDumperTest, all)
         "energy_max" : 100000000,
         "micro_xs" : [{
           "_typename" : "celeritas::inp::UniformGrid",
-          "xmin" : 100,
-          "xmax" : 100000000,
+          "xmin" : 4.60517018598809,
+          "xmax" : 18.4206807439524,
           "y" : [3.00641640152192e-27, 8.8885205839549e-27],
           "interpolation" : {
             "_typename" : "celeritas::inp::Interpolation",
@@ -284,8 +284,8 @@ TEST_F(RootJsonDumperTest, all)
           }
         }, {
           "_typename" : "celeritas::inp::UniformGrid",
-          "xmin" : 100,
-          "xmax" : 100000000,
+          "xmin" : 4.60517018598809,
+          "xmax" : 18.4206807439524,
           "y" : [3.46220315764337e-27, 1.02199532648639e-26],
           "interpolation" : {
             "_typename" : "celeritas::inp::Interpolation",
@@ -305,8 +305,8 @@ TEST_F(RootJsonDumperTest, all)
       "y_units" : 4,
       "physics_vectors" : [{
         "_typename" : "celeritas::inp::UniformGrid",
-        "xmin" : 100,
-        "xmax" : 100000000,
+        "xmin" : 4.60517018598809,
+        "xmax" : 18.4206807439524,
         "y" : [0, 2.30843109957244e-30],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
@@ -316,8 +316,8 @@ TEST_F(RootJsonDumperTest, all)
         }
       }, {
         "_typename" : "celeritas::inp::UniformGrid",
-        "xmin" : 100,
-        "xmax" : 100000000,
+        "xmin" : 4.60517018598809,
+        "xmax" : 18.4206807439524,
         "y" : [0, 7.63129425045843e-4],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
@@ -340,8 +340,8 @@ TEST_F(RootJsonDumperTest, all)
       "y_units" : 6,
       "physics_vectors" : [{
         "_typename" : "celeritas::inp::UniformGrid",
-        "xmin" : 1e-4,
-        "xmax" : 100,
+        "xmin" : -9.21034037197618,
+        "xmax" : 4.60517018598809,
         "y" : [3.64953143614647e-27, 1.39709799580588e-25],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
@@ -351,8 +351,8 @@ TEST_F(RootJsonDumperTest, all)
         }
       }, {
         "_typename" : "celeritas::inp::UniformGrid",
-        "xmin" : 1e-4,
-        "xmax" : 100,
+        "xmin" : -9.21034037197618,
+        "xmax" : 4.60517018598809,
         "y" : [0.0919755519795958, 128.588033594672],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
@@ -373,8 +373,8 @@ TEST_F(RootJsonDumperTest, all)
       "y_units" : 6,
       "physics_vectors" : [{
         "_typename" : "celeritas::inp::UniformGrid",
-        "xmin" : 100,
-        "xmax" : 100000000,
+        "xmin" : 4.60517018598809,
+        "xmax" : 18.4206807439524,
         "y" : [1.5060677760307e-25, 1.59603068918702e-25],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
@@ -384,8 +384,8 @@ TEST_F(RootJsonDumperTest, all)
         }
       }, {
         "_typename" : "celeritas::inp::UniformGrid",
-        "xmin" : 100,
-        "xmax" : 100000000,
+        "xmin" : 4.60517018598809,
+        "xmax" : 18.4206807439524,
         "y" : [114.932650722669, 116.590357663561],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",

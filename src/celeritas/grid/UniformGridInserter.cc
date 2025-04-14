@@ -25,36 +25,14 @@ UniformGridInserter::UniformGridInserter(Values* reals, GridValues* grids)
 /*!
  * Add a grid of physics data.
  */
-auto UniformGridInserter::operator()(UniformGridData const& grid,
-                                     SpanConstDbl values) -> GridId
-{
-    return this->insert(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of physics data.
- */
-auto UniformGridInserter::operator()(UniformGridData const& grid,
-                                     SpanConstFlt values) -> GridId
-{
-    return this->insert(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of physics data.
- */
-template<class T>
-auto UniformGridInserter::insert(UniformGridData const& grid,
-                                 Span<T const> values) -> GridId
+auto UniformGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
 {
     CELER_EXPECT(grid);
-    CELER_EXPECT(grid.size == values.size());
 
     UniformGridRecord data;
-    data.grid = grid;
-    data.value = reals_.insert_back(values.begin(), values.end());
+    data.grid
+        = UniformGridData::from_bounds(grid.xmin, grid.xmax, grid.y.size());
+    data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
     return grids_.push_back(data);
 }
 

@@ -51,8 +51,10 @@ ValueGridXsBuilder::ValueGridXsBuilder(inp::UniformGrid lower,
 {
     CELER_EXPECT((lower_ || upper_)
                  && (!lower_ || !upper_ || lower_.xmax == upper_.xmin));
-    CELER_EXPECT(!lower_ || (lower_.xmin > 0 && lower_.y.size() >= 2));
-    CELER_EXPECT(!upper_ || (upper_.xmin > 0 && upper_.y.size() >= 2));
+    CELER_EXPECT(!lower_
+                 || (std::exp(lower_.xmin) > 0 && lower_.y.size() >= 2));
+    CELER_EXPECT(!upper_
+                 || (std::exp(upper_.xmin) > 0 && upper_.y.size() >= 2));
     CELER_EXPECT(is_nonnegative(make_span(lower_.y)));
     CELER_EXPECT(is_nonnegative(make_span(upper_.y)));
 }
@@ -64,14 +66,12 @@ ValueGridXsBuilder::ValueGridXsBuilder(inp::UniformGrid lower,
 auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
     auto lower = !lower_.y.empty()
-                     ? UniformGridData::from_bounds(std::log(lower_.xmin),
-                                                    std::log(lower_.xmax),
-                                                    lower_.y.size())
+                     ? UniformGridData::from_bounds(
+                           lower_.xmin, lower_.xmax, lower_.y.size())
                      : UniformGridData{};
     auto upper = !upper_.y.empty()
-                     ? UniformGridData::from_bounds(std::log(upper_.xmin),
-                                                    std::log(upper_.xmax),
-                                                    upper_.y.size())
+                     ? UniformGridData::from_bounds(
+                           upper_.xmin, upper_.xmax, upper_.y.size())
                      : UniformGridData{};
     return insert(lower, make_span(lower_.y), upper, make_span(upper_.y));
 }
@@ -85,7 +85,7 @@ auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 ValueGridLogBuilder::ValueGridLogBuilder(inp::UniformGrid grid)
     : grid_(std::move(grid))
 {
-    CELER_EXPECT(grid_ && grid_.xmin > 0 && grid_.y.size() >= 2);
+    CELER_EXPECT(grid_ && std::exp(grid_.xmin) > 0 && grid_.y.size() >= 2);
 }
 
 //---------------------------------------------------------------------------//
@@ -95,9 +95,9 @@ ValueGridLogBuilder::ValueGridLogBuilder(inp::UniformGrid grid)
 auto ValueGridLogBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
     auto const& value = grid_.y;
-    return insert(UniformGridData::from_bounds(
-                      std::log(grid_.xmin), std::log(grid_.xmax), value.size()),
-                  make_span(value));
+    return insert(
+        UniformGridData::from_bounds(grid_.xmin, grid_.xmax, value.size()),
+        make_span(value));
 }
 
 //---------------------------------------------------------------------------//
