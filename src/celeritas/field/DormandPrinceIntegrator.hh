@@ -19,8 +19,8 @@ namespace celeritas
  * Integrate the field ODEs using Dormand-Prince RK5(4)7M.
  *
  * The algorithm, RK5(4)7M and the coefficients have been adapted from
- * J. R. Dormand and P. J. Prince, "A family of embedded Runge-Kutta formulae"
- * Journal Computational and Applied Mathematics, volume 6, no 1 (1980) and
+ * \citet{dormand-rungekutta-1980,
+ https://doi.org/10.1016/0771-050X(80)90013-3} and
  * the coefficients to locate the mid point are taken from
  * \citet{shampine-rungekutta-1986, https://doi.org/10.2307/2008219}.
  *
@@ -54,7 +54,7 @@ namespace celeritas
  * \f[
      y_{n+1/2}   = y_n + (h/2) \Sigma_{n=1}^{7} c^{*}_i k_i
    \f]
- * with the coefficients \f$c^{*}\f$ taken from L. F. Shampine (1986).
+ * with the coefficients \f$c^{*}\f$ taken from Shampine.
  */
 template<class EquationT>
 class DormandPrinceIntegrator
