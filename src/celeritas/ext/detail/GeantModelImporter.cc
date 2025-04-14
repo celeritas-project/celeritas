@@ -141,20 +141,20 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
     for (auto mat_idx : celeritas::range(materials_.size()))
     {
         G4Material const& g4mat = get_g4material(mat_idx);
-        auto& model_mat = result.materials[mat_idx];
 
         // Calculate lower and upper energy bounds
         double cutoff = this->get_cutoff(mat_idx);
-        model_mat.energy_min
+        double min_energy
             = std::max(model.LowEnergyLimit(),
                        const_cast<G4VEmModel&>(model).MinPrimaryEnergy(
                            &g4mat, g4particle_, cutoff))
               / CLHEP::MeV;
-        model_mat.energy_max = model.HighEnergyLimit() / CLHEP::MeV;
-        CELER_ASSERT(0 <= model_mat.energy_min);
+        double max_energy = model.HighEnergyLimit() / CLHEP::MeV;
+        CELER_ASSERT(0 <= min_energy);
 
+        auto& model_mat = result.materials[mat_idx];
         bool export_micros = needs_micro_xs(result.model_class);
-        if (CELER_UNLIKELY(!(model_mat.energy_min < model_mat.energy_max)))
+        if (CELER_UNLIKELY(!(min_energy < max_energy)))
         {
             // It's possible for the lower energy bound to be higher than the
             // upper energy bound if the production cuts are very high.  Don't
@@ -162,9 +162,9 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
             CELER_LOG(debug)
                 << "Skipping microscopic cross section grid for model '"
                 << model.GetName() << "' in material '" << g4mat.GetName()
-                << ": lower energy bound " << model_mat.energy_min
-                << " [MeV] is not less than upper energy bound "
-                << model_mat.energy_max << " [MeV]";
+                << ": lower energy bound " << min_energy
+                << " [MeV] is not less than upper energy bound " << max_energy
+                << " [MeV]";
             export_micros = false;
         }
         if (export_micros)
@@ -175,18 +175,18 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
             static double const bins_per_decade
                 = G4EmParameters::Instance()->NumberOfBinsPerDecade() / 6.0;
             double const num_bins = std::round(
-                bins_per_decade
-                * std::log10(model_mat.energy_max / model_mat.energy_min));
+                bins_per_decade * std::log10(max_energy / min_energy));
 
             // Interpolate energy in log space with at least 3 bins
-            auto energy = logspace(model_mat.energy_min,
-                                   model_mat.energy_max,
-                                   std::max<size_type>(3, num_bins));
+            auto energy = logspace(
+                min_energy, max_energy, std::max<size_type>(3, num_bins));
 
             // Calculate cross sections
             GeantMicroXsCalculator calc_xs(model, *g4particle_, g4mat, cutoff);
             calc_xs(energy, &model_mat.micro_xs);
         }
+        model_mat.energy_min = min_energy;
+        model_mat.energy_max = max_energy;
     }
 
     CELER_ENSURE(result);

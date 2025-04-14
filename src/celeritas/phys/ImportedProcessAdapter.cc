@@ -251,25 +251,22 @@ auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
     else if (ids.lambda_prim)
     {
         // Only high-energy (energy-scale) cross sections are presesnt
-        auto upper = get_vector(ids.lambda_prim);
         builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(inp::UniformGrid{},
-                                                   std::move(upper));
+            = std::make_unique<ValueGridXsBuilder>(
+                inp::UniformGrid{}, get_vector(ids.lambda_prim));
     }
     else if (ids.lambda)
     {
-        auto lower = get_vector(ids.lambda);
         builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(std::move(lower),
+            = std::make_unique<ValueGridXsBuilder>(get_vector(ids.lambda),
                                                    inp::UniformGrid{});
     }
 
     // Construct slowing-down data
     if (ids.dedx)
     {
-        auto grid = get_vector(ids.dedx);
         builders[ValueGridType::energy_loss]
-            = std::make_unique<ValueGridLogBuilder>(std::move(grid));
+            = std::make_unique<ValueGridLogBuilder>(get_vector(ids.dedx));
     }
 
     return builders;

@@ -13,6 +13,10 @@ increasing, sorted 1D or 2D grids.
    :members:
    :no-link:
 
+.. doxygenstruct:: celeritas::inp::UniformGrid
+   :members:
+   :no-link:
+
 .. doxygenstruct:: celeritas::inp::TwodGrid
    :members:
    :no-link:
