@@ -22,22 +22,26 @@ template<typename T>
 struct is_valid_real2
 {
   private:
-    //! Matches if T is a valid Real2
     template<typename U>
-    static auto match_real2(int)
-        -> decltype(std::is_arithmetic<decltype(std::declval<U>()[0])>{},
-                    std::is_arithmetic<decltype(std::declval<U>()[1])>{},
-                    std::true_type{});
+    using enable_if_valid_real2_t = std::enable_if_t<
+        std::is_arithmetic_v<std::remove_reference_t<decltype(std::declval<U>()[0])>>
+            && std::is_arithmetic_v<
+                std::remove_reference_t<decltype(std::declval<U>()[1])>>,
+        std::true_type>;
 
-    //! Fallback; always matches
+    // Matches if T is a valid Real2
+    template<typename U>
+    static enable_if_valid_real2_t<U> match_real2(int);
+
+    // Fallback; always matches
     template<typename>
     static auto match_real2(...) -> std::false_type;
 
   public:
     static constexpr bool value = decltype(match_real2<T>(0))::value;
 };
-
 }  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Find the convex hull of a sequence of 2D points.
