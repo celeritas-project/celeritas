@@ -15,8 +15,9 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-// Test harness for ConvexHullFinder
-//---------------------------------------------------------------------------//
+/*
+ * Test harness for ConvexHullFinder
+ */
 class ConvexHullFinderTest : public ::celeritas::test::Test
 {
   public:
@@ -52,22 +53,23 @@ class ConvexHullFinderTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-// Test basic configuration with a single "level" of concavity.
-//
-// The starting point is point 5.
-//
-//    1 _______________________ 2
-//     |                      /
-//     |                    /
-//     |                  /
-//     |                /
-//     |              3 \
-//     |                  \
-//     |                    \
-//     |                      \ 4
-//     |                      /
-//   0 |_____________________/ 5
-//---------------------------------------------------------------------------//
+/*
+ * Test basic configuration with a single "level" of concavity.
+ *
+ * The starting point is point 5.
+ *
+ *    1 _______________________ 2
+ *     |                      /
+ *     |                    /
+ *     |                  /
+ *     |                /
+ *     |              3 \
+ *     |                  \
+ *     |                    \
+ *     |                      \ 4
+ *     |                      /
+ *   0 |_____________________/ 5
+ */
 TEST_F(ConvexHullFinderTest, basic)
 {
     std::vector<Real2> p{
@@ -88,19 +90,20 @@ TEST_F(ConvexHullFinderTest, basic)
                             CHF(p).calc_concave_regions());
 }
 //---------------------------------------------------------------------------//
-// Test case where the first point encountered is *not* part of the convex
-// hull.
-//
-// The starting point is point 2.
-//
-//  0 _______________ 1
-//    \              |
-//      \       3    |
-//        \    /\    |
-//          \/    \  |
-//           4      \|
-//                   2
-//---------------------------------------------------------------------------//
+/*
+ * Test case where the first point encountered is *not* part of the convex
+ * hull.
+ *
+ * The starting point is point 2.
+ *
+ *  0 _______________ 1
+ *    \              |
+ *      \       3    |
+ *        \    /\    |
+ *          \/    \  |
+ *           4      \|
+ *                   2
+ */
 TEST_F(ConvexHullFinderTest, first_concavity)
 {
     std::vector<Real2> p{
@@ -110,20 +113,19 @@ TEST_F(ConvexHullFinderTest, first_concavity)
     compare_concave_regions(ConcaveRegions({{p[4], p[3], p[2]}}),
                             chf.calc_concave_regions());
 }
-
 //---------------------------------------------------------------------------//
-// Test case where the last point encountered is *not* part of the convex hull.
-//
-// The starting point is point 4.
-//
-//  0 _______________ 1
-//    \              |
-//      \      3 ____|
-//        \    /     2
-//          \/
-//           4
-//
-//---------------------------------------------------------------------------//
+/*
+ * Test case where the last point encountered is *not* part of the convex hull.
+ *
+ * The starting point is point 4.
+ *
+ *  0 _______________ 1
+ *    \              |
+ *      \      3 ____|
+ *        \    /     2
+ *          \/
+ *           4
+ */
 TEST_F(ConvexHullFinderTest, last_concavity)
 {
     std::vector<Real2> p{{0, 0},  // 0
@@ -138,19 +140,20 @@ TEST_F(ConvexHullFinderTest, last_concavity)
 }
 
 //---------------------------------------------------------------------------//
-// Test case with many colinear points, including the first and last points
-// encountered.
-//
-// The starting point is point 7.
-//
-//  0 _______1_______ 2
-//    \              |_3
-//      \     5 _____|
-//     8  \   /_6    4
-//          \/
-//           7
-//
-//---------------------------------------------------------------------------//
+/*
+ * Test case with many colinear points, including the first and last points
+ * encountered.
+ *
+ * The starting point is point 7.
+ *
+ *  0 _______1_______ 2
+ *    \              |_3
+ *      \     5 _____|
+ *     8  \   /_6    4
+ *          \/
+ *           7
+ *
+ */
 TEST_F(ConvexHullFinderTest, colinear)
 {
     std::vector<Real2> p{{0, 0},
@@ -168,24 +171,24 @@ TEST_F(ConvexHullFinderTest, colinear)
     compare_concave_regions(ConcaveRegions({{p[7], p[6], p[5], p[4]}}),
                             chf.calc_concave_regions());
 }
-
 //---------------------------------------------------------------------------//
-// Test case with a quadruply nested concavity.
-//
-// The starting point is point 9.
-//
-//                     7
-//   1                 |\
-//   \\                | \
-//    \ \      3  5    |  \
-//     \  \    /\/\    |   \
-//      \   \/   4  \  |    \ 8
-//       \   2        \|    /
-//        \            6   /
-//         \ 11           /
-//          \/\__________/
-//          0  10        9
-//---------------------------------------------------------------------------//
+/*
+ * Test case with a quadruply nested concavity.
+ *
+ * The starting point is point 9.
+ *
+ *                     7
+ *   1                 |\
+ *   \\                | \
+ *    \ \      3  5    |  \
+ *     \  \    /\/\    |   \
+ *      \   \/   4  \  |    \ 8
+ *       \   2        \|    /
+ *        \            6   /
+ *         \ 11           /
+ *          \/\__________/
+ *          0  10        9
+ */
 TEST_F(ConvexHullFinderTest, nested_concavity)
 {
     std::vector<Real2> p{{0.001, 0.001},
