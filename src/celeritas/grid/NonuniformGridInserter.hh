@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
@@ -23,15 +22,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a generic grid using mutable host data and add it to
- * the specified grid collection.
- *
- * \code
-    NonuniformGridInserter insert(&data->reals, &data->generic_grids);
-    std::vector<NonuniformGridIndex> grid_ids;
-    for (material : range(MaterialId{mats->size()}))
-        grid_ids.push_back(insert(physics_vector[material.get()]));
-   \endcode
+ * Construct a nonuniform grid and add it to the specified grid collection.
  */
 template<class Index>
 class NonuniformGridInserter
@@ -39,8 +30,6 @@ class NonuniformGridInserter
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstFlt = Span<float const>;
-    using SpanConstDbl = Span<double const>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using GridValues
         = Collection<NonuniformGridRecord, Ownership::value, MemSpace::host, Index>;
@@ -50,12 +39,6 @@ class NonuniformGridInserter
     // Construct with a reference to mutable host data
     NonuniformGridInserter(Values* reals, GridValues* grids);
 
-    // Add a grid of generic data with linear interpolation
-    Index operator()(SpanConstFlt grid, SpanConstFlt values);
-
-    // Add a grid of generic data with linear interpolation
-    Index operator()(SpanConstDbl grid, SpanConstDbl values);
-
     // Add an imported physics vector as a grid
     Index operator()(inp::Grid const&);
 
@@ -63,7 +46,7 @@ class NonuniformGridInserter
     Index operator()();
 
   private:
-    NonuniformGridBuilder grid_builder_;
+    NonuniformGridBuilder build_;
     CollectionBuilder<NonuniformGridRecord, MemSpace::host, Index> grids_;
 };
 
@@ -74,7 +57,7 @@ class NonuniformGridInserter
 template<class Index>
 NonuniformGridInserter<Index>::NonuniformGridInserter(Values* reals,
                                                       GridValues* grids)
-    : grid_builder_(reals), grids_(grids)
+    : build_(reals), grids_(grids)
 {
     CELER_EXPECT(reals && grids);
 }
@@ -90,31 +73,7 @@ template<class Index>
 auto NonuniformGridInserter<Index>::operator()(inp::Grid const& grid) -> Index
 {
     CELER_EXPECT(!grid.x.empty());
-    return grids_.push_back(grid_builder_(grid));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of generic data with linear interpolation to the collection.
- */
-template<class Index>
-auto NonuniformGridInserter<Index>::operator()(SpanConstFlt grid,
-                                               SpanConstFlt values) -> Index
-{
-    CELER_EXPECT(!grid.empty());
-    return grids_.push_back(grid_builder_(grid, values));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of generic data with linear interpolation to the collection.
- */
-template<class Index>
-auto NonuniformGridInserter<Index>::operator()(SpanConstDbl grid,
-                                               SpanConstDbl values) -> Index
-{
-    CELER_EXPECT(!grid.empty());
-    return grids_.push_back(grid_builder_(grid, values));
+    return grids_.push_back(build_(grid));
 }
 
 //---------------------------------------------------------------------------//

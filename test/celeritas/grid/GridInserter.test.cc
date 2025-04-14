@@ -100,17 +100,18 @@ TEST_F(GridInserterTest, nonuniform)
     Collection<NonuniformGridRecord, Ownership::value, MemSpace::host> grids;
 
     NonuniformGridInserter insert(&reals, &grids);
-    VecDbl const grid = {0, 1, 2, 5, 13};
-    VecDbl const values = {1, 2, 4, 6, 8};
+    inp::Grid grid;
+    grid.x = {0, 1, 2, 5, 13};
+    grid.y = {1, 2, 4, 6, 8};
 
-    auto idx = insert(make_span(grid), make_span(values));
+    auto idx = insert(grid);
     EXPECT_EQ(0, idx.unchecked_get());
     NonuniformGridRecord const& inserted = grids[idx];
     EXPECT_EQ(1, grids.size());
 
     EXPECT_TRUE(inserted);
-    EXPECT_VEC_SOFT_EQ(grid, reals[inserted.grid]);
-    EXPECT_VEC_SOFT_EQ(values, reals[inserted.value]);
+    EXPECT_VEC_SOFT_EQ(grid.x, reals[inserted.grid]);
+    EXPECT_VEC_SOFT_EQ(grid.y, reals[inserted.value]);
 }
 
 //---------------------------------------------------------------------------//

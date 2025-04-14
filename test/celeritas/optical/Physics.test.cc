@@ -345,9 +345,9 @@ TEST_F(OpticalPhysicsTest, track_view_grids)
                 ASSERT_LT(grid_id, grids.size());
                 ValueGrid const& grid = grids[grid_id];
 
-                EXPECT_VEC_EQ(expected_mfp_energy_grid(mat_id, model_id),
+                EXPECT_VEC_EQ(expected_mfp_grid(mat_id, model_id).x,
                               reals[grid.grid]);
-                EXPECT_VEC_EQ(expected_mfp_value_grid(mat_id, model_id),
+                EXPECT_VEC_EQ(expected_mfp_grid(mat_id, model_id).y,
                               reals[grid.value]);
             }
         }

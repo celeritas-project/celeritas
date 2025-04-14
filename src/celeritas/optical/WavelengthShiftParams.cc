@@ -75,14 +75,16 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
         wls_record.push_back(record);
 
         // Calculate the WLS cumulative probability of the emission spectrum
-        std::vector<double> cdf(wls.component.x.size());
+        inp::Grid grid;
+        grid.x = wls.component.x;
+        grid.y.resize(grid.x.size());
         integrate_emission(make_span(wls.component.x),
                            make_span(wls.component.y),
-                           make_span(cdf));
-        normalize_cdf(make_span(cdf));
+                           make_span(grid.y));
+        normalize_cdf(make_span(grid.y));
 
         // Insert energy -> CDF grid
-        insert_energy_cdf(make_span(wls.component.x), make_span(cdf));
+        insert_energy_cdf(grid);
     }
     CELER_ASSERT(data.energy_cdf.size() == input.data.size());
     CELER_ASSERT(data.wls_record.size() == data.energy_cdf.size());
