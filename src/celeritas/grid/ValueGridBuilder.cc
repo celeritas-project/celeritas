@@ -65,15 +65,7 @@ ValueGridXsBuilder::ValueGridXsBuilder(inp::UniformGrid lower,
  */
 auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
-    auto lower = !lower_.y.empty()
-                     ? UniformGridData::from_bounds(
-                           lower_.xmin, lower_.xmax, lower_.y.size())
-                     : UniformGridData{};
-    auto upper = !upper_.y.empty()
-                     ? UniformGridData::from_bounds(
-                           upper_.xmin, upper_.xmax, upper_.y.size())
-                     : UniformGridData{};
-    return insert(lower, make_span(lower_.y), upper, make_span(upper_.y));
+    return insert(lower_, upper_);
 }
 
 //---------------------------------------------------------------------------//
@@ -94,10 +86,7 @@ ValueGridLogBuilder::ValueGridLogBuilder(inp::UniformGrid grid)
  */
 auto ValueGridLogBuilder::build(XsGridInserter insert) const -> ValueGridId
 {
-    auto const& value = grid_.y;
-    return insert(
-        UniformGridData::from_bounds(grid_.xmin, grid_.xmax, value.size()),
-        make_span(value));
+    return insert(grid_);
 }
 
 //---------------------------------------------------------------------------//

@@ -616,11 +616,13 @@ void PhysicsParams::build_xs(Options const& opts,
                     //! \todo make the interpolation method configurable?
 
                     // Build the range grid from the energy loss
-                    auto const& grid = data->value_grids[grid_id];
-                    auto const range = RangeGridCalculator(BC::geant)(
-                        grid.lower, make_const_ref(*data).reals);
-                    range_grid_ids[mat_idx]
-                        = insert_grid(grid.lower.grid, make_span(range));
+                    auto dedx_builder
+                        = dynamic_cast<ValueGridLogBuilder const*>(
+                            builders[VGT::energy_loss].get());
+                    CELER_ASSERT(dedx_builder);
+                    auto range_grid
+                        = RangeGridCalculator(BC::geant)(dedx_builder->grid());
+                    range_grid_ids[mat_idx] = insert_grid(range_grid);
                 }
 
                 if (auto grid_id = eloss_grid_ids[mat_idx])

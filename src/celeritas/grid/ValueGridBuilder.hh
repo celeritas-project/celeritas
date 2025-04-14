@@ -92,6 +92,9 @@ class ValueGridLogBuilder : public ValueGridBuilder
     // Construct in the given store
     ValueGridId build(XsGridInserter) const final;
 
+    // Access the grid
+    inp::UniformGrid const& grid() const { return grid_; }
+
   private:
     inp::UniformGrid grid_;
 };
