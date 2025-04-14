@@ -135,8 +135,6 @@ void ImportDataTrimmer::operator()(ImportOpticalModel& data)
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportModelMaterial& data)
 {
-    (*this)(data.energy);
-
     if (options_.materials)
     {
         (*this)(data.micro_xs);
@@ -234,6 +232,12 @@ void ImportDataTrimmer::operator()(ImportProcess& data)
 void ImportDataTrimmer::operator()(inp::Grid& data)
 {
     (*this)(data.x);
+    (*this)(data.y);
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::UniformGrid& data)
+{
     (*this)(data.y);
 }
 

@@ -48,7 +48,7 @@ struct ImportPhysicsTable
     ImportTableType table_type{ImportTableType::size_};
     ImportUnits x_units{ImportUnits::unitless};
     ImportUnits y_units{ImportUnits::unitless};
-    std::vector<inp::Grid> physics_vectors;
+    std::vector<inp::UniformGrid> physics_vectors;
 
     explicit operator bool() const
     {

@@ -10,11 +10,13 @@
 #include <exception>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridType.hh"
@@ -27,6 +29,19 @@
 
 namespace celeritas
 {
+namespace
+{
+bool is_contiguous_increasing(inp::UniformGrid const& lower,
+                              inp::UniformGrid const& upper)
+{
+    return lower.y.size() >= 2 && upper.y.size() >= 2 && lower.xmin > 0
+           && lower.xmax > lower.xmin && upper.xmax > upper.xmin
+           && soft_equal(lower.xmax, upper.xmin);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 IPAContextException::IPAContextException(ParticleId id,
                                          ImportProcessClass ipc,
@@ -241,26 +256,37 @@ auto ImportedProcessAdapter::step_limits_impl(
     else if (ids.lambda && ids.lambda_prim)
     {
         // Both unscaled and scaled values are present
-        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_geant(
-            get_vector(ids.lambda), get_vector(ids.lambda_prim));
+        auto lower = get_vector(ids.lambda);
+        auto upper = get_vector(ids.lambda_prim);
+        CELER_ASSERT(is_contiguous_increasing(lower, upper));
+        CELER_ASSERT(soft_equal(lower.y.back(), upper.y.front() / upper.xmin));
+        lower.xmax = upper.xmin;
+        builders[ValueGridType::macro_xs]
+            = std::make_unique<ValueGridXsBuilder>(std::move(lower),
+                                                   std::move(upper));
     }
     else if (ids.lambda_prim)
     {
         // Only high-energy (energy-scale) cross sections are presesnt
+        auto upper = get_vector(ids.lambda_prim);
         builders[ValueGridType::macro_xs]
-            = ValueGridXsBuilder::from_scaled(get_vector(ids.lambda_prim));
+            = std::make_unique<ValueGridXsBuilder>(inp::UniformGrid{},
+                                                   std::move(upper));
     }
     else if (ids.lambda)
     {
+        auto lower = get_vector(ids.lambda);
         builders[ValueGridType::macro_xs]
-            = ValueGridLogBuilder::from_geant(get_vector(ids.lambda));
+            = std::make_unique<ValueGridXsBuilder>(std::move(lower),
+                                                   inp::UniformGrid{});
     }
 
     // Construct slowing-down data
     if (ids.dedx)
     {
+        auto grid = get_vector(ids.dedx);
         builders[ValueGridType::energy_loss]
-            = ValueGridLogBuilder::from_geant(get_vector(ids.dedx));
+            = std::make_unique<ValueGridLogBuilder>(std::move(grid));
     }
 
     return builders;

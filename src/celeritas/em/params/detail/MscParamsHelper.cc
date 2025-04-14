@@ -110,13 +110,12 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
             CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
 
             // Get the cross section data for this particle and material
-            auto const& pv = xs_tables_[par_idx]->physics_vectors[mat_idx];
-            CELER_ASSERT(pv.x.front() > 0 && pv.x.back() > pv.x.front());
-            CELER_ASSERT(has_log_spacing(make_span(pv.x)));
+            auto const& grid = xs_tables_[par_idx]->physics_vectors[mat_idx];
+            CELER_ASSERT(grid.xmin > 0 && grid.xmax > grid.xmin);
 
-            auto grid = UniformGridData::from_bounds(
-                std::log(pv.x.front()), std::log(pv.x.back()), pv.x.size());
-            auto grid_id = insert(grid, make_span(pv.y));
+            auto grid_data = UniformGridData::from_bounds(
+                std::log(grid.xmin), std::log(grid.xmax), grid.y.size());
+            auto grid_id = insert(grid_data, make_span(grid.y));
             CELER_ASSERT(grid_id.get() == xs.size());
 
             xs.push_back(grids[grid_id]);
@@ -136,20 +135,20 @@ auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
     {
         // Get initial high/low energy limits
         CELER_ASSERT(!xs_tables_[0]->physics_vectors.empty());
-        auto const& pvec = xs_tables_[0]->physics_vectors[0];
-        CELER_ASSERT(pvec);
-        result = {Energy(pvec.x.front()), Energy(pvec.x.back())};
+        auto const& grid = xs_tables_[0]->physics_vectors[0];
+        CELER_ASSERT(grid);
+        result = {Energy(grid.xmin), Energy(grid.xmax)};
     }
     for (size_type par_idx : range(par_ids_.size()))
     {
         auto const& phys_vectors = xs_tables_[par_idx]->physics_vectors;
-        for (auto const& pvec : phys_vectors)
+        for (auto const& grid : phys_vectors)
         {
             // Check that the limits are the same for all materials and
             // particles; otherwise we need to change \c *Msc::is_applicable to
             // look up the particle and material
-            CELER_VALIDATE(result[0].value() == real_type(pvec.x.front())
-                               && result[1].value() == real_type(pvec.x.back()),
+            CELER_VALIDATE(result[0].value() == real_type(grid.xmin)
+                               && result[1].value() == real_type(grid.xmax),
                            << "multiple scattering cross section energy "
                               "limits are inconsistent across particles "
                               "and/or materials");

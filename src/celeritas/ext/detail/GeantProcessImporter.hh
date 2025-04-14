@@ -105,13 +105,16 @@ class GeantProcessImporter
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Import a physics vector with the given x, y units
-inp::Grid
-import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units);
+// Import a uniform physics vector with the given x, y units
+inp::UniformGrid
+import_physics_log_vector(G4PhysicsVector const&, Array<ImportUnits, 2>);
+
+// Import a generic physics vector with the given x, y units
+inp::Grid import_physics_vector(G4PhysicsVector const&, Array<ImportUnits, 2>);
 
 // Import a 2D physics vector
-inp::TwodGrid import_physics_2dvector(G4Physics2DVector const& g4pv,
-                                      Array<ImportUnits, 3> units);
+inp::TwodGrid
+import_physics_2dvector(G4Physics2DVector const&, Array<ImportUnits, 3>);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -48,9 +48,10 @@
 #pragma link C++ class celeritas::ImportWavelengthShift+;
 
 // Input data
-#pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::Grid+;
+#pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::TwodGrid+;
+#pragma link C++ class celeritas::inp::UniformGrid+;
 
 // Event data used by Geant4/Celeritas offloading applications
 #pragma link C++ class celeritas::EventHitData+;

@@ -272,10 +272,10 @@ void print_table(ImportPhysicsTable const& table)
 
     for (auto const& physvec : table.physics_vectors)
     {
-        cout << "| " << setw(5) << physvec.x.size() << " | ("
-             << setprecision(3) << setw(12) << physvec.x.front() << ", "
+        cout << "| " << setw(5) << physvec.y.size() << " | ("
+             << setprecision(3) << setw(12) << physvec.xmin << ", "
              << setprecision(3) << setw(12) << physvec.y.front() << ") -> ("
-             << setprecision(3) << setw(12) << physvec.x.back() << ", "
+             << setprecision(3) << setw(12) << physvec.xmax << ", "
              << setprecision(3) << setw(12) << physvec.y.back() << ") |\n";
     }
 }
@@ -321,15 +321,15 @@ Energy grids per material:
 
         for (auto m : range(model.materials.size()))
         {
-            auto const& energy = model.materials[m].energy;
-            CELER_ASSERT(!energy.empty());
+            auto const& mat = model.materials[m];
+            auto size = mat.micro_xs.empty() ? 0
+                                             : mat.micro_xs.front().y.size();
             auto const& geo_mat
                 = geo_materials[phys_materials[m].geo_material_id];
             cout << "| " << setw(20) << std::left << geo_mat.name << " | "
-                 << setw(5) << energy.size() << " | " << setprecision(3)
-                 << setw(12) << setprecision(3) << setw(12) << energy.front()
-                 << " -> " << setprecision(3) << setw(12) << energy.back()
-                 << " |\n";
+                 << setw(5) << size << " | " << setprecision(3) << setw(12)
+                 << setprecision(3) << setw(12) << mat.energy_min << " -> "
+                 << setprecision(3) << setw(12) << mat.energy_max << " |\n";
         }
         cout << "\n";
 
@@ -368,9 +368,9 @@ Microscopic cross sections:
                 cout << "| " << setw(20) << std::left
                      << (i == 0 ? geo_mat.name : std::string{}) << " | "
                      << setw(13) << std::left << elements[el_id].name << " | "
-                     << setprecision(3) << setw(12) << xs[i].front() / barn
+                     << setprecision(3) << setw(12) << xs[i].y.front() / barn
                      << " -> " << setprecision(3) << setw(12)
-                     << xs[i].back() / barn << " |\n";
+                     << xs[i].y.back() / barn << " |\n";
             }
         }
         cout << endl;

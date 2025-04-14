@@ -57,6 +57,22 @@ struct Grid
 
 //---------------------------------------------------------------------------//
 /*!
+ * A uniform grid of increasing, sorted 1D data.
+ */
+struct UniformGrid
+{
+    using VecDbl = std::vector<double>;
+
+    double xmin{};
+    double xmax{};
+    VecDbl y;
+    Interpolation interpolation{};
+
+    explicit operator bool() const { return !y.empty() && xmax > xmin; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An increasing, sorted 2D grid with node-centered data.
  *
  * Data is interpolated linearly and indexed as '[x][y]'.
