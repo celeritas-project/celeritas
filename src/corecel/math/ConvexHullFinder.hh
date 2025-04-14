@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/SoftEqual.hh"
