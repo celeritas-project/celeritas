@@ -192,7 +192,7 @@ TEST_F(TwoBoxesTest, electron_interior)
     EXPECT_EQ("inner", this->volume_name(geo));
 
     // Build propagator
-    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
     FieldDriverOptions driver_options;
     auto propagate
@@ -303,7 +303,7 @@ TEST_F(TwoBoxesTest, gamma_interior)
     // Construct field (shape and magnitude shouldn't matter)
     UniformZField field(1234.5);
     FieldDriverOptions driver_options;
-    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
 
     // Propagate inside box
@@ -364,7 +364,7 @@ TEST_F(TwoBoxesTest, gamma_pathological)
     // Construct field (shape and magnitude shouldn't matter)
     HorribleZField field{1.2345 * units::tesla, 5};
     FieldDriverOptions driver_options;
-    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
 
     // Propagate inside box
@@ -401,7 +401,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
             return result.distance;
         }();
 
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
@@ -435,7 +435,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
             "Reported distance is based on requested step, not actual "
             "boundary, to avoid an extra substep");
         auto geo = this->make_geo_track_view({2, 4.749, 0}, {0, 1, 0});
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
@@ -454,7 +454,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
     {
         SCOPED_TRACE("Long step");
         auto geo = this->make_geo_track_view({2, 4.749, 0}, {0, 1, 0});
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
@@ -484,7 +484,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             SCOPED_TRACE("Far from boundary");
             auto geo = this->make_geo_track_view({9.5, 9.5, 9.5}, {1, 0, 0});
             EXPECT_EQ("world", this->volume_name(geo));
-            auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+            auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
                 field, particle.charge());
             auto propagate = make_field_propagator(
                 integrate, driver_options, particle, geo);
@@ -502,7 +502,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             auto geo = this->make_geo_track_view({real_type{5.0} + eps, 0, 0},
                                                  {-1, 0, 0});
             EXPECT_EQ("world", this->volume_name(geo));
-            auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+            auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
                 field, particle.charge());
             auto propagate = make_field_propagator(
                 integrate, driver_options, particle, geo);
@@ -881,7 +881,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
         = {-0.098753281951459, 0.43330671122068, 0};
 
     auto geo = this->make_geo_track_view();
-    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
     auto propagate = [&](real_type start_delta, real_type move_delta) {
         Real3 start_pos{-5 + start_delta, 0, 0};
@@ -1048,7 +1048,7 @@ TEST_F(TwoBoxesTest,
                        this->calc_field_curvature(particle, geo, field));
 
         // Build propagator
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         FieldDriverOptions driver_options;
         driver_options.max_substeps = 100;
@@ -1110,7 +1110,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
     FieldDriverOptions driver_options;
 
     auto geo = this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
-    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
     auto propagate
         = make_field_propagator(integrate, driver_options, particle, geo);
@@ -1250,7 +1250,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
               this->volume_name(geo));
 
     {
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
@@ -1279,7 +1279,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     }
     if (!using_vecgeom_surface)
     {
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
@@ -1318,7 +1318,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
     {
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.27089632881079409e-02});
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
@@ -1368,7 +1368,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.25917780979408864e-02});
-        auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
@@ -1438,7 +1438,7 @@ TEST_F(CmseTest, coarse)
     // Build propagator
     UniformZField field{0};
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
-    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
 
     FieldDriverOptions driver_options;

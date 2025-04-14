@@ -13,16 +13,16 @@
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
-#include "FieldDriver.hh"
 #include "FieldDriverOptions.hh"
 #include "FieldPropagator.hh"
+#include "FieldSubstepper.hh"
 #include "MagFieldEquation.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a integrate for a charge in a magnetic field.
+ * Create an integrator for moving a charge in a magnetic field.
  *
  * Example:
  * \code
@@ -33,7 +33,7 @@ namespace celeritas
  */
 template<template<class EquationT> class IntegratorT, class FieldT>
 CELER_FUNCTION decltype(auto)
-make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
+make_mag_field_integrator(FieldT&& field, units::ElementaryCharge charge)
 {
     using Equation_t = MagFieldEquation<FieldT>;
     return IntegratorT<Equation_t>{
@@ -42,7 +42,7 @@ make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a field propagator from an existing integrate.
+ * Create a field propagator from an existing integrator.
  *
  * Example:
  * \code
@@ -63,7 +63,7 @@ make_field_propagator(IntegratorT&& integrate,
                       GTV&& geometry)
 {
     return FieldPropagator{
-        FieldDriver{options, ::celeritas::forward<IntegratorT>(integrate)},
+        FieldSubstepper{options, ::celeritas::forward<IntegratorT>(integrate)},
         particle,
         ::celeritas::forward<GTV>(geometry)};
 }
@@ -91,7 +91,7 @@ make_mag_field_propagator(FieldT&& field,
                           GTV&& geometry)
 {
     return make_field_propagator(
-        make_mag_field_stepper<IntegratorT>(
+        make_mag_field_integrator<IntegratorT>(
             ::celeritas::forward<FieldT>(field), particle.charge()),
         options,
         particle,
