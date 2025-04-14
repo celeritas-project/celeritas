@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"  // IWYU pragma: associated
+#include "celeritas/field/DormandPrinceIntegrator.hh"  // IWYU pragma: associated
 #include "celeritas/field/MakeMagFieldPropagator.hh"  // IWYU pragma: associated
 #include "celeritas/field/UniformField.hh"  // IWYU pragma: associated
 #include "celeritas/field/UniformFieldData.hh"  // IWYU pragma: associated
@@ -28,7 +28,7 @@ struct UniformFieldPropagatorFactory
 
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
-        return make_mag_field_propagator<DormandPrinceStepper>(
+        return make_mag_field_propagator<DormandPrinceIntegrator>(
             UniformField(field.field),
             field.options,
             track.particle(),

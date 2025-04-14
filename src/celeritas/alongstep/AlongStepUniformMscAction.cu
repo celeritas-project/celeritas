@@ -10,7 +10,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"

@@ -56,13 +56,13 @@ namespace celeritas
  *
  * \note This class is based on G4ChordFinder and G4MagIntegratorDriver.
  */
-template<class StepperT>
+template<class IntegratorT>
 class FieldDriver
 {
   public:
-    // Construct with options data and the stepper
+    // Construct with options data and the integrate
     inline CELER_FUNCTION
-    FieldDriver(FieldDriverOptions const& options, StepperT&& perform_step);
+    FieldDriver(FieldDriverOptions const& options, IntegratorT&& integrate);
 
     // For a given trial step, advance by a sub_step within a tolerance error
     inline CELER_FUNCTION DriverResult advance(real_type step,
@@ -97,8 +97,8 @@ class FieldDriver
     // Driver configuration
     FieldDriverOptions const& options_;
 
-    // Stepper for this field driver
-    StepperT apply_step_;
+    // Integrator for this field driver
+    IntegratorT integrate_;
 
     // Maximum chord length based on a previous estimate
     real_type max_chord_{numeric_limits<real_type>::infinity()};
@@ -143,9 +143,9 @@ class FieldDriver
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class StepperT>
-CELER_FUNCTION
-FieldDriver(FieldDriverOptions const&, StepperT&&) -> FieldDriver<StepperT>;
+template<class IntegratorT>
+CELER_FUNCTION FieldDriver(FieldDriverOptions const&,
+                           IntegratorT&&) -> FieldDriver<IntegratorT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -153,11 +153,12 @@ FieldDriver(FieldDriverOptions const&, StepperT&&) -> FieldDriver<StepperT>;
 /*!
  * Construct with options and the step advancement functor.
  */
-template<class StepperT>
+template<class IntegratorT>
 CELER_FUNCTION
-FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
-                                   StepperT&& stepper)
-    : options_(options), apply_step_(::celeritas::forward<StepperT>(stepper))
+FieldDriver<IntegratorT>::FieldDriver(FieldDriverOptions const& options,
+                                      IntegratorT&& integrate)
+    : options_(options)
+    , integrate_(::celeritas::forward<IntegratorT>(integrate))
 {
     CELER_EXPECT(options_);
 }
@@ -178,15 +179,15 @@ FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
  * within a reference accuracy. Otherwise, the more accurate step integration
  * (advance_accurate) will be performed.
  */
-template<class StepperT>
+template<class IntegratorT>
 CELER_FUNCTION DriverResult
-FieldDriver<StepperT>::advance(real_type step, OdeState const& state)
+FieldDriver<IntegratorT>::advance(real_type step, OdeState const& state)
 {
     if (step <= options_.minimum_step)
     {
         // If the input is a very tiny step, do a "quick advance".
         DriverResult result;
-        result.state = apply_step_(step, state).end_state;
+        result.state = integrate_(step, state).end_state;
         result.step = step;
         return result;
     }
@@ -219,8 +220,8 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state)
 /*!
  * Find the maximum step length that satisfies a maximum "miss distance".
  */
-template<class StepperT>
-CELER_FUNCTION auto FieldDriver<StepperT>::find_next_chord(
+template<class IntegratorT>
+CELER_FUNCTION auto FieldDriver<IntegratorT>::find_next_chord(
     real_type step, OdeState const& state) const -> ChordSearch
 {
     // Output with a step control error
@@ -228,12 +229,12 @@ CELER_FUNCTION auto FieldDriver<StepperT>::find_next_chord(
 
     bool succeeded = false;
     auto remaining_steps = options_.max_nsteps;
-    FieldStepperResult result;
+    FieldIntegratorResult result;
 
     do
     {
         // Try with the proposed step
-        result = apply_step_(step, state);
+        result = integrate_(step, state);
 
         // Check whether the distance to the chord is smaller than the
         // reference
@@ -270,8 +271,8 @@ CELER_FUNCTION auto FieldDriver<StepperT>::find_next_chord(
  * sub-steps within a required tolerance until the the accumulated curved path
  * is equal to the input step length.
  */
-template<class StepperT>
-CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
+template<class IntegratorT>
+CELER_FUNCTION DriverResult FieldDriver<IntegratorT>::accurate_advance(
     real_type step, OdeState const& state, real_type hinitial) const
 {
     CELER_ASSERT(step > 0);
@@ -331,10 +332,9 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
  *
  * Helper function for accurate_advance.
  */
-template<class StepperT>
-CELER_FUNCTION auto
-FieldDriver<StepperT>::integrate_step(real_type step,
-                                      OdeState const& state) const -> Integration
+template<class IntegratorT>
+CELER_FUNCTION auto FieldDriver<IntegratorT>::integrate_step(
+    real_type step, OdeState const& state) const -> Integration
 {
     CELER_EXPECT(step > 0);
 
@@ -348,7 +348,7 @@ FieldDriver<StepperT>::integrate_step(real_type step,
     else
     {
         // Do an integration step for a small step (a.k.a quick advance)
-        FieldStepperResult result = apply_step_(step, state);
+        FieldIntegratorResult result = integrate_(step, state);
 
         // Update position and momentum
         output.end.state = result.end_state;
@@ -368,10 +368,9 @@ FieldDriver<StepperT>::integrate_step(real_type step,
  * Advance within a relative truncation error and estimate a good step size
  * for the next integration.
  */
-template<class StepperT>
-CELER_FUNCTION auto
-FieldDriver<StepperT>::one_good_step(real_type step,
-                                     OdeState const& state) const -> Integration
+template<class IntegratorT>
+CELER_FUNCTION auto FieldDriver<IntegratorT>::one_good_step(
+    real_type step, OdeState const& state) const -> Integration
 {
     // Output with a proposed next step
     Integration output;
@@ -380,11 +379,11 @@ FieldDriver<StepperT>::one_good_step(real_type step,
     bool succeeded = false;
     size_type remaining_steps = options_.max_nsteps;
     real_type err_sq;
-    FieldStepperResult result;
+    FieldIntegratorResult result;
 
     do
     {
-        result = apply_step_(step, state);
+        result = integrate_(step, state);
 
         err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
                  / ipow<2>(options_.epsilon_rel_max);
@@ -416,9 +415,9 @@ FieldDriver<StepperT>::one_good_step(real_type step,
 /*!
  * Estimate the new predicted step size based on the error estimate.
  */
-template<class StepperT>
+template<class IntegratorT>
 CELER_FUNCTION real_type
-FieldDriver<StepperT>::new_step_scale(real_type err_sq) const
+FieldDriver<IntegratorT>::new_step_scale(real_type err_sq) const
 {
     CELER_ASSERT(err_sq >= 0);
     return options_.safety

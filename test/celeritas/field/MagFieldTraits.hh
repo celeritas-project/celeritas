@@ -12,7 +12,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 template<class FieldT>
 class MagFieldEquation;
-template<class StepperT>
+template<class IntegratorT>
 class FieldDriver;
 template<class DriverT>
 class FieldPropagator;
@@ -21,16 +21,16 @@ class FieldPropagator;
 /*!
  * Manage class types for different magnetic fields and stepping classes.
  *
- * The Stepper must take an Equation function-like operator as a template
+ * The Integrator must take an Equation function-like operator as a template
  * parameter.
  */
-template<class FieldT, template<class EquationT> class StepperT>
+template<class FieldT, template<class EquationT> class IntegratorT>
 struct MagFieldTraits
 {
     using Field_t = FieldT;
     using Equation_t = MagFieldEquation<Field_t const&>;
-    using Stepper_t = StepperT<Equation_t const&>;
-    using Driver_t = FieldDriver<Stepper_t const&>;
+    using Integrator_t = IntegratorT<Equation_t const&>;
+    using Driver_t = FieldDriver<Integrator_t const&>;
     using Propagator_t = FieldPropagator<Driver_t const&>;
 };
 

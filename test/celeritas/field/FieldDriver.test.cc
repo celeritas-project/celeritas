@@ -15,16 +15,16 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/Types.hh"
 #include "celeritas/field/UniformZField.hh"
-#include "celeritas/field/ZHelixStepper.hh"
+#include "celeritas/field/ZHelixIntegrator.hh"
 #include "celeritas/field/detail/FieldUtils.hh"
 
-#include "DiagnosticStepper.hh"
+#include "DiagnosticIntegrator.hh"
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
@@ -40,7 +40,7 @@ using units::MevMass;
 using units::MevMomentum;
 
 template<class E>
-using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
+using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -103,15 +103,15 @@ class RevolutionFieldDriverTest : public FieldDriverTest
 
 //---------------------------------------------------------------------------//
 
-template<template<class EquationT> class StepperT, class FieldT>
+template<template<class EquationT> class IntegratorT, class FieldT>
 CELER_FUNCTION decltype(auto)
 make_mag_field_driver(FieldT&& field,
                       FieldDriverOptions const& options,
                       units::ElementaryCharge charge)
 {
-    using Driver_t = FieldDriver<StepperT<MagFieldEquation<FieldT>>>;
+    using Driver_t = FieldDriver<IntegratorT<MagFieldEquation<FieldT>>>;
     return Driver_t{options,
-                    make_mag_field_stepper<StepperT>(
+                    make_mag_field_stepper<IntegratorT>(
                         ::celeritas::forward<FieldT>(field), charge)};
 }
 
@@ -146,13 +146,13 @@ struct HorribleZField
 TEST_F(FieldDriverTest, types)
 {
     FieldDriverOptions driver_options;
-    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+    auto driver = make_mag_field_driver<DormandPrinceIntegrator>(
         UniformZField(1), driver_options, electron_charge());
 
     // Make sure object is holding things by value
     EXPECT_TRUE(
         (std::is_same<
-            FieldDriver<DormandPrinceStepper<MagFieldEquation<UniformZField>>>,
+            FieldDriver<DormandPrinceIntegrator<MagFieldEquation<UniformZField>>>,
             decltype(driver)>::value));
     // Size: field vector, q / c, reference to options
 
@@ -175,9 +175,9 @@ TEST_F(FieldDriverTest, unpleasant_field)
     real_type radius = this->calc_curvature(e, field_strength);
 
     // Vary by a factor of 1024 over the radius of curvature
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
         ExpZField{field_strength, radius / 10}, units::ElementaryCharge{-1});
-    FieldDriver driver{driver_options, stepper};
+    FieldDriver driver{driver_options, integrate};
 
     OdeState state;
     state.pos = {radius, 0, 0};
@@ -190,7 +190,7 @@ TEST_F(FieldDriverTest, unpleasant_field)
         distance += result.step;
         state = result.state;
     }
-    EXPECT_EQ(20, stepper.count());
+    EXPECT_EQ(20, integrate.count());
     EXPECT_SOFT_EQ(2.0197620480043263, distance);
 }
 
@@ -206,10 +206,10 @@ TEST_F(FieldDriverTest, horrible_field)
     MevEnergy e{1.0};
     real_type radius = this->calc_curvature(e, field_strength);
 
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
         HorribleZField{field_strength, radius / 10},
         units::ElementaryCharge{-1});
-    FieldDriver driver{driver_options, stepper};
+    FieldDriver driver{driver_options, integrate};
 
     OdeState state;
     state.pos = {radius, 0, -radius / 5};
@@ -222,7 +222,7 @@ TEST_F(FieldDriverTest, horrible_field)
         accum += result.step;
         state = result.state;
     }
-    EXPECT_EQ(9, stepper.count());
+    EXPECT_EQ(9, integrate.count());
     EXPECT_SOFT_EQ(0.2, accum);
     EXPECT_SOFT_NEAR(0,
                      distance(Real3({0.49120878051539413,
@@ -251,18 +251,18 @@ TEST_F(FieldDriverTest, pathological_chord)
     state.mom = this->calc_momentum(
         e, {0, std::sqrt(1 - ipow<2>(real_type{0.2})), 0.2});
 
-    DiagnosticStepper stepper{ZHelixStepper{MagFieldEquation{
+    DiagnosticIntegrator integrate{ZHelixIntegrator{MagFieldEquation{
         UniformZField{field_strength}, units::ElementaryCharge{-1}}}};
-    FieldDriver driver{driver_options, stepper};
+    FieldDriver driver{driver_options, integrate};
 
     std::vector<unsigned int> counts;
     std::vector<real_type> lengths;
 
     for (auto rev : {0.01, 1.0, 2.0, 4.0, 8.0})
     {
-        stepper.reset_count();
+        integrate.reset_count();
         auto end = driver.advance(rev * 2 * constants::pi * radius, state);
-        counts.push_back(stepper.count());
+        counts.push_back(integrate.count());
         lengths.push_back(end.step);
     }
 
@@ -282,7 +282,7 @@ TEST_F(FieldDriverTest, step_counts)
     driver_options.max_nsteps = std::numeric_limits<short int>::max();
 
     real_type field_strength = 1.0 * units::tesla;
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_stepper<DiagnosticDPIntegrator>(
         UniformZField{field_strength}, units::ElementaryCharge{-1});
 
     std::vector<real_type> radii;
@@ -302,14 +302,14 @@ TEST_F(FieldDriverTest, step_counts)
         state.pos = {radius, 0, 0};
         state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
 
-        FieldDriver driver{driver_options, stepper};
+        FieldDriver driver{driver_options, integrate};
         for (int log_len : range(-4, 3).step(2))
         {
             real_type step_len = std::pow(10.0, log_len);
-            stepper.reset_count();
+            integrate.reset_count();
             auto end = driver.advance(step_len * units::centimeter, state);
 
-            counts.push_back(stepper.count());
+            counts.push_back(integrate.count());
             lengths.push_back(end.step);
         }
     }
@@ -341,7 +341,7 @@ TEST_F(FieldDriverTest, step_counts)
 
 TEST_F(RevolutionFieldDriverTest, advance)
 {
-    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+    auto driver = make_mag_field_driver<DormandPrinceIntegrator>(
         UniformZField{1.0 * units::tesla}, driver_options, electron_charge());
 
     // Test parameters and the sub-step size
@@ -357,7 +357,7 @@ TEST_F(RevolutionFieldDriverTest, advance)
 
     real_type total_step_length{0};
 
-    // Try the stepper by hstep for (num_revolutions * num_steps) times
+    // Try the integrate by hstep for (num_revolutions * num_steps) times
     real_type eps = 1.0e-4;
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
@@ -383,7 +383,7 @@ TEST_F(RevolutionFieldDriverTest, advance)
 
 TEST_F(RevolutionFieldDriverTest, accurate_advance)
 {
-    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+    auto driver = make_mag_field_driver<DormandPrinceIntegrator>(
         UniformZField{1.0 * units::tesla}, driver_options, electron_charge());
 
     // Test parameters and the sub-step size
@@ -397,7 +397,7 @@ TEST_F(RevolutionFieldDriverTest, accurate_advance)
 
     OdeState y_expected = y;
 
-    // Try the stepper by hstep for (num_revolutions * num_steps) times
+    // Try the integrate by hstep for (num_revolutions * num_steps) times
     real_type total_curved_length{0};
     real_type eps = std::sqrt(this->coarse_eps);
 
