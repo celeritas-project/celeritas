@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/FieldSubstepper.test.cc
 //---------------------------------------------------------------------------//
+#include "celeritas/field/FieldSubstepper.hh"
 
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
@@ -15,7 +16,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/field/FieldSubstepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/Types.hh"
