@@ -24,16 +24,14 @@ template<typename T>
 struct is_valid_real2
 {
   private:
-    template<typename U>
-    using enable_if_valid_real2_t = std::enable_if_t<
-        std::is_arithmetic_v<std::remove_reference_t<decltype(std::declval<U>()[0])>>
-            && std::is_arithmetic_v<
-                std::remove_reference_t<decltype(std::declval<U>()[1])>>,
-        std::true_type>;
-
     // Matches if T is a valid Real2
-    template<typename U>
-    static enable_if_valid_real2_t<U> match_real2(int);
+    template<typename U,
+             typename = std::enable_if_t<
+                 std::is_arithmetic_v<
+                     std::remove_reference_t<decltype(std::declval<U>()[0])>>
+                 && std::is_arithmetic_v<
+                     std::remove_reference_t<decltype(std::declval<U>()[1])>>>>
+    static std::true_type match_real2(int);
 
     // Fallback; always matches
     template<typename>
