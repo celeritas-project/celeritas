@@ -34,14 +34,12 @@ auto XsGridInserter::operator()(inp::UniformGrid const& lower,
     XsGridRecord grid;
     if (lower)
     {
-        grid.lower.grid = UniformGridData::from_bounds(
-            lower.xmin, lower.xmax, lower.y.size());
+        grid.lower.grid = UniformGridData::from_bounds(lower.x, lower.y.size());
         grid.lower.value = reals_.insert_back(lower.y.begin(), lower.y.end());
     }
     if (upper)
     {
-        grid.upper.grid = UniformGridData::from_bounds(
-            upper.xmin, upper.xmax, upper.y.size());
+        grid.upper.grid = UniformGridData::from_bounds(upper.x, upper.y.size());
         grid.upper.value = reals_.insert_back(upper.y.begin(), upper.y.end());
     }
     CELER_ENSURE(grid);

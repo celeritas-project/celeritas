@@ -111,7 +111,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
 
             // Get the cross section data for this particle and material
             auto const& grid = xs_tables_[par_idx]->physics_vectors[mat_idx];
-            CELER_ASSERT(std::exp(grid.xmin) > 0 && grid.xmax > grid.xmin);
+            CELER_ASSERT(grid && std::exp(grid.x[Bound::lo]) > 0);
 
             auto grid_id = insert(grid);
             CELER_ASSERT(grid_id.get() == xs.size());
@@ -129,14 +129,13 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
  */
 auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
 {
-    EnergyBounds result;
-    {
+    auto x = [this] {
         // Get initial high/low energy limits
         CELER_ASSERT(!xs_tables_[0]->physics_vectors.empty());
         auto const& grid = xs_tables_[0]->physics_vectors[0];
         CELER_ASSERT(grid);
-        result = {Energy(std::exp(grid.xmin)), Energy(std::exp(grid.xmax))};
-    }
+        return grid.x;
+    }();
     for (size_type par_idx : range(par_ids_.size()))
     {
         auto const& phys_vectors = xs_tables_[par_idx]->physics_vectors;
@@ -145,16 +144,14 @@ auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
             // Check that the limits are the same for all materials and
             // particles; otherwise we need to change \c *Msc::is_applicable to
             // look up the particle and material
-            CELER_VALIDATE(
-                result[0].value() == real_type(std::exp(grid.xmin))
-                    && result[1].value() == real_type(std::exp(grid.xmax)),
-                << "multiple scattering cross section energy "
-                   "limits are inconsistent across particles "
-                   "and/or materials");
+            CELER_VALIDATE(x[Bound::lo] == grid.x[Bound::lo]
+                               && x[Bound::hi] == grid.x[Bound::hi],
+                           << "multiple scattering cross section energy "
+                              "limits are inconsistent across particles "
+                              "and/or materials");
         }
     }
-    CELER_ENSURE(result[0] < result[1]);
-    return result;
+    return {Energy(std::exp(x[Bound::lo])), Energy(std::exp(x[Bound::hi]))};
 }
 
 //---------------------------------------------------------------------------//

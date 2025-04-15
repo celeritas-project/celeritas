@@ -39,13 +39,11 @@ TEST_F(GridInserterTest, xs)
     XsGridInserter insert(&reals, &grids);
     {
         inp::UniformGrid lower;
-        lower.xmin = 1e-2;
-        lower.xmax = 1e-1;
+        lower.x = {1e-2, 1e-1};
         lower.y = {10, 20};
 
         inp::UniformGrid upper;
-        upper.xmin = 1e-1;
-        upper.xmax = 1;
+        upper.x = {1e-1, 1};
         upper.y = {20, 3};
 
         auto idx = insert(lower, upper);
@@ -60,8 +58,7 @@ TEST_F(GridInserterTest, xs)
     }
     {
         inp::UniformGrid grid;
-        grid.xmin = 0;
-        grid.xmax = 10;
+        grid.x = {0, 10};
         grid.y = {1, 2, 4, 6, 8};
 
         auto idx = insert(grid);
@@ -83,8 +80,7 @@ TEST_F(GridInserterTest, uniform)
     UniformGridInserter insert(&reals, &grids);
 
     inp::UniformGrid grid;
-    grid.xmin = 0.0;
-    grid.xmax = 10.0;
+    grid.x = {0.0, 10.0};
     grid.y = {1, 2, 4, 6, 8};
 
     auto idx = insert(grid);

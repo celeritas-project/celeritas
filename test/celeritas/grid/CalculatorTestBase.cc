@@ -84,10 +84,9 @@ void CalculatorTestBase::build_impl(GridInput grid, GridInput grid_scaled, BC bc
     if (!grid_scaled.value.empty())
     {
         // Scale cross section values by energy
-        auto loge_grid
-            = UniformGridData::from_bounds(std::log(grid_scaled.emin),
-                                           std::log(grid_scaled.emax),
-                                           grid_scaled.value.size());
+        auto loge_grid = UniformGridData::from_bounds(
+            {std::log(grid_scaled.emin), std::log(grid_scaled.emax)},
+            grid_scaled.value.size());
         UniformGrid loge{loge_grid};
         for (auto i : range(loge.size()))
         {
@@ -121,7 +120,7 @@ void CalculatorTestBase::build_grid(UniformGridRecord& data,
     CollectionBuilder build(&value_storage_);
 
     data.grid = UniformGridData::from_bounds(
-        std::log(grid.emin), std::log(grid.emax), grid.value.size());
+        {std::log(grid.emin), std::log(grid.emax)}, grid.value.size());
     data.value = build.insert_back(grid.value.begin(), grid.value.end());
     data.spline_order = grid.spline_order;
 

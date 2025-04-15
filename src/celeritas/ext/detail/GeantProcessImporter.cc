@@ -385,8 +385,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
     auto size = pv.GetVectorLength();
 
     inp::UniformGrid grid;
-    grid.xmin = std::log(pv.Energy(0) * x_scaling);
-    grid.xmax = std::log(pv.Energy(size - 1) * x_scaling);
+    grid.x = {std::log(pv.Energy(0) * x_scaling),
+              std::log(pv.Energy(size - 1) * x_scaling)};
     grid.y.resize(size);
 
     double delta

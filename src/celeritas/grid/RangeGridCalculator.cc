@@ -42,8 +42,7 @@ RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
     HostCRef host_ref;
 
     UniformGridRecord data;
-    data.grid = UniformGridData::from_bounds(
-        dedx_grid.xmin, dedx_grid.xmax, dedx_grid.y.size());
+    data.grid = UniformGridData::from_bounds(dedx_grid.x, dedx_grid.y.size());
 
     auto calc_dedx = [&] {
         // Create a copy of the grid data, with the derivatives if needed
@@ -64,8 +63,7 @@ RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
     UniformGrid loge_grid(data.grid);
 
     inp::UniformGrid result;
-    result.xmin = dedx_grid.xmin;
-    result.xmax = dedx_grid.xmax;
+    result.x = dedx_grid.x;
     result.y.resize(dedx_grid.y.size());
 
     constexpr real_type delta

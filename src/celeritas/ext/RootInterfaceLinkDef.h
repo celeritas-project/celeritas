@@ -53,6 +53,7 @@
 #pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::TwodGrid+;
 #pragma link C++ class celeritas::inp::UniformGrid+;
+#pragma link C++ class celeritas::inp::UniformGrid::GridBound+;
 
 // Event data used by Geant4/Celeritas offloading applications
 #pragma link C++ class celeritas::EventHitData+;

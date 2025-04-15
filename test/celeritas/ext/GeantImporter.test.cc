@@ -721,8 +721,8 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
 
         auto const& steel = dedx.physics_vectors.back();
         ASSERT_EQ(85, steel.y.size());
-        EXPECT_SOFT_EQ(1e-4, std::exp(steel.xmin));
-        EXPECT_SOFT_EQ(1e8, std::exp(steel.xmax));
+        EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_NEAR(839.66835335480653, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(11.378226755591747, to_inv_cm(steel.y.back()), tol);
     }
@@ -736,8 +736,8 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
 
         auto const& steel = xs.physics_vectors.back();
         ASSERT_EQ(54, steel.y.size());
-        EXPECT_SOFT_NEAR(2.616556310615175, std::exp(steel.xmin), tol);
-        EXPECT_SOFT_EQ(1e8, std::exp(steel.xmax));
+        EXPECT_SOFT_NEAR(2.616556310615175, std::exp(steel.x[Bound::lo]), tol);
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_NEAR(0.1905939505829807, to_inv_cm(steel.y[1]), tol);
         EXPECT_SOFT_NEAR(0.4373910150880348, to_inv_cm(steel.y.back()), tol);
@@ -926,8 +926,8 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto const& steel = dedx.physics_vectors.back();
         ASSERT_EQ(85, steel.y.size());
-        EXPECT_SOFT_EQ(1e-4, std::exp(steel.xmin));
-        EXPECT_SOFT_EQ(1e8, std::exp(steel.xmax));
+        EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_NEAR(83.221648535690946, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(11.40198961519433, to_inv_cm(steel.y.back()), tol);
     }
@@ -941,8 +941,8 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto const& steel = xs.physics_vectors.back();
         ASSERT_EQ(45, steel.y.size());
-        EXPECT_SOFT_NEAR(54.542938808612199, std::exp(steel.xmin), tol);
-        EXPECT_SOFT_EQ(1e8, std::exp(steel.xmax));
+        EXPECT_SOFT_NEAR(54.542938808612199, std::exp(steel.x[Bound::lo]), tol);
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_NEAR(0.10167398809855273, to_inv_cm(steel.y[1]), tol);
         EXPECT_SOFT_NEAR(0.47315182268065914, to_inv_cm(steel.y.back()), tol);
@@ -1498,8 +1498,8 @@ TEST_F(OneSteelSphere, physics)
         ASSERT_EQ(2, xs.physics_vectors.size());
         auto const& steel = xs.physics_vectors.back();
         ASSERT_EQ(29, steel.y.size());
-        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.xmin));
-        EXPECT_SOFT_EQ(1e8, std::exp(steel.xmax));
+        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check the ionization electron macro xs
@@ -1514,8 +1514,8 @@ TEST_F(OneSteelSphere, physics)
         ASSERT_EQ(27, steel.y.size());
         // Starts at min primary energy = 2 * electron production cut for
         // primary electrons
-        EXPECT_SOFT_EQ(19099.303271375884, std::exp(steel.xmin));
-        EXPECT_SOFT_EQ(1e8, std::exp(steel.xmax));
+        EXPECT_SOFT_EQ(19099.303271375884, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check the ionization positron macro xs
@@ -1530,8 +1530,8 @@ TEST_F(OneSteelSphere, physics)
         ASSERT_EQ(29, steel.y.size());
         // Start at min primary energy = electron production cut for primary
         // positrons
-        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.xmin));
-        EXPECT_SOFT_EQ(1e8, std::exp(steel.xmax));
+        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check Urban MSC bounds
@@ -1541,8 +1541,8 @@ TEST_F(OneSteelSphere, physics)
         for (auto const& pv : msc.xs_table.physics_vectors)
         {
             ASSERT_TRUE(pv);
-            EXPECT_SOFT_EQ(1e-4, std::exp(pv.xmin));
-            EXPECT_SOFT_EQ(1e2, std::exp(pv.xmax));
+            EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::hi]));
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
         EXPECT_SOFT_NEAR(0.23785296407525, to_inv_cm(steel.y.front()), tol);
@@ -1556,8 +1556,8 @@ TEST_F(OneSteelSphere, physics)
         for (auto const& pv : msc.xs_table.physics_vectors)
         {
             ASSERT_TRUE(pv);
-            EXPECT_SOFT_EQ(1e2, std::exp(pv.xmin));
-            EXPECT_SOFT_EQ(1e8, std::exp(pv.xmax));
+            EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
         EXPECT_SOFT_NEAR(114.93265072267, to_inv_cm(steel.y.front()), tol);
@@ -1598,8 +1598,8 @@ TEST_F(OneSteelSphereGG, physics)
         EXPECT_TRUE(msc);
         for (auto const& pv : msc.xs_table.physics_vectors)
         {
-            EXPECT_SOFT_EQ(1e-4, std::exp(pv.xmin));
-            EXPECT_SOFT_EQ(1e8, std::exp(pv.xmax));
+            EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));
         }
     }
 }

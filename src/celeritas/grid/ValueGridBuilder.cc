@@ -49,12 +49,13 @@ ValueGridXsBuilder::ValueGridXsBuilder(inp::UniformGrid lower,
                                        inp::UniformGrid upper)
     : lower_(std::move(lower)), upper_(std::move(upper))
 {
-    CELER_EXPECT((lower_ || upper_)
-                 && (!lower_ || !upper_ || lower_.xmax == upper_.xmin));
-    CELER_EXPECT(!lower_
-                 || (std::exp(lower_.xmin) > 0 && lower_.y.size() >= 2));
-    CELER_EXPECT(!upper_
-                 || (std::exp(upper_.xmin) > 0 && upper_.y.size() >= 2));
+    CELER_EXPECT(
+        (lower_ || upper_)
+        && (!lower_ || !upper_ || lower_.x[Bound::hi] == upper_.x[Bound::lo]));
+    CELER_EXPECT(
+        !lower_ || (std::exp(lower_.x[Bound::lo]) > 0 && lower_.y.size() >= 2));
+    CELER_EXPECT(
+        !upper_ || (std::exp(upper_.x[Bound::lo]) > 0 && upper_.y.size() >= 2));
     CELER_EXPECT(is_nonnegative(make_span(lower_.y)));
     CELER_EXPECT(is_nonnegative(make_span(upper_.y)));
 }
@@ -77,7 +78,8 @@ auto ValueGridXsBuilder::build(XsGridInserter insert) const -> ValueGridId
 ValueGridLogBuilder::ValueGridLogBuilder(inp::UniformGrid grid)
     : grid_(std::move(grid))
 {
-    CELER_EXPECT(grid_ && std::exp(grid_.xmin) > 0 && grid_.y.size() >= 2);
+    CELER_EXPECT(grid_);
+    CELER_EXPECT(std::exp(grid_.x[Bound::lo]) > 0 && grid_.y.size() >= 2);
 }
 
 //---------------------------------------------------------------------------//

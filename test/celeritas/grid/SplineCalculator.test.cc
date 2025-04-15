@@ -125,7 +125,7 @@ TEST_F(SplineCalculatorTest, cubic)
     grid.emax = 1e4;
 
     auto loge_grid = UniformGridData::from_bounds(
-        std::log(grid.emin), std::log(grid.emax), 8);
+        {std::log(grid.emin), std::log(grid.emax)}, 8);
     UniformGrid loge(loge_grid);
     for (auto i : range(loge.size()))
     {

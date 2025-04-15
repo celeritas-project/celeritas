@@ -190,8 +190,8 @@ void ImportDataConverter::operator()(ImportPhysicsTable* data)
     {
         for (auto& v : data->physics_vectors)
         {
-            v.xmin *= units;
-            v.xmax *= units;
+            v.x[Bound::lo] *= units;
+            v.x[Bound::hi] *= units;
         }
     }
 

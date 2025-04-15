@@ -30,8 +30,7 @@ auto UniformGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
     CELER_EXPECT(grid);
 
     UniformGridRecord data;
-    data.grid
-        = UniformGridData::from_bounds(grid.xmin, grid.xmax, grid.y.size());
+    data.grid = UniformGridData::from_bounds(grid.x, grid.y.size());
     data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
     return grids_.push_back(data);
 }

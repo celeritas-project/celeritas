@@ -65,8 +65,7 @@ class RangeGridCalculatorTest : public Test
                real_type energy_max,
                Span<real_type const> dedx)
     {
-        dedx_grid.xmin = std::log(energy_min);
-        dedx_grid.xmax = std::log(energy_max);
+        dedx_grid.x = {std::log(energy_min), std::log(energy_max)};
         dedx_grid.y = {dedx.begin(), dedx.end()};
         CELER_ENSURE(dedx_grid);
     }

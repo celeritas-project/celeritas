@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/Types.hh"
 
@@ -61,14 +62,17 @@ struct Grid
  */
 struct UniformGrid
 {
+    using GridBound = EnumArray<Bound, double>;
     using VecDbl = std::vector<double>;
 
-    double xmin{};
-    double xmax{};
+    GridBound x{};
     VecDbl y;
     Interpolation interpolation{};
 
-    explicit operator bool() const { return !y.empty() && xmax > xmin; }
+    explicit operator bool() const
+    {
+        return !y.empty() && x[Bound::hi] > x[Bound::lo];
+    }
 };
 
 //---------------------------------------------------------------------------//

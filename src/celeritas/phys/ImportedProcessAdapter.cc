@@ -35,8 +35,10 @@ bool is_contiguous_increasing(inp::UniformGrid const& lower,
                               inp::UniformGrid const& upper)
 {
     return lower.y.size() >= 2 && upper.y.size() >= 2
-           && std::exp(lower.xmin) > 0 && lower.xmax > lower.xmin
-           && upper.xmax > upper.xmin && soft_equal(lower.xmax, upper.xmin);
+           && std::exp(lower.x[Bound::lo]) > 0
+           && lower.x[Bound::hi] > lower.x[Bound::lo]
+           && upper.x[Bound::hi] > upper.x[Bound::lo]
+           && soft_equal(lower.x[Bound::hi], upper.x[Bound::lo]);
 }
 
 //---------------------------------------------------------------------------//
@@ -241,9 +243,9 @@ auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
         auto lower = get_vector(ids.lambda);
         auto upper = get_vector(ids.lambda_prim);
         CELER_ASSERT(is_contiguous_increasing(lower, upper));
-        CELER_ASSERT(soft_equal(lower.y.back(),
-                                upper.y.front() / std::exp(upper.xmin)));
-        lower.xmax = upper.xmin;
+        CELER_ASSERT(soft_equal(
+            lower.y.back(), upper.y.front() / std::exp(upper.x[Bound::lo])));
+        lower.x[Bound::hi] = upper.x[Bound::lo];
         builders[ValueGridType::macro_xs]
             = std::make_unique<ValueGridXsBuilder>(std::move(lower),
                                                    std::move(upper));
