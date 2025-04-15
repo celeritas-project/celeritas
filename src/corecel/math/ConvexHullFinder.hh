@@ -37,7 +37,7 @@ class ConvexHullFinder
     //!@}
 
   public:
-    // Contruct with vector of ordered points
+    // Construct with vector of ordered points
     explicit ConvexHullFinder(Points const& points);
 
     // Return the convex hull
@@ -76,7 +76,7 @@ class ConvexHullFinder
 
 //---------------------------------------------------------------------------//
 /*!
- * Contruct with vector of ordered points.
+ * Construct with vector of ordered points.
  *
  * This function generates a mask that is used to calculate the convex hull
  * and associated concave regions. Note that this function does not enforce
