@@ -31,30 +31,31 @@ class ConvexHullFinder
   public:
     //!@{
     //! \name Type aliases
-    using Real2 = celeritas::Array<T, 2>;
-    using Points = std::vector<Real2>;
-    using ConcaveRegions = std::vector<Points>;
+    using real_type = T;
+    using Real2 = celeritas::Array<real_type, 2>;
+    using VecReal2 = std::vector<Real2>;
+    using VecVecReal2 = std::vector<VecReal2>;
     //!@}
 
   public:
     // Construct with vector of ordered points
-    explicit ConvexHullFinder(Points const& points);
+    explicit ConvexHullFinder(VecReal2 const& points);
 
     // Make the convex hull
-    Points make_convex_hull() const;
+    VecReal2 make_convex_hull() const;
 
     // Calculate the concave regions, each supplied in clockwise order
-    ConcaveRegions calc_concave_regions() const;
+    VecVecReal2 calc_concave_regions() const;
 
   private:
     /// TYPES ///
     using ConvexMask = std::vector<bool>;
 
     /// DATA ///
-    Points const& points_;
+    VecReal2 const& points_;
     ConvexMask convex_mask_;
     size_type start_index_;
-    SoftZero<T> soft_zero_;
+    SoftZero<real_type> soft_zero_;
 
     /// HELPER FUNCTIONS ///
 
@@ -86,7 +87,7 @@ class ConvexHullFinder
  * ordering.
  */
 template<class T>
-ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::Points const& points)
+ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points)
     : points_{points}
 {
     CELER_EXPECT(points_.size() > 2);
@@ -99,11 +100,11 @@ ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::Points const& points)
  * Make the convex hull.
  */
 template<class T>
-auto ConvexHullFinder<T>::make_convex_hull() const -> Points
+auto ConvexHullFinder<T>::make_convex_hull() const -> VecReal2
 {
     CELER_EXPECT(convex_mask_.size() > 2);
 
-    Points convex_hull;
+    VecReal2 convex_hull;
     for (auto i : range(convex_mask_.size()))
     {
         if (convex_mask_[i])
@@ -132,10 +133,10 @@ auto ConvexHullFinder<T>::make_convex_hull() const -> Points
  * triangle formed by (1, 2, 3).
  */
 template<class T>
-auto ConvexHullFinder<T>::calc_concave_regions() const -> ConcaveRegions
+auto ConvexHullFinder<T>::calc_concave_regions() const -> VecVecReal2
 {
     CELER_EXPECT(convex_mask_.size() > 2);
-    ConcaveRegions concave_regions;
+    VecVecReal2 concave_regions;
 
     // Since the original shape was supplied in clockwise order, we must
     // traverse the points backwards in order to obtain the concave regions in
@@ -149,7 +150,7 @@ auto ConvexHullFinder<T>::calc_concave_regions() const -> ConcaveRegions
         }
         else
         {
-            Points concave_region;
+            VecReal2 concave_region;
             concave_region.push_back(points_[calc_next(i)]);
             do
             {
