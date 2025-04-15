@@ -134,12 +134,12 @@ MscStepToGeo::operator()(real_type tstep) const -> result_type
 
     result_type result;
     result.alpha = MscStep::small_step_alpha();
-    if (tstep < shared_.params.min_step())
+    if (tstep < shared_.params.min_step)
     {
         // Geometrical path length = true path length for a very small step
         result.step = tstep;
     }
-    else if (tstep < range_ * shared_.params.dtrl())
+    else if (tstep < range_ * shared_.params.small_range_frac)
     {
         // Small enough distance to assume cross section is constant
         // over the step: z = lambda * (1 - exp(-tau))

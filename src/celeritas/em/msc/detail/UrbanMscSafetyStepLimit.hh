@@ -117,7 +117,7 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
 {
     CELER_EXPECT(safety >= 0);
     CELER_EXPECT(safety < helper_.max_step());
-    CELER_EXPECT(max_step_ > shared_.params.limit_min_fix());
+    CELER_EXPECT(max_step_ > shared_.params.limit_min_fix);
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
     bool use_safety_plus = physics->particle_scalars().step_limit_algorithm
@@ -228,15 +228,15 @@ CELER_FUNCTION real_type UrbanMscSafetyStepLimit::calc_limit_min(
     // Scale based on particle type and effective atomic number
     xm *= helper_.scaled_zeff();
 
-    if (inc_energy < shared_.params.min_scaling_energy())
+    if (inc_energy < shared_.params.min_scaling_energy)
     {
         // Energy is below a pre-defined limit
         xm *= (real_type(0.5)
                + real_type(0.5) * value_as<Energy>(inc_energy)
-                     / value_as<Energy>(shared_.params.min_scaling_energy()));
+                     / value_as<Energy>(shared_.params.min_scaling_energy));
     }
 
-    return max<real_type>(xm, shared_.params.limit_min_fix());
+    return max<real_type>(xm, shared_.params.limit_min_fix);
 }
 
 //---------------------------------------------------------------------------//

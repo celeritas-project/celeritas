@@ -178,7 +178,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     CELER_EXPECT(safety_ >= 0);
     CELER_EXPECT(geom_path_ > 0);
     CELER_EXPECT(true_path_ >= geom_path_);
-    CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix()
+    CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix
                  || !is_displaced_);
     CELER_EXPECT(!is_displaced_ || safety > 0);
 
@@ -200,7 +200,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         // Lazy calculation of end energy
         end_energy_ = value_as<Energy>(helper.calc_end_energy(true_path_));
 
-        if (Energy{end_energy_} < shared_.params.min_sampling_energy())
+        if (Energy{end_energy_} < shared_.params.min_sampling_energy)
         {
             // Ending energy is very low
             return true;
@@ -245,7 +245,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                 // Unlikely: MSC range cache wasn't initialized by
                 // UrbanMscStepLimit
                 CELER_ASSERT(!is_displaced_);
-                limit_min_ = UrbanMscParameters::limit_min();
+                limit_min_ = UrbanMscParameters::limit_min;
             }
             limit_min_ = min(limit_min_, physics.scalars().lambda_limit);
 

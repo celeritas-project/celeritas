@@ -267,7 +267,7 @@ TEST_F(UrbanMscTest, step_conversion)
         MscStepToGeo calc_geom_path(
             msc_params_->host_ref(), helper, energy, lambda, range);
 
-        LogInterp calc_pstep({0, real_type{0.9} * params.limit_min_fix()},
+        LogInterp calc_pstep({0, real_type{0.9} * params.limit_min_fix},
                              {static_cast<real_type>(pstep_points), range});
         for (auto ppt : celeritas::range(pstep_points + 1))
         {
@@ -291,7 +291,7 @@ TEST_F(UrbanMscTest, step_conversion)
             MscStepFromGeo geo_to_true(
                 msc_params_->host_ref().params, msc_step, range, lambda);
             LogInterp calc_gstep(
-                {0, real_type{0.9} * params.limit_min_fix()},
+                {0, real_type{0.9} * params.limit_min_fix},
                 {static_cast<real_type>(gstep_points), gp.step});
             for (auto gpt : celeritas::range(gstep_points + 1))
             {
@@ -404,7 +404,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
             for (int i = 0; i < num_samples; ++i)
             {
                 real_type step = phys.dedx_range();
-                EXPECT_FALSE(step < msc_params.params.limit_min_fix());
+                EXPECT_FALSE(step < msc_params.params.limit_min_fix);
                 if (alg == Algorithm::minimal)
                 {
                     // Minimal step limit algorithm
@@ -626,7 +626,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         bool displaced;
         std::tie(true_path, displaced) = [&]() -> std::pair<real_type, bool> {
             EXPECT_FALSE(phys.msc_range());
-            if (this_pstep < msc_params.params.limit_min_fix()
+            if (this_pstep < msc_params.params.limit_min_fix
                 || safety >= helper.max_step())
             {
                 // Small step or far from boundary
