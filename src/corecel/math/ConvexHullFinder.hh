@@ -269,7 +269,8 @@ size_type ConvexHullFinder<T>::calc_next(size_type i) const
 template<class T>
 size_type ConvexHullFinder<T>::calc_previous(size_type i) const
 {
-    return (points_.size() + i - 1) % points_.size();
+    // add points_.size() before subtracting 1 to avoid a negative unsigned int
+    return (i + points_.size() - 1) % points_.size();
 }
 
 //---------------------------------------------------------------------------//
