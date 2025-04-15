@@ -149,8 +149,7 @@ ImportProcess InteractorHostBase::make_import_process(
         m.high_energy_limit = model_limits[i][1];
         for (ImportModelMaterial& imm : m.materials)
         {
-            imm.energy_min = m.low_energy_limit;
-            imm.energy_max = m.high_energy_limit;
+            imm.energy = {m.low_energy_limit, m.high_energy_limit};
         }
         CELER_ASSERT(m);
         result.models.push_back(std::move(m));

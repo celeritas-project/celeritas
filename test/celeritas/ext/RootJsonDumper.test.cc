@@ -228,13 +228,17 @@ TEST_F(RootJsonDumperTest, all)
       "model_class" : 13,
       "materials" : [{
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy_min" : 1e-4,
-        "energy_max" : 100000000,
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [1e-4, 100000000]
+        },
         "micro_xs" : []
       }, {
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy_min" : 1e-4,
-        "energy_max" : 100000000,
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [1e-4, 100000000]
+        },
         "micro_xs" : []
       }],
       "low_energy_limit" : 1e-4,
@@ -253,8 +257,10 @@ TEST_F(RootJsonDumperTest, all)
       "model_class" : 20,
       "materials" : [{
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy_min" : 100,
-        "energy_max" : 100000000,
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [100, 100000000]
+        },
         "micro_xs" : [{
           "_typename" : "celeritas::inp::UniformGrid",
           "xmin" : 4.60517018598809,
@@ -269,8 +275,10 @@ TEST_F(RootJsonDumperTest, all)
         }]
       }, {
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy_min" : 100,
-        "energy_max" : 100000000,
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [100, 100000000]
+        },
         "micro_xs" : [{
           "_typename" : "celeritas::inp::UniformGrid",
           "xmin" : 4.60517018598809,

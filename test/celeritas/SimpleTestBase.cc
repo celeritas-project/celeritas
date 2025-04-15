@@ -109,8 +109,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         kn_model.materials.resize(this->material()->size());
         for (ImportModelMaterial& imm : kn_model.materials)
         {
-            imm.energy_min = 1e-4;
-            imm.energy_max = 1e8;
+            imm.energy = {1e-4, 1e8};
         }
         compton_data.models.push_back(std::move(kn_model));
     }

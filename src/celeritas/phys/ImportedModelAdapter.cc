@@ -103,11 +103,10 @@ auto ImportedModelAdapter::energy_grid_bounds(
 
     auto const& xs = this->get_model(pid).materials;
     CELER_ASSERT(mid < xs.size());
-    EnergyBounds result{Energy(xs[mid.get()].energy_min),
-                        Energy(xs[mid.get()].energy_max)};
+    auto const& energy = xs[mid.get()].energy;
 
-    CELER_ENSURE(result[0] < result[1]);
-    return result;
+    CELER_ENSURE(energy[Bound::lo] < energy[Bound::hi]);
+    return {Energy(energy[Bound::lo]), Energy(energy[Bound::hi])};
 }
 
 //---------------------------------------------------------------------------//

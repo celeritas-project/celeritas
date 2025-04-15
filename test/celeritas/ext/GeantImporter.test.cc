@@ -197,8 +197,8 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
     {
         result.size.push_back(
             mat.micro_xs.empty() ? 0 : mat.micro_xs.front().y.size());
-        result.energy.push_back(mat.energy_min);
-        result.energy.push_back(mat.energy_max);
+        result.energy.push_back(mat.energy[Bound::lo]);
+        result.energy.push_back(mat.energy[Bound::hi]);
     }
 
     // Skip export of first material, which is usually vacuum

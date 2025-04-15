@@ -328,8 +328,9 @@ Energy grids per material:
                 = geo_materials[phys_materials[m].geo_material_id];
             cout << "| " << setw(20) << std::left << geo_mat.name << " | "
                  << setw(5) << size << " | " << setprecision(3) << setw(12)
-                 << setprecision(3) << setw(12) << mat.energy_min << " -> "
-                 << setprecision(3) << setw(12) << mat.energy_max << " |\n";
+                 << setprecision(3) << setw(12) << mat.energy[Bound::lo]
+                 << " -> " << setprecision(3) << setw(12)
+                 << mat.energy[Bound::hi] << " |\n";
         }
         cout << "\n";
 

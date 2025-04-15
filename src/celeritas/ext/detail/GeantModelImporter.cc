@@ -185,8 +185,7 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
             GeantMicroXsCalculator calc_xs(model, *g4particle_, g4mat, cutoff);
             calc_xs(energy, &model_mat.micro_xs);
         }
-        model_mat.energy_min = min_energy;
-        model_mat.energy_max = max_energy;
+        model_mat.energy = {min_energy, max_energy};
     }
 
     CELER_ENSURE(result);
