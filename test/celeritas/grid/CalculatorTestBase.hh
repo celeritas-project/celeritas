@@ -13,6 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/inp/Grid.hh"
 
 #include "Test.hh"
 
@@ -33,26 +34,14 @@ class CalculatorTestBase : public Test
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using Data
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
-    using SpanReal = Span<real_type>;
-    using VecReal = std::vector<real_type>;
     //!@}
-
-    struct GridInput
-    {
-        real_type emin{0};
-        real_type emax{0};
-        VecReal value;
-        size_type spline_order{1};
-    };
 
   public:
     // Construct from grid bounds and cross section values
-    void build(GridInput grid, GridInput grid_scaled);
-    void build_spline(GridInput grid, GridInput grid_scaled, BC bc);
+    void build(inp::UniformGrid lower, inp::UniformGrid upper);
 
     // Construct without scaled values
-    void build(GridInput grid);
-    void build_spline(GridInput grid, BC bc);
+    void build(inp::UniformGrid grid);
 
     XsGridRecord const& data() const { return data_; }
     Data const& values() const { return value_ref_; }
@@ -62,9 +51,7 @@ class CalculatorTestBase : public Test
     Values value_storage_;
     Data value_ref_;
 
-    void build_impl(GridInput grid, GridInput grid_scaled, BC bc);
-    void build_impl(GridInput grid, BC bc);
-    void build_grid(UniformGridRecord& data, GridInput const& grid, BC bc);
+    void build_grid(UniformGridRecord& data, inp::UniformGrid const& grid);
 };
 
 //---------------------------------------------------------------------------//

@@ -23,10 +23,9 @@ class RangeCalculatorTest : public CalculatorTestBase
     void SetUp() override
     {
         // Energy from 1e1 to 1e4 MeV with 3 bins (4 points)
-        GridInput grid;
-        grid.emin = 10;
-        grid.emax = 1e4;
-        grid.value = VecReal{0.5, 5, 50, 500};
+        inp::UniformGrid grid;
+        grid.x = {10, 1e4};
+        grid.y = {0.5, 5, 50, 500};
         this->build(grid);
     }
 };

@@ -242,6 +242,7 @@ auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
         // Both unscaled and scaled values are present
         auto lower = get_vector(ids.lambda);
         auto upper = get_vector(ids.lambda_prim);
+        CELER_ASSERT(lower && upper);
         CELER_ASSERT(is_contiguous_increasing(lower, upper));
         CELER_ASSERT(soft_equal(
             lower.y.back(), upper.y.front() / std::exp(upper.x[Bound::lo])));
