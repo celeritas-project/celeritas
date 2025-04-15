@@ -93,12 +93,11 @@ inline BuildLogicResult build_logic(BuildLogicPolicy&& policy, NodeId n)
     static_assert(std::is_invocable_v<BuildLogicPolicy, NodeId>);
     static_assert(std::is_rvalue_reference_v<BuildLogicPolicy&&>,
                   "Will move from policy: rvalue ref expected");
+    CELER_EXPECT(policy.empty());
 
     // Construct logic vector as local surface IDs
-    auto& lgc = policy.logic();
-    CELER_EXPECT(lgc.empty());
     policy(n);
-
+    auto lgc = std::forward<BuildLogicPolicy>(policy).logic();
     return {remap_faces(lgc), std::move(lgc)};
 }
 
@@ -144,8 +143,15 @@ class BaseBuildLogicPolicy
     inline void operator()(Aliased const&);
     //!@}
 
+    //! Whether no logic has been filled
+    bool empty() const { return logic_.empty(); }
+
     //! Access the logic expression
-    VecLogic& logic() { return logic_; }
+    VecLogic&& logic() && { return std::move(logic_); }
+
+  protected:
+    //! Access the logic expression directly
+    VecLogic& logic() & { return logic_; }
 
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;

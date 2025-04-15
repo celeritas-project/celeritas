@@ -11,6 +11,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
@@ -275,8 +276,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa = detail::LevelStateAccessor(
-            &result_ref, TrackSlotId{i}, LevelId{0});
+        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, LevelId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -299,14 +299,14 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);
+    CELER_EXPECT(this->geometry()->max_depth() == 1);
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
     for (auto i : range(host.size()))
     {
         auto tid = TrackSlotId{i};
-        // TODO Update for multiple universes
-        detail::LevelStateAccessor lsa(&host, tid, LevelId{0});
+        LevelStateAccessor lsa(&host, tid, LevelId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())

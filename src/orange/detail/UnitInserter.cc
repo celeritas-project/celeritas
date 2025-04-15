@@ -19,6 +19,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
@@ -335,8 +336,27 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
-    CELER_VALIDATE(std::all_of(bboxes.begin(), bboxes.end(), LogicalTrue{}),
-                   << "not all bounding boxes have been assigned");
+    {
+        std::vector<size_type> invalid;
+        for (auto i : range(bboxes.size()))
+        {
+            if (!bboxes[i] || is_half_inf(bboxes[i]))
+            {
+                invalid.push_back(i);
+            }
+        }
+        CELER_VALIDATE(
+            invalid.empty(),
+            << "invalid (null or half-infinite) bounding boxes in '"
+            << inp.label << "': "
+            << join_stream(invalid.begin(),
+                           invalid.end(),
+                           ", ",
+                           [&inp, &bboxes](std::ostream& os, size_type i) {
+                               os << i << "='" << inp.volumes[i].label
+                                  << "': " << bboxes[i];
+                           }));
+    }
     unit.bih_tree = build_bih_tree_(std::move(bboxes), implicit_vol_ids);
 
     // Save connectivity

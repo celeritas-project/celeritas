@@ -106,7 +106,8 @@ if(CELERITAS_USE_VecGeom)
   endif()
   celeritas_add_device_test(vg/Vecgeom
     LINK_LIBRARIES
-      VecGeom::vecgeom Celeritas::ExtGeant4Geo nlohmann_json::nlohmann_json
+      VecGeom::vecgeom Celeritas::ExtGeant4Geo Celeritas::ExtThrust
+      nlohmann_json::nlohmann_json
     FILTER ${_vecgeom_tests}
     ${_fixme_cgs}
   )

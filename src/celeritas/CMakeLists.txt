@@ -9,6 +9,7 @@ set(PRIVATE_DEPS
   nlohmann_json::nlohmann_json
   Celeritas::ExtMPI
   Celeritas::ExtOpenMP
+  Celeritas::ExtThrust
 )
 set(PUBLIC_DEPS
   Celeritas::BuildFlags
