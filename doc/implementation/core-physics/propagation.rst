@@ -32,7 +32,14 @@ Propagation
 
 .. doxygenclass:: celeritas::FieldPropagator
 
-.. doxygenfunction:: celeritas::make_mag_field_propagator
+.. doxygenclass:: celeritas::FieldSubstepper
+
+Field integration
+-----------------
+
+.. doxygenclass:: celeritas::DormandPrinceIntegrator
+
+.. doxygenclass:: celeritas::RungeKuttaIntegrator
 
 Magnetic field types
 --------------------
