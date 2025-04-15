@@ -21,7 +21,8 @@ namespace celeritas
  *
  * This method estimates the updated state from an initial state and evaluates
  * the truncation error, with fourth-order accuracy based on description in
- * \citet{press-nr-1992, https://dl.acm.org/doi/10.5555/1403886}.
+ * Numerical Recipes in C, The Art of Scientific Computing, Sec. 16.2,
+ * Adaptive Stepsize Control for Runge-Kutta.
  *
  * For a magnetic field equation \em f along a charged particle trajectory
  * with state \em y, which includes position and momentum but may also include
