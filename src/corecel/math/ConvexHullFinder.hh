@@ -31,8 +31,8 @@ class ConvexHullFinder
   public:
     //!@{
     //! \name Type aliases
-    using Point = celeritas::Array<T, 2>;
-    using Points = std::vector<Point>;
+    using Real2 = celeritas::Array<T, 2>;
+    using Points = std::vector<Real2>;
     using ConcaveRegions = std::vector<Points>;
     //!@}
 
@@ -224,7 +224,7 @@ template<class T>
 size_type ConvexHullFinder<T>::min_element_idx() const
 {
     auto starting_it = std::min_element(
-        points_.begin(), points_.end(), [](Point const& a, Point const& b) {
+        points_.begin(), points_.end(), [](Real2 const& a, Real2 const& b) {
             return a[1] < b[1];
         });
     return std::distance(points_.begin(), starting_it);
