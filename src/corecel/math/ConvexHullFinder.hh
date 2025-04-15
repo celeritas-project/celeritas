@@ -182,7 +182,7 @@ auto ConvexHullFinder<T>::calc_convex_mask() const -> ConvexMask
     hull.push_back(i);
     i = this->calc_next(i);
 
-    for ([[maybe_unused]] auto _ : range(points_.size() - 1))
+    for (size_type j = 0, n = points_.size(); j != n; ++j)
     {
         size_type i_next = this->calc_next(i);
 
