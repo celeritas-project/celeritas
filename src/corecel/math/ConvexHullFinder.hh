@@ -40,8 +40,8 @@ class ConvexHullFinder
     // Construct with vector of ordered points
     explicit ConvexHullFinder(Points const& points);
 
-    // Return the convex hull
-    Points convex_hull() const;
+    // Make the convex hull
+    Points make_convex_hull() const;
 
     // Calculate the concave regions, each supplied in clockwise order
     ConcaveRegions calc_concave_regions() const;
@@ -96,10 +96,10 @@ ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::Points const& points)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the convex hull.
+ * Make the convex hull.
  */
 template<class T>
-auto ConvexHullFinder<T>::convex_hull() const -> Points
+auto ConvexHullFinder<T>::make_convex_hull() const -> Points
 {
     CELER_EXPECT(convex_mask_.size() > 2);
 
