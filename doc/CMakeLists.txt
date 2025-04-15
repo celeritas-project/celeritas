@@ -315,7 +315,7 @@ if(Sphinx_FOUND)
     DEPENDS ornltm
   )
 
-  # Generate header
+  # Generate footer
   set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
   celeritas_build_latex(
     "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"

@@ -38,8 +38,8 @@ namespace celeritas
  * second derivatives as:
  * \f{align}{
    a_0 &= y_i \\
-   a_1 &= \frac{\Delta y_i}{\Delta x_i} - \frac{\Delta x_i}{6} \left[ S''_{i +
-          1} + 2 S''_{i} \right] \\
+   a_1 &= \frac{\Delta y_i}{\Delta x_i} - \frac{\Delta x_i}{6}
+          \left[ S''_{i + 1} + 2 S''_{i} \right] \\
    a_2 &= \frac{S''_i}{2} \\
    a_3 &= \frac{1}{6 \Delta x_i} \left[ S''_{i + 1} - S''_i \right]
  * \f}

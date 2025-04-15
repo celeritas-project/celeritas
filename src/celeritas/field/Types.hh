@@ -18,7 +18,7 @@ namespace celeritas
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
- * A utility array of the equation of motion based on \ref celeritas::Array .
+ * Store a track's position and momentum for field integration.
  */
 struct OdeState
 {
