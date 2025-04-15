@@ -40,17 +40,19 @@ namespace detail
  * fact that \f$\lambda_{1}\f$ depends on the kinetic energy of the path and
  * decreases along the step, the path length correction is approximated as
  * \f[
- *     \lambda_{1} (t) = \lambda_{10} (1 - \alpha t)
+ *     \lambda_{1} (t') = \lambda_{1,i} (1 - \alpha t') \,, 0 \le t' \le t
  * \f]
- * where \f$ \alpha = \frac{\lambda_{10} - \lambda_{11}}{t\lambda_{10}} \f$
- * or  \f$ \alpha = 1/r_0 \f$ in a simpler form with the range \f$ r_0 \f$
- * if the kinetic energy of the particle is below its mass -
- * \f$ \lambda_{10} (\lambda_{11}) \f$ denotes the value of \f$\lambda_{1}\f$
- * at the start (end) of the step, respectively.
+ * where the transport MFP at the start of the step is \f$ \lambda_{1,i} \def
+ * \lambda_{1}(0)\f$ , and a linearity coefficient is defined as \f$ \alpha
+ * \def \frac{\lambda_{1,i} - \lambda_{1,f}}{t \lambda_{1,i}} \f$, where  \f$
+ * \lambda_{1,f}  \def \lambda_{1}(t) \f$. For low-energy or range-limited
+ * steps, \f$ \alpha = 1/r_0 \f$ because the cross section at zero energy is
+ * effectively infinite.
  *
- * Since the MSC cross section decreases as the energy increases, \f$
- * \lambda_{10} \f$ will be larger than \f$ \lambda_{11} \f$ and \f$ \alpha \f$
- * will be positive. However, in the Geant4 Urban MSC model, different methods
+ * Since the MSC cross section generally decreases as the energy increases,
+ * \f$ \lambda_{1,i} \f$ will be larger than \f$ \lambda_{1,f} \f$ and
+ * \f$ \alpha \f$ will be positive.
+ * However, in the Geant4 Urban MSC model, different methods
  * are used to calculate the cross section above and below 10 MeV. In the
  * higher energy region the cross sections are identical for electrons and
  * positrons, resulting in a discontinuity in the positron cross section at 10

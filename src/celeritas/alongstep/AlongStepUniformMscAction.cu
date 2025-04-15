@@ -41,7 +41,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
     }
     auto field = field_->ref<MemSpace::native>();
     {
-        ScopedProfiling profile_this{"propagate"};
+        ScopedProfiling profile_this{"propagate-uniform"};
         auto execute_thread = ConditionalTrackExecutor{
             params.ptr<MemSpace::native>(),
             state.ptr(),
