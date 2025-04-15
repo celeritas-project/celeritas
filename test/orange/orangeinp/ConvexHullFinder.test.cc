@@ -12,6 +12,8 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -239,4 +241,5 @@ TEST_F(ConvexHullFinderTest, nested_concavity)
 }
 
 }  // namespace test
+}  // namespace orangeinp
 }  // namespace celeritas

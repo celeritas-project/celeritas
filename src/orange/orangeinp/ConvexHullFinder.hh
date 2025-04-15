@@ -16,14 +16,18 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 //---------------------------------------------------------------------------//
 /*!
  * Find the convex hull of a sequence of 2D points.
  *
  * These points must be supplied in clockwise-order such that segments between
  * adjacent points, including the last and first points, comprise a
- * non-self-intersecting polygon. Exploiting this ordering, the Gram Scan
- * algorithm finds the convex hull with O(N) time complexity.
+ * non-self-intersecting polygon. Exploiting this ordering, the Graham Scan
+ * algorithm \citet{graham_efficient_1972,
+ * https://doi.org/10.1016/0020-0190(72)90045-2} finds the convex hull with
+ * O(N) time complexity.
  */
 template<class T>
 class ConvexHullFinder
@@ -171,7 +175,7 @@ auto ConvexHullFinder<T>::calc_concave_regions() const -> VecVecReal2
 /*!
  * Calculate a mask that indicates which points are on the convex hull.
  *
- * This method uses the Gram Scan algorithm.
+ * This method uses the Graham Scan algorithm.
  */
 template<class T>
 auto ConvexHullFinder<T>::calc_convex_mask() const -> ConvexMask
@@ -274,4 +278,5 @@ size_type ConvexHullFinder<T>::calc_previous(size_type i) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace orangeinp
 }  // namespace celeritas
