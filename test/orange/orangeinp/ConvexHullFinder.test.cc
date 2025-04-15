@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/ConvexHullFinder.test.cc
+//! \file orange/orangeinp/ConvexHullFinder.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/ConvexHullFinder.hh"
 
