@@ -54,7 +54,7 @@ class ConvexHullFinder
     Points const& points_;
     ConvexMask convex_mask_;
     size_type start_index_;
-    SoftZero<> soft_zero_;
+    SoftZero<T> soft_zero_;
 
     /// HELPER FUNCTIONS ///
 
