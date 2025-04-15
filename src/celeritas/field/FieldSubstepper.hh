@@ -60,7 +60,7 @@ template<class IntegratorT>
 class FieldSubstepper
 {
   public:
-    // Construct with options data and the integrate
+    // Construct with options data and the integrator
     inline CELER_FUNCTION FieldSubstepper(FieldDriverOptions const& options,
                                           IntegratorT&& integrate);
 

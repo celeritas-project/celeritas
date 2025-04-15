@@ -116,7 +116,7 @@ CELER_FUNCTION auto RungeKuttaIntegrator<E>::operator()(
 
 //---------------------------------------------------------------------------//
 /*!
- * The classical RungeKuttaIntegrator integrate (the 4th order).
+ * The classical RungeKuttaIntegrator integrator (the 4th order).
  */
 template<class E>
 CELER_FUNCTION auto

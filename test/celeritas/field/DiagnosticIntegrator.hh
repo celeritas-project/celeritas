@@ -17,7 +17,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Count the number of invocations to the field integrate.
+ * Count the number of invocations to the field integrator.
  *
  * This helps diagnose how many times the field driver advances a step.
  */
@@ -32,7 +32,7 @@ class DiagnosticIntegrator
     //!@}
 
   public:
-    //! Forward construction arguments to the original integrate
+    //! Forward construction arguments to the original integrator
     template<class... Args>
     DiagnosticIntegrator(Args&&... args)
         : do_step_(std::forward<Args>(args)...)
