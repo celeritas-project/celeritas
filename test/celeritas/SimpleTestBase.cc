@@ -119,12 +119,12 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambda.x_units = ImportUnits::mev;
         lambda.y_units = ImportUnits::len_inv;
         lambda.physics_vectors = {
-            {std::log(1e-4),  // energy
-             std::log(1.0),
+            {{std::log(1e-4),  // energy
+              std::log(1.0)},
              {1e1, 1e0},  // lambda (detector)
              inp::Interpolation{}},
-            {std::log(1e-4),  // energy
-             std::log(1.0),
+            {{std::log(1e-4),  // energy
+              std::log(1.0)},
              {1e-10, 1e-10},  // lambda (world)
              inp::Interpolation{}},
         };
@@ -136,12 +136,12 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambdap.x_units = ImportUnits::mev;
         lambdap.y_units = ImportUnits::len_mev_inv;
         lambdap.physics_vectors = {
-            {std::log(1.0),  // energy
-             std::log(1e8),
+            {{std::log(1.0),  // energy
+              std::log(1e8)},
              {1e0, 1e-2, 1e-4},  // lambda * energy (detector)
              inp::Interpolation{}},
-            {std::log(1.0),  // energy
-             std::log(1e8),
+            {{std::log(1.0),  // energy
+              std::log(1e8)},
              {1e-10, 1e-10, 1e-10},  // lambda * energy (world)
              inp::Interpolation{}},
         };
