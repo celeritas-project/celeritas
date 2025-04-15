@@ -72,7 +72,7 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
     real_type phys_step)
     : max_step_(phys_step)
 {
-    CELER_EXPECT(max_step_ > shared.params.limit_min_fix);
+    CELER_EXPECT(max_step_ > shared.params.min_step);
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
     auto const& msc_range = physics->msc_range();
@@ -83,7 +83,7 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
         MscRange new_range;
         new_range.range_init = numeric_limits<real_type>::infinity();
         new_range.range_factor = physics->particle_scalars().range_factor;
-        new_range.limit_min = 10 * shared.params.limit_min_fix;
+        new_range.limit_min = 10 * shared.params.min_step;
         physics->msc_range(new_range);
         CELER_ASSERT(msc_range);
     }

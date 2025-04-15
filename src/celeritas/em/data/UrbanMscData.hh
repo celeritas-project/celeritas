@@ -34,6 +34,9 @@ enum class UrbanParMatType
  * is the mean free path of the multiple scattering. The range and safety
  * factors are used in step limitation algorithms and default values are
  * chosen to balance between simulation time and precision.
+ *
+ * \todo Unify min_endpoint_energy with low energy limit
+ * \todo Combine with lambda_limit, safety_factor in physics params
  */
 struct UrbanMscParameters
 {
@@ -44,23 +47,25 @@ struct UrbanMscParameters
     real_type tau_limit{1e-6};  //!< limit of tau
     real_type safety_tol{0.01};  //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter};  //!< minimum step
+    // TODO: move these to along-step applicability
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 
     //! Assume constant xs if step / range < small_range_frac ("dtrl")
     static constexpr real_type small_range_frac{0.05};
 
-    //! The minimum value of the true path length limit: 0.01 nm
-    static constexpr real_type limit_min_fix{0.01 * units::nanometer};
+    //! For steps smaller than this, *ignore* MSC
+    static constexpr real_type min_step{0.01 * units::nanometer};
 
     //! Minimum true path when not calculated in the step limiting
-    static constexpr real_type limit_min{10.0 * limit_min_fix};
+    static constexpr real_type min_step_fallback{10.0 * min_step};
 
-    //! For steps below this value, true = geometrical (no MSC to be applied)
-    static constexpr real_type min_step{real_type{1} * units::nanometer};
+    //! For steps smaller than this, true path = geometrical path
+    static constexpr real_type min_step_transform{real_type{1}
+                                                  * units::nanometer};
 
     //! Below this endpoint energy, don't sample scattering: 1 eV
-    static constexpr Energy min_sampling_energy{1e-6};
+    static constexpr Energy min_endpoint_energy{1e-6};
 
     //! The lower bound of energy to scale the minimum true path length limit
     static constexpr Energy min_scaling_energy{5e-3};

@@ -134,9 +134,9 @@ MscStepToGeo::operator()(real_type tstep) const -> result_type
 
     result_type result;
     result.alpha = MscStep::small_step_alpha();
-    if (tstep < shared_.params.min_step)
+    if (tstep < shared_.params.min_step_transform)
     {
-        // Geometrical path length = true path length for a very small step
+        // Very small step: do not transform step length
         result.step = tstep;
     }
     else if (tstep < range_ * shared_.params.small_range_frac)

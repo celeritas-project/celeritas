@@ -117,7 +117,7 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
 {
     CELER_EXPECT(safety >= 0);
     CELER_EXPECT(safety < helper_.max_step());
-    CELER_EXPECT(max_step_ > shared_.params.limit_min_fix);
+    CELER_EXPECT(max_step_ > shared_.params.min_step);
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
     bool use_safety_plus = physics->particle_scalars().step_limit_algorithm
@@ -190,6 +190,8 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscSafetyStepLimit::operator()(Engine& rng)
 {
+    // TODO: if start energy is below min_energy, also skip since we won't
+    // sample MSC
     if (max_step_ <= limit_)
     {
         // Skip sampling if the physics step is limiting
@@ -236,7 +238,7 @@ CELER_FUNCTION real_type UrbanMscSafetyStepLimit::calc_limit_min(
                      / value_as<Energy>(shared_.params.min_scaling_energy));
     }
 
-    return max<real_type>(xm, shared_.params.limit_min_fix);
+    return max<real_type>(xm, shared_.params.min_step);
 }
 
 //---------------------------------------------------------------------------//

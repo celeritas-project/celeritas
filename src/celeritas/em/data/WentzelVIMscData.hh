@@ -30,7 +30,7 @@ struct WentzelVIMscParameters
     Energy high_energy_limit{0};
 
     //! The minimum value of the true path length limit
-    static constexpr real_type limit_min_fix{real_type{1} * units::nanometer};
+    static constexpr real_type min_step{real_type{1} * units::nanometer};
 };
 
 //---------------------------------------------------------------------------//
