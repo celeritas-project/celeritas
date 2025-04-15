@@ -64,18 +64,19 @@ TEST_F(ValueGridBuilderTest, xs_grid)
     VecBuilder entries;
 
     entries.push_back(std::make_shared<Builder_t>(
-        inp::UniformGrid{std::log(1e1), std::log(1e2), {0.1, 0.2 * 1e2}, {}},
+        inp::UniformGrid{{std::log(1e1), std::log(1e2)}, {0.1, 0.2 * 1e2}, {}},
         inp::UniformGrid{
-            std::log(1e2), std::log(1e3), {0.2 * 1e2, 0.3 * 1e3}, {}}));
+            {std::log(1e2), std::log(1e3)}, {0.2 * 1e2, 0.3 * 1e3}, {}}));
 
     entries.push_back(std::make_shared<Builder_t>(
-        inp::UniformGrid{std::log(1e-3), std::log(1e-1), {10, 1, 0.1}, {}},
-        inp::UniformGrid{
-            std::log(1e-1), std::log(10), {.1 * 1e-1, .01 * 1, .001 * 10}, {}}));
+        inp::UniformGrid{{std::log(1e-3), std::log(1e-1)}, {10, 1, 0.1}, {}},
+        inp::UniformGrid{{std::log(1e-1), std::log(10)},
+                         {.1 * 1e-1, .01 * 1, .001 * 10},
+                         {}}));
 
     entries.push_back(std::make_shared<Builder_t>(
-        inp::UniformGrid{std::log(1e-4), std::log(1), VecDbl(18), {}},
-        inp::UniformGrid{std::log(1), std::log(1e8), VecDbl(38), {}}));
+        inp::UniformGrid{{std::log(1e-4), std::log(1)}, VecDbl(18), {}},
+        inp::UniformGrid{{std::log(1), std::log(1e8)}, VecDbl(38), {}}));
 
     // Build
     this->build(entries);
@@ -105,7 +106,7 @@ TEST_F(ValueGridBuilderTest, log_grid)
     VecBuilder entries;
     {
         entries.push_back(make_shared<Builder_t>(inp::UniformGrid{
-            std::log(1e1), std::log(1e3), VecDbl{.1, .2, .3}, {}}));
+            {std::log(1e1), std::log(1e3)}, VecDbl{.1, .2, .3}, {}}));
     }
 
     // Build
