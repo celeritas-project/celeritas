@@ -32,6 +32,7 @@ Models
 
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
+.. doxygenclass:: celeritas::UrbanMscParameters
 
 Cross sections
 --------------
