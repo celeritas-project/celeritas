@@ -175,8 +175,6 @@ auto ConvexHullFinder<T>::calc_concave_regions() const -> ConcaveRegions
 template<class T>
 auto ConvexHullFinder<T>::calc_convex_mask() const -> ConvexMask
 {
-    auto n = points_.size();
-
     // Find the indices of the points on the convex hull. Start from the point
     // with the lowest y value, which is gaurenteed to be on the hull.
     std::vector<size_type> hull;
@@ -184,7 +182,7 @@ auto ConvexHullFinder<T>::calc_convex_mask() const -> ConvexMask
     hull.push_back(i);
     i = this->calc_next(i);
 
-    for ([[maybe_unused]] auto _ : range(n - 1))
+    for ([[maybe_unused]] auto _ : range(points_.size() - 1))
     {
         size_type i_next = this->calc_next(i);
 
@@ -209,7 +207,7 @@ auto ConvexHullFinder<T>::calc_convex_mask() const -> ConvexMask
     }
 
     // Convert convex hull indices to a mask
-    ConvexMask convex_mask(n, false);
+    ConvexMask convex_mask(points_.size(), false);
     for (auto h : hull)
     {
         convex_mask[h] = true;
