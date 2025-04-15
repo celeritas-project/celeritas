@@ -29,7 +29,7 @@ class ConvexHullFinderTest : public ::celeritas::test::Test
 
     void compare_convex_hulls(VecReal2 expected, VecReal2 actual)
     {
-        EXPECT_EQ(expected.size(), actual.size());
+        ASSERT_EQ(expected.size(), actual.size());
         for (auto i : range(expected.size()))
         {
             EXPECT_EQ(expected[i][0], actual[i][0]);
@@ -39,7 +39,7 @@ class ConvexHullFinderTest : public ::celeritas::test::Test
 
     void compare_concave_regions(VecVecReal2 expected, VecVecReal2 actual)
     {
-        EXPECT_EQ(expected.size(), actual.size());
+        ASSERT_EQ(expected.size(), actual.size());
         for (auto i : range(expected.size()))
         {
             EXPECT_EQ(expected[i].size(), actual[i].size());
