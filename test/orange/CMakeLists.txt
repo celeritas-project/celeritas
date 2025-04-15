@@ -69,6 +69,7 @@ celeritas_add_test(detail/LogicUtils.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Input construction
+celeritas_add_test(orangeinp/ConvexHullFinder.test.cc)
 celeritas_add_test(orangeinp/CsgObject.test.cc)
 celeritas_add_test(orangeinp/CsgTree.test.cc)
 celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)

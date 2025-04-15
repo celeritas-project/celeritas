@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/math/ConvexHullFinder.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ConvexHullFinder.hh"
+#include "orange/orangeinp/ConvexHullFinder.hh"
 
 #include "corecel/cont/Range.hh"
 
