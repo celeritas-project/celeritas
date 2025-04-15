@@ -78,9 +78,7 @@ elseif(CELERITAS_USE_HIP)
   target_include_directories(ExtDeviceApi
     SYSTEM INTERFACE "${ROCM_PATH}/include"
   )
-  find_library(ROCTX_LIBRARY roctx64)
   if(ROCTX_LIBRARY)
-    set(CELERITAS_HAVE_ROCTX ON)
     target_link_libraries(ExtDeviceApi INTERFACE "${ROCTX_LIBRARY}")
   endif()
   if(NOT BUILD_SHARED_LIBS)
@@ -120,6 +118,12 @@ endif()
 celer_add_ext_library(Perfetto)
 if(CELERITAS_BUILTIN_Perfetto)
   target_link_libraries(ExtPerfetto INTERFACE Celeritas::perfetto)
+endif()
+
+celer_add_ext_library(Thrust)
+if(CELERITAS_USE_CUDA)
+  # Perlmutter with RDC enabled complains about missing dlclose
+  target_link_libraries(ExtThrust INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
 celeritas_add_interface_library(ExtGeant4Geo)

@@ -411,7 +411,8 @@ celeritas_add_test(optical/Physics.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
-celeritas_add_device_test(mat/Material)
+celeritas_add_device_test(mat/Material
+  LINK_LIBRARIES Celeritas::ExtThrust)
 
 #-----------------------------------------------------------------------------#
 # Neutron
@@ -422,7 +423,8 @@ celeritas_add_test(neutron/NeutronInelastic.test.cc ${_needs_double})
 # Phys
 celeritas_add_test(phys/CutoffParams.test.cc)
 celeritas_add_test(phys/FourVector.test.cc)
-celeritas_add_device_test(phys/Particle)
+celeritas_add_device_test(phys/Particle
+  LINK_LIBRARIES Celeritas::ExtThrust)
 celeritas_add_device_test(phys/Physics)
 celeritas_add_test(phys/InteractionUtils.test.cc)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
