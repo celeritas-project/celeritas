@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/RungeKuttaStepper.hh
+//! \file celeritas/field/RungeKuttaIntegrator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -41,21 +41,19 @@ namespace celeritas
  * \f[
  *  \Delta = y_2 - y_1, y(x+h) = y_2 + \frac{\Delta}{15} + \mathrm{O}(h^{6})
  * \f]
- *
- * \todo Rename RungeKuttaIntegrator
  */
 template<class EquationT>
-class RungeKuttaStepper
+class RungeKuttaIntegrator
 {
   public:
     //!@{
     //! \name Type aliases
-    using result_type = FieldStepperResult;
+    using result_type = FieldIntegration;
     //!@}
 
   public:
     //! Construct with the equation of motion
-    explicit CELER_FUNCTION RungeKuttaStepper(EquationT&& eq)
+    explicit CELER_FUNCTION RungeKuttaIntegrator(EquationT&& eq)
         : calc_rhs_(::celeritas::forward<EquationT>(eq))
     {
     }
@@ -79,7 +77,8 @@ class RungeKuttaStepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION RungeKuttaStepper(EquationT&&) -> RungeKuttaStepper<EquationT>;
+CELER_FUNCTION
+RungeKuttaIntegrator(EquationT&&) -> RungeKuttaIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -88,9 +87,8 @@ CELER_FUNCTION RungeKuttaStepper(EquationT&&) -> RungeKuttaStepper<EquationT>;
  * Numerically integrate and return the updated state with estimated error.
  */
 template<class E>
-CELER_FUNCTION auto
-RungeKuttaStepper<E>::operator()(real_type step,
-                                 OdeState const& beg_state) const -> result_type
+CELER_FUNCTION auto RungeKuttaIntegrator<E>::operator()(
+    real_type step, OdeState const& beg_state) const -> result_type
 {
     using celeritas::axpy;
     real_type half_step = step / real_type(2);
@@ -107,7 +105,7 @@ RungeKuttaStepper<E>::operator()(real_type step,
     // Do a full step
     OdeState yt = this->do_step(step, beg_state, beg_slope);
 
-    // Stepper error: difference between the full step and two half steps
+    // Integrator error: difference between the full step and two half steps
     result.err_state = result.end_state;
     axpy(real_type(-1), yt, &result.err_state);
 
@@ -119,13 +117,13 @@ RungeKuttaStepper<E>::operator()(real_type step,
 
 //---------------------------------------------------------------------------//
 /*!
- * The classical RungeKuttaStepper stepper (the 4th order).
+ * The classical RungeKuttaIntegrator integrator (the 4th order).
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::do_step(real_type step,
-                              OdeState const& beg_state,
-                              OdeState const& beg_slope) const -> OdeState
+RungeKuttaIntegrator<E>::do_step(real_type step,
+                                 OdeState const& beg_state,
+                                 OdeState const& beg_slope) const -> OdeState
 {
     using celeritas::axpy;
     real_type half_step = step / real_type(2);

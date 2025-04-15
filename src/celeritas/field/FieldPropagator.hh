@@ -39,7 +39,7 @@ namespace celeritas
  *
  * \note This follows similar methods as in Geant4's G4PropagatorInField class.
  */
-template<class DriverT, class GTV>
+template<class SubstepperT, class GTV>
 class FieldPropagator
 {
   public:
@@ -50,7 +50,7 @@ class FieldPropagator
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(DriverT&& driver,
+    inline CELER_FUNCTION FieldPropagator(SubstepperT&& advance,
                                           ParticleTrackView const& particle,
                                           GTV&& geo);
 
@@ -78,7 +78,7 @@ class FieldPropagator
   private:
     //// DATA ////
 
-    DriverT driver_;
+    SubstepperT advance_;
     GTV geo_;
     OdeState state_;
 };
@@ -86,10 +86,10 @@ class FieldPropagator
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class DriverT, class GTV>
-CELER_FUNCTION FieldPropagator(DriverT&&,
+template<class SubstepperT, class GTV>
+CELER_FUNCTION FieldPropagator(SubstepperT&&,
                                ParticleTrackView const&,
-                               GTV&&) -> FieldPropagator<DriverT, GTV>;
+                               GTV&&) -> FieldPropagator<SubstepperT, GTV>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -97,10 +97,10 @@ CELER_FUNCTION FieldPropagator(DriverT&&,
 /*!
  * Construct with shared field parameters and the field driver.
  */
-template<class DriverT, class GTV>
-CELER_FUNCTION FieldPropagator<DriverT, GTV>::FieldPropagator(
-    DriverT&& driver, ParticleTrackView const& particle, GTV&& geo)
-    : driver_(::celeritas::forward<DriverT>(driver))
+template<class SubstepperT, class GTV>
+CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
+    SubstepperT&& advance, ParticleTrackView const& particle, GTV&& geo)
+    : advance_(::celeritas::forward<SubstepperT>(advance))
     , geo_(::celeritas::forward<GTV>(geo))
 {
     using MomentumUnits = OdeState::MomentumUnits;
@@ -113,8 +113,9 @@ CELER_FUNCTION FieldPropagator<DriverT, GTV>::FieldPropagator(
 /*!
  * Propagate a charged particle until it hits a boundary.
  */
-template<class DriverT, class GTV>
-CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()() -> result_type
+template<class SubstepperT, class GTV>
+CELER_FUNCTION auto
+FieldPropagator<SubstepperT, GTV>::operator()() -> result_type
 {
     return (*this)(numeric_limits<real_type>::infinity());
 }
@@ -145,9 +146,9 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()() -> result_type
  *   be slightly higher (again, up to a driver-based tolerance) than the
  *   physical distance travelled.
  */
-template<class DriverT, class GTV>
+template<class SubstepperT, class GTV>
 CELER_FUNCTION auto
-FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
+FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
 {
     CELER_EXPECT(step > 0);
     result_type result;
@@ -166,8 +167,8 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
         CELER_ASSERT(result.boundary == geo_.is_on_boundary());
 
         // Advance up to (but probably less than) the remaining step length
-        DriverResult substep = driver_.advance(remaining, state_);
-        CELER_ASSERT(substep.step > 0 && substep.step <= remaining);
+        Substep substep = advance_(remaining, state_);
+        CELER_ASSERT(substep.length > 0 && substep.length <= remaining);
 
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
@@ -194,7 +195,7 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
         // the chord to the boundary. This value can be slightly larger than 1
         // because we search up a little past the endpoint (thanks to the delta
         // intersection).
-        real_type const update_length = substep.step * linear_step.distance
+        real_type const update_length = substep.length * linear_step.distance
                                         / chord.length;
 
         if (!linear_step.boundary)
@@ -207,7 +208,7 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
             // on a reentrant boundary crossing below.
             state_ = substep.state;
             result.boundary = false;
-            result.distance += substep.step;
+            result.distance += substep.length;
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
             --remaining_substeps;
@@ -219,7 +220,7 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again.
-            remaining = substep.step / 2;
+            remaining = substep.length / 2;
         }
         else if (update_length <= this->minimum_substep()
                  || detail::is_intercept_close(state_.pos,
@@ -258,7 +259,7 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
             // The update length can be slightly greater than the substep due
             // to the extra delta_intersection boost when searching. The
             // substep itself can be more than the requested step.
-            result.distance += celeritas::min(update_length, substep.step);
+            result.distance += celeritas::min(update_length, substep.length);
             state_.mom = substep.state.mom;
             remaining = 0;
         }
@@ -336,38 +337,39 @@ FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
  * TODO: change delta intersection from property in FieldDriverOptions to
  * another FieldPropagatorOptions
  */
-template<class DriverT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::delta_intersection() const
+template<class SubstepperT, class GTV>
+CELER_FUNCTION real_type
+FieldPropagator<SubstepperT, GTV>::delta_intersection() const
 {
-    return driver_.delta_intersection();
+    return advance_.delta_intersection();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Maximum number of substeps.
  */
-template<class DriverT, class GTV>
-CELER_FUNCTION short int FieldPropagator<DriverT, GTV>::max_substeps() const
+template<class SubstepperT, class GTV>
+CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
 {
-    return driver_.max_substeps();
+    return advance_.max_substeps();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Distance to bump or to consider a "zero" movement.
  */
-template<class DriverT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::minimum_substep() const
+template<class SubstepperT, class GTV>
+CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::minimum_substep() const
 {
-    return driver_.minimum_step();
+    return advance_.minimum_step();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Distance to bump or to consider a "zero" movement.
  */
-template<class DriverT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::bump_distance() const
+template<class SubstepperT, class GTV>
+CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::bump_distance() const
 {
     return this->delta_intersection() * real_type(0.1);
 }

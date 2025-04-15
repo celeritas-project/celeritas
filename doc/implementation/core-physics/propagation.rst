@@ -15,8 +15,8 @@ Equation of motion
 Integrator
   Numerically integrates a new position/momentum state given the start,
   path derivative, and step length.
-Driver
-  Integrate path segments that satisfy certain error conditions, solving for
+Substepper
+  Integrate a path segment that satisfies certain error conditions, solving for
   the required segment length.
 Propagator
   Given a maximum physics step, advance the geometry state and momentum along

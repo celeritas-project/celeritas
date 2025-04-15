@@ -21,7 +21,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/CoreGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
@@ -32,7 +32,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "CMSParameterizedField.hh"
-#include "DiagnosticStepper.hh"
+#include "DiagnosticIntegrator.hh"
 #include "FieldTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -45,7 +45,7 @@ constexpr real_type pi{constants::pi};
 constexpr real_type sqrt_three{constants::sqrt_three};
 
 template<class E>
-using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
+using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 
 constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
                                        && CELERITAS_CORE_GEO
@@ -192,11 +192,11 @@ TEST_F(TwoBoxesTest, electron_interior)
     EXPECT_EQ("inner", this->volume_name(geo));
 
     // Build propagator
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
     FieldDriverOptions driver_options;
     auto propagate
-        = make_field_propagator(stepper, driver_options, particle, geo);
+        = make_field_propagator(integrate, driver_options, particle, geo);
 
     // Test a short step
     Propagation result = propagate(1e-2);
@@ -205,21 +205,21 @@ TEST_F(TwoBoxesTest, electron_interior)
                        geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
-    EXPECT_EQ(1, stepper.count());
+    EXPECT_EQ(1, integrate.count());
     EXPECT_EQ(1, geo.intersect_count());
     EXPECT_EQ(0, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 25 steps
     {
         geo.reset_count();
-        stepper.reset_count();
+        integrate.reset_count();
         real_type step = 0.5 * pi * radius - 1e-2;
         for (auto i : range(25))
         {
             SCOPED_TRACE(i);
             result = propagate(step / 25);
             EXPECT_SOFT_EQ(step / 25, result.distance);
-            EXPECT_EQ(i + 1, stepper.count());
+            EXPECT_EQ(i + 1, integrate.count());
             EXPECT_FALSE(result.boundary)
                 << "At " << geo.pos() << " along " << geo.dir();
         }
@@ -231,18 +231,18 @@ TEST_F(TwoBoxesTest, electron_interior)
     // Test a very long (next quarter-turn) step
     {
         SCOPED_TRACE("Quarter turn");
-        stepper.reset_count();
+        integrate.reset_count();
         result = propagate(0.5 * pi * radius);
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), coarse_eps);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
-        EXPECT_EQ(21, stepper.count());
+        EXPECT_EQ(21, integrate.count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
     {
         SCOPED_TRACE("Half turn");
-        stepper.reset_count();
+        integrate.reset_count();
         result = propagate(pi * radius);
         // The maximum substep limit in the field propagator was reached before
         // traveling the full distance; propagate again to reach the end
@@ -252,13 +252,13 @@ TEST_F(TwoBoxesTest, electron_interior)
         EXPECT_SOFT_EQ(pi * radius - partial_distance, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
-        EXPECT_EQ(40, stepper.count());
+        EXPECT_EQ(40, integrate.count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
     // iteration in the propagator loop)
     {
-        stepper.reset_count();
+        integrate.reset_count();
         result = propagate(1e-10);
         EXPECT_REAL_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
@@ -267,7 +267,7 @@ TEST_F(TwoBoxesTest, electron_interior)
                         coarse_eps);
         EXPECT_VEC_NEAR(
             Real3({6.25302065531623e-08, 1, 0}), geo.dir(), coarse_eps);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
     }
 }
 
@@ -285,7 +285,7 @@ TEST_F(TwoBoxesTest, positron_interior)
 
     // Build propagator
     FieldDriverOptions driver_options;
-    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+    auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
         field, driver_options, particle, geo);
 
     // Test a quarter turn
@@ -303,35 +303,35 @@ TEST_F(TwoBoxesTest, gamma_interior)
     // Construct field (shape and magnitude shouldn't matter)
     UniformZField field(1234.5);
     FieldDriverOptions driver_options;
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
 
     // Propagate inside box
     {
         auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
 
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(3.0, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 3}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
     }
     // Move to boundary
     {
         auto geo = this->make_geo_track_view();
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
 
-        stepper.reset_count();
+        integrate.reset_count();
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(2.0, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 5}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(2, stepper.count());
+        EXPECT_EQ(2, integrate.count());
     }
     // Cross boundary
     {
@@ -344,15 +344,15 @@ TEST_F(TwoBoxesTest, gamma_interior)
     {
         auto geo = this->make_geo_track_view();
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
 
-        stepper.reset_count();
+        integrate.reset_count();
         auto result = propagate(5.0);
         EXPECT_SOFT_EQ(5.0, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
     }
 }
 
@@ -364,21 +364,21 @@ TEST_F(TwoBoxesTest, gamma_pathological)
     // Construct field (shape and magnitude shouldn't matter)
     HorribleZField field{1.2345 * units::tesla, 5};
     FieldDriverOptions driver_options;
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
 
     // Propagate inside box
     {
         auto geo = this->make_geo_track_view({0, 0, -2}, {0, 0, 1});
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
 
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(3.0, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
     }
 }
 
@@ -401,10 +401,10 @@ TEST_F(TwoBoxesTest, gamma_exit)
             return result.distance;
         }();
 
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         auto result = propagate(exact_distance);
 
         EXPECT_SOFT_EQ(exact_distance, result.distance);
@@ -419,7 +419,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
             EXPECT_TRUE(result.boundary);
         }
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
         if (using_vecgeom_surface)
         {
             result = propagate(1e-3);
@@ -435,16 +435,16 @@ TEST_F(TwoBoxesTest, gamma_exit)
             "Reported distance is based on requested step, not actual "
             "boundary, to avoid an extra substep");
         auto geo = this->make_geo_track_view({2, 4.749, 0}, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         auto result = propagate(0.251 + 1e-7);
 
         EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -454,16 +454,16 @@ TEST_F(TwoBoxesTest, gamma_exit)
     {
         SCOPED_TRACE("Long step");
         auto geo = this->make_geo_track_view({2, 4.749, 0}, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         auto result = propagate(d);
 
         EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(2, stepper.count());
+        EXPECT_EQ(2, integrate.count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -484,14 +484,14 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             SCOPED_TRACE("Far from boundary");
             auto geo = this->make_geo_track_view({9.5, 9.5, 9.5}, {1, 0, 0});
             EXPECT_EQ("world", this->volume_name(geo));
-            auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
                 field, particle.charge());
             auto propagate = make_field_propagator(
-                stepper, driver_options, particle, geo);
+                integrate, driver_options, particle, geo);
             auto result = propagate(delta);
 
             EXPECT_REAL_EQ(delta, result.distance);
-            EXPECT_EQ(1, stepper.count());
+            EXPECT_EQ(1, integrate.count());
         }
 
         {
@@ -502,14 +502,14 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             auto geo = this->make_geo_track_view({real_type{5.0} + eps, 0, 0},
                                                  {-1, 0, 0});
             EXPECT_EQ("world", this->volume_name(geo));
-            auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
                 field, particle.charge());
             auto propagate = make_field_propagator(
-                stepper, driver_options, particle, geo);
+                integrate, driver_options, particle, geo);
             auto result = propagate(delta);
 
             intersect_distance.push_back(result.distance);
-            EXPECT_EQ(1, stepper.count());
+            EXPECT_EQ(1, integrate.count());
         }
     }
     static real_type const expected_intersect_distance[]
@@ -532,7 +532,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
             = this->make_geo_track_view({5 - delta - 1.0e-5, 0, 0}, {1, 0, 0});
         EXPECT_FALSE(geo.is_on_boundary());
 
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(delta);
 
@@ -548,7 +548,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
         auto geo = this->make_geo_track_view({5 - 2 * delta, 0, 0}, {1, 0, 0});
         EXPECT_FALSE(geo.is_on_boundary());
 
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(delta);
 
@@ -566,7 +566,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
         auto geo = this->make_geo_track_view({5 - delta, 0, 0}, {1, 0, 0});
         EXPECT_FALSE(geo.is_on_boundary());
 
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(2 * delta);
 
@@ -596,7 +596,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
 
         // Starting on the boundary, take a step smaller than driver's minimum
         // (could be, e.g., a very small distance to interaction)
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(delta);
 
@@ -620,7 +620,7 @@ TEST_F(TwoBoxesTest, electron_tangent)
 
         constexpr real_type quarter = 0.49 * pi;
         auto geo = this->make_geo_track_view({1, 4, 0}, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(quarter);
 
@@ -635,7 +635,7 @@ TEST_F(TwoBoxesTest, electron_tangent)
 
         constexpr real_type quarter = 0.51 * pi;
         auto geo = this->make_geo_track_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(real_type{0.02 * pi});
 
@@ -664,7 +664,7 @@ TEST_F(TwoBoxesTest, electron_cross)
         SCOPED_TRACE("Exit (twelfth of a turn)");
 
         auto geo = this->make_geo_track_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(pi);
 
@@ -686,7 +686,7 @@ TEST_F(TwoBoxesTest, electron_cross)
         SCOPED_TRACE("Reenter (1/3 turn)");
 
         auto geo = this->make_geo_track_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
@@ -709,7 +709,7 @@ TEST_F(TwoBoxesTest, electron_cross)
         FieldDriverOptions driver_options;
         driver_options.max_substeps = 100;
         auto geo = this->make_geo_track_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(7. / 12. * circ);
 
@@ -736,7 +736,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
         real_type dy = 1.1 * driver_options.delta_chord;
 
         auto geo = this->make_geo_track_view({1, 4 + dy, 0}, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
@@ -766,7 +766,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
         FieldDriverOptions driver_options;
         driver_options.max_substeps = 100;
         auto geo = this->make_geo_track_view({1, 4 + dy, 0}, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
@@ -792,7 +792,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         real_type dy = 1.1 * driver_options.delta_chord;
 
         auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
@@ -820,7 +820,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         real_type dy = 0.001 * driver_options.delta_chord;
 
         auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
@@ -848,7 +848,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         real_type dy = -0.001 * driver_options.delta_chord;
 
         auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
@@ -881,16 +881,16 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
         = {-0.098753281951459, 0.43330671122068, 0};
 
     auto geo = this->make_geo_track_view();
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
     auto propagate = [&](real_type start_delta, real_type move_delta) {
         Real3 start_pos{-5 + start_delta, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
         geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
-        stepper.reset_count();
+        integrate.reset_count();
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         return propagate(first_step - move_delta);
     };
 
@@ -909,7 +909,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
 
         auto result = propagate(0.1 * dr, dr);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
         EXPECT_SOFT_EQ(first_step - dr, result.distance);
         EXPECT_LT(distance(Real3{-4.9512441890768795, -0.092139178167222446, 0},
                            geo.pos()),
@@ -931,7 +931,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(0.1 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(-5.0, geo.pos()[0]);
@@ -956,7 +956,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(1e-6 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(-5.0, geo.pos()[0]);
@@ -981,7 +981,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
 
         auto result = propagate(-0.1 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
         EXPECT_SOFT_EQ(0.40277704609562048, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()),
@@ -1001,7 +1001,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(-1e-6 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, integrate.count());
         EXPECT_SOFT_EQ(0.44815824321522935, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -4.3877702173875065e-07, 0}, geo.pos()),
@@ -1048,12 +1048,12 @@ TEST_F(TwoBoxesTest,
                        this->calc_field_curvature(particle, geo, field));
 
         // Build propagator
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         FieldDriverOptions driver_options;
         driver_options.max_substeps = 100;
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         for (int i : range(2))
         {
             SCOPED_TRACE(i);
@@ -1065,9 +1065,9 @@ TEST_F(TwoBoxesTest,
 
             boundary.push_back(result.boundary);
             distances.push_back(result.distance);
-            substeps.push_back(stepper.count());
+            substeps.push_back(integrate.count());
             volumes.push_back(this->volume_name(geo));
-            stepper.reset_count();
+            integrate.reset_count();
         }
     }
 
@@ -1110,19 +1110,19 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
     FieldDriverOptions driver_options;
 
     auto geo = this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
     auto propagate
-        = make_field_propagator(stepper, driver_options, particle, geo);
+        = make_field_propagator(integrate, driver_options, particle, geo);
 
     std::vector<real_type> all_pos;
     std::vector<int> step_counter;
     for ([[maybe_unused]] auto i : range(8))
     {
-        stepper.reset_count();
+        integrate.reset_count();
         propagate(1.0);
         all_pos.insert(all_pos.end(), geo.pos().begin(), geo.pos().end());
-        step_counter.push_back(stepper.count());
+        step_counter.push_back(integrate.count());
     }
 
     // clang-format off
@@ -1151,7 +1151,7 @@ TEST_F(LayersTest, revolutions_through_layers)
 
     // Build propagator
     FieldDriverOptions driver_options;
-    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+    auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
         field, driver_options, particle, geo);
 
     // clang-format off
@@ -1205,7 +1205,7 @@ TEST_F(LayersTest, revolutions_through_cms_field)
         radius, this->calc_field_curvature(particle, geo, field), 5e-3);
 
     // Build propagator
-    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+    auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
         field, driver_options, particle, geo);
 
     int const num_revs = 10;
@@ -1250,10 +1250,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
               this->volume_name(geo));
 
     {
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         if (using_vecgeom_surface)
@@ -1279,13 +1279,14 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     }
     if (!using_vecgeom_surface)
     {
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         auto result = propagate(30);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_SOFT_NEAR(double{30}, static_cast<double>(stepper.count()), 0.2);
+        EXPECT_SOFT_NEAR(
+            double{30}, static_cast<double>(integrate.count()), 0.2);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1317,15 +1318,15 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
     {
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.27089632881079409e-02});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
         auto result = propagate(1.39170198361108938e-05);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
-        EXPECT_EQ(2, stepper.count());
+        EXPECT_EQ(2, integrate.count());
         EXPECT_FALSE(result.looping);
     }
     {
@@ -1367,10 +1368,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.25917780979408864e-02});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
 
         Propagation result;
         // This absurdly long step is because in the "failed" case the
@@ -1396,7 +1397,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 
             EXPECT_SOFT_EQ(12.02714054426572, result.distance);
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(573, stepper.count());
+            EXPECT_EQ(573, integrate.count());
             EXPECT_TRUE(result.looping);
         }
         else
@@ -1404,7 +1405,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             // Repeated substep bisection failed; particle is bumped
             EXPECT_SOFT_NEAR(1e-6, result.distance, coarse_eps);
             // Minor floating point differences could make this 98 or so
-            EXPECT_SOFT_NEAR(real_type(95), real_type(stepper.count()), 0.05);
+            EXPECT_SOFT_NEAR(real_type(95), real_type(integrate.count()), 0.05);
             EXPECT_FALSE(result.boundary);  // FIXME: should have reentered
             EXPECT_FALSE(result.looping);
 
@@ -1437,7 +1438,7 @@ TEST_F(CmseTest, coarse)
     // Build propagator
     UniformZField field{0};
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
 
     FieldDriverOptions driver_options;
@@ -1462,7 +1463,7 @@ TEST_F(CmseTest, coarse)
                        this->calc_field_curvature(particle, geo, field));
 
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
+            = make_field_propagator(integrate, driver_options, particle, geo);
 
         int step_count = 0;
         int boundary_count = 0;
@@ -1490,8 +1491,8 @@ TEST_F(CmseTest, coarse)
         num_boundary.push_back(boundary_count);
         num_step.push_back(step_count);
         num_intercept.push_back(geo.intersect_count());
-        num_integration.push_back(stepper.count());
-        stepper.reset_count();
+        num_integration.push_back(integrate.count());
+        integrate.reset_count();
     }
 
     std::vector<int> expected_num_boundary = {134, 100, 60, 40};

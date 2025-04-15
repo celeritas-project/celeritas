@@ -8,7 +8,7 @@
 
 #include "celeritas/field/CylMapField.hh"  // IWYU pragma: associated
 #include "celeritas/field/CylMapFieldData.hh"  // IWYU pragma: associated
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
@@ -24,7 +24,7 @@ struct CylMapFieldPropagatorFactory
 {
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
-        return make_mag_field_propagator<DormandPrinceStepper>(
+        return make_mag_field_propagator<DormandPrinceIntegrator>(
             CylMapField{field},
             field.options,
             track.particle(),
