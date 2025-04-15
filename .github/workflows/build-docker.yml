@@ -108,7 +108,7 @@ jobs:
       - name: Check installation
         working-directory: install
         run: |
-          for exe in orange-update celer-export-geant celer-dump-data \
+          for exe in orange-update celer-export-geant \
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done
