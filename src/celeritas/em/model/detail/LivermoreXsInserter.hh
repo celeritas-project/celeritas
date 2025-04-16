@@ -98,8 +98,7 @@ void LivermoreXsInserter::operator()(ImportLivermorePE const& inp)
         shells[i].binding_energy = MevEnergy(inp.shells[i].binding_energy);
 
         // Tabulated subshell cross section
-        shells[i].xs = build_grid_(make_span(inp.shells[i].energy),
-                                   make_span(inp.shells[i].xs));
+        shells[i].xs = build_grid_(inp.shells[i].xs);
 
         // Subshell cross section fit parameters
         std::copy(inp.shells[i].param_lo.begin(),

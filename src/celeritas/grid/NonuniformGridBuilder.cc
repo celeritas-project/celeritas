@@ -6,84 +6,56 @@
 //---------------------------------------------------------------------------//
 #include "NonuniformGridBuilder.hh"
 
-#include "corecel/grid/VectorUtils.hh"
+#include "corecel/Types.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with pointers to data that will be modified.
+ * Construct with a reference to mutable host data.
  */
-NonuniformGridBuilder::NonuniformGridBuilder(Items<real_type>* reals)
-    : NonuniformGridBuilder(reals, BC::size_)
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with pointers to data and boundary condtions.
- */
-NonuniformGridBuilder::NonuniformGridBuilder(Items<real_type>* reals, BC bc)
-    : values_(*reals), reals_{reals}, bc_(bc)
+NonuniformGridBuilder::NonuniformGridBuilder(Values* reals)
+    : values_(*reals), reals_(reals)
 {
     CELER_EXPECT(reals);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with linear interpolation.
- */
-auto NonuniformGridBuilder::operator()(SpanConstFlt grid, SpanConstFlt values)
-    -> Grid
-{
-    return this->insert_impl(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of generic data with linear interpolation.
- */
-auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
-    -> Grid
-{
-    return this->insert_impl(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from an imported physics vector.
+ * Add a generic grid.
  */
 auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
 {
-    return this->insert_impl(make_span(grid.x), make_span(grid.y));
-}
+    CELER_EXPECT(grid);
 
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from container references.
- */
-template<class T>
-auto NonuniformGridBuilder::insert_impl(Span<T const> grid,
-                                        Span<T const> values) -> Grid
-{
-    CELER_EXPECT(grid.size() >= 2);
-    CELER_EXPECT(grid.front() <= grid.back());
-    CELER_EXPECT(values.size() == grid.size());
-
-    Grid result;
-    result.grid = reals_.insert_back(grid.begin(), grid.end());
-    result.value = reals_.insert_back(values.begin(), values.end());
-    if (bc_ != BC::size_)
+    NonuniformGridRecord data;
+    data.grid = reals_.insert_back(grid.x.begin(), grid.x.end());
+    data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
+    if (grid.interpolation.type == InterpolationType::cubic_spline)
     {
+        if (data.value.size() < SplineDerivCalculator::min_grid_size())
+        {
+            CELER_LOG(warning)
+                << to_cstring(grid.interpolation.type)
+                << " interpolation is not supported on a grid with size "
+                << data.value.size() << ": defaulting to linear";
+            return data;
+        }
+        using ValuesRef
+            = Collection<real_type, Ownership::const_reference, MemSpace::host>;
+
         // Calculate second derivatives for cubic spline interpolation
-        CELER_ASSERT(is_monotonic_increasing(grid));
-        auto deriv = SplineDerivCalculator(bc_)(values_[result.grid],
-                                                values_[result.value]);
-        result.derivative = reals_.insert_back(deriv.begin(), deriv.end());
+        CELER_ASSERT(grid.interpolation.bc
+                     != SplineDerivCalculator::BoundaryCondition::size_);
+        ValuesRef values(values_);
+        auto deriv = SplineDerivCalculator(grid.interpolation.bc)(data, values);
+        data.derivative = reals_.insert_back(deriv.begin(), deriv.end());
     }
 
-    CELER_ENSURE(result);
-    return result;
+    CELER_ENSURE(data);
+    return data;
 }
 
 //---------------------------------------------------------------------------//

@@ -74,8 +74,8 @@ class SplineDerivCalculator
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstReal = detail::SpanGridAccessor::SpanConstReal;
-    using Values = detail::UniformGridAccessor::Values;
+    using SpanConstReal = detail::GridAccessor::SpanConstReal;
+    using Values = detail::GridAccessor::Values;
     using VecReal = std::vector<real_type>;
     //!@}
 
@@ -95,6 +95,10 @@ class SplineDerivCalculator
     // Calculate the second derivatives
     VecReal operator()(SpanConstReal, SpanConstReal) const;
     VecReal operator()(UniformGridRecord const&, Values const&) const;
+    VecReal operator()(NonuniformGridRecord const&, Values const&) const;
+
+    //! Minimum grid size for cubic spline interpolation
+    static CELER_CONSTEXPR_FUNCTION int min_grid_size() { return 5; }
 
   private:
     //// TYPES ////

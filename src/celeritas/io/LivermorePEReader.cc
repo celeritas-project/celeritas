@@ -192,12 +192,12 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
             size_type size = 0;
             size_type shell_id = 0;
             infile >> min_energy >> max_energy >> size >> shell_id;
-            shell.energy.resize(size);
-            shell.xs.resize(size);
+            shell.xs.x.resize(size);
+            shell.xs.y.resize(size);
             for (size_type i = 0; i < size; ++i)
             {
                 CELER_ASSERT(infile);
-                infile >> shell.energy[i] >> shell.xs[i];
+                infile >> shell.xs.x[i] >> shell.xs.y[i];
             }
         }
     }
