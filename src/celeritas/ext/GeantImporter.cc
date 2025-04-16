@@ -1118,9 +1118,8 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
             if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
             {
                 result.atomic_number.push_back(z);
-                result.physics_vectors.push_back(
-                    detail::import_physics_2dvector(
-                        *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+                result.grids.push_back(detail::import_physics_2dvector(
+                    *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
             }
         }
     }
@@ -1133,7 +1132,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
         {
             G4Physics2DVector const* pv = el_data->GetElement2DData(i);
             CELER_ASSERT(pv);
-            result.physics_vectors.push_back(detail::import_physics_2dvector(
+            result.grids.push_back(detail::import_physics_2dvector(
                 *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
         }
     }
@@ -1243,11 +1242,10 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             {
                 auto mu_minus = import_mupp_table(pdg::mu_minus());
                 auto mu_plus = import_mupp_table(pdg::mu_plus());
-                CELER_VALIDATE(
-                    mu_minus.atomic_number == mu_plus.atomic_number
-                        && mu_minus.physics_vectors == mu_plus.physics_vectors,
-                    << "muon pair production sampling tables for "
-                       "mu- and mu+ differ");
+                CELER_VALIDATE(mu_minus.atomic_number == mu_plus.atomic_number
+                                   && mu_minus.grids == mu_plus.grids,
+                               << "muon pair production sampling tables for "
+                                  "mu- and mu+ differ");
                 imported.mu_pair_production_data = std::move(mu_minus);
             }
         }

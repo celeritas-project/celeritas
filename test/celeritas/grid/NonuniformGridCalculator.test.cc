@@ -62,6 +62,7 @@ TEST_F(NonuniformGridCalculatorTest, nonmonotonic)
     grid.x = {1.0, 2.0, 1e2, 1e4};
     grid.y = {4.0, 8.0, 8.0, 2.0};
     this->build(grid);
+
     NonuniformGridCalculator calc(grid_, reals_ref_);
 
     // Test accessing tabulated data
@@ -91,6 +92,7 @@ TEST_F(NonuniformGridCalculatorTest, inverse)
     this->build(grid);
 
     auto calc = NonuniformGridCalculator::from_inverse(grid_, reals_ref_);
+
     EXPECT_SOFT_EQ(0.5, calc(-2));
     EXPECT_SOFT_EQ(0.5, calc(-1));
     EXPECT_SOFT_EQ(0.75, calc(-0.5));
@@ -115,6 +117,7 @@ TEST_F(NonuniformGridCalculatorTest, spline)
     this->build(grid);
 
     auto calc = NonuniformGridCalculator(grid_, reals_ref_);
+
     EXPECT_SOFT_EQ(0, calc(0));
     EXPECT_SOFT_EQ(0.6184210526315791, calc(2));
     EXPECT_SOFT_EQ(-0.07360197368421052, calc(3.5));

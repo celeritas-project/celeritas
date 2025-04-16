@@ -86,20 +86,11 @@ class NeutronInelasticModel final : public Model, public StaticConcreteAction
 
     using HostXsData = HostVal<NeutronInelasticData>;
 
-    struct ChannelData
-    {
-        StepanovParameters par;
-        Array<double, 13> xs;
-        Array<double, 6 * 19> cdf;  //! [energy][angle]
-    };
-
     //// HELPER FUNCTIONS ////
 
-    Span<double const> get_xs_energy_bins() const;
-    static ChannelData const& get_channel_data(ChannelId id);
-
-    Span<double const> get_cdf_energy_bins() const;
-    Span<double const> get_cos_theta_bins() const;
+    StepanovParameters const& get_channel_params(ChannelId id);
+    inp::Grid const& get_channel_xs(ChannelId id);
+    inp::TwodGrid const& get_channel_cdf(ChannelId id);
 };
 
 //---------------------------------------------------------------------------//

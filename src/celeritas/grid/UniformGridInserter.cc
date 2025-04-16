@@ -34,7 +34,6 @@ auto UniformGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
     UniformGridRecord data;
     data.grid = UniformGridData::from_bounds(grid.x, grid.y.size());
     data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
-
     if (grid.interpolation.type == InterpolationType::cubic_spline)
     {
         if (data.value.size() < SplineDerivCalculator::min_grid_size())

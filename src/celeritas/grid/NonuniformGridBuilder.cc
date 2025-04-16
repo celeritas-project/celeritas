@@ -6,99 +6,61 @@
 //---------------------------------------------------------------------------//
 #include "NonuniformGridBuilder.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
-#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with pointers to data that will be modified.
+ * Construct with a reference to mutable host data.
  */
-NonuniformGridBuilder::NonuniformGridBuilder(Items<real_type>* reals)
-    : values_(*reals), reals_{reals}
+NonuniformGridBuilder::NonuniformGridBuilder(Values* reals)
+    : values_(*reals), reals_(reals)
 {
     CELER_EXPECT(reals);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with linear interpolation.
- */
-auto NonuniformGridBuilder::operator()(SpanConstFlt grid, SpanConstFlt values)
-    -> Grid
-{
-    return this->insert_impl(grid, values, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of generic data with linear interpolation.
- */
-auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
-    -> Grid
-{
-    return this->insert_impl(grid, values, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from an imported physics vector.
+ * Add a generic grid.
  */
 auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
 {
-    return this->insert_impl(
-        make_span(grid.x), make_span(grid.y), grid.interpolation);
-}
+    CELER_EXPECT(grid);
 
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from container references.
- */
-template<class T>
-auto NonuniformGridBuilder::insert_impl(Span<T const> grid,
-                                        Span<T const> values,
-                                        inp::Interpolation interp) -> Grid
-{
-    using BC = SplineDerivCalculator::BoundaryCondition;
-
-    CELER_EXPECT(grid.size() >= 2);
-    CELER_EXPECT(grid.front() <= grid.back());
-    CELER_EXPECT(values.size() == grid.size());
-    CELER_EXPECT(interp.type != InterpolationType::size_);
-
-    if (interp.type == InterpolationType::poly_spline)
+    NonuniformGridRecord data;
+    data.grid = reals_.insert_back(grid.x.begin(), grid.x.end());
+    data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
+    if (grid.interpolation.type == InterpolationType::cubic_spline)
     {
-        CELER_LOG(warning) << to_cstring(interp.type)
+        if (data.value.size() < SplineDerivCalculator::min_grid_size())
+        {
+            CELER_LOG(warning)
+                << to_cstring(grid.interpolation.type)
+                << " interpolation is not supported on a grid with size "
+                << data.value.size() << ": defaulting to linear";
+            return data;
+        }
+        using ValuesRef
+            = Collection<real_type, Ownership::const_reference, MemSpace::host>;
+
+        // Calculate second derivatives for cubic spline interpolation
+        CELER_ASSERT(grid.interpolation.bc
+                     != SplineDerivCalculator::BoundaryCondition::size_);
+        ValuesRef values(values_);
+        auto deriv = SplineDerivCalculator(grid.interpolation.bc)(data, values);
+        data.derivative = reals_.insert_back(deriv.begin(), deriv.end());
+    }
+    else if (grid.interpolation.type == InterpolationType::poly_spline)
+    {
+        CELER_LOG(warning) << to_cstring(grid.interpolation.type)
                            << " interpolation is not supported on a "
                               "nonuniform grid: defaulting to linear";
-        interp.type = InterpolationType::linear;
     }
-    else if (interp.type == InterpolationType::cubic_spline
-             && values.size() < 5)
-    {
-        CELER_LOG(warning) << to_cstring(interp.type)
-                           << " interpolation is not supported on a "
-                              "grid with size "
-                           << values.size() << ": defaulting to linear";
-        interp.type = InterpolationType::linear;
-    }
-
-    Grid result;
-    result.grid = reals_.insert_back(grid.begin(), grid.end());
-    result.value = reals_.insert_back(values.begin(), values.end());
-    if (interp.type == InterpolationType::cubic_spline)
-    {
-        // Calculate second derivatives for cubic spline interpolation
-        CELER_ASSERT(interp.bc != BC::size_);
-        CELER_ASSERT(is_monotonic_increasing(grid));
-        auto deriv = SplineDerivCalculator(interp.bc)(values_[result.grid],
-                                                      values_[result.value]);
-        result.derivative = reals_.insert_back(deriv.begin(), deriv.end());
-    }
-    CELER_ENSURE(result);
-    return result;
+    CELER_ENSURE(data);
+    return data;
 }
 
 //---------------------------------------------------------------------------//

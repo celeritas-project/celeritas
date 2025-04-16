@@ -31,12 +31,11 @@ struct ImportMuPairProductionTable
     //!@}
 
     std::vector<ZInt> atomic_number;
-    std::vector<inp::TwodGrid> physics_vectors;
+    std::vector<inp::TwodGrid> grids;
 
     explicit operator bool() const
     {
-        return !atomic_number.empty()
-               && physics_vectors.size() == atomic_number.size();
+        return !atomic_number.empty() && grids.size() == atomic_number.size();
     }
 };
 

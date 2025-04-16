@@ -6,52 +6,41 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+#include <vector>
+
+#include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a generic grid.
- *
- * This uses a deduplicating inserter for real values to improve cacheing.
+ * Construct a nonuniform grid.
  */
 class NonuniformGridBuilder
 {
   public:
     //!@{
     //! \name Type aliases
-    template<class T>
-    using Items = Collection<T, Ownership::value, MemSpace::host>;
     using Grid = NonuniformGridRecord;
-    using SpanConstFlt = Span<float const>;
-    using SpanConstDbl = Span<double const>;
+    using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     //!@}
 
   public:
-    // Construct with pointers to data that will be modified
-    explicit NonuniformGridBuilder(Items<real_type>* reals);
+    // Construct with a reference to mutable host data
+    explicit NonuniformGridBuilder(Values* reals);
 
-    // Add a grid of generic data with linear interpolation
-    Grid operator()(SpanConstFlt grid, SpanConstFlt values);
-    Grid operator()(SpanConstDbl grid, SpanConstDbl values);
-
-    // Add a grid from an imported physics vector
+    // Add an imported physics vector as a grid
     Grid operator()(inp::Grid const&);
 
   private:
-    Items<real_type> const& values_;
+    Values const& values_;
     DedupeCollectionBuilder<real_type> reals_;
-
-    // Insert with floating point conversion if needed
-    template<class T>
-    Grid
-    insert_impl(Span<T const> grid, Span<T const> values, inp::Interpolation);
 };
 
 //---------------------------------------------------------------------------//

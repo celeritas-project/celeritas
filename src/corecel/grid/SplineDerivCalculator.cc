@@ -26,6 +26,16 @@ SplineDerivCalculator::SplineDerivCalculator(BoundaryCondition bc) : bc_(bc)
 /*!
  * Calculate the second derivatives from grid data.
  */
+auto SplineDerivCalculator::operator()(NonuniformGridRecord const& data,
+                                       Values const& reals) const -> VecReal
+{
+    return (*this)(detail::NonuniformGridAccessor(data, reals));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the second derivatives from grid data.
+ */
 auto SplineDerivCalculator::operator()(UniformGridRecord const& data,
                                        Values const& reals) const -> VecReal
 {
@@ -39,7 +49,7 @@ auto SplineDerivCalculator::operator()(UniformGridRecord const& data,
 auto SplineDerivCalculator::operator()(SpanConstReal x, SpanConstReal y) const
     -> VecReal
 {
-    return (*this)(detail::SpanGridAccessor(x, y));
+    return (*this)(detail::NonuniformGridAccessor(x, y));
 }
 
 //---------------------------------------------------------------------------//
