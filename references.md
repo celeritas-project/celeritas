@@ -40,7 +40,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - E. W. Larsen. "A theoretical derivation of the Condensed History Algorithm". *Annals of Nuclear Energy*, Oct 1992. [10.1016/0306-4549(92)90013-2](https://doi.org/10.1016/0306-4549(92)90013-2)
 - *[sb-brems-1986]*: S. M. Seltzer, M. J. Berger. "Bremsstrahlung energy spectra from electrons with kinetic energy 1 keV–10 GeV incident on screened nuclei and orbital electrons of neutral atoms with Z = 1–100". *Atomic Data and Nuclear Data Tables*, Nov 1986. [10.1016/0092-640X(86)90014-8](https://doi.org/10.1016/0092-640X(86)90014-8)
 - L. Kim, R. H. Pratt, S. M. Seltzer, M. J. Berger. "Ratio of positron to electron bremsstrahlung energy loss: An approximate scaling law". *Physical Review A*, May 1986. [10.1103/PhysRevA.33.3002](https://doi.org/10.1103/PhysRevA.33.3002)
-- *[shampine-rungekutta-1986]*: L. F. Shampine. "Some Practical Runge-Kutta Formulas". Jan 1986. [https://doi.org/10.2307/2008219](https://doi.org/https://doi.org/10.2307/2008219)
+- *[shampine-rungekutta-1986]*: L. F. Shampine. "Some Practical Runge-Kutta Formulas". *Mathematics of Computation*, Jan 1986. [https://doi.org/10.2307/2008219](https://doi.org/https://doi.org/10.2307/2008219)
 - *[sb-brems-1985]*: S. M. Seltzer, M. J. Berger. "Bremsstrahlung spectra from electron interactions with screened atomic nuclei and orbital electrons". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, Aug 1985. [10.1016/0168-583X(85)90707-4](https://doi.org/10.1016/0168-583X(85)90707-4)
 - C. Everett, E. Cashwell. "A relativity primer for particle transport". *Advances in Applied Mathematics*, Jun 1982. [10.1016/S0196-8858(82)80020-1](https://doi.org/10.1016/S0196-8858(82)80020-1)
 - *[stanev-lpm-1982]*: T. Stanev, C. Vankov, R. E. Streitmatter, R. W. Ellsworth, T. Bowen, *et al*. "Development of ultrahigh-energy electromagnetic cascades in water and lead including the Landau-Pomeranchuk-Migdal effect". *Physical Review D*, Mar 1982. [10.1103/PhysRevD.25.1291](https://doi.org/10.1103/PhysRevD.25.1291)
@@ -100,8 +100,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - "GDML user's guide". Jun 2022.
 - T. M. Evans, A. Siegel, E. W. Draeger, J. Deslippe, M. M. Francois, *et al*. "A survey of software implementations used by application codes in the Exascale Computing Project". *The International Journal of High Performance Computing Applications*, Jan 2022. [10.1177/10943420211028940](https://doi.org/10.1177/10943420211028940)
 - M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
-- M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
 - X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
+- M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
 - Andrei Gheata, AdePT Team. "AdePT Status". Sep 2021. [indico.cern.ch](https://indico.cern.ch/event/1052654/contributions/4525306/attachments/2310908/3932523/AdePT%2026th%20Geant4%20Collaboration%20Meeting.pdf)
 - *[atlas-athena]*: ATLAS Collaboration. "Athena". May 2021. [zenodo.org](https://zenodo.org/record/2641996)
 - Marc Verderi, Alberto Ribon. "Geant4 Introduction". Apr 2021. [indico.cern.ch](https://indico.cern.ch/event/1028379/)
@@ -114,8 +114,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - G. Amadio, A. Ananya, J. Apostolakis, M. Bandieramonte, S. Banerjee, *et al*. "GeantV: Results from the prototype of concurrent vector particle transport simulation in HEP". Sep 2020. [arxiv.org](http://arxiv.org/abs/2005.00949)
 - Andrei Gheata. "AdePT: Accelerated demonstrator of electromagnetic Particle Transport". Sep 2020. [indico.cern.ch](https://indico.cern.ch/event/942142/contributions/4016086/attachments/2102749/3535536/AdePT.pdf)
 - G. A. Stewart, A. Valassi, J. McFayden, E. Yazgan, W. Pokorski, *et al*. "HL-LHC Computing Review: Common Tools and Community Software". Aug 2020. [zenodo.org](https://zenodo.org/record/4009114)
-- V. Artigues, K. Kormann, M. Rampp, K. Reuter. "Evaluation of performance portability frameworks for the implementation of a particle‐in‐cell code". *Concurrency and Computation: Practice and Experience*, Jun 2020. [10.1002/cpe.5640](https://doi.org/10.1002/cpe.5640)
 - *[root]*: R. Brun, F. Rademakers, P. Canal, A. Naumann, O. Couet, *et al*. "root-project/root: v6.18/02". Zenodo, Jun 2020. [doi.org](https://doi.org/10.5281/zenodo.3895860)
+- V. Artigues, K. Kormann, M. Rampp, K. Reuter. "Evaluation of performance portability frameworks for the implementation of a particle‐in‐cell code". *Concurrency and Computation: Practice and Experience*, Jun 2020. [10.1002/cpe.5640](https://doi.org/10.1002/cpe.5640)
 - F. Sanglard. "A history of NVidia Stream Multiprocessor". May 2020. [fabiensanglard.net](https://fabiensanglard.net/cuda/)
 - S. Blyth, C. Doglioni, D. Kim, G. Stewart, L. Silvestris, *et al*. "Meeting the challenge of JUNO simulation with Opticks: GPU optical photon acceleration via NVIDIA® OptiX<sup>TM</sup>". *EPJ Web of Conferences*, 2020. [10.1051/epjconf/202024511003](https://doi.org/10.1051/epjconf/202024511003)
 - *[fullsimlight-2020]*: M. Bandieramonte, R. M. Bianchi, J. Boudreau, C. Doglioni, D. Kim, *et al*. "FullSimLight: ATLAS standalone Geant4 simulation". *EPJ Web of Conferences*, 2020. [10.1051/epjconf/202024502029](https://doi.org/10.1051/epjconf/202024502029)
@@ -178,8 +178,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[wachter-bih-2006]*: C. Wächter, A. Keller. "Instant Ray Tracing: The Bounding Interval Hierarchy". 2006. [10.2312/EGWR/EGSR06/139-149](https://doi.org/10.2312/EGWR/EGSR06/139-149)
 - *[marsaglia-xorshift-2003]*: G. Marsaglia. "Xorshift RNGs". *Journal of Statistical software*, 2003.
 - *[marsaglia-gamma-2000]*: G. Marsaglia, W. W. Tsang. "A simple method for generating gamma variables". *ACM Transactions on Mathematical Software*, Sep 2000. [10.1145/358407.358414](https://doi.org/10.1145/358407.358414)
-- *[press-nr-1992]*: W. H. Press. "Numerical recipes in C: the art of scientific computing". Cambridge University Press, Cambridge ; New York, 1992.
+- *[press-nr-1992]*: W. H. Press. "Numerical recipes in C: the art of scientific computing". Cambridge University Press, Cambridge ; New York, 1992. [dl.acm.org](https://dl.acm.org/doi/10.5555/1403886)
 - *[allen-loop-1984]*: J. Allen, K. Kennedy. "Automatic Loop Interchange". in *SIGPLAN Notlce8*, Jun 1984.
+- *[dormand-rungekutta-1980]*: J. Dormand, P. Prince. "A family of embedded Runge-Kutta formulae". *Journal of Computational and Applied Mathematics*, Mar 1980. [10.1016/0771-050X(80)90013-3](https://doi.org/10.1016/0771-050X(80)90013-3)
 - *[everett-montecarlo-1972]*: C. J. Everett, E. D. Cashwell. "A Monte Carlo Sampler". 1972. [doi.org](https://doi.org/10.2172/4589395)
 
 ## Computational geometry
@@ -198,4 +199,4 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[sphere-tracing-1996]*: J. C. Hart. "Sphere tracing: a geometric method for the antialiased ray tracing of implicit surfaces". *The Visual Computer*, Dec 1996. [10.1007/s003710050084](https://doi.org/10.1007/s003710050084)
 - P. S. Heckbert. "Graphics gems IV". AP Professional, Boston, 1994.
 - R. T. Farouki, C. Neff, M. A. O'Conner. "Automatic parsing of degenerate quadric-surface intersections". *ACM Transactions on Graphics*, Jul 1989. [10.1145/77055.77058](https://doi.org/10.1145/77055.77058)
-- *[dormand-prince]*: J. R. Dormand, P. J. Prince. "A family of embedded Runge-Kutta formulae". *Journal Computational and Applied Mathematics*, 1980.
+- R. Graham. "An efficient algorithm for determining the convex hull of a finite planar set". *Information Processing Letters*, Jun 1972. [https://doi.org/10.1016/0020-0190(72)90045-2](https://doi.org/https://doi.org/10.1016/0020-0190(72)90045-2)

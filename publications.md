@@ -16,6 +16,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- B. Morgan. "Geant4 R&D on use of GPU: AdePT, Celeritas, G4HepEm". *GridPP/SWIFT-HEP Workshop*, 09 Apr 2025. [presentation](https://indico.cern.ch/event/1476120/contributions/6442360/)
 - S. R. Johnson, J. Esseiva, A. Lund, *et al*. "GPU benchmark problem results". *Delta Geant4 assessment of simulation R&D projects: AdePT and Celeritas*, 26 Mar 2025. [presentation](https://indico.cern.ch/event/1507476/contributions/6343926/attachments/3039428/5368372/celeritas-overview.pdf)
 - S. R. Johnson. "Five years of Celeritas: R&D status update". *Delta Geant4 assessment of simulation R&D projects: AdePT and Celeritas*, 26 Mar 2025. [presentation](https://indico.cern.ch/event/1507476/contributions/6343926/attachments/3039428/5368372/celeritas-overview.pdf)
 - S. R. Johnson. "Celeritas and an HPC perspective of detector simulation R&D". *Community input on the European Strategy for Particle Physics Update*, 22 Nov 2024. [presentation](https://indico.cern.ch/event/1475445/contributions/6235433/attachments/2972914/5232586/celeritas-esppu.pdf)
