@@ -55,8 +55,8 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
         << this->description() << ")");
 
     // Get high/low energy limits
-    energy_limit_ = imported_.energy_grid_bounds(data_.ids.electron,
-                                                 PhysicsMaterialId{0});
+    energy_limit_
+        = imported_.energy_grid_bounds(data_.ids.electron, PhysMatId{0});
 
     // Check that the bounds are the same for all particles/materials
     // TODO: This is only expected when using Coulomb scattering with the
@@ -65,7 +65,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
     // require material-dependent applicability
     for (auto pid : {data_.ids.electron, data_.ids.positron})
     {
-        for (auto mid : range(PhysicsMaterialId{materials.num_materials()}))
+        for (auto mid : range(PhysMatId{materials.num_materials()}))
         {
             CELER_VALIDATE(
                 energy_limit_ == imported_.energy_grid_bounds(pid, mid),

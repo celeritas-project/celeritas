@@ -35,9 +35,9 @@ namespace optical
  *
  * Optical volume properties are imported from Geant4 into the \c
  * ImportData container. The \c celeritas::MaterialParams class loads the
- * mapping of \c PhysicsMaterialId to \c OpticalMaterialId and makes it
+ * mapping of \c PhysMatId to \c OptMatId and makes it
  * accessible via the main loop's material view. By combining that with the \c
- * GeoMaterialParams which maps volumes to \c PhysicsMaterialId, this class
+ * GeoMaterialParams which maps volumes to \c PhysMatId, this class
  * maps the geometry volumes to optical materials for use in the optical
  * tracking loop.
  *
@@ -49,10 +49,10 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
   public:
     struct Input
     {
-        //! Shared optical material, indexed by \c OpticalMaterialId
+        //! Shared optical material, indexed by \c OptMatId
         std::vector<ImportOpticalProperty> properties;
         //! Map logical volume ID to optical material ID
-        std::vector<OpticalMaterialId> volume_to_mat;
+        std::vector<OptMatId> volume_to_mat;
         //! Map optical material ID to core material ID
         std::vector<CorePhysicsMaterialId> optical_to_core;
     };
@@ -68,10 +68,10 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     explicit MaterialParams(Input const& inp);
 
     // Number of optical materials
-    inline OpticalMaterialId::size_type num_materials() const;
+    inline OptMatId::size_type num_materials() const;
 
     // Construct a material view for the given identifier
-    MaterialView get(OpticalMaterialId mat) const;
+    MaterialView get(OptMatId mat) const;
 
     //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -89,7 +89,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 /*!
  * Number of optical materials.
  */
-OpticalMaterialId::size_type MaterialParams::num_materials() const
+OptMatId::size_type MaterialParams::num_materials() const
 {
     return this->host_ref().refractive_index.size();
 }

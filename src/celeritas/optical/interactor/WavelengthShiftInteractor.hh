@@ -57,7 +57,7 @@ class WavelengthShiftInteractor
     inline CELER_FUNCTION
     WavelengthShiftInteractor(ParamsRef const& shared,
                               ParticleTrackView const& particle,
-                              OpticalMaterialId const& mat_id,
+                              OptMatId const& mat_id,
                               SecondaryAllocator& allocate);
 
     // Sample an interaction with the given RNG
@@ -88,7 +88,7 @@ CELER_FUNCTION
 WavelengthShiftInteractor::WavelengthShiftInteractor(
     ParamsRef const& shared,
     ParticleTrackView const& particle,
-    OpticalMaterialId const& mat_id,
+    OptMatId const& mat_id,
     SecondaryAllocator& allocate)
     : inc_energy_(particle.energy())
     , sample_num_photons_(shared.wls_record[mat_id].mean_num_photons)

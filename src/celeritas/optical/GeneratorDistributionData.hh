@@ -47,7 +47,7 @@ struct GeneratorDistributionData
     real_type time{};  //!< Pre-step time
     real_type step_length{};
     units::ElementaryCharge charge;
-    OpticalMaterialId material;
+    OptMatId material;
     EnumArray<StepPoint, GeneratorStepData> points;
 
     //! Check whether the data are assigned

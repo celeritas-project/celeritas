@@ -33,7 +33,7 @@ namespace test
 struct PhysTestInit
 {
     units::MevEnergy energy;
-    PhysicsMaterialId mat;
+    PhysMatId mat;
     ParticleId particle;
 };
 

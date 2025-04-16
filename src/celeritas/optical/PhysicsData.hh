@@ -36,7 +36,7 @@ struct PhysicsParamsScalars
     ModelId::size_type num_models{};
 
     //! Number of optical materials
-    OpticalMaterialId::size_type num_materials{};
+    OptMatId::size_type num_materials{};
 
     //! Offset to create an ActionId from a ModelId
     ActionId::size_type model_to_action{};

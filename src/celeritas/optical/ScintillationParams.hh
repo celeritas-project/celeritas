@@ -42,7 +42,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     //! Scintillation data for all materials and particles
     struct Input
     {
-        using VecOptMatId = std::vector<OpticalMaterialId>;
+        using VecOptMatId = std::vector<OptMatId>;
         using VecSPId = std::vector<ScintillationParticleId>;
 
         std::vector<double> resolution_scale;

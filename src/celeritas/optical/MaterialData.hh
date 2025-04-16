@@ -28,14 +28,14 @@ struct MaterialParamsData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    using OpticalMaterialItems = Collection<T, W, M, OptMatId>;
     template<class T>
     using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
 
     //// MEMBER DATA ////
 
     OpticalMaterialItems<NonuniformGridRecord> refractive_index;
-    VolumeItems<OpticalMaterialId> optical_id;
+    VolumeItems<OptMatId> optical_id;
     OpticalMaterialItems<CorePhysicsMaterialId> core_material_id;
 
     // Backend data

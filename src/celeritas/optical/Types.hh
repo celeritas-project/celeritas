@@ -30,8 +30,8 @@ using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord_>;
 namespace optical
 {
 //---------------------------------------------------------------------------//
-//! Alias for PhysicsMaterialId in core Celeritas namespace
-using CorePhysicsMaterialId = ::celeritas::PhysicsMaterialId;
+//! Alias for PhysMatId in core Celeritas namespace
+using CorePhysicsMaterialId = ::celeritas::PhysMatId;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

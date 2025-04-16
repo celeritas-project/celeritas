@@ -141,7 +141,7 @@ struct UrbanMscData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using MaterialItems = Collection<T, W, M, PhysicsMaterialId>;
+    using MaterialItems = Collection<T, W, M, PhysMatId>;
     template<class T>
     using ParticleItems = Collection<T, W, M, ParticleId>;
 

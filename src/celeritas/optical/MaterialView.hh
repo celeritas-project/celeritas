@@ -27,12 +27,12 @@ class MaterialView
     //!@{
     //! \name Type aliases
     using ParamsRef = NativeCRef<MaterialParamsData>;
-    using MaterialId = OpticalMaterialId;
+    using MatId = OptMatId;
     //!@}
 
   public:
     // Construct from params and material ID
-    inline CELER_FUNCTION MaterialView(ParamsRef const& params, MaterialId id);
+    inline CELER_FUNCTION MaterialView(ParamsRef const& params, MatId id);
 
     // Construct from params and volume ID
     inline CELER_FUNCTION MaterialView(ParamsRef const& params, VolumeId vol);
@@ -43,7 +43,7 @@ class MaterialView
     //// MATERIAL DATA ////
 
     // ID of this optical material
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION MatId material_id() const;
 
     // ID of the associated core material
     CELER_FORCEINLINE_FUNCTION CorePhysicsMaterialId core_material_id() const;
@@ -58,7 +58,7 @@ class MaterialView
     //// DATA ////
 
     ParamsRef const& params_;
-    MaterialId mat_id_;
+    MatId mat_id_;
 };
 
 //---------------------------------------------------------------------------//
@@ -68,7 +68,7 @@ class MaterialView
  * Construct from an optical material.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(ParamsRef const& params, MaterialId id)
+MaterialView::MaterialView(ParamsRef const& params, MatId id)
     : params_(params), mat_id_(id)
 {
     CELER_EXPECT(id < params_.refractive_index.size());
@@ -102,7 +102,7 @@ CELER_FORCEINLINE_FUNCTION MaterialView::operator bool() const
 /*!
  * Get the optical material id.
  */
-CELER_FUNCTION auto MaterialView::material_id() const -> MaterialId
+CELER_FUNCTION auto MaterialView::material_id() const -> MatId
 {
     return mat_id_;
 }

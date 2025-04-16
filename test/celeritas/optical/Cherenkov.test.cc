@@ -143,7 +143,7 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
 
         MaterialParams::Input input;
         input.properties.push_back(std::move(water));
-        input.volume_to_mat = {OpticalMaterialId{0}};
+        input.volume_to_mat = {OptMatId{0}};
         input.optical_to_core = {CorePhysicsMaterialId{0}};
         material = std::make_shared<MaterialParams>(std::move(input));
 
@@ -153,7 +153,7 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
 
     std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<CherenkovParams const> params;
-    OpticalMaterialId material_id{0};
+    OptMatId material_id{0};
 };
 
 //---------------------------------------------------------------------------//

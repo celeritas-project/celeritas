@@ -57,7 +57,7 @@ MaterialParams::from_import(ImportData const& data,
     bool has_opt_mat{false};
     for (auto vid : range(VolumeId{geo_mat.num_volumes()}))
     {
-        OpticalMaterialId optmat;
+        OptMatId optmat;
         if (auto matid = geo_mat.material_id(vid))
         {
             auto mat_view = mat.get(matid);
@@ -155,7 +155,7 @@ MaterialParams::MaterialParams(Input const& inp)
 /*!
  * Construct a material view for the given identifier.
  */
-MaterialView MaterialParams::get(OpticalMaterialId mat) const
+MaterialView MaterialParams::get(OptMatId mat) const
 {
     return MaterialView(this->host_ref(), mat);
 }

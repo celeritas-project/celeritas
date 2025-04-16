@@ -56,7 +56,7 @@ class GeoMaterialParams final
     {
         SPConstGeo geometry;
         SPConstMaterial materials;
-        std::vector<PhysicsMaterialId> volume_to_mat;
+        std::vector<PhysMatId> volume_to_mat;
         std::vector<Label> volume_labels;  // Optional
     };
 
@@ -80,7 +80,7 @@ class GeoMaterialParams final
     inline VolumeId::size_type num_volumes() const;
 
     // Get the material ID corresponding to a volume ID
-    inline PhysicsMaterialId material_id(VolumeId v) const;
+    inline PhysMatId material_id(VolumeId v) const;
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
@@ -105,7 +105,7 @@ VolumeId::size_type GeoMaterialParams::num_volumes() const
  *
  * Some "virtual" volumes may have a null ID.
  */
-PhysicsMaterialId GeoMaterialParams::material_id(VolumeId v) const
+PhysMatId GeoMaterialParams::material_id(VolumeId v) const
 {
     CELER_EXPECT(v < this->num_volumes());
 

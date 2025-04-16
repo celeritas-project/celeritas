@@ -56,7 +56,7 @@ class OpticalPhysicsTest : public OpticalMockTestBase
     }
 
     PhysicsTrackView
-    make_track_view(OpticalMaterialId mat, TrackSlotId slot = TrackSlotId{0})
+    make_track_view(OptMatId mat, TrackSlotId slot = TrackSlotId{0})
     {
         CELER_EXPECT(mat < this->num_optical_materials());
         return PhysicsTrackView(this->optical_physics()->host_ref(),
@@ -89,10 +89,10 @@ class OpticalPhysicsTest : public OpticalMockTestBase
      * over a different ID.
      */
     template<class T>
-    OpticalMaterialId cycle_material_id(T other_id)
+    OptMatId cycle_material_id(T other_id)
     {
-        return OpticalMaterialId{(2 * other_id.get() + 3)
-                                 % this->num_optical_materials()};
+        return OptMatId{(2 * other_id.get() + 3)
+                        % this->num_optical_materials()};
     }
 
   private:
@@ -157,7 +157,7 @@ TEST_F(OpticalPhysicsTest, physics_params)
 // Test sampling discrete interactions by per model cross sections
 TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
 {
-    PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{3});
+    PhysicsTrackView physics = this->make_track_view(OptMatId{3});
     RngEngine rng_engine;
 
     // Populate XS scratch space used for each model
@@ -197,7 +197,7 @@ TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
 // Test expected step limits and calculation cross sections
 TEST_F(OpticalPhysicsTest, calc_step_limits)
 {
-    PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{2});
+    PhysicsTrackView physics = this->make_track_view(OptMatId{2});
     ParticleTrackView particle = this->make_particle_view();
 
     static std::vector<real_type> energies{0.1, 1, 5, 10};
@@ -256,7 +256,7 @@ TEST_F(OpticalPhysicsTest, track_view_actions)
 {
     // Note that there shouldn't be material or track dependence on the
     // model-action accessors
-    PhysicsTrackView physics = this->make_track_view(OpticalMaterialId{0});
+    PhysicsTrackView physics = this->make_track_view(OptMatId{0});
 
     // Model-Action mapping
 
@@ -333,8 +333,7 @@ TEST_F(OpticalPhysicsTest, track_view_grids)
 
     for (auto track_id : range(TrackSlotId{num_tracks}))
     {
-        for (auto mat_id :
-             range(OpticalMaterialId{this->num_optical_materials()}))
+        for (auto mat_id : range(OptMatId{this->num_optical_materials()}))
         {
             auto const physics = this->make_track_view(mat_id, track_id);
 
