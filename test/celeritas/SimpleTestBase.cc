@@ -49,7 +49,8 @@ auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
     GeoMaterialParams::Input input;
     input.geometry = this->geometry();
     input.materials = this->material();
-    input.volume_to_mat = {MaterialId{0}, MaterialId{1}, MaterialId{}};
+    input.volume_to_mat
+        = {PhysicsMaterialId{0}, PhysicsMaterialId{1}, PhysicsMaterialId{}};
     input.volume_labels = {Label{"inner"}, Label{"world"}, Label{"[EXTERIOR]"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }

@@ -35,10 +35,11 @@ namespace optical
  *
  * Optical volume properties are imported from Geant4 into the \c
  * ImportData container. The \c celeritas::MaterialParams class loads the
- * mapping of \c MaterialId to \c OpticalMaterialId and makes it accessible
- * via the main loop's material view. By combining that with the \c
- * GeoMaterialParams which maps volumes to \c MaterialId, this class maps the
- * geometry volumes to optical materials for use in the optical tracking loop.
+ * mapping of \c PhysicsMaterialId to \c OpticalMaterialId and makes it
+ * accessible via the main loop's material view. By combining that with the \c
+ * GeoMaterialParams which maps volumes to \c PhysicsMaterialId, this class
+ * maps the geometry volumes to optical materials for use in the optical
+ * tracking loop.
  *
  * When surface models are implemented, surface properties will also be added
  * to this class.
@@ -53,7 +54,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         //! Map logical volume ID to optical material ID
         std::vector<OpticalMaterialId> volume_to_mat;
         //! Map optical material ID to core material ID
-        std::vector<CoreMaterialId> optical_to_core;
+        std::vector<CorePhysicsMaterialId> optical_to_core;
     };
 
   public:

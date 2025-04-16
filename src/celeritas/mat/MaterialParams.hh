@@ -48,7 +48,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstMaterialId = Span<MaterialId const>;
+    using SpanConstPhysicsMaterialId = Span<PhysicsMaterialId const>;
     using SpanConstElementId = Span<ElementId const>;
     using SpanConstIsotopeId = Span<IsotopeId const>;
     //!@}
@@ -109,22 +109,25 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     explicit MaterialParams(Input const& inp);
 
     //! Number of material definitions
-    MaterialId::size_type size() const { return mat_labels_.size(); }
+    PhysicsMaterialId::size_type size() const { return mat_labels_.size(); }
 
     //!@{
     //! \name Material metadata
 
     //! Number of materials
-    MaterialId::size_type num_materials() const { return mat_labels_.size(); }
+    PhysicsMaterialId::size_type num_materials() const
+    {
+        return mat_labels_.size();
+    }
 
     // Get material name
-    Label const& id_to_label(MaterialId id) const;
+    Label const& id_to_label(PhysicsMaterialId id) const;
 
     // Find a material from a name
-    MaterialId find_material(std::string const& name) const;
+    PhysicsMaterialId find_material(std::string const& name) const;
 
     // Find all materials that share a name
-    SpanConstMaterialId find_materials(std::string const& name) const;
+    SpanConstPhysicsMaterialId find_materials(std::string const& name) const;
     //!@}
 
     //!@{
@@ -160,7 +163,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     //!@}
 
     // Access material definitions on host
-    inline MaterialView get(MaterialId id) const;
+    inline MaterialView get(PhysicsMaterialId id) const;
 
     // Access element definitions on host
     inline ElementView get(ElementId id) const;
@@ -185,7 +188,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
   private:
     // Metadata
-    LabelIdMultiMap<MaterialId> mat_labels_;
+    LabelIdMultiMap<PhysicsMaterialId> mat_labels_;
     LabelIdMultiMap<ElementId> el_labels_;
     LabelIdMultiMap<IsotopeId> isot_labels_;
 
@@ -207,7 +210,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 /*!
  * Get material properties for the given material.
  */
-MaterialView MaterialParams::get(MaterialId id) const
+MaterialView MaterialParams::get(PhysicsMaterialId id) const
 {
     CELER_EXPECT(id < this->host_ref().materials.size());
     return MaterialView(this->host_ref(), id);

@@ -30,13 +30,14 @@ __global__ void col_cuda_test_kernel(DeviceCRef<MockParamsData> const params,
         return;
 
     // Initialize local matid states
-    states.matid[tid] = MockMaterialId(tid.get() % params.materials.size());
+    states.matid[tid]
+        = MockPhysicsMaterialId(tid.get() % params.materials.size());
 
     // Construct track view
     MockTrackView mock(params, states, tid);
 
     // Access some values
-    MockMaterialId matid = mock.matid();
+    MockPhysicsMaterialId matid = mock.matid();
     CELER_ASSERT(matid);
     double nd = mock.number_density();
     CELER_ASSERT(nd >= 0);

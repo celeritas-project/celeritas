@@ -115,11 +115,11 @@ auto InvalidOrangeTestBase::build_geomaterial() -> SPConstGeoMaterial
     input.geometry = this->geometry();
     input.materials = this->material();
     input.volume_to_mat = {
-        MaterialId{0},
-        MaterialId{0},
-        MaterialId{1},
-        MaterialId{},
-        MaterialId{},
+        PhysicsMaterialId{0},
+        PhysicsMaterialId{0},
+        PhysicsMaterialId{1},
+        PhysicsMaterialId{},
+        PhysicsMaterialId{},
     };
     input.volume_labels = {
         Label{"interior"},

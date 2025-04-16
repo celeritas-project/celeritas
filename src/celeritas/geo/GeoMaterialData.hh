@@ -22,7 +22,7 @@ struct GeoMaterialParamsData
     template<class T>
     using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
 
-    VolumeItems<MaterialId> materials;
+    VolumeItems<PhysicsMaterialId> materials;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const

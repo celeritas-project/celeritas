@@ -38,8 +38,7 @@ using UniqueEventId = OpaqueId<struct Event_, std::uint64_t>;
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
 
 //! Opaque index of a material modified by physics options
-// TODO: rename to PhysMatId; equivalent to "material cuts couple"
-using MaterialId = OpaqueId<struct Material_>;
+using PhysicsMaterialId = OpaqueId<struct PhysicsMaterial_>;
 
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<struct Model_>;

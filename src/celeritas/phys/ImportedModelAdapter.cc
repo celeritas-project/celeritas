@@ -97,7 +97,7 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilde
  * Get the xs energy grid bounds for the given material and particle.
  */
 auto ImportedModelAdapter::energy_grid_bounds(
-    ParticleId pid, MaterialId mid) const -> EnergyBounds
+    ParticleId pid, PhysicsMaterialId mid) const -> EnergyBounds
 {
     CELER_EXPECT(pid && mid);
 

@@ -91,8 +91,10 @@ auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
     GeoMaterialParams::Input input;
     input.geometry = this->geometry();
     input.materials = this->material();
-    input.volume_to_mat
-        = {MaterialId{0}, MaterialId{2}, MaterialId{1}, MaterialId{3}};
+    input.volume_to_mat = {PhysicsMaterialId{0},
+                           PhysicsMaterialId{2},
+                           PhysicsMaterialId{1},
+                           PhysicsMaterialId{3}};
     input.volume_labels
         = {Label{"inner"}, Label{"middle"}, Label{"outer"}, Label{"world"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));

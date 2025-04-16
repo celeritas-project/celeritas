@@ -107,8 +107,8 @@ auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
             OpticalMaterialId(opt_mat % input.properties.size()));
     }
 
-    // mock MaterialId == OpticalMaterialId
-    for (auto mat : range(MaterialId(input.properties.size())))
+    // mock PhysicsMaterialId == OpticalMaterialId
+    for (auto mat : range(PhysicsMaterialId(input.properties.size())))
     {
         input.optical_to_core.push_back(mat);
     }
@@ -144,7 +144,7 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
             {},
             std::to_string(i).c_str()});
 
-        // mock MaterialId == OpticalMaterialId
+        // mock PhysicsMaterialId == OpticalMaterialId
         input.mat_to_optical.push_back(OpticalMaterialId(i));
     }
 

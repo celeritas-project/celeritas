@@ -67,7 +67,7 @@ class ImportedModelAdapter
   public:
     //!@{
     //! \name Type aliases
-    using ImportedModelId = typename ImportedModels::ImportedModelId;
+    using ImportedModelId = ImportedModels::ImportedModelId;
     using SPConstImported = std::shared_ptr<ImportedModels const>;
     //!@}
 

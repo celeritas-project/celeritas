@@ -63,7 +63,8 @@ struct CutoffParamsData
     ParticleItems<size_type> id_to_index;
 
     ParticleId::size_type num_particles;  //!< Particles with production cuts
-    MaterialId::size_type num_materials;  //!< All materials in the problem
+    PhysicsMaterialId::size_type num_materials;  //!< All materials in the
+                                                 //!< problem
 
     bool apply_post_interaction{false};  //!< Apply cutoff post-interaction
     CutoffIds ids;  //!< Secondaries that can be killed post-interaction if

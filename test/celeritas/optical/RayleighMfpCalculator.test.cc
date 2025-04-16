@@ -55,7 +55,8 @@ TEST_F(RayleighMfpCalculatorTest, mfp_table)
         RayleighMfpCalculator calc_mfp(
             this->optical_material()->get(opt_mat),
             rayleigh,
-            this->material()->get(::celeritas::MaterialId(opt_mat.get())));
+            this->material()->get(
+                ::celeritas::PhysicsMaterialId(opt_mat.get())));
 
         auto energies = calc_mfp.grid().values();
         for (auto i : range(energies.size()))

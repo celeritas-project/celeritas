@@ -517,7 +517,7 @@ class CollectionTest : public Test
                                                 std::end(elements));
             EXPECT_EQ(3, m.elements.size());
             auto id = mat_builder.push_back(m);
-            EXPECT_EQ(MockMaterialId{0}, id);
+            EXPECT_EQ(MockPhysicsMaterialId{0}, id);
         }
         {
             MockMaterial m;
@@ -539,7 +539,7 @@ class CollectionTest : public Test
             auto const& host_data_const = host_data;
 
             MockMaterial const& m
-                = host_data_const.materials[MockMaterialId{0}];
+                = host_data_const.materials[MockPhysicsMaterialId{0}];
             EXPECT_EQ(3, m.elements.size());
             Span<MockElement const> els = host_data_const.elements[m.elements];
             EXPECT_EQ(3, els.size());
@@ -583,7 +583,7 @@ TEST_F(CollectionTest, host)
     HostVal<MockStateData> host_state;
     resize(&host_state, 1);
     auto host_state_ref = make_ref(host_state);
-    host_state_ref.matid[TrackSlotId{0}] = MockMaterialId{1};
+    host_state_ref.matid[TrackSlotId{0}] = MockPhysicsMaterialId{1};
 
     // Create view
     MockTrackView mock(mock_params.host_ref(), host_state_ref, TrackSlotId{0});
@@ -620,7 +620,7 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
         // Create a track view
         auto host_ref = make_ref(host_states);
         MockTrackView mtv{mock_params.host_ref(), host_ref, TrackSlotId{2}};
-        EXPECT_EQ(MockMaterialId{2}, mtv.matid());
+        EXPECT_EQ(MockPhysicsMaterialId{2}, mtv.matid());
     }
 
     // Check that we can copy back to the device

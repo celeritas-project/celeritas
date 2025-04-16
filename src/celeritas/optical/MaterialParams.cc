@@ -75,9 +75,9 @@ MaterialParams::from_import(ImportData const& data,
     CELER_ENSURE(inp.volume_to_mat.size() == geo_mat.num_volumes());
 
     // Construct optical to core material mapping
-    inp.optical_to_core
-        = std::vector<CoreMaterialId>(inp.properties.size(), CoreMaterialId{});
-    for (auto core_id : range(CoreMaterialId{mat.num_materials()}))
+    inp.optical_to_core = std::vector<CorePhysicsMaterialId>(
+        inp.properties.size(), CorePhysicsMaterialId{});
+    for (auto core_id : range(CorePhysicsMaterialId{mat.num_materials()}))
     {
         if (auto opt_mat_id = mat.get(core_id).optical_material_id())
         {
