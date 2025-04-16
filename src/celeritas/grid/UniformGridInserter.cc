@@ -45,11 +45,14 @@ auto UniformGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
                 << data.value.size() << ": defaulting to linear";
             return grids_.push_back(data);
         }
+        using ValuesRef
+            = Collection<real_type, Ownership::const_reference, MemSpace::host>;
+
         // Calculate second derivatives for cubic spline interpolation
         CELER_ASSERT(grid.interpolation.bc
                      != SplineDerivCalculator::BoundaryCondition::size_);
-        auto deriv
-            = SplineDerivCalculator(grid.interpolation.bc)(data, values_);
+        ValuesRef values(values_);
+        auto deriv = SplineDerivCalculator(grid.interpolation.bc)(data, values);
         data.derivative = reals_.insert_back(deriv.begin(), deriv.end());
     }
     else if (grid.interpolation.type == InterpolationType::poly_spline)

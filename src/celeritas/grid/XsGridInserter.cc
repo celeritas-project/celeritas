@@ -82,8 +82,11 @@ void XsGridInserter::set_spline(inp::UniformGrid const& grid,
         // Calculate second derivatives for cubic spline interpolation
         CELER_ASSERT(grid.interpolation.bc
                      != SplineDerivCalculator::BoundaryCondition::size_);
-        auto deriv
-            = SplineDerivCalculator(grid.interpolation.bc)(data, values_);
+        using ValuesRef
+            = Collection<real_type, Ownership::const_reference, MemSpace::host>;
+
+        ValuesRef values(values_);
+        auto deriv = SplineDerivCalculator(grid.interpolation.bc)(data, values);
         data.derivative = reals_.insert_back(deriv.begin(), deriv.end());
     }
     else if (grid.interpolation.type == InterpolationType::poly_spline)

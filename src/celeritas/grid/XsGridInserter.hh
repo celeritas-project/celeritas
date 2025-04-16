@@ -48,10 +48,7 @@ class XsGridInserter
     GridId operator()(inp::UniformGrid const& grid);
 
   private:
-    using ValuesRef
-        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
-
-    ValuesRef values_;
+    Values values_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<XsGridRecord, MemSpace::host, GridId> grids_;
 
