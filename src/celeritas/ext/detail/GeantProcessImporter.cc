@@ -38,6 +38,7 @@
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/io/ImportUnits.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -177,10 +178,6 @@ void append_table(G4PhysicsTable const* g4table,
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::mev_per_len;
             break;
-        case ImportTableType::range:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::len;
-            break;
         case ImportTableType::lambda:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::len_inv;
@@ -200,8 +197,8 @@ void append_table(G4PhysicsTable const* g4table,
     // Save physics vectors, using spline interpolation if enabled and valid
     for (auto const* g4vector : *g4table)
     {
-        table.physics_vectors.emplace_back(
-            import_physics_vector(*g4vector, {table.x_units, table.y_units}));
+        table.physics_vectors.emplace_back(import_physics_log_vector(
+            *g4vector, {table.x_units, table.y_units}));
 #if G4VERSION_NUMBER < 1100
         // Hardcode whether the lambda table uses spline for older Geant4
         // versions. Always use spline for lambda prime, energy loss, range,
@@ -329,11 +326,6 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
                      result.process_class,
                      &result.tables,
                      interpolation_);
-        append_table(process.RangeTableForLoss(),
-                     ImportTableType::range,
-                     result.process_class,
-                     &result.tables,
-                     interpolation_);
     }
 
     append_table(process.LambdaTable(),
@@ -413,24 +405,57 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Import a physics vector with the given x, y units.
+ * Import a uniform physics vector with the given x, y units.
+ *
+ * The x-grid is uniform in log(x);
+ */
+inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
+                                           Array<ImportUnits, 2> units)
+{
+    // Convert units
+    double const x_scaling = native_value_from_clhep(units[0]);
+    double const y_scaling = native_value_from_clhep(units[1]);
+    auto size = pv.GetVectorLength();
+
+    inp::UniformGrid grid;
+    grid.x = {std::log(pv.Energy(0) * x_scaling),
+              std::log(pv.Energy(size - 1) * x_scaling)};
+    grid.y.resize(size);
+
+    double delta
+        = fastpow(pv.Energy(size - 1) / pv.Energy(0), 1.0 / (size - 1));
+    for (auto i : range(size))
+    {
+        // Check that the grid has log spacing
+        CELER_ASSERT(i == 0
+                     || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
+        grid.y[i] = pv[i] * y_scaling;
+    }
+    CELER_ENSURE(grid);
+    return grid;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import a generic physics vector with the given x, y units.
  */
 inp::Grid
-import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
+import_physics_vector(G4PhysicsVector const& pv, Array<ImportUnits, 2> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);
     double const y_scaling = native_value_from_clhep(units[1]);
 
     inp::Grid grid;
-    grid.x.resize(g4v.GetVectorLength());
+    grid.x.resize(pv.GetVectorLength());
     grid.y.resize(grid.x.size());
 
-    for (auto i : range(g4v.GetVectorLength()))
+    for (auto i : range(pv.GetVectorLength()))
     {
-        grid.x[i] = g4v.Energy(i) * x_scaling;
-        grid.y[i] = g4v[i] * y_scaling;
+        grid.x[i] = pv.Energy(i) * x_scaling;
+        grid.y[i] = pv[i] * y_scaling;
     }
+    CELER_ENSURE(grid);
     return grid;
 }
 

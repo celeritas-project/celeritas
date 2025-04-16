@@ -613,33 +613,16 @@ void PhysicsParams::build_xs(Options const& opts,
                 if (auto grid_id = eloss_grid_ids[mat_idx])
                 {
                     // Build the range grid from the energy loss
-                    auto const& eloss_grid = data->value_grids[grid_id];
-                    auto const range = RangeGridCalculator(BC::geant)(
-                        eloss_grid.lower, make_const_ref(*data).reals);
-                    CELER_ASSERT(is_monotonic_increasing(make_span(range)));
+                    auto dedx_builder
+                        = dynamic_cast<ValueGridLogBuilder const*>(
+                            builders[VGT::energy_loss].get());
+                    CELER_ASSERT(dedx_builder);
+                    auto range_grid
+                        = RangeGridCalculator(BC::geant)(dedx_builder->grid());
+                    range_grid_ids[mat_idx] = insert_grid(range_grid);
 
-                    inp::Interpolation interp;
-                    interp.order = eloss_grid.lower.spline_order;
-                    if (!eloss_grid.lower.derivative.empty())
-                    {
-                        CELER_ASSERT(interp.order == 1);
-                        interp.type = InterpolationType::cubic_spline;
-                    }
-                    else if (interp.order > 1)
-                    {
-                        if (mat_idx == 0)
-                        {
-                            CELER_LOG(warning)
-                                << to_cstring(InterpolationType::poly_spline)
-                                << " interpolation is not supported for range "
-                                   "or inverse range: defaulting to linear";
-                        }
-                        interp.type = InterpolationType::linear;
-                    }
-                    range_grid_ids[mat_idx] = insert_grid(
-                        eloss_grid.lower.grid, make_span(range), interp);
-
-                    if (interp.type == InterpolationType::cubic_spline)
+                    if (range_grid.interpolation.type
+                        == InterpolationType::cubic_spline)
                     {
                         // Build the inverse range grid if cubic spline
                         // interpolation is used
@@ -648,18 +631,18 @@ void PhysicsParams::build_xs(Options const& opts,
                         // The range and energy values are not inverted on the
                         // grid, but the derivatives are calculated using the
                         // inverted grid.
-                        XsGridRecord range_grid
+                        XsGridRecord inv_range_grid
                             = data->value_grids[range_grid_ids[mat_idx]];
                         auto deriv
                             = SplineDerivCalculator(BC::geant).calc_from_inverse(
-                                range_grid.lower, make_const_ref(*data).reals);
-
-                        range_grid.lower.derivative
+                                inv_range_grid.lower,
+                                make_const_ref(*data).reals);
+                        inv_range_grid.lower.derivative
                             = make_builder(&data->reals)
                                   .insert_back(deriv.begin(), deriv.end());
                         inv_range_grid_ids[mat_idx]
                             = make_builder(&data->value_grids)
-                                  .push_back(range_grid);
+                                  .push_back(inv_range_grid);
                     }
                 }
 

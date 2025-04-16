@@ -25,7 +25,7 @@ class NonuniformGridInserterTest : public ::celeritas::test::Test
   protected:
     using GridIndexType = OpaqueId<struct NonuniformIndexTag_>;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
-    using VecReal = std::vector<real_type>;
+    using VecDbl = std::vector<double>;
 
     void SetUp() override { rng_.reset_count(); }
 
@@ -35,10 +35,10 @@ class NonuniformGridInserterTest : public ::celeritas::test::Test
     }
 
     //! Construct an array of random, increasing data to test on
-    VecReal build_random_array(size_type count, real_type start)
+    VecDbl build_random_array(size_type count, real_type start)
     {
         UniformRealDistribution sample_uniform(0.5, 1.5);
-        VecReal xs(count);
+        VecDbl xs(count);
         xs[0] = start;
         for (auto i : range<size_type>(1, xs.size()))
         {
@@ -48,17 +48,15 @@ class NonuniformGridInserterTest : public ::celeritas::test::Test
     }
 
     //! Check that an inserted grid has been constructed correctly
-    void check_grid(GridIndexType id,
-                    std::vector<real_type> const& xs,
-                    std::vector<real_type> const& ys) const
+    void check_grid(GridIndexType id, VecDbl const& xs, VecDbl const& ys) const
     {
         ASSERT_EQ(xs.size(), ys.size());
         ASSERT_TRUE(id);
         ASSERT_LT(id.get(), grids_.size());
 
         NonuniformGridRecord const& grid = grids_[id];
-        EXPECT_VEC_EQ(xs, scalars_[grid.grid]);
-        EXPECT_VEC_EQ(ys, scalars_[grid.value]);
+        EXPECT_VEC_SOFT_EQ(xs, scalars_[grid.grid]);
+        EXPECT_VEC_SOFT_EQ(ys, scalars_[grid.value]);
     }
 
     Collection<real_type, Ownership::value, MemSpace::host> scalars_;
@@ -71,76 +69,76 @@ class NonuniformGridInserterTest : public ::celeritas::test::Test
 TEST_F(NonuniformGridInserterTest, simple)
 {
     constexpr size_t count = 105;
-    auto const xs = build_random_array(count, -100.0);
-    auto const ys = build_random_array(count, 300.0);
 
-    auto inserter = make_inserter();
+    inp::Grid grid;
+    grid.x = build_random_array(count, -100.0);
+    grid.y = build_random_array(count, 300.0);
 
-    GridIndexType grid_index = inserter(make_span(xs), make_span(ys));
+    auto insert = make_inserter();
+    GridIndexType grid_index = insert(grid);
 
     ASSERT_EQ(1, grids_.size());
     ASSERT_EQ(2 * count, scalars_.size());
 
-    check_grid(grid_index, xs, ys);
+    check_grid(grid_index, grid.x, grid.y);
 }
 
 TEST_F(NonuniformGridInserterTest, many_no_repeats)
 {
     constexpr size_t count = 58;
-    auto inserter = make_inserter();
+    auto insert = make_inserter();
 
     std::vector<GridIndexType> grid_ids;
-    std::vector<VecReal> raw_xs, raw_ys;
+    std::vector<inp::Grid> grids;
 
     size_t const num_grids = 20;
     for (size_t i = 0; i < num_grids; i++)
     {
-        raw_xs.push_back(build_random_array(count, real_type{-100} * i));
-        raw_ys.push_back(build_random_array(count, real_type{300} * i));
+        inp::Grid grid;
+        grid.x = build_random_array(count, real_type{-100} * i);
+        grid.y = build_random_array(count, real_type{300} * i);
+        grids.push_back(grid);
 
-        auto const& xs = raw_xs.back();
-        auto const& ys = raw_ys.back();
-
-        grid_ids.push_back(inserter(make_span(xs), make_span(ys)));
+        grid_ids.push_back(insert(grid));
     }
 
     ASSERT_EQ(num_grids, grids_.size());
-    ASSERT_EQ(num_grids, raw_xs.size());
-    ASSERT_EQ(num_grids, raw_ys.size());
+    ASSERT_EQ(num_grids, grids.size());
     ASSERT_EQ(2 * count * num_grids, scalars_.size());
 
     for (size_t i = 0; i < num_grids; i++)
     {
-        check_grid(grid_ids[i], raw_xs[i], raw_ys[i]);
+        check_grid(grid_ids[i], grids[i].x, grids[i].y);
     }
 }
 
 TEST_F(NonuniformGridInserterTest, many_with_repeats)
 {
     constexpr size_t count = 75;
-    auto inserter = make_inserter();
+    auto insert = make_inserter();
 
     std::vector<GridIndexType> grid_ids;
-    VecReal xs = build_random_array(count, -100);
-    std::vector<VecReal> raw_ys;
+    std::vector<inp::Grid> grids;
+
+    inp::Grid grid;
+    grid.x = build_random_array(count, -100);
 
     size_t const num_grids = 20;
     for (size_t i = 0; i < num_grids; i++)
     {
-        raw_ys.push_back(build_random_array(count, real_type{300} * i));
+        grid.y = build_random_array(count, real_type{300} * i);
+        grids.push_back(grid);
 
-        auto const& ys = raw_ys.back();
-
-        grid_ids.push_back(inserter(make_span(xs), make_span(ys)));
+        grid_ids.push_back(insert(grid));
     }
 
     ASSERT_EQ(num_grids, grids_.size());
-    ASSERT_EQ(num_grids, raw_ys.size());
+    ASSERT_EQ(num_grids, grids.size());
     ASSERT_EQ(count * (num_grids + 1), scalars_.size());
 
     for (size_t i = 0; i < num_grids; i++)
     {
-        check_grid(grid_ids[i], xs, raw_ys[i]);
+        check_grid(grid_ids[i], grids[i].x, grids[i].y);
     }
 }
 

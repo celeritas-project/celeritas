@@ -57,7 +57,6 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
     CELER_EXPECT(applic.particle);
 
     using VecDbl = std::vector<double>;
-    using GridInput = ValueGridBuilder::GridInput;
 
     MaterialView mat(data_.materials->host_ref(), applic.material);
     real_type numdens = mat.number_density();
@@ -71,11 +70,10 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
             xs_grid.push_back(native_value_from(xs) * numdens);
         }
         builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridLogBuilder>(
-                GridInput{applic.lower.value(),
-                          applic.upper.value(),
-                          xs_grid,
-                          data_.interp});
+            = std::make_unique<ValueGridLogBuilder>(inp::UniformGrid{
+                {std::log(applic.lower.value()), std::log(applic.upper.value())},
+                xs_grid,
+                {}});
     }
     if (data_.energy_loss > zero_quantity())
     {
@@ -83,11 +81,10 @@ auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
             native_value_from(data_.energy_loss) * numdens);
 
         builders[ValueGridType::energy_loss]
-            = std::make_unique<ValueGridLogBuilder>(
-                GridInput{applic.lower.value(),
-                          applic.upper.value(),
-                          VecDbl(3, eloss_rate.value()),
-                          data_.interp});
+            = std::make_unique<ValueGridLogBuilder>(inp::UniformGrid{
+                {std::log(applic.lower.value()), std::log(applic.upper.value())},
+                VecDbl(3, eloss_rate.value()),
+                {}});
     }
 
     return builders;

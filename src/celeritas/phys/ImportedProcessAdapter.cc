@@ -10,11 +10,13 @@
 #include <exception>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridType.hh"
@@ -27,6 +29,21 @@
 
 namespace celeritas
 {
+namespace
+{
+bool is_contiguous_increasing(inp::UniformGrid const& lower,
+                              inp::UniformGrid const& upper)
+{
+    return lower.y.size() >= 2 && upper.y.size() >= 2
+           && std::exp(lower.x[Bound::lo]) > 0
+           && lower.x[Bound::hi] > lower.x[Bound::lo]
+           && upper.x[Bound::hi] > upper.x[Bound::lo]
+           && soft_equal(lower.x[Bound::hi], upper.x[Bound::lo]);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 IPAContextException::IPAContextException(ParticleId id,
                                          ImportProcessClass ipc,
@@ -199,24 +216,6 @@ ImportedProcessAdapter::ImportedProcessAdapter(
 auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
     -> StepLimitBuilders
 {
-    try
-    {
-        return this->step_limits_impl(applic);
-    }
-    catch (...)
-    {
-        std::throw_with_nested(IPAContextException(
-            applic.particle, process_class_, applic.material));
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the interaction cross sections for the given material and particle.
- */
-auto ImportedProcessAdapter::step_limits_impl(
-    Applicability const& applic) const -> StepLimitBuilders
-{
     CELER_EXPECT(ids_.count(applic.particle));
     CELER_EXPECT(applic.material);
 
@@ -241,26 +240,36 @@ auto ImportedProcessAdapter::step_limits_impl(
     else if (ids.lambda && ids.lambda_prim)
     {
         // Both unscaled and scaled values are present
-        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_geant(
-            get_vector(ids.lambda), get_vector(ids.lambda_prim));
+        auto lower = get_vector(ids.lambda);
+        auto upper = get_vector(ids.lambda_prim);
+        CELER_ASSERT(lower && upper);
+        CELER_ASSERT(is_contiguous_increasing(lower, upper));
+        CELER_ASSERT(soft_equal(
+            lower.y.back(), upper.y.front() / std::exp(upper.x[Bound::lo])));
+        lower.x[Bound::hi] = upper.x[Bound::lo];
+        builders[ValueGridType::macro_xs]
+            = std::make_unique<ValueGridXsBuilder>(std::move(lower),
+                                                   std::move(upper));
     }
     else if (ids.lambda_prim)
     {
         // Only high-energy (energy-scale) cross sections are presesnt
         builders[ValueGridType::macro_xs]
-            = ValueGridXsBuilder::from_scaled(get_vector(ids.lambda_prim));
+            = std::make_unique<ValueGridXsBuilder>(
+                inp::UniformGrid{}, get_vector(ids.lambda_prim));
     }
     else if (ids.lambda)
     {
         builders[ValueGridType::macro_xs]
-            = ValueGridLogBuilder::from_geant(get_vector(ids.lambda));
+            = std::make_unique<ValueGridXsBuilder>(get_vector(ids.lambda),
+                                                   inp::UniformGrid{});
     }
 
     // Construct slowing-down data
     if (ids.dedx)
     {
         builders[ValueGridType::energy_loss]
-            = ValueGridLogBuilder::from_geant(get_vector(ids.dedx));
+            = std::make_unique<ValueGridLogBuilder>(get_vector(ids.dedx));
     }
 
     return builders;

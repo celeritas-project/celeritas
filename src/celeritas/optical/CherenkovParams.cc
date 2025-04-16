@@ -42,21 +42,24 @@ CherenkovParams::CherenkovParams(MaterialParams const& mats)
         NonuniformGridCalculator refractive_index
             = MaterialView{mats.host_ref(), mat_id}
                   .make_refractive_index_calculator();
-        Span<real_type const> energy = refractive_index.grid().values();
+        auto energy = refractive_index.grid().values();
+
+        inp::Grid grid;
+        grid.x = {energy.begin(), energy.end()};
 
         // Calculate 1/n^2 on all grid points
-        std::vector<real_type> ri_inv_sq(energy.size());
+        std::vector<double> ri_inv_sq(grid.x.size());
         for (auto i : range(ri_inv_sq.size()))
         {
             ri_inv_sq[i] = 1 / ipow<2>(refractive_index[i]);
         }
 
         // Integrate
-        std::vector<real_type> integral(energy.size());
-        integrate_rindex(energy,
-                         Span<real_type const>(make_span(ri_inv_sq)),
-                         make_span(integral));
-        insert_angle_integral(energy, make_span(integral));
+        grid.y.resize(grid.x.size());
+        integrate_rindex(Span<double const>(make_span(grid.x)),
+                         Span<double const>(make_span(ri_inv_sq)),
+                         make_span(grid.y));
+        insert_angle_integral(grid);
     }
     CELER_ASSERT(data.angle_integral.size() == mats.num_materials());
     data_ = CollectionMirror<CherenkovData>{std::move(data)};

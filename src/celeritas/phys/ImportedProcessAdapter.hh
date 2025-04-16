@@ -144,9 +144,6 @@ class ImportedProcessAdapter
     SPConstImported imported_;
     ImportProcessClass process_class_;
     std::map<ParticleId, ParticleProcessIds> ids_;
-
-    // Construct step limits from the given particle/material type
-    StepLimitBuilders step_limits_impl(Applicability const& applic) const;
 };
 
 //---------------------------------------------------------------------------//

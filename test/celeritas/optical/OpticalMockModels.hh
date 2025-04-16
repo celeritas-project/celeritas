@@ -20,80 +20,64 @@ namespace optical
 {
 namespace test
 {
+using MatGrid = std::vector<inp::Grid>;
+using ModelMatGrid = std::vector<MatGrid>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Mock grids for 4 models and 5 optical materials.
  */
-template<class Functor>
-std::vector<std::vector<std::vector<real_type>>>
-build_expected_grids(Functor const& f)
+template<class FX, class FY>
+ModelMatGrid build_expected_grids(FX const& get_x, FY const& get_y)
 {
     ModelId::size_type num_models = 4;
     OpticalMaterialId::size_type num_materials = 5;
 
-    std::vector<std::vector<std::vector<real_type>>> grids;
+    ModelMatGrid grids;
     grids.reserve(num_models);
     for (auto model : range(ModelId{num_models}))
     {
-        std::vector<std::vector<real_type>> model_grids;
-        model_grids.reserve(num_materials);
+        MatGrid mat_grids;
+        mat_grids.reserve(num_materials);
         for (auto mat : range(OpticalMaterialId{num_materials}))
         {
             size_type n = (model.get() + 1) * 10 + mat.get();
-            std::vector<real_type> grid;
-            grid.reserve(n + 1);
+            inp::Grid grid;
+            grid.x.reserve(n + 1);
+            grid.y.reserve(n + 1);
             for (size_type i : range(n + 1))
             {
-                grid.push_back(f(i, n));
+                grid.x.push_back(get_x(i, n));
+                grid.y.push_back(get_y(i, n));
             }
-            model_grids.push_back(std::move(grid));
+            mat_grids.push_back(std::move(grid));
         }
-        grids.push_back(std::move(model_grids));
+        grids.push_back(std::move(mat_grids));
     }
     return grids;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Mock MFP grid energies for given material and model.
+ * Mock MFP grid for the given material and model.
  */
-Span<real_type const>
-expected_mfp_energy_grid(OpticalMaterialId mat, ModelId model)
+inp::Grid const& expected_mfp_grid(OpticalMaterialId mat, ModelId model)
 {
-    static std::vector<std::vector<std::vector<real_type>>> grids;
-
-    if (grids.empty())
-    {
-        grids = build_expected_grids([](size_type i, size_type n) {
-            return real_type{15} * std::log(real_type(i) / n + 1);
-        });
-    }
-
-    CELER_EXPECT(model < grids.size());
-    CELER_EXPECT(mat < grids[model.get()].size());
-
-    return make_span(grids[model.get()][mat.get()]);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Mock MFP grid values (the path lengths) for given material and model.
- */
-Span<real_type const>
-expected_mfp_value_grid(OpticalMaterialId mat, ModelId model)
-{
-    static std::vector<std::vector<std::vector<real_type>>> grids;
+    static ModelMatGrid grids;
 
     if (grids.empty())
     {
         grids = build_expected_grids(
+            [](size_type i, size_type n) {
+                return 15 * std::log(real_type(i) / n + 1);
+            },
             [](size_type i, size_type) { return real_type(i * i); });
     }
 
     CELER_EXPECT(model < grids.size());
     CELER_EXPECT(mat < grids[model.get()].size());
 
-    return make_span(grids[model.get()][mat.get()]);
+    return grids[model.get()][mat.get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -110,11 +94,10 @@ class MockModel : public Model
     {
     }
 
-    void build_mfps(OpticalMaterialId mat, MfpBuilder& builder) const final
+    void build_mfps(OpticalMaterialId mat, MfpBuilder& build) const final
     {
         ModelId model_id{this->action_id().get() - 1};
-        builder(expected_mfp_energy_grid(mat, model_id),
-                expected_mfp_value_grid(mat, model_id));
+        build(expected_mfp_grid(mat, model_id));
     }
 
     void step(CoreParams const&, CoreStateHost&) const final {}

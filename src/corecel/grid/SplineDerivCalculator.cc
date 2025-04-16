@@ -60,7 +60,7 @@ auto SplineDerivCalculator::calc_from_inverse(UniformGridRecord const& data,
 template<class GA>
 auto SplineDerivCalculator::operator()(GA&& grid) const -> VecReal
 {
-    CELER_EXPECT(grid.size() >= 5);
+    CELER_EXPECT(grid.size() >= min_grid_size());
 
     if (bc_ == BoundaryCondition::geant)
     {

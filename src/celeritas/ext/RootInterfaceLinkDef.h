@@ -27,6 +27,7 @@
 #pragma link C++ class celeritas::ImportMaterialScintSpectrum+;
 #pragma link C++ class celeritas::ImportModel+;
 #pragma link C++ class celeritas::ImportModelMaterial+;
+#pragma link C++ class celeritas::ImportModelMaterial::EnergyBound+;
 #pragma link C++ class celeritas::ImportMscModel+;
 #pragma link C++ class celeritas::ImportMuPairProductionTable+;
 #pragma link C++ class celeritas::ImportOpticalMaterial+;
@@ -48,9 +49,11 @@
 #pragma link C++ class celeritas::ImportWavelengthShift+;
 
 // Input data
-#pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::Grid+;
+#pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::TwodGrid+;
+#pragma link C++ class celeritas::inp::UniformGrid+;
+#pragma link C++ class celeritas::inp::UniformGrid::GridBound+;
 
 // Event data used by Geant4/Celeritas offloading applications
 #pragma link C++ class celeritas::EventHitData+;

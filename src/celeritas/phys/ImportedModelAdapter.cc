@@ -85,9 +85,8 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilde
     MicroXsBuilders builders(imm.micro_xs.size());
     for (size_type elcomp_idx : range(builders.size()))
     {
-        // TODO: check that these use linear interpolation
-        builders[elcomp_idx] = ValueGridLogBuilder::from_geant(
-            imm.energy, imm.micro_xs[elcomp_idx]);
+        builders[elcomp_idx]
+            = std::make_unique<ValueGridLogBuilder>(imm.micro_xs[elcomp_idx]);
     }
     return builders;
 }
@@ -103,11 +102,10 @@ auto ImportedModelAdapter::energy_grid_bounds(
 
     auto const& xs = this->get_model(pid).materials;
     CELER_ASSERT(mid < xs.size());
-    EnergyBounds result{Energy(xs[mid.get()].energy.front()),
-                        Energy(xs[mid.get()].energy.back())};
+    auto const& energy = xs[mid.get()].energy;
 
-    CELER_ENSURE(result[0] < result[1]);
-    return result;
+    CELER_ENSURE(energy[Bound::lo] < energy[Bound::hi]);
+    return {Energy(energy[Bound::lo]), Energy(energy[Bound::hi])};
 }
 
 //---------------------------------------------------------------------------//

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/grid/InverseRangeCalculator.hh"
 
+#include <vector>
+
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 
@@ -22,15 +24,15 @@ class InverseRangeCalculatorTest : public CalculatorTestBase
 {
   protected:
     using Energy = InverseRangeCalculator::Energy;
+    using VecReal = std::vector<real_type>;
 };
 
 TEST_F(InverseRangeCalculatorTest, simple)
 {
     // Note: these are all the same values as the RangeCalculator test.
-    GridInput grid;
-    grid.emin = 10;
-    grid.emax = 1e4;
-    grid.value = VecReal{0.5, 5, 50, 500};
+    inp::UniformGrid grid;
+    grid.x = {10, 1e4};
+    grid.y = {0.5, 5, 50, 500};
     this->build(grid);
 
     InverseRangeCalculator calc_energy(this->data(), this->values());
@@ -56,10 +58,10 @@ TEST_F(InverseRangeCalculatorTest, simple)
 
 TEST_F(InverseRangeCalculatorTest, interpolation)
 {
-    GridInput grid;
-    grid.emin = 1e-4;
-    grid.emax = 1e8;
-    grid.value = VecReal{
+    // Trimmed range table values
+    inp::UniformGrid grid;
+    grid.x = {1e-4, 1e8};
+    grid.y = {
         2.38189279375507e-07,  6.207241798978842e-07, 3.33777980009005e-06,
         2.615550398212273e-05, 0.0002582189103050969, 0.00266345694155107,
         0.02296831209098076,   0.1321475316409557,    0.5688393708850199,
@@ -71,13 +73,13 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
 
     VecReal range{5e-7, 1e-6, 1e-5, 1e-3, 1, 1e3, 5e6};
     {
+        // Test linear interpolation
         real_type tol = SoftEqual{}.rel();
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
             tol *= 10;
         }
 
-        // Test linear interpolation
         VecReal energy{
             3.0402753589113166e-4,
             5.6377151632530176e-4,
@@ -105,6 +107,9 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
     }
     {
         // Test cubic spline interpolation
+        grid.interpolation.type = InterpolationType::cubic_spline;
+        grid.interpolation.bc = BC::not_a_knot;
+
         VecReal energy{
             3.0914474675693040e-4,
             6.4951208258105981e-4,
@@ -115,7 +120,7 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
             56891307.88507662,
         };
 
-        this->build_spline_inverse(grid, BC::not_a_knot);
+        this->build_inverted(grid);
         InverseRangeCalculator calc_energy(this->data(), this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {
@@ -132,7 +137,8 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
             1000.1338772112,
             5000022.2149638,
         };
-        this->build_spline(grid, BC::not_a_knot);
+
+        this->build(grid);
         RangeCalculator calc_range(this->data(), this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {

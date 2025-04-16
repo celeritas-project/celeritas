@@ -88,6 +88,20 @@ enum class Interp
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Which of two bounding points, faces, energies, etc.
+ *
+ * Here, lo/hi can correspond to left/right, back/front, bottom/top. It's used
+ * for the two points in a bounding box.
+ */
+enum class Bound : unsigned char
+{
+    lo,
+    hi,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedefs for params and states.
 
@@ -139,6 +153,12 @@ char const* to_cstring(UnitSystem);
 
 // Get a unit system corresponding to a string
 UnitSystem to_unit_system(std::string const& s);
+
+//! Convert Bound enum value to int
+CELER_CONSTEXPR_FUNCTION int to_int(Bound b)
+{
+    return static_cast<int>(b);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

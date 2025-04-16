@@ -58,9 +58,9 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
         HostVal<RZMapFieldParamsData> host;
 
         host.grids.data_r = UniformGridData::from_bounds(
-            inp.min_r, inp.max_r, inp.num_grid_r);
+            {inp.min_r, inp.max_r}, inp.num_grid_r);
         host.grids.data_z = UniformGridData::from_bounds(
-            inp.min_z, inp.max_z, inp.num_grid_z);
+            {inp.min_z, inp.max_z}, inp.num_grid_z);
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field_z.size());

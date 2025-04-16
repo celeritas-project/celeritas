@@ -17,6 +17,7 @@
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -47,9 +48,6 @@ class RangeGridCalculator
     //!@{
     //! \name Type aliases
     using BC = SplineDerivCalculator::BoundaryCondition;
-    using Values
-        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
-    using VecReal = std::vector<real_type>;
     //!@}
 
   public:
@@ -59,9 +57,8 @@ class RangeGridCalculator
     // Construct with boundary conditions for spline interpolation
     explicit RangeGridCalculator(BC);
 
-    // Calculate the range for a single material
-    VecReal
-    operator()(UniformGridRecord const& data, Values const& reals) const;
+    // Calculate the range from the energy loss for a single material
+    inp::UniformGrid operator()(inp::UniformGrid const&) const;
 
   private:
     BC bc_;

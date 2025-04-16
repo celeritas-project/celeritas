@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/Types.hh"
 
@@ -52,6 +53,25 @@ struct Grid
     explicit operator bool() const
     {
         return !y.empty() && x.size() == y.size();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A uniform grid of increasing, sorted 1D data.
+ */
+struct UniformGrid
+{
+    using GridBound = EnumArray<Bound, double>;
+    using VecDbl = std::vector<double>;
+
+    GridBound x{};
+    VecDbl y;
+    Interpolation interpolation{};
+
+    explicit operator bool() const
+    {
+        return !y.empty() && x[Bound::hi] > x[Bound::lo];
     }
 };
 

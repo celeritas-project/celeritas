@@ -10,13 +10,12 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/Grid.hh"
 
 #include "XsGridData.hh"
 
@@ -35,8 +34,6 @@ class XsGridInserter
     using GridValues
         = Collection<XsGridRecord, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
-    using SpanConstDbl = Span<double const>;
-    using SpanConstFlt = Span<float const>;
     //!@}
 
   public:
@@ -44,41 +41,21 @@ class XsGridInserter
     XsGridInserter(Values* reals, GridValues* grids);
 
     // Add a grid of xs-like data
-    GridId operator()(UniformGridData const&,
-                      SpanConstDbl,
-                      inp::Interpolation,
-                      UniformGridData const&,
-                      SpanConstDbl,
-                      inp::Interpolation);
-    GridId operator()(UniformGridData const&,
-                      SpanConstFlt,
-                      inp::Interpolation,
-                      UniformGridData const&,
-                      SpanConstFlt,
-                      inp::Interpolation);
+    GridId
+    operator()(inp::UniformGrid const& lower, inp::UniformGrid const& upper);
 
     // Add a grid of uniform log-grid data
-    GridId operator()(UniformGridData const&, SpanConstDbl, inp::Interpolation);
-    GridId operator()(UniformGridData const&, SpanConstFlt, inp::Interpolation);
+    GridId operator()(inp::UniformGrid const& grid);
 
   private:
     using ValuesRef
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
 
-    Values const& values_;
+    ValuesRef values_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<XsGridRecord, MemSpace::host, GridId> grids_;
 
-    template<class T>
-    GridId insert(UniformGridData const&,
-                  Span<T const>,
-                  inp::Interpolation,
-                  UniformGridData const&,
-                  Span<T const>,
-                  inp::Interpolation);
-    void set_spline(UniformGridData const&,
-                    inp::Interpolation const&,
-                    UniformGridRecord&);
+    void set_spline(inp::UniformGrid const&, UniformGridRecord&);
 };
 
 //---------------------------------------------------------------------------//

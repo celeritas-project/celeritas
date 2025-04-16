@@ -32,16 +32,7 @@ class ValueGridBuilder
     //!@{
     //! \name Type aliases
     using ValueGridId = ItemId<struct XsGridRecord>;
-    using VecDbl = inp::Grid::VecDbl;
     //!@}
-
-    struct GridInput
-    {
-        double emin{0};
-        double emax{0};
-        VecDbl value;
-        inp::Interpolation interpolation{};
-    };
 
   public:
     //! Virtual destructor for polymorphic deletion
@@ -72,23 +63,15 @@ class ValueGridBuilder
 class ValueGridXsBuilder final : public ValueGridBuilder
 {
   public:
-    // Construct from imported data
-    static std::unique_ptr<ValueGridXsBuilder>
-    from_geant(inp::Grid const& lower, inp::Grid const& upper);
-
-    // Construct from just scaled cross sections
-    static std::unique_ptr<ValueGridXsBuilder>
-    from_scaled(inp::Grid const& upper);
-
-    // Construct
-    ValueGridXsBuilder(GridInput lower, GridInput upper);
+    // Construct from lower (unscaled) and upper (scaled) cross section grids
+    ValueGridXsBuilder(inp::UniformGrid lower, inp::UniformGrid upper);
 
     // Construct in the given store
     ValueGridId build(XsGridInserter) const final;
 
   private:
-    GridInput lower_;
-    GridInput upper_;
+    inp::UniformGrid lower_;
+    inp::UniformGrid upper_;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,26 +86,17 @@ class ValueGridXsBuilder final : public ValueGridBuilder
 class ValueGridLogBuilder : public ValueGridBuilder
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using UPLogBuilder = std::unique_ptr<ValueGridLogBuilder>;
-    //!@}
-
-  public:
-    // Construct from full grids
-    static UPLogBuilder from_geant(VecDbl const& x, VecDbl const& y);
-
-    // Construct from full grids
-    static UPLogBuilder from_geant(inp::Grid const&);
-
     // Construct
-    ValueGridLogBuilder(GridInput);
+    ValueGridLogBuilder(inp::UniformGrid);
 
     // Construct in the given store
     ValueGridId build(XsGridInserter) const final;
 
+    // Access the grid
+    inp::UniformGrid const& grid() const { return grid_; }
+
   private:
-    GridInput grid_;
+    inp::UniformGrid grid_;
 };
 
 //---------------------------------------------------------------------------//
