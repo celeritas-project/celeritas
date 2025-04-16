@@ -31,13 +31,14 @@ using celeritas::units::GramCcDensity;
 using celeritas::units::InvCcDensity;
 using celeritas::units::MevEnergy;
 using celeritas::units::MolCcDensity;
+using MaterialId = celeritas::PhysicsMaterialId;
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-std::ostream& operator<<(std::ostream& os, PhysicsMaterialId const& mat)
+std::ostream& operator<<(std::ostream& os, MaterialId const& mat)
 {
-    os << "PhysicsMaterialId{";
+    os << "MaterialId{";
     if (mat)
         os << mat.unchecked_get();
     os << "}";
@@ -129,17 +130,15 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ(4, params->num_elements());
     EXPECT_EQ(8, params->num_isotopes());
 
-    EXPECT_EQ(PhysicsMaterialId{0}, params->find_material("NaI"));
-    EXPECT_EQ(PhysicsMaterialId{1}, params->find_material("hard vacuum"));
+    EXPECT_EQ(MaterialId{0}, params->find_material("NaI"));
+    EXPECT_EQ(MaterialId{1}, params->find_material("hard vacuum"));
     EXPECT_THROW(params->find_material("H2"), RuntimeError);
     {
         auto found = params->find_materials("H2");
-        PhysicsMaterialId const expected[]
-            = {PhysicsMaterialId{2}, PhysicsMaterialId{3}};
+        MaterialId const expected[] = {MaterialId{2}, MaterialId{3}};
         EXPECT_VEC_EQ(expected, found);
     }
-    EXPECT_EQ(PhysicsMaterialId{},
-              params->find_material("nonexistent material"));
+    EXPECT_EQ(MaterialId{}, params->find_material("nonexistent material"));
 
     // Isotopes
     EXPECT_EQ("1H", params->id_to_label(IsotopeId{0}).name);
@@ -154,10 +153,10 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ(ElementId{1}, params->find_element("Al"));
 
     // Materials
-    EXPECT_EQ("NaI", params->id_to_label(PhysicsMaterialId{0}).name);
-    EXPECT_EQ("hard vacuum", params->id_to_label(PhysicsMaterialId{1}).name);
-    EXPECT_EQ(Label("H2", "1"), params->id_to_label(PhysicsMaterialId{2}));
-    EXPECT_EQ(Label("H2", "2"), params->id_to_label(PhysicsMaterialId{3}));
+    EXPECT_EQ("NaI", params->id_to_label(MaterialId{0}).name);
+    EXPECT_EQ("hard vacuum", params->id_to_label(MaterialId{1}).name);
+    EXPECT_EQ(Label("H2", "1"), params->id_to_label(MaterialId{2}));
+    EXPECT_EQ(Label("H2", "2"), params->id_to_label(MaterialId{3}));
 
     EXPECT_EQ(2, params->max_element_components());
     EXPECT_EQ(3, params->max_isotope_components());
@@ -172,7 +171,7 @@ TEST_F(MaterialTest, material_view)
 
     {
         // NaI
-        MaterialView mat = params->get(PhysicsMaterialId{0});
+        MaterialView mat = params->get(MaterialId{0});
         EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
@@ -195,7 +194,7 @@ TEST_F(MaterialTest, material_view)
     }
     {
         // vacuum
-        MaterialView mat = params->get(PhysicsMaterialId{1});
+        MaterialView mat = params->get(MaterialId{1});
         EXPECT_EQ(0, mat.number_density());
         EXPECT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
@@ -214,7 +213,7 @@ TEST_F(MaterialTest, material_view)
     }
     {
         // H2
-        MaterialView mat = params->get(PhysicsMaterialId{2});
+        MaterialView mat = params->get(MaterialId{2});
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.number_density());
         EXPECT_SOFT_EQ(100, mat.temperature());
         EXPECT_EQ(MatterState::gas, mat.matter_state());
@@ -232,7 +231,7 @@ TEST_F(MaterialTest, material_view)
     }
     {
         // H2_3
-        MaterialView mat = params->get(PhysicsMaterialId{3});
+        MaterialView mat = params->get(MaterialId{3});
         EXPECT_SOFT_EQ(
             1.072e+20,
             native_value_to<InvCcDensity>(mat.number_density()).value());
@@ -348,10 +347,9 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(root_materials))
     auto const material_params = MaterialParams::from_import(data);
     ASSERT_TRUE(material_params);
     // Material labels
-    EXPECT_EQ("G4_Galactic",
-              material_params->id_to_label(PhysicsMaterialId{0}).name);
+    EXPECT_EQ("G4_Galactic", material_params->id_to_label(MaterialId{0}).name);
     EXPECT_EQ("G4_STAINLESS-STEEL",
-              material_params->id_to_label(PhysicsMaterialId{1}).name);
+              material_params->id_to_label(MaterialId{1}).name);
 
     /*!
      * Material
@@ -360,7 +358,7 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(root_materials))
      * Celeritas constants results in the slightly different numerical values
      * calculated by Celeritas.
      */
-    MaterialView mat(material_params->host_ref(), PhysicsMaterialId{1});
+    MaterialView mat(material_params->host_ref(), MaterialId{1});
 
     EXPECT_EQ(MatterState::solid, mat.matter_state());
     EXPECT_SOFT_EQ(293.15, mat.temperature());  // [K]
@@ -433,8 +431,8 @@ TEST_F(MaterialParamsImportTest, optical_materials)
         return om;
     }());
 
-    constexpr PhysicsMaterialId vacuum_id{0};
-    constexpr PhysicsMaterialId lar_id{1};
+    constexpr MaterialId vacuum_id{0};
+    constexpr MaterialId lar_id{1};
 
     // Check optical material ID
     auto materials = MaterialParams::from_import(data);
@@ -460,10 +458,8 @@ class MaterialDeviceTest : public MaterialTest
 TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
 {
     MTestInput input;
-    input.init = {{PhysicsMaterialId{0}},
-                  {PhysicsMaterialId{1}},
-                  {PhysicsMaterialId{2}},
-                  {PhysicsMaterialId{3}}};
+    input.init
+        = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}, {MaterialId{3}}};
 
     CollectionStateStore<MaterialStateData, MemSpace::device> states(
         params->host_ref(), input.init.size());

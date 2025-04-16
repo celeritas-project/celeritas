@@ -32,17 +32,18 @@ class MaterialView
     //!@{
     //! \name Type aliases
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
+    using MaterialId = PhysicsMaterialId;
     //!@}
 
   public:
     // Construct from params and material ID
     inline CELER_FUNCTION
-    MaterialView(MaterialParamsRef const& params, PhysicsMaterialId id);
+    MaterialView(MaterialParamsRef const& params, MaterialId id);
 
     //// MATERIAL DATA ////
 
     // ID of this Material
-    CELER_FORCEINLINE_FUNCTION PhysicsMaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
 
     // Number density [1/len^3]
     CELER_FORCEINLINE_FUNCTION real_type number_density() const;
@@ -97,7 +98,7 @@ class MaterialView
 
   private:
     MaterialParamsRef const& params_;
-    PhysicsMaterialId material_;
+    MaterialId material_;
 
     // HELPER FUNCTIONS
 
@@ -111,8 +112,7 @@ class MaterialView
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(MaterialParamsRef const& params,
-                           PhysicsMaterialId id)
+MaterialView::MaterialView(MaterialParamsRef const& params, MaterialId id)
     : params_(params), material_(id)
 {
     CELER_EXPECT(id < params.materials.size());
@@ -122,7 +122,7 @@ MaterialView::MaterialView(MaterialParamsRef const& params,
 /*!
  * Get the material id being viewed.
  */
-CELER_FUNCTION PhysicsMaterialId MaterialView::material_id() const
+CELER_FUNCTION auto MaterialView::material_id() const -> MaterialId
 {
     return material_;
 }

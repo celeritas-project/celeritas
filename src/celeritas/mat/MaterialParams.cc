@@ -195,7 +195,7 @@ MaterialParams::MaterialParams(Input const& inp)
         mat_labels[i] = inp.materials[i].label;
         this->append_material_def(inp.materials[i], &host_data);
     }
-    mat_labels_ = LabelIdMultiMap<PhysicsMaterialId>(std::move(mat_labels));
+    mat_labels_ = LabelIdMultiMap<MaterialId>(std::move(mat_labels));
 
     // Mapping of material to optical data
     make_builder(&host_data.optical_id)
@@ -217,7 +217,7 @@ MaterialParams::MaterialParams(Input const& inp)
 /*!
  * Get the label of a material.
  */
-Label const& MaterialParams::id_to_label(PhysicsMaterialId mat) const
+Label const& MaterialParams::id_to_label(MaterialId mat) const
 {
     CELER_EXPECT(mat < mat_labels_.size());
     return mat_labels_.at(mat);
@@ -229,7 +229,7 @@ Label const& MaterialParams::id_to_label(PhysicsMaterialId mat) const
  *
  * If the label isn't among the materials, a null ID will be returned.
  */
-PhysicsMaterialId MaterialParams::find_material(std::string const& name) const
+auto MaterialParams::find_material(std::string const& name) const -> MaterialId
 {
     auto result = mat_labels_.find_all(name);
     if (result.empty())
@@ -247,7 +247,7 @@ PhysicsMaterialId MaterialParams::find_material(std::string const& name) const
  * uniquifying 'extensions'.
  */
 auto MaterialParams::find_materials(std::string const& name) const
-    -> SpanConstPhysicsMaterialId
+    -> SpanConstMaterialId
 {
     return mat_labels_.find_all(name);
 }
