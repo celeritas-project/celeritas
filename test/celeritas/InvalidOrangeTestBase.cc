@@ -42,14 +42,12 @@ make_sph(std::string&& label, real_type radius, Real3 const& trans)
         make_sph(std::move(label), radius), Translation{trans});
 }
 
-auto make_material(std::string&& label,
-                   GeoMaterialId::size_type m,
-                   SPConstObject obj)
+auto make_material(std::string&& label, GeoMatId::size_type m, SPConstObject obj)
 {
     CELER_EXPECT(obj);
     orangeinp::UnitProto::MaterialInput result;
     result.interior = std::move(obj);
-    result.fill = GeoMaterialId{m};
+    result.fill = GeoMatId{m};
     result.label = std::move(label);
     return result;
 }
@@ -115,11 +113,11 @@ auto InvalidOrangeTestBase::build_geomaterial() -> SPConstGeoMaterial
     input.geometry = this->geometry();
     input.materials = this->material();
     input.volume_to_mat = {
-        MaterialId{0},
-        MaterialId{0},
-        MaterialId{1},
-        MaterialId{},
-        MaterialId{},
+        PhysMatId{0},
+        PhysMatId{0},
+        PhysMatId{1},
+        PhysMatId{},
+        PhysMatId{},
     };
     input.volume_labels = {
         Label{"interior"},

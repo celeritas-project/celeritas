@@ -512,7 +512,7 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
     std::vector<ImportOpticalMaterial> result(geo_to_opt.num_optical());
 
     // Loop over optical materials
-    for (auto geo_mat_id : range(GeoMaterialId{geo_to_opt.num_geo()}))
+    for (auto geo_mat_id : range(GeoMatId{geo_to_opt.num_geo()}))
     {
         auto opt_mat_id = geo_to_opt[geo_mat_id];
         if (!opt_mat_id)
@@ -522,8 +522,7 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
         // Get Geant4 material properties
         G4Material const* material = mt[geo_mat_id.get()];
         CELER_ASSERT(material);
-        CELER_ASSERT(geo_mat_id
-                     == id_cast<GeoMaterialId>(material->GetIndex()));
+        CELER_ASSERT(geo_mat_id == id_cast<GeoMatId>(material->GetIndex()));
         auto const* mpt = material->GetMaterialPropertiesTable();
         CELER_ASSERT(mpt);
 
@@ -733,7 +732,7 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
         if (!geo_to_opt.empty())
         {
             if (auto opt_id
-                = geo_to_opt[id_cast<GeoMaterialId>(g4material->GetIndex())])
+                = geo_to_opt[id_cast<GeoMatId>(g4material->GetIndex())])
             {
                 // Assign the optical material corresponding to the geometry
                 // material

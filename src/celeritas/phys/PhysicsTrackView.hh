@@ -51,7 +51,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const& params,
                                            PhysicsStateRef const& states,
                                            ParticleTrackView const& particle,
-                                           MaterialId material,
+                                           PhysMatId material,
                                            TrackSlotId tid);
 
     // Initialize the track view
@@ -84,7 +84,7 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION MscRange const& msc_range() const;
 
     // Current material identifier
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION PhysMatId material_id() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -171,7 +171,7 @@ class PhysicsTrackView
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
     ParticleId const particle_;
-    MaterialId const material_;
+    PhysMatId const material_;
     TrackSlotId const track_slot_;
     bool is_heavy_;
 
@@ -195,7 +195,7 @@ CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
                                    ParticleTrackView const& particle,
-                                   MaterialId mid,
+                                   PhysMatId mid,
                                    TrackSlotId tid)
     : params_(params)
     , states_(states)
@@ -269,7 +269,7 @@ CELER_FUNCTION void PhysicsTrackView::msc_range(MscRange const& msc_range)
 /*!
  * Current material identifier.
  */
-CELER_FUNCTION MaterialId PhysicsTrackView::material_id() const
+CELER_FUNCTION PhysMatId PhysicsTrackView::material_id() const
 {
     return material_;
 }

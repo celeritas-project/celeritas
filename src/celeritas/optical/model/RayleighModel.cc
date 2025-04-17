@@ -57,7 +57,7 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
                  || input_.materials->num_materials()
                         == imported_.num_materials());
 
-    for (auto mat : range(OpticalMaterialId(imported_.num_materials())))
+    for (auto mat : range(OptMatId(imported_.num_materials())))
     {
         if (input_)
         {
@@ -80,7 +80,7 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
 /*!
  * Build the mean free paths for the model.
  */
-void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
+void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     CELER_EXPECT(mat < imported_.num_materials());
 

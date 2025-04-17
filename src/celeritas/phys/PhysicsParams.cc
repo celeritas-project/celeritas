@@ -593,9 +593,9 @@ void PhysicsParams::build_xs(Options const& opts,
             }
 
             // Loop over materials
-            for (auto mat_idx : range(MaterialId::size_type{mats.size()}))
+            for (auto mat_idx : range(PhysMatId::size_type{mats.size()}))
             {
-                applic.material = MaterialId(mat_idx);
+                applic.material = PhysMatId(mat_idx);
 
                 // Construct step limit builders
                 auto builders = proc.step_limits(applic);
@@ -734,7 +734,7 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
-            for (auto mat_id : range(MaterialId{mats.size()}))
+            for (auto mat_id : range(PhysMatId{mats.size()}))
             {
                 applic.material = mat_id;
                 auto material = mats.get(mat_id);
@@ -789,7 +789,7 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
     for (auto& model_table : temp_grid_ids)
     {
         std::vector<ValueTableId> temp_table_ids(model_table.size());
-        for (auto mat_idx : range<MaterialId::size_type>(model_table.size()))
+        for (auto mat_idx : range<PhysMatId::size_type>(model_table.size()))
         {
             auto& grid_ids = model_table[mat_idx];
             if (grid_ids.empty())
@@ -814,7 +814,7 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
                 = data->value_grids[grid_ids[0]].lower.value.size();
 
             // Calculate the cross section CDF
-            auto const&& elements = mats.get(MaterialId{mat_idx}).elements();
+            auto const&& elements = mats.get(PhysMatId{mat_idx}).elements();
             for (auto bin_idx : range(num_bins))
             {
                 real_type cum_xs{0};

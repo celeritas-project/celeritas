@@ -119,7 +119,7 @@ TEST_F(ProtoConstructorTest, one_box)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-        EXPECT_EQ(GeoMaterialId{}, u.background);
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
 }
 
@@ -301,7 +301,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        EXPECT_EQ(GeoMaterialId{0}, u.background);
+        EXPECT_EQ(GeoMatId{0}, u.background);
     }
 }
 
@@ -344,7 +344,7 @@ TEST_F(ProtoConstructorTest, testem3)
             "all(all(+0, -1, +2, -3, +4, -5), !all(+6, +8, -9, +10, -11, "
             "-84))",
             vols.back());
-        EXPECT_EQ(GeoMaterialId{}, u.background);
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
         SCOPED_TRACE("daughter");
@@ -425,7 +425,7 @@ TEST_F(ProtoConstructorTest, tilecal_plug)
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-        EXPECT_EQ(GeoMaterialId{}, u.background);
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
 }
 
@@ -482,7 +482,7 @@ TEST_F(ProtoConstructorTest, znenv)
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-        EXPECT_EQ(GeoMaterialId{}, u.background);
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
         SCOPED_TRACE("ZNTX");
@@ -496,7 +496,7 @@ TEST_F(ProtoConstructorTest, znenv)
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(GeoMaterialId{}, u.background);
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
         SCOPED_TRACE("ZNST");
@@ -522,7 +522,7 @@ TEST_F(ProtoConstructorTest, znenv)
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(GeoMaterialId{2}, u.background);
+        EXPECT_EQ(GeoMatId{2}, u.background);
     }
     {
         SCOPED_TRACE("ZNG1");
@@ -533,7 +533,7 @@ TEST_F(ProtoConstructorTest, znenv)
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(GeoMaterialId{}, u.background);
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
 }
 

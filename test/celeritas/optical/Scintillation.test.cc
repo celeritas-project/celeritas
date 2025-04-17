@@ -67,7 +67,7 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     }
 
   protected:
-    OpticalMaterialId opt_mat_{0};
+    OptMatId opt_mat_{0};
 
     // Post-step values
     Real3 post_pos_{0, 0, from_cm(1)};

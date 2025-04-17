@@ -143,7 +143,7 @@ TEST_F(LivermorePETest, basic)
     ElementId el_id{0};
 
     // Production cuts
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Helper for simulating atomic relaxation
     AtomicRelaxationHelper relaxation(
@@ -212,7 +212,7 @@ TEST_F(LivermorePETest, stress_test)
     ElementId el_id{0};
 
     // Production cuts
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Helper for simulating atomic relaxation
     AtomicRelaxationHelper relaxation(
@@ -306,7 +306,7 @@ TEST_F(LivermorePETest, distributions_all)
     ElementId el_id{0};
 
     // Production cuts
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Load atomic relaxation data
     relax_inp_.is_auger_enabled = true;
@@ -402,7 +402,7 @@ TEST_F(LivermorePETest, distributions_radiative)
     ElementId el_id{0};
 
     // Production cuts
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Load atomic relaxation data
     relax_inp_.is_auger_enabled = false;

@@ -57,7 +57,7 @@ MaterialParams::from_import(ImportData const& data,
     bool has_opt_mat{false};
     for (auto vid : range(VolumeId{geo_mat.num_volumes()}))
     {
-        OpticalMaterialId optmat;
+        OptMatId optmat;
         if (auto matid = geo_mat.material_id(vid))
         {
             auto mat_view = mat.get(matid);
@@ -76,8 +76,8 @@ MaterialParams::from_import(ImportData const& data,
 
     // Construct optical to core material mapping
     inp.optical_to_core
-        = std::vector<CoreMaterialId>(inp.properties.size(), CoreMaterialId{});
-    for (auto core_id : range(CoreMaterialId{mat.num_materials()}))
+        = std::vector<PhysMatId>(inp.properties.size(), PhysMatId{});
+    for (auto core_id : range(PhysMatId{mat.num_materials()}))
     {
         if (auto opt_mat_id = mat.get(core_id).optical_material_id())
         {
@@ -153,7 +153,7 @@ MaterialParams::MaterialParams(Input const& inp)
 /*!
  * Construct a material view for the given identifier.
  */
-MaterialView MaterialParams::get(OpticalMaterialId mat) const
+MaterialView MaterialParams::get(OptMatId mat) const
 {
     return MaterialView(this->host_ref(), mat);
 }

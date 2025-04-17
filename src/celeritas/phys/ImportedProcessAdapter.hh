@@ -34,7 +34,7 @@ struct ImportData;
 class IPAContextException : public RichContextException
 {
   public:
-    IPAContextException(ParticleId id, ImportProcessClass ipc, MaterialId mid);
+    IPAContextException(ParticleId id, ImportProcessClass ipc, PhysMatId mid);
 
     //! This class type
     char const* type() const final { return "ImportProcessAdapterContext"; }

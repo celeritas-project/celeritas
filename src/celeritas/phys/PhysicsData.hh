@@ -339,7 +339,7 @@ struct PhysicsParamsScalars
  * range tables ordered by [particle][material][energy].
  *
  * So the first applicable process (ProcessId{0}) for an arbitrary particle
- * (ParticleId{1}) in material 2 (MaterialId{2}) will have the following
+ * (ParticleId{1}) in material 2 (PhysMatId{2}) will have the following
  * ID and cross section grid: \code
    ProcessId proc_id = params.particle[1].processes[0];
    const UniformGridData& grid
