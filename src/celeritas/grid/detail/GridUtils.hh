@@ -46,8 +46,10 @@ void set_spline(Values<Ownership::value>* values,
             return;
         }
         // Calculate second derivatives for cubic spline interpolation
-        CELER_ASSERT(interpolation.bc
-                     != SplineDerivCalculator::BoundaryCondition::size_);
+        CELER_VALIDATE(interpolation.bc
+                           != SplineDerivCalculator::BoundaryCondition::size_,
+                       << "Boundary condition must be specified for "
+                          "calculating cubic spline second derivatives");
 
         Values<Ownership::const_reference> ref(*values);
         auto deriv = SplineDerivCalculator(interpolation.bc)(data, ref);

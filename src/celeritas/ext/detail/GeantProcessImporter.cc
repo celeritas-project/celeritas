@@ -201,9 +201,7 @@ void append_table(G4PhysicsTable const* g4table,
             *g4vector, {table.x_units, table.y_units}));
 #if G4VERSION_NUMBER < 1100
         // Hardcode whether the lambda table uses spline for older Geant4
-        // versions. Always use spline for lambda prime, energy loss, range,
-        // and msc
-        //! \todo lambda is configurable but enabled by default?
+        // versions. Always use spline for lambda, energy loss, range, and msc
         //! \todo Coulomb scattering disables spline when \c isCombined = false
         static std::unordered_set<ImportProcessClass> disable_spline{
             ImportProcessClass::rayleigh};

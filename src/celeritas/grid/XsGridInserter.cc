@@ -7,8 +7,6 @@
 #include "XsGridInserter.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
-#include "corecel/io/Logger.hh"
 
 #include "XsGridData.hh"
 
@@ -48,7 +46,6 @@ auto XsGridInserter::operator()(inp::UniformGrid const& lower,
         grid.upper.value = reals_.insert_back(upper.y.begin(), upper.y.end());
         detail::set_spline(values_, reals_, upper.interpolation, grid.upper);
     }
-
     CELER_ENSURE(grid);
     return grids_.push_back(grid);
 }

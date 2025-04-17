@@ -150,8 +150,8 @@ CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
 /*!
  * Return a material view.
  */
-CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
-    -> MaterialView
+CELER_FORCEINLINE_FUNCTION auto
+CoreTrackView::material_record() const -> MaterialView
 {
     return this->material_record(this->geometry());
 }
