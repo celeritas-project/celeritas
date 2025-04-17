@@ -410,6 +410,13 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_Covfie)
+  if(CMAKE_CXX_STANDARD LESS 20)
+    celeritas_error_incompatible_option(
+      "Covfie requires C++20 or higher"
+      CMAKE_CXX_STANDARD
+      20
+    )
+  endif()
   find_package(Covfie REQUIRED)
 endif()
 
