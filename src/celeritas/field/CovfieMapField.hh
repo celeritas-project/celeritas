@@ -41,19 +41,20 @@ class CovfieMapField
     //! \name Type aliases
     using real_type = cylmap_real_type;
     using Real3 = Array<celeritas::real_type, 3>;
-    using CovfieField = CovfieFieldTrait<MemSpace::native>::field_t;
+    using FieldParamsRef = NativeCRef<CovfieMapFieldParamsData>;
+    using field_view_t = FieldParamsRef::field_t::view_t;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit CovfieMapField(CovfieField const& field);
+    inline CELER_FUNCTION explicit CovfieMapField(FieldParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
     inline Real3 operator()(Real3 const& pos) const;
 
   private:
-    CovfieField::view_t field_;
+    field_view_t field_;
 };
 
 //---------------------------------------------------------------------------//
@@ -63,7 +64,10 @@ class CovfieMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-CovfieMapField::CovfieMapField(CovfieField const& field) : field_{field} {}
+CovfieMapField::CovfieMapField(FieldParamsRef const& shared)
+    : field_{shared.field}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
