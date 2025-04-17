@@ -172,6 +172,8 @@ if(CELERITAS_USE_Covfie)
     set(_covfie_backend covfie::hip)
   endif()
   list(APPEND PUBLIC_DEPS covfie::core ${_covfie_backend})
+  list(APPEND SOURCES
+    field/CartMapFieldParams.cc)
 endif()
 
 if(CELERITAS_USE_Geant4)
