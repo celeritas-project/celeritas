@@ -181,7 +181,7 @@ template<class T>
 auto ConvexHullFinder<T>::calc_convex_mask() const -> ConvexMask
 {
     // Find the indices of the points on the convex hull. Start from the point
-    // with the lowest y value, which is gaurenteed to be on the hull.
+    // with the lowest y value, which is guaranteed to be on the hull.
     std::vector<size_type> hull;
     auto i = start_index_;
     hull.push_back(i);
@@ -253,7 +253,7 @@ auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,
     auto cross_product = (b[0] - a[0]) * (c[1] - a[1])
                          - (b[1] - a[1]) * (c[0] - a[0]);
 
-    return cross_product <= 0 || soft_zero(cross_product);
+    return cross_product <= 0 || soft_zero_(cross_product);
 }
 
 //---------------------------------------------------------------------------//
