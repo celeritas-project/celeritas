@@ -41,6 +41,8 @@ celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
+celeritas_optional_package(Covfie "Use Covfie field integrator")
+
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components
@@ -405,6 +407,10 @@ if(CELERITAS_USE_ROOT)
   endif()
   # Older ROOT versions are missing CMake macros
   find_package(ROOT 6.24 REQUIRED)
+endif()
+
+if(CELERITAS_USE_Covfie)
+  find_package(Covfie REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)

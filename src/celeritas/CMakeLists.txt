@@ -164,6 +164,16 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 
+if(CELERITAS_USE_Covfie)
+  set(_covfie_backend covfie::cpu)
+  if(CELERITAS_USE_CUDA)
+    set(_covfie_backend covfie::cuda)
+  elseif(CELERITAS_USE_HIP)
+    set(_covfie_backend covfie::hip)
+  endif()
+  list(APPEND PUBLIC_DEPS covfie::core ${_covfie_backend})
+endif()
+
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
     ext/EmPhysicsList.cc
