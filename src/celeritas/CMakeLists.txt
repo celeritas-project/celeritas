@@ -174,6 +174,7 @@ if(CELERITAS_USE_Covfie)
   list(APPEND PUBLIC_DEPS covfie::core ${_covfie_backend})
   list(APPEND SOURCES
     field/CartMapFieldParams.cc)
+  celeritas_polysource(alongstep/AlongStepCartMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)

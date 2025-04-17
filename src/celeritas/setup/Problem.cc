@@ -27,6 +27,7 @@
 #include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
@@ -307,6 +308,15 @@ auto build_along_step(inp::Field const& var_field,
             },
             [&](inp::CylMapField const& field) {
                 using ASA = AlongStepCylMapFieldMscAction;
+                return ASA::from_params(next_id,
+                                        *params.material,
+                                        *params.particle,
+                                        field,
+                                        msc,
+                                        eloss);
+            },
+            [&](inp::CartMapField const& field) {
+                using ASA = AlongStepCartMapFieldMscAction;
                 return ASA::from_params(next_id,
                                         *params.material,
                                         *params.particle,

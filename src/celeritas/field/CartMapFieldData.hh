@@ -28,6 +28,7 @@ struct CartMapFieldParamsData
     using real_type = cartmap_real_type;
     using field_t = CovfieFieldTrait<M>::field_t;
 
+    // Pass ownership to CovfieFieldTrait and use a view if ownership is ref?
     field_t field;  //!< Covfie field data
 
     //! Field propagation and substepping tolerances
