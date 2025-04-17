@@ -12,7 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/math/SoftEqual.hh"
+
+#include "detail/PolygonUtils.hh"
 
 namespace celeritas
 {
@@ -59,7 +60,7 @@ class ConvexHullFinder
     VecReal2 const& points_;
     ConvexMask convex_mask_;
     size_type start_index_;
-    SoftZero<real_type> soft_zero_;
+    detail::SoftOrientation<real_type> soft_ori_;
 
     /// HELPER FUNCTIONS ///
 
@@ -249,11 +250,7 @@ auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,
     auto const& a = points_[i_prev];
     auto const& b = points_[i];
     auto const& c = points_[i_next];
-
-    auto cross_product = (b[0] - a[0]) * (c[1] - a[1])
-                         - (b[1] - a[1]) * (c[0] - a[0]);
-
-    return cross_product <= 0 || soft_zero_(cross_product);
+    return soft_ori_(a, b, c) != detail::Orientation::counterclockwise;
 }
 
 //---------------------------------------------------------------------------//
