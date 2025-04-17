@@ -14,6 +14,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Types.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <covfie/cuda/backend/primitive/cuda_texture.hpp>
 #elif CELERITAS_USE_HIP
@@ -24,23 +26,36 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! Covfie field type
+template<MemSpace M>
+struct CovfieFieldTrait;
+
+template<>
+struct CovfieFieldTrait<MemSpace::host>
+{
+    using field_type = covfie::field<covfie::backend::affine<covfie::backend::linear<
+        covfie::backend::strided<covfie::vector::size3,
+                                 covfie::backend::array<covfie::vector::float3>>>>>;
+};
+
+template<>
+struct CovfieFieldTrait<MemSpace::device>
+{
 #if CELERITAS_USE_CUDA
 
-using covfie_field_d = covfie::field<covfie::backend::affine<
-    covfie::backend::cuda_texture<covfie::vector::float3, covfie::vector::float3>>>;
+    using field_type = covfie::field<covfie::backend::affine<
+        covfie::backend::cuda_texture<covfie::vector::float3,
+                                      covfie::vector::float3>>>;
 
 #elif CELERITAS_USE_HIP
 
-using covfie_field_d = covfie::field<covfie::backend::affine<
-    covfie::backend::hip_device_array<covfie::vector::float3,
-                                      covfie::vector::float3>>>;
+    using field_type = covfie::field<covfie::backend::affine<
+        covfie::backend::hip_device_array<covfie::vector::float3,
+                                          covfie::vector::float3>>>;
 
+#else
+    using field_type = CovfieFieldTrait<MemSpace::host>::field_type;
 #endif
-
-using covfie_field = covfie::field<covfie::backend::affine<covfie::backend::linear<
-    covfie::backend::strided<covfie::vector::size3,
-                             covfie::backend::array<covfie::vector::float3>>>>>;
-using covfie_field_d = covfie_field;
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
