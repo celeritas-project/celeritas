@@ -8,10 +8,11 @@
 
 #include "corecel/Types.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
-#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 
 #include "XsGridData.hh"
+
+#include "detail/GridUtils.hh"
 
 namespace celeritas
 {
@@ -20,7 +21,7 @@ namespace celeritas
  * Construct with a reference to mutable host data.
  */
 XsGridInserter::XsGridInserter(Values* reals, GridValues* grids)
-    : values_(*reals), reals_(reals), grids_(grids)
+    : values_(reals), reals_(reals), grids_(grids)
 {
     CELER_EXPECT(reals && grids);
 }
@@ -39,14 +40,15 @@ auto XsGridInserter::operator()(inp::UniformGrid const& lower,
     {
         grid.lower.grid = UniformGridData::from_bounds(lower.x, lower.y.size());
         grid.lower.value = reals_.insert_back(lower.y.begin(), lower.y.end());
-        this->set_spline(lower, grid.lower);
+        detail::set_spline(values_, reals_, lower.interpolation, grid.lower);
     }
     if (upper)
     {
         grid.upper.grid = UniformGridData::from_bounds(upper.x, upper.y.size());
         grid.upper.value = reals_.insert_back(upper.y.begin(), upper.y.end());
-        this->set_spline(upper, grid.upper);
+        detail::set_spline(values_, reals_, upper.interpolation, grid.upper);
     }
+
     CELER_ENSURE(grid);
     return grids_.push_back(grid);
 }
@@ -58,51 +60,6 @@ auto XsGridInserter::operator()(inp::UniformGrid const& lower,
 auto XsGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
 {
     return (*this)(grid, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the second derivatives or set the polynomial order.
- */
-void XsGridInserter::set_spline(inp::UniformGrid const& grid,
-                                UniformGridRecord& data)
-{
-    CELER_EXPECT(grid);
-
-    if (grid.interpolation.type == InterpolationType::cubic_spline)
-    {
-        if (data.value.size() < SplineDerivCalculator::min_grid_size())
-        {
-            CELER_LOG(warning)
-                << to_cstring(grid.interpolation.type)
-                << " interpolation is not supported on a grid with size "
-                << data.value.size() << ": defaulting to linear";
-            return;
-        }
-        // Calculate second derivatives for cubic spline interpolation
-        CELER_ASSERT(grid.interpolation.bc
-                     != SplineDerivCalculator::BoundaryCondition::size_);
-        using ValuesRef
-            = Collection<real_type, Ownership::const_reference, MemSpace::host>;
-
-        ValuesRef values(values_);
-        auto deriv = SplineDerivCalculator(grid.interpolation.bc)(data, values);
-        data.derivative = reals_.insert_back(deriv.begin(), deriv.end());
-    }
-    else if (grid.interpolation.type == InterpolationType::poly_spline)
-    {
-        if (data.value.size() <= grid.interpolation.order)
-        {
-            CELER_LOG(warning)
-                << to_cstring(grid.interpolation.type)
-                << " interpolation with order " << grid.interpolation.order
-                << " is not supported on a grid with size "
-                << data.value.size() << ": defaulting to linear";
-            return;
-        }
-        CELER_ASSERT(grid.interpolation.order > 1);
-        data.spline_order = grid.interpolation.order;
-    }
 }
 
 //---------------------------------------------------------------------------//
