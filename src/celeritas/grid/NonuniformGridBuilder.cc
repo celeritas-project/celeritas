@@ -24,7 +24,7 @@ NonuniformGridBuilder::NonuniformGridBuilder(Values* reals)
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a generic grid.
+ * Add a nonuniform grid.
  */
 auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
 {

@@ -58,7 +58,7 @@ class GridAccessor
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for accessing grid data from a generic grid.
+ * Helper class for accessing grid data from a nonuniform grid.
  */
 class NonuniformGridAccessor : public GridAccessor
 {
@@ -147,7 +147,7 @@ real_type GridAccessor::delta_slope(size_type index) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Contruct from spans.
+ * Construct from spans.
  */
 NonuniformGridAccessor::NonuniformGridAccessor(SpanConstReal x_values,
                                                SpanConstReal y_values)
@@ -158,7 +158,7 @@ NonuniformGridAccessor::NonuniformGridAccessor(SpanConstReal x_values,
 
 //---------------------------------------------------------------------------//
 /*!
- * Contruct from a nonuniform grid.
+ * Construct from a nonuniform grid.
  */
 NonuniformGridAccessor::NonuniformGridAccessor(NonuniformGridRecord const& grid,
                                                Values const& values)
@@ -189,7 +189,7 @@ real_type NonuniformGridAccessor::y(size_type index) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Contruct from cross section grid.
+ * Construct from cross section grid.
  */
 UniformGridAccessor::UniformGridAccessor(UniformGridRecord const& grid,
                                          Values const& values)

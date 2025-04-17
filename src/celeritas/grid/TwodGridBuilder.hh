@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a generic 2D grid.
+ * Construct a nonuniform 2D grid.
  *
  * This uses a deduplicating inserter for real values to improve cacheing.
  */

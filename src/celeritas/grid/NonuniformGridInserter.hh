@@ -64,7 +64,7 @@ NonuniformGridInserter<Index>::NonuniformGridInserter(Values* reals,
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a generic grid to the collection.
+ * Add a nonuniform grid to the collection.
  *
  * Returns the ID of the inserted grid, or an empty ID if the vector is empty.
  */
