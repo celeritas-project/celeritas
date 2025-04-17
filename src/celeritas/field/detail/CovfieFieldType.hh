@@ -32,7 +32,7 @@ struct CovfieFieldTrait;
 template<>
 struct CovfieFieldTrait<MemSpace::host>
 {
-    using field_type = covfie::field<covfie::backend::affine<covfie::backend::linear<
+    using field_t = covfie::field<covfie::backend::affine<covfie::backend::linear<
         covfie::backend::strided<covfie::vector::size3,
                                  covfie::backend::array<covfie::vector::float3>>>>>;
 };
@@ -42,18 +42,18 @@ struct CovfieFieldTrait<MemSpace::device>
 {
 #if CELERITAS_USE_CUDA
 
-    using field_type = covfie::field<covfie::backend::affine<
+    using field_t = covfie::field<covfie::backend::affine<
         covfie::backend::cuda_texture<covfie::vector::float3,
                                       covfie::vector::float3>>>;
 
 #elif CELERITAS_USE_HIP
 
-    using field_type = covfie::field<covfie::backend::affine<
+    using field_t = covfie::field<covfie::backend::affine<
         covfie::backend::hip_device_array<covfie::vector::float3,
                                           covfie::vector::float3>>>;
 
 #else
-    using field_type = CovfieFieldTrait<MemSpace::host>::field_type;
+    using field_t = CovfieFieldTrait<MemSpace::host>::field_t;
 #endif
 };
 

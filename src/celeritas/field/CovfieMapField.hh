@@ -41,7 +41,7 @@ class CovfieMapField
     //! \name Type aliases
     using real_type = cylmap_real_type;
     using Real3 = Array<celeritas::real_type, 3>;
-    using CovfieField = CovfieFieldTrait<MemSpace::native>::field_type;
+    using CovfieField = CovfieFieldTrait<MemSpace::native>::field_t;
     //!@}
 
   public:
