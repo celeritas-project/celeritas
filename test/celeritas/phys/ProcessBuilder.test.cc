@@ -135,7 +135,7 @@ TEST_F(ProcessBuilderTest, compton)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -170,7 +170,7 @@ TEST_F(ProcessBuilderTest, e_ionization)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
@@ -208,7 +208,7 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
@@ -247,7 +247,7 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -293,7 +293,7 @@ TEST_F(ProcessBuilderTest, photoelectric)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -337,7 +337,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -389,7 +389,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_combined_model)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -431,7 +431,7 @@ TEST_F(ProcessBuilderTest, rayleigh)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -479,7 +479,7 @@ TEST_F(ProcessBuilderTest, coulomb)
     EXPECT_EQ(100, value_as<units::MevEnergy>(applic.lower));
     EXPECT_EQ(1e8, value_as<units::MevEnergy>(applic.upper));
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -537,7 +537,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
@@ -581,7 +581,7 @@ TEST_F(ProcessBuilderTest, mu_ionization)
     auto all_applic = models[2]->applicability();
     ASSERT_EQ(2, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
@@ -621,7 +621,7 @@ TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {

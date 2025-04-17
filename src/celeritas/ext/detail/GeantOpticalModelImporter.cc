@@ -37,7 +37,7 @@ GeantOpticalModelImporter::GeantOpticalModelImporter(
     }
 
     auto const& mt = *G4Material::GetMaterialTable();
-    for (auto geo_mat_id : range(GeoMaterialId(mt.size())))
+    for (auto geo_mat_id : range(GeoMatId(mt.size())))
     {
         auto opt_id = geo_to_opt[geo_mat_id];
         if (!opt_id)

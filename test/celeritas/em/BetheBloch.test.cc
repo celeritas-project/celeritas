@@ -176,7 +176,7 @@ TEST_F(BetheBlochTest, basic)
     MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
         model_->host_ref(),
         this->particle_track(),
-        this->cutoff_params()->get(MaterialId{0}),
+        this->cutoff_params()->get(PhysMatId{0}),
         this->direction(),
         this->secondary_allocator());
     RandomEngine& rng = this->rng();
@@ -237,7 +237,7 @@ TEST_F(BetheBlochTest, basic)
         MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
             model_->host_ref(),
             this->particle_track(),
-            this->cutoff_params()->get(MaterialId{0}),
+            this->cutoff_params()->get(PhysMatId{0}),
             this->direction(),
             this->secondary_allocator());
 
@@ -276,7 +276,7 @@ TEST_F(BetheBlochTest, stress_test)
             MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
                 model_->host_ref(),
                 this->particle_track(),
-                this->cutoff_params()->get(MaterialId{0}),
+                this->cutoff_params()->get(PhysMatId{0}),
                 this->direction(),
                 this->secondary_allocator());
 

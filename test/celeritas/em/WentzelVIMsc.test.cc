@@ -63,7 +63,7 @@ class WentzelVIMscTest : public MscTestBase
   protected:
     std::shared_ptr<WentzelVIMscParams const> msc_params_;
     std::shared_ptr<WentzelOKVIParams const> wentzel_params_;
-    MaterialId mat_id_;
+    PhysMatId mat_id_;
 };
 
 //---------------------------------------------------------------------------//
@@ -88,9 +88,9 @@ TEST_F(WentzelVIMscTest, params)
     }
     EXPECT_EQ(2, wentzel.inv_mass_cbrt_sq.size());
     EXPECT_SOFT_EQ(9.947409502757395e-1,
-                   wentzel.inv_mass_cbrt_sq[MaterialId(0)]);
+                   wentzel.inv_mass_cbrt_sq[PhysMatId(0)]);
     EXPECT_SOFT_EQ(6.8867357655995998e-2,
-                   wentzel.inv_mass_cbrt_sq[MaterialId(1)]);
+                   wentzel.inv_mass_cbrt_sq[PhysMatId(1)]);
 }
 
 TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))

@@ -129,7 +129,7 @@ TEST_F(MuPairProductionTest, distribution)
         ElementComponentId{0});
 
     // Get the production cuts
-    auto cutoff = this->cutoff_params()->get(MaterialId{0});
+    auto cutoff = this->cutoff_params()->get(PhysMatId{0});
 
     RandomEngine& rng = InteractorHostBase::rng();
 
@@ -222,7 +222,7 @@ TEST_F(MuPairProductionTest, basic)
         ElementComponentId{0});
 
     // Get the production cuts
-    auto cutoff = this->cutoff_params()->get(MaterialId{0});
+    auto cutoff = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     MuPairProductionInteractor interact(model_->host_ref(),
@@ -292,7 +292,7 @@ TEST_F(MuPairProductionTest, stress_test)
         ElementComponentId{0});
 
     // Get the production cuts
-    auto cutoff = this->cutoff_params()->get(MaterialId{0});
+    auto cutoff = this->cutoff_params()->get(PhysMatId{0});
 
     for (real_type inc_e : {1e3, 1e4, 1e5, 1e6, 1e7})
     {

@@ -102,13 +102,13 @@ struct ParScintSpectrumRecord
  *
  * - \c pid_to_scintpid returns a \c ScintillationParticleId given a
  *   \c ParticleId .
- * - \c resolution_scale is indexed by \c OpticalMaterialId .
+ * - \c resolution_scale is indexed by \c OptMatId .
  * - \c materials stores material-only scintillation data. Indexed by
- *   \c OpticalMaterialId
+ *   \c OptMatId
  * - \c particles stores scintillation spectrum for each particle type for each
  *   material, being a grid of size `num_particles * num_materials`. Therefore
  *   it is indexed by \c ParticleScintSpectrumId , which combines
- *   \c ScintillationParticleId and \c OpticalMaterialId . Use the
+ *   \c ScintillationParticleId and \c OptMatId . Use the
  *   \c spectrum_index() function to retrieve the correct index.
  */
 template<Ownership W, MemSpace M>
@@ -117,7 +117,7 @@ struct ScintillationData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    using OpticalMaterialItems = Collection<T, W, M, OptMatId>;
     template<class T>
     using ScintPidItems = Collection<T, W, M, ParticleScintSpectrumId>;
 
@@ -160,7 +160,7 @@ struct ScintillationData
 
     //! Retrieve spectrum index given optical particle and material ids
     ParticleScintSpectrumId
-    spectrum_index(ScintillationParticleId pid, OpticalMaterialId mat_id) const
+    spectrum_index(ScintillationParticleId pid, OptMatId mat_id) const
     {
         // Resolution scale exists independent of material-only data and it's
         // indexed by optical material id

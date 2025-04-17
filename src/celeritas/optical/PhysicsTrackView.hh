@@ -45,7 +45,7 @@ class PhysicsTrackView
     // Construct from params, state, and material ID for a given track
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const&,
                                            PhysicsStateRef const&,
-                                           OpticalMaterialId,
+                                           OptMatId,
                                            TrackSlotId);
 
     // Initialize the physics for the track
@@ -98,7 +98,7 @@ class PhysicsTrackView
   private:
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
-    OpticalMaterialId const opt_material_;
+    OptMatId const opt_material_;
     TrackSlotId const track_id_;
 };
 
@@ -111,7 +111,7 @@ class PhysicsTrackView
 CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
-                                   OpticalMaterialId opt_mat,
+                                   OptMatId opt_mat,
                                    TrackSlotId track_id)
     : params_(params)
     , states_(states)

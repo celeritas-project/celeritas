@@ -195,7 +195,7 @@ TEST_F(BraggICRU73QOTest, basic)
         MuHadIonizationInteractor<BraggICRU73QOEnergyDistribution> interact(
             data,
             this->particle_track(),
-            this->cutoff_params()->get(MaterialId{0}),
+            this->cutoff_params()->get(PhysMatId{0}),
             this->direction(),
             this->secondary_allocator());
         RandomEngine& rng = this->rng();
@@ -230,7 +230,7 @@ TEST_F(BraggICRU73QOTest, basic)
             MuHadIonizationInteractor<BraggICRU73QOEnergyDistribution> interact(
                 data,
                 this->particle_track(),
-                this->cutoff_params()->get(MaterialId{0}),
+                this->cutoff_params()->get(PhysMatId{0}),
                 this->direction(),
                 this->secondary_allocator());
 
@@ -312,7 +312,7 @@ TEST_F(BraggICRU73QOTest, stress_test)
                 MuHadIonizationInteractor<BraggICRU73QOEnergyDistribution>
                     interact(data,
                              this->particle_track(),
-                             this->cutoff_params()->get(MaterialId{0}),
+                             this->cutoff_params()->get(PhysMatId{0}),
                              this->direction(),
                              this->secondary_allocator());
 

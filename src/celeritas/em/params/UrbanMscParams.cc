@@ -119,7 +119,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     mdata.reserve(materials.num_materials());
     pmdata.reserve(host_data.num_par_mat * materials.num_materials());
 
-    for (auto mat_id : range(MaterialId{materials.num_materials()}))
+    for (auto mat_id : range(PhysMatId{materials.num_materials()}))
     {
         auto&& mat = materials.get(mat_id);
 

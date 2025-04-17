@@ -59,7 +59,7 @@ struct LogicalVolume
     //! Logical volume name and optional uniquifying extension
     Label label;
     //! Filled material ID
-    GeoMaterialId material_id;
+    GeoMatId material_id;
 
     //! "Unplaced" parent shape
     SPConstObject solid;

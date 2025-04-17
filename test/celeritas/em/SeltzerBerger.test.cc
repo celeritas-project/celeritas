@@ -104,7 +104,7 @@ class SeltzerBergerTest : public InteractorHostTestBase
         this->set_material("Cu");
     }
 
-    EnergySq density_correction(MaterialId matid, Energy e) const
+    EnergySq density_correction(PhysMatId matid, Energy e) const
     {
         CELER_EXPECT(matid);
         CELER_EXPECT(e > zero_quantity());
@@ -228,7 +228,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             model_->host_ref().differential_xs,
             Energy{inc_energy},
             ElementId{0},
-            this->density_correction(MaterialId{0}, Energy{inc_energy}),
+            this->density_correction(PhysMatId{0}, Energy{inc_energy}),
             gamma_cutoff);
         max_xs.push_back(edist_helper.max_xs().value());
 
@@ -264,7 +264,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             model_->host_ref().differential_xs,
             Energy{inc_energy},
             ElementId{0},
-            this->density_correction(MaterialId{0}, Energy{inc_energy}),
+            this->density_correction(PhysMatId{0}, Energy{inc_energy}),
             gamma_cutoff);
 
         // Sample with a "correction" that's constant, which shouldn't change
@@ -317,7 +317,7 @@ TEST_F(SeltzerBergerTest, basic)
 
     // Production cuts
     auto material_view = this->material_track().material_record();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     SeltzerBergerInteractor interact(model_->host_ref(),
@@ -378,7 +378,7 @@ TEST_F(SeltzerBergerTest, stress_test)
     std::vector<real_type> avg_engine_samples;
 
     // Views
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
     auto material_view = this->material_track().material_record();
 
     // Loop over a set of incident gamma energies

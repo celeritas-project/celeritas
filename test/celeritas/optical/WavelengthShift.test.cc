@@ -67,7 +67,7 @@ class WavelengthShiftTest : public InteractorHostTestBase
         data_ = params_->host_ref();
     }
 
-    OpticalMaterialId material_id_{0};
+    OptMatId material_id_{0};
     std::shared_ptr<WavelengthShiftParams const> params_;
     HostDataCRef data_;
 };

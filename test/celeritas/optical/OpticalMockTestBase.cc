@@ -104,11 +104,11 @@ auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
     for (auto opt_mat : range(8))
     {
         input.volume_to_mat.push_back(
-            OpticalMaterialId(opt_mat % input.properties.size()));
+            OptMatId(opt_mat % input.properties.size()));
     }
 
-    // mock MaterialId == OpticalMaterialId
-    for (auto mat : range(MaterialId(input.properties.size())))
+    // mock PhysMatId == OptMatId
+    for (auto mat : range(PhysMatId(input.properties.size())))
     {
         input.optical_to_core.push_back(mat);
     }
@@ -144,8 +144,8 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
             {},
             std::to_string(i).c_str()});
 
-        // mock MaterialId == OpticalMaterialId
-        input.mat_to_optical.push_back(OpticalMaterialId(i));
+        // mock PhysMatId == OptMatId
+        input.mat_to_optical.push_back(OptMatId(i));
     }
 
     return std::make_shared<::celeritas::MaterialParams const>(

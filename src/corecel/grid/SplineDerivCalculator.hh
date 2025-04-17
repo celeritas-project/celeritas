@@ -97,11 +97,11 @@ class SplineDerivCalculator
     VecReal operator()(UniformGridRecord const&, Values const&) const;
     VecReal operator()(NonuniformGridRecord const&, Values const&) const;
 
-    //! Minimum grid size for cubic spline interpolation
-    static CELER_CONSTEXPR_FUNCTION int min_grid_size() { return 5; }
-
     // Calculate the second derivatives from an inverted uniform grid
     VecReal calc_from_inverse(UniformGridRecord const&, Values const&) const;
+
+    //! Minimum grid size for cubic spline interpolation
+    static CELER_CONSTEXPR_FUNCTION int min_grid_size() { return 5; }
 
   private:
     //// TYPES ////

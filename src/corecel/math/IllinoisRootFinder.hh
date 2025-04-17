@@ -33,7 +33,7 @@ template<class F>
 class IllinoisRootFinder
 {
   public:
-    // Contruct with function to solve and solution tolerance
+    // Construct with function to solve and solution tolerance
     inline CELER_FUNCTION IllinoisRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points

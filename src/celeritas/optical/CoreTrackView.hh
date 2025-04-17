@@ -182,7 +182,7 @@ CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
  */
 CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
 {
-    OpticalMaterialId mat_id = this->material_record().material_id();
+    OptMatId mat_id = this->material_record().material_id();
     CELER_ASSERT(mat_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
