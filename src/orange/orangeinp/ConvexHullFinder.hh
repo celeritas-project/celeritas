@@ -25,7 +25,7 @@ namespace orangeinp
  * These points must be supplied in clockwise-order such that segments between
  * adjacent points, including the last and first points, comprise a
  * non-self-intersecting polygon. Exploiting this ordering, the Graham Scan
- * algorithm \citet{graham_efficient_1972,
+ * algorithm \citet{graham-convexhull-1972,
  * https://doi.org/10.1016/0020-0190(72)90045-2} finds the convex hull with
  * O(N) time complexity.
  */
