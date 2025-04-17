@@ -14,7 +14,6 @@
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Turn.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/field/detail/CovfieFieldType.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -53,31 +52,6 @@ struct CylMapGridData
         CELER_EXPECT(other);
         storage = other.storage;
         axes = other.axes;
-        return *this;
-    }
-};
-
-template<Ownership W, MemSpace M>
-struct CovfieMapFieldParamsData
-{
-    using real_type = cylmap_real_type;
-    using field_t = CovfieFieldTrait<M>::field_t;
-
-    field_t field;  //!< Covfie field data
-
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        // TODO: how to check with covfie
-        return true;
-    }
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    CovfieMapFieldParamsData&
-    operator=(CovfieMapFieldParamsData<W2, M2> const& other)
-    {
-        CELER_EXPECT(other);
-        field = other.field;
         return *this;
     }
 };

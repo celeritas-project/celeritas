@@ -18,9 +18,7 @@
 #include "corecel/math/Turn.hh"
 #include "celeritas/Types.hh"
 
-#include "CylMapFieldData.hh"
-
-#include "detail/CovfieFieldType.hh"
+#include "CovfieMapFieldData.hh"
 
 namespace celeritas
 {
