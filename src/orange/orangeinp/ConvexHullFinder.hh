@@ -23,8 +23,10 @@ namespace orangeinp
 /*!
  * Find the convex hull of a sequence of 2D points.
  *
- * These points must be supplied in clockwise-order such that segments between
- * adjacent points, including the last and first points, comprise a
+ * This helper class does not take ownership of the supplied points, so the
+ * lifetime of objects of this class should be shorter than the lifetime of the
+ * points. These points must be supplied in clockwise-order such that segments
+ * between adjacent points, including the last and first points, comprise a
  * non-self-intersecting polygon. Exploiting this ordering, the Graham Scan
  * algorithm \citet{graham-convexhull-1972,
  * https://doi.org/10.1016/0020-0190(72)90045-2} finds the convex hull with
