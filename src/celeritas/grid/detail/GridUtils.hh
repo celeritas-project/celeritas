@@ -69,6 +69,10 @@ void set_spline(Values<Ownership::value>* values,
         CELER_ASSERT(interpolation.order > 1);
         data.spline_order = interpolation.order;
     }
+    else
+    {
+        /* No spline data added */
+    }
     CELER_ENSURE(data);
 }
 
