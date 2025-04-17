@@ -164,7 +164,7 @@ auto ConvexHullFinder<T>::calc_concave_regions() const -> VecVecReal2
             } while (!convex_mask_[i]);
 
             concave_region.push_back(points_[i]);
-            concave_regions.push_back(concave_region);
+            concave_regions.push_back(std::move(concave_region));
         }
     }
     return concave_regions;
